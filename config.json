@@ -1,0 +1,39 @@
+﻿{
+  "game": false,
+  "canJoin": false,
+  "players": [],
+  "players_alive": [],
+  "players_dead": [],
+  "rooms": [],
+  "objects": [],
+  "clues": [],
+  "items": [],
+  "puzzles": [],
+  "whispers": [],
+  "statusEffects": [],
+  "hiddenPlayers": [],
+  "playersDeafened": false,
+  "concealedPlayer": {
+    "member": null,
+    "location": null,
+    "hidden": false
+  },
+  "investigation": false,
+  "deadRole": "581622037655846964",
+  "playingRole": "581622083784540166",
+  "spectateRole": "581622138830716929",
+  "roleOnJoin": "",
+  "parent_channel": "581619843573350406",
+  "commandsChannel": "581620608450822163",
+  "logChannel": "581620193172652042",
+  "role_needed": "Moderator",
+  "endgame": {
+    "sendChannel": "581616831928729600"
+  },
+  "majority": {
+    "announceChannel": "581577596035268612"
+  },
+  "startgame": {
+    "sendChannel": "581616831928729600"
+  }
+}

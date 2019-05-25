@@ -1,0 +1,14 @@
+{
+  "name": "alter-ego",
+  "version": "0.0.1",
+  "description": "An in-depth Danganronpa role play bot for Discord",
+  "main": "bot.js",
+  "author": {
+    "name": "Jared Evan Anderson"
+  },
+  "dependencies": {
+    "discord.js": "^11.5.0",
+    "googleapis": "^39.2.0",
+    "nodemon": "^1.19.0"
+  }
+}
