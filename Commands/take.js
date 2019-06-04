@@ -78,7 +78,7 @@ module.exports.run = async (bot, config, message, args) => {
         parsedInput = input.toUpperCase();
         parsedInput = parsedInput.replace(/\'/g, "");
     }
-    const guild = bot.guilds.find(guild => guild.id === config);
+    const guild = bot.guilds.first();
 
     const statuses = currentPlayer.statusString;
 

@@ -105,7 +105,7 @@ module.exports.run = async (bot, config, message, args) => {
 
     const whisper = new Whisper(recipients, currentPlayer.location);
 
-    const guild = bot.guilds.find(guild => guild.id === config);
+    const guild = bot.guilds.first();
     guild.createChannel(whisper.channelName, "text").then(function (channel) {
         channel.setParent('548248180962361347');
         for (var i = 0; i < recipients.length; i++) {

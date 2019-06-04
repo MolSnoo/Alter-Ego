@@ -44,7 +44,7 @@ module.exports.run = async (bot, config, message, args) => {
     if (statuses.includes("restricted")) return message.reply("you are **restricted**. You cannot move.");
     if (statuses.includes("hidden")) return message.reply(`you are currently **hidden**. Use "${settings.prefix}hide unhide" first.`);
 
-    const guild = bot.guilds.find(guild => guild.id === config);
+    const guild = bot.guilds.first();
     const channel = guild.channels.find(channel => channel.name === currentPlayer.location);
     const moderators = guild.roles.find(role => role.name === config.role_needed);
     const logchannel = guild.channels.find(channel => channel.id === config.logChannel);

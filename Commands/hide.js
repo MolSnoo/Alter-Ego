@@ -28,7 +28,7 @@ module.exports.run = async (bot, config, message, args) => {
     if ((message.channel.parentID !== config.parent_channel)
         && (!isPlayer || message.channel.type !== "dm")) return;
 
-    const guild = bot.guilds.find(guild => guild.id === config);
+    const guild = bot.guilds.first();
     const channel = guild.channels.find(channel => channel.name === currentPlayer.location);
 
     const statuses = currentPlayer.statusString;

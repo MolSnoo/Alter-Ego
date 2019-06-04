@@ -60,7 +60,7 @@ module.exports.run = async (bot, config, message, args) => {
             concealedPlayerinRoom = true;
         }
 
-        const guild = bot.guilds.find(guild => guild.id === config);
+        const guild = bot.guilds.first();
         const channel = guild.channels.find(channel => channel.name === currentPlayer.location);
         const logchannel = guild.channels.find(channel => channel.id === config.logChannel);
 

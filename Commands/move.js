@@ -118,7 +118,7 @@ module.exports.run = async (bot, config, message, args) => {
         }
 
         // Find the correct channel.
-        const guild = bot.guilds.find(guild => guild.id === config);
+        const guild = bot.guilds.first();
         const schannel = guild.channels.find(channel => channel.name === room[desiredRoom].name);
         if (!schannel || schannel.parentID !== config.parent_channel) return message.reply("room not found.");
         if ((schannel === message.channel) || (schannel.name === currentPlayer.location)) return;
@@ -195,7 +195,7 @@ module.exports.run = async (bot, config, message, args) => {
                 break;
         }
         const scope = {
-            guild: bot.guilds.find(guild => guild.id === config),
+            guild: bot.guilds.first(),
             config: config,
             message: message,
             currentPlayer: currentPlayer,
@@ -232,7 +232,7 @@ module.exports.run = async (bot, config, message, args) => {
             }
 
             const scope = {
-                guild: bot.guilds.find(guild => guild.id === config),
+                guild: bot.guilds.first(),
                 config: config,
                 message: message,
                 currentPlayer: currentPlayer,
