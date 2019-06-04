@@ -1,15 +1,16 @@
 ﻿const { google } = require('googleapis');
-const privatekey = require("../credentials.json");
+const credentials = require("../credentials.json");
 var sheets = google.sheets('v4');
 
-const spreadsheetID = '16u4aJ4-RqBM0-xK_U1LyhZJfaJKM_Qm2nToDEXFNk2M';
-const roomSheetID = 0;
-const objectSheetID = 1923975664;
-const clueSheetID = 1605102522;
-const itemSheetID = 388122416;
-const puzzleSheetID = 1961307123;
-const statusEffectSheetID = 1040343283;
-const playerSheetID = 680018352;
+let config = require("../config.json");
+const spreadsheetID = config.spreadsheetID;
+const roomSheetID = config.roomSheetID;
+const objectSheetID = config.objectSheetID;
+const clueSheetID = config.clueSheetID;
+const itemSheetID = config.itemSheetID;
+const puzzleSheetID = config.puzzleSheetID;
+const statusEffectSheetID = config.statusEffectSheetID;
+const playerSheetID = config.playerSheetID;
 
 module.exports.getData = function (sheetrange, dataOperation) { 
     authorize(function (authClient) {
@@ -279,6 +280,8 @@ function authorize(callback) {
     //   'https://www.googleapis.com/auth/drive.readonly'
     //   'https://www.googleapis.com/auth/spreadsheets'
     //   'https://www.googleapis.com/auth/spreadsheets.readonly'
+    const privatekey = credentials.google;
+
     var authClient = new google.auth.JWT(
         privatekey.client_email,
         null,

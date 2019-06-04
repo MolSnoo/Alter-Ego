@@ -1,11 +1,12 @@
 'use strict';
 
 const settings = require('./settings.json');
-const Discord = require('discord.js');
-const bot = new Discord.Client();
+const credentials = require('./credentials.json');
+const discord = require('discord.js');
+const bot = new discord.Client();
 const fs = require('fs');
 
-bot.commands = new Discord.Collection;
+bot.commands = new discord.Collection;
 function loadCommands() {
     fs.readdir('./Commands/', (err, files) => {
         if (err) console.log(err);
@@ -58,4 +59,4 @@ bot.on('message', async message => {
         
 });
 
-bot.login(settings.token);
+bot.login(credentials.discord.token);
