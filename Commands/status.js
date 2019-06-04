@@ -95,7 +95,7 @@ module.exports.run = async (bot, config, message, args) => {
 };
 
 module.exports.inflict = function (player, status, config, bot, notify, updateSheet) {
-    const guild = bot.guilds.find(guild => guild.name === "Danganhouse Game");
+    const guild = bot.guilds.first();
     const playerUser = guild.members.find(member => member.displayName === player.name);
     const playerName = player.name;
     const playerLocation = guild.channels.find(channel => channel.name === player.location);
@@ -208,12 +208,6 @@ module.exports.inflict = function (player, status, config, bot, notify, updateSh
             // Delete whispers, if applicable.
             move.deleteWhispers(player, guild, config, "has gone unconscious.");
         }
-        /*
-        x = setTimeout(function () {
-            if (mn) generalChat.send(`${min / 2} minutes remaining to join the game. Use ${settings.prefix}play to join!`);
-            if (hr) generalChat.send(`${hour / 2} hours remaining to join the game. Use ${settings.prefix}play to join!`);
-        }, halfTime);
-        */
         player.status[position].timer = setInterval(function () {
             createdStatus.duration -= 1000;
 
@@ -299,7 +293,7 @@ module.exports.inflict = function (player, status, config, bot, notify, updateSh
 }
 
 module.exports.cure = function (player, status, config, bot, notify, doCuredCondition) {
-    const guild = bot.guilds.find(guild => guild.name === "Danganhouse Game");
+    const guild = bot.guilds.first();
     const playerUser = guild.members.find(member => member.displayName === player.name);
     const playerLocation = guild.channels.find(channel => channel.name === player.location);
     const logchannel = guild.channels.find(channel => channel.id === config.logChannel);

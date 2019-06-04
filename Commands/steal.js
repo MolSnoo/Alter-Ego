@@ -76,7 +76,7 @@ module.exports.run = async (bot, config, message, args) => {
         else if (config.players_alive[i].name.toLowerCase() === input.toLowerCase()) return message.reply("can't steal from " + config.players_alive[i].name + " because they aren't in the room with you.");
     }
     if (victim === null) return message.reply("couldn't find player \"" + input + "\". Make sure you spelled it right.");
-    const guild = bot.guilds.find(guild => guild.name === "Danganhouse Game");
+    const guild = bot.guilds.first();
     const victimMember = guild.members.find(member => member.id === victim.id);
     const channel = guild.channels.find(channel => channel.name === currentPlayer.location);
     const logchannel = guild.channels.find(channel => channel.id === config.logChannel);

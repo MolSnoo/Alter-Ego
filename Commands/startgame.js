@@ -1,12 +1,14 @@
 ﻿const discord = require("discord.js");
 const settings = require("../settings.json");
 
+const sheet = require("../House-Data/sheets.js");
+
 //>startgame [time to join h/m] || >startgame stop
 
 module.exports.run = async (bot, config, message, args) => {
-    if (message.channel.id !== config.commandsChannel) return;
     if (config.game) return message.reply("There is already a game running.");
-    if (message.member.roles.find(role => role.name !== config.role_needed)) return message.reply(`You must be ${config.role_needed} to use that command.`);
+    if (message.channel.id !== config.commandsChannel) return;
+    if (!message.member.roles.find(role => role.name === config.role_needed)) return message.reply(`You must be ${config.role_needed} to use that command.`);
 
     if (args[0] === "stop") {
         stop();
@@ -23,7 +25,7 @@ module.exports.run = async (bot, config, message, args) => {
     if (timeLimit.indexOf('m') !== -1 && timeLimit.indexOf('h') !== -1) return message.reply("Time input cannot have both m and h after it.");
 
     let time, halfTime, min, hour, mn = false, hr = false;
-    if (timeLimit.index('m') !== -1) {
+    if (timeLimit.indexOf('m') !== -1) {
         min = timeLimit.slice(0, timeLimit.indexOf('m'));
         time = min * 60000;
         halfTime = time / 2;
@@ -37,25 +39,25 @@ module.exports.run = async (bot, config, message, args) => {
     }
 
     x = setTimeout(function () {
-        if (mn) generalChat.send(`${min / 2} minutes remaining to join the game. Use ${settings.commandPrefix}play to join!`);
-        if (hr) generalChat.send(`${hour / 2} hours remaining to join the game. Use ${settings.commandPrefix}play to join!`);
+        if (mn) channel.send(`${min / 2} minutes remaining to join the game. Use ${settings.commandPrefix}play to join!`);
+        if (hr) channel.send(`${hour / 2} hours remaining to join the game. Use ${settings.commandPrefix}play to join!`);
     }, halfTime);
 
     y = setTimeout(function () {
         config.canJoin = false;
-        channel.send(`${playing}, time's up! The game will begin once the moderator is ready.`);
+        channel.send(`${playingRole}, time's up! The game will begin once the moderator is ready.`);
         var players = new Array();
         for (var i = 0; i < config.players.length; i++) {
             players.push(new Array(config.players[i].id, config.players[i].name, "", config.players[i].clueLevel, config.players[i].alive, config.players[i].location, config.players[i].hidingSpot, "satisfied, well rested", "NULL", "", "", "", "", "", "", ""));
             players.push(new Array("", "", "", "", "", "", "", "", "NULL", "", "", "", "", "", "", ""));
             players.push(new Array("", "", "", "", "", "", "", "", "NULL", "", "", "", "", "", "", ""));
         }
-        sheet.updateDate('Players!A3:P', players);
+        sheet.updateData('Players!A3:P', players);
     }, time);
 
     config.game = true;
     config.canJoin = true;
-    let startGame = `<@${message.author.id}> has started a game. `;
+    let startGame = `${message.member.displayName} has started a game. `;
     if (mn) startGame += `You have ${min} minutes to join the game with ${settings.commandPrefix}play.`;
     if (hr) startGame += `You have ${hour} hours to join the game with ${settings.commandPrefix}play.`;
     channel.send(startGame);

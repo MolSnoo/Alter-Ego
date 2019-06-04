@@ -31,6 +31,10 @@ bot.on('ready', () => {
     if (bot.guilds.size === 1) {
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
+        if (settings.debug) {
+            bot.user.setActivity("NWP Debugger.exe");
+            bot.user.setStatus("dnd");
+        }
     }
     else {
         console.log("Error: Bot must be on only one server.");
@@ -54,9 +58,8 @@ bot.on('message', async message => {
         const commandSplit = message.content.substring(1).split(" ");
         const args = commandSplit.slice(1);
         let commandFile = bot.commands.get(commandSplit[0]);
-        if (commandFile) commandFile.run(bot, config, message, args).then(() => { message.delete().catch(); });
-    }
-        
+        if (commandFile) commandFile.run(bot, config, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
+    }   
 });
 
 bot.login(credentials.discord.token);

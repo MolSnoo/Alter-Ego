@@ -65,6 +65,9 @@ module.exports.die = function (player, config, channel, index) {
     player.alive = false;
     player.location = "";
     player.hidingSpot = "";
+    for (var i = 0; i < player.status.length; i++) {
+        clearInterval(player.status[i].timer);
+    }
     player.status.length = 0;
 
     // Update that data on the sheet, as well.

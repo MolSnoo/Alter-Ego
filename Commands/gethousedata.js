@@ -346,6 +346,13 @@ module.exports.getStatusEffects = function (config) {
 
 module.exports.getPlayers = function (config, bot) {
     return new Promise((resolve, reject) => {
+        // Clear all player status effects first.
+        for (var i = 0; i < config.players.length; i++) {
+            for (var j = 0; j < config.players[i].status.length; j++) {
+                clearInterval(config.players[i].status[j].timer);
+            }
+        }
+
         const spreadsheet = sheet;
         sheet.getData("Players!A1:O", function (response) {
             const sheet = response.data.values;
