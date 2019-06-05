@@ -55,7 +55,7 @@ module.exports.addItem = function (description, item) {
         }
         else {
             var start = sentences[i].clause[j].text.search(/\d/);
-            if (start != -1) {
+            if (start !== -1) {
                 var end;
                 for (end = start; end < sentences[i].clause[j].text.length; end++) {
                     if (isNaN(sentences[i].clause[j].text.charAt(end + 1)))
@@ -68,13 +68,13 @@ module.exports.addItem = function (description, item) {
     }
 
     // The sentence doesn't already contain this item.
-    else {
+    else if (!itemAlreadyExists) {
         // We need to find the location of the beginning of the item list.
         var containsItemList = false;
         for (i = 0; i < sentences.length; i++) {
             for (j = 0; j < sentences[i].clause.length; j++) {
                 if (sentences[i].clause[j].text === "<") {
-                    containsItemList = true
+                    containsItemList = true;
                     break;
                 }
             }
@@ -104,6 +104,7 @@ module.exports.removeItem = function (description, item) {
     for (i = 0; i < sentences.length; i++) {
         for (j = 0; j < sentences[i].clause.length; j++) {
             if (sentences[i].clause[j].text.includes(item.singleContainingPhrase)
+                || (j === 1 && sentences[i].clause[j].text.startsWith("A ") && sentences[i].clause[j].text.includes('A' + item.singleContainingPhrase.substring(1)))
                 || (item.pluralContainingPhrase !== "" && sentences[i].clause[j].text.includes(item.pluralContainingPhrase))) {
                 removeItem = true;
                 break;
@@ -115,39 +116,22 @@ module.exports.removeItem = function (description, item) {
     if (removeItem && sentences[i].clause[j].isItem) {
         // First make sure that there aren't multiple of that item.
         if (item.quantity > 0) {
-            var containsQuantity = false;
-            for (var k = 0; k < sentences[i].clause[j].text.length; k++) {
-                if ("0123456789".includes(sentences[i].clause[j].text.charAt(k))) {
-                    containsQuantity = true;
-                    break;
-                }
+            if (item.quantity === 1) {
+                if ("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz".includes(sentences[i].clause[j].text.charAt(sentences[i].clause[j].text.length - 1)))
+                    sentences[i].clause[j].text = item.singleContainingPhrase;
+                else
+                    sentences[i].clause[j].text = item.singleContainingPhrase + sentences[i].clause[j].text.charAt(sentences[i].clause[j].text.length - 1);
             }
-            if (containsQuantity) {
-                if (item.quantity > 1) {
-                    sentences[i].clause[j].text = sentences[i].clause[j].text.replace(sentences[i].clause[j].text.charAt(k), item.quantity);
-                }
-                else {
-                    /*
-                    sentences[i].clause[j].text = sentences[i].clause[j].text.substring(0, k) + 'a' + sentences[i].clause[j].text.substring(k + 1);
-                    const pluralWord = sentences[i].clause[j].text.substring(k + 2, sentences[i].clause[j].text.indexOf(' ', k + 2));
-                    var singularWord;
-                    if (pluralWord.endsWith("ses")
-                        || pluralWord.endsWith("sses")
-                        || pluralWord.endsWith("shes")
-                        || pluralWord.endsWith("ches")
-                        || pluralWord.endsWith("xes")
-                        || pluralWord.endsWith("zes")) {
-                        singularWord = pluralWord.substring(0, pluralWord.lastIndexOf("es"));
+            else {
+                var start = sentences[i].clause[j].text.search(/\d/);
+                if (start !== -1) {
+                    var end;
+                    for (end = start; end < sentences[i].clause[j].text.length; end++) {
+                        if (isNaN(sentences[i].clause[j].text.charAt(end + 1)))
+                            break;
                     }
-                    else if (pluralWord.endsWith('s')) {
-                        singularWord = pluralWord.substring(0, pluralWord.length - 1);
-                    }
-                    sentences[i].clause[j].text = sentences[i].clause[j].text.replace(pluralWord, singularWord);
-                    */
-                    if ("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz".includes(sentences[i].clause[j].text.charAt(sentences[i].clause[j].text.length - 1)))
-                        sentences[i].clause[j].text = item.singleContainingPhrase;
-                    else
-                        sentences[i].clause[j].text = item.singleContainingPhrase + sentences[i].clause[j].text.charAt(sentences[i].clause[j].text.length - 1);
+                    const quantity = parseInt(sentences[i].clause[j].text.substring(start, end));
+                    sentences[i].clause[j].text = sentences[i].clause[j].text.replace(quantity, quantity - 1);
                 }
             }
         }
@@ -359,7 +343,7 @@ function addClause(sentence, itemClause, i) {
         }
         // BEFORE: "However, you do find <{a MOUSE,} a wooden ruler, and {a KEYBOARD.}>"
         // ADD: "FLASH DRIVE"
-        // AFTER: "However, you do find <{a FLASH DRIVE,} {a rather large HAMMER,} a wooden ruler, and {a KEYBOARD.}>"
+        // AFTER: "However, you do find <{a FLASH DRIVE,} {a MOUSE,} a wooden ruler, and {a KEYBOARD.}>"
         else {
             itemClause.text += ',';
             clause.splice(i + 1, 0, itemClause);
@@ -394,7 +378,7 @@ function addClause(sentence, itemClause, i) {
         }
         // BEFORE: "There are <{3 CLARINETS} and a PIANO.>"
         // ADD: "DRUM STICKS"
-        // AFTER: "There are <{a set of DRUM STICKS,} {3 CLARINETS,} a PIANO, and some SNARE DRUMS.>"
+        // AFTER: "There are <{a set of DRUM STICKS,} {3 CLARINETS,} and a PIANO.>"
         else if (clause[i + 1].isItem && !clause[i + 1].text.endsWith(',')
             && !clause[i + 2].isItem && clause[i + 2].text.startsWith("and")) {
             itemClause.text += ',';
@@ -417,7 +401,7 @@ function addClause(sentence, itemClause, i) {
     else {
         // BEFORE: "There are <BASKETBALLS, SOCCER BALLS, and BASEBALLS.>"
         // ADD: "TENNIS BALL"
-        // AFTER: "There are <{a TENNIS BALL,} SOCCER BALLS, and BASEBALLS.>
+        // AFTER: "There are <{a TENNIS BALL,} BASKETBALLS, SOCCER BALLS, and BASEBALLS.>"
         if (clause[i + 1].text.includes(", and ") && clause[i + 2].text === ">") {
             itemClause.text += ",";
             clause.splice(i + 1, 0, itemClause);
@@ -426,7 +410,7 @@ function addClause(sentence, itemClause, i) {
         }
         // BEFORE: "There are <SOCCER BALLS and BASEBALLS.>"
         // ADD: "TENNIS BALL"
-        // AFTER: "There are <{a TENNIS BALL,} SOCCER BALLS, and BASEBALLS.>
+        // AFTER: "There are <{a TENNIS BALL,} SOCCER BALLS, and BASEBALLS.>"
         else if (clause[i + 1].text.includes(" and ") && clause[i + 2].text === ">") {
             itemClause.text += ",";
             clause[i + 1].text = clause[i + 1].text.replace(" and ", ", and ");
@@ -445,7 +429,7 @@ function addClause(sentence, itemClause, i) {
         }
         // BEFORE: "However, you do find <a wooden ruler.>"
         // ADD: "KEYBOARD"
-        // AFTER: "However, you do find <{a KEYBOARD} and a wooden ruler.>
+        // AFTER: "However, you do find <{a KEYBOARD} and a wooden ruler.>"
         else if (!clause[i + 1].isItem && clause[i + 2].text === ">") {
             clause[i + 1].text = "and " + clause[i + 1].text;
             clause.splice(i + 1, 0, itemClause);
@@ -565,9 +549,9 @@ function removeClause(sentence, i) {
                 //clause.push(new Clause("7", false));
                 return sentence;
             }
-            // BEFORE: "On these shelves are {a bottle of PAINKILLERS,} {3 bottles of ZZZQUIL,} and {a bottle of LAXATIVES.}"
+            // BEFORE: "On these shelves are <{a bottle of PAINKILLERS,} {3 bottles of ZZZQUIL,} and {a bottle of LAXATIVES.}>"
             // REMOVE: "ZZZQUIL"
-            // AFTER: "On these shelves are {a bottle of PAINKILLERS} and {a bottle of LAXATIVES.}"
+            // AFTER: "On these shelves are <{a bottle of PAINKILLERS} and {a bottle of LAXATIVES.}>"
             else if (clause[i - 2] && !clause[i - 2].isItem && clause[i - 1].text.endsWith(',') && clause[i + 2].isItem) {
                 clause[i - 1].text = clause[i - 1].text.substring(0, clause[i - 1].text.length - 1);
                 //clause.push(new Clause("8", false));

@@ -34,6 +34,8 @@ bot.on('ready', () => {
         if (settings.debug) {
             bot.user.setActivity("NWP Debugger.exe");
             bot.user.setStatus("dnd");
+            const tests = require("./Tests/run_tests.js");
+            tests.runTests();
         }
     }
     else {
