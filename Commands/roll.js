@@ -113,6 +113,16 @@ module.exports.rollDie = function (attacker, defender) {
                 if (modifierList === "") modifierList = (defender.status[i].rollModifier + 10) + " (**" + defender.name + "** " + defender.status[i].name + ")";
                 else modifierList += ", " + (defender.status[i].rollModifier + 10) + " (**" + defender.name + "** " + defender.status[i].name + ")";
             }
+            else if (defender.status[i].rollModifier > 0 && defender.status[i].rollModifier < 10) {
+                modifier += (defender.status[i].rollModifier * -1);
+                if (modifierList === "") modifierList = (defender.status[i].rollModifier * -1) + " (**" + defender.name + "** " + defender.status[i].name + ")";
+                else modifierList += ", " + (defender.status[i].rollModifier * -1) + " (**" + defender.name + "** " + defender.status[i].name + ")";
+            }
+            else if (defender.status[i].rollModifier < 0 && defender.status[i].rollModifier > -10) {
+                modifier += (defender.status[i].rollModifier * -1);
+                if (modifierList === "") modifierList = "+" + (defender.status[i].rollModifier * -1) + " (**" + defender.name + "** " + defender.status[i].name + ")";
+                else modifierList += ", +" + (defender.status[i].rollModifier * -1) + " (**" + defender.name + "** " + defender.status[i].name + ")";
+            }
         }
     }
     else if (attacker) {
