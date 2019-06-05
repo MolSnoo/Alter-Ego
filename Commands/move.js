@@ -18,6 +18,12 @@ module.exports.run = async (bot, config, message, args) => {
         }
     }
 
+    var isHeadmaster = false;
+    if (currentPlayer) {
+        const member = bot.guilds.first().members.find(member => member.id === currentPlayer.id);
+        if (member.roles.find(role => role.id === config.headmasterRole)) isHeadmaster = true;
+    }
+
     if ((message.channel.parentID !== config.parent_channel)
         && (message.channel.id !== config.commandsChannel)
         && (!isPlayer || message.channel.type !== "dm")) return;
@@ -33,12 +39,12 @@ module.exports.run = async (bot, config, message, args) => {
 		message.reply("you need to specify a room. Usage:");
 		message.channel.send(usage);
 		return;
-	}
+    }
 
     var input = args.join(" ");
     const room = config.rooms;
 
-    if (isPlayer && currentPlayer.name !== "Monokuma") {
+    if (isPlayer && !isHeadmaster) {
         const statuses = currentPlayer.statusString;
         if (statuses.includes("asleep")) return message.reply("you are **asleep**. You cannot do anything.");
         if (statuses.includes("unconscious")) return message.reply("you are **unconscious**. You cannot do anything.");
@@ -182,7 +188,7 @@ module.exports.run = async (bot, config, message, args) => {
         if (message.channel.type !== "dm")
             message.delete().catch();
     }
-    else if (isPlayer && currentPlayer.name === "Monokuma") {
+    else if (isPlayer && isHeadmaster) {
         const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
         var currentRoom = -1;
         var desiredRoom = -1;
@@ -240,18 +246,17 @@ module.exports.run = async (bot, config, message, args) => {
                 room: config.rooms,
                 currentRoom: currentRoom,
                 desiredRoom: desiredRoom
-            }
+            };
 
             if (args[0] === "all" || args[0] === "living") {
-                if (currentPlayer.location !== room[desiredRoom].name)
+                const member = message.guild.members.find(member => member.id === currentPlayer.id);
+                if (currentPlayer.location !== room[desiredRoom].name && !member.roles.find(role => role.id === config.headmasterRole))
                     exports.movePlayer(scope, "enters", "exits");
-
             }
             else {
                 for (var j = 0; j < args.length - 1; j++) {
-                    if (config.players_alive[i].name.toLowerCase() === args[j].toLowerCase() && config.players_alive[i].location !== room[desiredRoom].name) {
+                    if (config.players_alive[i].name.toLowerCase() === args[j].toLowerCase() && config.players_alive[i].location !== room[desiredRoom].name)
                         exports.movePlayer(scope, "enters", "exits");
-                    }
                 }
             }
         }
