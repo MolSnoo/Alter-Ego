@@ -13,10 +13,14 @@ module.exports.run = async (bot, config, message, args) => {
     }
     if (!config.canJoin) return message.reply("You were too late to join the game.");
 
-    config.players.push(new Player(message.author.id, message.member.displayName, "", 0, true, "park", "", new Array()));
-    config.players_alive.push(new Player(message.author.id, message.member.displayName, "", 0, true, "park", "", new Array()));
-    message.member.addRole(config.playingRole);
-    message.channel.send(`<@${message.author.id}> has joined the game!`);
+    if ((settings.debug && message.member.roles.find(role => role.id === config.testingRole))
+        || (!settings.debug && message.member.roles.find(role => role.id === config.studentRole))) {
+        config.players.push(new Player(message.author.id, message.member.displayName, "", 0, true, "park", "", new Array()));
+        config.players_alive.push(new Player(message.author.id, message.member.displayName, "", 0, true, "park", "", new Array()));
+        message.member.addRole(config.playingRole);
+        message.channel.send(`<@${message.author.id}> has joined the game!`);
+    }
+    else return message.reply("You are not eligible to play. If you think this is a mistake, contact a moderator.");
 };
 
 module.exports.help = {

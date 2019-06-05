@@ -58,6 +58,8 @@ module.exports.run = async (bot, config, message, args) => {
                 config.game = true;
                 config.isNormal = false;
                 config.canJoin = false;
+                if (!settings.debug)
+                    bot.user.setActivity("Neo World Program", { type: 'STREAMING', url: 'https://www.twitch.tv/molsno' });
                 for (var i = 0; i < config.rooms.length; i++) {
                     config.rooms[i].occupants.length = 0;
                     config.rooms[i].occupantsString = "";
@@ -85,6 +87,8 @@ module.exports.run = async (bot, config, message, args) => {
                 config.game = true;
                 config.isNormal = false;
                 config.canJoin = false;
+                if (!settings.debug)
+                    bot.user.setActivity("Neo World Program", { type: 'STREAMING', url: 'https://www.twitch.tv/molsno' });
             }
         }
         else if (args[0] === "rooms") {

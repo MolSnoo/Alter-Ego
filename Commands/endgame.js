@@ -30,11 +30,17 @@ module.exports.run = async (bot, config, message, args) => {
 
     config.game = false;
     config.canJoin = false;
+    if (!settings.debug) {
+        bot.user.setActivity("Future Foundation HQ", { type: 'LISTENING' });
+        bot.user.setStatus("online");
+    }
     config.players = [];
     config.players_alive = [];
     config.players_dead = [];
 
-    const channel = bot.channels.get(config.endgame.sendChannel);
+    var channel;
+    if (settings.debug) channel = bot.channels.get(config.testingChannel);
+    else channel = bot.channels.get(config.generalChannel);
     channel.send(`${message.member.displayName} ended the game!`);
 };
 

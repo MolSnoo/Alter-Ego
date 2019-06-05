@@ -17,7 +17,9 @@ module.exports.run = async (bot, config, message, args) => {
     if (!args[0]) return message.reply("Remember to specify how long players have to join!");
 
     const playingRole = message.guild.roles.find(role => role.id === config.playingRole);
-    const channel = bot.channels.get(config.startgame.sendChannel);
+    var channel;
+    if (settings.debug) channel = bot.channels.get(config.testingChannel);
+    else channel = bot.channels.get(config.generalChannel);
 
     const timeLimit = args[0];
     if (isNaN(timeLimit.charAt(0)) && isNaN(timeLimit.charAt(1))) return message.reply("Time input must be a number [5h / 5m].");
@@ -61,6 +63,9 @@ module.exports.run = async (bot, config, message, args) => {
     if (mn) startGame += `You have ${min} minutes to join the game with ${settings.commandPrefix}play.`;
     if (hr) startGame += `You have ${hour} hours to join the game with ${settings.commandPrefix}play.`;
     channel.send(startGame);
+
+    if (settings.debug) message.channel.send("Started game in debug mode.");
+    else message.channel.send("Started game.");
 
     function stop() {
         clearTimeout(x);

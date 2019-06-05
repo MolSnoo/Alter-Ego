@@ -28,6 +28,7 @@
   },
   "investigation": false,
   "deadRole": "581612036514119680",
+  "testingRole": "585226322859655175",
   "studentRole": "581612389993152532",
   "playingRole": "581612815194783795",
   "spectateRole": "581611800794103809",
@@ -37,10 +38,6 @@
   "commandsChannel": "581620608450822163",
   "logChannel": "581620193172652042",
   "role_needed": "Moderator",
-  "endgame": {
-    "sendChannel": "581623959259447296"
-  },
-  "startgame": {
-    "sendChannel": "581623959259447296"
-  }
+  "generalChannel": "581616831928729600",
+  "testingChannel": "581623959259447296"
 }

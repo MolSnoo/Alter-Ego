@@ -37,6 +37,10 @@ bot.on('ready', () => {
             const tests = require("./Tests/run_tests.js");
             tests.runTests();
         }
+        else {
+            bot.user.setActivity("Future Foundation HQ", { type: 'LISTENING' });
+            bot.user.setStatus("online");
+        }
     }
     else {
         console.log("Error: Bot must be on only one server.");
@@ -47,6 +51,7 @@ bot.on('ready', () => {
 bot.on('message', async message => {
     // Prevent bot from responding to its own messages.
     if (message.author === bot.user) return;
+    if (settings.debug && message.channel.type === 'dm') console.log(message.author.username + ': "' + message.content + '"');
 
     let config = require('./config.json');
 
