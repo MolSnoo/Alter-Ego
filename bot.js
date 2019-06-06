@@ -6,9 +6,18 @@ const discord = require('discord.js');
 const bot = new discord.Client();
 const fs = require('fs');
 
-bot.commands = new discord.Collection;
+class Command {
+    constructor(run, attr) {
+        this.run = run;
+        this.attr = attr;
+    }
+}
+
+bot.commands = new discord.Collection();
+bot.aliases = new discord.Collection();
 function loadCommands() {
-    fs.readdir('./Commands/', (err, files) => {
+    const commandsDir = './Modules/';
+    fs.readdir(commandsDir, (err, files) => {
         if (err) console.log(err);
 
         let commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
@@ -18,9 +27,12 @@ function loadCommands() {
         }
 
         commandFiles.forEach((file, i) => {
-            delete require.cache[require.resolve(`./Commands/${file}`)];
-            let props = require(`./Commands/${file}`);
-            bot.commands.set(props.help.name, props);
+            delete require.cache[require.resolve(`${commandsDir}${file}`)];
+            let props = require(`${commandsDir}${file}`);
+            bot.commands.set(props.config.name, props);
+            props.config.aliases.forEach(alias => {
+                bot.aliases.set(alias, props.config.name);
+            });
         });
     });
 
@@ -64,7 +76,7 @@ bot.on('message', async message => {
     if (message.content.startsWith(settings.commandPrefix)) {
         const commandSplit = message.content.substring(1).split(" ");
         const args = commandSplit.slice(1);
-        let commandFile = bot.commands.get(commandSplit[0]);
+        let commandFile = bot.commands.get(commandSplit[0]) || bot.commands.get(bot.aliases.get(commandSplit[0]));
         if (commandFile) commandFile.run(bot, config, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
     }   
 });
