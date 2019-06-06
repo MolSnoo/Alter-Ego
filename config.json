@@ -20,6 +20,7 @@
   "whispers": [],
   "statusEffects": [],
   "hiddenPlayers": [],
+  "hearingPlayers": [],
   "playersDeafened": false,
   "concealedPlayer": {
     "member": null,
@@ -34,7 +35,8 @@
   "spectateRole": "581611800794103809",
   "headmasterRole": "581613155269214218",
   "roleOnJoin": "",
-  "parent_channel": "581619843573350406",
+  "room_categories": "581619843573350406 585976373433335827 585980568311693336 585980972877742092 585981129945776247",
+  "whisper_category": "581620946973098012",
   "commandsChannel": "581620608450822163",
   "logChannel": "581620193172652042",
   "role_needed": "Moderator",

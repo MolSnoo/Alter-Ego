@@ -19,7 +19,7 @@ module.exports.run = async (bot, config, message, args) => {
         }
     }
 
-    if ((message.channel.parentID !== config.parent_channel)
+    if (!config.room_categories.includes(message.channel.parentID)
         && (message.channel.id !== config.commandsChannel)
         && (!isPlayer || message.channel.type !== "dm")) return;
 
@@ -153,6 +153,9 @@ module.exports.inflict = function (player, status, config, bot, notify, updateSh
                     break;
                 }
             }
+        }
+        else if (createdStatus.name === "hearing") {
+            config.hearingPlayers.push(player);
         }
         else if (createdStatus.name === "asleep") {
             playerLocation.overwritePermissions(player.id, { VIEW_CHANNEL: null });

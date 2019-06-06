@@ -21,7 +21,7 @@ module.exports.run = async (bot, config, message, args) => {
         }
     }
 
-    if ((message.channel.parentID !== config.parent_channel)
+    if (!config.room_categories.includes(message.channel.parentID)
         && (!isPlayer || message.channel.type !== "dm")) return;
 
     let usage = new discord.RichEmbed()
@@ -336,7 +336,7 @@ module.exports.solvePuzzle = function (scope, message, logmessage) {
         });
     });
 
-    const guild = scope.bot.guilds.find(guild => guild.name === scope.config.server_name);
+    const guild = scope.bot.guilds.first();
 
     const solvedCommands = scope.puzzle.solvedCommand.split(',');
     for (var i = 0; i < solvedCommands.length; i++) {

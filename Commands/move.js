@@ -24,7 +24,7 @@ module.exports.run = async (bot, config, message, args) => {
         if (member.roles.find(role => role.id === config.headmasterRole)) isHeadmaster = true;
     }
 
-    if ((message.channel.parentID !== config.parent_channel)
+    if (!config.room_categories.includes(message.channel.parentID)
         && (message.channel.id !== config.commandsChannel)
         && (!isPlayer || message.channel.type !== "dm")) return;
 
@@ -126,7 +126,7 @@ module.exports.run = async (bot, config, message, args) => {
         // Find the correct channel.
         const guild = bot.guilds.first();
         const schannel = guild.channels.find(channel => channel.name === room[desiredRoom].name);
-        if (!schannel || schannel.parentID !== config.parent_channel) return message.reply("room not found.");
+        if (!schannel || !config.room_categories.includes(schannel.parentID)) return message.reply("room not found.");
         if ((schannel === message.channel) || (schannel.name === currentPlayer.location)) return;
 
         // Leave current room.

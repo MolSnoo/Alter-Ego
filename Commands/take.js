@@ -22,7 +22,7 @@ module.exports.run = async (bot, config, message, args) => {
     var isModerator = false;
     if (message.channel.type !== "dm" && message.member.roles.find(role => role.name === config.role_needed)) isModerator = true;
 
-    if ((message.channel.parentID !== config.parent_channel)
+    if (!config.room_categories.includes(message.channel.parentID)
         && (message.channel.id !== config.commandsChannel)
         && (!isPlayer || message.channel.type !== "dm")) return;
 

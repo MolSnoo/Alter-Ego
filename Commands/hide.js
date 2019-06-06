@@ -25,7 +25,7 @@ module.exports.run = async (bot, config, message, args) => {
         .setColor("a42004")
         .setDescription(`${settings.prefix}hide [object] OR ${settings.prefix}hide unhide`);
 
-    if ((message.channel.parentID !== config.parent_channel)
+    if (!config.room_categories.includes(message.channel.parentID)
         && (!isPlayer || message.channel.type !== "dm")) return;
 
     const guild = bot.guilds.first();

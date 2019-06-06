@@ -29,7 +29,7 @@ module.exports.run = async (bot, config, message, args) => {
         return;
     }
     
-    if ((message.channel.parentID !== config.parent_channel)
+    if (!config.room_categories.includes(message.channel.parentID)
         && (!isPlayer || message.channel.type !== "dm")) return;
 
     const statuses = currentPlayer.statusString;
@@ -106,8 +106,10 @@ module.exports.run = async (bot, config, message, args) => {
     const whisper = new Whisper(recipients, currentPlayer.location);
 
     const guild = bot.guilds.first();
-    guild.createChannel(whisper.channelName, "text").then(function (channel) {
-        channel.setParent('548248180962361347');
+    guild.createChannel(whisper.channelName, {
+        type: 'text',
+        parent: config.whisper_category
+    }).then(function (channel) {
         for (var i = 0; i < recipients.length; i++) {
             channel.overwritePermissions(recipients[i].id, { VIEW_CHANNEL: true, READ_MESSAGE_HISTORY: true });
         }

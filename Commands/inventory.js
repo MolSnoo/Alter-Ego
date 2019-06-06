@@ -15,7 +15,7 @@ module.exports.run = async (bot, config, message, args) => {
         }
     }
 
-    if ((message.channel.parentID !== config.parent_channel)
+    if (!config.room_categories.includes(message.channel.parentID)
         && (!isPlayer || message.channel.type !== "dm")) return;
 
     if (!config.game) return message.reply("There is no game currently running");
