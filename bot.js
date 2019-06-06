@@ -55,8 +55,8 @@ bot.on('message', async message => {
 
     let config = require('./config.json');
 
-    if ((config.hiddenPlayers.length > 0 || config.concealedPlayer.member !== null || config.playersDeafened)
-        && message.content.startsWith(settings.commandPrefix) && message.channel.type !== 'dm') {
+    if ((config.hiddenPlayers.length > 0 || config.hearingPlayers.length > 0 || config.concealedPlayer.member !== null || config.playersDeafened)
+        && !(message.content.startsWith(settings.commandPrefix) && message.content.charAt(1) !== '.') && message.channel.type !== 'dm') {
         const special = require('./House-Data/special.js');
         special.determineBehavior(bot, config, message);
     }
