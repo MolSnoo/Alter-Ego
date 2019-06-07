@@ -1,0 +1,24 @@
+﻿{
+  "guild": null,
+  "game": false,
+  "canJoin": false,
+  "players": [],
+  "players_alive": [],
+  "players_dead": [],
+  "rooms": [],
+  "objects": [],
+  "clues": [],
+  "items": [],
+  "puzzles": [],
+  "whispers": [],
+  "statusEffects": [],
+  "hiddenPlayers": [],
+  "hearingPlayers": [],
+  "playersDeafened": false,
+  "concealedPlayer": {
+    "member": null,
+    "location": null,
+    "hidden": false
+  },
+  "investigation": false
+}

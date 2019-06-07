@@ -6,15 +6,18 @@ const discord = require('discord.js');
 const bot = new discord.Client();
 const fs = require('fs');
 
-class Command {
-    constructor(run, attr) {
-        this.run = run;
-        this.attr = attr;
-    }
+Map.prototype.inspect = function () {
+    return `Map(${mapEntriesToString(this.entries())})`;
+};
+
+function mapEntriesToString(entries) {
+    return Array
+        .from(entries, ([k, v]) => `\n  ${k}: ${v}`)
+        .join("") + "\n";
 }
 
 bot.commands = new discord.Collection();
-bot.aliases = new discord.Collection();
+bot.configs = new discord.Collection();
 function loadCommands() {
     const commandsDir = './Modules/';
     fs.readdir(commandsDir, (err, files) => {
@@ -30,9 +33,7 @@ function loadCommands() {
             delete require.cache[require.resolve(`${commandsDir}${file}`)];
             let props = require(`${commandsDir}${file}`);
             bot.commands.set(props.config.name, props);
-            props.config.aliases.forEach(alias => {
-                bot.aliases.set(alias, props.config.name);
-            });
+            bot.configs.set(props.config.name, props.config);
         });
     });
 
@@ -65,19 +66,20 @@ bot.on('message', async message => {
     if (message.author === bot.user) return;
     if (settings.debug && message.channel.type === 'dm') console.log(message.author.username + ': "' + message.content + '"');
 
-    let config = require('./config.json');
+    let game = require('./game.json');
+    game.guild = bot.guilds.first();
 
-    if ((config.hiddenPlayers.length > 0 || config.hearingPlayers.length > 0 || config.concealedPlayer.member !== null || config.playersDeafened)
+    if ((game.hiddenPlayers.length > 0 || game.hearingPlayers.length > 0 || game.concealedPlayer.member !== null || game.playersDeafened)
         && !(message.content.startsWith(settings.commandPrefix) && message.content.charAt(1) !== '.') && message.channel.type !== 'dm') {
         const special = require('./House-Data/special.js');
-        special.determineBehavior(bot, config, message);
+        special.determineBehavior(bot, game, message);
     }
 
     if (message.content.startsWith(settings.commandPrefix)) {
-        const commandSplit = message.content.substring(1).split(" ");
-        const args = commandSplit.slice(1);
-        let commandFile = bot.commands.get(commandSplit[0]) || bot.commands.get(bot.aliases.get(commandSplit[0]));
-        if (commandFile) commandFile.run(bot, config, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
+        const command = message.content.substring(1);
+        let commandHandler = require('./commandHandler.js');
+        const response = commandHandler.execute(command, bot, game, message);
+        if (response) message.channel.send(response);
     }   
 });
 
