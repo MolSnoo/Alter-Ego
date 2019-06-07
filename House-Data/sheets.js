@@ -2,7 +2,7 @@
 const credentials = require("../credentials.json");
 var sheets = google.sheets('v4');
 
-let config = require("../config.json");
+let config = require("../settings.json");
 const spreadsheetID = config.spreadsheetID;
 const roomSheetID = config.roomSheetID;
 const objectSheetID = config.objectSheetID;

@@ -1,5 +1,5 @@
 class Player {
-    constructor(id, name, talent, clueLevel, alive, location, hidingSpot, status, inventory, row) {
+    constructor(id, name, talent, clueLevel, alive, location, hidingSpot, status, inventory, row, member) {
         this.id = id;
         this.name = name;
         this.talent = talent;
@@ -11,6 +11,8 @@ class Player {
         this.statusString = "";
         this.inventory = inventory;
         this.row = row;
+
+        this.member = member;
     }
 
     playerCells() {

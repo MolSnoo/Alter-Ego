@@ -6,16 +6,6 @@ const discord = require('discord.js');
 const bot = new discord.Client();
 const fs = require('fs');
 
-Map.prototype.inspect = function () {
-    return `Map(${mapEntriesToString(this.entries())})`;
-};
-
-function mapEntriesToString(entries) {
-    return Array
-        .from(entries, ([k, v]) => `\n  ${k}: ${v}`)
-        .join("") + "\n";
-}
-
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
 function loadCommands() {
@@ -68,18 +58,17 @@ bot.on('message', async message => {
 
     let game = require('./game.json');
     game.guild = bot.guilds.first();
-
+    /*
     if ((game.hiddenPlayers.length > 0 || game.hearingPlayers.length > 0 || game.concealedPlayer.member !== null || game.playersDeafened)
         && !(message.content.startsWith(settings.commandPrefix) && message.content.charAt(1) !== '.') && message.channel.type !== 'dm') {
         const special = require('./House-Data/special.js');
         special.determineBehavior(bot, game, message);
     }
-
+    */
     if (message.content.startsWith(settings.commandPrefix)) {
         const command = message.content.substring(1);
         let commandHandler = require('./commandHandler.js');
-        const response = commandHandler.execute(command, bot, game, message);
-        if (response) message.channel.send(response);
+        commandHandler.execute(command, bot, game, message);
     }   
 });
 

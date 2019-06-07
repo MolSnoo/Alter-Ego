@@ -1,7 +1,10 @@
+const sheets = require('./sheets.js');
+
 class Room {
-    constructor(name, accessible, exit, row) {
+    constructor(name, accessible, channel, exit, row) {
         this.name = name;
         this.accessible = accessible;
+        this.channel = channel;
         this.exit = exit;
         this.row = row;
 
@@ -9,7 +12,29 @@ class Room {
         this.occupantsString = "";
     }
 
-    addPlayer(player) {
+    addPlayer(player, entrance) {
+        player.location = this;
+        let entranceMessage;
+        let descriptionCell;
+        if (entrance) {
+            entranceMessage = player.name + " enters from " + entrance.name + ".";
+            descriptionCell = entrance.descriptionCell();
+        }
+        else {
+            entranceMessage = player.name + " suddenly appears.";
+            descriptionCell = this.descriptionCell();
+        }
+        this.channel.send(entranceMessage);
+        this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: true });
+
+        // Send the room description of the entrance the player enters from.
+        sheets.getData(descriptionCell, function (response) {
+            player.member.send(response.data.values[0][0]);
+        });
+
+        // Update the player's location on the spreadsheet.
+        sheets.updateCell(player.locationCell(), this.name);
+
         this.occupants.push(player);
         this.occupants.sort(function (a, b) {
             var nameA = a.name.toLowerCase();
@@ -20,7 +45,12 @@ class Room {
         });
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
     }
-    removePlayer(player) {
+    removePlayer(player, exit) {
+        let exitMessage;
+        if (exit) exitMessage = player.name + " exits into " + exit.name + ".";
+        else exitMessage = player.name + " suddenly disappears.";
+        this.channel.send(exitMessage);
+        this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
     }
