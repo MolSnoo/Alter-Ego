@@ -10,7 +10,7 @@ module.exports.config = {
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, args) => {
+module.exports.run = async (bot, game, message, command, args) => {
     message.channel.send("You are a moderator.");
     return;
 };

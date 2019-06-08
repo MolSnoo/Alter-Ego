@@ -1,5 +1,7 @@
-﻿class Status {
-    constructor(name, duration, fatal, cure, nextStage, curedCondition, rollModifier, row) {
+﻿const settings = require("../settings.json");
+
+class Status {
+    constructor(name, duration, fatal, cure, nextStage, curedCondition, rollModifier, attributes, row) {
         this.name = name;
         this.duration = duration;
         this.fatal = fatal;
@@ -7,16 +9,26 @@
         this.nextStage = nextStage;
         this.curedCondition = curedCondition;
         this.rollModifier = rollModifier;
+        this.attributes = attributes;
         this.row = row;
 
         this.timer;
     }
 
+    inflict(player, game, notify, updateSheet) {
+        if (player.status.includes(this)) return "Specified player already has that status effect.";
+
+        if (notify === null || notify === undefined) notify = true;
+        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
+
+        if (this.attributes.includes("no channel")) player.location.leaveChannel(player);
+    }
+
     inflictedCell() {
-        return ("Status Effects!J" + this.row);
+        return settings.statusSheetInflictedColumn + this.row;
     }
     curedCell() {
-        return ("Status Effects!K" + this.row);
+        return settings.statusSheetCuredColumn + this.row;
     }
 }
 

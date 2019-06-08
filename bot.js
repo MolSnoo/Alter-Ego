@@ -34,11 +34,13 @@ bot.on('ready', () => {
     if (bot.guilds.size === 1) {
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
+        if (settings.testing) {
+            const tests = require("./Tests/run_tests.js");
+            tests.runTests();
+        }
         if (settings.debug) {
             bot.user.setActivity("NWP Debugger.exe");
             bot.user.setStatus("dnd");
-            const tests = require("./Tests/run_tests.js");
-            tests.runTests();
         }
         else {
             bot.user.setActivity("Future Foundation HQ", { type: 'LISTENING' });

@@ -1,4 +1,6 @@
-﻿class InventoryItem {
+﻿const settings = require("../settings.json");
+
+class InventoryItem {
     constructor(name, pluralName, uses, discreet, effect, cures, singleContainingPhrase, pluralContainingPhrase, row) {
         this.name = name;
         this.pluralName = pluralName;
@@ -7,20 +9,21 @@
         this.effect = effect;
         this.cures = cures;
         this.singleContainingPhrase = singleContainingPhrase;
-        this.pluralContainingPhrase = pluralContainingPhrase
+        this.pluralContainingPhrase = pluralContainingPhrase;
         this.row = row;
     }
 
     itemCells() {
-        return ("Players!I" + this.row + ":P" + this.row);
+        const descriptionColumn = settings.playerSheetItemDescriptionColumn.split('!');
+        return settings.playerSheetItemNameColumn + this.row + ":" + descriptionColumn[1] + this.row;
     }
 
     usesCell() {
-        return ("Players!K" + this.row);
+        return settings.playerSheetItemUsesColumn + this.row;
     }
 
     descriptionCell() {
-        return ("Players!P" + this.row);
+        return settings.playerSheetItemDescriptionColumn + this.row;
     }
 }
 

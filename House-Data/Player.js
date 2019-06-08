@@ -1,7 +1,11 @@
+const settings = require("../settings.json");
+
 class Player {
-    constructor(id, name, talent, clueLevel, alive, location, hidingSpot, status, inventory, row, member) {
+    constructor(id, member, name, displayName, talent, clueLevel, alive, location, hidingSpot, status, inventory, row) {
         this.id = id;
+        this.member = member;
         this.name = name;
+        this.displayName = displayName;
         this.talent = talent;
         this.clueLevel = clueLevel;
         this.alive = alive;
@@ -9,23 +13,24 @@ class Player {
         this.hidingSpot = hidingSpot;
         this.status = status;
         this.statusString = "";
+        this.attributes;
+        this.attributeString = "";
         this.inventory = inventory;
         this.row = row;
-
-        this.member = member;
     }
 
     playerCells() {
-        return ("Players!A" + this.row + ":H" + this.row);
+        const statusColumn = settings.playerSheetStatusColumn.split('!');
+        return settings.playerSheetIDColumn + this.row + ":" + statusColumn[1] + this.row;
     }
     locationCell() {
-        return ("Players!F" + this.row);
+        return settings.playerSheetLocationColumn + this.row;
     }
     hidingSpotCell() {
-        return ("Players!G" + this.row);
+        return settings.playerSheetHidingSpotColumn + this.row;
     }
     statusCell() {
-        return ("Players!H" + this.row);
+        return settings.playerSheetStatusColumn + this.row;
     }
 }
 

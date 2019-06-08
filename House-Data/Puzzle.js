@@ -1,4 +1,6 @@
-﻿class Puzzle {
+﻿const settings = require("../settings.json");
+
+class Puzzle {
     constructor(name, solved, requiresMod, location, parentObject, type, accessible, requires, solution, remainingAttempts, solvedCommand, row) {
         this.name = name;
         this.solved = solved;
@@ -14,44 +16,40 @@
         this.row = row;
     }
 
-    puzzleCells() {
-        return ("Puzzles!A" + this.row + ":Q" + this.row);
-    }
-
     solvedCell() {
-        return ("Puzzles!B" + this.row);
+        return settings.puzzleSheetSolvedColumn + this.row;
     }
 
     accessibleCell() {
-        return ("Puzzles!G" + this.row);
+        return settings.puzzleSheetAccessibleColumn + this.row;
     }
 
     attemptsCell() {
-        return ("Puzzles!J" + this.row);
+        return settings.puzzleSheetAttemptsColumn + this.row;
     }
 
     correctCell() {
-        return ("Puzzles!L" + this.row);
+        return settings.puzzleSheetCorrectColumn + this.row;
     }
 
     formattedAlreadySolvedCell() {
-        return ("Puzzles!M" + this.row);
+        return settings.puzzleSheetFormattedAlreadySolvedColumn + this.row;
     }
 
-    alreadySolvedCell() {
-        return ("Puzzles!N" + this.row);
+    parsedAlreadySolvedCell() {
+        return settings.puzzleSheetParsedAlreadySolvedColumn + this.row;
     }
 
     incorrectCell() {
-        return ("Puzzles!O" + this.row);
+        return settings.puzzleSheetIncorrectColumn + this.row;
     }
 
     noMoreAttemptsCell() {
-        return ("Puzzles!P" + this.row);
+        return settings.puzzleSheetNoMoreAttemptsColumn + this.row;
     }
 
     requirementsNotMetCell() {
-        return ("Puzzles!Q" + this.row);
+        return settings.puzzleSheetRequirementsNotMetColumn + this.row;
     }
 }
 

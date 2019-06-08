@@ -9,7 +9,7 @@ module.exports.config = {
     aliases: ["example", "ex", "test"]
 };
 
-module.exports.run = async (bot, config, message, args) => {
+module.exports.run = async (bot, config, message, command, args) => {
     message.channel.send("You are a player.");
     return;
 };

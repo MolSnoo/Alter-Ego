@@ -1,3 +1,4 @@
+const settings = require("../settings.json");
 const sheets = require('./sheets.js');
 
 class Room {
@@ -22,10 +23,10 @@ class Room {
         }
         else {
             entranceMessage = player.name + " suddenly appears.";
-            descriptionCell = this.descriptionCell();
+            descriptionCell = this.parsedDescriptionCell();
         }
         this.channel.send(entranceMessage);
-        this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: true });
+        this.joinChannel(player);
 
         // Send the room description of the entrance the player enters from.
         sheets.getData(descriptionCell, function (response) {
@@ -50,18 +51,24 @@ class Room {
         if (exit) exitMessage = player.name + " exits into " + exit.name + ".";
         else exitMessage = player.name + " suddenly disappears.";
         this.channel.send(exitMessage);
-        this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
+        this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
     }
+    joinChannel(player) {
+        this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: true });
+    }
+    leaveChannel(player) {
+        this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
+    }
     accessibilityCell() {
-        return ("Rooms!B" + this.row);
+        return settings.roomSheetAccessibilityColumn + this.row;
     }
     formattedDescriptionCell() {
-        return ("Rooms!G" + this.row);
+        return settings.roomSheetFormattedDescriptionColumn + this.row;
     }
-    descriptionCell() {
-        return ("Rooms!H" + this.row);
+    parsedDescriptionCell() {
+        return settings.roomSheetParsedDescriptionColumn + this.row;
     }
 }
 

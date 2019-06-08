@@ -1,3 +1,5 @@
+const settings = require("../settings.json");
+
 class Object {
     constructor(name, location, accessible, requires, isHidingSpot, preposition, row) {
         this.name = name;
@@ -10,11 +12,11 @@ class Object {
     }
 
     formattedDescriptionCell() {
-        return ("Objects!G" + this.row);
+        return settings.objectSheetFormattedDescriptionColumn + this.row;
     }
 
-    descriptionCell() {
-        return ("Objects!H" + this.row);
+    parsedDescriptionCell() {
+        return settings.objectSheetParsedDescriptionColumn + this.row;
     }
 }
 

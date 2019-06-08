@@ -1,3 +1,5 @@
+const settings = require("../settings.json");
+
 class Item {
     constructor(name, pluralName, location, sublocation, accessible, requires, quantity, uses, discreet, effect, cures, singleContainingPhrase, pluralContainingPhrase, row) {
         this.name = name;
@@ -17,15 +19,16 @@ class Item {
     }
 
     itemCells() {
-        return ("Items!A" + this.row + ":M" + this.row);
+        const descriptionColumn = settings.itemSheetDescriptionColumn.split('!');
+        return settings.itemSheetNameColumn + this.row + ":" + descriptionColumn[1] + this.row;
     }
 
     quantityCell() {
-        return ("Items!G" + this.row);
+        return settings.itemSheetQuantityColumn + this.row;
     }
 
     descriptionCell() {
-        return ("Items!M" + this.row);
+        return settings.itemSheetDescriptionColumn + this.row;
     }
 }
 

@@ -1,4 +1,6 @@
-﻿class Clue {
+﻿const settings = require("../settings.json");
+
+class Clue {
     constructor(name, location, accessible, requires, row) {
         this.name = name;
         this.location = location;
@@ -8,16 +10,16 @@
     }
 
     level0DescriptionCell() {
-        return ("Clues!E" + this.row);
+        return settings.clueSheetLevel0DescriptionColumn + this.row;
     }
     level1DescriptionCell() {
-        return ("Clues!F" + this.row);
+        return settings.clueSheetLevel1DescriptionColumn + this.row;
     }
     level2DescriptionCell() {
-        return ("Clues!G" + this.row);
+        return settings.clueSheetLevel2DescriptionColumn + this.row;
     }
     level3DescriptionCell() {
-        return ("Clues!H" + this.row);
+        return settings.clueSheetLevel3DescriptionColumn + this.row;
     }
 }
 

@@ -5,18 +5,19 @@ const sheets = require("../House-Data/sheets.js");
 const Exit = require("../House-Data/Exit.js");
 const Room = require("../House-Data/Room.js");
 const InventoryItem = require("../House-Data/InventoryItem.js");
+const Status = require("../House-Data/Status.js");
 const Player = require("../House-Data/Player.js");
 
 module.exports.config = {
     name: "load_moderator",
     description: 'Gathers the house data by reading it off the spreadsheet. Can specify what data to collect. "all start" must be used at the beginning of the game after the startgame timer is over, as it will gather all the data and send the room description of the room they start in to each player. If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. You do NOT need to use this command  when you update descriptions, as the bot does not store those. Any other data you edit manually will require use of this command. Note that when updating players, all of the timers associated with player status effects will be reset, so try to avoid manually editing the player sheet. If you just need to refresh player inventories, use the "inventories" argument.',
-    usage: `${settings.prefix}load all (start|resume)|rooms|objects|items|puzzles|status effects|players|inventories`,
+    usage: `${settings.commandPrefix}load all (start|resume)|rooms|objects|items|puzzles|status effects|players|inventories`,
     usableBy: "Moderator",
     aliases: ["load", "reload", "gethousedata"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, args) => {
+module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) {
         message.reply("you need to specify what data to get. Usage:");
         message.channel.send(exports.config.usage);
@@ -26,6 +27,8 @@ module.exports.run = async (bot, game, message, args) => {
     if (args[0] === "all") {
         await exports.loadRooms(game);
         if (settings.debug) printData(game.rooms);
+        await exports.loadStatusEffects(game);
+        if (settings.debug) printData(game.statusEffects);
         await exports.loadPlayers(game);
         if (settings.debug) printData(game.players);
 
@@ -44,14 +47,21 @@ module.exports.run = async (bot, game, message, args) => {
         if (settings.debug) printData(game.rooms);
         message.channel.send(game.rooms.length + " rooms retrieved.");
     }
+    else if (args[0] === "statuses" || args[0] === "effects" || (args[0] === "status" && args[1] === "effects")) {
+        await exports.loadStatusEffects(game);
+        if (settings.debug) printData(game.statusEffects);
+        message.channel.send(game.statusEffects.length + " status effects retrieved.");
+    }
     else if (args[0] === "players") {
         await exports.loadPlayers(game);
+        if (settings.debug) printData(game.players);
+        message.channel.send(game.players.length + " players retrieved.");
     }
 };
 
 module.exports.loadRooms = function (game) {
     return new Promise((resolve) => {
-        sheets.getData("Rooms!A1:F", function (response) {
+        sheets.getData(settings.roomSheetLoadCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
@@ -95,6 +105,41 @@ module.exports.loadRooms = function (game) {
     });
 };
 
+module.exports.loadStatusEffects = function (game) {
+    return new Promise((resolve) => {
+        sheets.getData(settings.statusSheetLoadCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnName = 0;
+            const columnDuration = 1;
+            const columnFatal = 2;
+            const columnCure = 3;
+            const columnNextStage = 4;
+            const columnCuredCondition = 5;
+            const columnRollModifier = 6;
+            const columnAttributes = 7;
+
+            game.statusEffects.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                game.statusEffects.push(
+                    new Status(
+                        sheet[i][columnName],
+                        sheet[i][columnDuration],
+                        sheet[i][columnFatal] === "TRUE",
+                        sheet[i][columnCure],
+                        sheet[i][columnNextStage],
+                        sheet[i][columnCuredCondition],
+                        parseInt(sheet[i][columnRollModifier]),
+                        sheet[i][columnAttributes] ? sheet[i][columnAttributes] : "",
+                        i + 1
+                    )
+                );
+            }
+            resolve(game);
+        });
+    });
+};
+
 module.exports.loadPlayers = function (game) {
     return new Promise((resolve) => {
         // Clear all player status effects first.
@@ -104,7 +149,7 @@ module.exports.loadPlayers = function (game) {
             }
         }
 
-        sheets.getData("Players!A1:O", function (response) {
+        sheets.getData(settings.playerSheetLoadCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -162,6 +207,8 @@ module.exports.loadPlayers = function (game) {
                 const player =
                     new Player(
                         sheet[i][columnID],
+                        game.guild.members.find(member => member.id === sheet[i][columnID]),
+                        sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
                         parseInt(sheet[i][columnClueLevel]),
@@ -170,8 +217,7 @@ module.exports.loadPlayers = function (game) {
                         sheet[i][columnHidingSpot],
                         new Array(),
                         inventory,
-                        i + 1,
-                        game.guild.members.find(member => member.id === sheet[i][columnID])
+                        i + 1
                     );
                 game.players.push(player);
 

@@ -1,3 +1,5 @@
+const settings = require("../settings.json");
+
 class Exit {
     constructor(name, dest, link, row) {
         this.name = name;
@@ -7,10 +9,10 @@ class Exit {
     }
 
     formattedDescriptionCell() {
-        return ("Rooms!G" + this.row);
+        return settings.roomSheetFormattedDescriptionColumn + this.row;
     }
-    descriptionCell() {
-        return ("Rooms!H" + this.row);
+    parsedDescriptionCell() {
+        return settings.roomSheetParsedDescriptionColumn + this.row;
     }
 }
 
