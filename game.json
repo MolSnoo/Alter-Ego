@@ -1,6 +1,7 @@
 ﻿{
   "guild": null,
-  "game": false,
+  "logChannel": null,
+  "game": true,
   "canJoin": false,
   "players": [],
   "players_alive": [],
@@ -13,12 +14,10 @@
   "whispers": [],
   "statusEffects": [],
   "hiddenPlayers": [],
+  "concealedPlayers": [],
   "hearingPlayers": [],
-  "playersDeafened": false,
-  "concealedPlayer": {
-    "member": null,
-    "location": null,
-    "hidden": false
-  },
+  "acuteHearingPlayers": [],
+  "deafenedPlayers": [],
+  "mutedPlayer": [],
   "investigation": false
 }

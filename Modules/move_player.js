@@ -59,9 +59,8 @@ module.exports.run = async (bot, game, message, args, player) => {
     desiredRoom.addPlayer(player, entrance);
 
     // Post log message.
-    const logchannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
-    var time = new Date();
-    logchannel.send(time.toLocaleTimeString() + " - " + player.name + " moved to " + desiredRoom.channel);
+    var time = new Date().toLocaleTimeString();
+    game.logChannel.send(`${time} - ${player.name} moved to ${desiredRoom.channel}`);
 
     return;
 };

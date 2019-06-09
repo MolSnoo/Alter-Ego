@@ -13,7 +13,7 @@ module.exports.config = {
         + `${settings.commandPrefix}status view jordan`,
     usableBy: "Moderator",
     aliases: ["status", "inflict", "cure", "view"],
-    requiresGame: false
+    requiresGame: true
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
@@ -47,52 +47,18 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     if (!player) return message.reply(`couldn't find player "${args[0]}"`);
 
-    // Find the specified status effect.
-    var status = null;
-    if (command !== "view") {
-        const statusName = input.substring(input.indexOf(args[1]));
-        for (let i = 0; i < game.statusEffects.length; i++) {
-            if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
-                status = game.statusEffects[i];
-                break;
-            }
-        }
-        if (!status) return message.reply(`couldn't find status effect "${statusName}"`);
-    }
-
     if (command === "inflict") {
-        status.inflict(player, game, true, true);
+        const response = player.inflict(input.substring(input.indexOf(args[1])), game, true, true);
+        message.channel.send(response);
+    }
+    if (command === "cure") {
+        const response = player.cure(input.substring(input.indexOf(args[1])), game, true, true, true);
+        message.channel.send(response);
+    }
+    else if (command === "view") {
+        const response = player.viewStatus_moderator();
+        message.channel.send(response);
     }
 
-    /*
-    if (command === "status") {
-        if (args[0] === "add" || args[0] === "inflict")
-            action = "inflict";
-        else if (args[0] === "remove" || args[0] === "cure")
-            action = "cure";
-        else if (args[0] === "view")
-            action = "view";
-        else {
-            message.reply(`invalid argument "${args[0]}. Usage:`);
-            message.channel.send(usage);
-            return;
-        }
-
-        if (args[1]) player = args[1].toLowerCase();
-        else {
-            message.reply("you need to specify a player. Usage:");
-            message.channel.send(usage);
-            return;
-        }
-
-        if (args[2]) {
-            status = args.join(" ");
-            status = statusName.substring(statusName.indexOf(args[2])).toLowerCase();
-        }
-
-        console.log(player);
-
-    }
-    */
     return;
 };

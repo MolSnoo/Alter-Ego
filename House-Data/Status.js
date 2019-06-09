@@ -12,16 +12,7 @@ class Status {
         this.attributes = attributes;
         this.row = row;
 
-        this.timer;
-    }
-
-    inflict(player, game, notify, updateSheet) {
-        if (player.status.includes(this)) return "Specified player already has that status effect.";
-
-        if (notify === null || notify === undefined) notify = true;
-        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
-
-        if (this.attributes.includes("no channel")) player.location.leaveChannel(player);
+        this.timer = null;
     }
 
     inflictedCell() {

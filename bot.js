@@ -60,6 +60,7 @@ bot.on('message', async message => {
 
     let game = require('./game.json');
     game.guild = bot.guilds.first();
+    game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
     /*
     if ((game.hiddenPlayers.length > 0 || game.hearingPlayers.length > 0 || game.concealedPlayer.member !== null || game.playersDeafened)
         && !(message.content.startsWith(settings.commandPrefix) && message.content.charAt(1) !== '.') && message.channel.type !== 'dm') {

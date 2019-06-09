@@ -18,11 +18,11 @@ class Room {
         let entranceMessage;
         let descriptionCell;
         if (entrance) {
-            entranceMessage = player.name + " enters from " + entrance.name + ".";
-            descriptionCell = entrance.descriptionCell();
+            entranceMessage = `${player.name} enters from ${entrance.name}.`;
+            descriptionCell = entrance.parsedDescriptionCell();
         }
         else {
-            entranceMessage = player.name + " suddenly appears.";
+            entranceMessage = `${player.name} suddenly appears.`;
             descriptionCell = this.parsedDescriptionCell();
         }
         this.channel.send(entranceMessage);
@@ -48,8 +48,8 @@ class Room {
     }
     removePlayer(player, exit) {
         let exitMessage;
-        if (exit) exitMessage = player.name + " exits into " + exit.name + ".";
-        else exitMessage = player.name + " suddenly disappears.";
+        if (exit) exitMessage = `${player.name} exits into ${exit.name}.`;
+        else exitMessage = `${player.name} suddenly disappears.`;
         this.channel.send(exitMessage);
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);

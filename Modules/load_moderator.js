@@ -124,7 +124,7 @@ module.exports.loadStatusEffects = function (game) {
                 game.statusEffects.push(
                     new Status(
                         sheet[i][columnName],
-                        sheet[i][columnDuration],
+                        sheet[i][columnDuration].toLowerCase(),
                         sheet[i][columnFatal] === "TRUE",
                         sheet[i][columnCure],
                         sheet[i][columnNextStage],
@@ -134,6 +134,13 @@ module.exports.loadStatusEffects = function (game) {
                         i + 1
                     )
                 );
+            }
+            // Now go through and make the nextStage and curedCondition an actual Status object.
+            for (let i = 0; i < game.statusEffects.length; i++) {
+                if (game.statusEffects[i].nextStage)
+                    game.statusEffects[i].nextStage = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].nextStage);
+                if (game.statusEffects[i].curedCondition)
+                    game.statusEffects[i].curedCondition = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].curedCondition);
             }
             resolve(game);
         });
@@ -230,8 +237,7 @@ module.exports.loadPlayers = function (game) {
                     for (let k = 0; k < game.statusEffects.length; k++) {
                         for (let l = 0; l < statuses.length; l++) {
                             if (game.statusEffects[k].name === statuses[l].trim()) {
-                                const status = require("../Commands/status.js");
-                                status.inflict(currentPlayer, game.statusEffects[k], game, null, false, false);
+                                currentPlayer.inflict(game.statusEffects[k].name, game, false, false);
                                 break;
                             }
                         }
