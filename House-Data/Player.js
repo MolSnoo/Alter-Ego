@@ -1,5 +1,6 @@
 const settings = require("../settings.json");
 const sheets = require('./sheets.js');
+const Narration = require('./Narration.js');
 
 class Player {
     constructor(id, member, name, displayName, talent, clueLevel, alive, location, hidingSpot, status, inventory, row) {
@@ -47,11 +48,11 @@ class Player {
         if (status.attributes.includes("acute hearing")) game.acuteHearingPlayers.push(this);
         if (status.attributes.includes("hidden")) {
             game.hiddenPlayers.push(this);
-            this.location.channel.send(`${this.displayName} hides in the ${this.hidingSpot}.`);
+            new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
             sheets.updateCell(this.hidingSpotCell(), this.hidingSpot);
         }
         if (status.attributes.includes("concealed")) {
-            if (!this.hasAttribute("hidden")) this.location.channel.send(`${this.displayName} puts on a mask.`);
+            if (!this.hasAttribute("hidden")) new Narration(game, this, this.location, `${this.displayName} puts on a mask.`).send();
             this.displayName = "A masked figure";
             game.concealedPlayers.push(this);
         }
@@ -147,21 +148,22 @@ class Player {
         if (doCuredCondition === null || doCuredCondition === undefined) doCuredCondition = true;
         if (updateSheet === null || updateSheet === undefined) updateSheet = true;
 
-        if (status.attributes.includes("no channel")) this.location.joinChannel(this);
+        if (status.attributes.includes("no channel") && this.getAttributeStatusEffects("no channel").length - 1 === 0)
+            this.location.joinChannel(this);
         if (status.attributes.includes("no speech")) game.mutedPlayers.splice(game.mutedPlayers.indexOf(this), 1);
         if (status.attributes.includes("no hearing")) game.deafenedPlayers.splice(game.deafenedPlayers.indexOf(this), 1);
         if (status.attributes.includes("hear room")) game.hearingPlayers.splice(game.hearingPlayers.indexOf(this), 1);
         if (status.attributes.includes("acute hearing")) game.acuteHearingPlayers.splice(game.acuteHearingPlayers.indexOf(this), 1);
         if (status.attributes.includes("hidden")) {
             game.hiddenPlayers.splice(game.hiddenPlayers.indexOf(this), 1);
-            this.location.channel.send(`${this.displayName} comes out of the ${this.hidingSpot}.`);
+            new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.hidingSpot = "";
             sheets.updateCell(this.hidingSpotCell(), " ");
         }
         if (status.attributes.includes("concealed")) {
             game.concealedPlayers.splice(game.concealedPlayers.indexOf(this), 1);
             this.displayName = this.name;
-            this.location.channel.send(`The mask comes off, revealing the figure to be ${player.displayName}.`);
+            new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${player.displayName}.`).send();
         }
 
         var returnMessage = "Successfully removed status effect.";
@@ -226,12 +228,21 @@ class Player {
         return hasAttribute;
     }
 
+    getAttributeStatusEffects(attribute) {
+        var statusEffects = [];
+        for (let i = 0; i < this.status.length; i++) {
+            if (this.status[i].attributes.includes(attribute))
+                statusEffects.push(this.status[i]);
+        }
+        return statusEffects;
+    }
+
     die(game) {
         // Remove player from their current channel.
         this.location.leaveChannel(this);
         this.deleteWhispers(game, " has died.");
         if (!this.hasAttribute("hidden")) {
-            this.location.channel.send(`${this.displayName} has died.`);
+            new Narration(game, this, this.location, `${this.displayName} has died.`).send();
         }
 
         // Post log message.

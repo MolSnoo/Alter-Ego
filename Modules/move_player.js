@@ -57,8 +57,8 @@ module.exports.run = async (bot, game, message, args, player) => {
     }
     if (!adjacent) return message.reply("you can't move to that room.");
 
-    currentRoom.removePlayer(player, exit);
-    desiredRoom.addPlayer(player, entrance);
+    currentRoom.removePlayer(player, exit, game);
+    desiredRoom.addPlayer(player, entrance, game);
 
     // Post log message.
     var time = new Date().toLocaleTimeString();

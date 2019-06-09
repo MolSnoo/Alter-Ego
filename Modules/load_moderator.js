@@ -256,7 +256,7 @@ module.exports.loadPlayers = function (game) {
 
                     for (let k = 0; k < game.rooms.length; k++) {
                         if (game.rooms[k].name === currentPlayer.location.name) {
-                            game.rooms[k].addPlayer(currentPlayer);
+                            game.rooms[k].addPlayer(currentPlayer, null, game);
                             break;
                         }
                     }

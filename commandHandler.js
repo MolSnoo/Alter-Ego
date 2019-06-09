@@ -52,6 +52,8 @@ module.exports.execute = function (command, bot, game, message) {
                 }
             }
             if (player === null) return message.reply("You are not on the list of living players.");
+            const status = player.getAttributeStatusEffects("disable all");
+            if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
 
             commandFile.run(bot, game, message, args, player).then(() => { if (!settings.debug) message.delete().catch(); });
         }

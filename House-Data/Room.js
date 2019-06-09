@@ -1,5 +1,6 @@
 const settings = require("../settings.json");
 const sheets = require('./sheets.js');
+const Narration = require('./Narration.js');
 
 class Room {
     constructor(name, accessible, channel, exit, row) {
@@ -13,7 +14,7 @@ class Room {
         this.occupantsString = "";
     }
 
-    addPlayer(player, entrance) {
+    addPlayer(player, entrance, game) {
         player.location = this;
         let entranceMessage;
         let descriptionCell;
@@ -25,8 +26,10 @@ class Room {
             entranceMessage = `${player.name} suddenly appears.`;
             descriptionCell = this.parsedDescriptionCell();
         }
-        this.channel.send(entranceMessage);
-        this.joinChannel(player);
+        if (player.getAttributeStatusEffects("no channel").length === 0) {
+            new Narration(game, player, this, entranceMessage).send();
+            this.joinChannel(player);
+        }
 
         // Send the room description of the entrance the player enters from.
         sheets.getData(descriptionCell, function (response) {
@@ -46,11 +49,11 @@ class Room {
         });
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
     }
-    removePlayer(player, exit) {
+    removePlayer(player, exit, game) {
         let exitMessage;
         if (exit) exitMessage = `${player.name} exits into ${exit.name}.`;
         else exitMessage = `${player.name} suddenly disappears.`;
-        this.channel.send(exitMessage);
+        new Narration(game, player, this, exiteMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
