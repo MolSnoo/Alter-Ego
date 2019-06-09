@@ -10,8 +10,18 @@ const Player = require("../House-Data/Player.js");
 
 module.exports.config = {
     name: "load_moderator",
-    description: 'Gathers the house data by reading it off the spreadsheet. Can specify what data to collect. "all start" must be used at the beginning of the game after the startgame timer is over, as it will gather all the data and send the room description of the room they start in to each player. If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. You do NOT need to use this command  when you update descriptions, as the bot does not store those. Any other data you edit manually will require use of this command. Note that when updating players, all of the timers associated with player status effects will be reset, so try to avoid manually editing the player sheet. If you just need to refresh player inventories, use the "inventories" argument.',
-    usage: `${settings.commandPrefix}load all (start|resume)|rooms|objects|items|puzzles|status effects|players|inventories`,
+    description: 'Loads game data.',
+    details: 'Gathers the house data by reading it off the spreadsheet. Can specify what data to collect. "all start" must be used at the beginning of the game after the startgame timer is over, as it will gather all the data and send the room description of the room they start in to each player. If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. You do NOT need to use this command  when you update descriptions, as the bot does not store those. Any other data you edit manually will require use of this command. Note that when updating players, all of the timers associated with player status effects will be reset, so try to avoid manually editing the player sheet. If you just need to refresh player inventories, use the "inventories" argument.',
+    usage: `${settings.commandPrefix}load all start\n`
+        + `${settings.commandPrefix}load all resume\n`
+        + `${settings.commandPrefix}load all\n`
+        + `${settings.commandPrefix}load rooms\n`
+        + `${settings.commandPrefix}load objects\n`
+        + `${settings.commandPrefix}load items\n`
+        + `${settings.commandPrefix}load puzzles\n`
+        + `${settings.commandPrefix}load status effects\n`
+        + `${settings.commandPrefix}load players\n`
+        + `${settings.commandPrefix}load inventories`,
     usableBy: "Moderator",
     aliases: ["load", "reload", "gethousedata"],
     requiresGame: false

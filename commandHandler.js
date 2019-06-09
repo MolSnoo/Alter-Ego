@@ -35,11 +35,11 @@ module.exports.execute = function (command, bot, game, message) {
     if (!commandFile) return;
 
     if (isBot) {
-        commandFile.run(bot, game, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
+        commandFile.run(bot, game, message, args);
     }
     else if (isModerator) {
         if (commandConfig.requiresGame && !game.game) return message.reply("There is no game currently running.");
-        commandFile.run(bot, game, message, commandSplit[0], args).then(() => { if (!settings.debug) message.delete().catch(); });
+        commandFile.run(bot, game, message, commandSplit[0], args);
     }
     else if (isPlayer) {
         if (!game.game) return message.reply("There is no game currently running.");
