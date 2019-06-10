@@ -1,5 +1,4 @@
-﻿const discord = require("discord.js");
-const settings = require("../settings.json");
+﻿const settings = require("../settings.json");
 
 module.exports.config = {
     name: "move_player",

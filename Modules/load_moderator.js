@@ -1,5 +1,4 @@
-﻿const discord = require("discord.js");
-const settings = require("../settings.json");
+﻿const settings = require("../settings.json");
 
 const sheets = require("../House-Data/sheets.js");
 const Exit = require("../House-Data/Exit.js");

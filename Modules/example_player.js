@@ -1,5 +1,4 @@
-﻿const discord = require("discord.js");
-const settings = require("../settings.json");
+﻿const settings = require("../settings.json");
 
 module.exports.config = {
     name: "example_player",
@@ -10,7 +9,7 @@ module.exports.config = {
     aliases: ["example", "ex", "test"]
 };
 
-module.exports.run = async (bot, config, message, command, args) => {
+module.exports.run = async (bot, game, message, args, player) => {
     message.channel.send("You are a player.");
     return;
 };
