@@ -4,9 +4,13 @@ const settings = require("../settings.json");
 module.exports.config = {
     name: "move_player",
     description: "Moves you to another room.",
-    details: "Moves you to another room. You will be removed from the current channel and put into the channel corresponding to the room you specify. You can specify either an exit of the current room or the name of the desired room, if you know it. Note that you can only move to adjacent rooms. It is recommended that you open the new channel immediately so that you can start seeing messages as soon as you're added. The room description will be sent to you via DMs.",
+    details: 'Moves you to another room. You will be removed from the current channel and put into the channel corresponding to the room you specify. '
+        + 'You can specify either an exit of the current room or the name of the desired room, if you know it. Note that you can only move to adjacent rooms. '
+        + "It is recommended that you open the new channel immediately so that you can start seeing messages as soon as you're added. "
+        + 'The room description will be sent to you via DMs.',
     usage: `${settings.commandPrefix}move door 1\n`
-        + `${settings.commandPrefix}enter door 1`,
+        + `${settings.commandPrefix}enter door 1\n`
+        + `${settings.commandPrefix}go locker room`,
     usableBy: "Player",
     aliases: ["move", "go", "exit", "enter"]
 };

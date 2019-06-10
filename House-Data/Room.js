@@ -53,7 +53,7 @@ class Room {
         let exitMessage;
         if (exit) exitMessage = `${player.name} exits into ${exit.name}.`;
         else exitMessage = `${player.name} suddenly disappears.`;
-        new Narration(game, player, this, exiteMessage).send();
+        new Narration(game, player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
