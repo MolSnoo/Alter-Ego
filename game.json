@@ -1,8 +1,10 @@
 ﻿{
   "guild": null,
   "logChannel": null,
-  "game": true,
+  "game": false,
   "canJoin": false,
+  "halfTimer": null,
+  "endTimer": null,
   "players": [],
   "players_alive": [],
   "players_dead": [],

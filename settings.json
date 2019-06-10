@@ -2,6 +2,11 @@
   "commandPrefix": ".",
   "debug": true,
   "testing": false,
+
+  "defaultClueLevel": 1,
+  "defaultLocation": "park",
+  "defaultStatusEffects": "satisfied, well rested",
+
   "testerRole": "585226322859655175",
   "eligibleRole": "581612389993152532",
   "playerRole": "581612815194783795",
@@ -56,6 +61,7 @@
   "statusSheetLoadCells": "Status Effects!A1:H",
   "statusSheetInflictedColumn": "Status Effects!J",
   "statusSheetCuredColumn": "Status Effects!K",
+  "playerSheetInitCells": "Players!A3:P",
   "playerSheetLoadCells": "Players!A1:O",
   "playerSheetIDColumn": "Players!A",
   "playerSheetLocationColumn": "Players!F",

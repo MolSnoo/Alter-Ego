@@ -2,19 +2,20 @@
 const settings = require("../settings.json");
 
 module.exports.config = {
-    name: "help_player",
+    name: "help_eligible",
     description: "Lists all commands available to you.",
     details: "Lists all commands available to the user. If a command is specified, displays the help menu for that command.",
     usage: `${settings.commandPrefix}help\n` +
-        `${settings.commandPrefix}help move`,
-    usableBy: "Player",
-    aliases: ["help"]
+        `${settings.commandPrefix}help play`,
+    usableBy: "Eligible",
+    aliases: ["help"],
+    requiresGame: false
 };
 
 module.exports.run = async (bot, game, message, args, player) => {
     // Get all commands available to the user and sort them alphabetically.
     var roleCommands = new discord.Collection();
-    roleCommands = bot.configs.filter(config => config.usableBy === "Player");
+    roleCommands = bot.configs.filter(config => config.usableBy === "Eligible");
     roleCommands.sort(function (a, b) {
         if (a.name < b.name) return -1;
         if (a.name > b.name) return 1;
@@ -25,7 +26,7 @@ module.exports.run = async (bot, game, message, args, player) => {
         let embed = new discord.RichEmbed()
             .setColor('1F8B4C')
             .setAuthor(`${message.guild.me.displayName} Help`, message.guild.iconURL)
-            .setDescription(`These are the available commands for users with the Player role.`);
+            .setDescription(`These are the available commands for users with the Student role.`);
 
         roleCommands.forEach(function (value, key, map) {
             const commandName = key.substring(0, key.indexOf('_'));

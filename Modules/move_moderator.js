@@ -14,7 +14,7 @@ module.exports.config = {
         + `${settings.commandPrefix}move all elevator`,
     usableBy: "Moderator",
     aliases: ["move"],
-    requiresGame: false
+    requiresGame: true
 };
 
 module.exports.run = async(bot, game, message, command, args) => {

@@ -12,13 +12,15 @@ function mapEntriesToString(entries) {
 }
 */
 module.exports.execute = function (command, bot, game, message) {
-    var isBot = isModerator = isPlayer = false;
+    var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
     else if (message.channel.id === settings.commandsChannel && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
     else {
         let member = game.guild.members.find(member => member.id === message.author.id);
         if (member && member.roles.find(role => role.id === settings.playerRole)) isPlayer = true;
+        else if (member && settings.debug && member.roles.find(role => role.id === settings.testerRole)) isEligible = true;
+        else if (member && !settings.debug && member.roles.find(role => role.id === settings.studentRole)) isEligible = true;
     }
 
     const commandSplit = command.split(" ");
@@ -28,6 +30,7 @@ module.exports.execute = function (command, bot, game, message) {
     if (isBot) roleCommands = bot.configs.filter(config => config.usableBy === "Bot");
     else if (isModerator) roleCommands = bot.configs.filter(config => config.usableBy === "Moderator");
     else if (isPlayer) roleCommands = bot.configs.filter(config => config.usableBy === "Player");
+    else if (isEligible) roleCommands = bot.configs.filter(config => config.usableBy === "Eligible");
 
     let commandConfig = roleCommands.find(command => command.aliases.includes(commandSplit[0]));
     if (!commandConfig) return;
@@ -58,5 +61,11 @@ module.exports.execute = function (command, bot, game, message) {
             commandFile.run(bot, game, message, args, player).then(() => { if (!settings.debug) message.delete().catch(); });
         }
     }
-    
+    else if (isEligible) {
+        if (!game.game) return message.reply("There is no game currently running.");
+        if ((settings.debug && message.channel.id === settings.testingChannel)
+            || (!settings.debug && message.channel.id === settings.generalChannel)) {
+            commandFile.run(bot, game, message, args);
+        }
+    }
 };
