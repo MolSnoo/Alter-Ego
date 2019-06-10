@@ -126,9 +126,16 @@ module.exports.run = async(bot, game, message, command, args) => {
                     }
                 }
             }
+
+            var exitMessage; 
+            if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}.`;
+            else exitMessage = `${players[i].displayName} exits.`;
+            var entranceMessage;
+            if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}.`;
+            else entranceMessage = `${players[i].displayName} enters.`;
             // Move the player.
-            currentRoom.removePlayer(players[i], exit, game);
-            desiredRoom.addPlayer(players[i], entrance, game);
+            currentRoom.removePlayer(game, players[i], exit, exitMessage);
+            desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
         }
     }
 
@@ -145,7 +152,7 @@ module.exports.run = async(bot, game, message, command, args) => {
     }
 
     // Post log message.
-    var time = new Date().toLocaleTimeString();
+    const time = new Date().toLocaleTimeString();
     game.logChannel.send(`${time} - ${playerList} forcefully moved to ${desiredRoom.channel}`);
 
     return;

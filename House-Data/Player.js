@@ -19,7 +19,7 @@ class Player {
         this.row = row;
     }
 
-    inflict(statusName, game, notify, updateSheet) {
+    inflict(game, statusName, notify, updateSheet, narrate) {
         if (this.statusString.includes(statusName)) return "Specified player already has that status effect.";
 
         var status = null;
@@ -33,6 +33,7 @@ class Player {
 
         if (notify === null || notify === undefined) notify = true;
         if (updateSheet === null || updateSheet === undefined) updateSheet = true;
+        if (narrate === null || narrate === undefined) narrate = true;
 
         // Apply the effects of any attributes that require immediate action.
         if (status.attributes.includes("no channel")) {
@@ -48,11 +49,11 @@ class Player {
         if (status.attributes.includes("acute hearing")) game.acuteHearingPlayers.push(this);
         if (status.attributes.includes("hidden")) {
             game.hiddenPlayers.push(this);
-            new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
+            if (narrate) new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
             sheets.updateCell(this.hidingSpotCell(), this.hidingSpot);
         }
         if (status.attributes.includes("concealed")) {
-            if (!this.hasAttribute("hidden")) new Narration(game, this, this.location, `${this.displayName} puts on a mask.`).send();
+            if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on a mask.`).send();
             this.displayName = "A masked figure";
             game.concealedPlayers.push(this);
         }
@@ -81,8 +82,8 @@ class Player {
 
                 if (status.duration <= 0) {
                     if (status.nextStage) {
-                        player.cure(status.name, game, false, false, false);
-                        player.inflict(status.nextStage.name, game, true, true);
+                        player.cure(game, status.name, false, false, false, true);
+                        player.inflict(game, status.nextStage.name, true, true, true);
                     }
                     else {
                         if (status.fatal) {
@@ -90,7 +91,7 @@ class Player {
                             player.die(game);
                         }
                         else {
-                            player.cure(status.name, game, true, true);
+                            player.cure(game, status.name, true, true, true, true);
                         }
                     }
                 }
@@ -132,7 +133,7 @@ class Player {
         return "Status successfully added.";
     }
 
-    cure(statusName, game, notify, doCuredCondition, updateSheet) {
+    cure(game, statusName, notify, doCuredCondition, updateSheet, narrate) {
         var status = null;
         var statusIndex = -1;
         for (let i = 0; i < this.status.length; i++) {
@@ -156,20 +157,29 @@ class Player {
         if (status.attributes.includes("acute hearing")) game.acuteHearingPlayers.splice(game.acuteHearingPlayers.indexOf(this), 1);
         if (status.attributes.includes("hidden")) {
             game.hiddenPlayers.splice(game.hiddenPlayers.indexOf(this), 1);
-            new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
+            if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.hidingSpot = "";
             sheets.updateCell(this.hidingSpotCell(), " ");
         }
         if (status.attributes.includes("concealed")) {
             game.concealedPlayers.splice(game.concealedPlayers.indexOf(this), 1);
             this.displayName = this.name;
-            new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${player.displayName}.`).send();
+            if (narrate) new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${this.displayName}.`).send();
         }
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(status.curedCondition.name, game, false, true);
+            this.inflict(game, status.curedCondition.name, false, true, true);
             returnMessage += ` Player is now ${status.curedCondition.name}.`;
+        }
+
+        // Inform player what happened.
+        if (notify) {
+            let player = this;
+            sheets.getData(status.curedCell(), function (response) {
+                if (response.data.values)
+                    player.member.send(response.data.values[0][0]);
+            });
         }
 
         // Post log message.

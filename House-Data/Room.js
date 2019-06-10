@@ -12,29 +12,26 @@ class Room {
 
         this.occupants = new Array();
         this.occupantsString = "";
+
+        this.objects = new Array();
     }
 
-    addPlayer(player, entrance, game) {
+    addPlayer(game, player, entrance, entranceMessage, sendDescription) {
         player.location = this;
-        let entranceMessage;
-        let descriptionCell;
-        if (entrance) {
-            entranceMessage = `${player.name} enters from ${entrance.name}.`;
-            descriptionCell = entrance.parsedDescriptionCell();
-        }
-        else {
-            entranceMessage = `${player.name} suddenly appears.`;
-            descriptionCell = this.parsedDescriptionCell();
-        }
-        if (player.getAttributeStatusEffects("no channel").length === 0) {
-            new Narration(game, player, this, entranceMessage).send();
+        if (entranceMessage) new Narration(game, player, this, entranceMessage).send();
+        
+        if (player.getAttributeStatusEffects("no channel").length === 0)  
             this.joinChannel(player);
-        }
 
-        // Send the room description of the entrance the player enters from.
-        sheets.getData(descriptionCell, function (response) {
-            player.member.send(response.data.values[0][0]);
-        });
+        if (sendDescription) {
+            let descriptionCell;
+            if (entrance) descriptionCell = entrance.parsedDescriptionCell();
+            else descriptionCell = this.parsedDescriptionCell();
+            // Send the room description of the entrance the player enters from.
+            sheets.getData(descriptionCell, function (response) {
+                player.member.send(response.data.values[0][0]);
+            });
+        }
 
         // Update the player's location on the spreadsheet.
         sheets.updateCell(player.locationCell(), this.name);
@@ -49,11 +46,8 @@ class Room {
         });
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
     }
-    removePlayer(player, exit, game) {
-        let exitMessage;
-        if (exit) exitMessage = `${player.name} exits into ${exit.name}.`;
-        else exitMessage = `${player.name} suddenly disappears.`;
-        new Narration(game, player, this, exitMessage).send();
+    removePlayer(game, player, exit, exitMessage) {
+        if (exitMessage) new Narration(game, player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.occupants.map(player => player.name).join(", ");

@@ -51,11 +51,11 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (!player) return message.reply(`couldn't find player "${args[0]}"`);
 
     if (command === "inflict") {
-        const response = player.inflict(input.substring(input.indexOf(args[1])), game, true, true);
+        const response = player.inflict(game, input.substring(input.indexOf(args[1])), true, true, true);
         message.channel.send(response);
     }
     if (command === "cure") {
-        const response = player.cure(input.substring(input.indexOf(args[1])), game, true, true, true);
+        const response = player.cure(game, input.substring(input.indexOf(args[1])), true, true, true, true);
         message.channel.send(response);
     }
     else if (command === "view") {
