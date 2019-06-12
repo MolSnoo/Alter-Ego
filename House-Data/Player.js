@@ -1,5 +1,8 @@
 const settings = require("../settings.json");
 const sheets = require('./sheets.js');
+const parser = require('./parser.js');
+
+const InventoryItem = require('./InventoryItem.js');
 const Narration = require('./Narration.js');
 
 class Player {
@@ -193,6 +196,56 @@ class Player {
         if (updateSheet) sheets.updateCell(this.statusCell(), this.statusString);
 
         return returnMessage;
+    }
+
+    take(game, item, slotNo, containerFormattedDescriptions, containerParsedDescriptions) {
+        if (!isNaN(item.quantity)) {
+            item.quantity--;
+            sheets.updateCell(item.quantityCell(), item.quantity.toString());
+        }
+
+        for (let i = 0; i < containerFormattedDescriptions.length; i++) {
+            sheets.getDataFormulas(containerFormattedDescriptions[i], function (response) {
+                const newDescription = parser.removeItem(response.data.values[0][0], item);
+                sheets.updateCell(containerFormattedDescriptions[i], newDescription[0]);
+                sheets.updateCell(containerParsedDescriptions[i], newDescription[1]);
+            });
+        }
+
+        // Make a copy of the item and put it in the player's inventory.
+        const createdItem = new InventoryItem(
+            item.name,
+            item.pluralName,
+            item.uses,
+            item.discreet,
+            item.effect,
+            item.cures,
+            item.singleContainingPhrase,
+            item.pluralContainingPhrase,
+            this.inventory[slotNo].row
+        );
+        this.inventory[slotNo] = createdItem;
+        this.member.send(`You took ${createdItem.singleContainingPhrase}.`);
+
+        // Add the new item to the Players sheet so that it's in their inventory.
+        // First, concatenate the containing phrases so they're formatted properly on the spreadsheet.
+        var containingPhrase = createdItem.singleContainingPhrase;
+        if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
+        sheets.getData(item.descriptionCell(), function (response) {
+            const data = new Array(new Array(
+                createdItem.name,
+                createdItem.pluralName,
+                createdItem.uses,
+                createdItem.discreet,
+                createdItem.effect,
+                createdItem.cures,
+                containingPhrase,
+                response.data.values[0][0]
+            ));
+            sheets.updateData(createdItem.itemCells(), data);
+        });
+
+        if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
     }
 
     generate_statusList() {
