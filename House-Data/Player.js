@@ -3,6 +3,7 @@ const sheets = require('./sheets.js');
 const parser = require('./parser.js');
 const loader = require('./loader.js');
 
+const Room = require('./Room.js');
 const Object = require('./Object.js');
 const Puzzle = require('./Puzzle.js');
 const InventoryItem = require('./InventoryItem.js');
@@ -201,19 +202,32 @@ class Player {
         return returnMessage;
     }
 
-    take(game, item, slotNo, containerFormattedDescriptions, containerParsedDescriptions) {
+    async take(game, item, slotNo, container) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
             sheets.updateCell(item.quantityCell(), item.quantity.toString());
         }
 
-        for (let i = 0; i < containerFormattedDescriptions.length; i++) {
-            sheets.getDataFormulas(containerFormattedDescriptions[i], function (response) {
-                const newDescription = parser.removeItem(response.data.values[0][0], item);
-                sheets.updateCell(containerFormattedDescriptions[i], newDescription[0]);
-                sheets.updateCell(containerParsedDescriptions[i], newDescription[1]);
-            });
+        if (container instanceof Puzzle) {
+            const description = await sheets.fetchDescription(container.formattedAlreadySolvedCell());
+            const newDescription = parser.removeItem(description, item);
+            sheets.updateCell(container.formattedAlreadySolvedCell(), newDescription[0]);
+            sheets.updateCell(container.parsedAlreadySolvedCell(), newDescription[1]);
+        }
+        else if (container instanceof Object) {
+            const description = await sheets.fetchDescription(container.formattedDescriptionCell());
+            const newDescription = parser.removeItem(description, item);
+            sheets.updateCell(container.formattedDescriptionCell(), newDescription[0]);
+            sheets.updateCell(container.parsedDescriptionCell(), newDescription[1]);
+        }
+        else if (container instanceof Room) {
+            for (let i = 0; i < container.exit.length; i++) {
+                const description = await sheets.fetchDescription(container.exit[i].formattedDescriptionCell());
+                const newDescription = parser.removeItem(description, item);
+                sheets.updateCell(container.exit[i].formattedDescriptionCell(), newDescription[0]);
+                sheets.updateCell(container.exit[i].parsedDescriptionCell(), newDescription[1]);
+            }
         }
 
         // Make a copy of the item and put it in the player's inventory.

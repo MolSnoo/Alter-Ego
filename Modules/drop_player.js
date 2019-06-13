@@ -74,7 +74,7 @@ module.exports.run = async (bot, game, message, args, player) => {
     if (puzzle !== null) {
         player.drop(game, slotNo, puzzle);
         // Post log message.
-        game.logChannel.send(`${time} - ${player.name} dropped ${itemName} ${object.preposition} ${puzzle.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} dropped ${itemName} ${object.preposition} ${object.name} in ${player.location.channel}`);
     }
     else {
         player.drop(game, slotNo, object);

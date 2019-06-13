@@ -114,26 +114,19 @@ module.exports.run = async (bot, game, message, args, player) => {
 
     const time = new Date().toLocaleTimeString();
     if (puzzle !== null) {
-        player.take(game, item, freeSlot, new Array(puzzle.formattedAlreadySolvedCell()), new Array(puzzle.parsedAlreadySolvedCell()));
+        player.take(game, item, freeSlot, puzzle);
 
         // Post log message.
-        game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${puzzle.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${object.name} in ${player.location.channel}`);
     }
     else if (object !== null) {
-        player.take(game, item, freeSlot, new Array(object.formattedDescriptionCell()), new Array(object.parsedDescriptionCell()));
+        player.take(game, item, freeSlot, object);
 
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${object.name} in ${player.location.channel}`);
     }
     else {
-        var formattedDescriptions = new Array();
-        var parsedDescriptions = new Array();
-        for (let i = 0; i < player.location.exit.length; i++) {
-            const room = player.location.exit[i];
-            formattedDescriptions.push(room.formattedDescriptionCell());
-            parsedDescriptions.push(room.parsedDescriptionCell());
-        }
-        player.take(game, item, freeSlot, formattedDescriptions, parsedDescriptions);
+        player.take(game, item, freeSlot, player.location);
 
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${player.location.channel}`);
