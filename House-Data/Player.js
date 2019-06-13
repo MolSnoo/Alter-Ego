@@ -427,6 +427,15 @@ class Player {
         return statusMessage;
     }
 
+    viewInventory(possessive) {
+        var itemString = `${possessive} inventory: \n`;
+        for (let i = 0; i < this.inventory.length; i++) {
+            if (this.inventory[i].name !== null) itemString += `[${this.inventory[i].name}] `;
+            else itemString += `[ ] `;
+        }
+        return itemString;
+    }
+
     hasAttribute(attribute) {
         var hasAttribute = false;
         for (let i = 0; i < this.status.length; i++) {
