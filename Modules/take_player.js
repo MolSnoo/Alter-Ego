@@ -93,6 +93,7 @@ module.exports.run = async (bot, game, message, args, player) => {
                     for (let j = 0; j < puzzles.length; j++) {
                         if (puzzles[j].name === item.requires) {
                             puzzle = puzzles[j];
+                            object = game.objects.find(object => object.location === item.location && object.name === puzzle.parentObject && object.requires === puzzle.name);
                             break;
                         }
                     }
@@ -115,19 +116,16 @@ module.exports.run = async (bot, game, message, args, player) => {
     const time = new Date().toLocaleTimeString();
     if (puzzle !== null) {
         player.take(game, item, freeSlot, puzzle);
-
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${object.name} in ${player.location.channel}`);
     }
     else if (object !== null) {
         player.take(game, item, freeSlot, object);
-
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${object.name} in ${player.location.channel}`);
     }
     else {
         player.take(game, item, freeSlot, player.location);
-
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${player.location.channel}`);
     }
