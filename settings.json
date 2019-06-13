@@ -7,6 +7,8 @@
   "defaultLocation": "park",
   "defaultStatusEffects": "satisfied, well rested",
 
+  "defaultDropObject": "FLOOR",
+
   "testerRole": "585226322859655175",
   "eligibleRole": "581612389993152532",
   "playerRole": "581612815194783795",
@@ -69,5 +71,7 @@
   "playerSheetStatusColumn": "Players!H",
   "playerSheetItemNameColumn": "Players!I",
   "playerSheetItemUsesColumn": "Players!K",
-  "playerSheetItemDescriptionColumn": "Players!P"
+  "playerSheetItemDescriptionColumn": "Players!P",
+  "emptyPlayerRow": [ "", "", "", "", "", "", "", "" ],
+  "emptyInventoryItem": [ "NULL", "", "", "", "", "", "", "" ]
 }

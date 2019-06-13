@@ -1,8 +1,8 @@
 ﻿const settings = require("../settings.json");
 const sheets = require("../House-Data/sheets.js");
 
-const emptyRow = new Array("", "", "", "", "", "", "", "");
-const emptyInventoryItem = new Array("NULL", "", "", "", "", "", "", "");
+const emptyRow = settings.emptyPlayerRow;
+const emptyInventoryItem = settings.emptyInventoryItem;
 
 module.exports.config = {
     name: "startgame_moderator",

@@ -1,7 +1,10 @@
 const settings = require("../settings.json");
 const sheets = require('./sheets.js');
 const parser = require('./parser.js');
+const loader = require('./loader.js');
 
+const Object = require('./Object.js');
+const Puzzle = require('./Puzzle.js');
 const InventoryItem = require('./InventoryItem.js');
 const Narration = require('./Narration.js');
 
@@ -199,6 +202,7 @@ class Player {
     }
 
     take(game, item, slotNo, containerFormattedDescriptions, containerParsedDescriptions) {
+        // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
             sheets.updateCell(item.quantityCell(), item.quantity.toString());
@@ -248,6 +252,136 @@ class Player {
         if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
     }
 
+    async drop(game, slotNo, container) {
+        // First, check if the player is putting this item back in original spot unmodified.
+        const invItem = this.inventory[slotNo];
+        const roomItems = game.items.filter(item => item.location === this.location.name);
+        var matchedItems = roomItems.filter(item =>
+            item.name === invItem.name &&
+            item.pluralName === invItem.pluralName &&
+            item.location === this.location.name &&
+            ((container instanceof Object && item.sublocation === container.name) || (container instanceof Puzzle && item.sublocation === "")) &&
+            ((container instanceof Puzzle && item.requires === container.name) || (container instanceof Object && item.requires === "")) &&
+            (item.uses === invItem.uses || (isNaN(item.uses) && isNaN(invItem.uses))) &&
+            item.discreet === invItem.discreet &&
+            item.effect === invItem.effect &&
+            item.cures === invItem.cures &&
+            item.singleContainingPhrase === invItem.singleContainingPhrase &&
+            item.pluralContainingPhrase === invItem.pluralContainingPhrase
+        );
+        // Now that the list of items to check is significantly smaller,
+        // check if the descriptions are the same.
+        const invItemDescription = await sheets.fetchDescription(invItem.descriptionCell());
+        for (let i = 0; i < matchedItems.length; i++) {
+            const item = matchedItems[i];
+            const itemDescription = await sheets.fetchDescription(item.descriptionCell());
+            if (itemDescription !== invItemDescription) {
+                matchedItems.splice(i, 1);
+                i--;
+            }
+        }
+        
+        // The player is putting this item somewhere else, or it's changed somehow.
+        if (matchedItems.length === 0) {
+            var containingPhrase = invItem.singleContainingPhrase;
+            if (invItem.pluralContainingPhrase !== "") containingPhrase += `,${invItem.pluralContainingPhrase}`;
+            const data = new Array(
+                invItem.name,
+                invItem.pluralName,
+                this.location.name,
+                container instanceof Object ? container.name : "",
+                container instanceof Puzzle ? `=${container.solvedCell()}` : "TRUE",
+                container instanceof Puzzle ? container.name : "",
+                "1",
+                !isNaN(invItem.uses) ? invItem.uses : "",
+                invItem.discreet ? "TRUE" : "FALSE",
+                invItem.effect,
+                invItem.cures,
+                containingPhrase,
+                invItemDescription
+            );
+
+            // We want to insert this item near items in the same container, so get all of the items in that container.
+            var containerItems;
+            if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires === container.name);
+            else containerItems = roomItems.filter(item => item.sublocation === container.name);
+            // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
+            const lastRoomItem = roomItems[roomItems.length - 1];
+            const lastContainerItem = containerItems[containerItems.length - 1];
+            const lastGameItem = game.items[game.items.length - 1];
+            if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
+                sheets.insertRow(lastContainerItem.itemCells(), data, function (response) {
+                    loader.loadItems(game);
+                });
+            }
+            // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
+            else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
+                sheets.insertRow(lastRoomItem.itemCells(), data, function (response) {
+                    loader.loadItems(game);
+                });
+            }
+            // If there are none, just insert it at the end of the sheet.
+            else {
+                sheets.appendRow(lastGameItem.itemCells(), data, function (response) {
+                    loader.loadItems(game);
+                });
+            }
+        }
+        // The player is putting the item back.
+        else {
+            var item = matchedItems[0];
+            // Increase the quantity if the quantity is finite.
+            if (!isNaN(item.quantity)) {
+                item.quantity++;
+                sheets.updateCell(item.quantityCell(), item.quantity.toString());
+            }
+        }
+
+        var formattedDescriptionCell = "";
+        var parsedDescriptionCell = "";
+        var objectName = "";
+        var preposition = "in";
+        if (container instanceof Puzzle) {
+            formattedDescriptionCell = container.formattedAlreadySolvedCell();
+            parsedDescriptionCell = container.parsedAlreadySolvedCell();
+            let object = game.objects.find(object => object.name === container.parentObject && object.requires === container.name);
+            objectName = object.name;
+            preposition = object.preposition;
+        }
+        else {
+            formattedDescriptionCell = container.formattedDescriptionCell();
+            parsedDescriptionCell = container.parsedDescriptionCell();
+            objectName = container.name;
+            preposition = container.preposition;
+        }
+
+        const description = await sheets.fetchDescription(formattedDescriptionCell);
+        const newDescription = parser.addItem(description, invItem);
+        sheets.updateCell(formattedDescriptionCell, newDescription[0]);
+        sheets.updateCell(parsedDescriptionCell, newDescription[1]);
+
+        if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
+        this.member.send(`You discarded ${invItem.singleContainingPhrase}.`);
+
+        this.clearInventorySlot(slotNo);
+    }
+
+    clearInventorySlot(slotNo) {
+        this.inventory[slotNo] = new InventoryItem(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            this.inventory[slotNo].row
+        );
+        sheets.updateData(this.inventory[slotNo].itemCells(), new Array(settings.emptyInventoryItem));
+        return;
+    }
+
     generate_statusList() {
         var statusList = this.status[0].name;
         for (let i = 1; i < this.status.length; i++)
@@ -276,7 +410,6 @@ class Player {
                 statusMessage += `${seconds} remaining)] `;
             }
         }
-
         return statusMessage;
     }
 

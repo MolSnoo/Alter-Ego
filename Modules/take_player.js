@@ -8,7 +8,7 @@ module.exports.config = {
         + "If you're carrying a very large item (a sword, for example), people will see you carrying it when you enter or exit a room.",
     usage: `${settings.commandPrefix}take butcher's knife\n`
         + `${settings.commandPrefix}get first aid kit\n`
-        + `${settings.commandPrefix}take towel\n`
+        + `${settings.commandPrefix}take pill bottle medicine cabinet\n`
         + `${settings.commandPrefix}get towel benches`,
     usableBy: "Player",
     aliases: ["take", "get"]

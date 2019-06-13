@@ -12,7 +12,7 @@ const puzzleSheetID = config.puzzleSheetID;
 const statusEffectSheetID = config.statusEffectSheetID;
 const playerSheetID = config.playerSheetID;
 
-module.exports.getData = function (sheetrange, dataOperation) { 
+module.exports.getData = function (sheetrange, dataOperation) {
     authorize(function (authClient) {
         var request = {
             // The ID of the spreadsheet to retrieve data from.
@@ -44,7 +44,7 @@ module.exports.getData = function (sheetrange, dataOperation) {
             //console.log('Retrieved "' + response.data.values + '" from ' + sheetrange);
         });
     });
-}
+};
 
 module.exports.getDataFormulas = function (sheetrange, dataOperation) {
     authorize(function (authClient) {
@@ -78,7 +78,7 @@ module.exports.getDataFormulas = function (sheetrange, dataOperation) {
             //console.log('Retrieved "' + response.data.values + '" from ' + sheetrange);
         });
     });
-}
+};
 
 module.exports.updateData = function (sheetrange, data, dataOperation) {
     authorize(function (authClient) {
@@ -111,7 +111,7 @@ module.exports.updateData = function (sheetrange, data, dataOperation) {
             //console.log('Wrote "' + data + '" to ' + sheetrange);
         });
     });
-}
+};
 
 module.exports.updateCell = function (sheetrange, data, dataOperation) {
     authorize(function (authClient) {
@@ -144,7 +144,7 @@ module.exports.updateCell = function (sheetrange, data, dataOperation) {
             //console.log('Wrote "' + data + '" to ' + sheetrange);
         });
     });
-}
+};
 
 module.exports.appendRow = function (sheetrange, data, dataOperation) {
     authorize(function (authClient) {
@@ -181,7 +181,7 @@ module.exports.appendRow = function (sheetrange, data, dataOperation) {
             //console.log('Appended row "' + data + '" to ' + sheetrange);
         });
     });
-}
+};
 
 module.exports.insertRow = function (sheetrange, data, dataOperation) {
     const sheetrangeArgs = sheetrange.split('!');
@@ -268,7 +268,15 @@ module.exports.insertRow = function (sheetrange, data, dataOperation) {
             //console.log("Inserted row(s).");
         });
     });
-}
+};
+
+module.exports.fetchDescription = function (descriptionCell) {
+    return new Promise((resolve) => {
+        exports.getDataFormulas(descriptionCell, (response) => {
+            resolve(response.data.values[0][0]);
+        });
+    });
+};
 
 function authorize(callback) {
     // TODO: Change placeholder below to generate authentication credentials. See
