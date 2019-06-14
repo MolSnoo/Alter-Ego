@@ -202,6 +202,100 @@ class Player {
         return returnMessage;
     }
 
+    generate_statusList() {
+        var statusList = this.status[0].name;
+        for (let i = 1; i < this.status.length; i++)
+            statusList += `, ${this.status[i].name}`;
+        return statusList;
+    }
+
+    viewStatus_moderator() {
+        var statusMessage = this.name + "'s status: ";
+        for (let i = 0; i < this.status.length; i++) {
+            if (this.status[i].duration === "") {
+                statusMessage += `[${this.status[i].name}] `;
+            }
+            else {
+                const time = this.status[i].duration / 1000;  // Gets the total time in seconds.
+                const seconds = Math.floor(time % 60);
+                const minutes = Math.floor((time / 60) % 60);
+                const hours = Math.floor(time / 3600);
+
+                statusMessage += `[${this.status[i].name} (`;
+                if (hours >= 0 && hours < 10) statusMessage += '0';
+                statusMessage += `${hours}:`;
+                if (minutes >= 0 && minutes < 10) statusMessage += '0';
+                statusMessage += `${minutes}:`;
+                if (seconds >= 0 && seconds < 10) statusMessage += '0';
+                statusMessage += `${seconds} remaining)] `;
+            }
+        }
+        return statusMessage;
+    }
+
+    hasAttribute(attribute) {
+        var hasAttribute = false;
+        for (let i = 0; i < this.status.length; i++) {
+            if (this.status[i].attributes.includes(attribute)) {
+                hasAttribute = true;
+                break;
+            }
+        }
+        return hasAttribute;
+    }
+
+    getAttributeStatusEffects(attribute) {
+        var statusEffects = [];
+        for (let i = 0; i < this.status.length; i++) {
+            if (this.status[i].attributes.includes(attribute))
+                statusEffects.push(this.status[i]);
+        }
+        return statusEffects;
+    }
+
+    use(game, item) {
+        if (item.uses === 0) return "that item has no uses left.";
+        if (item.effects.length === 0 && item.cures.length === 0) return "that item has no programmed use on its own, but you may be able to use it some other way.";
+        if (item.name !== "MASK" && item.effects.length !== 0) {
+            for (let i = 0; i < item.effects.length; i++) {
+                if (this.statusString.includes(item.effects[i]))
+                    return "you cannot use that item as you are already under its effect.";
+            }
+        }
+
+        if (item.effects.length !== 0) {
+            if (item.name === "MASK" && this.statusString === "concealed")
+                this.cure(game, "concealed", true, false, true, true);
+            else {
+                // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
+                for (let i = 0; i < item.effects.length - 1; i++)
+                    this.inflict(game, item.effects[i], true, false, true);
+                this.inflict(game, item.effects[item.effects.length - 1], true, true, true);
+            }
+        }
+
+        if (item.cures.length !== 0) {
+            var hasEffect = false;
+            // If the item cures multiple status effects, don't update the spreadsheet until inflicting the last one.
+            for (let i = 0; i < item.cures.length - 1; i++) {
+                const statusMessage = this.cure(game, item.cures[i], true, true, false, true);
+                if (statusMessage !== "Specified player doesn't have that status.") hasEffect = true;
+            }
+            const statusMessage = this.cure(game, item.cures[item.cures.length - 1], true, true, true, true);
+            if (statusMessage !== "Specified player doesn't have that status.") hasEffect = true;
+            if (!hasEffect) return `you attempted to use the ${item.name}, but it had no effect.`;
+        }
+
+        if (!isNaN(item.uses)) {
+            item.uses--;
+            sheets.updateCell(item.usesCell(), item.uses.toString());
+        }
+        if (item.name !== "MASK")
+            new Narration(game, this, this.location, `${this.displayName} takes out ${item.singleContainingPhrase} and uses it.`).send();
+
+        return;
+    }
+
     async take(game, item, slotNo, container) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
@@ -264,6 +358,8 @@ class Player {
         });
 
         if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
+
+        return;
     }
 
     async drop(game, slotNo, container) {
@@ -377,7 +473,13 @@ class Player {
         if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
         this.member.send(`You discarded ${invItem.singleContainingPhrase}.`);
 
+        if (invItem.name === "MASK" && this.statusString.includes("concealed")) {
+            this.cure(game, "concealed", true, false, true, true);
+        }
+
         this.clearInventorySlot(slotNo);
+
+        return;
     }
 
     clearInventorySlot(slotNo) {
@@ -396,37 +498,6 @@ class Player {
         return;
     }
 
-    generate_statusList() {
-        var statusList = this.status[0].name;
-        for (let i = 1; i < this.status.length; i++)
-            statusList += `, ${this.status[i].name}`;
-        return statusList;
-    }
-
-    viewStatus_moderator() {
-        var statusMessage = this.name + "'s status: ";
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].duration === "") {
-                statusMessage += `[${this.status[i].name}] `;
-            }
-            else {
-                const time = this.status[i].duration / 1000;  // Gets the total time in seconds.
-                const seconds = Math.floor(time % 60);
-                const minutes = Math.floor((time / 60) % 60);
-                const hours = Math.floor(time / 3600);
-
-                statusMessage += `[${this.status[i].name} (`;
-                if (hours >= 0 && hours < 10) statusMessage += '0';
-                statusMessage += `${hours}:`;
-                if (minutes >= 0 && minutes < 10) statusMessage += '0';
-                statusMessage += `${minutes}:`;
-                if (seconds >= 0 && seconds < 10) statusMessage += '0';
-                statusMessage += `${seconds} remaining)] `;
-            }
-        }
-        return statusMessage;
-    }
-
     viewInventory(possessive) {
         var itemString = `${possessive} inventory: \n`;
         for (let i = 0; i < this.inventory.length; i++) {
@@ -436,24 +507,74 @@ class Player {
         return itemString;
     }
 
-    hasAttribute(attribute) {
-        var hasAttribute = false;
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].attributes.includes(attribute)) {
-                hasAttribute = true;
-                break;
+    attemptPuzzle(bot, game, puzzle, item, password) {
+        if (puzzle.accessible) {
+            if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
+            if (puzzle.remainingAttempts === 0) {
+                let player = this;
+                sheets.getData(puzzle.noMoreAttemptsCell(), function (response) {
+                    player.member.send(response.data.values[0][0]);
+                });
+                new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
             }
-        }
-        return hasAttribute;
-    }
 
-    getAttributeStatusEffects(attribute) {
-        var statusEffects = [];
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].attributes.includes(attribute))
-                statusEffects.push(this.status[i]);
+            // Make sure all of the requirements are met before proceeding.
+            var hasRequiredItem = false;
+            var requirementsMet = false;
+            if (puzzle.requires.startsWith("Item: ")) {
+                if (item !== null && item.name === puzzle.requires.substring("Item: ".length))
+                    hasRequiredItem = true;
+            }
+            else hasRequiredItem = true;
+
+            if (puzzle.solved || hasRequiredItem) requirementsMet = true;
+
+            // Puzzle is solvable.
+            if (requirementsMet) {
+                if (puzzle.type === "password") {
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                    else {
+                        if (password === "") return "you need to enter a password.";
+                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                    }
+                }
+                else if (puzzle.type === "interact") {
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                }
+                else if (puzzle.type === "combination lock") {
+                    // The lock is currently unlocked.
+                    if (puzzle.solved) {
+                        if (password === "" || password === puzzle.solution)
+                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
+                        // If the player enters something that isn't the solution, lock it.
+                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`);
+                    }
+                    // The lock is locked.
+                    else {
+                        if (password === "") return "you need to enter a combination. The format is #-#-#.";
+                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`);
+                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject}.`);
+                    }
+                }
+                else if (puzzle.type === "key lock") {
+                    // The lock is currently unlocked.
+                    if (puzzle.solved) {
+                        if (hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`);
+                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
+                    }
+                    // The lock is locked.
+                    else puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`);
+                }
+            }
+            // The player is missing an item needed to solve the puzzle.
+            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
         }
-        return statusEffects;
+        // The puzzle isn't accessible.
+        else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
+
+        return;
     }
 
     die(game) {

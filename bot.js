@@ -69,7 +69,7 @@ bot.on('message', async message => {
     }
     */
     if (message.content.startsWith(settings.commandPrefix)) {
-        const command = message.content.substring(1);
+        const command = message.content.substring(settings.commandPrefix.length);
         let commandHandler = require('./commandHandler.js');
         commandHandler.execute(command, bot, game, message);
     }   

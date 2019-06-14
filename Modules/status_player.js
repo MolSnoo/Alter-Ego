@@ -9,7 +9,7 @@ module.exports.config = {
     aliases: ["status"]
 };
 
-module.exports.run = async (bot, game, message, args, player) => {
+module.exports.run = async (bot, game, message, command, args, player) => {
     const statusMessage = `You are currently:\n${player.statusString}`;
     player.member.send(statusMessage);
 

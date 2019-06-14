@@ -14,7 +14,7 @@ module.exports.config = {
     aliases: ["take", "get"]
 };
 
-module.exports.run = async (bot, game, message, args, player) => {
+module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0) {
         message.reply("you need to specify an item. Usage:");
         message.channel.send(exports.config.usage);

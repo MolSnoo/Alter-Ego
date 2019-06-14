@@ -14,7 +14,7 @@ module.exports.config = {
     aliases: ["move", "go", "exit", "enter"]
 };
 
-module.exports.run = async (bot, game, message, args, player) => {
+module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0) {
         message.reply("you need to specify a room. Usage:");
         message.channel.send(exports.config.usage);

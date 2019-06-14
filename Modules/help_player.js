@@ -11,7 +11,7 @@ module.exports.config = {
     aliases: ["help"]
 };
 
-module.exports.run = async (bot, game, message, args, player) => {
+module.exports.run = async (bot, game, message, command, args, player) => {
     // Get all commands available to the user and sort them alphabetically.
     var roleCommands = new discord.Collection();
     roleCommands = bot.configs.filter(config => config.usableBy === "Player");

@@ -9,7 +9,7 @@ module.exports.config = {
     aliases: ["inventory"]
 };
 
-module.exports.run = async (bot, game, message, args, player) => {
+module.exports.run = async (bot, game, message, command, args, player) => {
     const inventoryString = player.viewInventory("Your");
     player.member.send(inventoryString);
 

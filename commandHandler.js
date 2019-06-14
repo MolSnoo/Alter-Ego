@@ -61,7 +61,7 @@ module.exports.execute = function (command, bot, game, message) {
                 else return message.reply(`You cannot do that because you are **${status[0].name}**.`);
             }
 
-            commandFile.run(bot, game, message, args, player).then(() => { if (!settings.debug) message.delete().catch(); });
+            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug) message.delete().catch(); });
         }
     }
     else if (isEligible) {

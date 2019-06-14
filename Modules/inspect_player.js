@@ -20,7 +20,7 @@ module.exports.config = {
     aliases: ["inspect", "investigate", "examine", "look"]
 };
 
-module.exports.run = async (bot, game, message, args, player) => {
+module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0) {
         message.reply("you need to specify an object/item. Usage:");
         message.channel.send(exports.config.usage);

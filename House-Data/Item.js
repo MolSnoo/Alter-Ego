@@ -1,7 +1,7 @@
 const settings = require("../settings.json");
 
 class Item {
-    constructor(name, pluralName, location, sublocation, accessible, requires, quantity, uses, discreet, effect, cures, singleContainingPhrase, pluralContainingPhrase, row) {
+    constructor(name, pluralName, location, sublocation, accessible, requires, quantity, uses, discreet, effects, cures, singleContainingPhrase, pluralContainingPhrase, row) {
         this.name = name;
         this.pluralName = pluralName;
         this.location = location;
@@ -11,7 +11,7 @@ class Item {
         this.quantity = quantity;
         this.uses = uses;
         this.discreet = discreet;
-        this.effect = effect;
+        this.effects = effects;
         this.cures = cures;
         this.singleContainingPhrase = singleContainingPhrase;
         this.pluralContainingPhrase = pluralContainingPhrase;

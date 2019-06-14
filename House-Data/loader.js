@@ -142,6 +142,12 @@ module.exports.loadItems = function (game) {
             game.items.length = 0;
             for (let i = 1; i < sheet.length; i++) {
                 const containingPhrase = sheet[i][columnContainingPhrase].split(',');
+                var effects = sheet[i][columnEffect] ? sheet[i][columnEffect].split(',') : "";
+                for (let j = 0; j < effects.length; j++)
+                    effects[j] = effects[j].trim();
+                var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : "";
+                for (let j = 0; j < cures.length; j++)
+                    cures[j] = cures[j].trim();
                 game.items.push(
                     new Item(
                         sheet[i][columnName],
@@ -153,8 +159,8 @@ module.exports.loadItems = function (game) {
                         parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
                         sheet[i][columnDiscreet] === "TRUE",
-                        sheet[i][columnEffect] ? sheet[i][columnEffect] : "",
-                        sheet[i][columnCures] ? sheet[i][columnCures] : "",
+                        effects,
+                        cures,
                         containingPhrase[0].trim(),
                         containingPhrase[1] ? containingPhrase[1].trim() : "",
                         i + 1
@@ -185,6 +191,13 @@ module.exports.loadPuzzles = function (game) {
 
             game.puzzles.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                const commands = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].split('/') : new Array("", "");
+                var solvedCommands = commands[0] ? commands[0].split(',') : "";
+                for (let j = 0; j < solvedCommands.length; j++)
+                    solvedCommands[j] = solvedCommands[j].trim();
+                var unsolvedCommands = commands[1] ? commands[1].split(',') : "";
+                for (let j = 0; j < unsolvedCommands.length; j++)
+                    unsolvedCommands[j] = unsolvedCommands[j].trim();
                 game.puzzles.push(
                     new Puzzle(
                         sheet[i][columnName],
@@ -197,7 +210,8 @@ module.exports.loadPuzzles = function (game) {
                         sheet[i][columnRequires],
                         sheet[i][columnSolution] ? sheet[i][columnSolution] : "",
                         parseInt(sheet[i][columnAttempts]),
-                        sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "",
+                        solvedCommands,
+                        unsolvedCommands,
                         i + 1
                     )
                 );
@@ -286,14 +300,20 @@ module.exports.loadPlayers = function (game) {
                 for (j = 0; j < inventory.length; j++) {
                     if (sheet[i + j][columnItemName] !== "NULL") {
                         const containingPhrase = sheet[i + j][columnItemContainingPhrase].split(',');
+                        var effects = sheet[i + j][columnItemEffect] ? sheet[i + j][columnItemEffect].split(',') : "";
+                        for (let k = 0; k < effects.length; k++)
+                            effects[k] = effects[k].trim();
+                        var cures = sheet[i + j][columnItemCures] ? sheet[i + j][columnItemCures].split(',') : "";
+                        for (let k = 0; k < cures.length; k++)
+                            cures[k] = cures[k].trim();
                         inventory[j] =
                             new InventoryItem(
                                 sheet[i + j][columnItemName],
                                 sheet[i + j][columnItemPluralName] ? sheet[i + j][columnItemPluralName] : "",
                                 parseInt(sheet[i + j][columnItemUses]),
                                 sheet[i + j][columnItemDiscreet] === "TRUE",
-                                sheet[i + j][columnItemEffect] ? sheet[i + j][columnItemEffect] : "",
-                                sheet[i + j][columnItemCures] ? sheet[i + j][columnItemCures] : "",
+                                effects,
+                                cures,
                                 containingPhrase[0].trim(),
                                 containingPhrase[1] ? containingPhrase[1].trim() : "",
                                 i + j + 1
@@ -383,14 +403,20 @@ module.exports.loadInventories = function (game) {
                         for (k = 0; k < inventory.length; k++) {
                             if (sheet[j + k][columnItemName] !== "NULL") {
                                 const containingPhrase = sheet[j + k][columnItemContainingPhrase].split(',');
+                                var effects = sheet[j + k][columnItemEffect] ? sheet[j + k][columnItemEffect].split(',') : "";
+                                for (let l = 0; l < effects.length; l++)
+                                    effects[l] = effects[l].trim();
+                                var cures = sheet[j + k][columnItemCures] ? sheet[j + k][columnItemCures].split(',') : "";
+                                for (let l = 0; l < cures.length; l++)
+                                    cures[l] = cures[l].trim();
                                 inventory[k] =
                                     new InventoryItem(
                                         sheet[j + k][columnItemName],
                                         sheet[j + k][columnItemPluralName] ? sheet[j + k][columnItemPluralName] : "",
                                         parseInt(sheet[j + k][columnItemUses]),
                                         sheet[j + k][columnItemDiscreet] === "TRUE",
-                                        sheet[j + k][columnItemEffect] ? sheet[j + k][columnItemEffect] : "",
-                                        sheet[j + k][columnItemCures] ? sheet[j + k][columnItemCures] : "",
+                                        effects,
+                                        cures,
                                         containingPhrase[0].trim(),
                                         containingPhrase[1] ? containingPhrase[1].trim() : "",
                                         j + k + 1
