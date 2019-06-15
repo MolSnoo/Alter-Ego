@@ -126,7 +126,8 @@ class Player {
         if (notify) {
             let player = this;
             sheets.getData(status.inflictedCell(), function (response) {
-                player.member.send(response.data.values[0][0]);
+                if (response.data.values)
+                    player.member.send(response.data.values[0][0]);
             });
         }
 
@@ -264,7 +265,7 @@ class Player {
         }
 
         if (item.effects.length !== 0) {
-            if (item.name === "MASK" && this.statusString === "concealed")
+            if (item.name === "MASK" && this.statusString.includes("concealed"))
                 this.cure(game, "concealed", true, false, true, true);
             else {
                 // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
@@ -276,13 +277,11 @@ class Player {
 
         if (item.cures.length !== 0) {
             var hasEffect = false;
-            // If the item cures multiple status effects, don't update the spreadsheet until inflicting the last one.
-            for (let i = 0; i < item.cures.length - 1; i++) {
-                const statusMessage = this.cure(game, item.cures[i], true, true, false, true);
-                if (statusMessage !== "Specified player doesn't have that status.") hasEffect = true;
+            // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
+            for (let i = 0; i < item.cures.length; i++) {
+                const statusMessage = this.cure(game, item.cures[i], true, true, true, true);
+                if (statusMessage !== "Specified player doesn't have that status effect.") hasEffect = true;
             }
-            const statusMessage = this.cure(game, item.cures[item.cures.length - 1], true, true, true, true);
-            if (statusMessage !== "Specified player doesn't have that status.") hasEffect = true;
             if (!hasEffect) return `you attempted to use the ${item.name}, but it had no effect.`;
         }
 
@@ -330,7 +329,7 @@ class Player {
             item.pluralName,
             item.uses,
             item.discreet,
-            item.effect,
+            item.effects,
             item.cures,
             item.singleContainingPhrase,
             item.pluralContainingPhrase,
@@ -340,7 +339,9 @@ class Player {
         this.member.send(`You took ${createdItem.singleContainingPhrase}.`);
 
         // Add the new item to the Players sheet so that it's in their inventory.
-        // First, concatenate the containing phrases so they're formatted properly on the spreadsheet.
+        // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
+        var effects = createdItem.effects ? createdItem.effects.join(",") : "";
+        var cures = createdItem.cures ? createdItem.cures.join(",") : "";
         var containingPhrase = createdItem.singleContainingPhrase;
         if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
         sheets.getData(item.descriptionCell(), function (response) {
@@ -349,8 +350,8 @@ class Player {
                 createdItem.pluralName,
                 createdItem.uses,
                 createdItem.discreet,
-                createdItem.effect,
-                createdItem.cures,
+                effects,
+                cures,
                 containingPhrase,
                 response.data.values[0][0]
             ));
@@ -374,11 +375,12 @@ class Player {
             ((container instanceof Puzzle && item.requires === container.name) || (container instanceof Object && item.requires === "")) &&
             (item.uses === invItem.uses || (isNaN(item.uses) && isNaN(invItem.uses))) &&
             item.discreet === invItem.discreet &&
-            item.effect === invItem.effect &&
-            item.cures === invItem.cures &&
+            arraysEqual(item.effects, invItem.effects) &&
+            arraysEqual(item.cures, invItem.cures) &&
             item.singleContainingPhrase === invItem.singleContainingPhrase &&
             item.pluralContainingPhrase === invItem.pluralContainingPhrase
         );
+        
         // Now that the list of items to check is significantly smaller,
         // check if the descriptions are the same.
         const invItemDescription = await sheets.fetchDescription(invItem.descriptionCell());
@@ -390,9 +392,10 @@ class Player {
                 i--;
             }
         }
-        
         // The player is putting this item somewhere else, or it's changed somehow.
         if (matchedItems.length === 0) {
+            var effects = invItem.effects ? invItem.effects.join(",") : "";
+            var cures = invItem.cures ? invItem.cures.join(",") : "";
             var containingPhrase = invItem.singleContainingPhrase;
             if (invItem.pluralContainingPhrase !== "") containingPhrase += `,${invItem.pluralContainingPhrase}`;
             const data = new Array(
@@ -405,8 +408,8 @@ class Player {
                 "1",
                 !isNaN(invItem.uses) ? invItem.uses : "",
                 invItem.discreet ? "TRUE" : "FALSE",
-                invItem.effect,
-                invItem.cures,
+                effects,
+                cures,
                 containingPhrase,
                 invItemDescription
             );
@@ -478,7 +481,7 @@ class Player {
         }
 
         this.clearInventorySlot(slotNo);
-
+        
         return;
     }
 
@@ -507,7 +510,7 @@ class Player {
         return itemString;
     }
 
-    attemptPuzzle(bot, game, puzzle, item, password) {
+    attemptPuzzle(bot, game, puzzle, item, password, command, misc) {
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
@@ -516,6 +519,8 @@ class Player {
                     player.member.send(response.data.values[0][0]);
                 });
                 new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
+
+                return;
             }
 
             // Make sure all of the requirements are met before proceeding.
@@ -524,6 +529,15 @@ class Player {
             if (puzzle.requires.startsWith("Item: ")) {
                 if (item !== null && item.name === puzzle.requires.substring("Item: ".length))
                     hasRequiredItem = true;
+                else if (item === null) {
+                    const requiredItem = puzzle.requires.substring("Item: ".length);
+                    for (let i = 0; i < this.inventory.length; i++) {
+                        if (this.inventory[i].name === requiredItem) {
+                            hasRequiredItem = true;
+                            break;
+                        }
+                    }
+                }
             }
             else hasRequiredItem = true;
 
@@ -546,13 +560,15 @@ class Player {
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (password === "" || password === puzzle.solution)
+                        if (command === "unlock") return `${puzzle.parentObject} is already unlocked.`;
+                        if (command !== "lock" && (password === "" || password === puzzle.solution))
                             puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
                         // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`);
+                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`);
                     }
                     // The lock is locked.
                     else {
+                        if (command === "lock") return `${puzzle.parentObject} is already locked.`;
                         if (password === "") return "you need to enter a combination. The format is #-#-#.";
                         else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`);
                         else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject}.`);
@@ -561,18 +577,23 @@ class Player {
                 else if (puzzle.type === "key lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`);
+                        if (command === "unlock") return `${puzzle.parentObject} is already unlocked.`;
+                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`);
+                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
                         else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
                     }
                     // The lock is locked.
-                    else puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`);
+                    else {
+                        if (command === "lock") return `${puzzle.parentObject} is already locked.`;
+                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`);
+                    }
                 }
             }
             // The player is missing an item needed to solve the puzzle.
-            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
+            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`, misc);
         }
         // The puzzle isn't accessible.
-        else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
+        else return puzzle.requirementsNotMet(game, this, `${this.displayName} uses the ${puzzle.name}.`, misc);
 
         return;
     }
@@ -634,3 +655,21 @@ class Player {
 }
 
 module.exports = Player;
+
+// This function is needed solely to compare the effects and cures of two items.
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a === null || b === null) return false;
+    if (a.length !== b.length) return false;
+
+    // Make copies before sorting both arrays so as not to modify the original arrays.
+    let c = a.slice(), d = b.slice();
+    c.sort();
+    d.sort();
+
+    // Now check if both have the same elements.
+    for (let i = 0; i < c.length; i++) {
+        if (c[i] !== d[i]) return false;
+    }
+    return true;
+}

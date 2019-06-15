@@ -25,7 +25,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) {
         let embed = new discord.RichEmbed()
             .setColor('1F8B4C')
-            .setAuthor(`${message.guild.me.displayName} Help`, message.guild.iconURL)
+            .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL)
             .setDescription(`These are the available commands for users with the Moderator role.`);
 
         roleCommands.forEach(function (value, key, map) {
@@ -41,7 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
         let embed = new discord.RichEmbed()
             .setColor('1F8B4C')
-            .setAuthor(`${commandName} Command Help`, message.guild.iconURL)
+            .setAuthor(`${commandName} Command Help`, game.guild.iconURL)
             .setDescription(command.description);
 
         let aliasString = "";

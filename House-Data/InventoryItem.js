@@ -1,12 +1,12 @@
 ﻿const settings = require("../settings.json");
 
 class InventoryItem {
-    constructor(name, pluralName, uses, discreet, effect, cures, singleContainingPhrase, pluralContainingPhrase, row) {
+    constructor(name, pluralName, uses, discreet, effects, cures, singleContainingPhrase, pluralContainingPhrase, row) {
         this.name = name;
         this.pluralName = pluralName;
         this.uses = uses;
         this.discreet = discreet;
-        this.effect = effect;
+        this.effects = effects;
         this.cures = cures;
         this.singleContainingPhrase = singleContainingPhrase;
         this.pluralContainingPhrase = pluralContainingPhrase;

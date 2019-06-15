@@ -48,7 +48,9 @@ class Puzzle {
         return;
     }
 
-    unsolve(bot, game, player, message) {
+    unsolve(bot, game, player, message, directMessage) {
+        // There's no message when unsolved cell, so let the player know what they did.
+        player.member.send(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         new Narration(game, player, player.location, message).send();
 
@@ -78,8 +80,9 @@ class Puzzle {
 
             // The incorrect cell might use the attempts cell to tell the player how many attempts are remaining,
             // so get the message only after updating the attempts cell.
+            let puzzle = this;
             sheets.updateCell(this.attemptsCell(), this.remainingAttempts.toString(), function (response) {
-                sheets.getData(this.incorrectCell(), function (response) {
+                sheets.getData(puzzle.incorrectCell(), function (response) {
                     player.member.send(response.data.values[0][0]);
                 });
             });
@@ -107,18 +110,17 @@ class Puzzle {
         return;
     }
 
-    requirementsNotMet(game, player, message) {
+    requirementsNotMet(game, player, message, misc) {
         sheets.getData(this.requirementsNotMetCell(), function (response) {
             // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
             if (!response.data.values || response.data.values[0][0] === "")
-                return "not found";
+                misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
             // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
             else {
                 player.member.send(response.data.values[0][0]);
                 new Narration(game, player, player.location, message).send();
             }
         });
-
         return;
     }
 
