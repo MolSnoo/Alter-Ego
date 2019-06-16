@@ -53,8 +53,8 @@ module.exports.loadRooms = function (game) {
                     game.rooms[i].exit[j].dest = game.rooms.find(room => room.name === game.rooms[i].exit[j].dest);
                 }
                 for (let j = 0; j < game.players_alive.length; j++) {
-                    if (game.players[j].location.name === game.rooms[i].name) {
-                        game.rooms[i].addPlayer(game, game.players[j], null, null, false);
+                    if (game.players_alive[j].location.name === game.rooms[i].name) {
+                        game.rooms[i].addPlayer(game, game.players_alive[j], null, null, false);
                     }
                 }
             }

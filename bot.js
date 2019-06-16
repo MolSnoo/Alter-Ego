@@ -30,13 +30,13 @@ function loadCommands() {
     console.log(`Loaded all commands.`);
 }
 
-bot.on('ready', () => {
+bot.on('ready', async () => {
     if (bot.guilds.size === 1) {
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
         if (settings.testing) {
             const tests = require("./Tests/run_tests.js");
-            tests.runTests();
+            await tests.runTests(bot);
         }
         if (settings.debug) {
             bot.user.setActivity("NWP Debugger.exe");

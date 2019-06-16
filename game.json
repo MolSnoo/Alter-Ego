@@ -20,6 +20,6 @@
   "hearingPlayers": [],
   "acuteHearingPlayers": [],
   "deafenedPlayers": [],
-  "mutedPlayer": [],
+  "mutedPlayers": [],
   "investigation": false
 }

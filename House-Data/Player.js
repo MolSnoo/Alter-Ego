@@ -69,12 +69,12 @@ class Player {
         // Apply the effects of any attributes that require immediate action.
         if (status.attributes.includes("no channel")) {
             this.location.leaveChannel(this);
-            this.deleteWhispers(game, " left.");
+            this.removeFromWhispers(game, `${this.name} can no longer whisper because they are ${status.name}.`);
         }
         if (status.attributes.includes("no speech")) game.mutedPlayers.push(this);
         if (status.attributes.includes("no hearing")) {
             game.deafenedPlayers.push(this);
-            this.deleteWhispers(game, " can no longer hear.");
+            this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
         }
         if (status.attributes.includes("hear room")) game.hearingPlayers.push(this);
         if (status.attributes.includes("acute hearing")) game.acuteHearingPlayers.push(this);
@@ -226,7 +226,7 @@ class Player {
 
         return returnMessage;
     }
-
+    
     generate_statusList() {
         var statusList = this.status[0].name;
         for (let i = 1; i < this.status.length; i++)
@@ -625,7 +625,7 @@ class Player {
     die(game) {
         // Remove player from their current channel.
         this.location.leaveChannel(this);
-        this.deleteWhispers(game, " has died.");
+        this.removeFromWhispers(game, `${this.displayName} has died.`);
         if (!this.hasAttribute("hidden")) {
             new Narration(game, this, this.location, `${this.displayName} has died.`).send();
         }
@@ -659,7 +659,26 @@ class Player {
         return;
     }
 
-    deleteWhispers(game, message) {
+    removeFromWhispers(game, message) {
+        var deleteWhisperIndexes = new Array();
+        for (let i = 0; i < game.whispers.length; i++) {
+            for (let j = 0; j < game.whispers[i].players.length; j++) {
+                if (game.whispers[i].players[j].id === this.id) {
+                    // Remove player from the whisper.
+                    const deleteWhisper = game.whispers[i].removePlayer(game, j, message);
+                    if (deleteWhisper) deleteWhisperIndexes.push(i);
+                    break;
+                }
+            }
+        }
+        // Sort the whisper indexes to delete by decreasing value.
+        deleteWhisperIndexes.sort((a, b) => b - a);
+        // Now delete each one.
+        for (let i = 0; i < deleteWhisperIndexes.length; i++) {
+            const index = deleteWhisperIndexes[i];
+            game.whispers[index].delete(game, index);
+        }
+
         return;
     }
 

@@ -8,6 +8,7 @@
   "defaultStatusEffects": "satisfied, well rested",
 
   "defaultDropObject": "FLOOR",
+  "autoDeleteWhisperChannels": false,
 
   "testerRole": "585226322859655175",
   "eligibleRole": "581612389993152532",

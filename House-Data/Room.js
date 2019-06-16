@@ -12,8 +12,6 @@ class Room {
 
         this.occupants = new Array();
         this.occupantsString = "";
-
-        this.objects = new Array();
     }
 
     addPlayer(game, player, entrance, entranceMessage, sendDescription) {
@@ -51,6 +49,7 @@ class Room {
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
+        player.removeFromWhispers(game, `${player.displayName} leaves the room.`);
     }
     joinChannel(player) {
         this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: true });
