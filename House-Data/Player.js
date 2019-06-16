@@ -26,6 +26,30 @@ class Player {
         this.row = row;
     }
 
+    createMoveAppendString() {
+        var nonDiscreetItems = new Array();
+        for (let i = 0; i < this.inventory.length; i++) {
+            if (this.inventory[i].discreet === false)
+                nonDiscreetItems.push(this.inventory[i].singleContainingPhrase);
+        }
+
+        var appendString = "";
+        if (nonDiscreetItems.length === 0)
+            appendString = ".";
+        else if (nonDiscreetItems.length === 1)
+            appendString = ` carrying ${nonDiscreetItems[0]}.`;
+        else if (nonDiscreetItems.length === 2)
+            appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}.`;
+        else if (nonDiscreetItems.length >= 3) {
+            appendString = " carrying ";
+            for (let i = 0; i < nonDiscreetItems.length - 1; i++)
+                appendString += `${nonDiscreetItems[i]}, `;
+            appendString += `and ${nonDiscreetItems[nonDiscreetItems.length - 1]}.`;
+        }
+
+        return appendString;
+    }
+
     inflict(game, statusName, notify, updateSheet, narrate) {
         if (this.statusString.includes(statusName)) return "Specified player already has that status effect.";
 

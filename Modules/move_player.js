@@ -30,14 +30,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var desiredRoom = null;
     var entrance = null;
     var entranceMessage = "";
+    const appendString = player.createMoveAppendString();
     // If the player has the headmaster role, they can move to any room they please.
     if (player.member.roles.find(role => role.id === settings.headmasterRole)) {
         adjacent = true;
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].name === input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
                 desiredRoom = game.rooms[i];
-                exitMessage = `${player.displayName} suddenly disappears.`;
-                entranceMessage = `${player.displayName} suddenly appears.`;
+                exitMessage = `${player.displayName} suddenly disappears${appendString}`;
+                entranceMessage = `${player.displayName} suddenly appears${appendString}`;
                 break;
             }
         }
@@ -49,14 +50,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 || currentRoom.exit[i].name === input.toUpperCase()) {
                 adjacent = true;
                 exit = currentRoom.exit[i];
-                exitMessage = `${player.displayName} exits into ${exit.name}.`;
+                exitMessage = `${player.displayName} exits into ${exit.name}${appendString}`;
                 desiredRoom = exit.dest;
 
                 // Find the correct entrance.
                 for (let j = 0; j < desiredRoom.exit.length; j++) {
                     if (desiredRoom.exit[j].name === currentRoom.exit[i].link) {
                         entrance = desiredRoom.exit[j];
-                        entranceMessage = `${player.displayName} enters from ${entrance.name}.`;
+                        entranceMessage = `${player.displayName} enters from ${entrance.name}${appendString}`;
                         break;
                     }
                 }

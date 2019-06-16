@@ -127,12 +127,13 @@ module.exports.run = async(bot, game, message, command, args) => {
                 }
             }
 
+            const appendString = players[i].createMoveAppendString();
             var exitMessage; 
-            if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}.`;
-            else exitMessage = `${players[i].displayName} exits.`;
+            if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}${appendString}`;
+            else exitMessage = `${players[i].displayName} exits${appendString}`;
             var entranceMessage;
-            if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}.`;
-            else entranceMessage = `${players[i].displayName} enters.`;
+            if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
+            else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Move the player.
             currentRoom.removePlayer(game, players[i], exit, exitMessage);
             desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
