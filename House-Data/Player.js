@@ -625,9 +625,9 @@ class Player {
     die(game) {
         // Remove player from their current channel.
         this.location.leaveChannel(this);
-        this.removeFromWhispers(game, `${this.displayName} has died.`);
+        this.removeFromWhispers(game, `${this.displayName} dies.`);
         if (!this.hasAttribute("hidden")) {
-            new Narration(game, this, this.location, `${this.displayName} has died.`).send();
+            new Narration(game, this, this.location, `${this.displayName} dies.`).send();
         }
 
         // Post log message.
