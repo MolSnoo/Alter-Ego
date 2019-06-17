@@ -229,7 +229,7 @@ module.exports.loadStatusEffects = function (game) {
             const columnName = 0;
             const columnDuration = 1;
             const columnFatal = 2;
-            const columnCure = 3;
+            const columnCures = 3;
             const columnNextStage = 4;
             const columnCuredCondition = 5;
             const columnRollModifier = 6;
@@ -237,12 +237,15 @@ module.exports.loadStatusEffects = function (game) {
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : "";
+                for (let j = 0; j < cures.length; j++)
+                    cures[j] = cures[j].trim();
                 game.statusEffects.push(
                     new Status(
                         sheet[i][columnName],
                         sheet[i][columnDuration].toLowerCase(),
                         sheet[i][columnFatal] === "TRUE",
-                        sheet[i][columnCure],
+                        cures,
                         sheet[i][columnNextStage],
                         sheet[i][columnCuredCondition],
                         parseInt(sheet[i][columnRollModifier]),

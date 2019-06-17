@@ -62,6 +62,11 @@ class Player {
         }
         if (!status) return `Couldn't find status effect "${statusName}".`;
 
+        if (status.cures !== "") {
+            for (let i = 0; i < status.cures.length; i++)
+                this.cure(game, status.cures[i], false, false, false, false);
+        }
+
         if (notify === null || notify === undefined) notify = true;
         if (updateSheet === null || updateSheet === undefined) updateSheet = true;
         if (narrate === null || narrate === undefined) narrate = true;

@@ -24,7 +24,6 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     for (let i = 0; i < game.players_dead.length; i++) {
         const player = game.players_dead[i];
-        player.location.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
         player.member.removeRole(settings.deadRole).catch();
     }
 
