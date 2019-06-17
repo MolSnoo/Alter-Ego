@@ -217,6 +217,12 @@ class Player {
                 if (response.data.values)
                     player.member.send(response.data.values[0][0]);
             });
+            // If the player is waking up, send them the description of the room they wake up in.
+            if (status.name === "asleep") {
+                sheets.getData(this.location.parsedDescriptionCell(), function (response) {
+                    player.member.send(response.data.values[0][0]);
+                });
+            }
         }
 
         // Post log message.
