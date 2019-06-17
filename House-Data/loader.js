@@ -240,6 +240,9 @@ module.exports.loadStatusEffects = function (game) {
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : "";
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
+                var modifiesSelf = null;
+                if (sheet[i][columnRollModifier].charAt(0) === 's') modifiesSelf = true;
+                else if (sheet[i][columnRollModifier].charAt(0) === 'o') modifiesSelf = false;
                 game.statusEffects.push(
                     new Status(
                         sheet[i][columnName],
@@ -248,7 +251,8 @@ module.exports.loadStatusEffects = function (game) {
                         cures,
                         sheet[i][columnNextStage],
                         sheet[i][columnCuredCondition],
-                        parseInt(sheet[i][columnRollModifier]),
+                        parseInt(sheet[i][columnRollModifier].substring(1)),
+                        modifiesSelf,
                         sheet[i][columnAttributes] ? sheet[i][columnAttributes] : "",
                         i + 1
                     )

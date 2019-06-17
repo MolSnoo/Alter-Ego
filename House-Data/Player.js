@@ -95,7 +95,7 @@ class Player {
         }
 
         const Status = require('./Status.js');
-        status = new Status(status.name, status.duration, status.fatal, status.cure, status.nextStage, status.curedCondition, status.rollModifier, status.attributes, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.cure, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {

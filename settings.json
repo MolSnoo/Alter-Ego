@@ -7,6 +7,8 @@
   "defaultLocation": "park",
   "defaultStatusEffects": "satisfied, well rested",
 
+  "diceMin": 1,
+  "diceMax": 6,
   "defaultDropObject": "FLOOR",
   "autoDeleteWhisperChannels": false,
 

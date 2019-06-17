@@ -1,7 +1,7 @@
 ﻿const settings = require("../settings.json");
 
 class Status {
-    constructor(name, duration, fatal, cures, nextStage, curedCondition, rollModifier, attributes, row) {
+    constructor(name, duration, fatal, cures, nextStage, curedCondition, rollModifier, modifiesSelf, attributes, row) {
         this.name = name;
         this.duration = duration;
         this.fatal = fatal;
@@ -9,6 +9,7 @@ class Status {
         this.nextStage = nextStage;
         this.curedCondition = curedCondition;
         this.rollModifier = rollModifier;
+        this.modifiesSelf = modifiesSelf;
         this.attributes = attributes;
         this.row = row;
 
