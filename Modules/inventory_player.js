@@ -10,6 +10,9 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
+    const status = player.getAttributeStatusEffects("disable inventory");
+    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+
     const inventoryString = player.viewInventory("Your");
     player.member.send(inventoryString);
 

@@ -16,6 +16,9 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
+    const status = player.getAttributeStatusEffects("disable hide");
+    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+
     if (player.statusString.includes("hidden") && command === "unhide")
         player.cure(game, "hidden", true, false, true, true);
     else if (player.statusString.includes("hidden"))
