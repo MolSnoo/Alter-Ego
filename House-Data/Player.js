@@ -8,6 +8,7 @@ const Object = require('./Object.js');
 const Puzzle = require('./Puzzle.js');
 const InventoryItem = require('./InventoryItem.js');
 const Narration = require('./Narration.js');
+const Die = require('./Die.js');
 
 class Player {
     constructor(id, member, name, displayName, talent, clueLevel, alive, location, hidingSpot, status, inventory, row) {
@@ -93,6 +94,10 @@ class Player {
             this.displayName = "A masked figure";
             game.concealedPlayers.push(this);
         }
+
+        // Announce when a player falls asleep or unconscious.
+        if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
+        else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
         const Status = require('./Status.js');
         status = new Status(status.name, status.duration, status.fatal, status.cure, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
@@ -204,9 +209,13 @@ class Player {
             if (narrate) new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${this.displayName}.`).send();
         }
 
+        // Announce when a player awakens.
+        if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
+        else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
+
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(game, status.curedCondition.name, false, true, true);
+            this.inflict(game, status.curedCondition.name, false, false, true);
             returnMessage += ` Player is now ${status.curedCondition.name}.`;
         }
 
@@ -371,7 +380,7 @@ class Player {
             this.inventory[slotNo].row
         );
         this.inventory[slotNo] = createdItem;
-        this.member.send(`You took ${createdItem.singleContainingPhrase}.`);
+        this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
 
         // Add the new item to the Players sheet so that it's in their inventory.
         // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
@@ -396,6 +405,85 @@ class Player {
         if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
 
         return;
+    }
+
+    steal(game, slotNo, victim) {
+        // Make sure the victim has items first.
+        var hasItems = false;
+        for (let i = 0; i < victim.inventory.length; i++) {
+            if (victim.inventory[i].name !== null) {
+                hasItems = true;
+                break;
+            }
+        }
+        if (hasItems === false) return this.member.send(`You try to steal from ${victim.displayName}, but they don't have any items.`);
+
+        // Randomly select an item to be stolen.
+        let index;
+        do index = Math.floor(Math.random() * victim.inventory.length);
+        while (!victim.inventory[index] || victim.inventory[index].name === null);
+        // Determine how successful the player is.
+        const failMax = Math.floor((settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
+        const partialMax = Math.floor(2 * (settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
+        var dieRoll = new Die(this, victim);
+        if (!victim.inventory[index].discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
+
+        // Player didn't fail.
+        if (dieRoll.result > failMax) {
+            const copiedItem = new InventoryItem(
+                victim.inventory[index].name,
+                victim.inventory[index].pluralName,
+                victim.inventory[index].uses,
+                victim.inventory[index].discreet,
+                victim.inventory[index].effects,
+                victim.inventory[index].cures,
+                victim.inventory[index].singleContainingPhrase,
+                victim.inventory[index].pluralContainingPhrase,
+                this.inventory[slotNo].row
+            );
+            this.inventory[slotNo] = copiedItem;
+
+            // Add the item to the Players sheet so that it's in their inventory.
+            // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
+            var effects = copiedItem.effects ? copiedItem.effects.join(",") : "";
+            var cures = copiedItem.cures ? copiedItem.cures.join(",") : "";
+            var containingPhrase = copiedItem.singleContainingPhrase;
+            if (copiedItem.pluralContainingPhrase !== "") containingPhrase += `,${copiedItem.pluralContainingPhrase}`;
+            sheets.getData(victim.inventory[index].descriptionCell(), function (response) {
+                const data = new Array(new Array(
+                    copiedItem.name,
+                    copiedItem.pluralName,
+                    copiedItem.uses,
+                    copiedItem.discreet,
+                    effects,
+                    cures,
+                    containingPhrase,
+                    response.data.values[0][0]
+                ));
+                sheets.updateData(copiedItem.itemCells(), data);
+                // Delete stolen item from victim's inventory.
+                victim.clearInventorySlot(index);
+            });
+
+            // Decide what messages to send.
+            if (dieRoll.result > partialMax || victim.hasAttribute("unconscious"))
+                this.member.send(`You steal ${copiedItem.singleContainingPhrase} from ${victim.displayName} without them noticing!`);
+            else {
+                this.member.send(`You steal ${copiedItem.singleContainingPhrase} from ${victim.displayName}, but they seem to notice.`);
+                victim.member.send(`${this.displayName} steals ${copiedItem.singleContainingPhrase} from you!`);
+            }
+            if (!copiedItem.discreet)
+                new Narration(game, this, this.location, `${this.displayName} steals ${copiedItem.singleContainingPhrase} from ${victim.displayName}.`).send();
+
+            return { itemName: copiedItem.name, successful: true };
+        }
+        // Player failed to steal the item.
+        else {
+            this.member.send(`You try to steal ${victim.displayName}'s ${victim.inventory[index].name}, but they notice you before you can.`);
+            victim.member.send(`${this.displayName} attempts to steal your ${victim.inventory[index].name}, but you notice in time!`);
+
+            return { itemName: victim.inventory[index].name, successful: false };
+        }
     }
 
     async drop(game, slotNo, container) {
@@ -509,7 +597,7 @@ class Player {
         sheets.updateCell(parsedDescriptionCell, newDescription[1]);
 
         if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
-        this.member.send(`You discarded ${invItem.singleContainingPhrase}.`);
+        this.member.send(`You discard ${invItem.singleContainingPhrase}.`);
 
         if (invItem.name === "MASK" && this.statusString.includes("concealed")) {
             this.cure(game, "concealed", true, false, true, true);

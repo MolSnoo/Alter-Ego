@@ -47,10 +47,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     return message.reply(`can't whisper to ${other.name} because they aren't in the room with you.`);
                 if (other.hasAttribute("no hearing"))
                     return message.reply(`can't whisper to ${other.name} because they can't hear you.`);
-                if (other.hasAttribute("no channel")) {
-                    let noChannelStatus = other.getAttributeStatusEffects("no channel");
-                    return message.reply(`can't whisper to ${other.name} because they are ${noChannelStatus[0].name}.`);
-                }
+                if (other.hasAttribute("unconscious"))
+                    return message.reply(`can't whisper to ${other.name} because they are not awake.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;
                 recipients.push(other);
