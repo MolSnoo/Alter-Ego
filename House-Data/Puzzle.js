@@ -39,7 +39,7 @@ class Puzzle {
 
         // Run any needed commands.
         for (let i = 0; i < this.solvedCommands.length; i++)
-            command.execute(this.solvedCommands[i], bot, game);
+            command.execute(this.solvedCommands[i], bot, game, null, player);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -64,7 +64,7 @@ class Puzzle {
 
         // Run any needed commands.
         for (let i = 0; i < this.unsolvedCommands.length; i++)
-            command.execute(this.unsolvedCommands[i], bot, game);
+            command.execute(this.unsolvedCommands[i], bot, game, null, player);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();

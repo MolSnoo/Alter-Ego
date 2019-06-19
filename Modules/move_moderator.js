@@ -6,8 +6,7 @@ module.exports.config = {
     details: 'Forcefully moves the specified players to the specified room or exit. If you use "living" or "all" in place of the players, '
         + 'it will move all living players to the specified room (skipping over players who are already in that room as well as players with the Headmaster role). '
         + 'All of the same things that happen when a player moves to a room of their own volition apply, however you can move players to non-adjacent rooms this way. '
-        + 'The bot will not announce which exit the player leaves through or which entrance they enter from when a player is moved to a non-adjacent room. '
-        + 'Note that the name of the room must be EXACTLY the same as it appears on the spreadsheet.',
+        + 'The bot will not announce which exit the player leaves through or which entrance they enter from when a player is moved to a non-adjacent room.',
     usage: `${settings.commandPrefix}move susie main-office\n`
         + `${settings.commandPrefix}move susie tim joseph katherine door 2`
         + `${settings.commandPrefix}move living cafeteria`

@@ -48,7 +48,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (!player) return message.reply(`couldn't find player "${args[0]}"`);
+    if (!player) return message.reply(`couldn't find player "${args[0]}".`);
 
     if (command === "inflict") {
         const response = player.inflict(game, input.substring(input.indexOf(args[1])), true, true, true);

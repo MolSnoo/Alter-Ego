@@ -1,5 +1,6 @@
 ﻿{
   "guild": null,
+  "commandChannel": null,
   "logChannel": null,
   "game": false,
   "canJoin": false,

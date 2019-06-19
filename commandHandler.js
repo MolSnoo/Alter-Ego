@@ -11,11 +11,11 @@ function mapEntriesToString(entries) {
         .join("") + "\n";
 }
 */
-module.exports.execute = function (command, bot, game, message) {
+module.exports.execute = function (command, bot, game, message, player) {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
-    else if (message.channel.id === settings.commandsChannel && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
+    else if (message.channel.id === settings.commandChannel && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
     else {
         let member = game.guild.members.find(member => member.id === message.author.id);
         if (member && member.roles.find(role => role.id === settings.playerRole)) isPlayer = true;
@@ -38,7 +38,7 @@ module.exports.execute = function (command, bot, game, message) {
     if (!commandFile) return;
 
     if (isBot) {
-        commandFile.run(bot, game, message, args);
+        commandFile.run(bot, game, commandSplit[0], args, player);
     }
     else if (isModerator) {
         if (commandConfig.requiresGame && !game.game) return message.reply("There is no game currently running.");
@@ -47,7 +47,7 @@ module.exports.execute = function (command, bot, game, message) {
     else if (isPlayer) {
         if (!game.game) return message.reply("There is no game currently running.");
         if (message.channel.type === "dm" || settings.roomCategories.includes(message.channel.parentID)) {
-            var player = null;
+            player = null;
             for (let i = 0; i < game.players_alive.length; i++) {
                 if (game.players_alive[i].id === message.author.id) {
                     player = game.players_alive[i];

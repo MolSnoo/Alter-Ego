@@ -1,11 +1,11 @@
 const settings = require("../settings.json");
+
 const sheets = require('./sheets.js');
 const Narration = require('./Narration.js');
 
 class Room {
-    constructor(name, accessible, channel, exit, row) {
+    constructor(name, channel, exit, row) {
         this.name = name;
-        this.accessible = accessible;
         this.channel = channel;
         this.exit = exit;
         this.row = row;
@@ -51,15 +51,33 @@ class Room {
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
         player.removeFromWhispers(game, `${player.displayName} leaves the room.`);
     }
+
     joinChannel(player) {
         this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: true });
     }
+
     leaveChannel(player) {
         this.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
     }
-    accessibilityCell() {
-        return settings.roomSheetAccessibilityColumn + this.row;
+
+    unlock(game, index) {
+        this.exit[index].unlock();
+        //if (this.occupants.length > 0) new Narration(game, null, this, `${this.exit[index].name} unlocks.`).send();
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
     }
+
+    lock(game, index) {
+        this.exit[index].lock();
+        //if (this.occupants.length > 0) new Narration(game, null, this, `${this.exit[index].name} locks.`).send();
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
+    }
+
     formattedDescriptionCell() {
         return settings.roomSheetFormattedDescriptionColumn + this.row;
     }

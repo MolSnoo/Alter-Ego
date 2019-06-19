@@ -51,6 +51,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         for (let i = 0; i < currentRoom.exit.length; i++) {
             if (currentRoom.exit[i].dest.name === input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
                 || currentRoom.exit[i].name === input.toUpperCase()) {
+                if (!currentRoom.exit[i].unlocked) return message.reply("that exit is locked.");
                 adjacent = true;
                 exit = currentRoom.exit[i];
                 exitMessage = `${player.displayName} exits into ${exit.name}${appendString}`;

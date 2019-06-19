@@ -17,9 +17,9 @@ module.exports.loadRooms = function (game) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
-            const columnAccessibility = 1;
-            const columnNumberExits = 2;
-            const columnExits = 3;
+            const columnNumberExits = 1;
+            const columnExits = 2;
+            const columnUnlocked = 3;
             const columnLeadsTo = 4;
             const columnFrom = 5;
 
@@ -30,6 +30,7 @@ module.exports.loadRooms = function (game) {
                     exits.push(
                         new Exit(
                             sheet[i + j][columnExits],
+                            sheet[i + j][columnUnlocked] === "TRUE",
                             sheet[i + j][columnLeadsTo],
                             sheet[i + j][columnFrom],
                             i + j + 1
@@ -39,7 +40,6 @@ module.exports.loadRooms = function (game) {
                 game.rooms.push(
                     new Room(
                         sheet[i][columnRoomName],
-                        sheet[i][columnAccessibility] === "TRUE",
                         channel,
                         exits,
                         i + 1
@@ -207,7 +207,7 @@ module.exports.loadPuzzles = function (game) {
                         sheet[i][columnParentObject],
                         sheet[i][columnType],
                         sheet[i][columnAccessible] === "TRUE",
-                        sheet[i][columnRequires],
+                        sheet[i][columnRequires] ? sheet[i][columnRequires] : "",
                         sheet[i][columnSolution] ? sheet[i][columnSolution] : "",
                         parseInt(sheet[i][columnAttempts]),
                         solvedCommands,
