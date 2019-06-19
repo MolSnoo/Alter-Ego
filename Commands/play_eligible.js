@@ -1,5 +1,6 @@
-﻿const settings = require("../settings.json");
-const Player = require("../House-Data/Player.js");
+﻿const settings = include('settings.json');
+
+const Player = include(`${settings.dataDir}/Player.js`);
 
 module.exports.config = {
     name: "play_eligible",

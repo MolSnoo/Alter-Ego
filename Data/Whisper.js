@@ -1,6 +1,6 @@
-﻿const settings = require("../settings.json");
+﻿const settings = include('settings.json');
 
-const Narration = require('./Narration.js');
+const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Whisper {
     constructor(players, location) {

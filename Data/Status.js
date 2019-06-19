@@ -1,4 +1,4 @@
-﻿const settings = require("../settings.json");
+﻿const settings = include('settings.json');
 
 class Status {
     constructor(name, duration, fatal, cures, nextStage, curedCondition, rollModifier, modifiesSelf, attributes, row) {

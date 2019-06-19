@@ -1,7 +1,7 @@
-const settings = require("../settings.json");
+const settings = include('settings.json');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
 
-const sheets = require('./sheets.js');
-const Narration = require('./Narration.js');
+const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Room {
     constructor(name, channel, exit, row) {

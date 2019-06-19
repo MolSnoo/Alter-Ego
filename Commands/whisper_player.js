@@ -1,6 +1,6 @@
-﻿const settings = require("../settings.json");
+﻿const settings = include('settings.json');
 
-const Whisper = require('../House-Data/Whisper.js');
+const Whisper = include(`${settings.dataDir}/Whisper.js`);
 
 module.exports.config = {
     name: "whisper_player",

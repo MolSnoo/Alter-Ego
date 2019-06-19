@@ -1,9 +1,9 @@
-﻿const settings = require("../settings.json");
-const sheets = require('./sheets.js');
-const loader = require('./loader.js');
-const command = require('../commandHandler.js');
+﻿const settings = include('settings.json');
+const command = include('commandHandler.js');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
+const loader = include(`${settings.modulesDir}/loader.js`);
 
-const Narration = require('./Narration.js');
+const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Puzzle {
     constructor(name, solved, requiresMod, location, parentObject, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, row) {

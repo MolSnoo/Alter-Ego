@@ -1,15 +1,16 @@
-﻿var assert = require('assert');
+﻿const settings = include('settings.json');
 
-const Clue = require("../House-Data/Clue.js");
-const Exit = require("../House-Data/Exit.js");
-const InventoryItem = require("../House-Data/InventoryItem.js");
-const Item = require("../House-Data/Item.js");
-const Object = require("../House-Data/Object.js");
-const Player = require("../House-Data/Player.js");
-const Puzzle = require("../House-Data/Puzzle.js");
-const Room = require("../House-Data/Room.js");
-const Status = require("../House-Data/Status.js");
+var assert = require('assert');
 
+const Exit = include(`${settings.dataDir}/Exit.js`);
+const Room = include(`${settings.dataDir}/Room.js`);
+const Object = include(`${settings.dataDir}/Object.js`);
+const Clue = include(`${settings.dataDir}/Clue.js`);
+const Item = include(`${settings.dataDir}/Item.js`);
+const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
+const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
+const Status = include(`${settings.dataDir}/Status.js`);
+const Player = include(`${settings.dataDir}/Player.js`);
 
 exports.run = function () {
     test_Clue();

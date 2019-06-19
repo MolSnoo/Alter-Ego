@@ -1,4 +1,4 @@
-﻿const settings = require("../settings.json");
+﻿const settings = include('settings.json');
 
 class Narration {
     constructor(game, player, location, message) {

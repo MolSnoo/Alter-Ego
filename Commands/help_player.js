@@ -1,5 +1,5 @@
-﻿const discord = require("discord.js");
-const settings = require("../settings.json");
+﻿const settings = include('settings.json');
+const discord = require('discord.js');
 
 module.exports.config = {
     name: "help_player",

@@ -1,4 +1,4 @@
-﻿const settings = require("../settings.json");
+﻿const settings = include('settings.json');
 
 class InventoryItem {
     constructor(name, pluralName, uses, discreet, effects, cures, singleContainingPhrase, pluralContainingPhrase, row) {

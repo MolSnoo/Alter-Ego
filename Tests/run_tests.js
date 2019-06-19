@@ -1,6 +1,6 @@
-﻿const test_cell_responses = require("./test_cell_responses.js");
-const test_parser = require("./test_parser.js");
-const test_whispers = require("./test_whispers.js");
+﻿const test_cell_responses = include(`${settings.testsDir}/test_cell_responses.js`);
+const test_parser = include(`${settings.testsDir}/test_parser.js`);
+const test_whispers = include(`${settings.testsDir}/test_whispers.js`);
 
 exports.runTests = async function (bot) {
     test_cell_responses.run();

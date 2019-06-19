@@ -1,6 +1,6 @@
-﻿const settings = require("../settings.json");
-const sheets = require("../House-Data/sheets.js");
-const loader = require("../House-Data/loader.js");
+﻿const settings = include('settings.json');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
+const loader = include(`${settings.modulesDir}/loader.js`);
 
 module.exports.config = {
     name: "load_moderator",
@@ -58,7 +58,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             game.game = true;
             game.canJoin = false;
             if (!settings.debug)
-                bot.user.activity("Neo World Program", { type: 'STREAMING', url: 'https://www.twitch.tv/molsno' });
+                bot.user.activity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
             for (let i = 0; i < game.players_alive.length; i++) {
                 sheets.getData(game.players_alive[i].location.parsedDescriptionCell(), function (response) {
                     game.players_alive[i].member.send(response.data.values[0][0]);
@@ -69,7 +69,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             game.game = true;
             game.canJoin = false;
             if (!settings.debug)
-                bot.user.activity("Neo World Program", { type: 'STREAMING', url: 'https://www.twitch.tv/molsno' });
+                bot.user.activity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
         }
     }
     else if (args[0] === "rooms") {

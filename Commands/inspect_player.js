@@ -1,6 +1,7 @@
-﻿const settings = require("../settings.json");
-const sheets = require('../House-Data/sheets.js');
-const Narration = require('../House-Data/Narration.js');
+﻿const settings = include('settings.json');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
+
+const Narration = include(`${settings.dataDir}/Narration.js`);
 
 module.exports.config = {
     name: "inspect_player",

@@ -3,6 +3,11 @@
   "debug": true,
   "testing": false,
 
+  "commandsDir": "Commands",
+  "dataDir": "Data",
+  "modulesDir": "Modules",
+  "testsDir": "Tests",
+
   "defaultClueLevel": 1,
   "defaultLocation": "park",
   "defaultStatusEffects": "satisfied, well rested",
@@ -12,6 +17,20 @@
   "defaultDropObject": "FLOOR",
   "classTrialStatus": "restricted",
   "autoDeleteWhisperChannels": false,
+
+  "onlineActivity": {
+    "type": "LISTENING",
+    "string": "Future Foundation HQ"
+  },
+  "debugModeActivity": {
+    "type": "PLAYING",
+    "string": "NWP Debugger.exe"
+  },
+  "gameInProgressActivity": {
+    "type": "STREAMING",
+    "string": "Neo World Program",
+    "url": "https://www.twitch.tv/molsno"
+  },
 
   "testerRole": "585226322859655175",
   "eligibleRole": "581612389993152532",

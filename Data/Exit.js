@@ -1,6 +1,5 @@
-const settings = require("../settings.json");
-
-const sheets = require('./sheets.js');
+const settings = include('settings.json');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 class Exit {
     constructor(name, unlocked, dest, link, row) {

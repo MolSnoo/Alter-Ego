@@ -1,16 +1,6 @@
-﻿const discord = require("discord.js");
-const settings = require("./settings.json");
-/*
-Map.prototype.inspect = function () {
-    return `Map(${mapEntriesToString(this.entries())})`;
-};
+﻿const settings = include('settings.json');
+const discord = require('discord.js');
 
-function mapEntriesToString(entries) {
-    return Array
-        .from(entries, ([k, v]) => `\n  ${k}: ${v}`)
-        .join("") + "\n";
-}
-*/
 module.exports.execute = function (command, bot, game, message, player) {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.

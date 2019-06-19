@@ -1,5 +1,7 @@
-﻿var assert = require('assert');
-var parser = require('../House-Data/parser.js');
+﻿const settings = include('settings.json');
+var parser = include(`${settings.modulesDir}/parser.js`);
+
+var assert = require('assert');
 
 exports.run = function() {
     test_increaseQuantity_0();

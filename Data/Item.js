@@ -1,4 +1,4 @@
-const settings = require("../settings.json");
+const settings = include('settings.json');
 
 class Item {
     constructor(name, pluralName, location, sublocation, accessible, requires, quantity, uses, discreet, effects, cures, singleContainingPhrase, pluralContainingPhrase, row) {

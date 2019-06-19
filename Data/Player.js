@@ -1,14 +1,15 @@
-const settings = require("../settings.json");
-const sheets = require('./sheets.js');
-const parser = require('./parser.js');
-const loader = require('./loader.js');
+const settings = include('settings.json');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
+const parser = include(`${settings.modulesDir}/parser.js`);
+const loader = include(`${settings.modulesDir}/loader.js`);
 
-const Room = require('./Room.js');
-const Object = require('./Object.js');
-const Puzzle = require('./Puzzle.js');
-const InventoryItem = require('./InventoryItem.js');
-const Narration = require('./Narration.js');
-const Die = require('./Die.js');
+const Room = include(`${settings.dataDir}/Room.js`);
+const Object = include(`${settings.dataDir}/Object.js`);
+const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
+const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
+const Status = include(`${settings.dataDir}/Status.js`);
+const Narration = include(`${settings.dataDir}/Narration.js`);
+const Die = include(`${settings.dataDir}/Die.js`);
 
 class Player {
     constructor(id, member, name, displayName, talent, clueLevel, alive, location, hidingSpot, status, inventory, row) {
@@ -99,7 +100,6 @@ class Player {
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        const Status = require('./Status.js');
         status = new Status(status.name, status.duration, status.fatal, status.cure, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
 
         // Apply the duration, if applicable.

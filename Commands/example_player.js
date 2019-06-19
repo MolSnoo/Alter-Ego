@@ -1,4 +1,4 @@
-﻿const settings = require("../settings.json");
+﻿const settings = include('settings.json');
 
 module.exports.config = {
     name: "example_player",

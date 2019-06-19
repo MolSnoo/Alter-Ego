@@ -7,6 +7,7 @@
     "name": "Jared Evan Anderson"
   },
   "dependencies": {
+    "app-root-path": "^2.2.1",
     "discord.js": "^11.5.0",
     "googleapis": "^39.2.0",
     "nodemon": "^1.19.0"

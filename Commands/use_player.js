@@ -1,7 +1,4 @@
-﻿const settings = require("../settings.json");
-const sheets = require("../House-Data/sheets.js");
-
-const Narration = require("../House-Data/Narration.js");
+﻿const settings = include('settings.json');
 
 module.exports.config = {
     name: "use_player",

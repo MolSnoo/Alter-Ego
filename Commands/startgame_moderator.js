@@ -1,5 +1,5 @@
-﻿const settings = require("../settings.json");
-const sheets = require("../House-Data/sheets.js");
+﻿const settings = include('settings.json');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 const emptyRow = settings.emptyPlayerRow;
 const emptyInventoryItem = settings.emptyInventoryItem;

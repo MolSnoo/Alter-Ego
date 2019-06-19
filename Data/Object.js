@@ -1,4 +1,4 @@
-const settings = require("../settings.json");
+const settings = include('settings.json');
 
 class Object {
     constructor(name, location, accessible, requires, isHidingSpot, preposition, row) {

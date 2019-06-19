@@ -1,15 +1,15 @@
-﻿const settings = require("../settings.json");
+﻿const settings = include('settings.json');
 
 var assert = require('assert');
 
-const Exit = require("../House-Data/Exit.js");
-const Room = require("../House-Data/Room.js");
-const Player = require("../House-Data/Player.js");
-const InventoryItem = require("../House-Data/InventoryItem.js");
-const Whisper = require("../House-Data/Whisper.js");
+const Exit = include(`${settings.dataDir}/Exit.js`);
+const Room = include(`${settings.dataDir}/Room.js`);
+const Player = include(`${settings.dataDir}/Player.js`);
+const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
+const Whisper = include(`${settings.dataDir}/Whisper.js`);
 
 exports.run = async function (bot) {
-    let game = require('../game.json');
+    let game = include('game.json');
     game.guild = bot.guilds.first();
     game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
 

@@ -1,16 +1,16 @@
 ﻿const { google } = require('googleapis');
-const credentials = require("../credentials.json");
+const credentials = include('credentials.json');
 var sheets = google.sheets('v4');
 
-let config = require("../settings.json");
-const spreadsheetID = config.spreadsheetID;
-const roomSheetID = config.roomSheetID;
-const objectSheetID = config.objectSheetID;
-const clueSheetID = config.clueSheetID;
-const itemSheetID = config.itemSheetID;
-const puzzleSheetID = config.puzzleSheetID;
-const statusEffectSheetID = config.statusEffectSheetID;
-const playerSheetID = config.playerSheetID;
+const settings = include('settings.json');
+const spreadsheetID = settings.spreadsheetID;
+const roomSheetID = settings.roomSheetID;
+const objectSheetID = settings.objectSheetID;
+const clueSheetID = settings.clueSheetID;
+const itemSheetID = settings.itemSheetID;
+const puzzleSheetID = settings.puzzleSheetID;
+const statusEffectSheetID = settings.statusEffectSheetID;
+const playerSheetID = settings.playerSheetID;
 
 module.exports.getData = function (sheetrange, dataOperation) {
     authorize(function (authClient) {

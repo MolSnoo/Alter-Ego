@@ -1,15 +1,15 @@
-﻿const settings = require("../settings.json");
-const sheets = require("./sheets.js");
+﻿const settings = include('settings.json');
+const sheets = include(`${settings.modulesDir}/sheets.js`);
 
-const Exit = require("./Exit.js");
-const Room = require("./Room.js");
-const Object = require("./Object.js");
-const Clue = require("./Clue.js");
-const Item = require("./Item.js");
-const Puzzle = require("./Puzzle.js");
-const InventoryItem = require("./InventoryItem.js");
-const Status = require("./Status.js");
-const Player = require("./Player.js");
+const Exit = include(`${settings.dataDir}/Exit.js`);
+const Room = include(`${settings.dataDir}/Room.js`);
+const Object = include(`${settings.dataDir}/Object.js`);
+const Clue = include(`${settings.dataDir}/Clue.js`);
+const Item = include(`${settings.dataDir}/Item.js`);
+const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
+const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
+const Status = include(`${settings.dataDir}/Status.js`);
+const Player = include(`${settings.dataDir}/Player.js`);
 
 module.exports.loadRooms = function (game) {
     return new Promise((resolve) => {
