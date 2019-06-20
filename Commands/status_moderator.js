@@ -4,8 +4,14 @@ module.exports.config = {
     name: "status_moderator",
     description: "Deals with status effects on players.",
     details: 'Deals with status effects on players.\n'
-        + '-**add**/**inflict**: Inflicts the specified player with the given status effect. That player will receive the "Message When Inflicted" message for the specified status effect. If the status effect has a timer, the player will be cured and then inflicted with the status effect in the "Develops Into" column when the timer reaches 0. If the status effect is fatal, then they will simply die when the timer reaches 0 instead.\n'
-        + '-**remove**/**cure**: Cures the specified player of the given status effect. That player will receive the "Message When Cured" message for the specified status effect. If the status effect develops into another effect when cured, the player will be inflicted with that status effect.\n'
+        + '-**add**/**inflict**: Inflicts the specified player with the given status effect. '
+        + 'That player will receive the "Message When Inflicted" message for the specified status effect. '
+        + 'If the status effect has a timer, the player will be cured and then inflicted with the status effect '
+        + 'in the "Develops Into" column when the timer reaches 0. If the status effect is fatal, '
+        + 'then they will simply die when the timer reaches 0 instead.\n'
+        + '-**remove**/**cure**: Cures the specified player of the given status effect. '
+        + 'That player will receive the "Message When Cured" message for the specified status effect. '
+        + 'If the status effect develops into another effect when cured, the player will be inflicted with that status effect.\n'
         + '-**view**: Views all of the status effects that a player is currently afflicted with, along with the time remaining on each one, if applicable.'
         + 'See the "Effect" column on the spreadsheet for more info on each status effect.',
     usage: `${settings.commandPrefix}status add diego heated\n`
@@ -48,14 +54,14 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (!player) return message.reply(`couldn't find player "${args[0]}".`);
+    if (player === null) return message.reply(`couldn't find player "${args[0]}".`);
 
     if (command === "inflict") {
-        const response = player.inflict(game, input.substring(input.indexOf(args[1])), true, true, true);
+        const response = player.inflict(game, input.substring(input.indexOf(args[1])).toLowerCase(), true, true, true);
         message.channel.send(response);
     }
-    if (command === "cure") {
-        const response = player.cure(game, input.substring(input.indexOf(args[1])), true, true, true, true);
+    else if (command === "cure") {
+        const response = player.cure(game, input.substring(input.indexOf(args[1])).toLowerCase(), true, true, true, true);
         message.channel.send(response);
     }
     else if (command === "view") {

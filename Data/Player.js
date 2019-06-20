@@ -62,7 +62,7 @@ class Player {
                 break;
             }
         }
-        if (!status) return `Couldn't find status effect "${statusName}".`;
+        if (status === null) return `Couldn't find status effect "${statusName}".`;
 
         if (status.cures !== "") {
             for (let i = 0; i < status.cures.length; i++)
@@ -185,7 +185,7 @@ class Player {
                 break;
             }
         }
-        if (!status) return "Specified player doesn't have that status effect.";
+        if (status === null) return "Specified player doesn't have that status effect.";
 
         if (notify === null || notify === undefined) notify = true;
         if (doCuredCondition === null || doCuredCondition === undefined) doCuredCondition = true;
