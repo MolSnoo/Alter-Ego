@@ -48,7 +48,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         message.channel.send(`${player.name} uses the ${item.name}.`);
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${player.name} forcibly used ${item.name} from their inventory in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} forcefully used ${item.name} from their inventory in ${player.location.channel}`);
         return;
     }
     else if (response.startsWith("that item has no programmed use")) return message.reply("that item has no programmed use.");
