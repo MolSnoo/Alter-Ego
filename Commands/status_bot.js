@@ -42,7 +42,7 @@ module.exports.run = async (bot, game, command, args, player) => {
     // Determine which player(s) are being inflicted/cured with a status effect.
     var players = new Array();
     var notify = true;
-    if (args[0].toLowerCase() === "player")
+    if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
     else if (args[0].toLowerCase() === "all") {
         notify = false;

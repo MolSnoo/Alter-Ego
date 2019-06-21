@@ -24,10 +24,13 @@ class Puzzle {
 
     solve(bot, game, player, message) {
         // Let the palyer and anyone else in the room know that the puzzle was solved.
-        sheets.getData(this.correctCell(), function (response) {
-            player.member.send(response.data.values[0][0]);
-        });
-        new Narration(game, player, player.location, message).send();
+        if (player !== null) {
+            sheets.getData(this.correctCell(), function (response) {
+                player.member.send(response.data.values[0][0]);
+            });
+        }
+        if (message)
+            new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
 
         // Now mark it as solved.
         this.solved = true;
@@ -41,18 +44,21 @@ class Puzzle {
         for (let i = 0; i < this.solvedCommands.length; i++)
             command.execute(this.solvedCommands[i], bot, game, null, player);
 
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
+        if (player !== null) {
+            // Post log message.
+            const time = new Date().toLocaleTimeString();
+            game.logChannel.send(`${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
+        }
 
         return;
     }
 
-    unsolve(bot, game, player, message, directMessage) {
+    unsolve(bot, game, player, message, directMessage) {        
         // There's no message when unsolved cell, so let the player know what they did.
-        player.member.send(directMessage);
+        if (player !== null) player.member.send(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
-        new Narration(game, player, player.location, message).send();
+        if (message)
+            new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
 
         // Now mark it as unsolved.
         this.solved = false;
@@ -66,9 +72,11 @@ class Puzzle {
         for (let i = 0; i < this.unsolvedCommands.length; i++)
             command.execute(this.unsolvedCommands[i], bot, game, null, player);
 
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
+        if (player !== null) {
+            // Post log message.
+            const time = new Date().toLocaleTimeString();
+            game.logChannel.send(`${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
+        }
 
         return;
     }

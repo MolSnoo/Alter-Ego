@@ -25,7 +25,7 @@ module.exports.run = async (bot, game, command, args, player) => {
 
     // Get all listed players first.
     var players = [];
-    if (args[0].toLowerCase() === "player") {
+    if (args[0].toLowerCase() === "player" && player !== null) {
         players.push(player);
         args.splice(0, 1);
     }
