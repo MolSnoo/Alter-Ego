@@ -1,5 +1,5 @@
 ﻿const settings = include('settings.json');
-const command = include('commandHandler.js');
+const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const loader = include(`${settings.modulesDir}/loader.js`);
 
@@ -42,7 +42,7 @@ class Puzzle {
 
         // Run any needed commands.
         for (let i = 0; i < this.solvedCommands.length; i++)
-            command.execute(this.solvedCommands[i], bot, game, null, player);
+            commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
 
         if (player !== null) {
             // Post log message.
@@ -70,7 +70,7 @@ class Puzzle {
 
         // Run any needed commands.
         for (let i = 0; i < this.unsolvedCommands.length; i++)
-            command.execute(this.unsolvedCommands[i], bot, game, null, player);
+            commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
 
         if (player !== null) {
             // Post log message.

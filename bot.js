@@ -3,6 +3,7 @@ global.include = require('app-root-path').require;
 
 const settings = include('settings.json');
 const credentials = include('credentials.json');
+const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 
 const discord = require('discord.js');
 const bot = new discord.Client();
@@ -73,7 +74,6 @@ bot.on('message', async message => {
     */
     if (message.content.startsWith(settings.commandPrefix)) {
         const command = message.content.substring(settings.commandPrefix.length);
-        let commandHandler = include('commandHandler.js');
         commandHandler.execute(command, bot, game, message);
     }   
 });
