@@ -78,22 +78,14 @@ class Player {
             this.location.leaveChannel(this);
             this.removeFromWhispers(game, `${this.name} can no longer whisper because they are ${status.name}.`);
         }
-        if (status.attributes.includes("no speech")) game.mutedPlayers.push(this);
-        if (status.attributes.includes("no hearing")) {
-            game.deafenedPlayers.push(this);
-            this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
-        }
-        if (status.attributes.includes("hear room")) game.hearingPlayers.push(this);
-        if (status.attributes.includes("acute hearing")) game.acuteHearingPlayers.push(this);
+        if (status.attributes.includes("no hearing")) this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
         if (status.attributes.includes("hidden")) {
-            game.hiddenPlayers.push(this);
             if (narrate) new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
             sheets.updateCell(this.hidingSpotCell(), this.hidingSpot);
         }
         if (status.attributes.includes("concealed")) {
             if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on a mask.`).send();
             this.displayName = "A masked figure";
-            game.concealedPlayers.push(this);
         }
 
         // Announce when a player falls asleep or unconscious.
@@ -193,18 +185,12 @@ class Player {
 
         if (status.attributes.includes("no channel") && this.getAttributeStatusEffects("no channel").length - 1 === 0)
             this.location.joinChannel(this);
-        if (status.attributes.includes("no speech")) game.mutedPlayers.splice(game.mutedPlayers.indexOf(this), 1);
-        if (status.attributes.includes("no hearing")) game.deafenedPlayers.splice(game.deafenedPlayers.indexOf(this), 1);
-        if (status.attributes.includes("hear room")) game.hearingPlayers.splice(game.hearingPlayers.indexOf(this), 1);
-        if (status.attributes.includes("acute hearing")) game.acuteHearingPlayers.splice(game.acuteHearingPlayers.indexOf(this), 1);
         if (status.attributes.includes("hidden")) {
-            game.hiddenPlayers.splice(game.hiddenPlayers.indexOf(this), 1);
             if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.hidingSpot = "";
             sheets.updateCell(this.hidingSpotCell(), " ");
         }
         if (status.attributes.includes("concealed")) {
-            game.concealedPlayers.splice(game.concealedPlayers.indexOf(this), 1);
             this.displayName = this.name;
             if (narrate) new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${this.displayName}.`).send();
         }

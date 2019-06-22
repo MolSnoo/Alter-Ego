@@ -62,7 +62,7 @@ class Room {
 
     unlock(game, index) {
         this.exit[index].unlock();
-        //if (this.occupants.length > 0) new Narration(game, null, this, `${this.exit[index].name} unlocks.`).send();
+        if (this.occupants.length > 0) new Narration(game, null, this, `${this.exit[index].name} unlocks.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -71,7 +71,7 @@ class Room {
 
     lock(game, index) {
         this.exit[index].lock();
-        //if (this.occupants.length > 0) new Narration(game, null, this, `${this.exit[index].name} locks.`).send();
+        if (this.occupants.length > 0) new Narration(game, null, this, `${this.exit[index].name} locks.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();

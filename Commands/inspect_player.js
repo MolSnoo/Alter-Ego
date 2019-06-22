@@ -37,6 +37,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
         sheets.getData(player.location.parsedDescriptionCell(), function (response) {
+            new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
             player.member.send(response.data.values[0][0]);
         });
 

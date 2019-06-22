@@ -4,6 +4,7 @@ global.include = require('app-root-path').require;
 const settings = include('settings.json');
 const credentials = include('credentials.json');
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
+const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
 
 const discord = require('discord.js');
 const bot = new discord.Client();
@@ -65,17 +66,16 @@ bot.on('message', async message => {
     game.guild = bot.guilds.first();
     game.commandChannel = game.guild.channels.find(channel => channel.id === settings.commandChannel);
     game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
-    /*
-    if ((game.hiddenPlayers.length > 0 || game.hearingPlayers.length > 0 || game.concealedPlayer.member !== null || game.playersDeafened)
-        && !(message.content.startsWith(settings.commandPrefix) && message.content.charAt(1) !== '.') && message.channel.type !== 'dm') {
-        const special = require('./House-Data/special.js');
-        special.determineBehavior(bot, game, message);
-    }
-    */
+
+    // If the message begins with the command prefix, attempt to run a command.
+    // If the command is run successfully, the message will be deleted.
     if (message.content.startsWith(settings.commandPrefix)) {
         const command = message.content.substring(settings.commandPrefix.length);
-        commandHandler.execute(command, bot, game, message);
-    }   
+        var isCommand = await commandHandler.execute(command, bot, game, message);
+    }
+    if (message && !isCommand && game.game && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory)) {
+        await dialogHandler.execute(game, message);
+    }
 });
 
 bot.login(credentials.discord.token);

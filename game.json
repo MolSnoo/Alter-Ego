@@ -6,6 +6,7 @@
   "canJoin": false,
   "halfTimer": null,
   "endTimer": null,
+  "investigation": false,
   "players": [],
   "players_alive": [],
   "players_dead": [],
@@ -15,12 +16,5 @@
   "items": [],
   "puzzles": [],
   "whispers": [],
-  "statusEffects": [],
-  "hiddenPlayers": [],
-  "concealedPlayers": [],
-  "hearingPlayers": [],
-  "acuteHearingPlayers": [],
-  "deafenedPlayers": [],
-  "mutedPlayers": [],
-  "investigation": false
+  "statusEffects": []
 }
