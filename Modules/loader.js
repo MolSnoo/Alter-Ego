@@ -366,7 +366,7 @@ module.exports.loadPlayers = function (game) {
                     for (let k = 0; k < game.statusEffects.length; k++) {
                         for (let l = 0; l < statuses.length; l++) {
                             if (game.statusEffects[k].name === statuses[l].trim()) {
-                                currentPlayer.inflict(game, game.statusEffects[k].name, false, false, false);
+                                currentPlayer.inflict(game, game.statusEffects[k].name, false, false, false, false);
                                 break;
                             }
                         }

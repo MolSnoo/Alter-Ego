@@ -32,7 +32,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     else if (args[0] === "trial") {
         if (settings.classTrialStatus !== "") {
             for (let i = 0; i < game.players_alive.length; i++)
-                game.players_alive[i].inflict(game, settings.classTrialStatus, true, true, false);
+                game.players_alive[i].inflict(game, settings.classTrialStatus, true, false, true, false);
             message.channel.send(`All players have been given **${settings.classTrialStatus}** status effect.`);
         }
         else return message.channel.send("There is no status effect set in settings, so the trial argument does nothing.");

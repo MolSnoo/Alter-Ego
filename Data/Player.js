@@ -52,7 +52,7 @@ class Player {
         return appendString;
     }
 
-    inflict(game, statusName, notify, updateSheet, narrate) {
+    inflict(game, statusName, notify, doCures, updateSheet, narrate) {
         if (this.statusString.includes(statusName)) return "Specified player already has that status effect.";
 
         var status = null;
@@ -64,14 +64,15 @@ class Player {
         }
         if (status === null) return `Couldn't find status effect "${statusName}".`;
 
-        if (status.cures !== "") {
+        if (notify === null || notify === undefined) notify = true;
+        if (doCures === null || doCures === undefined) doCures = true;
+        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
+        if (narrate === null || narrate === undefined) narrate = true;
+
+        if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
                 this.cure(game, status.cures[i], false, false, false, false);
         }
-
-        if (notify === null || notify === undefined) notify = true;
-        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
-        if (narrate === null || narrate === undefined) narrate = true;
 
         // Apply the effects of any attributes that require immediate action.
         if (status.attributes.includes("no channel")) {
@@ -116,7 +117,7 @@ class Player {
                 if (status.duration <= 0) {
                     if (status.nextStage) {
                         player.cure(game, status.name, false, false, false, true);
-                        player.inflict(game, status.nextStage.name, true, true, true);
+                        player.inflict(game, status.nextStage.name, true, false, true, true);
                     }
                     else {
                         if (status.fatal) {
@@ -201,7 +202,7 @@ class Player {
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(game, status.curedCondition.name, false, false, true);
+            this.inflict(game, status.curedCondition.name, false, false, false, true);
             returnMessage += ` Player is now ${status.curedCondition.name}.`;
         }
 
@@ -300,8 +301,8 @@ class Player {
             else {
                 // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
                 for (let i = 0; i < item.effects.length - 1; i++)
-                    this.inflict(game, item.effects[i], true, false, true);
-                this.inflict(game, item.effects[item.effects.length - 1], true, true, true);
+                    this.inflict(game, item.effects[i], true, true, false, true);
+                this.inflict(game, item.effects[item.effects.length - 1], true, true, true, true);
             }
         }
 

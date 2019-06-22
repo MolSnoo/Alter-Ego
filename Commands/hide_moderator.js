@@ -77,7 +77,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         // It's free real estate!
         else {
             player.hidingSpot = object.name;
-            player.inflict(game, "hidden", true, true, true);
+            player.inflict(game, "hidden", true, false, true, true);
 
             // Log message is sent when status is inflicted.
         }
