@@ -270,6 +270,14 @@ module.exports.insertRow = function (sheetrange, data, dataOperation) {
     });
 };
 
+module.exports.fetchData = function (sheetrange) {
+    return new Promise((resolve) => {
+        exports.getDataFormulas(sheetrange, (response) => {
+            resolve(response.data.values);
+        });
+    });
+};
+
 module.exports.fetchDescription = function (descriptionCell) {
     return new Promise((resolve) => {
         exports.getDataFormulas(descriptionCell, (response) => {

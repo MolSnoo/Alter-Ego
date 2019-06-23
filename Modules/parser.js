@@ -18,13 +18,13 @@ class Sentence {
 module.exports.testParser = function (description) {
     var sentences = parseText(description);
     return assembleSentences(sentences, true);
-}
+};
 
 module.exports.parseDescription = function (description) {
     var sentences = parseText(description);
     const newDescription = assembleSentences(sentences, false);
     return newDescription.replace(/{/g, '').replace(/}/g, '').replace(/</g, '').replace(/>/g, '');
-}
+};
 
 module.exports.addItem = function (description, item) {
     var sentences = parseText(description);
@@ -92,7 +92,7 @@ module.exports.addItem = function (description, item) {
     // It would be a waste to have to disassemble it again, so we'll return both versions.
     const descriptions = [assembleSentences(sentences, true), assembleSentences(sentences, false).replace(/{/g, '').replace(/}/g, '').replace(/</g, '').replace(/>/g, '')];
     return descriptions;
-}
+};
 
 module.exports.removeItem = function (description, item) {
     var sentences = parseText(description);
@@ -147,7 +147,7 @@ module.exports.removeItem = function (description, item) {
     // It would be a waste to have to disassemble it again, so we'll return both versions.
     const descriptions = [assembleSentences(sentences, true), assembleSentences(sentences, false).replace(/{/g, '').replace(/}/g, '').replace(/</g, '').replace(/>/g, '')];
     return descriptions;
-}
+};
 
 function parseText(description) {
     // This function disassembles a description into sentences, which are themselves divided into clauses.
@@ -158,6 +158,7 @@ function parseText(description) {
     var start = 0;
     var end = 0;
     var newSentence = false;
+    var itemListStarted = false;
     for (var i = 0; i < description.length; i++) {
         var clauses = new Array();
         while (!newSentence) {
@@ -169,6 +170,7 @@ function parseText(description) {
                 end = i + 1;
                 clauses.push(new Clause(description.substring(start, end).trim(), false));
                 start = i + 1;
+                itemListStarted = true;
             }
             else if (description.charAt(i) === '{') {
                 end = i;
@@ -193,7 +195,7 @@ function parseText(description) {
                     newSentence = true;
                 }
             }
-            else if (description.charAt(i) === '>') {
+            else if (description.charAt(i) === '>' && itemListStarted) {
                 end = i;
                 clauses.push(new Clause(description.substring(start, end).trim(), false));
 
@@ -206,6 +208,8 @@ function parseText(description) {
             }
             else if ((description.charAt(i) === '.' || description.charAt(i) === '!' || description.charAt(i) === '?')
                 && (description.charAt(i + 1) !== '.')
+                && (description.charAt(i + 1) !== '!')
+                && (description.charAt(i + 1) !== '?')
                 && (description.charAt(i + 1) !== '}')
                 && (description.charAt(i + 1) !== '>')
                 && (description.charAt(i + 1) !== '"')
@@ -239,7 +243,7 @@ function parseText(description) {
                 clauses[j].itemNo = itemCount;
 
                 var numStart = clauses[j].text.search(/\d/);
-                if (numStart != -1) {
+                if (numStart !== -1) {
                     var numEnd;
                     for (numEnd = numStart; numEnd < clauses[j].text.length; numEnd++) {
                         if (isNaN(clauses[j].text.charAt(numEnd + 1)))
@@ -651,10 +655,24 @@ function removeClause(sentence, i) {
     // AFTER: "There are <a PIANO and some SNARE DRUMS.>"
     else if ((clause[i - 1] && clause[i + 1])
         && (clause[i - 2].text.endsWith("are"))
-        && (clause[i + 1].text.includes(", and"))) {
+        && (clause[i + 1].text.includes(", and"))
+        && (clause[i + 1].text.split(',').length - 1 === 1)) {
         clause[i].text = "";
         clause[i + 1].text = clause[i + 1].text.replace(", and", " and");
         //clause.push(new Clause("18", false));
+        return sentence;
+    }
+
+    // BEFORE: "A few grab your attention though: <{a MIRACLE FLOWER,} ROSE OF SHARON, and PINK LACEFLOWER.>"
+    // REMOVE: "MIRACLE FLOWER"
+    // AFTER: "A few grab your attention though: <ROSE OF SHARON and PINK LACEFLOWER.>"
+    else if (clause[i + 1]
+        && (!clause[i + 1].isItem)
+        && (clause[i + 1].text.includes(", and"))
+        && (clause[i + 1].text.split(',').length - 1 === 1)) {
+        clause[i].text = "";
+        clause[i + 1].text = clause[i + 1].text.replace(", and", " and");
+        //clause.push(new Clause("19", false));
         return sentence;
     }
       
@@ -664,11 +682,11 @@ function removeClause(sentence, i) {
     else if (clause[i + 1] && clause[i + 1].text === '>' && !clause[i + 2]) {
         clause[i].text = ".";
         clause[i].isItem = false;
-        //clause.push(new Clause("19", false));
+        //clause.push(new Clause("20", false));
         return sentence;
     }
 
     clause[i].text = "";
-    //clause.push(new Clause("20", false));
+    //clause.push(new Clause("21", false));
     return sentence;
 }
