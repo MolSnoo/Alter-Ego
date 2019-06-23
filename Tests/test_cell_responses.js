@@ -35,8 +35,9 @@ function test_Clue() {
 }
 
 function test_Exit() {
-    const exit = new Exit("PATH 1", "path-1", "PARK", 17);
+    const exit = new Exit("PATH 1", true, "path-1", "PARK", 17);
 
+    assert.ok(exit.unlockedCell() === "Rooms!D17", exit.unlockedCell());
     assert.ok(exit.formattedDescriptionCell() === "Rooms!G17", exit.formattedDescriptionCell());
     assert.ok(exit.parsedDescriptionCell() === "Rooms!H17", exit.parsedDescriptionCell());
 }
@@ -73,7 +74,7 @@ function test_Player() {
 }
 
 function test_Puzzle() {
-    const puzzle = new Puzzle("LOCK", false, false, "carousel", "LOCK", "key lock", true, "Item: KEY", "", NaN, "", 72);
+    const puzzle = new Puzzle("LOCK", false, false, "carousel", "LOCK", "key lock", true, "Item: KEY", "", NaN, "", "", 72);
 
     assert.ok(puzzle.solvedCell() === "Puzzles!B72", puzzle.solvedCell());
     assert.ok(puzzle.accessibleCell() === "Puzzles!G72", puzzle.accessibleCell());
@@ -87,15 +88,14 @@ function test_Puzzle() {
 }
 
 function test_Room() {
-    const room = new Room("path-2", true, null, null, 23);
+    const room = new Room("path-2", null, null, 23);
 
-    assert.ok(room.accessibilityCell() === "Rooms!B23", room.accessibilityCell());
     assert.ok(room.formattedDescriptionCell() === "Rooms!G23", room.formattedDescriptionCell());
     assert.ok(room.parsedDescriptionCell() === "Rooms!H23", room.parsedDescriptionCell());
 }
 
 function test_Status() {
-    const status = new Status("heated", null, false, "", "", "", 0, 204);
+    const status = new Status("heated", null, false, "", "", "", 0, true, "", 204);
 
     assert.ok(status.inflictedCell() === "Status Effects!J204", status.inflictedCell());
     assert.ok(status.curedCell() === "Status Effects!K204", status.curedCell());

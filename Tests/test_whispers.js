@@ -34,10 +34,10 @@ async function init(game) {
     game.rooms.push(
         new Room(
             "lobby",
-            true,
             game.guild.channels.find(channel => channel.name === "lobby"),
             new Exit(
                 "DOOR 1",
+                true,
                 "dorm-1",
                 "DOOR",
                 66
@@ -48,10 +48,10 @@ async function init(game) {
     game.rooms.push(
         new Room(
             "dorm-1",
-            true,
             game.guild.channels.find(channel => channel.name === "dorm-1"),
             new Exit(
                 "DOOR",
+                true,
                 "lobby",
                 "DOOR 1",
                 66
@@ -109,7 +109,7 @@ async function init(game) {
         )
     );
     game.players = game.players_alive;
-
+    
     for (let i = 0; i < game.rooms.length; i++) {
         for (let j = 0; j < game.rooms[i].exit.length; j++) {
             game.rooms[i].exit[j].dest = game.rooms.find(room => room.name === game.rooms[i].exit[j].dest);
