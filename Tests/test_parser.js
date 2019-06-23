@@ -1,5 +1,7 @@
-﻿var assert = require('assert');
-var parser = require('../House-Data/parser.js');
+﻿const settings = include('settings.json');
+var parser = include(`${settings.modulesDir}/parser.js`);
+
+var assert = require('assert');
 
 exports.run = function() {
     test_increaseQuantity_0();
@@ -44,6 +46,7 @@ exports.run = function() {
     test_removeItem_18();
     test_removeItem_19();
     test_removeItem_20();
+    test_removeItem_21();
     return;
 };
 
@@ -502,6 +505,18 @@ function test_removeItem_18() {
 }
 
 function test_removeItem_19() {
+    const text = "A few grab your attention though: <{a MIRACLE FLOWER,} ROSE OF SHARON, and PINK LACEFLOWER.>";
+    const item = new Item("MIRACLE FLOWER", 0, "a MIRACLE FLOWER");
+
+    const result = "A few grab your attention though: <ROSE OF SHARON and PINK LACEFLOWER.>";
+    const actual = parser.removeItem(text, item)[0];
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_removeItem_20() {
     const text = "The second one from the bottom has <{a WALKIE TALKIE.}>";
     const item = new Item("WALKIE TALKIE", 0, "a WALKIE TALKIE");
 
@@ -513,7 +528,7 @@ function test_removeItem_19() {
     );
 }
 
-function test_removeItem_20() {
+function test_removeItem_21() {
     const text = "{There is a rather large TARP on the FLOOR.}";
     const item = new Item("TARP", 0, "a rather large TARP");
 

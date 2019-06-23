@@ -1,0 +1,20 @@
+﻿{
+  "guild": null,
+  "commandChannel": null,
+  "logChannel": null,
+  "game": false,
+  "canJoin": false,
+  "halfTimer": null,
+  "endTimer": null,
+  "investigation": false,
+  "players": [],
+  "players_alive": [],
+  "players_dead": [],
+  "rooms": [],
+  "objects": [],
+  "clues": [],
+  "items": [],
+  "puzzles": [],
+  "whispers": [],
+  "statusEffects": []
+}
