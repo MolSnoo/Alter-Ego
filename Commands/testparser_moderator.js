@@ -10,15 +10,14 @@ let game = include('game.json');
 module.exports.config = {
     name: "testparser_moderator",
     description: "Tests the parsing module on your descriptions.",
-    details: `Tests the parsing algorithm responsible for modifying descriptions to add and remove items. `
-        + `Sends the results in the form of a text file to the ${game.commandChannel} channel. `
+    details: `Tests the parsing algorithm responsible for adding and removing items from descriptions. `
+        + `Sends the results as a text file to the command channel. `
         + `If testing the add or remove function, you can add "formatted" to display the formatted descriptions. `
         + `Otherwise, it will display only the unformatted versions. This command should be used to make sure `
-        + `you've written properly formatted descriptions.\n`
-        + `-**parse**: Outputs the formatted and unformatted descriptions and whether or not they're equal. `
-        + `If they aren't equal, it's because the formatted description contains an item or an item container. `
-        + `Use this before using the PARSE command to make sure everything looks good.\n`
-        + `-**add**: Goes through each object and puzzle description with item containers and adds random items.\n`
+        + `you've written properly formatted descriptions.\n\n`
+        + `-**parse**: Outputs the formatted and unformatted descriptions and whether or not they're equal, `
+        + `as well as their respective values. Use this before using the PARSE command to make sure everything looks good.\n\n`
+        + `-**add**: Goes through each object and puzzle description with item containers and adds random items.\n\n`
         + `-**remove**: Goes through each room, object, and puzzle description with items and removes each item `
         + `in every order possible until there are none left. Do NOT use this if there are more than 4 items in a single object, `
         + `as the bot will most likely crash.`,

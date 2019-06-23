@@ -3,7 +3,7 @@
 module.exports.config = {
     name: "endgame_moderator",
     description: "Ends a game.",
-    details: 'Ends the game. All players will be removed from whatever room channels they were in.'
+    details: 'Ends the game. All players will be removed from whatever room channels they were in. '
         + 'The Player and Dead roles will be removed from all players.',
     usage: `${settings.commandPrefix}endgame`,
     usableBy: "Moderator",

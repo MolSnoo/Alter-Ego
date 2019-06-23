@@ -12,7 +12,7 @@ module.exports.config = {
         + 'at which point they will be given the Player role. When the timer reaches 0, '
         + 'all of the players will be uploaded to the Players spreadsheet. '
         + 'After making any needed modifications, use ".load all start" to begin the game.',
-    usage: `${settings.commandPrefix}startgame 24h`
+    usage: `${settings.commandPrefix}startgame 24h\n`
         + `${settings.commandPrefix}start 0.25m`,
     usableBy: "Moderator",
     aliases: ["startgame", "start"],

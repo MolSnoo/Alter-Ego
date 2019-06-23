@@ -3,17 +3,17 @@
 module.exports.config = {
     name: "status_moderator",
     description: "Deals with status effects on players.",
-    details: 'Deals with status effects on players.\n'
+    details: 'Deals with status effects on players.\n\n'
         + '-**add**/**inflict**: Inflicts the specified player with the given status effect. '
         + 'That player will receive the "Message When Inflicted" message for the specified status effect. '
         + 'If the status effect has a timer, the player will be cured and then inflicted with the status effect '
         + 'in the "Develops Into" column when the timer reaches 0. If the status effect is fatal, '
-        + 'then they will simply die when the timer reaches 0 instead.\n'
+        + 'then they will simply die when the timer reaches 0 instead.\n\n'
         + '-**remove**/**cure**: Cures the specified player of the given status effect. '
         + 'That player will receive the "Message When Cured" message for the specified status effect. '
-        + 'If the status effect develops into another effect when cured, the player will be inflicted with that status effect.\n'
-        + '-**view**: Views all of the status effects that a player is currently afflicted with, along with the time remaining on each one, if applicable.'
-        + 'See the "Effect" column on the spreadsheet for more info on each status effect.',
+        + 'If the status effect develops into another effect when cured, the player will be inflicted with that status effect.\n\n'
+        + '-**view**: Views all of the status effects that a player is currently afflicted with, along with the time remaining on each one, if applicable.\n\n'
+        + 'See the "Effect" column on the spreadsheet for more info on each status effect. ',
     usage: `${settings.commandPrefix}status add diego heated\n`
         + `${settings.commandPrefix}inflict diego heated\n`
         + `${settings.commandPrefix}status remove antoine injured\n`

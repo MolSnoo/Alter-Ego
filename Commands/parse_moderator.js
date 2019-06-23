@@ -8,7 +8,10 @@ module.exports.config = {
     details: `Takes the given set's formatted descriptions, parses them, and updates the "Parsed Description" `
         + `column with the parsed versions. This must be done after making any manual edits to room, object, `
         + `or solved puzzle descriptions, as the data in the parsed column is what will be sent to players.`,
-    usage: `${settings.commandPrefix}example`,
+    usage: `${settings.commandPrefix}parse all\n`
+        + `${settings.commandPrefix}parse rooms\n`
+        + `${settings.commandPrefix}parse objects\n`
+        + `${settings.commandPrefix}parse puzzles`,
     usableBy: "Moderator",
     aliases: ["parse"],
     requiresGame: false

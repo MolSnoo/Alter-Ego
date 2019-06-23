@@ -17,7 +17,7 @@ module.exports.config = {
         + `${settings.commandPrefix}solve binder taylor\n`
         + `${settings.commandPrefix}unsolve lever colin\n`
         + `${settings.commandPrefix}puzzle solve keypad tool shed\n`
-        + `${settings.commandPrefix}puzzles unsolve lock men's locker room\n`
+        + `${settings.commandPrefix}puzzle unsolve lock men's locker room\n`
         + `${settings.commandPrefix}solve paintings player "player removes the PAINTINGS from the wall."\n`
         + `${settings.commandPrefix}unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"`,
     usableBy: "Bot",

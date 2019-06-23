@@ -4,7 +4,7 @@ module.exports.config = {
     name: "use_player",
     description: "Uses an item in your inventory or an object in a room.",
     details: "Uses an item from your inventory. Not all items have programmed uses. Those that do will inflict you "
-        + "with or cure you of a status effect of some kind. Status effects can be good, bad, or neutral, "
+        + "with or cure you of a status effect of some kind. Status effects can be good, bad, or neutral, but it "
         + "should be fairly obvious what kind of effect a particular item will have on you. For example, "
         + "sleep medicine will make you fall asleep, a first aid kit will heal injuries, etc.\n\n"
         + "Some items can be used on objects in the room you're in. For example, using a key on a locker "
