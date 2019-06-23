@@ -58,7 +58,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             game.game = true;
             game.canJoin = false;
             if (!settings.debug)
-                bot.user.activity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
+                bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
             for (let i = 0; i < game.players_alive.length; i++) {
                 sheets.getData(game.players_alive[i].location.parsedDescriptionCell(), function (response) {
                     game.players_alive[i].member.send(response.data.values[0][0]);
@@ -69,7 +69,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             game.game = true;
             game.canJoin = false;
             if (!settings.debug)
-                bot.user.activity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
+                bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
         }
     }
     else if (args[0] === "rooms") {

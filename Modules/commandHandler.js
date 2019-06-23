@@ -10,7 +10,7 @@ module.exports.execute = async (command, bot, game, message, player) => {
         let member = game.guild.members.find(member => member.id === message.author.id);
         if (member && member.roles.find(role => role.id === settings.playerRole)) isPlayer = true;
         else if (member && settings.debug && member.roles.find(role => role.id === settings.testerRole)) isEligible = true;
-        else if (member && !settings.debug && member.roles.find(role => role.id === settings.studentRole)) isEligible = true;
+        else if (member && !settings.debug && member.roles.find(role => role.id === settings.eligibleRole)) isEligible = true;
     }
 
     const commandSplit = command.split(" ");
@@ -63,7 +63,7 @@ module.exports.execute = async (command, bot, game, message, player) => {
                 return false;
             }
 
-            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug) message.delete().catch(); });
+            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && message.channel.type !== "dm") message.delete().catch(); });
             return true;
         }
         return false;
