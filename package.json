@@ -1,11 +1,21 @@
 {
   "name": "alter-ego",
-  "version": "0.9",
+  "version": "0.9.0",
   "description": "An in-depth Danganronpa role play bot for Discord",
   "main": "bot.js",
-  "author": {
-    "name": "Jared Evan Anderson"
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MolSnoo/Alter-Ego.git"
+  },
+  "author": "Jared Evan Anderson",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/MolSnoo/Alter-Ego/issues"
+  },
+  "homepage": "https://github.com/MolSnoo/Alter-Ego",
   "dependencies": {
     "app-root-path": "^2.2.1",
     "discord.js": "^11.5.0",
