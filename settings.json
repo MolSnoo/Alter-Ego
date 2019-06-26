@@ -11,6 +11,8 @@
   "defaultClueLevel": 1,
   "defaultLocation": "park",
   "defaultStatusEffects": "satisfied, well rested",
+  "emptyPlayerRow": [ "", "", "", "", "", "", "", "" ],
+  "emptyInventoryItem": [ "NULL", "", "", "", "", "", "", "" ],
 
   "diceMin": 1,
   "diceMax": 6,
@@ -39,6 +41,7 @@
   "moderatorRole": "581613661731422237",
   "deadRole": "581612036514119680",
   "spectatorRole": "581611800794103809",
+  
   "roomCategories": "581619843573350406 585976373433335827 585980568311693336 585980972877742092 585981129945776247",
   "whisperCategory": "581620946973098012",
   "testingChannel": "581623959259447296",
@@ -55,6 +58,7 @@
   "puzzleSheetID": 1961307123,
   "statusEffectSheetID": 1040343283,
   "playerSheetID": 680018352,
+  
   "roomSheetAllCells": "Rooms!A1:H",
   "roomSheetLoadCells": "Rooms!A1:F",
   "roomSheetUnlockedColumn": "Rooms!D",
@@ -102,7 +106,5 @@
   "playerSheetStatusColumn": "Players!H",
   "playerSheetItemNameColumn": "Players!I",
   "playerSheetItemUsesColumn": "Players!K",
-  "playerSheetItemDescriptionColumn": "Players!P",
-  "emptyPlayerRow": [ "", "", "", "", "", "", "", "" ],
-  "emptyInventoryItem": [ "NULL", "", "", "", "", "", "", "" ]
+  "playerSheetItemDescriptionColumn": "Players!P"
 }
