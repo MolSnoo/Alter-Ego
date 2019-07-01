@@ -144,7 +144,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             && (item.quantity > 0 || isNaN(item.quantity)));
         var item = null;
         for (let i = 0; i < items.length; i++) {
-            if (items[i].name === parsedInput) {
+            if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
                 item = items[i];
                 break;
             }
