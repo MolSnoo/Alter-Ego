@@ -44,7 +44,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // First find the item in the player's inventory, if applicable.
     var item = null;
     for (let i = 0; i < player.inventory.length; i++) {
-        if (parsedInput.startsWith(player.inventory[i].name)) {
+        if (parsedInput.startsWith(player.inventory[i].name + ' ') || player.inventory[i].name === parsedInput) {
             item = player.inventory[i];
             parsedInput = parsedInput.substring(item.name.length).trim();
             input = input.substring(item.name.length).trim();
