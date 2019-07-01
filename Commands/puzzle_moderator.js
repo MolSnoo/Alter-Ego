@@ -103,13 +103,13 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (command === "solve") {
         if (player === null && puzzle.solvedCommands.toString().includes("player"))
             return message.reply("that puzzle will trigger a command on the player who solves it, so you need to specify one.");
-        puzzle.solve(bot, game, player, announcement);
+        puzzle.solve(bot, game, player, announcement, true);
         message.channel.send(`Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
         if (player === null && puzzle.unsolvedCommands.toString().includes("player"))
             return message.reply("that puzzle will trigger a command on the player who unsolves it, so you need to specify one.");
-        puzzle.unsolve(bot, game, player, announcement);
+        puzzle.unsolve(bot, game, player, announcement, true);
         message.channel.send(`Successfully unsolved ${puzzle.name}.`);
     }
 
