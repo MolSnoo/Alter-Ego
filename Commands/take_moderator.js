@@ -78,7 +78,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
         }
-        if (item === null) return message.reply(`couldn't find item "${parsedInput}" in ${puzzle.parentObject}.`);
+        if (item === null) return message.reply(`couldn't find item "${parsedInput}" ${object.preposition} ${puzzle.parentObject}.`);
     }
     else if (object !== null) {
         const items = game.items.filter(item => item.location === player.location.name && item.accessible && item.sublocation === object.name && (item.quantity > 0 || isNaN(item.quantity)));
@@ -88,7 +88,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
         }
-        if (item === null) return message.reply(`couldn't find item "${parsedInput}" in ${object.name}.`);
+        if (item === null) return message.reply(`couldn't find item "${parsedInput}" ${object.preposition} ${object.name}.`);
     }
     else {
         const items = game.items.filter(item => item.location === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
