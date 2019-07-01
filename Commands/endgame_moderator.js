@@ -16,6 +16,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     for (let i = 0; i < game.players_alive.length; i++) {
         const player = game.players_alive[i];
         if (player.location.channel) player.location.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
+        player.removeFromWhispers(game);
         player.member.removeRole(settings.playerRole).catch();
 
         for (let j = 0; j < player.status.length; j++)
