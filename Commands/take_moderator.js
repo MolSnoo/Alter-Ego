@@ -48,6 +48,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     var object = null;
     var puzzle = null;
     for (let i = 0; i < objects.length; i++) {
+        if (objects[i].name === parsedInput) return message.reply(`the ${objects[i].name} is not an item.`);
         if (parsedInput.endsWith(objects[i].name)) {
             if (objects[i].preposition === "") return message.reply(`${objects[i].name} cannot hold items.`);
             object = objects[i];
