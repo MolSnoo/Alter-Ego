@@ -288,18 +288,21 @@ module.exports.loadPlayers = function (game) {
             const columnID = 0;
             const columnName = 1;
             const columnTalent = 2;
-            const columnClueLevel = 3;
-            const columnAlive = 4;
-            const columnLocation = 5;
-            const columnHidingSpot = 6;
-            const columnStatus = 7;
-            const columnItemName = 8;
-            const columnItemPluralName = 9;
-            const columnItemUses = 10;
-            const columnItemDiscreet = 11;
-            const columnItemEffect = 12;
-            const columnItemCures = 13;
-            const columnItemContainingPhrase = 14;
+            const columnStrength = 3;
+            const columnIntelligence = 4;
+            const columnDexterity = 5;
+            const columnSpeed = 6;
+            const columnAlive = 7;
+            const columnLocation = 8;
+            const columnHidingSpot = 9;
+            const columnStatus = 10;
+            const columnItemName = 11;
+            const columnItemPluralName = 12;
+            const columnItemUses = 13;
+            const columnItemDiscreet = 14;
+            const columnItemEffect = 15;
+            const columnItemCures = 16;
+            const columnItemContainingPhrase = 17;
 
             game.players.length = 0;
             game.players_alive.length = 0;
@@ -343,6 +346,12 @@ module.exports.loadPlayers = function (game) {
                                 i + j + 1
                             );
                 }
+                const stats = {
+                    strength: parseInt(sheet[i][columnStrength]),
+                    intelligence: parseInt(sheet[i][columnIntelligence]),
+                    dexterity: parseInt(sheet[i][columnDexterity]),
+                    speed: parseInt(sheet[i][columnSpeed])
+                };
                 const player =
                     new Player(
                         sheet[i][columnID],
@@ -350,7 +359,7 @@ module.exports.loadPlayers = function (game) {
                         sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
-                        parseInt(sheet[i][columnClueLevel]),
+                        stats,
                         sheet[i][columnAlive] === "TRUE",
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],

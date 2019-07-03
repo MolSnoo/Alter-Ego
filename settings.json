@@ -8,10 +8,15 @@
   "modulesDir": "Modules",
   "testsDir": "Tests",
 
-  "defaultClueLevel": 1,
+  "defaultStats": {
+    "strength": 5,
+    "intelligence": 5,
+    "dexterity": 5,
+    "speed": 5
+  },
   "defaultLocation": "park",
   "defaultStatusEffects": "satisfied, well rested",
-  "emptyPlayerRow": [ "", "", "", "", "", "", "", "" ],
+  "emptyPlayerRow": [ "", "", "", "", "", "", "", "", "", "", "" ],
   "emptyInventoryItem": [ "NULL", "", "", "", "", "", "", "" ],
 
   "diceMin": 1,
@@ -98,13 +103,13 @@
   "statusSheetLoadCells": "Status Effects!A1:H",
   "statusSheetInflictedColumn": "Status Effects!J",
   "statusSheetCuredColumn": "Status Effects!K",
-  "playerSheetInitCells": "Players!A3:P",
-  "playerSheetLoadCells": "Players!A1:O",
+  "playerSheetInitCells": "Players!A3:S",
+  "playerSheetLoadCells": "Players!A1:R",
   "playerSheetIDColumn": "Players!A",
-  "playerSheetLocationColumn": "Players!F",
-  "playerSheetHidingSpotColumn": "Players!G",
-  "playerSheetStatusColumn": "Players!H",
-  "playerSheetItemNameColumn": "Players!I",
-  "playerSheetItemUsesColumn": "Players!K",
-  "playerSheetItemDescriptionColumn": "Players!P"
+  "playerSheetLocationColumn": "Players!I",
+  "playerSheetHidingSpotColumn": "Players!J",
+  "playerSheetStatusColumn": "Players!K",
+  "playerSheetItemNameColumn": "Players!L",
+  "playerSheetItemUsesColumn": "Players!N",
+  "playerSheetItemDescriptionColumn": "Players!S"
 }

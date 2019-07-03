@@ -12,13 +12,16 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const Die = include(`${settings.dataDir}/Die.js`);
 
 class Player {
-    constructor(id, member, name, displayName, talent, clueLevel, alive, location, hidingSpot, status, inventory, row) {
+    constructor(id, member, name, displayName, talent, stats, alive, location, hidingSpot, status, inventory, row) {
         this.id = id;
         this.member = member;
         this.name = name;
         this.displayName = displayName;
         this.talent = talent;
-        this.clueLevel = clueLevel;
+        this.strength = stats.strength;
+        this.intelligence = stats.intelligence;
+        this.dexterity = stats.dexterity;
+        this.speed = stats.speed;
         this.alive = alive;
         this.location = location;
         this.hidingSpot = hidingSpot;
@@ -93,7 +96,7 @@ class Player {
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cure, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {

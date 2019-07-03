@@ -1,9 +1,6 @@
 ﻿const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 
-const emptyRow = settings.emptyPlayerRow;
-const emptyInventoryItem = settings.emptyInventoryItem;
-
 module.exports.config = {
     name: "startgame_moderator",
     description: "Starts a game.",
@@ -62,16 +59,19 @@ module.exports.run = async (bot, game, message, command, args) => {
                 player.id,
                 player.name,
                 player.talent,
-                player.clueLevel,
+                player.strength,
+                player.intelligence,
+                player.dexterity,
+                player.speed,
                 player.alive,
                 player.location,
                 player.hidingSpot,
                 player.status
             );
 
-            cells.push(playerData.concat(emptyInventoryItem));
-            cells.push(emptyRow.concat(emptyInventoryItem));
-            cells.push(emptyRow.concat(emptyInventoryItem));
+            cells.push(playerData.concat(settings.emptyInventoryItem));
+            cells.push(settings.emptyPlayerRow.concat(settings.emptyInventoryItem));
+            cells.push(settings.emptyPlayerRow.concat(settings.emptyInventoryItem));
         }
         sheets.updateData(settings.playerSheetInitCells, cells);
     }, time);
