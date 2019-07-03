@@ -1,3 +1,6 @@
+const DOMParser = require('xmldom').DOMParser;
+const XMLSerializer = require('xmldom').XMLSerializer;
+
 class Clause {
     constructor(text, isItem, itemNo, itemQuantity) {
         this.text = text;
@@ -20,10 +23,50 @@ module.exports.testParser = function (description) {
     return assembleSentences(sentences, true);
 };
 
-module.exports.parseDescription = function (description) {
-    var sentences = parseText(description);
-    const newDescription = assembleSentences(sentences, false);
-    return newDescription.replace(/{/g, '').replace(/}/g, '').replace(/</g, '').replace(/>/g, '');
+module.exports.parseDescription = function (description, player) {
+    // Ensure the description is suitable to be parsed as a DOM tree.
+    if (!description.startsWith("<desc>")) description = "<desc>" + description;
+    if (!description.endsWith("</desc>")) description += "</desc>";
+    description = description.replace(/<il><\/il>/g, "<il><null /></il>");
+
+    var document = new DOMParser().parseFromString(description, 'text/xml');
+    // Get a list of sentences in the document.
+    var sentences = document.getElementsByTagName('s');
+    // Find the sentence containing an item list, if there is one.
+    var sentence = null;
+    for (let i = 0; i < sentences.length; i++) {
+        if (sentences[i].getElementsByTagName('il').length > 0) {
+            sentence = sentences[i];
+            break;
+        }
+    }
+    if (sentence !== null) {
+        var itemList = sentence.getElementsByTagName('il').item(0);
+        // If the item list is empty, remove the sentence from the document.
+        if (itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null')
+            document.removeChild(sentence);
+    }
+
+    // Find any conditionals.
+    var conditionals = document.getElementsByTagName('if');
+    for (let i = 0; i < conditionals.length; i++) {
+        let removeConditional = true;
+        let conditional = conditionals[i].getAttribute('cond');
+        if (conditional !== null && conditional !== undefined) {
+            if (eval(conditional) === true)
+                removeConditional = false;
+        }
+        if (removeConditional)
+            document.removeChild(conditionals[i]);
+    }
+
+    // Convert the document to a string.
+    var newDescription = new XMLSerializer().serializeToString(document);
+    // Strip XML tags from the string, as well as all duplicate spaces.
+    newDescription = newDescription.replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '').trim();
+    newDescription = newDescription.replace(/ {2,}/g, ' ');
+
+    return newDescription;
 };
 
 module.exports.addItem = function (description, item) {

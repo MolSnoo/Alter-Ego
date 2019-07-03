@@ -45,9 +45,9 @@ function test_Exit() {
 function test_InventoryItem() {
     const inventoryItem = new InventoryItem("BALL", "BALLS", NaN, true, "", "", "a BALL", "BALLS", 42);
 
-    assert.ok(inventoryItem.itemCells() === "Players!I42:P42", inventoryItem.itemCells());
-    assert.ok(inventoryItem.usesCell() === "Players!K42", inventoryItem.usesCell());
-    assert.ok(inventoryItem.descriptionCell() === "Players!P42", inventoryItem.descriptionCell());
+    assert.ok(inventoryItem.itemCells() === "Players!L42:S42", inventoryItem.itemCells());
+    assert.ok(inventoryItem.usesCell() === "Players!N42", inventoryItem.usesCell());
+    assert.ok(inventoryItem.descriptionCell() === "Players!S42", inventoryItem.descriptionCell());
 }
 
 function test_Item() {
@@ -68,9 +68,9 @@ function test_Object() {
 function test_Player() {
     const player = new Player("", null, "Nero", "Nero", "", 2, true, "park", "", "", null, 5);
 
-    assert.ok(player.playerCells() === "Players!A5:H5", player.playerCells());
-    assert.ok(player.hidingSpotCell() === "Players!G5", player.hidingSpotCell());
-    assert.ok(player.statusCell() === "Players!H5", player.statusCell());
+    assert.ok(player.playerCells() === "Players!A5:K5", player.playerCells());
+    assert.ok(player.hidingSpotCell() === "Players!J5", player.hidingSpotCell());
+    assert.ok(player.statusCell() === "Players!K5", player.statusCell());
 }
 
 function test_Puzzle() {

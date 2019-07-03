@@ -3,7 +3,17 @@ var parser = include(`${settings.modulesDir}/parser.js`);
 
 var assert = require('assert');
 
-exports.run = function() {
+class Item {
+    constructor(name, quantity, singleContainingPhrase, pluralContainingPhrase) {
+        this.name = name;
+        this.pluralName = pluralContainingPhrase;
+        this.quantity = quantity;
+        this.singleContainingPhrase = singleContainingPhrase;
+        this.pluralContainingPhrase = pluralContainingPhrase;
+    }
+}
+
+exports.run = function () {
     test_increaseQuantity_0();
     test_increaseQuantity_1();
     test_increaseQuantity_2();
@@ -49,16 +59,6 @@ exports.run = function() {
     test_removeItem_21();
     return;
 };
-
-class Item {
-    constructor(name, quantity, singleContainingPhrase, pluralContainingPhrase) {
-        this.name = name;
-        this.pluralName = pluralContainingPhrase;
-        this.quantity = quantity;
-        this.singleContainingPhrase = singleContainingPhrase;
-        this.pluralContainingPhrase = pluralContainingPhrase;
-    }
-}
 
 function test_increaseQuantity_0() {
     const text = "In the bottom drawer, you find <{15 PENCILS} and {a stack of PAPER.}>";
