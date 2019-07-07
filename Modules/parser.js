@@ -2,6 +2,30 @@ const DOMParser = require('xmldom').DOMParser;
 const XMLSerializer = require('xmldom').XMLSerializer;
 
 class Clause {
+    constructor(node) {
+        this.node = node;
+        this.text = this.node.data;
+        this.isItem = false;
+        this.itemNo = NaN;
+        this.itemQuantity = 0;
+    }
+
+    set(string) {
+        this.node.data = string;
+        this.text = this.node.data;
+    }
+
+    delete() {
+        let parentNode = this.node.parentNode;
+        parentNode.removeChild(this.node);
+        // If this is an item clause, then the parent node is an item tag. Delete the now empty item tag.
+        if (this.isItem) parentNode.parentNode.removeChild(parentNode);
+        this.node = null;
+        this.text = "";
+    }
+}
+
+class OldClause {
     constructor(text, isItem, itemNo, itemQuantity) {
         this.text = text;
         this.isItem = isItem;
@@ -11,6 +35,13 @@ class Clause {
 }
 
 class Sentence {
+    constructor(clause, itemCount) {
+        this.clause = clause;
+        this.itemCount = itemCount;
+    }
+}
+
+class OldSentence {
     constructor(clause, itemContainer, itemCount) {
         this.clause = clause;
         this.itemContainer = itemContainer;
@@ -24,27 +55,18 @@ module.exports.testParser = function (description) {
 };
 
 module.exports.parseDescription = function (description, player) {
-    // Ensure the description is suitable to be parsed as a DOM tree.
-    if (!description.startsWith("<desc>")) description = "<desc>" + description;
-    if (!description.endsWith("</desc>")) description += "</desc>";
-    description = description.replace(/<il><\/il>/g, "<il><null /></il>");
+    // First, split the description into a DOMParser document.
+    var document = createDocument(description);
 
-    var document = new DOMParser().parseFromString(description, 'text/xml');
-    // Get a list of sentences in the document.
-    var sentences = document.getElementsByTagName('s');
-    // Find the sentence containing an item list, if there is one.
-    var sentence = null;
-    for (let i = 0; i < sentences.length; i++) {
-        if (sentences[i].getElementsByTagName('il').length > 0) {
-            sentence = sentences[i];
-            break;
-        }
-    }
+    // Check if there's an item list in the document.
+    var sentence = getItemListSentence(document);
     if (sentence !== null) {
         var itemList = sentence.getElementsByTagName('il').item(0);
         // If the item list is empty, remove the sentence from the document.
-        if (itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null')
-            document.removeChild(sentence);
+        if (itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null') {
+            if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
+            else document.removeChild(sentence);
+        }
     }
 
     // Find any conditionals.
@@ -56,15 +78,16 @@ module.exports.parseDescription = function (description, player) {
             if (eval(conditional) === true)
                 removeConditional = false;
         }
-        if (removeConditional)
-            document.removeChild(conditionals[i]);
+        if (removeConditional) {
+            if (conditionals[i].parentNode) conditionals[i].parentNode.removeChild(conditionals[i]);
+            else document.removeChild(conditionals[i]);
+        }
     }
 
     // Convert the document to a string.
-    var newDescription = new XMLSerializer().serializeToString(document);
+    var newDescription = stringify(document);
     // Strip XML tags from the string, as well as all duplicate spaces.
     newDescription = newDescription.replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '').trim();
-    newDescription = newDescription.replace(/ {2,}/g, ' ');
 
     return newDescription;
 };
@@ -138,59 +161,164 @@ module.exports.addItem = function (description, item) {
 };
 
 module.exports.removeItem = function (description, item) {
-    var sentences = parseText(description);
+    // First, split the description into a DOMParser document.
+    var document = createDocument(description);
+    
+    // Check if there's an item list in the document.
+    var sentenceNode = getItemListSentence(document);
+    if (sentenceNode !== null) {
+        var sentence = createSentence(sentenceNode);
 
-    // Determine if an item needs to be removed from the sentence.
-    var removeItem = false;
-    var i;
-    var j;
-    for (i = 0; i < sentences.length; i++) {
-        for (j = 0; j < sentences[i].clause.length; j++) {
-            if (sentences[i].clause[j].text.includes(item.singleContainingPhrase)
-                || (j === 1 && sentences[i].clause[j].text.startsWith("A ") && sentences[i].clause[j].text.includes('A' + item.singleContainingPhrase.substring(1)))
-                || (item.pluralContainingPhrase !== "" && sentences[i].clause[j].text.includes(item.pluralContainingPhrase))) {
-                removeItem = true;
-                break;
-            }
-        }
-        if (removeItem) break;
-    }
-
-    if (removeItem && sentences[i].clause[j].isItem) {
-        // First make sure that there aren't multiple of that item.
-        if (item.quantity > 0) {
-            if (item.quantity === 1) {
-                if ("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz".includes(sentences[i].clause[j].text.charAt(sentences[i].clause[j].text.length - 1)))
-                    sentences[i].clause[j].text = item.singleContainingPhrase;
-                else
-                    sentences[i].clause[j].text = item.singleContainingPhrase + sentences[i].clause[j].text.charAt(sentences[i].clause[j].text.length - 1);
-            }
-            else {
-                var start = sentences[i].clause[j].text.search(/\d/);
-                if (start !== -1) {
-                    var end;
-                    for (end = start; end < sentences[i].clause[j].text.length; end++) {
-                        if (isNaN(sentences[i].clause[j].text.charAt(end + 1)))
-                            break;
-                    }
-                    const quantity = parseInt(sentences[i].clause[j].text.substring(start, end));
-                    sentences[i].clause[j].text = sentences[i].clause[j].text.replace(quantity, quantity - 1);
+        // Determine if an item needs to be removed from the sentence.
+        var removeItem = false;
+        var i;
+        for (i = 0; i < sentence.clause.length; i++) {
+            if (sentence.clause[i].isItem) {
+                var text = sentence.clause[i].node.data.toLowerCase();
+                if (text.includes(item.singleContainingPhrase.toLowerCase())
+                    || item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase())) {
+                    removeItem = true;
+                    break;
                 }
             }
         }
 
-        // Remove clause from the sentence.
-        else {
-            sentences[i].clause[j].itemQuantity = item.quantity;
-            sentences[i] = removeClause(sentences[i], j);
+        if (removeItem) {
+            // First make sure there aren't multiple of that item.
+            if (item.quantity > 0) {
+                if (item.quantity === 1)
+                    sentence.clause[i].node.data = item.singleContainingPhrase;
+                else {
+                    let start = text.search(/\d/);
+                    if (start !== -1) {
+                        let end;
+                        for (end = start; end < text.length; end++) {
+                            if (isNaN(text.charAt(end + 1)))
+                                break;
+                        }
+                        const quantity = parseInt(text.substring(start, end));
+                        sentence.clause[i].node.data = sentence.clause[i].node.data.replace(quantity, quantity - 1);
+                    }
+                }
+            }
+
+            // Remove the item from the sentence.
+            else {
+                let result = removeClause(sentence, i);
+                //console.log(result);
+            }
         }
     }
 
-    // If we're removing an item from the formatted description, then we're going to be uploading the parsed version too.
-    // It would be a waste to have to disassemble it again, so we'll return both versions.
-    const descriptions = [assembleSentences(sentences, true), assembleSentences(sentences, false).replace(/{/g, '').replace(/}/g, '').replace(/</g, '').replace(/>/g, '')];
-    return descriptions;
+    return stringify(document).replace(/<il\/>/g, "<il></il>");
 };
+
+module.exports.convert = function (description) {
+    var sentences = parseText(description);
+    var newDescription = "<desc>";
+    for (let i = 0; i < sentences.length; i++) {
+        let sentence = "<s>";
+        for (let j = 0; j < sentences[i].clause.length; j++) {
+            let clause = sentences[i].clause;
+            if (clause[j].text === "<")
+                sentence += " <il>";
+            else if (clause[j].text === ">" && j === clause.length - 1)
+                sentence += "</il>";
+            else if (clause[j].isItem) {
+                if (clause[j - 1] && clause[j - 1].text !== "<")
+                    sentence += " ";
+                if (clause[j].text.endsWith(",")) {
+                    //clause.splice(j + 1, 0, new OldClause(", ", false, NaN, 0));
+                    sentence += `<item>${clause[j].text.substring(0, clause[j].text.length - 1)}</item>, `;
+                }
+                else if (clause[j].text.endsWith(".")) {
+                    clause.splice(j + 1, 0, new OldClause(".", false, NaN, 0));
+                    sentence += `<item>${clause[j].text.substring(0, clause[j].text.length - 1)}</item>`;
+                }
+                else
+                    sentence += `<item>${clause[j].text}</item>`;
+            }     
+            else if (clause[j].text === ">")
+                sentence += "</il> ";
+            else
+                sentence += `${clause[j].text}`;
+        }
+        sentence += "</s> ";
+        newDescription += sentence;
+    }
+    newDescription = newDescription.replace(/\.<\/il>/g, "</il>.").replace(/ {2,}/g, " ").trim();
+    newDescription += "</desc>";
+    return newDescription;
+};
+
+function createDocument(description) {
+    // Ensure the description is suitable to be parsed as a DOM tree.
+    if (!description.startsWith("<desc>")) description = "<desc>" + description;
+    if (!description.endsWith("</desc>")) description += "</desc>";
+    description = description.replace(/<il><\/il>/g, "<il><null /></il>");
+
+    return new DOMParser().parseFromString(description, 'text/xml');
+}
+
+function createSentence(sentenceNode) {
+    var clauses = new Array();
+    searchNodes(clauses, sentenceNode);
+    var itemCount = 0;
+    for (let i = 0; i < clauses.length; i++) {
+        if (clauses[i].node.parentNode.tagName === 'item') {
+            clauses[i].isItem = true;
+            itemCount++;
+            clauses[i].itemNo = itemCount;
+            // Get item quantity.
+            let text = clauses[i].node.data;
+            let start = text.search(/\d/);
+            if (start !== -1) {
+                let end;
+                for (end = start; end < text.length; end++) {
+                    if (isNaN(text.charAt(end + 1)))
+                        break;
+                }
+                const quantity = parseInt(text.substring(start, end));
+                clauses[i].itemQuantity = quantity;
+            }
+            else clauses[i].itemQuantity = 1;
+        }
+    }
+    let sentence = new Sentence(clauses, itemCount);
+    return sentence;
+}
+
+function searchNodes(clauses, node) {
+    for (let i = 0; i < node.childNodes.length; i++) {
+        if (node.childNodes[i].data)
+            clauses.push(new Clause(node.childNodes[i]));
+        else if (node.childNodes[i].tagName)
+            searchNodes(clauses, node.childNodes[i]);
+    }
+    return clauses;
+}
+
+function getItemListSentence(document) {
+    // Get a list of sentences in the document.
+    var sentences = document.getElementsByTagName('s');
+    // Find the sentence containing an item list, if there is one.
+    var sentence = null;
+    for (let i = 0; i < sentences.length; i++) {
+        if (sentences[i].getElementsByTagName('il').length > 0) {
+            sentence = sentences[i];
+            break;
+        }
+    }
+
+    return sentence;
+}
+
+function stringify(document) {
+    var description = new XMLSerializer().serializeToString(document);
+    description = description.replace(/ {2,}/g, ' ').trim();
+
+    return description;
+}
 
 function parseText(description) {
     // This function disassembles a description into sentences, which are themselves divided into clauses.
@@ -207,44 +335,44 @@ function parseText(description) {
         while (!newSentence) {
             if (description.charAt(i) === '<') {
                 end = i;
-                clauses.push(new Clause(description.substring(start, end).trim(), false));
+                clauses.push(new OldClause(description.substring(start, end).trim(), false));
 
                 start = i;
                 end = i + 1;
-                clauses.push(new Clause(description.substring(start, end).trim(), false));
+                clauses.push(new OldClause(description.substring(start, end).trim(), false));
                 start = i + 1;
                 itemListStarted = true;
             }
             else if (description.charAt(i) === '{') {
                 end = i;
                 i++;
-                clauses.push(new Clause(description.substring(start, end).trim(), false));
+                clauses.push(new OldClause(description.substring(start, end).trim(), false));
                 start = i;
             }
             else if (description.charAt(i) === '}') {
                 end = i;
-                clauses.push(new Clause(description.substring(start, end).trim(), true));
+                clauses.push(new OldClause(description.substring(start, end).trim(), true));
                 start = i + 1;
                 if (description.charAt(i + 1) === '>' && (description.charAt(i - 1) === '.' || description.charAt(i - 1) === '!' || description.charAt(i - 1) === '?')) {
                     end = i + 2;
-                    clauses.push(new Clause(description.substring(start, end).trim(), false));
+                    clauses.push(new OldClause(description.substring(start, end).trim(), false));
                     start = i + 2;
                     newSentence = true;
                 }
                 else if (description.charAt(i - 1) === '.' || description.charAt(i - 1) === '!' || description.charAt(i - 1) === '?') {
                     end = i + 1;
-                    clauses.push(new Clause(description.substring(start, end).trim(), true));
+                    clauses.push(new OldClause(description.substring(start, end).trim(), true));
                     start = i + 1;
                     newSentence = true;
                 }
             }
             else if (description.charAt(i) === '>' && itemListStarted) {
                 end = i;
-                clauses.push(new Clause(description.substring(start, end).trim(), false));
+                clauses.push(new OldClause(description.substring(start, end).trim(), false));
 
                 start = i;
                 end = i + 1;
-                clauses.push(new Clause(description.substring(start, end).trim(), false));
+                clauses.push(new OldClause(description.substring(start, end).trim(), false));
                 start = i + 1;
                 if (description.charAt(i - 1) === '.' || description.charAt(i - 1) === '!' || description.charAt(i - 1) === '?')
                     newSentence = true;
@@ -258,13 +386,13 @@ function parseText(description) {
                 && (description.charAt(i + 1) !== '"')
                 && (!("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789").includes(description.charAt(i + 1)))) {
                 end = i + 1;
-                clauses.push(new Clause(description.substring(start, end).trim(), false));
+                clauses.push(new OldClause(description.substring(start, end).trim(), false));
                 start = i + 1;
                 newSentence = true;
             }
 
             if (i === description.length - 1) {
-                clauses.push(new Clause(description.substring(start, description.length).trim(), false));
+                clauses.push(new OldClause(description.substring(start, description.length).trim(), false));
             }
 
             if (i >= description.length) {
@@ -298,7 +426,7 @@ function parseText(description) {
                 else clauses[j].itemQuantity = 1;
             }
         }
-        sentences.push(new Sentence(clauses, itemContainer, itemCount));
+        sentences.push(new OldSentence(clauses, itemContainer, itemCount));
         //console.log(sentences[sentences.length - 1]);
         newSentence = false;
     }
@@ -508,228 +636,197 @@ function removeClause(sentence, i) {
     // In this function, sentence is the sentence containing mention of the item.
     // i is the index of the clause mentioning that item.
     const clause = sentence.clause;
-
-    // BEFORE: "{On one of the desks is a FIRST AID KIT} and {hung on the wall behind the desks is a MEDICINE CABINET.}"
-    // REMOVE: "FIRST AID KIT"
-    // AFTER: "{Hung on the wall behind the desks is a MEDICINE CABINET.}"
-    if ((i === 0)
-        && (clause[i + 1] && clause[i + 2])
-        && (clause[i + 1].text === "and" && clause[i + 2].isItem)) {
-
-        clause[i].text = "";
-        clause[i + 1].text = "";
-        clause[i + 2].text = clause[i + 2].text.substring(0, 1).toUpperCase() + clause[i + 2].text.substring(1);
-        //clause.push(new Clause("1", false));
-        return sentence;
-    }
     
+    // BEFORE: "<desc><s><il><item>On one of the desks is a FIRST AID KIT</item> and <item>hung on the wall behind the desks is a MEDICINE CABINET</item></il>.</s></desc>"
+    // REMOVE: "FIRST AID KIT"
+    // AFTER:  "<desc><s><il><item>Hung on the wall behind the desks is a MEDICINE CABINET</item></il>.</s></desc>"
+    if (i === 0
+        && clause[i + 1] && clause[i + 2]
+        && clause[i + 1].text === "and" && clause[i + 2].isItem) {
+        clause[i].delete();
+        clause[i + 1].delete();
+        // Capitalize the first letter of the next item clause.
+        clause[i + 2].set(clause[i + 2].text.substring(0, 1).toUpperCase() + clause[i + 2].text.substring(1));
+        return 0;
+    }
+
     else if (sentence.itemCount > 1) {
         // Handle removing the last item from a list of items. The if/else if conditionals go by decreasing number of items in the list.
-        if ((clause[i - 1].text === "and") && (clause[i].itemNo === sentence.itemCount)) {
-            clause[i].text = "";
-            clause[i - 1].text = "";
-            // BEFORE: "On these shelves are <{a bottle of PAINKILLERS,} {3 bottles of ZZZQUIL,} {a bottle of LAXATIVES,} and {a bottle of ISOPROPYL ALCOHOL.}>"
+        if (clause[i - 1] && (clause[i - 1].text === ", and " || clause[i - 1].text === " and ") && clause[i].itemNo === sentence.itemCount) {
+            clause[i].delete();
+
+            // BEFORE: "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>3 bottles of ZZZQUIL</item>, <item>a bottle of LAXATIVES</item>, and <item>a bottle of ISOPROPYL ALCOHOL</item></il>.</s></desc>"
             // REMOVE: "ISOPROPYL ALCOHOL"
-            // AFTER: "On these shelves are <{a bottle of PAINKILLERS,} {3 bottles of ZZZQUIL,} and {a bottle of LAXATIVES.}>"
+            // AFTER:  "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>3 bottles of ZZZQUIL</item>, and <item>a bottle of LAXATIVES</item></il>.</s></desc>"
             if (sentence.itemCount > 3) {
-                if (clause[i + 2]) clause[i - 1] = new Clause(clause[i - 2].text.substring(0, clause[i - 2].text.length - 1), true);
-                else clause[i - 1] = new Clause(clause[i - 2].text.substring(0, clause[i - 2].text.length - 1) + '.', true);
-                clause[i - 2] = new Clause("and", false);
-                //clause.push(new Clause("2", false));
-                return sentence;
+                // clause[i - 3] will be the comma preceding the second-to-last item. Change it to the string preceding the last item.
+                clause[i - 3].set(clause[i - 1].text);
+                clause[i - 1].delete();
+                return 1;
             }
-            // BEFORE: "On these shelves are <{a bottle of PAINKILLERS,} {3 bottles of ZZZQUIL,} and {a bottle of LAXATIVES.}>"
+            // BEFORE: "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>3 bottles of ZZZQUIL</item>, and <item>a bottle of LAXATIVES</item></il>.</s></desc>"
             // REMOVE: "LAXATIVES"
-            // AFTER: "On these shelves are <{a bottle of PAINKILLERS} and {3 bottles of ZZZQUIL.}>"
+            // AFTER:  "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item> and <item>3 bottles of ZZZQUIL</item></il>.</s></desc>"
             else if (sentence.itemCount === 3) {
-                if (clause[i + 2]) clause[i - 1] = new Clause(clause[i - 2].text.substring(0, clause[i - 2].text.length - 1), true);
-                else clause[i - 1] = new Clause(clause[i - 2].text.substring(0, clause[i - 2].text.length - 1) + '.', true);
-                clause[i - 2] = new Clause("and", false);
-                clause[i - 3].text = clause[i - 3].text.substring(0, clause[i - 3].text.length - 1);
-                //clause.push(new Clause("3", false));
-                return sentence;
+                clause[i - 3].set(clause[i - 1].text.replace(",", " "));
+                clause[i - 1].delete();
+                return 2;
             }
-            // BEFORE: "On these shelves are <{a bottle of PAINKILLERS} and {3 bottles of ZZZQUIL.}>"
+            // BEFORE: "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item> and <item>3 bottles of ZZZQUIL</item></il>.</s></desc>"
             // REMOVE: "ZZZQUIL"
-            // AFTER: "On these shelves is <{a bottle of PAINKILLERS.}>"
+            // AFTER:  "<desc><s>On these shelves is <il><item>a bottle of PAINKILLERS</item></il>.</s></desc>"
             else {
-                if (!clause[i + 2]) clause[i - 2].text = clause[i - 2].text + '.';
-                if (clause[i - 4].text.endsWith("are") && clause[i - 2].itemQuantity === 1)
-                    clause[i - 4].text = clause[i - 4].text.substring(0, clause[i - 4].text.length - 3) + "is";
-                //clause.push(new Clause("4", false));
-                return sentence;
+                if (clause[i - 3].text.endsWith("are ") && clause[i - 2].itemQuantity === 1)
+                    clause[i - 3].set(clause[i - 3].text.substring(0, clause[i - 3].text.lastIndexOf("are ")) + "is ");
+                clause[i - 1].delete();
+                return 3;
             }
         }
-        // Handle removing the first item from a list of items. The if/else if conditionals go by increasing number of items in the list.
-        else if (clause[i].itemNo === 1 && !clause[i - 2]) {
-            clause[i].text = "";
-            // BEFORE: "<{A bottle of PAINKILLERS} and {a bottle of LAXATIVES}> are on these shelves."
+        // Handle removing the first item from a list of items when the first item is the beginning of the sentence. The if/else if conditionals go by increasing number of items in the list.
+        else if (clause[i].itemNo === 1 && !clause[i - 1]) {
+            clause[i].delete();
+            // BEFORE: "<desc><s><il><item>A bottle of PAINKILLERS</item> and <item>a bottle of LAXATIVES</item></il> are on these shelves.</s></desc>"
             // REMOVE: "PAINKILLERS"
-            // AFTER: "<{A bottle of LAXATIVES}> is on these shelves."
-            if (clause[i + 1].text === "and") {
-                clause[i + 1].text = "";
-                clause[i + 2].text = clause[i + 2].text.charAt(0).toUpperCase() + clause[i + 2].text.substring(1);
-                if (clause[i + 4].text.startsWith("are") && clause[i + 2].itemQuantity === 1)
-                    clause[i + 4].text = "is" + clause[i + 4].text.substring(3);
-                //clause.push(new Clause("5", false));
-                return sentence;
+            // AFTER:  "<desc><s><il><item>A bottle of LAXATIVES</item></il> is on these shelves.</s></desc>"
+            if (clause[i + 1].text.includes(" and ")) {
+                clause[i + 1].delete();
+                clause[i + 2].set(clause[i + 2].text.charAt(0).toUpperCase() + clause[i + 2].text.substring(1));
+                if (clause[i + 3].text.startsWith(" are") && clause[i + 2].itemQuantity === 1)
+                    clause[i + 3].set(clause[i + 3].text.replace(" are", " is"));
+                return 4;
             }
-            // BEFORE: "<{A bottle of PAINKILLERS,} {a bottle of ZZZQUIL,} and {a bottle of LAXATIVES}> are on these shelves."
+            // BEFORE: "<desc><s><il><item>A bottle of PAINKILLERS</item>, <item>a bottle of ZZZQUIL</item>, and <item>a bottle of LAXATIVES</item></il> are on these shelves.</s></desc>"
             // REMOVE: "PAINKILLERS"
-            // AFTER: "<{A bottle of ZZZQUIL} and {a bottle of LAXATIVES}> are on these shelves."
-            else if (clause[i + 1].text.endsWith(',') && clause[i + 2].text === "and") {
-                clause[i + 1].text = clause[i + 1].text.charAt(0).toUpperCase() + clause[i + 1].text.substring(1, clause[i + 1].text.length - 1);
-                //clause.push(new Clause("6", false));
-                return sentence;
+            // AFTER:  "<desc><s><il><item>A bottle of ZZZQUIL</item> and <item>a bottle of LAXATIVES</item></il> are on these shelves.</s></desc>"
+            else if (clause[i + 1].text.startsWith(", ") && clause[i + 3].text.startsWith(", and ")) {
+                clause[i + 1].delete();
+                clause[i + 2].set(clause[i + 2].text.charAt(0).toUpperCase() + clause[i + 2].text.substring(1));
+                clause[i + 3].set(clause[i + 3].text.replace(", and ", " and "));
+                return 5;
             }
         }
         // Handle removing the second to last item from a list of items. The if/else if conditionals go by increasing number of items in the list.
-        else if ((clause[i + 1].text === "and") && (clause[i].itemNo === sentence.itemCount - 1)) {
-            clause[i].text = "";
-            // BEFORE: "On these shelves are <{a bottle of PAINKILLERS} and {a bottle of LAXATIVES.}>"
+        else if ((clause[i + 1].text === ", and " || clause[i + 1].text === " and ") && clause[i].itemNo === sentence.itemCount - 1) {
+            clause[i].delete();
+            // BEFORE: "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item> and <item>a bottle of LAXATIVES</item></il>.</s></desc>"
             // REMOVE: "PAINKILLERS"
-            // AFTER: "On these shelves is <{a bottle of LAXATIVES.}>"
-            if (!clause[i - 1].isItem && clause[i - 2] && !clause[i - 2].isItem) {
-                clause[i + 1].text = "";
-                if (clause[i - 2].text.endsWith("are") && clause[i + 2].itemQuantity === 1)
-                    clause[i - 2].text = clause[i - 2].text.substring(0, clause[i - 2].text.length - 3) + "is";
-                //clause.push(new Clause("7", false));
-                return sentence;
+            // AFTER:  "<desc><s>On these shelves is <il><item>a bottle of LAXATIVES</item></il>.</s></desc>"
+            if (sentence.itemCount === 2) {
+                clause[i + 1].delete();
+                if (clause[i - 1].text.endsWith("are ") && clause[i + 2].itemQuantity === 1)
+                    clause[i - 1].set(clause[i - 1].text.replace("are ", "is "));
+                return 6;
             }
-            // BEFORE: "On these shelves are <{a bottle of PAINKILLERS,} {3 bottles of ZZZQUIL,} and {a bottle of LAXATIVES.}>"
+            // BEFORE: "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>3 bottles of ZZZQUIL</item>, and <item>a bottle of LAXATIVES</item></il>.</s></desc>"
             // REMOVE: "ZZZQUIL"
-            // AFTER: "On these shelves are <{a bottle of PAINKILLERS} and {a bottle of LAXATIVES.}>"
-            else if (clause[i - 2] && !clause[i - 2].isItem && clause[i - 1].text.endsWith(',') && clause[i + 2].isItem) {
-                clause[i - 1].text = clause[i - 1].text.substring(0, clause[i - 1].text.length - 1);
-                //clause.push(new Clause("8", false));
-                return sentence;
+            // AFTER:  "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item> and <item>a bottle of LAXATIVES</item></il>.</s></desc>"
+            else if (sentence.itemCount === 3) {
+                clause[i + 1].delete();
+                clause[i - 1].set(" and ");
+                return 7;
             }
         }
-        // BEFORE: "On these shelves are <{a bottle of PAINKILLERS,} {a bottle of ZZZQUIL,} and {a bottle of LAXATIVES.}>"
+        // BEFORE: "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>a bottle of ZZZQUIL</item>, and <item>a bottle of LAXATIVES</item></il>.</s></desc>"
         // REMOVE: "PAINKILLERS"
-        // AFTER: "On these shelves are <{a bottle of ZZZQUIL} and {a bottle of LAXATIVES.}>"
-        else if (clause[i + 1].text.endsWith(',') && clause[i + 2].text === "and" && clause[i].itemNo === 1) {
-            clause[i].text = "";
-            clause[i + 1].text = clause[i + 1].text.substring(0, clause[i + 1].text.length - 1);
-            //clause.push(new Clause("9", false));
-            return sentence;
+        // AFTER:  "<desc><s>On these shelves are <il><item>a bottle of ZZZQUIL</item> and <item>a bottle of LAXATIVES</item></il>.</s></desc>"
+        else if (sentence.itemCount === 3 && clause[i].itemNo === 1
+            && clause[i + 1].text === ", " && clause[i + 3].text.startsWith(", and ")) {
+            clause[i].delete();
+            clause[i + 1].delete();
+            clause[i + 3].set(clause[i + 3].text.replace(", and ", " and "));
+            return 8;
         }
-        // BEFORE: "On the counters, you can see <{a few KNIVES,} {a BUTCHERS KNIFE,} and a RACK of skewers.>"
-        // REMOVE: "KNIVES"
-        // AFTER: "On the counters, you can see <{a BUTCHERS KNIFE} and a RACK of skewers.>"
-        else if ((sentence.itemCount === 2)
-            && (clause[i + 1] && clause[i + 1].text.endsWith(',') && clause[i + 1].isItem)
-            && (clause[i + 2] && clause[i + 2].text.startsWith("and") && !clause[i + 2].isItem)) {
-            clause[i].text = "";
-            clause[i + 1].text = clause[i + 1].text.substring(0, clause[i + 1].text.length - 1);
-            //clause.push(new Clause("10", false));
-            return sentence;
+        // BEFORE: "<desc><s>On the counters, you can see <il><item>a few KNIVES</item>, <item>a BUTCHERS KNIFE</item>, and <item>a RACK of skewers</item></il>.</s></desc>"
+        // REMOVE: "KNIFE"
+        // AFTER:  "<desc><s>On the counters, you can see <il><item>a BUTCHERS KNIFE</item> and <item>a RACK of skewers</item></il>.</s></desc>"
+        else if (sentence.itemCount === 2
+            && clause[i + 1] && clause[i + 1].text === ", "
+            && clause[i + 2] && clause[i + 2].isItem
+            && clause[i + 3] && clause[i + 3].text.startsWith(", and ") && !clause[i + 3].isItem) {
+            clause[i].delete();
+            clause[i + 1].delete();
+            clause[i + 3].set(clause[i + 3].text.replace(", and ", " and "));
+            return 9;
         }
-        // BEFORE: "On the counters, you can see <{a few KNIVES,} {a BUTCHERS KNIFE,} and a RACK of skewers.>"
+        // BEFORE: "<desc><s>On the counters, you can see <il><item>a few KNIVES</item>, <item>a BUTCHERS KNIFE</item>, and <item>a RACK of skewers</item></il>.</s></desc>"
         // REMOVE: "BUTCHERS KNIFE"
-        // AFTER: "On the counters, you can see <{a few KNIVES} and a RACK of skewers.>"
-        else if ((sentence.itemCount === 2)
-            && (clause[i - 1] && clause[i - 1].text.endsWith(',') && clause[i - 1].isItem)
-            && (clause[i + 1] && clause[i + 1].text.startsWith("and") && !clause[i + 1].isItem)) {
-            clause[i].text = "";
-            clause[i - 1].text = clause[i - 1].text.substring(0, clause[i - 1].text.length - 1);
-            //clause.push(new Clause("11", false));
-            return sentence;
+        // AFTER:  "<desc><s>On the counters, you can see <il><item>a few KNIVES</item> and a RACK of skewers</il>.</s></desc>"
+        else if (sentence.itemCount === 2 && clause[i].itemNo === 2
+            && clause[i - 1].text === ", "
+            && clause[i + 1] && clause[i + 1].text.startsWith(", and") && !clause[i + 1].isItem) {
+            clause[i - 1].delete();
+            clause[i].delete();
+            clause[i + 1].set(clause[i + 1].text.replace(", and ", " and "));
+            return 10;
         }
-        // BEFORE: "However, you do find <{a MOUSE,} a wooden ruler, and {a KEYBOARD.}>"
+        // BEFORE: "<desc><s>However, you do find <il><item>a MOUSE</item>, a wooden ruler, and <item>a KEYBOARD</item></il>.</s></desc>"
         // REMOVE: "MOUSE"
-        // AFTER: "However, you do find <a wooden ruler and {a KEYBOARD.}>"
-        else if ((sentence.itemCount === 2)
-            && (clause[i + 1] && !clause[i + 1].isItem && clause[i + 1].text.endsWith(", and"))
-            && (clause[i + 2] && clause[i + 2].isItem)) {
-            clause[i].text = "";
-            clause[i + 1].text = clause[i + 1].text.replace(", and", " and");
-            //clause.push(new Clause("12", false));
-            return sentence;
+        // AFTER:  "<desc><s>However, you do find <il>a wooden ruler and <item>a KEYBOARD</item></il>.</s></desc>"
+        else if (sentence.itemCount === 2
+            && clause[i + 1] && !clause[i + 1].isItem && clause[i + 1].text.startsWith(", ") && clause[i + 1].text.endsWith(", and ")
+            && clause[i + 2] && clause[i + 2].isItem) {
+            clause[i].delete();
+            clause[i + 1].set(clause[i + 1].text.replace(", ", "").replace(", and ", " and "));
+            return 11;
         }
-        // BEFORE: "However, you do find <{a MOUSE,} a wooden ruler, and {a KEYBOARD.}>"
+        // BEFORE: "<desc><s>However, you do find <il><item>a MOUSE</item>, a wooden ruler, and <item>a KEYBOARD</item></il>.</s></desc>"
         // REMOVE: "KEYBOARD"
-        // AFTER: "However, you do find <{a MOUSE} and a wooden ruler.>"
-        else if ((clause[i - 1] && !clause[i - 1].isItem && clause[i - 1].text.endsWith(", and"))
-            && (clause[i - 2] && clause[i - 2].isItem && clause[i - 2].text.endsWith(','))) {
-            clause[i].text = "";
-            clause[i - 1].text = "and " + clause[i - 1].text.replace(", and", ".");
-            if (clause[i - 3].text === "<")
-                clause[i - 2].text = clause[i - 2].text.substring(0, clause[i - 2].text.length - 1);
-            //clause.push(new Clause("13", false));
-            return sentence;
+        // AFTER:  "<desc><s>However, you do find <il><item>a MOUSE</item> and a wooden ruler</il>.</s></desc>"
+        else if (clause[i - 1] && !clause[i - 1].isItem && clause[i - 1].text.startsWith(", ") && clause[i - 1].text.endsWith(", and ")
+            && clause[i - 2] && clause[i - 2].isItem) {
+            clause[i].delete();
+            clause[i - 1].set(clause[i - 1].text.replace(", ", " and ").replace(", and ", ""));
+            return 12;
         }
         else {
-            clause[i].text = "";
-            //clause.push(new Clause("14", false));
-            return sentence;
+            clause[i].delete();
+            if (clause[i + 1] && clause[i + 1].text === ", ") clause[i + 1].delete();
+            return 13;
         }
     }
-    // BEFORE: "However, you do find <a wooden ruler and {a KEYBOARD.}>"
-    // REMOVE: "KEYBOARD"
-    // AFTER: "However, you do find <a wooden ruler.>"
-    else if (clause[i - 1] && clause[i - 1].text.endsWith("and") && !clause[i - 1].isItem) {
-        clause[i].text = "";
-        clause[i - 1].text = clause[i - 1].text.substring(0, clause[i - 1].text.length - 4) + ".";
-        //clause.push(new Clause("15", false));
-        return sentence;
-    }
-    // BEFORE: "{On one of the desks is a FIRST AID KIT} and hung on the wall behind the desks is a MEDICINE CABINET."
-    // REMOVE: "FIRST AID KIT"
-    // AFTER: "Hung on the wall behind the desks is a MEDICINE CABINET."
-    else if (!clause[i - 1] && clause[i + 1] && clause[i + 1].text.startsWith("and") && !clause[i + 1].isItem) {
-        clause[i].text = "";
-        clause[i + 1].text = clause[i + 1].text.substring(4, clause[i + 1].text.length);
-        clause[i + 1].text = clause[i + 1].text.charAt(0).toUpperCase() + clause[i + 1].text.substring(1);
-        //clause.push(new Clause("16", false));
-        return sentence;
-    }
-    // BEFORE: "However, you do find <{a KEYBOARD} and a wooden ruler.>"
-    // REMOVE: "KEYBOARD"
-    // AFTER: "However, you do find <a wooden ruler.>"
-    else if (clause[i + 1] && clause[i + 1].text.startsWith("and") && !clause[i + 1].isItem) {
-        clause[i].text = "";
-        clause[i + 1].text = clause[i + 1].text.substring(4, clause[i + 1].text.length);
-        //clause.push(new Clause("17", false));
-        return sentence;
-    }
-    // BEFORE: "There are <{CLARINETS,} a PIANO, and some SNARE DRUMS.>"
-    // REMOVE: "CLARINETS"
-    // AFTER: "There are <a PIANO and some SNARE DRUMS.>"
-    else if ((clause[i - 1] && clause[i + 1])
-        && (clause[i - 2].text.endsWith("are"))
-        && (clause[i + 1].text.includes(", and"))
-        && (clause[i + 1].text.split(',').length - 1 === 1)) {
-        clause[i].text = "";
-        clause[i + 1].text = clause[i + 1].text.replace(", and", " and");
-        //clause.push(new Clause("18", false));
-        return sentence;
-    }
-
-    // BEFORE: "A few grab your attention though: <{a MIRACLE FLOWER,} ROSE OF SHARON, and PINK LACEFLOWER.>"
+    // BEFORE: "<desc><s>A few grab your attention though: <il>ROSE OF SHARON, PINK LACEFLOWER, and <item>a MIRACLE FLOWER</item></il>.</s></desc>"
     // REMOVE: "MIRACLE FLOWER"
-    // AFTER: "A few grab your attention though: <ROSE OF SHARON and PINK LACEFLOWER.>"
-    else if (clause[i + 1]
-        && (!clause[i + 1].isItem)
-        && (clause[i + 1].text.includes(", and"))
-        && (clause[i + 1].text.split(',').length - 1 === 1)) {
-        clause[i].text = "";
-        clause[i + 1].text = clause[i + 1].text.replace(", and", " and");
-        //clause.push(new Clause("19", false));
-        return sentence;
+    // AFTER:  
+    else if (clause[i - 1] && !clause[i - 1].isItem && clause[i - 1].text.endsWith(", and ") && clause[i - 1].text.split(',').length - 1 === 2) {
+        clause[i].delete();
+        clause[i - 1].set(clause[i - 1].text.replace(", and ", "").replace(", ", " and "));
+        return 14;
     }
-      
-    // BEFORE: "The second one from the bottom has <{a WALKIE TALKIE.}>"
-    // REMOVE: "WALKIE TALKIE"
-    // AFTER: "The second one from the bottom has <.>"
-    else if (clause[i + 1] && clause[i + 1].text === '>' && !clause[i + 2]) {
-        clause[i].text = ".";
-        clause[i].isItem = false;
-        //clause.push(new Clause("20", false));
-        return sentence;
+    // BEFORE: "<desc><s>However, you do find <il>a wooden ruler and <item>a KEYBOARD</item></il>.</s></desc>"
+    // REMOVE: "KEYBOARD"
+    // AFTER:  "<desc><s>However, you do find <il>a wooden ruler</il>.</s></desc>"
+    else if (clause[i - 1] && !clause[i - 1].isItem && clause[i - 1].text.endsWith(" and ")) {
+        clause[i].delete();
+        clause[i - 1].set(clause[i - 1].text.replace(" and ", ""));
+        return 15;
+    }
+    // BEFORE: "<desc><s><il><item>On one of the desks is a FIRST AID KIT</item> and hung on the wall behind the desks is a MEDICINE CABINET</il>.</s></desc>"
+    // REMOVE: "FIRST AID KIT"
+    // AFTER:  "<desc><s><il>Hung on the wall behind the desks is a MEDICINE CABINET</il>.</s></desc>"
+    else if (!clause[i - 1] && clause[i + 1] && clause[i + 1].text.startsWith(" and ")) {
+        clause[i].delete();
+        clause[i + 1].set(clause[i + 1].text.replace(" and ", ""));
+        clause[i + 1].set(clause[i + 1].text.charAt(0).toUpperCase() + clause[i + 1].text.substring(1));
+        return 16;
+    }
+    // BEFORE: "<desc><s>However, you do find <il><item>a KEYBOARD</item> and a wooden ruler</il>.</s></desc>"
+    // REMOVE: "KEYBOARD"
+    // AFTER:  "<desc><s>However, you do find <il>a wooden ruler</il>.</s></desc>"
+    else if (clause[i + 1] && clause[i + 1].text.startsWith(" and ")) {
+        clause[i].delete();
+        clause[i + 1].set(clause[i + 1].text.replace(" and ", ""));
+        return 17;
+    }
+    // BEFORE: "<desc><s>There are <il><item>CLARINETS</item>, a PIANO, and some SNARE DRUMS</il>.</s></desc>"
+    // REMOVE: "CLARINETS"
+    // AFTER:  "<desc><s>There are <il>a PIANO and some SNARE DRUMS</il>.</s></desc>"
+    else if (clause[i + 1] && clause[i + 1].text.includes(", and ") && clause[i + 1].text.split(',').length - 1 === 2) {
+        clause[i].delete();
+        clause[i + 1].set(clause[i + 1].text.replace(", ", "").replace(", and ", " and "));
+        return 18;
     }
 
-    clause[i].text = "";
-    //clause.push(new Clause("21", false));
-    return sentence;
+    // If all else fails, just remove the item clause.
+    clause[i].delete();
+    return 19;
 }

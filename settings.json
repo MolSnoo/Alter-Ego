@@ -1,7 +1,7 @@
 ﻿{
   "commandPrefix": ".",
   "debug": true,
-  "testing": false,
+  "testing": true,
 
   "commandsDir": "Commands",
   "dataDir": "Data",
@@ -23,7 +23,7 @@
   "diceMax": 6,
   "defaultDropObject": "FLOOR",
   "classTrialStatus": "restricted",
-  "autoDeleteWhisperChannels": false,
+  "autoDeleteWhisperChannels": true,
 
   "onlineActivity": {
     "type": "LISTENING",
