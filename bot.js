@@ -74,7 +74,7 @@ bot.on('message', async message => {
         var isCommand = await commandHandler.execute(command, bot, game, message);
     }
     if (message && !isCommand && game.game && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory)) {
-        await dialogHandler.execute(game, message);
+        await dialogHandler.execute(game, message, true);
     }
 });
 

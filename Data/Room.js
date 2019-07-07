@@ -22,13 +22,17 @@ class Room {
             this.joinChannel(player);
 
         if (sendDescription) {
-            let descriptionCell;
-            if (entrance) descriptionCell = entrance.parsedDescriptionCell();
-            else descriptionCell = this.parsedDescriptionCell();
-            // Send the room description of the entrance the player enters from.
-            sheets.getData(descriptionCell, function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
+            if (player.hasAttribute("no sight"))
+                player.member.send("Fumbling against the wall, you make your way to the next room over.");
+            else {
+                let descriptionCell;
+                if (entrance) descriptionCell = entrance.parsedDescriptionCell();
+                else descriptionCell = this.parsedDescriptionCell();
+                // Send the room description of the entrance the player enters from.
+                sheets.getData(descriptionCell, function (response) {
+                    player.member.send(response.data.values[0][0]);
+                });
+            }
         }
 
         // Update the player's location on the spreadsheet.

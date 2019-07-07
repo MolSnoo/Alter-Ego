@@ -1,6 +1,6 @@
 ﻿const settings = include('settings.json');
 
-module.exports.execute = async (game, message) => {
+module.exports.execute = async (game, message, deletable) => {
     // Determine if the speaker is a moderator first.
     var isModerator = false;
     if (message.member.roles.find(role => role.id === settings.moderatorRole))
@@ -31,7 +31,7 @@ module.exports.execute = async (game, message) => {
     if (player !== null) {
         if (player.hasAttribute("no speech")) {
             player.member.send("You are mute, so you cannot speak.");
-            message.delete().catch();
+            if(deletable) message.delete().catch();
             return;
         }
         // Handle whisper messages.
@@ -50,7 +50,7 @@ module.exports.execute = async (game, message) => {
                     VIEW_CHANNEL: null,
                     READ_MESSAGE_HISTORY: null
                 });
-                message.delete().catch();
+                if (deletable) message.delete().catch();
                 return;
             }
             for (let i = 0; i < room.occupants.length; i++) {
@@ -93,8 +93,10 @@ module.exports.execute = async (game, message) => {
                     }
                 }
                 if (hearingPlayersCount === 0) player.member.send("You try to speak, but no one can hear you.");
-                message.delete().catch();
+                if (deletable) message.delete().catch();
             }
+            else if (!deletable)
+                room.channel.send(`${player.displayName} says "${message.content}".`);
         }
     }
     else if (isModerator) {
