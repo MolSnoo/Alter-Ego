@@ -1,9 +1,12 @@
 ﻿const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
+const loader = include(`${settings.modulesDir}/loader.js`);
 
 const fs = require('fs');
 const os = require('os');
+
+const Player = include(`${settings.dataDir}/Player.js`);
 
 let game = include('game.json');
 
@@ -38,7 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         return;
     }
 
-    const file = "./parsedText.txt";
+    const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
         if (err) return console.log(err);
     });
@@ -47,17 +50,17 @@ module.exports.run = async (bot, game, message, command, args) => {
         await testparse(file);
     else if (args[0] === "add") {
         if (game.items.length === 0)
-            return message.reply('You need to load some items before you can test this function.');
-        let format = 1;
-        if (args[1] && args[1] === "formatted") format = 0;
-        await testadd(file, format);
+            await loader.loadItems(game);
+        let formatted = false;
+        if (args[1] && args[1] === "formatted") formatted = true;
+        await testadd(file, formatted);
     }
     else if (args[0] === "remove") {
         if (game.items.length === 0)
-            return message.reply('You need to load some items before you can test this function.');
-        let format = 1;
-        if (args[1] && args[1] === "formatted") format = 0;
-        await testremove(file, format);
+            await loader.loadItems(game);
+        let formatted = false;
+        if (args[1] && args[1] === "formatted") formatted = true;
+        await testremove(file, formatted);
     }
     else return message.reply('Function not found. You need to use "parse", "add", or "remove".');
 
@@ -65,7 +68,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         files: [
             {
                 attachment: file,
-                name: `parsedText-${args[0]}.txt`
+                name: `parsedText-${args[0]}.xml`
             }
         ]
     });
@@ -175,7 +178,7 @@ testparse = async (file) => {
     return;
 };
 
-testadd = async (file, format) => {
+testadd = async (file, formatted) => {
     // Skip over rooms because you can't add items to them.
 
     // Get objects first.
@@ -273,20 +276,21 @@ testadd = async (file, format) => {
     return;
 };
 
-testremove = async (file, format) => {
+testremove = async (file, formatted) => {
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
+
     // Get rooms first.
     {
         const sheet = await sheets.fetchData(settings.roomSheetAllCells);
         const columnRoomName = 0;
         const columnNumberExits = 1;
         const columnExitName = 2;
-        const columnFormattedDescription = 6;
-        const columnParsedDescription = 7;
+        const columnDescription = 6;
 
         await appendText(file, "ROOMS:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnRoomName] !== "" && sheet[i][columnFormattedDescription].includes('{') && sheet[i][columnFormattedDescription].includes('}')) {
+            if (sheet[i][columnRoomName] !== "" && sheet[i][columnDescription].includes('<item>') && sheet[i][columnDescription].includes('</item>')) {
                 text += "   ";
                 text += sheet[i][columnRoomName] + os.EOL;
 
@@ -307,11 +311,10 @@ testremove = async (file, format) => {
                     text += sheet[i + j][columnExitName] + os.EOL;
 
                     text += "         ";
-                    if (format === 0) text += sheet[i + j][columnFormattedDescription] + os.EOL;
-                    else text += sheet[i + j][columnParsedDescription] + os.EOL;
+                    text += (formatted ? sheet[i + j][columnDescription] : parser.parseDescription(sheet[i + j][columnDescription], player)) + os.EOL;
 
                     for (let k = 0; k < orders.length; k++) {
-                        let description = [sheet[i + j][columnFormattedDescription], null];
+                        let description = sheet[i + j][columnDescription];
                         let tabs = 1;
                         const permutation = orders[k].split(',');
                         for (let l = 0; l < permutation.length; l++) {
@@ -327,8 +330,8 @@ testremove = async (file, format) => {
                                 }
                             }
                             text += `(Take ${permutation[l]}): `;
-                            description = parser.removeItem(description[0], item);
-                            text += description[format] + os.EOL;
+                            description = parser.removeItem(description, item);
+                            text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                             tabs++;
                         }
                     }
@@ -339,25 +342,23 @@ testremove = async (file, format) => {
         await appendText(file, text);
     }
 
-    // Get objects first.
+    // Get objects next.
     {
         const sheet = await sheets.fetchData(settings.objectSheetAllCells);
         const columnObjectName = 0;
         const columnObjectLocation = 1;
         const columnPreposition = 5;
-        const columnFormattedDescription = 6;
-        const columnParsedDescription = 7;
+        const columnDescription = 6;
 
         await appendText(file, "OBJECTS:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription].includes('{') && sheet[i][columnFormattedDescription].includes('}')) {
+            if (sheet[i][columnDescription].includes('<item>') && sheet[i][columnDescription].includes('</item>')) {
                 text += "   ";
                 text += sheet[i][columnObjectName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
@@ -372,8 +373,8 @@ testremove = async (file, format) => {
                 }
                 const orders = permute(itemNames);
 
-                for (let j = 0; j < items.length; j++) {
-                    let description = [sheet[i][columnFormattedDescription], null];
+                for (let j = 0; j < orders.length; j++) {
+                    let description = sheet[i][columnDescription];
                     let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
@@ -389,8 +390,8 @@ testremove = async (file, format) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description[0], item);
-                        text += description[format] + os.EOL;
+                        description = parser.removeItem(description, item);
+                        text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                         tabs++;
                     }
                 }
@@ -404,19 +405,17 @@ testremove = async (file, format) => {
         const sheet = await sheets.fetchData(settings.puzzleSheetAllCells);
         const columnPuzzleName = 0;
         const columnLocation = 3;
-        const columnFormattedDescription = 12;
-        const columnParsedDescription = 13;
+        const columnDescription = 12;
 
         await appendText(file, "PUZZLES:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription] && sheet[i][columnFormattedDescription].includes('<') && sheet[i][columnFormattedDescription].includes('>')) {
+            if (sheet[i][columnDescription] && sheet[i][columnDescription].includes('<item>') && sheet[i][columnDescription].includes('</item>')) {
                 text += "   ";
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
@@ -429,8 +428,8 @@ testremove = async (file, format) => {
                 }
                 const orders = permute(itemNames);
 
-                for (let j = 0; j < items.length; j++) {
-                    let description = [sheet[i][columnFormattedDescription], null];
+                for (let j = 0; j < orders.length; j++) {
+                    let description = sheet[i][columnDescription];
                     let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
@@ -446,8 +445,8 @@ testremove = async (file, format) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description[0], item);
-                        text += description[format] + os.EOL;
+                        description = parser.removeItem(description, item);
+                        text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                         tabs++;
                     }
                 }
@@ -455,7 +454,7 @@ testremove = async (file, format) => {
         }
         await appendText(file, text);
     }
-
+    
     return;
 };
 

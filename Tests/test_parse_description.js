@@ -22,6 +22,8 @@ exports.run = function () {
     test_parseDescription_8();
     test_parseDescription_9();
     test_parseDescription_10();
+    test_parseDescription_11();
+    test_parseDescription_12();
     return;
 };
 
@@ -150,6 +152,30 @@ function test_parseDescription_10() {
     const player = new Player("Ultimate Dancer", 5);
 
     const result = `You take a look at the nemu tree. It's unlike anything you've ever seen before. It has purple wood and blue leaves.`;
+    const actual = parser.parseDescription(text, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_11() {
+    const text = `<desc><s>You examine the pool table.</s> <s>It seems to have everything you need to play a game of pool: <il><item>2 POOL STICKS</item>, <if cond="player.talent === 'Ultimate Tabletop Player'"><item>CHALK</item>,</if> <item>a TRIANGLE</item>, and <item>BALLS</item></il>.</s></desc>`;
+    const player = new Player("", 5);
+
+    const result = `You examine the pool table. It seems to have everything you need to play a game of pool: 2 POOL STICKS, a TRIANGLE, and BALLS.`;
+    const actual = parser.parseDescription(text, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_12() {
+    const text = `<desc><desc><s>You open the locker.</s> <s>Inside, you find <il><item>a FIRST AID KIT</item>, <item>a bottle of PAINKILLERS</item>, <item>a PILL BOTTLE</item>, and <item>an OLD KEY</item></il>.</s></desc></desc>`;
+    const player = new Player("", 5);
+
+    const result = `You open the locker. Inside, you find a FIRST AID KIT, a bottle of PAINKILLERS, a PILL BOTTLE, and an OLD KEY.`;
     const actual = parser.parseDescription(text, player);
     assert.ok(
         actual === result,
