@@ -77,13 +77,14 @@ module.exports.run = async (bot, game, message, command, args) => {
 };
 
 testparse = async (file) => {
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
     // Get rooms first.
     {
-        const sheet = await sheets.fetchData(settings.roomSheetAllCells);
+        const sheet = await getData(settings.roomSheetAllCells);
         const columnRoomName = 0;
         const columnNumberExits = 1;
         const columnExitName = 2;
-        const columnFormattedDescription = 6;
+        const columnDescription = 6;
 
         await appendText(file, "ROOMS:");
         let text = "";
@@ -95,18 +96,13 @@ testparse = async (file) => {
                 for (let j = 0; j < parseInt(sheet[i][columnNumberExits]); j++) {
                     text += "      ";
                     text += sheet[i + j][columnExitName] + os.EOL;
-                    const oldDescription = sheet[i + j][columnFormattedDescription];
-                    const newDescription = parser.parseDescription(oldDescription);
+                    const oldDescription = sheet[i + j][columnDescription];
+                    const newDescription = parser.parseDescription(oldDescription, player);
 
                     text += "         ";
-                    text += "formattedDescription === unformattedDescription ? ";
-                    if (oldDescription === newDescription) text += "TRUE" + os.EOL;
-                    else text += "FALSE" + os.EOL;
-
-                    text += "            ";
                     text += oldDescription + os.EOL;
 
-                    text += "            ";
+                    text += "         ";
                     text += newDescription + os.EOL;
                 }
                 text += os.EOL;
@@ -117,9 +113,9 @@ testparse = async (file) => {
 
     // Get objects next.
     {
-        const sheet = await sheets.fetchData(settings.objectSheetAllCells);
+        const sheet = await getData(settings.objectSheetAllCells);
         const columnObjectName = 0;
-        const columnFormattedDescription = 6;
+        const columnDescription = 6;
 
         await appendText(file, "OBJECTS:");
         let text = "";
@@ -127,18 +123,13 @@ testparse = async (file) => {
             text += "   ";
             text += sheet[i][columnObjectName] + os.EOL;
 
-            const oldDescription = sheet[i][columnFormattedDescription];
-            const newDescription = parser.parseDescription(oldDescription);
+            const oldDescription = sheet[i][columnDescription];
+            const newDescription = parser.parseDescription(oldDescription, player);
 
             text += "      ";
-            text += "formattedDescription === unformattedDescription ? ";
-            if (oldDescription === newDescription) text += "TRUE" + os.EOL;
-            else text += "FALSE" + os.EOL;
-
-            text += "         ";
             text += oldDescription + os.EOL;
 
-            text += "         ";
+            text += "      ";
             text += newDescription + os.EOL;
         }
         await appendText(file, text);
@@ -146,29 +137,24 @@ testparse = async (file) => {
 
     // Finally, get puzzles.
     {
-        const sheet = await sheets.fetchData(settings.puzzleSheetAllCells);
+        const sheet = await getData(settings.puzzleSheetAllCells);
         const columnPuzzleName = 0;
-        const columnFormattedDescription = 12;
+        const columnDescription = 12;
 
         await appendText(file, "PUZZLES:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription]) {
+            if (sheet[i][columnDescription]) {
                 text += "   ";
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
-                const oldDescription = sheet[i][columnFormattedDescription];
-                const newDescription = parser.parseDescription(oldDescription);
+                const oldDescription = sheet[i][columnDescription];
+                const newDescription = parser.parseDescription(oldDescription, player);
 
                 text += "      ";
-                text += "formattedDescription === unformattedDescription ? ";
-                if (oldDescription === newDescription) text += "TRUE" + os.EOL;
-                else text += "FALSE" + os.EOL;
-
-                text += "         ";
                 text += oldDescription + os.EOL;
 
-                text += "         ";
+                text += "      ";
                 text += newDescription + os.EOL;
             }
         }
@@ -179,37 +165,36 @@ testparse = async (file) => {
 };
 
 testadd = async (file, formatted) => {
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
     // Skip over rooms because you can't add items to them.
 
     // Get objects first.
     {
         const sheet = await sheets.fetchData(settings.objectSheetAllCells);
         const columnObjectName = 0;
-        const columnFormattedDescription = 6;
-        const columnParsedDescription = 7;
+        const columnDescription = 6;
 
         await appendText(file, "OBJECTS:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription].includes('<') && sheet[i][columnFormattedDescription].includes('>')) {
+            if (sheet[i][columnDescription].includes('<il>') && sheet[i][columnDescription].includes('</il>')) {
                 text += "   ";
                 text += sheet[i][columnObjectName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = "";
                 for (let j = 0; j < 4; j++) {
                     let randomIndex = Math.floor(Math.random() * game.items.length);
-                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].pluralName))
+                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.items.length);
                     items.push(game.items[randomIndex]);
                     itemNames += game.items[randomIndex].name + " ";
                 }
 
-                let description = [sheet[i][columnFormattedDescription], null];
+                let description = sheet[i][columnDescription];
                 let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
@@ -218,8 +203,8 @@ testadd = async (file, formatted) => {
                     let item = items[j];
                     item.quantity = 0;
                     text += `(Drop ${item.name}): `;
-                    description = parser.addItem(description[0], item);
-                    text += description[format] + os.EOL;
+                    description = parser.addItem(description, item);
+                    text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                     tabs++;
                 }
             }
@@ -231,31 +216,29 @@ testadd = async (file, formatted) => {
     {
         const sheet = await sheets.fetchData(settings.puzzleSheetAllCells);
         const columnPuzzleName = 0;
-        const columnFormattedDescription = 12;
-        const columnParsedDescription = 13;
+        const columnDescription = 12;
 
         await appendText(file, "PUZZLES:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription] && sheet[i][columnFormattedDescription].includes('<') && sheet[i][columnFormattedDescription].includes('>')) {
+            if (sheet[i][columnDescription] && sheet[i][columnDescription].includes('<il>') && sheet[i][columnDescription].includes('</il>')) {
                 text += "   ";
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = "";
                 for (let j = 0; j < 4; j++) {
                     let randomIndex = Math.floor(Math.random() * game.items.length);
-                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].pluralName))
+                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.items.length);
                     items.push(game.items[randomIndex]);
                     itemNames += game.items[randomIndex].name + " ";
                 }
 
-                let description = [sheet[i][columnFormattedDescription], null];
+                let description = sheet[i][columnDescription];
                 let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
@@ -264,8 +247,8 @@ testadd = async (file, formatted) => {
                     let item = items[j];
                     item.quantity = 0;
                     text += `(Drop ${item.name}): `;
-                    description = parser.addItem(description[0], item);
-                    text += description[format] + os.EOL;
+                    description = parser.addItem(description, item);
+                    text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                     tabs++;
                 }
             }
@@ -456,6 +439,14 @@ testremove = async (file, formatted) => {
     }
     
     return;
+};
+
+function getData (sheetrange) {
+    return new Promise((resolve) => {
+        sheets.getData(sheetrange, (response) => {
+            resolve(response.data.values);
+        });
+    });
 };
 
 function permute(array) {
