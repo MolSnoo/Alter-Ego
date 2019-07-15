@@ -119,7 +119,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         for (let i = 0; i < game.players_alive.length; i++) {
             const hiddenPlayer = game.players_alive[i];
-            if (hiddenPlayer.hidingSpot === object.name) {
+            if (hiddenPlayer.location.name === player.location.name && hiddenPlayer.hidingSpot === object.name) {
                 player.member.send(`While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
                 hiddenPlayer.cure(game, "hidden", false, false, true, true);
                 hiddenPlayer.member.send(`You've been found by ${player.displayName}. You are no longer hidden.`);
