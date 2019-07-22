@@ -11,7 +11,6 @@ class Room {
         this.row = row;
 
         this.occupants = new Array();
-        this.occupantsString = "";
     }
 
     addPlayer(game, player, entrance, entranceMessage, sendDescription) {
@@ -34,6 +33,28 @@ class Room {
                 });
             }
         }
+        if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {
+            let occupants = new Array();
+            for (let i = 0; i < this.occupants.length; i++) {
+                if (!this.occupants[i].hasAttribute("hidden"))
+                    occupants.push(this.occupants[i]);
+            }
+            if (occupants.length > 0) {
+                let occupantsString = occupants.map(player => player.displayName).join(", ");
+                player.member.send(`Players in the room: ${occupantsString}.`);
+            }
+        }
+        else if (!player.hasAttribute("no sight") && this.occupants.length > 0) {
+            let concealedPlayers = new Array();
+            for (let i = 0; i < this.occupants.length; i++) {
+                if (this.occupants[i].hasAttribute("concealed") && !this.occupants[i].hasAttribute("hidden"))
+                    concealedPlayers.push(this.occupants[i]);
+            }
+            if (concealedPlayers.length > 0) {
+                let concealedPlayersString = concealedPlayers.map(player => player.displayName).join(", ");
+                player.member.send(`In this room you see: ${concealedPlayersString}.`);
+            }
+        }
 
         // Update the player's location on the spreadsheet.
         sheets.updateCell(player.locationCell(), this.name);
@@ -46,13 +67,11 @@ class Room {
             if (nameA > nameB) return 1;
             return 0;
         });
-        this.occupantsString = this.occupants.map(player => player.name).join(", ");
     }
     removePlayer(game, player, exit, exitMessage) {
         if (exitMessage) new Narration(game, player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
-        this.occupantsString = this.occupants.map(player => player.name).join(", ");
         player.removeFromWhispers(game, `${player.displayName} leaves the room.`);
     }
 
