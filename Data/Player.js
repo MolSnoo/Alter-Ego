@@ -669,6 +669,17 @@ class Player {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
                 }
+                else if (puzzle.type === "toggle") {
+                    if (puzzle.solved) {
+                        let player = this;
+                        sheets.getData(puzzle.parsedAlreadySolvedCell(), function (response) {
+                            let message = null;
+                            if (response.data.values) message = response.data.values[0][0];
+                            puzzle.unsolve(bot, game, player, `${player.displayName} uses the ${puzzle.name}.`, message, true);
+                        });
+                    }
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
+                }
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {

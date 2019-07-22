@@ -23,13 +23,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (status.length === 0) return message.reply(`You have no reason to use the say command. Speak in the room channel instead.`);
 
     var input = args.join(" ");
+    if (!input.startsWith("(")) {
+        // Trick the dialog handler into thinking this is a real message sent to the room channel.
+        message.channel = player.location.channel;
+        message.member = player.member;
+        message.content = input;
 
-    // Trick the dialog handler into thinking this is a real message sent to the room channel.
-    message.channel = player.location.channel;
-    message.member = player.member;
-    message.content = input;
-
-    dialogHandler.execute(game, message, false);
+        dialogHandler.execute(game, message, false);
+    }
     
     return;
 };

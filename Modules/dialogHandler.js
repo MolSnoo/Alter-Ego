@@ -103,7 +103,7 @@ module.exports.execute = async (game, message, deletable) => {
         for (let i = 0; i < room.occupants.length; i++) {
             let occupant = room.occupants[i];
             // Players with the see room attribute should receive narrations from moderators.
-            if (occupant.hasAttribute("see room") && !message.content.startsWith('(')) {
+            if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('(')) {
                 occupant.member.send(message.content);
             }
         }

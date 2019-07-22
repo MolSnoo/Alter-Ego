@@ -116,7 +116,7 @@ module.exports.run = async (bot, game, command, args, player) => {
     else if (command === "unsolve") {
         if (player === null && puzzle.unsolvedCommands.toString().includes("player"))
             return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". That puzzle will trigger a command on the player who unsolves it, so you need to specify one.`);
-        puzzle.unsolve(bot, game, player, announcement, false);
+        puzzle.unsolve(bot, game, player, announcement, null, false);
     }
 
     return;
