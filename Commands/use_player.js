@@ -44,7 +44,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // First find the item in the player's inventory, if applicable.
     var item = null;
     for (let i = 0; i < player.inventory.length; i++) {
-        if (parsedInput.startsWith(player.inventory[i].name)) {
+        if (parsedInput.startsWith(player.inventory[i].name + ' ') || player.inventory[i].name === parsedInput) {
             item = player.inventory[i];
             parsedInput = parsedInput.substring(item.name.length).trim();
             input = input.substring(item.name.length).trim();
@@ -59,7 +59,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         var puzzles = game.puzzles.filter(puzzle => puzzle.location === player.location.name);
         if (command === "lock" || command === "unlock") puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
-        else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact");
+        else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
         for (let i = 0; i < puzzles.length; i++) {
             if (puzzles[i].parentObject !== "" && parsedInput.startsWith(puzzles[i].parentObject)) {
                 puzzle = puzzles[i];

@@ -278,6 +278,9 @@ module.exports.loadPlayers = function (game) {
                 clearInterval(game.players[i].status[j].timer);
             }
         }
+        // Clear all rooms of their occupants.
+        for (let i = 0; i < game.rooms.length; i++)
+            game.rooms[i].occupants.length = 0;
 
         sheets.getData(settings.playerSheetLoadCells, function (response) {
             const sheet = response.data.values;

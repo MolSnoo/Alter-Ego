@@ -93,7 +93,7 @@ class Player {
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cure, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -659,13 +659,24 @@ class Player {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
                     else {
                         if (password === "") return "you need to enter a password.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
                         else puzzle.fail(game, this, `${this.displayName} uses the ${puzzle.name}.`);
                     }
                 }
                 else if (puzzle.type === "interact") {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
-                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
+                }
+                else if (puzzle.type === "toggle") {
+                    if (puzzle.solved) {
+                        let player = this;
+                        sheets.getData(puzzle.parsedAlreadySolvedCell(), function (response) {
+                            let message = null;
+                            if (response.data.values) message = response.data.values[0][0];
+                            puzzle.unsolve(bot, game, player, `${player.displayName} uses the ${puzzle.name}.`, message, true);
+                        });
+                    }
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
                 }
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
@@ -674,13 +685,13 @@ class Player {
                         if (command !== "lock" && (password === "" || password === puzzle.solution))
                             puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
                         // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`);
+                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`, true);
                     }
                     // The lock is locked.
                     else {
                         if (command === "lock") return `${puzzle.parentObject} is already locked.`;
                         if (password === "") return "you need to enter a combination. The format is #-#-#.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`);
+                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`, true);
                         else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject}.`);
                     }
                 }
@@ -688,14 +699,14 @@ class Player {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
                         if (command === "unlock") return `${puzzle.parentObject} is already unlocked.`;
-                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`);
+                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`, true);
                         else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
                         else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
                     }
                     // The lock is locked.
                     else {
                         if (command === "lock") return `${puzzle.parentObject} is already locked.`;
-                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`);
+                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`, true);
                     }
                 }
             }

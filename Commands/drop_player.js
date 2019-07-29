@@ -34,6 +34,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var object = null;
     var puzzle = null;
     for (let i = 0; i < objects.length; i++) {
+        if (objects[i].name === parsedInput) return message.reply(`you need to specify an item to drop.`);
         if (parsedInput.endsWith(objects[i].name)) {
             if (objects[i].preposition === "") return message.reply(`${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
             object = objects[i];

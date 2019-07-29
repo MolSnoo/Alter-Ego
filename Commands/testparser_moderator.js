@@ -372,7 +372,7 @@ testremove = async (file, format) => {
                 }
                 const orders = permute(itemNames);
 
-                for (let j = 0; j < items.length; j++) {
+                for (let j = 0; j < orders.length; j++) {
                     let description = [sheet[i][columnFormattedDescription], null];
                     let tabs = 1;
                     const permutation = orders[j].split(',');
@@ -429,7 +429,7 @@ testremove = async (file, format) => {
                 }
                 const orders = permute(itemNames);
 
-                for (let j = 0; j < items.length; j++) {
+                for (let j = 0; j < orders.length; j++) {
                     let description = [sheet[i][columnFormattedDescription], null];
                     let tabs = 1;
                     const permutation = orders[j].split(',');

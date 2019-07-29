@@ -1,6 +1,6 @@
 ﻿{
   "commandPrefix": ".",
-  "debug": false,
+  "debug": true,
   "testing": false,
 
   "commandsDir": "Commands",

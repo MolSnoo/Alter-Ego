@@ -22,7 +22,7 @@ class Puzzle {
         this.row = row;
     }
 
-    solve(bot, game, player, message) {
+    solve(bot, game, player, message, doSolvedCommands) {
         // Let the palyer and anyone else in the room know that the puzzle was solved.
         if (player !== null) {
             sheets.getData(this.correctCell(), function (response) {
@@ -40,9 +40,11 @@ class Puzzle {
             loader.loadPuzzles(game);
         });
 
-        // Run any needed commands.
-        for (let i = 0; i < this.solvedCommands.length; i++)
-            commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
+        if (doSolvedCommands === true) {
+            // Run any needed commands.
+            for (let i = 0; i < this.solvedCommands.length; i++)
+                commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
+        }
 
         if (player !== null) {
             // Post log message.
@@ -53,9 +55,9 @@ class Puzzle {
         return;
     }
 
-    unsolve(bot, game, player, message, directMessage) {        
+    unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
         // There's no message when unsolved cell, so let the player know what they did.
-        if (player !== null) player.member.send(directMessage);
+        if (player !== null && directMessage !== null) player.member.send(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
@@ -68,9 +70,11 @@ class Puzzle {
             loader.loadPuzzles(game);
         });
 
-        // Run any needed commands.
-        for (let i = 0; i < this.unsolvedCommands.length; i++)
-            commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
+        if (doUnsolvedCommands === true) {
+            // Run any needed commands.
+            for (let i = 0; i < this.unsolvedCommands.length; i++)
+                commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
+        }
 
         if (player !== null) {
             // Post log message.
