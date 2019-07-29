@@ -1,5 +1,6 @@
 ﻿const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
+const parser = include(`${settings.modulesDir}/parser.js`);
 
 module.exports.config = {
     name: "status_bot",
@@ -82,13 +83,13 @@ module.exports.run = async (bot, game, command, args, player) => {
         if (command === "inflict") {
             sheets.getData(status.inflictedCell(), function (response) {
                 if (response.data.values)
-                    announcementChannel.send(response.data.values[0][0]);
+                    announcementChannel.send(parser.parseDescription(response.data.values[0][0]));
             });
         }
         else if (command === "cure") {
             sheets.getData(status.curedCell(), function (response) {
                 if (response.data.values)
-                    announcementChannel.send(response.data.values[0][0]);
+                    announcementChannel.send(parser.parseDescription(response.data.values[0][0]));
             });
         }
     }

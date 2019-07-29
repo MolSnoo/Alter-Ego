@@ -38,8 +38,7 @@ function test_Exit() {
     const exit = new Exit("PATH 1", true, "path-1", "PARK", 17);
 
     assert.ok(exit.unlockedCell() === "Rooms!D17", exit.unlockedCell());
-    assert.ok(exit.formattedDescriptionCell() === "Rooms!G17", exit.formattedDescriptionCell());
-    assert.ok(exit.parsedDescriptionCell() === "Rooms!H17", exit.parsedDescriptionCell());
+    assert.ok(exit.descriptionCell() === "Rooms!G17", exit.descriptionCell());
 }
 
 function test_InventoryItem() {
@@ -61,8 +60,7 @@ function test_Item() {
 function test_Object() {
     const object = new Object("DESK", "office", true, "", false, "on", 7);
 
-    assert.ok(object.formattedDescriptionCell() === "Objects!G7", object.formattedDescriptionCell());
-    assert.ok(object.parsedDescriptionCell() === "Objects!H7", object.parsedDescriptionCell());
+    assert.ok(object.descriptionCell() === "Objects!G7", object.descriptionCell());
 }
 
 function test_Player() {
@@ -80,18 +78,16 @@ function test_Puzzle() {
     assert.ok(puzzle.accessibleCell() === "Puzzles!G72", puzzle.accessibleCell());
     assert.ok(puzzle.attemptsCell() === "Puzzles!J72", puzzle.attemptsCell());
     assert.ok(puzzle.correctCell() === "Puzzles!L72", puzzle.correctCell());
-    assert.ok(puzzle.formattedAlreadySolvedCell() === "Puzzles!M72", puzzle.formattedAlreadySolvedCell());
-    assert.ok(puzzle.parsedAlreadySolvedCell() === "Puzzles!N72", puzzle.parsedAlreadySolvedCell());
-    assert.ok(puzzle.incorrectCell() === "Puzzles!O72", puzzle.incorrectCell());
-    assert.ok(puzzle.noMoreAttemptsCell() === "Puzzles!P72", puzzle.noMoreAttemptsCell());
-    assert.ok(puzzle.requirementsNotMetCell() === "Puzzles!Q72", puzzle.requirementsNotMetCell());
+    assert.ok(puzzle.alreadySolvedCell() === "Puzzles!M72", puzzle.alreadySolvedCell());
+    assert.ok(puzzle.incorrectCell() === "Puzzles!N72", puzzle.incorrectCell());
+    assert.ok(puzzle.noMoreAttemptsCell() === "Puzzles!O72", puzzle.noMoreAttemptsCell());
+    assert.ok(puzzle.requirementsNotMetCell() === "Puzzles!P72", puzzle.requirementsNotMetCell());
 }
 
 function test_Room() {
     const room = new Room("path-2", null, null, 23);
 
-    assert.ok(room.formattedDescriptionCell() === "Rooms!G23", room.formattedDescriptionCell());
-    assert.ok(room.parsedDescriptionCell() === "Rooms!H23", room.parsedDescriptionCell());
+    assert.ok(room.descriptionCell() === "Rooms!G23", room.descriptionCell());
 }
 
 function test_Status() {

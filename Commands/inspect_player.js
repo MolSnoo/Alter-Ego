@@ -36,10 +36,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
-        sheets.getData(player.location.parsedDescriptionCell(), function (response) {
-            new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
-            player.member.send(response.data.values[0][0]);
-        });
+        new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
+        player.sendDescription(player.location.descriptionCell());
 
         return;
     }
@@ -113,9 +111,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (object !== null) {
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
-        sheets.getData(object.parsedDescriptionCell(), function (response) {
-            player.member.send(response.data.values[0][0]);
-        });
+        player.sendDescription(object.descriptionCell());
 
         for (let i = 0; i < game.players_alive.length; i++) {
             const hiddenPlayer = game.players_alive[i];
@@ -152,9 +148,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         if (item !== null) {
             if (!item.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.singleContainingPhrase}.`).send();
-            sheets.getData(item.descriptionCell(), function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
+            player.sendDescription(item.descriptionCell());
 
             const time = new Date().toLocaleTimeString();
             game.logChannel.send(`${time} - ${player.name} inspected ${item.name} in ${player.location.channel}`);
@@ -169,9 +163,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (player.inventory[i].name === parsedInput) {
             const item = player.inventory[i];
             if (!item.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.singleContainingPhrase} and begins inspecting it.`).send();
-            sheets.getData(item.descriptionCell(), function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
+            player.sendDescription(item.descriptionCell());
 
             const time = new Date().toLocaleTimeString();
             game.logChannel.send(`${time} - ${player.name} inspected ${item.name} from their inventory in ${player.location.channel}`);

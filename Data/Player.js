@@ -153,13 +153,8 @@ class Player {
         this.status.push(status);
 
         // Inform player what happened.
-        if (notify) {
-            let player = this;
-            sheets.getData(status.inflictedCell(), function (response) {
-                if (response.data.values)
-                    player.member.send(response.data.values[0][0]);
-            });
-        }
+        if (notify)
+            this.sendDescription(status.inflictedCell());
 
         this.statusString = this.generate_statusList();
         if (updateSheet) sheets.updateCell(this.statusCell(), this.statusString);
@@ -211,17 +206,10 @@ class Player {
 
         // Inform player what happened.
         if (notify) {
-            let player = this;
-            sheets.getData(status.curedCell(), function (response) {
-                if (response.data.values)
-                    player.member.send(response.data.values[0][0]);
-            });
+            this.sendDescription(status.curedCell());
             // If the player is waking up, send them the description of the room they wake up in.
-            if (status.name === "asleep") {
-                sheets.getData(this.location.parsedDescriptionCell(), function (response) {
-                    player.member.send(response.data.values[0][0]);
-                });
-            }
+            if (status.name === "asleep")
+                this.sendDescription(this.location.descriptionCell());
         }
 
         // Post log message.
@@ -337,23 +325,20 @@ class Player {
         }
 
         if (container instanceof Puzzle) {
-            const description = await sheets.fetchDescription(container.formattedAlreadySolvedCell());
+            const description = await sheets.fetchDescription(container.alreadySolvedCell());
             const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.formattedAlreadySolvedCell(), newDescription[0]);
-            sheets.updateCell(container.parsedAlreadySolvedCell(), newDescription[1]);
+            sheets.updateCell(container.alreadySolvedCell(), newDescription);
         }
         else if (container instanceof Object) {
-            const description = await sheets.fetchDescription(container.formattedDescriptionCell());
+            const description = await sheets.fetchDescription(container.descriptionCell());
             const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.formattedDescriptionCell(), newDescription[0]);
-            sheets.updateCell(container.parsedDescriptionCell(), newDescription[1]);
+            sheets.updateCell(container.descriptionCell(), newDescription);
         }
         else if (container instanceof Room) {
             for (let i = 0; i < container.exit.length; i++) {
-                const description = await sheets.fetchDescription(container.exit[i].formattedDescriptionCell());
+                const description = await sheets.fetchDescription(container.exit[i].descriptionCell());
                 const newDescription = parser.removeItem(description, item);
-                sheets.updateCell(container.exit[i].formattedDescriptionCell(), newDescription[0]);
-                sheets.updateCell(container.exit[i].parsedDescriptionCell(), newDescription[1]);
+                sheets.updateCell(container.exit[i].descriptionCell(), newDescription);
             }
         }
 
@@ -563,28 +548,24 @@ class Player {
             }
         }
 
-        var formattedDescriptionCell = "";
-        var parsedDescriptionCell = "";
+        var descriptionCell = "";
         var objectName = "";
         var preposition = "in";
         if (container instanceof Puzzle) {
-            formattedDescriptionCell = container.formattedAlreadySolvedCell();
-            parsedDescriptionCell = container.parsedAlreadySolvedCell();
+            descriptionCell = container.alreadySolvedCell();
             let object = game.objects.find(object => object.name === container.parentObject && object.requires === container.name);
             objectName = object.name;
             preposition = object.preposition;
         }
         else {
-            formattedDescriptionCell = container.formattedDescriptionCell();
-            parsedDescriptionCell = container.parsedDescriptionCell();
+            descriptionCell = container.descriptionCell();
             objectName = container.name;
             preposition = container.preposition;
         }
 
-        const description = await sheets.fetchDescription(formattedDescriptionCell);
+        const description = await sheets.fetchDescription(descriptionCell);
         const newDescription = parser.addItem(description, invItem);
-        sheets.updateCell(formattedDescriptionCell, newDescription[0]);
-        sheets.updateCell(parsedDescriptionCell, newDescription[1]);
+        sheets.updateCell(descriptionCell, newDescription);
 
         if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
         this.member.send(`You discard ${invItem.singleContainingPhrase}.`);
@@ -627,10 +608,7 @@ class Player {
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
-                let player = this;
-                sheets.getData(puzzle.noMoreAttemptsCell(), function (response) {
-                    player.member.send(response.data.values[0][0]);
-                });
+                this.sendDescription(puzzle.noMoreAttemptsCell());
                 new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
 
                 return;
@@ -731,7 +709,7 @@ class Player {
             clearInterval(this.status[i].timer);
         this.status.length = 0;
         // Update that data on the sheet, as well.
-        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.clueLevel, this.alive, "", "", "")));
+        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.alive, "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);
@@ -767,6 +745,16 @@ class Player {
             const index = deleteWhisperIndexes[i];
             game.whispers[index].delete(game, index);
         }
+
+        return;
+    }
+
+    sendDescription(descriptionCell) {
+        let player = this;
+        sheets.getData(descriptionCell, function (response) {
+            if (response.data.values)
+                player.member.send(parser.parseDescription(response.data.values[0][0], player));
+        });
 
         return;
     }

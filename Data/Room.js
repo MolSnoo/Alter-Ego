@@ -23,12 +23,10 @@ class Room {
 
         if (sendDescription) {
             let descriptionCell;
-            if (entrance) descriptionCell = entrance.parsedDescriptionCell();
-            else descriptionCell = this.parsedDescriptionCell();
+            if (entrance) descriptionCell = entrance.descriptionCell();
+            else descriptionCell = this.descriptionCell();
             // Send the room description of the entrance the player enters from.
-            sheets.getData(descriptionCell, function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
+            player.sendDescription(descriptionCell);
         }
 
         // Update the player's location on the spreadsheet.
@@ -78,11 +76,8 @@ class Room {
         game.logChannel.send(`${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
     }
 
-    formattedDescriptionCell() {
-        return settings.roomSheetFormattedDescriptionColumn + this.row;
-    }
-    parsedDescriptionCell() {
-        return settings.roomSheetParsedDescriptionColumn + this.row;
+    descriptionCell() {
+        return settings.roomSheetDescriptionColumn + this.row;
     }
 }
 

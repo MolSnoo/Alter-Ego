@@ -24,11 +24,8 @@ class Puzzle {
 
     solve(bot, game, player, message, doSolvedCommands) {
         // Let the palyer and anyone else in the room know that the puzzle was solved.
-        if (player !== null) {
-            sheets.getData(this.correctCell(), function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
-        }
+        if (player !== null)
+            player.sendDescription(this.correctCell());
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
 
@@ -57,7 +54,7 @@ class Puzzle {
 
     unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
         // There's no message when unsolved cell, so let the player know what they did.
-        if (player !== null) player.member.send(directMessage);
+        if (player !== null && directMessage !== null) player.member.send(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
@@ -94,16 +91,11 @@ class Puzzle {
             // so get the message only after updating the attempts cell.
             let puzzle = this;
             sheets.updateCell(this.attemptsCell(), this.remainingAttempts.toString(), function (response) {
-                sheets.getData(puzzle.incorrectCell(), function (response) {
-                    player.member.send(response.data.values[0][0]);
-                });
+                player.sendDescription(puzzle.incorrectCell());
             });
         }
-        else {
-            sheets.getData(this.incorrectCell(), function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
-        }
+        else
+            player.sendDescription(this.incorrectCell());
         new Narration(game, player, player.location, message).send();
 
         // Post log message.
@@ -114,9 +106,7 @@ class Puzzle {
     }
 
     alreadySolved(game, player, message) {
-        sheets.getData(this.parsedAlreadySolvedCell(), function (response) {
-            player.member.send(response.data.values[0][0]);
-        });
+        player.sendDescription(this.alreadySolvedCell());
         new Narration(game, player, player.location, message).send();
 
         return;
@@ -152,12 +142,8 @@ class Puzzle {
         return settings.puzzleSheetCorrectColumn + this.row;
     }
 
-    formattedAlreadySolvedCell() {
-        return settings.puzzleSheetFormattedAlreadySolvedColumn + this.row;
-    }
-
-    parsedAlreadySolvedCell() {
-        return settings.puzzleSheetParsedAlreadySolvedColumn + this.row;
+    alreadySolvedCell() {
+        return settings.puzzleSheetAlreadySolvedColumn + this.row;
     }
 
     incorrectCell() {

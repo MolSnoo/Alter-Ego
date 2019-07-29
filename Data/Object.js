@@ -11,12 +11,8 @@ class Object {
         this.row = row;
     }
 
-    formattedDescriptionCell() {
-        return settings.objectSheetFormattedDescriptionColumn + this.row;
-    }
-
-    parsedDescriptionCell() {
-        return settings.objectSheetParsedDescriptionColumn + this.row;
+    descriptionCell() {
+        return settings.objectSheetDescriptionColumn + this.row;
     }
 }
 

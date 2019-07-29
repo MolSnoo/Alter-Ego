@@ -24,11 +24,8 @@ class Exit {
         return settings.roomSheetUnlockedColumn + this.row;
     }
 
-    formattedDescriptionCell() {
-        return settings.roomSheetFormattedDescriptionColumn + this.row;
-    }
-    parsedDescriptionCell() {
-        return settings.roomSheetParsedDescriptionColumn + this.row;
+    descriptionCell() {
+        return settings.roomSheetDescriptionColumn + this.row;
     }
 }
 
