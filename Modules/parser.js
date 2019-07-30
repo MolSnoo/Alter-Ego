@@ -37,23 +37,22 @@ class Sentence {
     }
 }
 
+class Item {
+    constructor(name, quantity, singleContainingPhrase, pluralContainingPhrase) {
+        this.name = name;
+        this.pluralName = pluralContainingPhrase;
+        this.quantity = quantity;
+        this.singleContainingPhrase = singleContainingPhrase;
+        this.pluralContainingPhrase = pluralContainingPhrase;
+    }
+}
+
 module.exports.parseDescription = function (description, player) {
     let prefix = '';
     if (description.startsWith('=CONCATENATE("'))
         prefix = '=CONCATENATE("';
     // First, split the description into a DOMParser document.
     var document = createDocument(description);
-
-    // Check if there's an item list in the document.
-    var sentence = getItemListSentence(document);
-    if (sentence !== null) {
-        var itemList = sentence.getElementsByTagName('il').item(0);
-        // If the item list is empty, remove the sentence from the document.
-        if (itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null') {
-            if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
-            else document.removeChild(sentence);
-        }
-    }
 
     // Find any conditionals.
     var conditionals = document.getElementsByTagName('if');
@@ -65,8 +64,24 @@ module.exports.parseDescription = function (description, player) {
                 removeConditional = false;
         }
         if (removeConditional) {
-            if (conditionals[i].parentNode) conditionals[i].parentNode.removeChild(conditionals[i]);
+            if (conditionals[i].childNodes[0].tagName === 'item') {
+                let itemElement = conditionals[i].childNodes[0].childNodes[0];
+                let item = new Item("", 0, itemElement.data, itemElement.data);
+                document = this.removeItem(description, item, document);
+            }
+            else if (conditionals[i].parentNode) conditionals[i].parentNode.removeChild(conditionals[i]);
             else document.removeChild(conditionals[i]);
+        }
+    }
+
+    // Check if there's an item list in the document.
+    var sentence = getItemListSentence(document);
+    if (sentence !== null) {
+        var itemList = sentence.getElementsByTagName('il').item(0);
+        // If the item list is empty, remove the sentence from the document.
+        if (itemList.childNodes.length === 0 || itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null') {
+            if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
+            else document.removeChild(sentence);
         }
     }
 
@@ -152,12 +167,17 @@ module.exports.addItem = function (description, item) {
     return prefix + stringify(document);
 };
 
-module.exports.removeItem = function (description, item) {
-    let prefix = '';
-    if (description.startsWith('=CONCATENATE("'))
-        prefix = '=CONCATENATE("';
-    // First, split the description into a DOMParser document.
-    var document = createDocument(description);
+module.exports.removeItem = function (description, item, document) {
+    var returnDocument = false;
+    if (document)
+        returnDocument = true;
+    else {
+        var prefix = '';
+        if (description.startsWith('=CONCATENATE("'))
+            prefix = '=CONCATENATE("';
+        // First, split the description into a DOMParser document.
+        document = createDocument(description);
+    }
 
     // Parse all of the sentences.
     var sentenceElements = document.getElementsByTagName('s');
@@ -209,7 +229,8 @@ module.exports.removeItem = function (description, item) {
         }
     }
 
-    return prefix + stringify(document);
+    if (returnDocument) return document;
+    else return prefix + stringify(document);
 };
 
 function createDocument(description) {

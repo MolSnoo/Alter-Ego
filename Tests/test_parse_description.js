@@ -24,6 +24,9 @@ exports.run = function () {
     test_parseDescription_10();
     test_parseDescription_11();
     test_parseDescription_12();
+    test_parseDescription_13();
+    test_parseDescription_14();
+    test_parseDescription_15();
     return;
 };
 
@@ -176,6 +179,42 @@ function test_parseDescription_12() {
     const player = new Player("", 5);
 
     const result = `You open the locker. Inside, you find a FIRST AID KIT, a bottle of PAINKILLERS, a PILL BOTTLE, and an OLD KEY.`;
+    const actual = parser.parseDescription(text, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_13() {
+    const text = `<desc><s>You examine the shelves.</s> <s>There are a number of tools on them.</s> <s>In particular, you find <il><item>a SAW</item>, <if cond="player.talent === 'Ultimate Lumberjack'"><item>an AX</item></if>, and <item>a pair of HEDGE TRIMMERS</item></il>.</s></desc>`;
+    const player = new Player("Ultimate Lumberjack", 5);
+
+    const result = `You examine the shelves. There are a number of tools on them. In particular, you find a SAW, an AX, and a pair of HEDGE TRIMMERS.`;
+    const actual = parser.parseDescription(text, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_14() {
+    const text = `<desc><s>You examine the shelves.</s> <s>There are a number of tools on them.</s> <s>In particular, you find <il><item>a SAW</item>, <if cond="player.talent === 'Ultimate Lumberjack'"><item>an AX</item></if>, and <item>a pair of HEDGE TRIMMERS</item></il>.</s></desc>`;
+    const player = new Player("Ultimate Botanist", 5);
+
+    const result = `You examine the shelves. There are a number of tools on them. In particular, you find a SAW and a pair of HEDGE TRIMMERS.`;
+    const actual = parser.parseDescription(text, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_15() {
+    const text = `<desc><s>You open the locker.</s> <s>Inside, you find <il><if cond="player.talent === 'Ultimate Swimmer'"><item>a SWIMSUIT</item></if></il>.</s></desc>`;
+    const player = new Player("Ultimate Botanist", 5);
+
+    const result = `You open the locker.`;
     const actual = parser.parseDescription(text, player);
     assert.ok(
         actual === result,
