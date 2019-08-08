@@ -5,7 +5,14 @@ const loader = include(`${settings.modulesDir}/loader.js`);
 module.exports.config = {
     name: "load_moderator",
     description: 'Loads game data.',
-    details: 'Gathers the house data by reading it off the spreadsheet. Can specify what data to collect. "all start" must be used at the beginning of the game after the startgame timer is over, as it will gather all the data and send the room description of the room they start in to each player. If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. You do NOT need to use this command  when you update descriptions, as the bot does not store those. Any other data you edit manually will require use of this command. Note that when updating players, all of the timers associated with player status effects will be reset, so try to avoid manually editing the player sheet. If you just need to refresh player inventories, use the "inventories" argument.',
+    details: 'Gathers the house data by reading it off the spreadsheet. Can specify what data to collect. '
+        + '"all start" must be used at the beginning of the game after the startgame timer is over, as it will '
+        + 'gather all the data and send the room description of the room they start in to each player. '
+        + 'If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. '
+        + 'You do NOT need to use this command  when you update descriptions, as the bot does not store those. '
+        + 'Any other data you edit manually will require use of this command. Note that when updating players, '
+        + 'all of the timers associated with player status effects will be reset, so try to avoid manually '
+        + 'editing the player sheet. If you just need to refresh player inventories, use the "inventories" argument.',
     usage: `${settings.commandPrefix}load all start\n`
         + `${settings.commandPrefix}load all resume\n`
         + `${settings.commandPrefix}load all\n`
@@ -31,7 +38,6 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args[0] === "all") {
         await loader.loadRooms(game, false);
         await loader.loadObjects(game, false);
-        //await loader.loadClues(game);
         await loader.loadItems(game, false);
         await loader.loadPuzzles(game, false);
         await loader.loadStatusEffects(game, false);
@@ -77,7 +83,6 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (settings.debug) {
                 printData(game.rooms);
                 printData(game.objects);
-                //printData(game.clues);
                 printData(game.items);
                 printData(game.puzzles);
                 printData(game.statusEffects);
@@ -87,7 +92,6 @@ module.exports.run = async (bot, game, message, command, args) => {
             message.channel.send(
                 game.rooms.length + " rooms, " +
                 game.objects.length + " objects, " +
-                game.clues.length + " clues, " +
                 game.items.length + " items, " +
                 game.puzzles.length + " puzzles, " +
                 game.statusEffects.length + " status effects, and " +
@@ -129,11 +133,6 @@ module.exports.run = async (bot, game, message, command, args) => {
         catch (err) {
             message.channel.send(err);
         }
-    }
-    else if (args[0] === "clues") {
-        await loader.loadClues(game);
-        if (settings.debug) printData(game.clues);
-        message.channel.send(game.clues.length + " clues retrieved.");
     }
     else if (args[0] === "items") {
         try {

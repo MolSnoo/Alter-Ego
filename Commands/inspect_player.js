@@ -5,7 +5,7 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 
 module.exports.config = {
     name: "inspect_player",
-    description: "Learn more about an object, item, or clue.",
+    description: "Learn more about an object or item.",
     details: 'Tells you about an object or item in the room you\'re in. The description will be sent to you via DMs. '
         + 'An object is something in the room that you can interact with but not take with you. '
         + 'An item is something that you can both interact with and take with you. If you inspect an object, '
@@ -40,63 +40,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         player.sendDescription(player.location.descriptionCell());
 
         return;
-    }
-
-    // If there is an investigation ongoing, search through the clues first.
-    if (game.investigation) {
-        const clues = game.clues.filter(clue => clue.location === player.location.name && clue.accessible);
-        var clue = null;
-        for (let i = 0; i < clues.length; i++) {
-            if (clues[i].name === parsedInput) {
-                clue = clues[i];
-                break;
-            } 
-        }
-
-        if (clue !== null) {
-            let intelligence = player.clueLevel;
-            if (player.hasAttribute("low intelligence")) intelligence -= 1;
-            if (player.hasAttribute("high intelligence")) intelligence += 1;
-
-            var descriptionCell;
-            switch (intelligence) {
-                case NaN:
-                    descriptionCell = clue.level0DescriptionCell();
-                    break;
-                case -1:
-                    descriptionCell = clue.level0DescriptionCell();
-                    break;
-                case 0:
-                    descriptionCell = clue.level0DescriptionCell();
-                    break;
-                case 1:
-                    descriptionCell = clue.level1DescriptionCell();
-                    break;
-                case 2:
-                    descriptionCell = clue.level2DescriptionCell();
-                    break;
-                case 3:
-                    descriptionCell = clue.level3DescriptionCell();
-                    break;
-                default:
-                    descriptionCell = clue.level3DescriptionCell();
-                    break;
-            }
-
-            sheets.getData(descriptionCell, function (response) {
-                if (response.data.values) {
-                    new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${clue.name}.`).send();
-                    player.member.send(response.data.values[0][0]);
-                }
-                else return message.reply(`couldn't find "${input}" or your clue level isn't high enough.`);
-            });
-
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} inspected ${clue.name} in ${player.location.channel}`);
-
-            return;
-        }
     }
 
     // Check if the input is an object.

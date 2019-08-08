@@ -22,7 +22,6 @@
   "diceMin": 1,
   "diceMax": 6,
   "defaultDropObject": "FLOOR",
-  "classTrialStatus": "restricted",
   "autoDeleteWhisperChannels": true,
 
   "onlineActivity": {
@@ -58,7 +57,6 @@
   "spreadsheetID": "1l97PXTDbOnqteophmnIrIYp5T-YpEiXXqwl1rhTuVE0",
   "roomSheetID": 0,
   "objectSheetID": 1923975664,
-  "clueSheetID": 1605102522,
   "itemSheetID": 388122416,
   "puzzleSheetID": 1961307123,
   "statusEffectSheetID": 1040343283,
@@ -71,11 +69,6 @@
   "objectSheetAllCells": "Objects!A1:G",
   "objectSheetLoadCells": "Objects!A1:F",
   "objectSheetDescriptionColumn": "Objects!G",
-  "clueSheetLoadCells": "Clues!A1:D",
-  "clueSheetLevel0DescriptionColumn": "Clues!E",
-  "clueSheetLevel1DescriptionColumn": "Clues!F",
-  "clueSheetLevel2DescriptionColumn": "Clues!G",
-  "clueSheetLevel3DescriptionColumn": "Clues!H",
   "itemSheetLoadCells": "Items!A1:L",
   "itemSheetNameColumn": "Items!A",
   "itemSheetQuantityColumn": "Items!G",

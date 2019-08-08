@@ -4,7 +4,6 @@ const sheets = include(`${settings.modulesDir}/sheets.js`);
 const Exit = include(`${settings.dataDir}/Exit.js`);
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
-const Clue = include(`${settings.dataDir}/Clue.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
@@ -175,33 +174,6 @@ module.exports.checkObject = function (object) {
     if (object.childPuzzle !== null && object.childPuzzle.parentObject !== null && object.childPuzzle.parentObject.name !== object.name)
         return new Error(`Couldn't load object on row ${object.row}. The child puzzle has a different parent object.`);
     return;
-};
-
-module.exports.loadClues = function (game) {
-    return new Promise((resolve) => {
-        sheets.getData(settings.clueSheetLoadCells, function (response) {
-            const sheet = response.data.values;
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnLocation = 1;
-            const columnAccessibility = 2;
-            const columnRequires = 3;
-
-            game.clues.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
-                game.clues.push(
-                    new Clue(
-                        sheet[i][columnName],
-                        sheet[i][columnLocation],
-                        sheet[i][columnAccessibility] === "TRUE",
-                        sheet[i][columnRequires] ? sheet[i][columnRequires] : "",
-                        i + 1
-                    )
-                );
-            }
-            resolve(game);
-        });
-    });
 };
 
 module.exports.loadItems = function (game, doErrorChecking) {

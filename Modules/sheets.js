@@ -6,7 +6,6 @@ const settings = include('settings.json');
 const spreadsheetID = settings.spreadsheetID;
 const roomSheetID = settings.roomSheetID;
 const objectSheetID = settings.objectSheetID;
-const clueSheetID = settings.clueSheetID;
 const itemSheetID = settings.itemSheetID;
 const puzzleSheetID = settings.puzzleSheetID;
 const statusEffectSheetID = settings.statusEffectSheetID;
@@ -193,9 +192,6 @@ module.exports.insertRow = function (sheetrange, data, dataOperation) {
             break;
         case "Objects":
             sheetId = objectSheetID;
-            break;
-        case "Clues":
-            sheetId = clueSheetID;
             break;
         case "Items":
             sheetId = itemSheetID;

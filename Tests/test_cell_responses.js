@@ -5,7 +5,6 @@ var assert = require('assert');
 const Exit = include(`${settings.dataDir}/Exit.js`);
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
-const Clue = include(`${settings.dataDir}/Clue.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
@@ -13,7 +12,6 @@ const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 
 exports.run = function () {
-    test_Clue();
     test_Exit();
     test_InventoryItem();
     test_Item();
@@ -24,15 +22,6 @@ exports.run = function () {
     test_Status();
     return;
 };
-
-function test_Clue() {
-    const clue = new Clue("NEROS BODY", "gift-shop", true, "", 1);
-
-    assert.ok(clue.level0DescriptionCell() === "Clues!E1", clue.level0DescriptionCell());
-    assert.ok(clue.level1DescriptionCell() === "Clues!F1", clue.level1DescriptionCell());
-    assert.ok(clue.level2DescriptionCell() === "Clues!G1", clue.level2DescriptionCell());
-    assert.ok(clue.level3DescriptionCell() === "Clues!H1", clue.level3DescriptionCell());
-}
 
 function test_Exit() {
     const exit = new Exit("PATH 1", true, "path-1", "PARK", 17);
