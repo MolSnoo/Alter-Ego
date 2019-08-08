@@ -50,14 +50,14 @@ module.exports.run = async (bot, game, message, command, args) => {
         await testparse(file);
     else if (args[0] === "add") {
         if (game.items.length === 0)
-            await loader.loadItems(game);
+            await loader.loadItems(game, false);
         let formatted = false;
         if (args[1] && args[1] === "formatted") formatted = true;
         await testadd(file, formatted);
     }
     else if (args[0] === "remove") {
         if (game.items.length === 0)
-            await loader.loadItems(game);
+            await loader.loadItems(game, false);
         let formatted = false;
         if (args[1] && args[1] === "formatted") formatted = true;
         await testremove(file, formatted);

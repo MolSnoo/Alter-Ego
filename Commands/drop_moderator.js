@@ -44,7 +44,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             object = objects[i];
             parsedInput = parsedInput.substring(0, parsedInput.indexOf(objects[i].name)).trimEnd();
             // Check if the object has a puzzle attached to it.
-            if (object.requires !== "") {
+            if (object.childPuzzle !== "") {
                 const puzzles = game.puzzles.filter(puzzle => puzzle.location === object.location && puzzle.accessible && puzzle.solved);
                 for (let j = 0; j < puzzles.length; j++) {
                     if (puzzles[j].parentObject === object.name) {

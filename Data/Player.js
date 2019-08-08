@@ -1,7 +1,6 @@
 const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
-const loader = include(`${settings.modulesDir}/loader.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
@@ -517,24 +516,25 @@ class Player {
             if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires === container.name);
             else containerItems = roomItems.filter(item => item.sublocation === container.name);
             // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
+            const loader = include(`${settings.modulesDir}/loader.js`);
             const lastRoomItem = roomItems[roomItems.length - 1];
             const lastContainerItem = containerItems[containerItems.length - 1];
             const lastGameItem = game.items[game.items.length - 1];
             if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
                 sheets.insertRow(lastContainerItem.itemCells(), data, function (response) {
-                    loader.loadItems(game);
+                    loader.loadItems(game, false);
                 });
             }
             // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
             else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
                 sheets.insertRow(lastRoomItem.itemCells(), data, function (response) {
-                    loader.loadItems(game);
+                    loader.loadItems(game, false);
                 });
             }
             // If there are none, just insert it at the end of the sheet.
             else {
                 sheets.appendRow(lastGameItem.itemCells(), data, function (response) {
-                    loader.loadItems(game);
+                    loader.loadItems(game, false);
                 });
             }
         }
@@ -553,7 +553,7 @@ class Player {
         var preposition = "in";
         if (container instanceof Puzzle) {
             descriptionCell = container.alreadySolvedCell();
-            let object = game.objects.find(object => object.name === container.parentObject && object.requires === container.name);
+            let object = game.objects.find(object => object.name === container.parentObject && object.childPuzzle === container.name);
             objectName = object.name;
             preposition = object.preposition;
         }

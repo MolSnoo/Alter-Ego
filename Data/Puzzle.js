@@ -1,17 +1,17 @@
 ﻿const settings = include('settings.json');
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const sheets = include(`${settings.modulesDir}/sheets.js`);
-const loader = include(`${settings.modulesDir}/loader.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Puzzle {
-    constructor(name, solved, requiresMod, location, parentObject, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, row) {
+    constructor(name, solved, requiresMod, location, parentObjectName, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, row) {
         this.name = name;
         this.solved = solved;
         this.requiresMod = requiresMod;
         this.location = location;
-        this.parentObject = parentObject;
+        this.parentObjectName = parentObjectName;
+        this.parentObject = null;
         this.type = type;
         this.accessible = accessible;
         this.requires = requires;
@@ -32,9 +32,10 @@ class Puzzle {
         // Now mark it as solved.
         this.solved = true;
         sheets.updateCell(this.solvedCell(), "TRUE", function (response) {
-            loader.loadObjects(game);
-            loader.loadItems(game);
-            loader.loadPuzzles(game);
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
         });
 
         if (doSolvedCommands === true) {
@@ -62,9 +63,10 @@ class Puzzle {
         // Now mark it as unsolved.
         this.solved = false;
         sheets.updateCell(this.solvedCell(), "FALSE", function (response) {
-            loader.loadObjects(game);
-            loader.loadItems(game);
-            loader.loadPuzzles(game);
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
         });
 
         if (doUnsolvedCommands === true) {
