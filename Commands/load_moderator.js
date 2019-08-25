@@ -5,7 +5,7 @@ const loader = include(`${settings.modulesDir}/loader.js`);
 module.exports.config = {
     name: "load_moderator",
     description: 'Loads game data.',
-    details: 'Gathers the house data by reading it off the spreadsheet. Can specify what data to collect. '
+    details: 'Gathers the game data by reading it off the spreadsheet. Can specify what data to collect. '
         + '"all start" must be used at the beginning of the game after the startgame timer is over, as it will '
         + 'gather all the data and send the room description of the room they start in to each player. '
         + 'If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. '
