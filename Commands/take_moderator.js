@@ -44,9 +44,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Check if an object was specified.
-    const objects = game.objects.filter(object => object.location === player.location.name && object.accessible);
+    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
     var object = null;
-    var puzzle = null;
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) return message.reply(`the ${objects[i].name} is not an item.`);
         if (parsedInput.endsWith(objects[i].name)) {
@@ -54,34 +53,26 @@ module.exports.run = async (bot, game, message, command, args) => {
             object = objects[i];
             parsedInput = parsedInput.substring(0, parsedInput.indexOf(objects[i].name)).trimEnd();
             // Check if the object has a puzzle attached to it.
-            if (object.childPuzzle !== "") {
-                const puzzles = game.puzzles.filter(puzzle => puzzle.location === object.location && puzzle.accessible && puzzle.solved);
-                for (let j = 0; j < puzzles.length; j++) {
-                    if (puzzles[j].parentObject === object.name) {
-                        puzzle = puzzles[j];
-                        break;
-                    }
-                }
-                if (puzzle === null) return message.reply(`any items ${object.preposition} ${object.name} are currently inaccessible.`);
-            }
+            if (object.childPuzzle !== null && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
+                return message.reply(`any items ${object.preposition} ${object.name} are currently inaccessible.`);
             break;
         }
     }
 
     // Now find the item.
     var item = null;
-    if (puzzle !== null) {
-        const items = game.items.filter(item => item.location === player.location.name && item.accessible && item.requires === puzzle.name && (item.quantity > 0 || isNaN(item.quantity)));
+    if (object !== null && object.childPuzzle !== null) {
+        const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && item.requires !== null && item.requires.name === object.childPuzzle.name && (item.quantity > 0 || isNaN(item.quantity)));
         for (let i = 0; i < items.length; i++) {
             if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
                 item = items[i];
                 break;
             }
         }
-        if (item === null) return message.reply(`couldn't find item "${parsedInput}" ${object.preposition} ${puzzle.parentObject}.`);
+        if (item === null) return message.reply(`couldn't find item "${parsedInput}" ${object.preposition} ${object.name}.`);
     }
     else if (object !== null) {
-        const items = game.items.filter(item => item.location === player.location.name && item.accessible && item.sublocation === object.name && (item.quantity > 0 || isNaN(item.quantity)));
+        const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && item.sublocation !== null && item.sublocation.name === object.name && (item.quantity > 0 || isNaN(item.quantity)));
         for (let i = 0; i < items.length; i++) {
             if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
                 item = items[i];
@@ -91,24 +82,23 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (item === null) return message.reply(`couldn't find item "${parsedInput}" ${object.preposition} ${object.name}.`);
     }
     else {
-        const items = game.items.filter(item => item.location === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+        const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
         for (let i = 0; i < items.length; i++) {
             if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
                 item = items[i];
-                if (item.requires !== "") {
-                    const puzzles = game.puzzles.filter(puzzle => puzzle.location === item.location && puzzle.accessible && puzzle.solved);
+                if (item.requires !== null) {
+                    const puzzles = game.puzzles.filter(puzzle => puzzle.location.name === item.location.name && puzzle.accessible && puzzle.solved);
                     for (let j = 0; j < puzzles.length; j++) {
-                        if (puzzles[j].name === item.requires) {
-                            puzzle = puzzles[j];
-                            object = game.objects.find(object => object.location === item.location && object.name === puzzle.parentObject && object.childPuzzle === puzzle.name);
+                        if (puzzles[j].name === item.requires.name) {
+                            object = puzzles[j].parentObject;
                             break;
                         }
                     }
                 }
-                else if (item.sublocation !== "") {
-                    const objects = game.objects.filter(object => object.location === item.location && object.accessible);
+                else if (item.sublocation !== null) {
+                    const objects = game.objects.filter(object => object.location.name === item.location.name && object.accessible);
                     for (let j = 0; j < objects.length; j++) {
-                        if (objects[j].name === item.sublocation) {
+                        if (objects[j].name === item.sublocation.name) {
                             object = objects[j];
                             break;
                         }
@@ -121,8 +111,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     const time = new Date().toLocaleTimeString();
-    if (puzzle !== null) {
-        player.take(game, item, freeSlot, puzzle);
+    if (object !== null && object.childPuzzle !== null) {
+        player.take(game, item, freeSlot, object.childPuzzle);
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} forcefully took ${item.name} from ${object.name} in ${player.location.channel}`);
     }

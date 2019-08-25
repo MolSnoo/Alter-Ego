@@ -358,8 +358,8 @@ class Player {
 
         // Add the new item to the Players sheet so that it's in their inventory.
         // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-        var effects = createdItem.effects ? createdItem.effects.join(",") : "";
-        var cures = createdItem.cures ? createdItem.cures.join(",") : "";
+        var effects = createdItem.effects ? createdItem.effects.map(status => status.name).join(",") : "";
+        var cures = createdItem.cures ? createdItem.cures.map(status => status.name).join(",") : "";
         var containingPhrase = createdItem.singleContainingPhrase;
         if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
         sheets.getData(item.descriptionCell(), function (response) {
@@ -419,8 +419,8 @@ class Player {
 
             // Add the item to the Players sheet so that it's in their inventory.
             // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-            var effects = copiedItem.effects ? copiedItem.effects.join(",") : "";
-            var cures = copiedItem.cures ? copiedItem.cures.join(",") : "";
+            var effects = copiedItem.effects ? copiedItem.effects.map(status => status.name).join(",") : "";
+            var cures = copiedItem.cures ? copiedItem.cures.map(status => status.name).join(",") : "";
             var containingPhrase = copiedItem.singleContainingPhrase;
             if (copiedItem.pluralContainingPhrase !== "") containingPhrase += `,${copiedItem.pluralContainingPhrase}`;
             sheets.getData(victim.inventory[index].descriptionCell(), function (response) {
@@ -463,13 +463,13 @@ class Player {
     async drop(game, slotNo, container) {
         // First, check if the player is putting this item back in original spot unmodified.
         const invItem = this.inventory[slotNo];
-        const roomItems = game.items.filter(item => item.location === this.location.name);
+        const roomItems = game.items.filter(item => item.location.name === this.location.name);
         var matchedItems = roomItems.filter(item =>
             item.name === invItem.name &&
             item.pluralName === invItem.pluralName &&
-            item.location === this.location.name &&
-            ((container instanceof Object && item.sublocation === container.name) || (container instanceof Puzzle && item.sublocation === "")) &&
-            ((container instanceof Puzzle && item.requires === container.name) || (container instanceof Object && item.requires === "")) &&
+            item.location.name === this.location.name &&
+            ((container instanceof Object && item.sublocation !== null && item.sublocation.name === container.name) || (container instanceof Puzzle && item.sublocation === null)) &&
+            ((container instanceof Puzzle && item.requires !== null && item.requires.name === container.name) || (container instanceof Object && item.requires === null)) &&
             (item.uses === invItem.uses || (isNaN(item.uses) && isNaN(invItem.uses))) &&
             item.discreet === invItem.discreet &&
             arraysEqual(item.effects, invItem.effects) &&
@@ -491,8 +491,8 @@ class Player {
         }
         // The player is putting this item somewhere else, or it's changed somehow.
         if (matchedItems.length === 0) {
-            var effects = invItem.effects ? invItem.effects.join(",") : "";
-            var cures = invItem.cures ? invItem.cures.join(",") : "";
+            var effects = invItem.effects ? invItem.effects.map(status => status.name).join(",") : "";
+            var cures = invItem.cures ? invItem.cures.map(status => status.name).join(",") : "";
             var containingPhrase = invItem.singleContainingPhrase;
             if (invItem.pluralContainingPhrase !== "") containingPhrase += `,${invItem.pluralContainingPhrase}`;
             const data = new Array(
@@ -513,8 +513,8 @@ class Player {
 
             // We want to insert this item near items in the same container, so get all of the items in that container.
             var containerItems;
-            if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires === container.name);
-            else containerItems = roomItems.filter(item => item.sublocation === container.name);
+            if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires !== null && item.requires.name === container.name);
+            else containerItems = roomItems.filter(item => item.sublocation !== null && item.sublocation.name === container.name);
             // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
             const loader = include(`${settings.modulesDir}/loader.js`);
             const lastRoomItem = roomItems[roomItems.length - 1];
@@ -553,7 +553,7 @@ class Player {
         var preposition = "in";
         if (container instanceof Puzzle) {
             descriptionCell = container.alreadySolvedCell();
-            let object = game.objects.find(object => object.name === container.parentObject && object.childPuzzle === container.name);
+            let object = game.objects.find(object => object.name === container.parentObject.name && object.childPuzzle !== null && object.childPuzzle.name === container.name);
             objectName = object.name;
             preposition = object.preposition;
         }
@@ -585,8 +585,8 @@ class Player {
             null,
             null,
             null,
-            null,
-            null,
+            [],
+            [],
             null,
             null,
             this.inventory[slotNo].row
@@ -778,6 +778,8 @@ module.exports = Player;
 
 // This function is needed solely to compare the effects and cures of two items.
 function arraysEqual(a, b) {
+    a = a.map(object => object.name);
+    b = b.map(object => object.name);
     if (a === b) return true;
     if (a === null || b === null) return false;
     if (a.length !== b.length) return false;
