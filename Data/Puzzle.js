@@ -27,7 +27,7 @@ class Puzzle {
         if (player !== null)
             player.sendDescription(this.correctCell());
         if (message)
-            new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
+            new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
         // Now mark it as solved.
         this.solved = true;
@@ -58,7 +58,7 @@ class Puzzle {
         if (player !== null && directMessage !== null) player.member.send(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (message)
-            new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
+            new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
         // Now mark it as unsolved.
         this.solved = false;
