@@ -43,7 +43,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
 
     // Check if the input is an object.
-    const objects = game.objects.filter(object => object.location === player.location.name && object.accessible);
+    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
     var object = null;
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) {
@@ -58,7 +58,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         for (let i = 0; i < game.players_alive.length; i++) {
             const hiddenPlayer = game.players_alive[i];
-            if (hiddenPlayer.hidingSpot === object.name) {
+            if (hiddenPlayer.location.name === player.location.name && hiddenPlayer.hidingSpot === object.name) {
                 player.member.send(`While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
                 hiddenPlayer.cure(game, "hidden", false, false, true, true);
                 hiddenPlayer.member.send(`You've been found by ${player.displayName}. You are no longer hidden.`);
@@ -78,7 +78,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (!onlySearchInventory) {
         // Now check if the input is an item.
-        const items = game.items.filter(item => item.location === player.location.name
+        const items = game.items.filter(item => item.location.name === player.location.name
             && item.accessible
             && (item.quantity > 0 || isNaN(item.quantity)));
         var item = null;
