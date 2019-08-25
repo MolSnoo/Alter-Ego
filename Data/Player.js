@@ -73,7 +73,7 @@ class Player {
 
         if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
-                this.cure(game, status.cures[i], false, false, false, false);
+                this.cure(game, status.cures[i].name, false, false, false, false);
         }
 
         // Apply the effects of any attributes that require immediate action.
@@ -225,9 +225,12 @@ class Player {
     }
     
     generate_statusList() {
-        var statusList = this.status[0].name;
-        for (let i = 1; i < this.status.length; i++)
-            statusList += `, ${this.status[i].name}`;
+        var statusList = "";
+        if (this.status.length > 0) {
+            statusList = this.status[0].name;
+            for (let i = 1; i < this.status.length; i++)
+                statusList += `, ${this.status[i].name}`;
+        }
         return statusList;
     }
 
