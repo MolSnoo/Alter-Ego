@@ -703,7 +703,7 @@ class Player {
 
         // Update various data.
         this.alive = false;
-        this.location = "";
+        this.location = null;
         this.hidingSpot = "";
         for (let i = 0; i < this.status.length; i++)
             clearInterval(this.status[i].timer);
