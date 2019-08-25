@@ -30,9 +30,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Check if the player specified an object.
-    const objects = game.objects.filter(object => object.location === player.location.name && object.accessible);
+    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
     var object = null;
-    var puzzle = null;
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) return message.reply(`you need to specify an item to drop.`);
         if (parsedInput.endsWith(objects[i].name)) {
@@ -40,16 +39,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             object = objects[i];
             parsedInput = parsedInput.substring(0, parsedInput.indexOf(objects[i].name)).trimEnd();
             // Check if the object has a puzzle attached to it.
-            if (object.childPuzzle !== "") {
-                const puzzles = game.puzzles.filter(puzzle => puzzle.location === object.location && puzzle.accessible && puzzle.solved);
-                for (let j = 0; j < puzzles.length; j++) {
-                    if (puzzles[j].parentObject === object.name) {
-                        puzzle = puzzles[j];
-                        break;
-                    }
-                }
-                if (puzzle === null) return message.reply(`you cannot put items ${object.preposition} ${object.name} right now.`);
-            }
+            if (object.childPuzzle !== null && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
+                return message.reply(`you cannot put items ${object.preposition} ${object.name} right now.`);
             break;
         }
     }
@@ -72,8 +63,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // The player can definitely drop an item now.
     const itemName = player.inventory[slotNo].name;
     const time = new Date().toLocaleTimeString();
-    if (puzzle !== null) {
-        player.drop(game, slotNo, puzzle);
+    if (object.childPuzzle !== null) {
+        player.drop(game, slotNo, object.childPuzzle);
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} dropped ${itemName} ${object.preposition} ${object.name} in ${player.location.channel}`);
     }
