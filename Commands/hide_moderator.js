@@ -47,7 +47,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
         // Check if the input is an object that the player can hide in.
-        const objects = game.objects.filter(object => object.location === player.location.name && object.accessible);
+        const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
         var object = null;
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput && objects[i].isHidingSpot) {
