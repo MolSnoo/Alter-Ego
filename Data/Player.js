@@ -361,8 +361,8 @@ class Player {
 
         // Add the new item to the Players sheet so that it's in their inventory.
         // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-        var effects = createdItem.effects ? createdItem.effects.map(status => status.name).join(",") : "";
-        var cures = createdItem.cures ? createdItem.cures.map(status => status.name).join(",") : "";
+        var effects = createdItem.effects.length > 0 ? createdItem.effects.map(status => status.name).join(",") : "";
+        var cures = createdItem.cures.length > 0 ? createdItem.cures.map(status => status.name).join(",") : "";
         var containingPhrase = createdItem.singleContainingPhrase;
         if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
         sheets.getData(item.descriptionCell(), function (response) {
@@ -494,8 +494,8 @@ class Player {
         }
         // The player is putting this item somewhere else, or it's changed somehow.
         if (matchedItems.length === 0) {
-            var effects = invItem.effects ? invItem.effects.map(status => status.name).join(",") : "";
-            var cures = invItem.cures ? invItem.cures.map(status => status.name).join(",") : "";
+            var effects = invItem.effects.length > 0 ? invItem.effects.map(status => status.name).join(",") : "";
+            var cures = invItem.cures.length > 0 ? invItem.cures.map(status => status.name).join(",") : "";
             var containingPhrase = invItem.singleContainingPhrase;
             if (invItem.pluralContainingPhrase !== "") containingPhrase += `,${invItem.pluralContainingPhrase}`;
             const data = new Array(
@@ -556,9 +556,8 @@ class Player {
         var preposition = "in";
         if (container instanceof Puzzle) {
             descriptionCell = container.alreadySolvedCell();
-            let object = game.objects.find(object => object.name === container.parentObject.name && object.childPuzzle !== null && object.childPuzzle.name === container.name);
-            objectName = object.name;
-            preposition = object.preposition;
+            objectName = container.parentObject.name;
+            preposition = container.parentObject.preposition;
         }
         else {
             descriptionCell = container.descriptionCell();
