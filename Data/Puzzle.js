@@ -121,7 +121,8 @@ class Puzzle {
                 misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
             // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
             else {
-                player.member.send(response.data.values[0][0]);
+                const parser = include(`${settings.modulesDir}/parser.js`);
+                player.member.send(parser.parseDescription(response.data.values[0][0], player));
                 new Narration(game, player, player.location, message).send();
             }
         });

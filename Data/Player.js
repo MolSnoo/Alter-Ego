@@ -619,11 +619,11 @@ class Player {
             // Make sure all of the requirements are met before proceeding.
             var hasRequiredItem = false;
             var requirementsMet = false;
-            if (puzzle.requires.startsWith("Item: ")) {
-                if (item !== null && item.name === puzzle.requires.substring("Item: ".length))
+            if (puzzle.solution.startsWith("Item: ")) {
+                if (item !== null && item.name === puzzle.solution.substring("Item: ".length))
                     hasRequiredItem = true;
                 else if (item === null) {
-                    const requiredItem = puzzle.requires.substring("Item: ".length);
+                    const requiredItem = puzzle.solution.substring("Item: ".length);
                     for (let i = 0; i < this.inventory.length; i++) {
                         if (this.inventory[i].name === requiredItem) {
                             hasRequiredItem = true;
@@ -653,32 +653,32 @@ class Player {
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject} is already unlocked.`;
+                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
                         if (command !== "lock" && (password === "" || password === puzzle.solution))
-                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
+                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
                         // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`, true);
+                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject} is already locked.`;
+                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
                         if (password === "") return "you need to enter a combination. The format is #-#-#.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`, true);
-                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject}.`);
+                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, true);
+                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject.name}.`);
                     }
                 }
                 else if (puzzle.type === "key lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject} is already unlocked.`;
-                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`, true);
-                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
-                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
+                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
+                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
+                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts and fails to lock the ${puzzle.parentObject.name}.`);
+                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject} is already locked.`;
-                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`, true);
+                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
+                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, true);
                     }
                 }
             }
