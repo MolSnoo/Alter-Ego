@@ -283,7 +283,7 @@ class Player {
         if (item.effects.length === 0 && item.cures.length === 0) return "that item has no programmed use on its own, but you may be able to use it some other way.";
         if (item.name !== "MASK" && item.effects.length !== 0) {
             for (let i = 0; i < item.effects.length; i++) {
-                if (this.statusString.includes(item.effects[i]))
+                if (this.statusString.includes(item.effects[i].name))
                     return "you cannot use that item as you are already under its effect.";
             }
         }
@@ -294,8 +294,8 @@ class Player {
             else {
                 // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
                 for (let i = 0; i < item.effects.length - 1; i++)
-                    this.inflict(game, item.effects[i], true, true, false, true);
-                this.inflict(game, item.effects[item.effects.length - 1], true, true, true, true);
+                    this.inflict(game, item.effects[i].name, true, true, false, true);
+                this.inflict(game, item.effects[item.effects.length - 1].name, true, true, true, true);
             }
         }
 
@@ -303,7 +303,7 @@ class Player {
             var hasEffect = false;
             // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
             for (let i = 0; i < item.cures.length; i++) {
-                const statusMessage = this.cure(game, item.cures[i], true, true, true, true);
+                const statusMessage = this.cure(game, item.cures[i].name, true, true, true, true);
                 if (statusMessage !== "Specified player doesn't have that status effect.") hasEffect = true;
             }
             if (!hasEffect) return `you attempted to use the ${item.name}, but it had no effect.`;
