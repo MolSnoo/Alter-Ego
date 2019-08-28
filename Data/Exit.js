@@ -2,8 +2,9 @@ const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 class Exit {
-    constructor(name, unlocked, dest, link, row) {
+    constructor(name, pos, unlocked, dest, link, row) {
         this.name = name;
+        this.pos = pos;
         this.unlocked = unlocked;
         this.dest = dest;
         this.link = link;

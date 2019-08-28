@@ -24,18 +24,18 @@ exports.run = function () {
 };
 
 function test_Exit() {
-    const exit = new Exit("PATH 1", true, "path-1", "PARK", 17);
+    const exit = new Exit("PATH 1", { x: 0, y: 0, z: 0 }, true, "path-1", "PARK", 17);
 
-    assert.ok(exit.unlockedCell() === "Rooms!D17", exit.unlockedCell());
-    assert.ok(exit.descriptionCell() === "Rooms!G17", exit.descriptionCell());
+    assert.ok(exit.unlockedCell() === "Rooms!G17", exit.unlockedCell());
+    assert.ok(exit.descriptionCell() === "Rooms!J17", exit.descriptionCell());
 }
 
 function test_InventoryItem() {
     const inventoryItem = new InventoryItem("BALL", "BALLS", NaN, true, "", "", "a BALL", "BALLS", 42);
 
-    assert.ok(inventoryItem.itemCells() === "Players!L42:S42", inventoryItem.itemCells());
-    assert.ok(inventoryItem.usesCell() === "Players!N42", inventoryItem.usesCell());
-    assert.ok(inventoryItem.descriptionCell() === "Players!S42", inventoryItem.descriptionCell());
+    assert.ok(inventoryItem.itemCells() === "Players!M42:T42", inventoryItem.itemCells());
+    assert.ok(inventoryItem.usesCell() === "Players!O42", inventoryItem.usesCell());
+    assert.ok(inventoryItem.descriptionCell() === "Players!T42", inventoryItem.descriptionCell());
 }
 
 function test_Item() {
@@ -53,11 +53,11 @@ function test_Object() {
 }
 
 function test_Player() {
-    const player = new Player("", null, "Nero", "Nero", "", 2, true, "park", "", "", null, 5);
+    const player = new Player("", null, "Nero", "Nero", "", { strength: 5, intelligence: 5, dexterity: 5, speed: 5, stamina: 5 }, true, "park", "", "", null, 5);
 
-    assert.ok(player.playerCells() === "Players!A5:K5", player.playerCells());
-    assert.ok(player.hidingSpotCell() === "Players!J5", player.hidingSpotCell());
-    assert.ok(player.statusCell() === "Players!K5", player.statusCell());
+    assert.ok(player.playerCells() === "Players!A5:L5", player.playerCells());
+    assert.ok(player.hidingSpotCell() === "Players!K5", player.hidingSpotCell());
+    assert.ok(player.statusCell() === "Players!L5", player.statusCell());
 }
 
 function test_Puzzle() {
@@ -76,7 +76,7 @@ function test_Puzzle() {
 function test_Room() {
     const room = new Room("path-2", null, null, 23);
 
-    assert.ok(room.descriptionCell() === "Rooms!G23", room.descriptionCell());
+    assert.ok(room.descriptionCell() === "Rooms!J23", room.descriptionCell());
 }
 
 function test_Status() {

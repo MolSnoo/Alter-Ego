@@ -63,6 +63,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 player.intelligence,
                 player.dexterity,
                 player.speed,
+                player.stamina,
                 player.alive,
                 player.location,
                 player.hidingSpot,

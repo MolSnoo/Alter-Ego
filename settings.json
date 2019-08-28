@@ -1,7 +1,7 @@
 ﻿{
   "commandPrefix": ".",
   "debug": true,
-  "testing": true,
+  "testing": false,
 
   "commandsDir": "Commands",
   "dataDir": "Data",
@@ -12,11 +12,12 @@
     "strength": 5,
     "intelligence": 5,
     "dexterity": 5,
-    "speed": 5
+    "speed": 5,
+    "stamina": 5
   },
   "defaultLocation": "park",
   "defaultStatusEffects": "satisfied, well rested",
-  "emptyPlayerRow": [ "", "", "", "", "", "", "", "", "", "", "" ],
+  "emptyPlayerRow": [ "", "", "", "", "", "", "", "", "", "", "", "" ],
   "emptyInventoryItem": [ "NULL", "", "", "", "", "", "", "" ],
 
   "diceMin": 1,
@@ -62,10 +63,10 @@
   "statusEffectSheetID": 1040343283,
   "playerSheetID": 680018352,
   
-  "roomSheetAllCells": "Rooms!A1:G",
-  "roomSheetLoadCells": "Rooms!A1:F",
-  "roomSheetUnlockedColumn": "Rooms!D",
-  "roomSheetDescriptionColumn": "Rooms!G",
+  "roomSheetAllCells": "Rooms!A1:J",
+  "roomSheetLoadCells": "Rooms!A1:I",
+  "roomSheetUnlockedColumn": "Rooms!G",
+  "roomSheetDescriptionColumn": "Rooms!J",
   "objectSheetAllCells": "Objects!A1:G",
   "objectSheetLoadCells": "Objects!A1:F",
   "objectSheetDescriptionColumn": "Objects!G",
@@ -87,13 +88,13 @@
   "statusSheetLoadCells": "Status Effects!A1:H",
   "statusSheetInflictedColumn": "Status Effects!J",
   "statusSheetCuredColumn": "Status Effects!K",
-  "playerSheetInitCells": "Players!A3:S",
-  "playerSheetLoadCells": "Players!A1:R",
+  "playerSheetInitCells": "Players!A3:T",
+  "playerSheetLoadCells": "Players!A1:S",
   "playerSheetIDColumn": "Players!A",
-  "playerSheetLocationColumn": "Players!I",
-  "playerSheetHidingSpotColumn": "Players!J",
-  "playerSheetStatusColumn": "Players!K",
-  "playerSheetItemNameColumn": "Players!L",
-  "playerSheetItemUsesColumn": "Players!N",
-  "playerSheetItemDescriptionColumn": "Players!S"
+  "playerSheetLocationColumn": "Players!J",
+  "playerSheetHidingSpotColumn": "Players!K",
+  "playerSheetStatusColumn": "Players!L",
+  "playerSheetItemNameColumn": "Players!M",
+  "playerSheetItemUsesColumn": "Players!O",
+  "playerSheetItemDescriptionColumn": "Players!T"
 }

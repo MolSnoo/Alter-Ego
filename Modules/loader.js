@@ -18,17 +18,26 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             const columnRoomName = 0;
             const columnNumberExits = 1;
             const columnExits = 2;
-            const columnUnlocked = 3;
-            const columnLeadsTo = 4;
-            const columnFrom = 5;
+            const columnPosX = 3;
+            const columnPosY = 4;
+            const columnPosZ = 5;
+            const columnUnlocked = 6;
+            const columnLeadsTo = 7;
+            const columnFrom = 8;
 
             game.rooms.length = 0;
             for (let i = 1, j = 0; i < sheet.length; i = i + j) {
                 var exits = [];
                 for (j = 0; j < parseInt(sheet[i][columnNumberExits]); j++) {
+                    const pos = {
+                        x: parseInt(sheet[i][columnPosX]),
+                        y: parseInt(sheet[i][columnPosY]),
+                        z: parseInt(sheet[i][columnPosZ])
+                    };
                     exits.push(
                         new Exit(
                             sheet[i + j][columnExits],
+                            pos,
                             sheet[i + j][columnUnlocked] === "TRUE",
                             sheet[i + j][columnLeadsTo],
                             sheet[i + j][columnFrom],
@@ -85,6 +94,12 @@ module.exports.checkRoom = function (room) {
         let exit = room.exit[i];
         if (exit.name === "" || exit.name === null || exit.name === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No exit name was given.`);
+        if (isNaN(exit.pos.x))
+            return new Error(`Couldn't load exit on row ${exit.row}. The X-coordinate given is not an integer.`);
+        if (isNaN(exit.pos.y))
+            return new Error(`Couldn't load exit on row ${exit.row}. The Y-coordinate given is not an integer.`);
+        if (isNaN(exit.pos.z))
+            return new Error(`Couldn't load exit on row ${exit.row}. The Z-coordinate given is not an integer.`);
         if (exit.link === "" || exit.link === null || exit.link === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No linked exit was given.`);
         if (exit.dest === "" || exit.dest === null || exit.dest === undefined)
@@ -514,17 +529,18 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             const columnIntelligence = 4;
             const columnDexterity = 5;
             const columnSpeed = 6;
-            const columnAlive = 7;
-            const columnLocation = 8;
-            const columnHidingSpot = 9;
-            const columnStatus = 10;
-            const columnItemName = 11;
-            const columnItemPluralName = 12;
-            const columnItemUses = 13;
-            const columnItemDiscreet = 14;
-            const columnItemEffect = 15;
-            const columnItemCures = 16;
-            const columnItemContainingPhrase = 17;
+            const columnStamina = 7;
+            const columnAlive = 8;
+            const columnLocation = 98;
+            const columnHidingSpot = 10;
+            const columnStatus = 11;
+            const columnItemName = 12;
+            const columnItemPluralName = 13;
+            const columnItemUses = 14;
+            const columnItemDiscreet = 15;
+            const columnItemEffect = 16;
+            const columnItemCures = 17;
+            const columnItemContainingPhrase = 18;
 
             game.players.length = 0;
             game.players_alive.length = 0;
@@ -572,7 +588,8 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     strength: parseInt(sheet[i][columnStrength]),
                     intelligence: parseInt(sheet[i][columnIntelligence]),
                     dexterity: parseInt(sheet[i][columnDexterity]),
-                    speed: parseInt(sheet[i][columnSpeed])
+                    speed: parseInt(sheet[i][columnSpeed]),
+                    stamina: parseInt(sheet[i][columnStamina])
                 };
                 const player =
                     new Player(
@@ -668,6 +685,8 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. The dexterity stat given is not an integer.`);
     if (isNaN(player.speed))
         return new Error(`Couldn't load player on row ${player.row}. The speed stat given is not an integer.`);
+    if (isNaN(player.stamina))
+        return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
     return;
@@ -679,13 +698,13 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
-            const columnItemName = 11;
-            const columnItemPluralName = 12;
-            const columnItemUses = 13;
-            const columnItemDiscreet = 14;
-            const columnItemEffect = 15;
-            const columnItemCures = 16;
-            const columnItemContainingPhrase = 17;
+            const columnItemName = 12;
+            const columnItemPluralName = 13;
+            const columnItemUses = 14;
+            const columnItemDiscreet = 15;
+            const columnItemEffect = 16;
+            const columnItemCures = 17;
+            const columnItemContainingPhrase = 18;
 
             for (let i = 0; i < game.players_alive.length; i++) {
                 game.players_alive[i].inventory.length = 0;

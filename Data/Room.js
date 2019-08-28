@@ -16,6 +16,22 @@ class Room {
 
     addPlayer(game, player, entrance, entranceMessage, sendDescription) {
         player.location = this;
+        // Set the player's position.
+        if (entrance) player.pos = entrance.pos;
+        // If no entrance is given, try to calculate the center of the room by averaging the coordinates of all exits.
+        else {
+            let coordSum = { x: 0, y: 0, z: 0 };
+            for (let i = 0; i < this.exit.length; i++) {
+                coordSum.x += this.exit[i].pos.x;
+                coordSum.y += this.exit[i].pos.y;
+                coordSum.z += this.exit[i].pos.z;
+            }
+            let pos = { x: 0, y: 0, z: 0 };
+            pos.x = Math.floor(coordSum.x / this.exit.length);
+            pos.y = Math.floor(coordSum.y / this.exit.length);
+            pos.z = Math.floor(coordSum.z / this.exit.length);
+            player.pos = pos;
+        }
         if (entranceMessage) new Narration(game, player, this, entranceMessage).send();
         
         if (player.getAttributeStatusEffects("no channel").length === 0)  

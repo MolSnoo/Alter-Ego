@@ -21,8 +21,10 @@ class Player {
         this.intelligence = stats.intelligence;
         this.dexterity = stats.dexterity;
         this.speed = stats.speed;
+        this.stamina = stats.stamina;
         this.alive = alive;
         this.location = location;
+        this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
         this.status = status;
         this.statusString = "";
@@ -711,7 +713,7 @@ class Player {
             clearInterval(this.status[i].timer);
         this.status.length = 0;
         // Update that data on the sheet, as well.
-        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.alive, "", "", "")));
+        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.stamina, this.alive, "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);
