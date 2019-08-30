@@ -30,9 +30,9 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                 var exits = [];
                 for (j = 0; j < parseInt(sheet[i][columnNumberExits]); j++) {
                     const pos = {
-                        x: parseInt(sheet[i][columnPosX]),
-                        y: parseInt(sheet[i][columnPosY]),
-                        z: parseInt(sheet[i][columnPosZ])
+                        x: parseInt(sheet[i + j][columnPosX]),
+                        y: parseInt(sheet[i + j][columnPosY]),
+                        z: parseInt(sheet[i + j][columnPosZ])
                     };
                     exits.push(
                         new Exit(
