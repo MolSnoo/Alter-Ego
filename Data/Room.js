@@ -59,16 +59,6 @@ class Room {
         this.occupantsString = this.occupants.map(player => player.name).join(", ");
     }
     removePlayer(game, player, exit, exitMessage) {
-        if (exit) {
-            console.log(exit.pos);
-            console.log(player.pos);
-            let distance = Math.sqrt(Math.pow(exit.pos.x - player.pos.x, 2) + Math.pow(exit.pos.y - player.pos.y, 2) + Math.pow(exit.pos.z - player.pos.z, 2));
-            console.log(`Distance (pixels): ${distance}`);
-            distance = distance * 0.25;
-            console.log(`Distance (meters): ${distance}`);
-            let time = distance / 1.4;
-            console.log(`Time (seconds): ${time}`);
-        }
         if (exitMessage) new Narration(game, player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);

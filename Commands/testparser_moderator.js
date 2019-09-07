@@ -268,7 +268,7 @@ testremove = async (file, formatted) => {
         const columnRoomName = 0;
         const columnNumberExits = 1;
         const columnExitName = 2;
-        const columnDescription = 6;
+        const columnDescription = 9;
 
         await appendText(file, "ROOMS:");
         let text = "";

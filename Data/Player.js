@@ -30,6 +30,43 @@ class Player {
         this.statusString = "";
         this.inventory = inventory;
         this.row = row;
+
+        this.moveTimer = null;
+        this.remainingTime = 0;
+    }
+
+    move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
+        console.log(exit.pos);
+        console.log(this.pos);
+        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.y - this.pos.y, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
+        console.log(`Distance (pixels): ${distance}`);
+        distance = distance * 0.25;
+        console.log(`Distance (meters): ${distance}`);
+        const time = distance / 1.4 * 1000;
+        console.log(`Time (milliseconds): ${time}`);
+        console.log(`Time (seconds): ${time / 1000}`);
+        this.remainingTime = time;
+
+        const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
+
+        let player = this;
+        this.moveTimer = setInterval(function () {
+            player.remainingTime -= 100;
+            // Get the current coordinates based on what percentage of the duration has passed.
+            const elapsedTime = time - player.remainingTime;
+            const timeRatio = elapsedTime / time;
+            let x = startingPos.x + Math.round(timeRatio * (exit.pos.x - startingPos.x));
+            let y = startingPos.y + Math.round(timeRatio * (exit.pos.y - startingPos.y));
+            let z = startingPos.z + Math.round(timeRatio * (exit.pos.z - startingPos.z));
+            player.pos.x = x;
+            player.pos.y = y;
+            player.pos.z = z;
+            if (player.remainingTime <= 0) {
+                clearInterval(player.moveTimer);
+                currentRoom.removePlayer(game, player, exit, exitMessage);
+                desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+            }
+        }, 100);
     }
 
     createMoveAppendString() {
