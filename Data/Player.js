@@ -31,22 +31,16 @@ class Player {
         this.inventory = inventory;
         this.row = row;
 
+        this.isMoving = false;
         this.moveTimer = null;
         this.remainingTime = 0;
     }
 
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
-        console.log(exit.pos);
-        console.log(this.pos);
-        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.y - this.pos.y, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
-        console.log(`Distance (pixels): ${distance}`);
-        distance = distance * 0.25;
-        console.log(`Distance (meters): ${distance}`);
-        const time = distance / 1.4 * 1000;
-        console.log(`Time (milliseconds): ${time}`);
-        console.log(`Time (seconds): ${time / 1000}`);
+        const time = this.calculateMoveTime(exit);
         this.remainingTime = time;
-
+        this.isMoving = true;
+        if (time > 1000) new Narration(game, this, this.location, `${this.displayName} starts walking toward ${exit.name}.`).send();
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
         let player = this;
@@ -65,8 +59,35 @@ class Player {
                 clearInterval(player.moveTimer);
                 currentRoom.removePlayer(game, player, exit, exitMessage);
                 desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+                player.isMoving = false;
             }
         }, 100);
+    }
+
+    calculateMoveTime(exit) {
+        console.log(exit.pos);
+        console.log(this.pos);
+        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
+        console.log(`Distance (pixels): ${distance}`);
+        distance = distance * settings.metersPerPixel;
+        console.log(`Distance (meters): ${distance}`);
+        // The formula to calculate the rate is a quadratic function.
+        // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
+        let rate = 0.0183 * Math.pow(this.speed, 2) + 0.005 * this.speed + 0.916;
+        // Slope should affect the rate. First, get the percent change in slope.
+        const slopePercentChange = (exit.pos.y - this.pos.y) / Math.abs(this.pos.y) * 100;
+        console.log(`Slope gradient (%): ${slopePercentChange}`);
+        // The formula to calculate rate given slope is:
+        // Rate = Rate(Horizontal) * e^(-0.043 * %Slope)
+        rate = rate * Math.exp(-0.043 * slopePercentChange);
+        // Round rate to 1 decimal place.
+        if (rate > 1) rate = parseFloat(rate.toPrecision(2));
+        else rate = parseFloat(rate.toPrecision(1));
+        console.log(`Rate (meters per second): ${rate}`);
+        const time = distance / rate * 1000;
+        console.log(`Time (milliseconds): ${time}`);
+        console.log(`Time (seconds): ${time / 1000}`);
+        return time;
     }
 
     createMoveAppendString() {
