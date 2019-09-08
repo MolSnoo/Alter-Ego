@@ -75,18 +75,17 @@ class Player {
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
         let rate = 0.0183 * Math.pow(this.speed, 2) + 0.005 * this.speed + 0.916;
         // Slope should affect the rate. First, get the percent change in slope.
-        const slopePercentChange = (exit.pos.y - this.pos.y) / Math.abs(this.pos.y) * 100;
-        console.log(`Slope gradient (%): ${slopePercentChange}`);
-        // The formula to calculate rate given slope is:
-        // Rate = Rate(Horizontal) * e^(-0.043 * %Slope)
-        rate = rate * Math.exp(-0.043 * slopePercentChange);
+        const slopePercentChange = this.pos.y !== 0 ? (exit.pos.y - this.pos.y) / Math.abs(this.pos.y) : exit.pos.y;
+        console.log(`Slope gradient (%): ${slopePercentChange * 100}`);
+        rate = rate - slopePercentChange * rate;
         // Round rate to 1 decimal place.
         if (rate > 1) rate = parseFloat(rate.toPrecision(2));
         else rate = parseFloat(rate.toPrecision(1));
         console.log(`Rate (meters per second): ${rate}`);
-        const time = distance / rate * 1000;
+        var time = distance / rate * 1000;
         console.log(`Time (milliseconds): ${time}`);
         console.log(`Time (seconds): ${time / 1000}`);
+        if (time < 0) time = 0;
         return time;
     }
 
@@ -149,6 +148,12 @@ class Player {
         if (status.attributes.includes("concealed")) {
             if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on a mask.`).send();
             this.displayName = "A masked figure";
+        }
+        if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
+            // Clear the player's movement timer.
+            this.isMoving = false;
+            clearInterval(this.moveTimer);
+            this.remainingTime = 0;
         }
 
         // Announce when a player falls asleep or unconscious.

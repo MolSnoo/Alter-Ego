@@ -57,7 +57,6 @@ exports.run = function () {
     test_speed_5_slope_70();
     test_speed_5_slope_80();
     test_speed_5_slope_90();
-    test_speed_5_slope_100();
     return;
 };
 
@@ -175,7 +174,7 @@ function test_speed_5_slope_10() {
     player.speed = 5;
     exit.pos.y = 11;
 
-    const result = 36.1;
+    const result = 25;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -187,7 +186,7 @@ function test_speed_5_slope_20() {
     player.speed = 5;
     exit.pos.y = 12;
 
-    const result = 54.2;
+    const result = 29.5;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -199,7 +198,7 @@ function test_speed_5_slope_30() {
     player.speed = 5;
     exit.pos.y = 13;
 
-    const result = 81.3;
+    const result = 32.5;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -211,7 +210,7 @@ function test_speed_5_slope_40() {
     player.speed = 5;
     exit.pos.y = 14;
 
-    const result = 108;
+    const result = 40.6;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -223,7 +222,7 @@ function test_speed_5_slope_50() {
     player.speed = 5;
     exit.pos.y = 15;
 
-    const result = 163;
+    const result = 46.4;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -235,7 +234,7 @@ function test_speed_5_slope_60() {
     player.speed = 5;
     exit.pos.y = 16;
 
-    const result = 325;
+    const result = 54.2;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -247,7 +246,7 @@ function test_speed_5_slope_70() {
     player.speed = 5;
     exit.pos.y = 17;
 
-    const result = 464;
+    const result = 81.3;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -259,7 +258,7 @@ function test_speed_5_slope_80() {
     player.speed = 5;
     exit.pos.y = 18;
 
-    const result = 813;
+    const result = 108;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,
@@ -271,19 +270,7 @@ function test_speed_5_slope_90() {
     player.speed = 5;
     exit.pos.y = 19;
 
-    const result = 1080;
-    const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
-    assert.ok(
-        actual === result,
-        actual
-    );
-}
-
-function test_speed_5_slope_100() {
-    player.speed = 5;
-    exit.pos.y = 20;
-
-    const result = 1630;
+    const result = 325;
     const actual = parseFloat((player.calculateMoveTime(exit) / 1000).toPrecision(3));
     assert.ok(
         actual === result,

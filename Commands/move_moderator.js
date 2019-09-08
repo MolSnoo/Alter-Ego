@@ -133,6 +133,10 @@ module.exports.run = async(bot, game, message, command, args) => {
             var entranceMessage;
             if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
             else entranceMessage = `${players[i].displayName} enters${appendString}`;
+            // Clear the player's movement timer first.
+            players[i].isMoving = false;
+            clearInterval(players[i].moveTimer);
+            players[i].remainingTime = 0;
             // Move the player.
             currentRoom.removePlayer(game, players[i], exit, exitMessage);
             desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
