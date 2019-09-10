@@ -70,19 +70,35 @@ class Player {
         let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
         console.log(`Distance (pixels): ${distance}`);
         distance = distance * settings.metersPerPixel;
-        console.log(`Distance (meters): ${distance}`);
         // The formula to calculate the rate is a quadratic function.
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
         let rate = 0.0183 * Math.pow(this.speed, 2) + 0.005 * this.speed + 0.916;
-        // Slope should affect the rate. First, get the percent change in slope.
-        const slopePercentChange = this.pos.y !== 0 ? (exit.pos.y - this.pos.y) / Math.abs(this.pos.y) : exit.pos.y;
-        console.log(`Slope gradient (%): ${slopePercentChange * 100}`);
-        rate = rate - slopePercentChange * rate;
-        // Round rate to 1 decimal place.
-        if (rate > 1) rate = parseFloat(rate.toPrecision(2));
-        else rate = parseFloat(rate.toPrecision(1));
-        console.log(`Rate (meters per second): ${rate}`);
-        var time = distance / rate * 1000;
+        // Slope should affect the rate.
+        const rise = (exit.pos.y - this.pos.y) * settings.metersPerPixel;
+        var time = 0;
+        // If distance is 0, we'll treat it like a staircase and just use the rise to calculate the time.
+        if (distance === 0 && rise !== 0) {
+            const uphill = rise > 0 ? true : false;
+            // Assume that the staircase is a right triangle leading to another right triangle flipped horizontally.
+            const legs = rise / 2;
+            // Calculate the length of the hypotenuse of these right triangles.
+            distance = Math.sqrt(2 * Math.pow(legs, 2));
+            // The distance should be two hypotenuses.
+            distance = distance * 2;
+            // If the player is moving uphill, reduce their rate of movement by 1/3.
+            // Otherwise, increase it by 1/3;
+            rate = uphill ? 2 * rate / 3 : 4 * rate / 3;
+            console.log(`Rate (meters per second): ${rate}`);
+            // To make it feel a little more realistic, multiply it by 2.
+            time = distance / rate * 2 * 1000;
+        }
+        else {
+            const slope = rise / distance;
+            rate = !isNaN(slope) ? rate - slope * rate : rate;
+            console.log(`Rate (meters per second): ${rate}`);
+            time = distance / rate * 1000;
+        }
+        console.log(`Distance (meters): ${distance}`);
         console.log(`Time (milliseconds): ${time}`);
         console.log(`Time (seconds): ${time / 1000}`);
         if (time < 0) time = 0;
