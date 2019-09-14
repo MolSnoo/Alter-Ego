@@ -22,6 +22,26 @@ class Puzzle {
         this.row = row;
     }
 
+    setAccessible(game) {
+        this.accessible = true;
+        sheets.updateCell(this.accessibleCell(), "TRUE", function (response) {
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
+        });
+    }
+
+    setInaccessible(game) {
+        this.accessible = false;
+        sheets.updateCell(this.accessibleCell(), "FALSE", function (response) {
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
+        });
+    }
+
     async solve(bot, game, player, message, doSolvedCommands) {
         // Let the palyer and anyone else in the room know that the puzzle was solved.
         if (player !== null)
