@@ -401,9 +401,10 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnFatal = 2;
             const columnCures = 3;
             const columnNextStage = 4;
-            const columnCuredCondition = 5;
-            const columnRollModifier = 6;
-            const columnAttributes = 7;
+            const columnDuplicatedStatus = 5;
+            const columnCuredCondition = 6;
+            const columnRollModifier = 7;
+            const columnAttributes = 8;
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -420,6 +421,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                         sheet[i][columnFatal] === "TRUE",
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage] : null,
+                        sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus] : null,
                         sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition] : null,
                         sheet[i][columnRollModifier] ? parseInt(sheet[i][columnRollModifier].substring(1)) : "",
                         modifiesSelf,
@@ -438,6 +440,10 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                 if (game.statusEffects[i].nextStage) {
                     let nextStage = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].nextStage);
                     if (nextStage) game.statusEffects[i].nextStage = nextStage;
+                }
+                if (game.statusEffects[i].duplicatedStatus) {
+                    let duplicatedStatus = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].duplicatedStatus);
+                    if (duplicatedStatus) game.statusEffects[i].duplicatedStatus = duplicatedStatus;
                 }
                 if (game.statusEffects[i].curedCondition) {
                     let curedCondition = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].curedCondition);
@@ -502,6 +508,8 @@ module.exports.checkStatusEffect = function (status) {
     }
     if (status.nextStage !== null && !(status.nextStage instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Next stage "${status.nextStage}" is not a status effect.`);
+    if (status.duplicatedStatus !== null && !(status.duplicatedStatus instanceof Status))
+        return new Error(`Couldn't load status effect on row ${status.row}. Duplicated status "${status.duplicatedStatus}" is not a status effect.`);
     if (status.curedCondition !== null && !(status.curedCondition instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Cured condition "${status.curedCondition}" is not a status effect.`);
     return;

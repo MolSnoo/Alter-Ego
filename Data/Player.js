@@ -94,8 +94,6 @@ class Player {
     }
 
     inflict(game, statusName, notify, doCures, updateSheet, narrate) {
-        if (this.statusString.includes(statusName)) return "Specified player already has that status effect.";
-
         var status = null;
         for (let i = 0; i < game.statusEffects.length; i++) {
             if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
@@ -104,6 +102,15 @@ class Player {
             }
         }
         if (status === null) return `Couldn't find status effect "${statusName}".`;
+
+        if (this.statusString.includes(statusName)) {
+            if (status.duplicatedStatus !== null) {
+                this.cure(game, statusName, false, false, false, false);
+                this.inflict(game, status.duplicatedStatus.name, true, false, true, true);
+                return `Status was duplicated, so inflicted ${status.duplicatedStatus.name} instead.`;
+            }
+            else return "Specified player already has that status effect.";
+        }
 
         if (notify === null || notify === undefined) notify = true;
         if (doCures === null || doCures === undefined) doCures = true;
@@ -133,8 +140,9 @@ class Player {
         // Announce when a player falls asleep or unconscious.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
+        else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -235,6 +243,7 @@ class Player {
         // Announce when a player awakens.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
+        else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
@@ -299,7 +308,7 @@ class Player {
 
     hasAttribute(attribute) {
         var hasAttribute = false;
-        for (let i = 0; i < this.status.length; i++) {
+        for (let i = 0; i < this.status.length; i++) {         
             if (this.status[i].attributes.includes(attribute)) {
                 hasAttribute = true;
                 break;
@@ -311,6 +320,7 @@ class Player {
     getAttributeStatusEffects(attribute) {
         var statusEffects = [];
         for (let i = 0; i < this.status.length; i++) {
+            console.log(this.status[i]);
             if (this.status[i].attributes.includes(attribute))
                 statusEffects.push(this.status[i]);
         }
@@ -322,7 +332,7 @@ class Player {
         if (item.effects.length === 0 && item.cures.length === 0) return "that item has no programmed use on its own, but you may be able to use it some other way.";
         if (item.name !== "MASK" && item.effects.length !== 0) {
             for (let i = 0; i < item.effects.length; i++) {
-                if (this.statusString.includes(item.effects[i].name))
+                if (this.statusString.includes(item.effects[i].name) && item.effects[i].duplicatedStatus === null)
                     return "you cannot use that item as you are already under its effect.";
             }
         }

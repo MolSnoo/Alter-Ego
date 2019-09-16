@@ -80,8 +80,8 @@ function test_Room() {
 }
 
 function test_Status() {
-    const status = new Status("heated", null, false, "", "", "", 0, true, "", 204);
+    const status = new Status("heated", null, false, "", "", "", "", 0, true, "", 204);
 
-    assert.ok(status.inflictedCell() === "Status Effects!J204", status.inflictedCell());
-    assert.ok(status.curedCell() === "Status Effects!K204", status.curedCell());
+    assert.ok(status.inflictedCell() === "Status Effects!K204", status.inflictedCell());
+    assert.ok(status.curedCell() === "Status Effects!L204", status.curedCell());
 }
