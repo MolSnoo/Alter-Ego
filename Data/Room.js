@@ -17,7 +17,11 @@ class Room {
     addPlayer(game, player, entrance, entranceMessage, sendDescription) {
         player.location = this;
         // Set the player's position.
-        if (entrance) player.pos = entrance.pos;
+        if (entrance) {
+            player.pos.x = entrance.pos.x;
+            player.pos.y = entrance.pos.y;
+            player.pos.z = entrance.pos.z;
+        }
         // If no entrance is given, try to calculate the center of the room by averaging the coordinates of all exits.
         else {
             let coordSum = { x: 0, y: 0, z: 0 };

@@ -517,11 +517,14 @@ module.exports.checkStatusEffect = function (status) {
 
 module.exports.loadPlayers = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        // Clear all player status effects first.
+        // Clear all player status effects and movement timers first.
         for (let i = 0; i < game.players.length; i++) {
             for (let j = 0; j < game.players[i].status.length; j++) {
                 clearInterval(game.players[i].status[j].timer);
             }
+            game.players[i].isMoving = false;
+            clearInterval(game.players[i].moveTimer);
+            game.players[i].remainingTime = 0;
         }
         // Clear all rooms of their occupants.
         for (let i = 0; i < game.rooms.length; i++)

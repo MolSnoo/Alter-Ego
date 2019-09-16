@@ -22,7 +22,27 @@ class Puzzle {
         this.row = row;
     }
 
-    solve(bot, game, player, message, doSolvedCommands) {
+    setAccessible(game) {
+        this.accessible = true;
+        sheets.updateCell(this.accessibleCell(), "TRUE", function (response) {
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
+        });
+    }
+
+    setInaccessible(game) {
+        this.accessible = false;
+        sheets.updateCell(this.accessibleCell(), "FALSE", function (response) {
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
+        });
+    }
+
+    async solve(bot, game, player, message, doSolvedCommands) {
         // Let the palyer and anyone else in the room know that the puzzle was solved.
         if (player !== null)
             player.sendDescription(this.correctCell());
@@ -40,8 +60,18 @@ class Puzzle {
 
         if (doSolvedCommands === true) {
             // Run any needed commands.
-            for (let i = 0; i < this.solvedCommands.length; i++)
-                commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
+            for (let i = 0; i < this.solvedCommands.length; i++) {
+                if (this.solvedCommands[i].startsWith("wait")) {
+                    let args = this.solvedCommands[i].split(" ");
+                    if (!args[1]) game.commandChannel.send(`Error: Couldn't execute command "${this.solvedCommands[i]}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.solvedCommands[i]}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
+                }
+            }
         }
 
         if (player !== null) {
@@ -53,7 +83,7 @@ class Puzzle {
         return;
     }
 
-    unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
+    async unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
         // There's no message when unsolved cell, so let the player know what they did.
         if (player !== null && directMessage !== null) player.member.send(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
@@ -71,8 +101,18 @@ class Puzzle {
 
         if (doUnsolvedCommands === true) {
             // Run any needed commands.
-            for (let i = 0; i < this.unsolvedCommands.length; i++)
-                commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
+            for (let i = 0; i < this.unsolvedCommands.length; i++) {
+                if (this.unsolvedCommands[i].startsWith("wait")) {
+                    let args = this.unsolvedCommands[i].split(" ");
+                    if (!args[1]) game.commandChannel.send(`Error: Couldn't execute command "${this.unsolvedCommands[i]}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.unsolvedCommands[i]}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
+                }
+            }
         }
 
         if (player !== null) {
@@ -163,3 +203,7 @@ class Puzzle {
 }
 
 module.exports = Puzzle;
+
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}

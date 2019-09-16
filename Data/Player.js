@@ -31,22 +31,16 @@ class Player {
         this.inventory = inventory;
         this.row = row;
 
+        this.isMoving = false;
         this.moveTimer = null;
         this.remainingTime = 0;
     }
 
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
-        console.log(exit.pos);
-        console.log(this.pos);
-        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.y - this.pos.y, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
-        console.log(`Distance (pixels): ${distance}`);
-        distance = distance * 0.25;
-        console.log(`Distance (meters): ${distance}`);
-        const time = distance / 1.4 * 1000;
-        console.log(`Time (milliseconds): ${time}`);
-        console.log(`Time (seconds): ${time / 1000}`);
+        const time = this.calculateMoveTime(exit);
         this.remainingTime = time;
-
+        this.isMoving = true;
+        if (time > 1000) new Narration(game, this, this.location, `${this.displayName} starts walking toward ${exit.name}.`).send();
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
         let player = this;
@@ -65,8 +59,50 @@ class Player {
                 clearInterval(player.moveTimer);
                 currentRoom.removePlayer(game, player, exit, exitMessage);
                 desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+                player.isMoving = false;
             }
         }, 100);
+    }
+
+    calculateMoveTime(exit) {
+        console.log(exit.pos);
+        console.log(this.pos);
+        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
+        console.log(`Distance (pixels): ${distance}`);
+        distance = distance * settings.metersPerPixel;
+        // The formula to calculate the rate is a quadratic function.
+        // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
+        let rate = 0.0183 * Math.pow(this.speed, 2) + 0.005 * this.speed + 0.916;
+        // Slope should affect the rate.
+        const rise = (exit.pos.y - this.pos.y) * settings.metersPerPixel;
+        var time = 0;
+        // If distance is 0, we'll treat it like a staircase and just use the rise to calculate the time.
+        if (distance === 0 && rise !== 0) {
+            const uphill = rise > 0 ? true : false;
+            // Assume that the staircase is a right triangle leading to another right triangle flipped horizontally.
+            const legs = rise / 2;
+            // Calculate the length of the hypotenuse of these right triangles.
+            distance = Math.sqrt(2 * Math.pow(legs, 2));
+            // The distance should be two hypotenuses.
+            distance = distance * 2;
+            // If the player is moving uphill, reduce their rate of movement by 1/3.
+            // Otherwise, increase it by 1/3;
+            rate = uphill ? 2 * rate / 3 : 4 * rate / 3;
+            console.log(`Rate (meters per second): ${rate}`);
+            // To make it feel a little more realistic, multiply it by 2.
+            time = distance / rate * 2 * 1000;
+        }
+        else {
+            const slope = rise / distance;
+            rate = !isNaN(slope) ? rate - slope * rate : rate;
+            console.log(`Rate (meters per second): ${rate}`);
+            time = distance / rate * 1000;
+        }
+        console.log(`Distance (meters): ${distance}`);
+        console.log(`Time (milliseconds): ${time}`);
+        console.log(`Time (seconds): ${time / 1000}`);
+        if (time < 0) time = 0;
+        return time;
     }
 
     createMoveAppendString() {
@@ -135,6 +171,12 @@ class Player {
         if (status.attributes.includes("concealed")) {
             if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on a mask.`).send();
             this.displayName = "A masked figure";
+        }
+        if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
+            // Clear the player's movement timer.
+            this.isMoving = false;
+            clearInterval(this.moveTimer);
+            this.remainingTime = 0;
         }
 
         // Announce when a player falls asleep or unconscious.

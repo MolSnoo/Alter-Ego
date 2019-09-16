@@ -5,7 +5,7 @@ module.exports.execute = async (command, bot, game, message, player) => {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
-    else if (message.channel.id === settings.commandChannel && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
+    else if ((message.channel.id === settings.commandChannel || command.startsWith('delete')) && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
     else {
         let member = game.guild.members.find(member => member.id === message.author.id);
         if (member && member.roles.find(role => role.id === settings.playerRole)) isPlayer = true;

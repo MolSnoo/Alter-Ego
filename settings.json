@@ -8,6 +8,7 @@
   "modulesDir": "Modules",
   "testsDir": "Tests",
 
+  "metersPerPixel": 0.25,
   "defaultStats": {
     "strength": 5,
     "intelligence": 5,
