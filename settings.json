@@ -9,6 +9,7 @@
   "testsDir": "Tests",
 
   "metersPerPixel": 0.25,
+  "staminaUseRate": -0.01,
   "defaultStats": {
     "strength": 5,
     "intelligence": 5,

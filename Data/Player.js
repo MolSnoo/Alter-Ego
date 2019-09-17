@@ -21,6 +21,7 @@ class Player {
         this.intelligence = stats.intelligence;
         this.dexterity = stats.dexterity;
         this.speed = stats.speed;
+        this.maxStamina = stats.stamina;
         this.stamina = stats.stamina;
         this.alive = alive;
         this.location = location;
@@ -34,6 +35,9 @@ class Player {
         this.isMoving = false;
         this.moveTimer = null;
         this.remainingTime = 0;
+
+        this.reachedHalfStamina = false;
+        // TODO: add stamina regeneration
     }
 
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
@@ -52,14 +56,44 @@ class Player {
             let x = startingPos.x + Math.round(timeRatio * (exit.pos.x - startingPos.x));
             let y = startingPos.y + Math.round(timeRatio * (exit.pos.y - startingPos.y));
             let z = startingPos.z + Math.round(timeRatio * (exit.pos.z - startingPos.z));
+            // Calculate the distance the player has traveled in this time.
+            let distance = Math.sqrt(Math.pow(x - player.pos.x, 2) + Math.pow(z - player.pos.z, 2)) * settings.metersPerPixel;
+            let rise = (y - player.pos.y) * settings.metersPerPixel;
+            // Calculate the amount of stamina the player has lost traveling this distance.
+            var lostStamina;
+            // If distance is 0, we'll treat it like a staircase.
+            if (distance === 0 && rise !== 0) {
+                const uphill = rise > 0 ? true : false;
+                distance = rise;
+                lostStamina = uphill ? 4 * settings.staminaUseRate * distance : settings.staminaUseRate / 4 * -distance;
+            }
+            else {
+                const slope = rise / distance;
+                lostStamina = !isNaN(slope) ? (settings.staminaUseRate + slope * settings.staminaUseRate) * distance : settings.staminaUseRate * distance;
+                if (isNaN(lostStamina)) lostStamina = 0;
+            }
             player.pos.x = x;
             player.pos.y = y;
             player.pos.z = z;
-            if (player.remainingTime <= 0) {
+            player.stamina = player.stamina + lostStamina;
+            // If player reaches half of their stamina, give them a warning.
+            // Be sure to check player.reachedHalfStamina so that this message is only sent once.
+            if (player.stamina <= player.maxStamina / 2 && !player.reachedHalfStamina) {
+                player.reachedHalfStamina = true;
+                player.member.send(`You're starting to get tired! You might want to stop moving and rest soon.`);
+            }
+            // If player runs out of stamina, stop them in their tracks.
+            if (player.stamina <= 0) {
+                clearInterval(player.moveTimer);
+                player.stamina = 0;
+                player.inflict(game, "weary", true, true, true, true);
+            }
+            if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
                 currentRoom.removePlayer(game, player, exit, exitMessage);
                 desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
                 player.isMoving = false;
+                console.log(`Remaining stamina: ${player.stamina}`);
             }
         }, 100);
     }
@@ -362,7 +396,6 @@ class Player {
     getAttributeStatusEffects(attribute) {
         var statusEffects = [];
         for (let i = 0; i < this.status.length; i++) {
-            console.log(this.status[i]);
             if (this.status[i].attributes.includes(attribute))
                 statusEffects.push(this.status[i]);
         }
@@ -802,7 +835,7 @@ class Player {
             clearInterval(this.status[i].timer);
         this.status.length = 0;
         // Update that data on the sheet, as well.
-        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.stamina, this.alive, "", "", "")));
+        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);
