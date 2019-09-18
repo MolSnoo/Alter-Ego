@@ -37,7 +37,10 @@ class Player {
         this.remainingTime = 0;
 
         this.reachedHalfStamina = false;
-        // TODO: add stamina regeneration
+        let player = this;
+        this.interval = setInterval(function () {
+            if (!player.isMoving) player.regenerateStamina();
+        }, 30000);
     }
 
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
@@ -137,6 +140,21 @@ class Player {
         console.log(`Time (seconds): ${time / 1000}`);
         if (time < 0) time = 0;
         return time;
+    }
+
+    regenerateStamina() {
+        if (this.stamina < this.maxStamina) {
+            // Recover 1/20th of the player's max stamina per cycle.
+            const staminaAmount = this.maxStamina / 20;
+            const newStamina = this.stamina + staminaAmount;
+            // Make sure not to exceed the max stamina for this player.
+            if (newStamina > this.maxStamina)
+                this.stamina = this.maxStamina;
+            else
+                this.stamina = newStamina;
+            console.log(this.stamina);
+        }
+        return;
     }
 
     createMoveAppendString() {
