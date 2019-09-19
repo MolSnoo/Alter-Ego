@@ -797,7 +797,7 @@ class Player {
                         let player = this;
                         sheets.getData(puzzle.alreadySolvedCell(), function (response) {
                             let message = null;
-                            if (response.data.values) message = response.data.values[0][0];
+                            if (response.data.values) message = parser.parseDescription(response.data.values[0][0]);
                             puzzle.unsolve(bot, game, player, `${player.displayName} uses the ${puzzle.name}.`, message, true);
                         });
                     }
