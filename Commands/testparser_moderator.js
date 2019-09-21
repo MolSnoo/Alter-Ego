@@ -84,7 +84,7 @@ testparse = async (file) => {
         const columnRoomName = 0;
         const columnNumberExits = 1;
         const columnExitName = 2;
-        const columnDescription = 6;
+        const columnDescription = 9;
 
         await appendText(file, "ROOMS:");
         let text = "";
@@ -131,6 +131,31 @@ testparse = async (file) => {
 
             text += "      ";
             text += newDescription + os.EOL;
+        }
+        await appendText(file, text);
+    }
+
+    {
+        const sheet = await getData(settings.itemSheetAllCells);
+        const columnItemName = 0;
+        const columnDescription = 12;
+
+        await appendText(file, "ITEMS:");
+        let text = "";
+        for (let i = 1; i < sheet.length; i++) {
+            if (sheet[i][columnDescription]) {
+                text += "   ";
+                text += sheet[i][columnItemName] + os.EOL;
+
+                const oldDescription = sheet[i][columnDescription];
+                const newDescription = parser.parseDescription(oldDescription, player);
+
+                text += "      ";
+                text += oldDescription + os.EOL;
+
+                text += "      ";
+                text += newDescription + os.EOL;
+            }
         }
         await appendText(file, text);
     }
@@ -280,8 +305,8 @@ testremove = async (file, formatted) => {
                 let items = new Array();
                 let itemNames = new Array();
                 for (let k = 0; k < game.items.length; k++) {
-                    if (game.items[k].location === sheet[i][columnRoomName]
-                        && game.items[k].sublocation === ""
+                    if (game.items[k].location.name === sheet[i][columnRoomName]
+                        && game.items[k].sublocationName === ""
                         && game.items[k].accessible) {
                         items.push(game.items[k]);
                         itemNames.push(game.items[k].name);
@@ -346,8 +371,8 @@ testremove = async (file, formatted) => {
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location === sheet[i][columnObjectLocation]
-                        && game.items[j].sublocation === sheet[i][columnObjectName]
+                    if (game.items[j].location.name === sheet[i][columnObjectLocation]
+                        && game.items[j].sublocationName === sheet[i][columnObjectName]
                         && game.items[j].accessible
                         && sheet[i][columnPreposition] !== "") {
                         items.push(game.items[j]);
@@ -403,8 +428,8 @@ testremove = async (file, formatted) => {
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location === sheet[i][columnLocation]
-                        && game.items[j].requires === sheet[i][columnPuzzleName]) {
+                    if (game.items[j].location.name === sheet[i][columnLocation]
+                        && game.items[j].requiresName === sheet[i][columnPuzzleName]) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
