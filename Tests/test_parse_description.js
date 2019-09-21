@@ -27,6 +27,7 @@ exports.run = function () {
     test_parseDescription_13();
     test_parseDescription_14();
     test_parseDescription_15();
+    test_parseDescription_16();
     return;
 };
 
@@ -215,6 +216,18 @@ function test_parseDescription_15() {
     const player = new Player("Ultimate Botanist", 5);
 
     const result = `You open the locker.`;
+    const actual = parser.parseDescription(text, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_16() {
+    const text = `<desc><s>You flip through the photo album.</s> <if cond="player.talent === 'Iris'"><s>It's full of pictures of your parents and all of the places they've gone.</s> <s>There are no pictures of you.</s></if><if cond="player.talent === 'Scarlet'"><s>It's full of pictures of Iris's parents in various places, but there are no pictures of Iris in here.</s></if><if cond="player.talent !== 'Iris' && player.talent !== 'Scarlet'"><s>It's full of pictures of a married couple in various places around the world.</s> <s>You've never seen these people before.</s></if></desc>`;
+    const player = new Player("Monokuma", 5);
+
+    const result = `You flip through the photo album. It's full of pictures of a married couple in various places around the world. You've never seen these people before.`;
     const actual = parser.parseDescription(text, player);
     assert.ok(
         actual === result,

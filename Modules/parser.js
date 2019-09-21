@@ -63,22 +63,22 @@ module.exports.parseDescription = function (description, player, doErrorChecking
 
     // Find any conditionals.
     var conditionals = document.getElementsByTagName('if');
+    let conditionalsToRemove = [];
     for (let i = 0; i < conditionals.length; i++) {
-        let removeConditional = true;
         let conditional = conditionals[i].getAttribute('cond');
         if (conditional !== null && conditional !== undefined) {
-            if (eval(conditional) === true)
-                removeConditional = false;
+            if (eval(conditional) === false)
+                conditionalsToRemove.push(conditionals[i]);
         }
-        if (removeConditional) {
-            if (conditionals[i].childNodes[0].tagName === 'item') {
-                let itemElement = conditionals[i].childNodes[0].childNodes[0];
-                let item = new Item("", 0, itemElement.data, itemElement.data);
-                document = this.removeItem(description, item, document);
-            }
-            else if (conditionals[i].parentNode) conditionals[i].parentNode.removeChild(conditionals[i]);
-            else document.removeChild(conditionals[i]);
+    }
+    for (let i = 0; i < conditionalsToRemove.length; i++) {
+        if (conditionalsToRemove[i].childNodes[0].tagName === 'item') {
+            let itemElement = conditionalsToRemove[i].childNodes[0].childNodes[0];
+            let item = new Item("", 0, itemElement.data, itemElement.data);
+            document = this.removeItem(description, item, document);
         }
+        else if (conditionalsToRemove[i].parentNode) conditionalsToRemove[i].parentNode.removeChild(conditionalsToRemove[i]);
+        else document.removeChild(conditionalsToRemove[i]);
     }
 
     // Check if there's an item list in the document.
