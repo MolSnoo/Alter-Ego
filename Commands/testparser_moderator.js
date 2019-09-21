@@ -352,6 +352,12 @@ testremove = async (file, formatted) => {
                         itemNames.push(game.items[k].name);
                     }
                 }
+                // If the number of items is higher than 4, the bot usually runs out of memory.
+                // Make 4 the limit.
+                if (items.length > 4) {
+                    items = items.slice(0, 4);
+                    itemNames = itemNames.slice(0, 4);
+                }
                 const orders = permute(itemNames);
 
                 for (let j = 0; j < parseInt(sheet[i][columnNumberExits]); j++) {
@@ -419,6 +425,12 @@ testremove = async (file, formatted) => {
                         itemNames.push(game.items[j].name);
                     }
                 }
+                // If the number of items is higher than 4, the bot usually runs out of memory.
+                // Make 4 the limit.
+                if (items.length > 4) {
+                    items = items.slice(0, 4);
+                    itemNames = itemNames.slice(0, 4);
+                }
                 const orders = permute(itemNames);
 
                 for (let j = 0; j < orders.length; j++) {
@@ -473,6 +485,12 @@ testremove = async (file, formatted) => {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
+                }
+                // If the number of items is higher than 4, the bot usually runs out of memory.
+                // Make 4 the limit.
+                if (items.length > 4) {
+                    items = items.slice(0, 4);
+                    itemNames = itemNames.slice(0, 4);
                 }
                 const orders = permute(itemNames);
 
