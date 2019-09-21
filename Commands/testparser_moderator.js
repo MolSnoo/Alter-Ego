@@ -192,7 +192,7 @@ testparse = async (file) => {
                 text += oldDescription + os.EOL;
 
                 text += "      ";
-                text += newDescription + os.EOL;
+                text += newDescription.text + os.EOL;
             }
         }
         await appendText(file, text);
@@ -220,7 +220,7 @@ testparse = async (file) => {
                 text += oldDescription + os.EOL;
 
                 text += "      ";
-                text += newDescription + os.EOL;
+                text += newDescription.text + os.EOL;
             }
         }
         await appendText(file, text);
