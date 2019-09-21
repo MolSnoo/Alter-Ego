@@ -47,12 +47,19 @@ class Item {
     }
 }
 
-module.exports.parseDescription = function (description, player) {
+module.exports.parseDescription = function (description, player, doErrorChecking) {
     let prefix = '';
     if (description.startsWith('=CONCATENATE("'))
         prefix = '=CONCATENATE("';
     // First, split the description into a DOMParser document.
     var document = createDocument(description);
+    // Check for any warnings and errors. If they exist, store them.
+    var warnings = [];
+    var errors = [];
+    if (document.warnings.length !== 0) warnings = document.warnings;
+    if (document.errors.length !== 0) errors = document.errors;
+    // Now we just need the document.
+    document = document.document;
 
     // Find any conditionals.
     var conditionals = document.getElementsByTagName('if');
@@ -90,7 +97,13 @@ module.exports.parseDescription = function (description, player) {
     // Strip XML tags from the string, as well as all duplicate spaces.
     newDescription = newDescription.replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '').trim();
 
-    return prefix + newDescription;
+    if (doErrorChecking === null || doErrorChecking === undefined)
+        doErrorChecking = false;
+
+    if (doErrorChecking)
+        return { text: prefix + newDescription, warnings: warnings, errors: errors };
+    else
+        return prefix + newDescription;
 };
 
 module.exports.addItem = function (description, item) {
@@ -98,7 +111,7 @@ module.exports.addItem = function (description, item) {
     if (description.startsWith('=CONCATENATE("'))
         prefix = '=CONCATENATE("';
     // First, split the description into a DOMParser document.
-    var document = createDocument(description);
+    var document = createDocument(description).document;
 
     // Parse all of the sentences.
     var sentenceElements = document.getElementsByTagName('s');
@@ -176,7 +189,7 @@ module.exports.removeItem = function (description, item, document) {
         if (description.startsWith('=CONCATENATE("'))
             prefix = '=CONCATENATE("';
         // First, split the description into a DOMParser document.
-        document = createDocument(description);
+        document = createDocument(description).document;
     }
 
     // Parse all of the sentences.
@@ -239,7 +252,18 @@ function createDocument(description) {
     //if (!description.endsWith("</desc>")) description += "</desc>";
     description = description.replace(/<il><\/il>/g, "<il><null /></il>");
 
-    return new DOMParser().parseFromString(description, 'text/xml');
+    var warnings = [];
+    var errors = [];
+    var document = new DOMParser({
+        // locator is always need for error position info
+        locator: {},
+        // you can override the errorHandler for xml parser
+        errorHandler: {
+            warning: function (w) { warnings.push(w); },
+            error: function (err) { errors.push(err); }
+        }
+    }).parseFromString(description, 'text/xml');
+    return { document: document, warnings: warnings, errors: errors };
 }
 
 function createSentence(sentenceNode) {

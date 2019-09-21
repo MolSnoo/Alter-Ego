@@ -46,8 +46,37 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (err) return console.log(err);
     });
 
-    if (args[0] === "parse")
-        await testparse(file);
+    if (args[0] === "parse") {
+        const result = await testparse(file);
+        let warnings = [];
+        for (let i = 0; i < result.warnings.length; i++) {
+            for (let j = 0; j < result.warnings[i].warnings.length; j++) {
+                result.warnings[i].warnings[j] = result.warnings[i].warnings[j].replace(/\t/g, " ").replace(/\n/g, " ");
+                warnings.push(`Warning on ${result.warnings[i].cell}: ${result.warnings[i].warnings[j]}`);
+            }
+        }
+        if (warnings.length > 0) {
+            if (warnings.length > 5) {
+                warnings = warnings.slice(0, 5);
+                warnings.push("Too many warnings.");
+            }
+            message.channel.send(warnings.join('\n'));
+        }
+        let errors = [];
+        for (let i = 0; i < result.errors.length; i++) {
+            for (let j = 0; j < result.errors[i].errors.length; j++) {
+                result.errors[i].errors[j] = result.errors[i].errors[j].replace(/\t/g, " ").replace(/\n/g, " ");
+                errors.push(`Error on ${result.errors[i].cell}: ${result.errors[i].errors[j]}`);
+            }
+        }
+        if (errors.length > 0) {
+            if (errors.length > 5) {
+                errors = errors.slice(0, 5);
+                errors.push("Too many errors.");
+            }
+            message.channel.send(errors.join('\n'));
+        }
+    }
     else if (args[0] === "add") {
         if (game.items.length === 0)
             await loader.loadItems(game, false);
@@ -78,6 +107,9 @@ module.exports.run = async (bot, game, message, command, args) => {
 
 testparse = async (file) => {
     var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
+
+    var warnings = [];
+    var errors = [];
     // Get rooms first.
     {
         const sheet = await getData(settings.roomSheetAllCells);
@@ -97,13 +129,15 @@ testparse = async (file) => {
                     text += "      ";
                     text += sheet[i + j][columnExitName] + os.EOL;
                     const oldDescription = sheet[i + j][columnDescription];
-                    const newDescription = parser.parseDescription(oldDescription, player);
+                    const newDescription = parser.parseDescription(oldDescription, player, true);
+                    if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.roomSheetDescriptionColumn + (i + j + 1), warnings: newDescription.warnings });
+                    if (newDescription.errors.length !== 0) errors.push({ cell: settings.roomSheetDescriptionColumn + (i + j + 1), errors: newDescription.errors });
 
                     text += "         ";
                     text += oldDescription + os.EOL;
 
                     text += "         ";
-                    text += newDescription + os.EOL;
+                    text += newDescription.text + os.EOL;
                 }
                 text += os.EOL;
             }
@@ -124,13 +158,15 @@ testparse = async (file) => {
             text += sheet[i][columnObjectName] + os.EOL;
 
             const oldDescription = sheet[i][columnDescription];
-            const newDescription = parser.parseDescription(oldDescription, player);
+            const newDescription = parser.parseDescription(oldDescription, player, true);
+            if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.objectSheetDescriptionColumn + (i + 1), warnings: newDescription.warnings });
+            if (newDescription.errors.length !== 0) errors.push({ cell: settings.objectSheetDescriptionColumn + (i + 1), errors: newDescription.errors });
 
             text += "      ";
             text += oldDescription + os.EOL;
 
             text += "      ";
-            text += newDescription + os.EOL;
+            text += newDescription.text + os.EOL;
         }
         await appendText(file, text);
     }
@@ -148,7 +184,9 @@ testparse = async (file) => {
                 text += sheet[i][columnItemName] + os.EOL;
 
                 const oldDescription = sheet[i][columnDescription];
-                const newDescription = parser.parseDescription(oldDescription, player);
+                const newDescription = parser.parseDescription(oldDescription, player, true);
+                if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.itemSheetDescriptionColumn + (i + 1), warnings: newDescription.warnings });
+                if (newDescription.errors.length !== 0) errors.push({ cell: settings.itemSheetDescriptionColumn + (i + 1), errors: newDescription.errors });
 
                 text += "      ";
                 text += oldDescription + os.EOL;
@@ -174,7 +212,9 @@ testparse = async (file) => {
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 const oldDescription = sheet[i][columnDescription];
-                const newDescription = parser.parseDescription(oldDescription, player);
+                const newDescription = parser.parseDescription(oldDescription, player, true);
+                if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.puzzleSheetAlreadySolvedColumn + (i + 1), warnings: newDescription.warnings });
+                if (newDescription.errors.length !== 0) errors.push({ cell: settings.puzzleSheetAlreadySolvedColumn + (i + 1), errors: newDescription.errors });
 
                 text += "      ";
                 text += oldDescription + os.EOL;
@@ -186,7 +226,7 @@ testparse = async (file) => {
         await appendText(file, text);
     }
 
-    return;
+    return { warnings: warnings, errors: errors };
 };
 
 testadd = async (file, formatted) => {
