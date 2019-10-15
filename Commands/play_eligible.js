@@ -25,7 +25,7 @@ module.exports.run = async (bot, game, message, args) => {
         member.displayName,
         member.displayName,
         "",
-        settings.defaultClueLevel,
+        settings.defaultStats,
         true,
         settings.defaultLocation,
         "",

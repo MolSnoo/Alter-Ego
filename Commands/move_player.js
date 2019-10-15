@@ -72,8 +72,13 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (!adjacent) return message.reply("you can't move to that room.");
 
     if (desiredRoom) {
-        currentRoom.removePlayer(game, player, exit, exitMessage);
-        desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+        if (exit) {
+            await player.move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
+        }
+        else {
+            currentRoom.removePlayer(game, player, exit, exitMessage);
+            desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+        }
     }
     else return message.reply(`couldn't find "${input}"`);
 

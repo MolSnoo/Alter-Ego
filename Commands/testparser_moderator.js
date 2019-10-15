@@ -1,9 +1,12 @@
 ﻿const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
+const loader = include(`${settings.modulesDir}/loader.js`);
 
 const fs = require('fs');
 const os = require('os');
+
+const Player = include(`${settings.dataDir}/Player.js`);
 
 let game = include('game.json');
 
@@ -38,26 +41,55 @@ module.exports.run = async (bot, game, message, command, args) => {
         return;
     }
 
-    const file = "./parsedText.txt";
+    const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
         if (err) return console.log(err);
     });
 
-    if (args[0] === "parse")
-        await testparse(file);
+    if (args[0] === "parse") {
+        const result = await testparse(file);
+        let warnings = [];
+        for (let i = 0; i < result.warnings.length; i++) {
+            for (let j = 0; j < result.warnings[i].warnings.length; j++) {
+                result.warnings[i].warnings[j] = result.warnings[i].warnings[j].replace(/\t/g, " ").replace(/\n/g, " ");
+                warnings.push(`Warning on ${result.warnings[i].cell}: ${result.warnings[i].warnings[j]}`);
+            }
+        }
+        if (warnings.length > 0) {
+            if (warnings.length > 5) {
+                warnings = warnings.slice(0, 5);
+                warnings.push("Too many warnings.");
+            }
+            message.channel.send(warnings.join('\n'));
+        }
+        let errors = [];
+        for (let i = 0; i < result.errors.length; i++) {
+            for (let j = 0; j < result.errors[i].errors.length; j++) {
+                result.errors[i].errors[j] = result.errors[i].errors[j].replace(/\t/g, " ").replace(/\n/g, " ");
+                errors.push(`Error on ${result.errors[i].cell}: ${result.errors[i].errors[j]}`);
+            }
+        }
+        if (errors.length > 0) {
+            if (errors.length > 5) {
+                errors = errors.slice(0, 5);
+                errors.push("Too many errors.");
+            }
+            message.channel.send(errors.join('\n'));
+        }
+    }
     else if (args[0] === "add") {
         if (game.items.length === 0)
-            return message.reply('You need to load some items before you can test this function.');
-        let format = 1;
-        if (args[1] && args[1] === "formatted") format = 0;
-        await testadd(file, format);
+            await loader.loadItems(game, false);
+        let formatted = false;
+        if (args[1] && args[1] === "formatted") formatted = true;
+        await testadd(file, formatted);
     }
     else if (args[0] === "remove") {
         if (game.items.length === 0)
-            return message.reply('You need to load some items before you can test this function.');
-        let format = 1;
-        if (args[1] && args[1] === "formatted") format = 0;
-        await testremove(file, format);
+            await loader.loadItems(game, false);
+        let formatted = false;
+        if (args[1] && args[1] === "formatted") formatted = true;
+        await testremove(file, formatted);
     }
     else return message.reply('Function not found. You need to use "parse", "add", or "remove".');
 
@@ -65,7 +97,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         files: [
             {
                 attachment: file,
-                name: `parsedText-${args[0]}.txt`
+                name: `parsedText-${args[0]}.xml`
             }
         ]
     });
@@ -74,13 +106,17 @@ module.exports.run = async (bot, game, message, command, args) => {
 };
 
 testparse = async (file) => {
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
+
+    var warnings = [];
+    var errors = [];
     // Get rooms first.
     {
-        const sheet = await sheets.fetchData(settings.roomSheetAllCells);
+        const sheet = await getData(settings.roomSheetAllCells);
         const columnRoomName = 0;
         const columnNumberExits = 1;
         const columnExitName = 2;
-        const columnFormattedDescription = 6;
+        const columnDescription = 9;
 
         await appendText(file, "ROOMS:");
         let text = "";
@@ -92,19 +128,16 @@ testparse = async (file) => {
                 for (let j = 0; j < parseInt(sheet[i][columnNumberExits]); j++) {
                     text += "      ";
                     text += sheet[i + j][columnExitName] + os.EOL;
-                    const oldDescription = sheet[i + j][columnFormattedDescription];
-                    const newDescription = parser.parseDescription(oldDescription);
+                    const oldDescription = sheet[i + j][columnDescription];
+                    const newDescription = parser.parseDescription(oldDescription, player, true);
+                    if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.roomSheetDescriptionColumn + (i + j + 1), warnings: newDescription.warnings });
+                    if (newDescription.errors.length !== 0) errors.push({ cell: settings.roomSheetDescriptionColumn + (i + j + 1), errors: newDescription.errors });
 
                     text += "         ";
-                    text += "formattedDescription === unformattedDescription ? ";
-                    if (oldDescription === newDescription) text += "TRUE" + os.EOL;
-                    else text += "FALSE" + os.EOL;
-
-                    text += "            ";
                     text += oldDescription + os.EOL;
 
-                    text += "            ";
-                    text += newDescription + os.EOL;
+                    text += "         ";
+                    text += newDescription.text + os.EOL;
                 }
                 text += os.EOL;
             }
@@ -114,9 +147,9 @@ testparse = async (file) => {
 
     // Get objects next.
     {
-        const sheet = await sheets.fetchData(settings.objectSheetAllCells);
+        const sheet = await getData(settings.objectSheetAllCells);
         const columnObjectName = 0;
-        const columnFormattedDescription = 6;
+        const columnDescription = 6;
 
         await appendText(file, "OBJECTS:");
         let text = "";
@@ -124,89 +157,109 @@ testparse = async (file) => {
             text += "   ";
             text += sheet[i][columnObjectName] + os.EOL;
 
-            const oldDescription = sheet[i][columnFormattedDescription];
-            const newDescription = parser.parseDescription(oldDescription);
+            const oldDescription = sheet[i][columnDescription];
+            const newDescription = parser.parseDescription(oldDescription, player, true);
+            if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.objectSheetDescriptionColumn + (i + 1), warnings: newDescription.warnings });
+            if (newDescription.errors.length !== 0) errors.push({ cell: settings.objectSheetDescriptionColumn + (i + 1), errors: newDescription.errors });
 
             text += "      ";
-            text += "formattedDescription === unformattedDescription ? ";
-            if (oldDescription === newDescription) text += "TRUE" + os.EOL;
-            else text += "FALSE" + os.EOL;
-
-            text += "         ";
             text += oldDescription + os.EOL;
 
-            text += "         ";
-            text += newDescription + os.EOL;
+            text += "      ";
+            text += newDescription.text + os.EOL;
+        }
+        await appendText(file, text);
+    }
+
+    {
+        const sheet = await getData(settings.itemSheetAllCells);
+        const columnItemName = 0;
+        const columnDescription = 12;
+
+        await appendText(file, "ITEMS:");
+        let text = "";
+        for (let i = 1; i < sheet.length; i++) {
+            if (sheet[i][columnDescription]) {
+                text += "   ";
+                text += sheet[i][columnItemName] + os.EOL;
+
+                const oldDescription = sheet[i][columnDescription];
+                const newDescription = parser.parseDescription(oldDescription, player, true);
+                if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.itemSheetDescriptionColumn + (i + 1), warnings: newDescription.warnings });
+                if (newDescription.errors.length !== 0) errors.push({ cell: settings.itemSheetDescriptionColumn + (i + 1), errors: newDescription.errors });
+
+                text += "      ";
+                text += oldDescription + os.EOL;
+
+                text += "      ";
+                text += newDescription.text + os.EOL;
+            }
         }
         await appendText(file, text);
     }
 
     // Finally, get puzzles.
     {
-        const sheet = await sheets.fetchData(settings.puzzleSheetAllCells);
+        const sheet = await getData(settings.puzzleSheetAllCells);
         const columnPuzzleName = 0;
-        const columnFormattedDescription = 12;
+        const columnDescription = 12;
 
         await appendText(file, "PUZZLES:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription]) {
+            if (sheet[i][columnDescription]) {
                 text += "   ";
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
-                const oldDescription = sheet[i][columnFormattedDescription];
-                const newDescription = parser.parseDescription(oldDescription);
+                const oldDescription = sheet[i][columnDescription];
+                const newDescription = parser.parseDescription(oldDescription, player, true);
+                if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.puzzleSheetAlreadySolvedColumn + (i + 1), warnings: newDescription.warnings });
+                if (newDescription.errors.length !== 0) errors.push({ cell: settings.puzzleSheetAlreadySolvedColumn + (i + 1), errors: newDescription.errors });
 
                 text += "      ";
-                text += "formattedDescription === unformattedDescription ? ";
-                if (oldDescription === newDescription) text += "TRUE" + os.EOL;
-                else text += "FALSE" + os.EOL;
-
-                text += "         ";
                 text += oldDescription + os.EOL;
 
-                text += "         ";
-                text += newDescription + os.EOL;
+                text += "      ";
+                text += newDescription.text + os.EOL;
             }
         }
         await appendText(file, text);
     }
 
-    return;
+    return { warnings: warnings, errors: errors };
 };
 
-testadd = async (file, format) => {
+testadd = async (file, formatted) => {
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
     // Skip over rooms because you can't add items to them.
 
     // Get objects first.
     {
         const sheet = await sheets.fetchData(settings.objectSheetAllCells);
         const columnObjectName = 0;
-        const columnFormattedDescription = 6;
-        const columnParsedDescription = 7;
+        const columnDescription = 6;
 
         await appendText(file, "OBJECTS:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription].includes('<') && sheet[i][columnFormattedDescription].includes('>')) {
+            if (sheet[i][columnDescription].includes('<il>') && sheet[i][columnDescription].includes('</il>')) {
                 text += "   ";
                 text += sheet[i][columnObjectName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = "";
                 for (let j = 0; j < 4; j++) {
                     let randomIndex = Math.floor(Math.random() * game.items.length);
-                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].pluralName))
+                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.items.length);
                     items.push(game.items[randomIndex]);
                     itemNames += game.items[randomIndex].name + " ";
                 }
 
-                let description = [sheet[i][columnFormattedDescription], null];
+                let description = sheet[i][columnDescription];
                 let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
@@ -215,8 +268,8 @@ testadd = async (file, format) => {
                     let item = items[j];
                     item.quantity = 0;
                     text += `(Drop ${item.name}): `;
-                    description = parser.addItem(description[0], item);
-                    text += description[format] + os.EOL;
+                    description = parser.addItem(description, item);
+                    text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                     tabs++;
                 }
             }
@@ -228,31 +281,29 @@ testadd = async (file, format) => {
     {
         const sheet = await sheets.fetchData(settings.puzzleSheetAllCells);
         const columnPuzzleName = 0;
-        const columnFormattedDescription = 12;
-        const columnParsedDescription = 13;
+        const columnDescription = 12;
 
         await appendText(file, "PUZZLES:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription] && sheet[i][columnFormattedDescription].includes('<') && sheet[i][columnFormattedDescription].includes('>')) {
+            if (sheet[i][columnDescription] && sheet[i][columnDescription].includes('<il>') && sheet[i][columnDescription].includes('</il>')) {
                 text += "   ";
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = "";
                 for (let j = 0; j < 4; j++) {
                     let randomIndex = Math.floor(Math.random() * game.items.length);
-                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].name) || sheet[i][columnFormattedDescription].includes(game.items[randomIndex].pluralName))
+                    while (itemNames.includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].name) || sheet[i][columnDescription].includes(game.items[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.items.length);
                     items.push(game.items[randomIndex]);
                     itemNames += game.items[randomIndex].name + " ";
                 }
 
-                let description = [sheet[i][columnFormattedDescription], null];
+                let description = sheet[i][columnDescription];
                 let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
@@ -261,8 +312,8 @@ testadd = async (file, format) => {
                     let item = items[j];
                     item.quantity = 0;
                     text += `(Drop ${item.name}): `;
-                    description = parser.addItem(description[0], item);
-                    text += description[format] + os.EOL;
+                    description = parser.addItem(description, item);
+                    text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                     tabs++;
                 }
             }
@@ -273,32 +324,39 @@ testadd = async (file, format) => {
     return;
 };
 
-testremove = async (file, format) => {
+testremove = async (file, formatted) => {
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
+
     // Get rooms first.
     {
         const sheet = await sheets.fetchData(settings.roomSheetAllCells);
         const columnRoomName = 0;
         const columnNumberExits = 1;
         const columnExitName = 2;
-        const columnFormattedDescription = 6;
-        const columnParsedDescription = 7;
+        const columnDescription = 9;
 
         await appendText(file, "ROOMS:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnRoomName] !== "" && sheet[i][columnFormattedDescription].includes('{') && sheet[i][columnFormattedDescription].includes('}')) {
+            if (sheet[i][columnRoomName] !== "" && sheet[i][columnDescription].includes('<item>') && sheet[i][columnDescription].includes('</item>')) {
                 text += "   ";
                 text += sheet[i][columnRoomName] + os.EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
                 for (let k = 0; k < game.items.length; k++) {
-                    if (game.items[k].location === sheet[i][columnRoomName]
-                        && game.items[k].sublocation === ""
+                    if (game.items[k].location.name === sheet[i][columnRoomName]
+                        && game.items[k].sublocationName === ""
                         && game.items[k].accessible) {
                         items.push(game.items[k]);
                         itemNames.push(game.items[k].name);
                     }
+                }
+                // If the number of items is higher than 4, the bot usually runs out of memory.
+                // Make 4 the limit.
+                if (items.length > 4) {
+                    items = items.slice(0, 4);
+                    itemNames = itemNames.slice(0, 4);
                 }
                 const orders = permute(itemNames);
 
@@ -307,11 +365,10 @@ testremove = async (file, format) => {
                     text += sheet[i + j][columnExitName] + os.EOL;
 
                     text += "         ";
-                    if (format === 0) text += sheet[i + j][columnFormattedDescription] + os.EOL;
-                    else text += sheet[i + j][columnParsedDescription] + os.EOL;
+                    text += (formatted ? sheet[i + j][columnDescription] : parser.parseDescription(sheet[i + j][columnDescription], player)) + os.EOL;
 
                     for (let k = 0; k < orders.length; k++) {
-                        let description = [sheet[i + j][columnFormattedDescription], null];
+                        let description = sheet[i + j][columnDescription];
                         let tabs = 1;
                         const permutation = orders[k].split(',');
                         for (let l = 0; l < permutation.length; l++) {
@@ -327,8 +384,8 @@ testremove = async (file, format) => {
                                 }
                             }
                             text += `(Take ${permutation[l]}): `;
-                            description = parser.removeItem(description[0], item);
-                            text += description[format] + os.EOL;
+                            description = parser.removeItem(description, item);
+                            text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                             tabs++;
                         }
                     }
@@ -339,41 +396,45 @@ testremove = async (file, format) => {
         await appendText(file, text);
     }
 
-    // Get objects first.
+    // Get objects next.
     {
         const sheet = await sheets.fetchData(settings.objectSheetAllCells);
         const columnObjectName = 0;
         const columnObjectLocation = 1;
         const columnPreposition = 5;
-        const columnFormattedDescription = 6;
-        const columnParsedDescription = 7;
+        const columnDescription = 6;
 
         await appendText(file, "OBJECTS:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription].includes('{') && sheet[i][columnFormattedDescription].includes('}')) {
+            if (sheet[i][columnDescription].includes('<item>') && sheet[i][columnDescription].includes('</item>')) {
                 text += "   ";
                 text += sheet[i][columnObjectName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location === sheet[i][columnObjectLocation]
-                        && game.items[j].sublocation === sheet[i][columnObjectName]
+                    if (game.items[j].location.name === sheet[i][columnObjectLocation]
+                        && game.items[j].sublocationName === sheet[i][columnObjectName]
                         && game.items[j].accessible
                         && sheet[i][columnPreposition] !== "") {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
                 }
+                // If the number of items is higher than 4, the bot usually runs out of memory.
+                // Make 4 the limit.
+                if (items.length > 4) {
+                    items = items.slice(0, 4);
+                    itemNames = itemNames.slice(0, 4);
+                }
                 const orders = permute(itemNames);
 
                 for (let j = 0; j < orders.length; j++) {
-                    let description = [sheet[i][columnFormattedDescription], null];
+                    let description = sheet[i][columnDescription];
                     let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
@@ -389,8 +450,8 @@ testremove = async (file, format) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description[0], item);
-                        text += description[format] + os.EOL;
+                        description = parser.removeItem(description, item);
+                        text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                         tabs++;
                     }
                 }
@@ -404,33 +465,37 @@ testremove = async (file, format) => {
         const sheet = await sheets.fetchData(settings.puzzleSheetAllCells);
         const columnPuzzleName = 0;
         const columnLocation = 3;
-        const columnFormattedDescription = 12;
-        const columnParsedDescription = 13;
+        const columnDescription = 12;
 
         await appendText(file, "PUZZLES:");
         let text = "";
         for (let i = 1; i < sheet.length; i++) {
-            if (sheet[i][columnFormattedDescription] && sheet[i][columnFormattedDescription].includes('<') && sheet[i][columnFormattedDescription].includes('>')) {
+            if (sheet[i][columnDescription] && sheet[i][columnDescription].includes('<item>') && sheet[i][columnDescription].includes('</item>')) {
                 text += "   ";
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 text += "      ";
-                if (format === 0) text += sheet[i][columnFormattedDescription] + os.EOL;
-                else text += sheet[i][columnParsedDescription] + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location === sheet[i][columnLocation]
-                        && game.items[j].requires === sheet[i][columnPuzzleName]) {
+                    if (game.items[j].location.name === sheet[i][columnLocation]
+                        && game.items[j].requiresName === sheet[i][columnPuzzleName]) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
                 }
+                // If the number of items is higher than 4, the bot usually runs out of memory.
+                // Make 4 the limit.
+                if (items.length > 4) {
+                    items = items.slice(0, 4);
+                    itemNames = itemNames.slice(0, 4);
+                }
                 const orders = permute(itemNames);
 
                 for (let j = 0; j < orders.length; j++) {
-                    let description = [sheet[i][columnFormattedDescription], null];
+                    let description = sheet[i][columnDescription];
                     let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
@@ -446,8 +511,8 @@ testremove = async (file, format) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description[0], item);
-                        text += description[format] + os.EOL;
+                        description = parser.removeItem(description, item);
+                        text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
                         tabs++;
                     }
                 }
@@ -455,8 +520,16 @@ testremove = async (file, format) => {
         }
         await appendText(file, text);
     }
-
+    
     return;
+};
+
+function getData (sheetrange) {
+    return new Promise((resolve) => {
+        sheets.getData(sheetrange, (response) => {
+            resolve(response.data.values);
+        });
+    });
 };
 
 function permute(array) {

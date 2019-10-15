@@ -89,8 +89,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     // Finally, find the puzzle.
     var puzzle = null;
     for (let i = 0; i < puzzles.length; i++) {
-        if ((player !== null && puzzles[i].location === player.location.name)
-            || (room !== null && puzzles[i].location === room.name)) {
+        if ((player !== null && puzzles[i].location.name === player.location.name)
+            || (room !== null && puzzles[i].location.name === room.name)) {
             puzzle = puzzles[i];
             break;
         }

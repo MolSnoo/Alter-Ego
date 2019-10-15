@@ -15,6 +15,26 @@ class Room {
 
     addPlayer(game, player, entrance, entranceMessage, sendDescription) {
         player.location = this;
+        // Set the player's position.
+        if (entrance) {
+            player.pos.x = entrance.pos.x;
+            player.pos.y = entrance.pos.y;
+            player.pos.z = entrance.pos.z;
+        }
+        // If no entrance is given, try to calculate the center of the room by averaging the coordinates of all exits.
+        else {
+            let coordSum = { x: 0, y: 0, z: 0 };
+            for (let i = 0; i < this.exit.length; i++) {
+                coordSum.x += this.exit[i].pos.x;
+                coordSum.y += this.exit[i].pos.y;
+                coordSum.z += this.exit[i].pos.z;
+            }
+            let pos = { x: 0, y: 0, z: 0 };
+            pos.x = Math.floor(coordSum.x / this.exit.length);
+            pos.y = Math.floor(coordSum.y / this.exit.length);
+            pos.z = Math.floor(coordSum.z / this.exit.length);
+            player.pos = pos;
+        }
         if (entranceMessage) new Narration(game, player, this, entranceMessage).send();
         
         if (player.getAttributeStatusEffects("no channel").length === 0)  
@@ -25,12 +45,10 @@ class Room {
                 player.member.send("Fumbling against the wall, you make your way to the next room over.");
             else {
                 let descriptionCell;
-                if (entrance) descriptionCell = entrance.parsedDescriptionCell();
-                else descriptionCell = this.parsedDescriptionCell();
+                if (entrance) descriptionCell = entrance.descriptionCell();
+                else descriptionCell = this.descriptionCell();
                 // Send the room description of the entrance the player enters from.
-                sheets.getData(descriptionCell, function (response) {
-                    player.member.send(response.data.values[0][0]);
-                });
+                player.sendDescription(descriptionCell);
             }
         }
         if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {
@@ -101,11 +119,8 @@ class Room {
         game.logChannel.send(`${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
     }
 
-    formattedDescriptionCell() {
-        return settings.roomSheetFormattedDescriptionColumn + this.row;
-    }
-    parsedDescriptionCell() {
-        return settings.roomSheetParsedDescriptionColumn + this.row;
+    descriptionCell() {
+        return settings.roomSheetDescriptionColumn + this.row;
     }
 }
 

@@ -1,7 +1,6 @@
 const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
-const loader = include(`${settings.modulesDir}/loader.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
@@ -12,20 +11,150 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const Die = include(`${settings.dataDir}/Die.js`);
 
 class Player {
-    constructor(id, member, name, displayName, talent, clueLevel, alive, location, hidingSpot, status, inventory, row) {
+    constructor(id, member, name, displayName, talent, stats, alive, location, hidingSpot, status, inventory, row) {
         this.id = id;
         this.member = member;
         this.name = name;
         this.displayName = displayName;
         this.talent = talent;
-        this.clueLevel = clueLevel;
+        this.strength = stats.strength;
+        this.intelligence = stats.intelligence;
+        this.dexterity = stats.dexterity;
+        this.speed = stats.speed;
+        this.maxStamina = stats.stamina;
+        this.stamina = stats.stamina;
         this.alive = alive;
         this.location = location;
+        this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
         this.status = status;
         this.statusString = "";
         this.inventory = inventory;
         this.row = row;
+
+        this.isMoving = false;
+        this.moveTimer = null;
+        this.remainingTime = 0;
+
+        this.reachedHalfStamina = false;
+        let player = this;
+        this.interval = setInterval(function () {
+            if (!player.isMoving) player.regenerateStamina();
+        }, 30000);
+    }
+
+    move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
+        const time = this.calculateMoveTime(exit);
+        this.remainingTime = time;
+        this.isMoving = true;
+        if (time > 1000) new Narration(game, this, this.location, `${this.displayName} starts walking toward ${exit.name}.`).send();
+        const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
+
+        let player = this;
+        this.moveTimer = setInterval(function () {
+            player.remainingTime -= 100;
+            // Get the current coordinates based on what percentage of the duration has passed.
+            const elapsedTime = time - player.remainingTime;
+            const timeRatio = elapsedTime / time;
+            let x = startingPos.x + Math.round(timeRatio * (exit.pos.x - startingPos.x));
+            let y = startingPos.y + Math.round(timeRatio * (exit.pos.y - startingPos.y));
+            let z = startingPos.z + Math.round(timeRatio * (exit.pos.z - startingPos.z));
+            // Calculate the distance the player has traveled in this time.
+            let distance = Math.sqrt(Math.pow(x - player.pos.x, 2) + Math.pow(z - player.pos.z, 2)) * settings.metersPerPixel;
+            let rise = (y - player.pos.y) * settings.metersPerPixel;
+            // Calculate the amount of stamina the player has lost traveling this distance.
+            var lostStamina;
+            // If distance is 0, we'll treat it like a staircase.
+            if (distance === 0 && rise !== 0) {
+                const uphill = rise > 0 ? true : false;
+                distance = rise;
+                lostStamina = uphill ? 4 * settings.staminaUseRate * distance : settings.staminaUseRate / 4 * -distance;
+            }
+            else {
+                const slope = rise / distance;
+                lostStamina = !isNaN(slope) ? (settings.staminaUseRate + slope * settings.staminaUseRate) * distance : settings.staminaUseRate * distance;
+                if (isNaN(lostStamina)) lostStamina = 0;
+            }
+            player.pos.x = x;
+            player.pos.y = y;
+            player.pos.z = z;
+            player.stamina = player.stamina + lostStamina;
+            // If player reaches half of their stamina, give them a warning.
+            // Be sure to check player.reachedHalfStamina so that this message is only sent once.
+            if (player.stamina <= player.maxStamina / 2 && !player.reachedHalfStamina) {
+                player.reachedHalfStamina = true;
+                player.member.send(`You're starting to get tired! You might want to stop moving and rest soon.`);
+            }
+            // If player runs out of stamina, stop them in their tracks.
+            if (player.stamina <= 0) {
+                clearInterval(player.moveTimer);
+                player.stamina = 0;
+                player.inflict(game, "weary", true, true, true, true);
+            }
+            if (player.remainingTime <= 0 && player.stamina !== 0) {
+                clearInterval(player.moveTimer);
+                currentRoom.removePlayer(game, player, exit, exitMessage);
+                desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+                player.isMoving = false;
+                console.log(`Remaining stamina: ${player.stamina}`);
+            }
+        }, 100);
+    }
+
+    calculateMoveTime(exit) {
+        console.log(exit.pos);
+        console.log(this.pos);
+        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
+        console.log(`Distance (pixels): ${distance}`);
+        distance = distance * settings.metersPerPixel;
+        // The formula to calculate the rate is a quadratic function.
+        // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
+        let rate = 0.0183 * Math.pow(this.speed, 2) + 0.005 * this.speed + 0.916;
+        // Slope should affect the rate.
+        const rise = (exit.pos.y - this.pos.y) * settings.metersPerPixel;
+        var time = 0;
+        // If distance is 0, we'll treat it like a staircase and just use the rise to calculate the time.
+        if (distance === 0 && rise !== 0) {
+            const uphill = rise > 0 ? true : false;
+            // Assume that the staircase is a right triangle leading to another right triangle flipped horizontally.
+            const legs = rise / 2;
+            // Calculate the length of the hypotenuse of these right triangles.
+            distance = Math.sqrt(2 * Math.pow(legs, 2));
+            // The distance should be two hypotenuses.
+            distance = distance * 2;
+            // If the player is moving uphill, reduce their rate of movement by 1/3.
+            // Otherwise, increase it by 1/3;
+            rate = uphill ? 2 * rate / 3 : 4 * rate / 3;
+            console.log(`Rate (meters per second): ${rate}`);
+            // To make it feel a little more realistic, multiply it by 2.
+            time = distance / rate * 2 * 1000;
+        }
+        else {
+            const slope = rise / distance;
+            rate = !isNaN(slope) ? rate - slope * rate : rate;
+            console.log(`Rate (meters per second): ${rate}`);
+            time = distance / rate * 1000;
+        }
+        console.log(`Distance (meters): ${distance}`);
+        console.log(`Time (milliseconds): ${time}`);
+        console.log(`Time (seconds): ${time / 1000}`);
+        if (time < 0) time = 0;
+        return time;
+    }
+
+    regenerateStamina() {
+        if (this.stamina < this.maxStamina) {
+            // Recover 1/20th of the player's max stamina per cycle.
+            const staminaAmount = this.maxStamina / 20;
+            const newStamina = this.stamina + staminaAmount;
+            // Make sure not to exceed the max stamina for this player.
+            if (newStamina > this.maxStamina)
+                this.stamina = this.maxStamina;
+            else
+                this.stamina = newStamina;
+            console.log(this.stamina);
+        }
+        return;
     }
 
     createMoveAppendString() {
@@ -53,8 +182,6 @@ class Player {
     }
 
     inflict(game, statusName, notify, doCures, updateSheet, narrate, item) {
-        if (this.statusString.includes(statusName)) return "Specified player already has that status effect.";
-
         var status = null;
         for (let i = 0; i < game.statusEffects.length; i++) {
             if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
@@ -64,6 +191,15 @@ class Player {
         }
         if (status === null) return `Couldn't find status effect "${statusName}".`;
 
+        if (this.statusString.includes(statusName)) {
+            if (status.duplicatedStatus !== null) {
+                this.cure(game, statusName, false, false, false, false);
+                this.inflict(game, status.duplicatedStatus.name, true, false, true, true);
+                return `Status was duplicated, so inflicted ${status.duplicatedStatus.name} instead.`;
+            }
+            else return "Specified player already has that status effect.";
+        }
+
         if (notify === null || notify === undefined) notify = true;
         if (doCures === null || doCures === undefined) doCures = true;
         if (updateSheet === null || updateSheet === undefined) updateSheet = true;
@@ -71,7 +207,7 @@ class Player {
 
         if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
-                this.cure(game, status.cures[i], false, false, false, false);
+                this.cure(game, status.cures[i].name, false, false, false, false);
         }
 
         // Apply the effects of any attributes that require immediate action.
@@ -85,15 +221,23 @@ class Player {
             sheets.updateCell(this.hidingSpotCell(), this.hidingSpot);
         }
         if (status.attributes.includes("concealed")) {
+            if (item === null || item === undefined) item.singleContainingPhrase = "a MASK";
             if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
+        }
+        if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
+            // Clear the player's movement timer.
+            this.isMoving = false;
+            clearInterval(this.moveTimer);
+            this.remainingTime = 0;
         }
 
         // Announce when a player falls asleep or unconscious.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
+        else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -150,13 +294,8 @@ class Player {
         this.status.push(status);
 
         // Inform player what happened.
-        if (notify) {
-            let player = this;
-            sheets.getData(status.inflictedCell(), function (response) {
-                if (response.data.values)
-                    player.member.send(response.data.values[0][0]);
-            });
-        }
+        if (notify)
+            this.sendDescription(status.inflictedCell());
 
         this.statusString = this.generate_statusList();
         if (updateSheet) sheets.updateCell(this.statusCell(), this.statusString);
@@ -199,6 +338,7 @@ class Player {
         // Announce when a player awakens.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
+        else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
@@ -208,17 +348,10 @@ class Player {
 
         // Inform player what happened.
         if (notify) {
-            let player = this;
-            sheets.getData(status.curedCell(), function (response) {
-                if (response.data.values)
-                    player.member.send(response.data.values[0][0]);
-            });
+            this.sendDescription(status.curedCell());
             // If the player is waking up, send them the description of the room they wake up in.
-            if (status.name === "asleep") {
-                sheets.getData(this.location.parsedDescriptionCell(), function (response) {
-                    player.member.send(response.data.values[0][0]);
-                });
-            }
+            if (status.name === "asleep")
+                this.sendDescription(this.location.descriptionCell());
         }
 
         // Post log message.
@@ -235,11 +368,12 @@ class Player {
     }
     
     generate_statusList() {
-        var statusList;
-			if (this.status.length === 0) statusList = "";
-			else statusList = this.status[0].name;
-        for (let i = 1; i < this.status.length; i++)
-            statusList += `, ${this.status[i].name}`;
+        var statusList = "";
+        if (this.status.length > 0) {
+            statusList = this.status[0].name;
+            for (let i = 1; i < this.status.length; i++)
+                statusList += `, ${this.status[i].name}`;
+        }
         return statusList;
     }
 
@@ -269,7 +403,7 @@ class Player {
 
     hasAttribute(attribute) {
         var hasAttribute = false;
-        for (let i = 0; i < this.status.length; i++) {
+        for (let i = 0; i < this.status.length; i++) {         
             if (this.status[i].attributes.includes(attribute)) {
                 hasAttribute = true;
                 break;
@@ -292,7 +426,7 @@ class Player {
         if (item.effects.length === 0 && item.cures.length === 0) return "that item has no programmed use on its own, but you may be able to use it some other way.";
         if (!item.name.endsWith("MASK") && item.effects.length !== 0) {
             for (let i = 0; i < item.effects.length; i++) {
-                if (this.statusString.includes(item.effects[i]))
+                if (this.statusString.includes(item.effects[i].name) && item.effects[i].duplicatedStatus === null)
                     return "you cannot use that item as you are already under its effect.";
             }
         }
@@ -303,8 +437,8 @@ class Player {
             else {
                 // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
                 for (let i = 0; i < item.effects.length - 1; i++)
-                    this.inflict(game, item.effects[i], true, true, false, true, item);
-                this.inflict(game, item.effects[item.effects.length - 1], true, true, true, true, item);
+                    this.inflict(game, item.effects[i].name, true, true, false, true, item);
+                this.inflict(game, item.effects[item.effects.length - 1].name, true, true, true, true, item);
             }
         }
 
@@ -312,7 +446,7 @@ class Player {
             var hasEffect = false;
             // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
             for (let i = 0; i < item.cures.length; i++) {
-                const statusMessage = this.cure(game, item.cures[i], true, true, true, true);
+                const statusMessage = this.cure(game, item.cures[i].name, true, true, true, true);
                 if (statusMessage !== "Specified player doesn't have that status effect.") hasEffect = true;
             }
             if (!hasEffect) return `you attempted to use the ${item.name}, but it had no effect.`;
@@ -336,23 +470,20 @@ class Player {
         }
 
         if (container instanceof Puzzle) {
-            const description = await sheets.fetchDescription(container.formattedAlreadySolvedCell());
+            const description = await sheets.fetchDescription(container.alreadySolvedCell());
             const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.formattedAlreadySolvedCell(), newDescription[0]);
-            sheets.updateCell(container.parsedAlreadySolvedCell(), newDescription[1]);
+            sheets.updateCell(container.alreadySolvedCell(), newDescription);
         }
         else if (container instanceof Object) {
-            const description = await sheets.fetchDescription(container.formattedDescriptionCell());
+            const description = await sheets.fetchDescription(container.descriptionCell());
             const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.formattedDescriptionCell(), newDescription[0]);
-            sheets.updateCell(container.parsedDescriptionCell(), newDescription[1]);
+            sheets.updateCell(container.descriptionCell(), newDescription);
         }
         else if (container instanceof Room) {
             for (let i = 0; i < container.exit.length; i++) {
-                const description = await sheets.fetchDescription(container.exit[i].formattedDescriptionCell());
+                const description = await sheets.fetchDescription(container.exit[i].descriptionCell());
                 const newDescription = parser.removeItem(description, item);
-                sheets.updateCell(container.exit[i].formattedDescriptionCell(), newDescription[0]);
-                sheets.updateCell(container.exit[i].parsedDescriptionCell(), newDescription[1]);
+                sheets.updateCell(container.exit[i].descriptionCell(), newDescription);
             }
         }
 
@@ -373,8 +504,8 @@ class Player {
 
         // Add the new item to the Players sheet so that it's in their inventory.
         // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-        var effects = createdItem.effects ? createdItem.effects.join(",") : "";
-        var cures = createdItem.cures ? createdItem.cures.join(",") : "";
+        var effects = createdItem.effects.length > 0 ? createdItem.effects.map(status => status.name).join(",") : "";
+        var cures = createdItem.cures.length > 0 ? createdItem.cures.map(status => status.name).join(",") : "";
         var containingPhrase = createdItem.singleContainingPhrase;
         if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
         sheets.getData(item.descriptionCell(), function (response) {
@@ -434,8 +565,8 @@ class Player {
 
             // Add the item to the Players sheet so that it's in their inventory.
             // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-            var effects = copiedItem.effects ? copiedItem.effects.join(",") : "";
-            var cures = copiedItem.cures ? copiedItem.cures.join(",") : "";
+            var effects = copiedItem.effects ? copiedItem.effects.map(status => status.name).join(",") : "";
+            var cures = copiedItem.cures ? copiedItem.cures.map(status => status.name).join(",") : "";
             var containingPhrase = copiedItem.singleContainingPhrase;
             if (copiedItem.pluralContainingPhrase !== "") containingPhrase += `,${copiedItem.pluralContainingPhrase}`;
             sheets.getData(victim.inventory[index].descriptionCell(), function (response) {
@@ -478,13 +609,13 @@ class Player {
     async drop(game, slotNo, container) {
         // First, check if the player is putting this item back in original spot unmodified.
         const invItem = this.inventory[slotNo];
-        const roomItems = game.items.filter(item => item.location === this.location.name);
+        const roomItems = game.items.filter(item => item.location.name === this.location.name);
         var matchedItems = roomItems.filter(item =>
             item.name === invItem.name &&
             item.pluralName === invItem.pluralName &&
-            item.location === this.location.name &&
-            ((container instanceof Object && item.sublocation === container.name) || (container instanceof Puzzle && item.sublocation === "")) &&
-            ((container instanceof Puzzle && item.requires === container.name) || (container instanceof Object && item.requires === "")) &&
+            item.location.name === this.location.name &&
+            ((container instanceof Object && item.sublocation !== null && item.sublocation.name === container.name) || (container instanceof Puzzle && item.sublocation === null)) &&
+            ((container instanceof Puzzle && item.requires !== null && item.requires.name === container.name) || (container instanceof Object && item.requires === null)) &&
             (item.uses === invItem.uses || (isNaN(item.uses) && isNaN(invItem.uses))) &&
             item.discreet === invItem.discreet &&
             arraysEqual(item.effects, invItem.effects) &&
@@ -506,8 +637,8 @@ class Player {
         }
         // The player is putting this item somewhere else, or it's changed somehow.
         if (matchedItems.length === 0) {
-            var effects = invItem.effects ? invItem.effects.join(",") : "";
-            var cures = invItem.cures ? invItem.cures.join(",") : "";
+            var effects = invItem.effects.length > 0 ? invItem.effects.map(status => status.name).join(",") : "";
+            var cures = invItem.cures.length > 0 ? invItem.cures.map(status => status.name).join(",") : "";
             var containingPhrase = invItem.singleContainingPhrase;
             if (invItem.pluralContainingPhrase !== "") containingPhrase += `,${invItem.pluralContainingPhrase}`;
             const data = new Array(
@@ -528,27 +659,28 @@ class Player {
 
             // We want to insert this item near items in the same container, so get all of the items in that container.
             var containerItems;
-            if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires === container.name);
-            else containerItems = roomItems.filter(item => item.sublocation === container.name);
+            if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires !== null && item.requires.name === container.name);
+            else containerItems = roomItems.filter(item => item.sublocation !== null && item.sublocation.name === container.name);
             // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
+            const loader = include(`${settings.modulesDir}/loader.js`);
             const lastRoomItem = roomItems[roomItems.length - 1];
             const lastContainerItem = containerItems[containerItems.length - 1];
             const lastGameItem = game.items[game.items.length - 1];
             if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
                 sheets.insertRow(lastContainerItem.itemCells(), data, function (response) {
-                    loader.loadItems(game);
+                    loader.loadItems(game, false);
                 });
             }
             // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
             else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
                 sheets.insertRow(lastRoomItem.itemCells(), data, function (response) {
-                    loader.loadItems(game);
+                    loader.loadItems(game, false);
                 });
             }
             // If there are none, just insert it at the end of the sheet.
             else {
                 sheets.appendRow(lastGameItem.itemCells(), data, function (response) {
-                    loader.loadItems(game);
+                    loader.loadItems(game, false);
                 });
             }
         }
@@ -562,28 +694,23 @@ class Player {
             }
         }
 
-        var formattedDescriptionCell = "";
-        var parsedDescriptionCell = "";
+        var descriptionCell = "";
         var objectName = "";
         var preposition = "in";
         if (container instanceof Puzzle) {
-            formattedDescriptionCell = container.formattedAlreadySolvedCell();
-            parsedDescriptionCell = container.parsedAlreadySolvedCell();
-            let object = game.objects.find(object => object.name === container.parentObject && object.requires === container.name);
-            objectName = object.name;
-            preposition = object.preposition;
+            descriptionCell = container.alreadySolvedCell();
+            objectName = container.parentObject.name;
+            preposition = container.parentObject.preposition;
         }
         else {
-            formattedDescriptionCell = container.formattedDescriptionCell();
-            parsedDescriptionCell = container.parsedDescriptionCell();
+            descriptionCell = container.descriptionCell();
             objectName = container.name;
             preposition = container.preposition;
         }
 
-        const description = await sheets.fetchDescription(formattedDescriptionCell);
+        const description = await sheets.fetchDescription(descriptionCell);
         const newDescription = parser.addItem(description, invItem);
-        sheets.updateCell(formattedDescriptionCell, newDescription[0]);
-        sheets.updateCell(parsedDescriptionCell, newDescription[1]);
+        sheets.updateCell(descriptionCell, newDescription);
 
         if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
         this.member.send(`You discard ${invItem.singleContainingPhrase}.`);
@@ -603,8 +730,8 @@ class Player {
             null,
             null,
             null,
-            null,
-            null,
+            [],
+            [],
             null,
             null,
             this.inventory[slotNo].row
@@ -626,10 +753,7 @@ class Player {
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
-                let player = this;
-                sheets.getData(puzzle.noMoreAttemptsCell(), function (response) {
-                    player.member.send(response.data.values[0][0]);
-                });
+                this.sendDescription(puzzle.noMoreAttemptsCell());
                 new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
 
                 return;
@@ -638,11 +762,11 @@ class Player {
             // Make sure all of the requirements are met before proceeding.
             var hasRequiredItem = false;
             var requirementsMet = false;
-            if (puzzle.requires.startsWith("Item: ")) {
-                if (item !== null && item.name === puzzle.requires.substring("Item: ".length))
+            if (puzzle.solution.startsWith("Item: ")) {
+                if (item !== null && item.name === puzzle.solution.substring("Item: ".length))
                     hasRequiredItem = true;
                 else if (item === null) {
-                    const requiredItem = puzzle.requires.substring("Item: ".length);
+                    const requiredItem = puzzle.solution.substring("Item: ".length);
                     for (let i = 0; i < this.inventory.length; i++) {
                         if (this.inventory[i].name === requiredItem) {
                             hasRequiredItem = true;
@@ -672,9 +796,9 @@ class Player {
                 else if (puzzle.type === "toggle") {
                     if (puzzle.solved) {
                         let player = this;
-                        sheets.getData(puzzle.parsedAlreadySolvedCell(), function (response) {
+                        sheets.getData(puzzle.alreadySolvedCell(), function (response) {
                             let message = null;
-                            if (response.data.values) message = response.data.values[0][0];
+                            if (response.data.values) message = parser.parseDescription(response.data.values[0][0]);
                             puzzle.unsolve(bot, game, player, `${player.displayName} uses the ${puzzle.name}.`, message, true);
                         });
                     }
@@ -683,32 +807,32 @@ class Player {
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject} is already unlocked.`;
+                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
                         if (command !== "lock" && (password === "" || password === puzzle.solution))
-                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
+                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
                         // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`, true);
+                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject} is already locked.`;
+                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
                         if (password === "") return "you need to enter a combination. The format is #-#-#.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`, true);
-                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject}.`);
+                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, true);
+                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject.name}.`);
                     }
                 }
                 else if (puzzle.type === "key lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject} is already unlocked.`;
-                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject}.`, `You lock the ${puzzle.parentObject}.`, true);
-                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
-                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject}.`);
+                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
+                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
+                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts and fails to lock the ${puzzle.parentObject.name}.`);
+                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject} is already locked.`;
-                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject}.`, true);
+                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
+                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, true);
                     }
                 }
             }
@@ -735,13 +859,13 @@ class Player {
 
         // Update various data.
         this.alive = false;
-        this.location = "";
+        this.location = null;
         this.hidingSpot = "";
         for (let i = 0; i < this.status.length; i++)
             clearInterval(this.status[i].timer);
         this.status.length = 0;
         // Update that data on the sheet, as well.
-        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.clueLevel, this.alive, "", "", "")));
+        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);
@@ -781,6 +905,16 @@ class Player {
         return;
     }
 
+    sendDescription(descriptionCell) {
+        let player = this;
+        sheets.getData(descriptionCell, function (response) {
+            if (response.data.values)
+                player.member.send(parser.parseDescription(response.data.values[0][0], player));
+        });
+
+        return;
+    }
+
     playerCells() {
         const statusColumn = settings.playerSheetStatusColumn.split('!');
         return settings.playerSheetIDColumn + this.row + ":" + statusColumn[1] + this.row;
@@ -800,6 +934,8 @@ module.exports = Player;
 
 // This function is needed solely to compare the effects and cures of two items.
 function arraysEqual(a, b) {
+    a = a.map(object => object.name);
+    b = b.map(object => object.name);
     if (a === b) return true;
     if (a === null || b === null) return false;
     if (a.length !== b.length) return false;
