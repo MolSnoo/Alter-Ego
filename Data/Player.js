@@ -181,7 +181,7 @@ class Player {
         return appendString;
     }
 
-    inflict(game, statusName, notify, doCures, updateSheet, narrate) {
+    inflict(game, statusName, notify, doCures, updateSheet, narrate, item) {
         var status = null;
         for (let i = 0; i < game.statusEffects.length; i++) {
             if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
@@ -221,8 +221,9 @@ class Player {
             sheets.updateCell(this.hidingSpotCell(), this.hidingSpot);
         }
         if (status.attributes.includes("concealed")) {
-            if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on a mask.`).send();
-            this.displayName = "A masked figure";
+            if (item === null || item === undefined) item.singleContainingPhrase = "a MASK";
+            if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
         }
         if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
             // Clear the player's movement timer.
@@ -423,7 +424,7 @@ class Player {
     use(game, item) {
         if (item.uses === 0) return "that item has no uses left.";
         if (item.effects.length === 0 && item.cures.length === 0) return "that item has no programmed use on its own, but you may be able to use it some other way.";
-        if (item.name !== "MASK" && item.effects.length !== 0) {
+        if (!item.name.endsWith("MASK") && item.effects.length !== 0) {
             for (let i = 0; i < item.effects.length; i++) {
                 if (this.statusString.includes(item.effects[i].name) && item.effects[i].duplicatedStatus === null)
                     return "you cannot use that item as you are already under its effect.";
@@ -431,13 +432,13 @@ class Player {
         }
 
         if (item.effects.length !== 0) {
-            if (item.name === "MASK" && this.statusString.includes("concealed"))
+            if (item.name.endsWith("MASK") && this.statusString.includes("concealed"))
                 this.cure(game, "concealed", true, false, true, true);
             else {
                 // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
                 for (let i = 0; i < item.effects.length - 1; i++)
-                    this.inflict(game, item.effects[i].name, true, true, false, true);
-                this.inflict(game, item.effects[item.effects.length - 1].name, true, true, true, true);
+                    this.inflict(game, item.effects[i].name, true, true, false, true, item);
+                this.inflict(game, item.effects[item.effects.length - 1].name, true, true, true, true, item);
             }
         }
 
