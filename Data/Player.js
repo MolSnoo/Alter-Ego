@@ -96,16 +96,12 @@ class Player {
                 currentRoom.removePlayer(game, player, exit, exitMessage);
                 desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
                 player.isMoving = false;
-                console.log(`Remaining stamina: ${player.stamina}`);
             }
         }, 100);
     }
 
     calculateMoveTime(exit) {
-        console.log(exit.pos);
-        console.log(this.pos);
         let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
-        console.log(`Distance (pixels): ${distance}`);
         distance = distance * settings.metersPerPixel;
         // The formula to calculate the rate is a quadratic function.
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
@@ -125,19 +121,14 @@ class Player {
             // If the player is moving uphill, reduce their rate of movement by 1/3.
             // Otherwise, increase it by 1/3;
             rate = uphill ? 2 * rate / 3 : 4 * rate / 3;
-            console.log(`Rate (meters per second): ${rate}`);
             // To make it feel a little more realistic, multiply it by 2.
             time = distance / rate * 2 * 1000;
         }
         else {
             const slope = rise / distance;
             rate = !isNaN(slope) ? rate - slope * rate : rate;
-            console.log(`Rate (meters per second): ${rate}`);
             time = distance / rate * 1000;
         }
-        console.log(`Distance (meters): ${distance}`);
-        console.log(`Time (milliseconds): ${time}`);
-        console.log(`Time (seconds): ${time / 1000}`);
         if (time < 0) time = 0;
         return time;
     }
@@ -152,7 +143,6 @@ class Player {
                 this.stamina = this.maxStamina;
             else
                 this.stamina = newStamina;
-            console.log(this.stamina);
         }
         return;
     }
