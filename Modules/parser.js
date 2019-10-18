@@ -95,7 +95,7 @@ module.exports.parseDescription = function (description, player, doErrorChecking
     // Convert the document to a string.
     var newDescription = stringify(document);
     // Strip XML tags from the string, as well as all duplicate spaces.
-    newDescription = newDescription.replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '').trim();
+    newDescription = newDescription.replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '').replace(/&amp;/g, '&').trim();
 
     if (doErrorChecking === null || doErrorChecking === undefined)
         doErrorChecking = false;
