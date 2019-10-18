@@ -211,7 +211,7 @@ class Player {
             sheets.updateCell(this.hidingSpotCell(), this.hidingSpot);
         }
         if (status.attributes.includes("concealed")) {
-            if (item === null || item === undefined) item.singleContainingPhrase = "a MASK";
+            if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
             if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
         }
