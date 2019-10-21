@@ -45,11 +45,11 @@ class Room {
             if (player.hasAttribute("no sight"))
                 player.member.send("Fumbling against the wall, you make your way to the next room over.");
             else {
-                let descriptionCell;
-                if (entrance) descriptionCell = entrance.descriptionCell();
-                else descriptionCell = this.descriptionCell();
+                let description;
+                if (entrance) description = entrance.description;
+                else description = this.description;
                 // Send the room description of the entrance the player enters from.
-                player.sendDescription(descriptionCell);
+                player.sendDescription(description);
             }
         }
         if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {

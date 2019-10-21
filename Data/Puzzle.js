@@ -50,7 +50,7 @@ class Puzzle {
     async solve(bot, game, player, message, doSolvedCommands) {
         // Let the palyer and anyone else in the room know that the puzzle was solved.
         if (player !== null)
-            player.sendDescription(this.correctCell());
+            player.sendDescription(this.correctDescription);
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
@@ -138,11 +138,11 @@ class Puzzle {
             // so get the message only after updating the attempts cell.
             let puzzle = this;
             sheets.updateCell(this.attemptsCell(), this.remainingAttempts.toString(), function (response) {
-                player.sendDescription(puzzle.incorrectCell());
+                player.sendDescription(puzzle.incorrectDescription);
             });
         }
         else
-            player.sendDescription(this.incorrectCell());
+            player.sendDescription(this.incorrectDescription);
         new Narration(game, player, player.location, message).send();
 
         // Post log message.
@@ -153,24 +153,21 @@ class Puzzle {
     }
 
     alreadySolved(game, player, message) {
-        player.sendDescription(this.alreadySolvedCell());
+        player.sendDescription(this.alreadySolvedDescription);
         new Narration(game, player, player.location, message).send();
 
         return;
     }
 
     requirementsNotMet(game, player, message, misc) {
-        sheets.getData(this.requirementsNotMetCell(), function (response) {
-            // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
-            if (!response.data.values || response.data.values[0][0] === "")
-                misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
-            // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
-            else {
-                const parser = include(`${settings.modulesDir}/parser.js`);
-                player.member.send(parser.parseDescription(response.data.values[0][0], player));
-                new Narration(game, player, player.location, message).send();
-            }
-        });
+        // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
+        if (this.requirementsNotMetDescription === "")
+            misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
+        // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
+        else {
+            player.sendDescription(this.requirementsNotMetDescription);
+            new Narration(game, player, player.location, message).send();
+        }
         return;
     }
 

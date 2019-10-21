@@ -227,7 +227,7 @@ class Player {
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -285,7 +285,7 @@ class Player {
 
         // Inform player what happened.
         if (notify)
-            this.sendDescription(status.inflictedCell());
+            this.sendDescription(status.inflictedDescription);
 
         this.statusString = this.generate_statusList();
         if (updateSheet) sheets.updateCell(this.statusCell(), this.statusString);
@@ -338,10 +338,10 @@ class Player {
 
         // Inform player what happened.
         if (notify) {
-            this.sendDescription(status.curedCell());
+            this.sendDescription(status.curedDescription);
             // If the player is waking up, send them the description of the room they wake up in.
             if (status.name === "asleep")
-                this.sendDescription(this.location.descriptionCell());
+                this.sendDescription(this.location.description);
         }
 
         // Post log message.
@@ -452,7 +452,7 @@ class Player {
         return;
     }
 
-    async take(game, item, slotNo, container) {
+    take(game, item, slotNo, container) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
@@ -460,20 +460,17 @@ class Player {
         }
 
         if (container instanceof Puzzle) {
-            const description = await sheets.fetchDescription(container.alreadySolvedCell());
-            const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.alreadySolvedCell(), newDescription);
+            container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item);
+            sheets.updateCell(container.alreadySolvedCell(), container.alreadySolvedDescription);
         }
         else if (container instanceof Object) {
-            const description = await sheets.fetchDescription(container.descriptionCell());
-            const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.descriptionCell(), newDescription);
+            container.description = parser.removeItem(container.description, item);
+            sheets.updateCell(container.descriptionCell(), container.description);
         }
         else if (container instanceof Room) {
             for (let i = 0; i < container.exit.length; i++) {
-                const description = await sheets.fetchDescription(container.exit[i].descriptionCell());
-                const newDescription = parser.removeItem(description, item);
-                sheets.updateCell(container.exit[i].descriptionCell(), newDescription);
+                container.exit[i].description = parser.removeItem(container.exit[i].description, item);
+                sheets.updateCell(container.exit[i].descriptionCell(), container.exit[i].description);
             }
         }
 
@@ -487,6 +484,7 @@ class Player {
             item.cures,
             item.singleContainingPhrase,
             item.pluralContainingPhrase,
+            item.description,
             this.inventory[slotNo].row
         );
         this.inventory[slotNo] = createdItem;
@@ -498,19 +496,17 @@ class Player {
         var cures = createdItem.cures.length > 0 ? createdItem.cures.map(status => status.name).join(",") : "";
         var containingPhrase = createdItem.singleContainingPhrase;
         if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
-        sheets.getData(item.descriptionCell(), function (response) {
-            const data = new Array(new Array(
-                createdItem.name,
-                createdItem.pluralName,
-                createdItem.uses,
-                createdItem.discreet,
-                effects,
-                cures,
-                containingPhrase,
-                response.data.values[0][0]
-            ));
-            sheets.updateData(createdItem.itemCells(), data);
-        });
+        const data = new Array(new Array(
+            createdItem.name,
+            createdItem.pluralName,
+            createdItem.uses,
+            createdItem.discreet,
+            effects,
+            cures,
+            containingPhrase,
+            createdItem.description
+        ));
+        sheets.updateData(createdItem.itemCells(), data);
 
         if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
 
@@ -549,6 +545,7 @@ class Player {
                 victim.inventory[index].cures,
                 victim.inventory[index].singleContainingPhrase,
                 victim.inventory[index].pluralContainingPhrase,
+                victim.inventory[index].description,
                 this.inventory[slotNo].row
             );
             this.inventory[slotNo] = copiedItem;
@@ -559,21 +556,19 @@ class Player {
             var cures = copiedItem.cures ? copiedItem.cures.map(status => status.name).join(",") : "";
             var containingPhrase = copiedItem.singleContainingPhrase;
             if (copiedItem.pluralContainingPhrase !== "") containingPhrase += `,${copiedItem.pluralContainingPhrase}`;
-            sheets.getData(victim.inventory[index].descriptionCell(), function (response) {
-                const data = new Array(new Array(
-                    copiedItem.name,
-                    copiedItem.pluralName,
-                    copiedItem.uses,
-                    copiedItem.discreet,
-                    effects,
-                    cures,
-                    containingPhrase,
-                    response.data.values[0][0]
-                ));
-                sheets.updateData(copiedItem.itemCells(), data);
-                // Delete stolen item from victim's inventory.
-                victim.clearInventorySlot(index);
-            });
+            const data = new Array(new Array(
+                copiedItem.name,
+                copiedItem.pluralName,
+                copiedItem.uses,
+                copiedItem.discreet,
+                effects,
+                cures,
+                containingPhrase,
+                copiedItem.description
+            ));
+            sheets.updateData(copiedItem.itemCells(), data);
+            // Delete stolen item from victim's inventory.
+            victim.clearInventorySlot(index);
 
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious"))
@@ -596,7 +591,7 @@ class Player {
         }
     }
 
-    async drop(game, slotNo, container) {
+    drop(game, slotNo, container) {
         // First, check if the player is putting this item back in original spot unmodified.
         const invItem = this.inventory[slotNo];
         const roomItems = game.items.filter(item => item.location.name === this.location.name);
@@ -616,11 +611,9 @@ class Player {
         
         // Now that the list of items to check is significantly smaller,
         // check if the descriptions are the same.
-        const invItemDescription = await sheets.fetchDescription(invItem.descriptionCell());
         for (let i = 0; i < matchedItems.length; i++) {
             const item = matchedItems[i];
-            const itemDescription = await sheets.fetchDescription(item.descriptionCell());
-            if (itemDescription !== invItemDescription) {
+            if (item.description !== invItem.description) {
                 matchedItems.splice(i, 1);
                 i--;
             }
@@ -644,7 +637,7 @@ class Player {
                 effects,
                 cures,
                 containingPhrase,
-                invItemDescription
+                invItem.description
             );
 
             // We want to insert this item near items in the same container, so get all of the items in that container.
@@ -684,23 +677,20 @@ class Player {
             }
         }
 
-        var descriptionCell = "";
         var objectName = "";
         var preposition = "in";
         if (container instanceof Puzzle) {
-            descriptionCell = container.alreadySolvedCell();
+            container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, invItem);
+            sheets.updateCell(container.alreadySolvedCell(), container.alreadySolvedDescription);
             objectName = container.parentObject.name;
             preposition = container.parentObject.preposition;
         }
         else {
-            descriptionCell = container.descriptionCell();
+            container.description = parser.addItem(container.description, invItem);
+            sheets.updateCell(container.descriptionCell(), container.description);
             objectName = container.name;
             preposition = container.preposition;
         }
-
-        const description = await sheets.fetchDescription(descriptionCell);
-        const newDescription = parser.addItem(description, invItem);
-        sheets.updateCell(descriptionCell, newDescription);
 
         if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
         this.member.send(`You discard ${invItem.singleContainingPhrase}.`);
@@ -724,6 +714,7 @@ class Player {
             [],
             null,
             null,
+            "",
             this.inventory[slotNo].row
         );
         sheets.updateData(this.inventory[slotNo].itemCells(), new Array(settings.emptyInventoryItem));
@@ -743,7 +734,7 @@ class Player {
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
-                this.sendDescription(puzzle.noMoreAttemptsCell());
+                this.sendDescription(puzzle.noMoreAttemptsDescription);
                 new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
 
                 return;
@@ -785,12 +776,9 @@ class Player {
                 }
                 else if (puzzle.type === "toggle") {
                     if (puzzle.solved) {
-                        let player = this;
-                        sheets.getData(puzzle.alreadySolvedCell(), function (response) {
-                            let message = null;
-                            if (response.data.values) message = parser.parseDescription(response.data.values[0][0]);
-                            puzzle.unsolve(bot, game, player, `${player.displayName} uses the ${puzzle.name}.`, message, true);
-                        });
+                        let message = null;
+                        if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, this);
+                        puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, message, true);
                     }
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
                 }
@@ -895,13 +883,9 @@ class Player {
         return;
     }
 
-    sendDescription(descriptionCell) {
-        let player = this;
-        sheets.getData(descriptionCell, function (response) {
-            if (response.data.values)
-                player.member.send(parser.parseDescription(response.data.values[0][0], player));
-        });
-
+    sendDescription(description) {
+        if (description)
+            this.member.send(parser.parseDescription(description, this));
         return;
     }
 

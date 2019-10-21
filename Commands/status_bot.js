@@ -87,16 +87,12 @@ module.exports.run = async (bot, game, command, args, player) => {
 
         const announcementChannel = game.guild.channels.find(channel => channel.id === settings.announcementChannel);
         if (command === "inflict") {
-            sheets.getData(status.inflictedCell(), function (response) {
-                if (response.data.values)
-                    announcementChannel.send(parser.parseDescription(response.data.values[0][0]));
-            });
+            if (status.inflictedDescription !== "")
+                announcementChannel.send(parser.parseDescription(status.inflictedDescription));
         }
         else if (command === "cure") {
-            sheets.getData(status.curedCell(), function (response) {
-                if (response.data.values)
-                    announcementChannel.send(parser.parseDescription(response.data.values[0][0]));
-            });
+            if (status.curedDescription !== "")
+                announcementChannel.send(parser.parseDescription(status.curedDescription));
         }
     }
 

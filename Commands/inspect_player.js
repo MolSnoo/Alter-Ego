@@ -37,7 +37,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
         new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
-        player.sendDescription(player.location.descriptionCell());
+        player.sendDescription(player.location.description);
 
         return;
     }
@@ -54,7 +54,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (object !== null) {
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
-        player.sendDescription(object.descriptionCell());
+        player.sendDescription(object.description);
 
         for (let i = 0; i < game.players_alive.length; i++) {
             const hiddenPlayer = game.players_alive[i];
@@ -91,7 +91,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         if (item !== null) {
             if (!item.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.singleContainingPhrase}.`).send();
-            player.sendDescription(item.descriptionCell());
+            player.sendDescription(item.description);
 
             const time = new Date().toLocaleTimeString();
             game.logChannel.send(`${time} - ${player.name} inspected ${item.name} in ${player.location.channel}`);
@@ -106,7 +106,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (player.inventory[i].name === parsedInput) {
             const item = player.inventory[i];
             if (!item.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.singleContainingPhrase} and begins inspecting it.`).send();
-            player.sendDescription(item.descriptionCell());
+            player.sendDescription(item.description);
 
             const time = new Date().toLocaleTimeString();
             game.logChannel.send(`${time} - ${player.name} inspected ${item.name} from their inventory in ${player.location.channel}`);
