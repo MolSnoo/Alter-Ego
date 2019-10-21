@@ -24,6 +24,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable move");
     if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
 
+    if (player.isMoving) return message.reply(`You cannot do that because you are already moving.`);
+
     var input = args.join(" ");
 
     const currentRoom = player.location;
