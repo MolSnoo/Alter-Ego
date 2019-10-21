@@ -1,17 +1,17 @@
 ﻿const settings = include('settings.json');
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const sheets = include(`${settings.modulesDir}/sheets.js`);
-const loader = include(`${settings.modulesDir}/loader.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Puzzle {
-    constructor(name, solved, requiresMod, location, parentObject, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, row) {
+    constructor(name, solved, requiresMod, location, parentObjectName, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, row) {
         this.name = name;
         this.solved = solved;
         this.requiresMod = requiresMod;
         this.location = location;
-        this.parentObject = parentObject;
+        this.parentObjectName = parentObjectName;
+        this.parentObject = null;
         this.type = type;
         this.accessible = accessible;
         this.requires = requires;
@@ -22,28 +22,56 @@ class Puzzle {
         this.row = row;
     }
 
-    solve(bot, game, player, message, doSolvedCommands) {
+    setAccessible(game) {
+        this.accessible = true;
+        sheets.updateCell(this.accessibleCell(), "TRUE", function (response) {
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
+        });
+    }
+
+    setInaccessible(game) {
+        this.accessible = false;
+        sheets.updateCell(this.accessibleCell(), "FALSE", function (response) {
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
+        });
+    }
+
+    async solve(bot, game, player, message, doSolvedCommands) {
         // Let the palyer and anyone else in the room know that the puzzle was solved.
-        if (player !== null) {
-            sheets.getData(this.correctCell(), function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
-        }
+        if (player !== null)
+            player.sendDescription(this.correctCell());
         if (message)
-            new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
+            new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
         // Now mark it as solved.
         this.solved = true;
         sheets.updateCell(this.solvedCell(), "TRUE", function (response) {
-            loader.loadObjects(game);
-            loader.loadItems(game);
-            loader.loadPuzzles(game);
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
         });
 
         if (doSolvedCommands === true) {
             // Run any needed commands.
-            for (let i = 0; i < this.solvedCommands.length; i++)
-                commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
+            for (let i = 0; i < this.solvedCommands.length; i++) {
+                if (this.solvedCommands[i].startsWith("wait")) {
+                    let args = this.solvedCommands[i].split(" ");
+                    if (!args[1]) game.commandChannel.send(`Error: Couldn't execute command "${this.solvedCommands[i]}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.solvedCommands[i]}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
+                }
+            }
         }
 
         if (player !== null) {
@@ -55,25 +83,36 @@ class Puzzle {
         return;
     }
 
-    unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
+    async unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
         // There's no message when unsolved cell, so let the player know what they did.
         if (player !== null && directMessage !== null) player.member.send(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (message)
-            new Narration(game, player, game.rooms.find(room => room.name === this.location), message).send();
+            new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
         // Now mark it as unsolved.
         this.solved = false;
         sheets.updateCell(this.solvedCell(), "FALSE", function (response) {
-            loader.loadObjects(game);
-            loader.loadItems(game);
-            loader.loadPuzzles(game);
+            const loader = include(`${settings.modulesDir}/loader.js`);
+            loader.loadObjects(game, false);
+            loader.loadItems(game, false);
+            loader.loadPuzzles(game, false);
         });
 
         if (doUnsolvedCommands === true) {
             // Run any needed commands.
-            for (let i = 0; i < this.unsolvedCommands.length; i++)
-                commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
+            for (let i = 0; i < this.unsolvedCommands.length; i++) {
+                if (this.unsolvedCommands[i].startsWith("wait")) {
+                    let args = this.unsolvedCommands[i].split(" ");
+                    if (!args[1]) game.commandChannel.send(`Error: Couldn't execute command "${this.unsolvedCommands[i]}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.unsolvedCommands[i]}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
+                }
+            }
         }
 
         if (player !== null) {
@@ -94,16 +133,11 @@ class Puzzle {
             // so get the message only after updating the attempts cell.
             let puzzle = this;
             sheets.updateCell(this.attemptsCell(), this.remainingAttempts.toString(), function (response) {
-                sheets.getData(puzzle.incorrectCell(), function (response) {
-                    player.member.send(response.data.values[0][0]);
-                });
+                player.sendDescription(puzzle.incorrectCell());
             });
         }
-        else {
-            sheets.getData(this.incorrectCell(), function (response) {
-                player.member.send(response.data.values[0][0]);
-            });
-        }
+        else
+            player.sendDescription(this.incorrectCell());
         new Narration(game, player, player.location, message).send();
 
         // Post log message.
@@ -114,9 +148,7 @@ class Puzzle {
     }
 
     alreadySolved(game, player, message) {
-        sheets.getData(this.parsedAlreadySolvedCell(), function (response) {
-            player.member.send(response.data.values[0][0]);
-        });
+        player.sendDescription(this.alreadySolvedCell());
         new Narration(game, player, player.location, message).send();
 
         return;
@@ -129,7 +161,8 @@ class Puzzle {
                 misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
             // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
             else {
-                player.member.send(response.data.values[0][0]);
+                const parser = include(`${settings.modulesDir}/parser.js`);
+                player.member.send(parser.parseDescription(response.data.values[0][0], player));
                 new Narration(game, player, player.location, message).send();
             }
         });
@@ -152,12 +185,8 @@ class Puzzle {
         return settings.puzzleSheetCorrectColumn + this.row;
     }
 
-    formattedAlreadySolvedCell() {
-        return settings.puzzleSheetFormattedAlreadySolvedColumn + this.row;
-    }
-
-    parsedAlreadySolvedCell() {
-        return settings.puzzleSheetParsedAlreadySolvedColumn + this.row;
+    alreadySolvedCell() {
+        return settings.puzzleSheetAlreadySolvedColumn + this.row;
     }
 
     incorrectCell() {
@@ -174,3 +203,7 @@ class Puzzle {
 }
 
 module.exports = Puzzle;
+
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}

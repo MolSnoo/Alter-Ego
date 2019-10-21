@@ -3,7 +3,7 @@
 module.exports.config = {
     name: "kill_moderator",
     description: "Makes a player dead.",
-    details: "Removes the listed players from the living list to the dead list. "
+    details: "Moves the listed players from the living list to the dead list. "
         + "The player will be removed from whatever room channel they're in as well as any whispers. "
         + "A dead player will retain any items they had in their inventory, but they will not be accessible "
         + "unless they are manually added to the spreadsheet. A dead player will retain the Player role. "

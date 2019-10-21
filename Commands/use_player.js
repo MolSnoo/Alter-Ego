@@ -56,15 +56,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var puzzle = null;
     var password = "";
     if (parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var puzzles = game.puzzles.filter(puzzle => puzzle.location === player.location.name);
+        var puzzles = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name);
         if (command === "lock" || command === "unlock") puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
         else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
         for (let i = 0; i < puzzles.length; i++) {
-            if (puzzles[i].parentObject !== "" && parsedInput.startsWith(puzzles[i].parentObject)) {
+            if (puzzles[i].parentObject !== null && parsedInput.startsWith(puzzles[i].parentObject.name)) {
                 puzzle = puzzles[i];
-                parsedInput = parsedInput.substring(puzzle.parentObject.length).trim();
-                input = input.substring(puzzle.parentObject.length).trim();
+                parsedInput = parsedInput.substring(puzzle.parentObject.name.length).trim();
+                input = input.substring(puzzle.parentObject.name.length).trim();
                 break;
             }
             else if (parsedInput.startsWith(puzzles[i].name)) {

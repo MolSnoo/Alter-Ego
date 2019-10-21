@@ -1,22 +1,19 @@
 const settings = include('settings.json');
 
 class Object {
-    constructor(name, location, accessible, requires, isHidingSpot, preposition, row) {
+    constructor(name, location, accessible, childPuzzleName, isHidingSpot, preposition, row) {
         this.name = name;
         this.location = location;
         this.accessible = accessible;
-        this.requires = requires;
+        this.childPuzzleName = childPuzzleName;
+        this.childPuzzle = null;
         this.isHidingSpot = isHidingSpot;
         this.preposition = preposition;
         this.row = row;
     }
 
-    formattedDescriptionCell() {
-        return settings.objectSheetFormattedDescriptionColumn + this.row;
-    }
-
-    parsedDescriptionCell() {
-        return settings.objectSheetParsedDescriptionColumn + this.row;
+    descriptionCell() {
+        return settings.objectSheetDescriptionColumn + this.row;
     }
 }
 

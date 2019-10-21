@@ -78,10 +78,10 @@ async function init(game) {
     );
     game.players_alive.push(
         new Player(
-            "132591626366353410",
-            game.guild.members.find(member => member.id === "132591626366353410"),
-            "Faye",
-            "Faye",
+            "133116689956077568",
+            game.guild.members.find(member => member.id === "133116689956077568"),
+            "Monokuma",
+            "Monokuma",
             "",
             1,
             true,
@@ -127,7 +127,7 @@ async function test_create_whispers(game) {
     await whisper0.init(game);
     game.whispers.push(whisper0);
     assert.ok(
-        game.whispers[0].channelName === "lobby-faye-jared",
+        game.whispers[0].channelName === "lobby-monokuma-jared",
         game.whispers[0].channelName
     );
 
@@ -135,7 +135,7 @@ async function test_create_whispers(game) {
     await whisper1.init(game);
     game.whispers.push(whisper1);
     assert.ok(
-        game.whispers[1].channelName === "lobby-faye-jared-nero",
+        game.whispers[1].channelName === "lobby-monokuma-jared-nero",
         game.whispers[1].channelName
     );
 
@@ -151,7 +151,7 @@ async function test_create_whispers(game) {
     await whisper3.init(game);
     game.whispers.push(whisper3);
     assert.ok(
-        game.whispers[3].channelName === "lobby-faye-nero",
+        game.whispers[3].channelName === "lobby-monokuma-nero",
         game.whispers[3].channelName
     );
 }
@@ -166,7 +166,7 @@ async function test_move_player_0(game) {
     );
 
     assert.ok(
-        game.whispers[0].channelName === "lobby-faye-jared",
+        game.whispers[0].channelName === "lobby-monokuma-jared",
         game.whispers[0].channelName
     );
 
@@ -176,7 +176,7 @@ async function test_move_player_0(game) {
     );
 
     assert.ok(
-        game.whispers[2].channelName === "lobby-faye",
+        game.whispers[2].channelName === "lobby-monokuma",
         game.whispers[2].channelName
     );
 }

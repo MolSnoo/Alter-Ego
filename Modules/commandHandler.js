@@ -5,7 +5,7 @@ module.exports.execute = async (command, bot, game, message, player) => {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
-    else if (message.channel.id === settings.commandChannel && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
+    else if ((message.channel.id === settings.commandChannel || command.startsWith('delete')) && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
     else {
         let member = game.guild.members.find(member => member.id === message.author.id);
         if (member && member.roles.find(role => role.id === settings.playerRole)) isPlayer = true;
@@ -26,6 +26,7 @@ module.exports.execute = async (command, bot, game, message, player) => {
     if (!commandConfig) return false;
     let commandFile = bot.commands.get(commandConfig.name);
     if (!commandFile) return false;
+    const commandName = commandConfig.name.substring(0, commandConfig.name.indexOf('_'));
 
     if (isBot) {
         commandFile.run(bot, game, commandSplit[0], args, player);
@@ -57,7 +58,7 @@ module.exports.execute = async (command, bot, game, message, player) => {
                 return false;
             }
             const status = player.getAttributeStatusEffects("disable all");
-            if (status.length > 0) {
+            if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
                 if (player.statusString.includes("heated")) message.reply("the situation is **heated**. Moderator intervention is required.");
                 else message.reply(`You cannot do that because you are **${status[0].name}**.`);
                 return false;
