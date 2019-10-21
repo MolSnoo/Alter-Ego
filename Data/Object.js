@@ -1,7 +1,7 @@
 const settings = include('settings.json');
 
 class Object {
-    constructor(name, location, accessible, childPuzzleName, isHidingSpot, preposition, row) {
+    constructor(name, location, accessible, childPuzzleName, isHidingSpot, preposition, description, row) {
         this.name = name;
         this.location = location;
         this.accessible = accessible;
@@ -9,6 +9,7 @@ class Object {
         this.childPuzzle = null;
         this.isHidingSpot = isHidingSpot;
         this.preposition = preposition;
+        this.description = description;
         this.row = row;
     }
 

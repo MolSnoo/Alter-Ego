@@ -1,7 +1,7 @@
 ﻿const settings = include('settings.json');
 
 class InventoryItem {
-    constructor(name, pluralName, uses, discreet, effectsStrings, curesStrings, singleContainingPhrase, pluralContainingPhrase, row) {
+    constructor(name, pluralName, uses, discreet, effectsStrings, curesStrings, singleContainingPhrase, pluralContainingPhrase, description, row) {
         this.name = name;
         this.pluralName = pluralName;
         this.uses = uses;
@@ -12,6 +12,7 @@ class InventoryItem {
         this.cures = [...curesStrings];
         this.singleContainingPhrase = singleContainingPhrase;
         this.pluralContainingPhrase = pluralContainingPhrase;
+        this.description = description;
         this.row = row;
     }
 

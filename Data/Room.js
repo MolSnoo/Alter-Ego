@@ -4,10 +4,11 @@ const sheets = include(`${settings.modulesDir}/sheets.js`);
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Room {
-    constructor(name, channel, exit, row) {
+    constructor(name, channel, exit, description, row) {
         this.name = name;
         this.channel = channel;
         this.exit = exit;
+        this.description = description;
         this.row = row;
 
         this.occupants = new Array();

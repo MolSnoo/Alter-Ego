@@ -5,7 +5,7 @@ const sheets = include(`${settings.modulesDir}/sheets.js`);
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Puzzle {
-    constructor(name, solved, requiresMod, location, parentObjectName, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, row) {
+    constructor(name, solved, requiresMod, location, parentObjectName, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
         this.name = name;
         this.solved = solved;
         this.requiresMod = requiresMod;
@@ -19,6 +19,11 @@ class Puzzle {
         this.remainingAttempts = remainingAttempts;
         this.solvedCommands = solvedCommands;
         this.unsolvedCommands = unsolvedCommands;
+        this.correctDescription = correctDescription;
+        this.alreadySolvedDescription = alreadySolvedDescription;
+        this.incorrectDescription = incorrectDescription;
+        this.noMoreAttemptsDescription = noMoreAttemptsDescription;
+        this.requirementsNotMetDescription = requirementsNotMetDescription;
         this.row = row;
     }
 
