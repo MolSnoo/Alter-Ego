@@ -145,6 +145,37 @@ module.exports.updateCell = function (sheetrange, data, dataOperation) {
     });
 };
 
+module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
+    authorize(function (authClient) {
+        if (!spreadsheetId) spreadsheetId = spreadsheetID;
+        var request = {
+            // The ID of the spreadsheet to update.
+            spreadsheetId: spreadsheetId,
+
+            // How the input data should be interpreted.
+            valueInputOption: 'USER_ENTERED',
+
+            resource: {
+                "data": requests
+            },
+
+            auth: authClient
+        };
+
+        sheets.spreadsheets.values.batchUpdate(request, function (err, response) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            if (dataOperation) {
+                dataOperation(response);
+            }
+            
+        });
+    });
+};
+
 module.exports.appendRow = function (sheetrange, data, dataOperation) {
     authorize(function (authClient) {
         var request = {

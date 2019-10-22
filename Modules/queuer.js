@@ -6,8 +6,10 @@ const _ = require('lodash');
 var game = include('game.json');
 const queue = game.queue;
 
-module.exports.pushQueue = function () {
+module.exports.pushQueue = function (spreadsheetId) {
     this.cleanQueue();
+    var requests = this.createRequests();
+    if (requests.length > 0) sendQueue(requests, spreadsheetId);
 };
 
 module.exports.cleanQueue = function () {
@@ -35,6 +37,28 @@ module.exports.cleanQueue = function () {
     }
 };
 
-function sendQueue() {
-    return;
+module.exports.createRequests = function () {
+    var requests = [];
+    for (let i = 0; i < queue.length; i++) {
+        if (queue[i].type === "updateCell")
+            requests.push({
+                "range": queue[i].range,
+                "values": [[queue[i].data.toString()]]
+            });
+        else if (queue[i].type === "updateRow")
+            requests.push({
+                "range": queue[i].range,
+                "values": [queue[i].data]
+            });
+        else if (queue[i].type === "updateData")
+            requests.push({
+                "range": queue[i].range,
+                "values": queue[i].data
+            });
+    }
+    return requests;
+};
+
+function sendQueue(requests, spreadsheetId) {
+    sheets.batchUpdate(requests, null, spreadsheetId);
 }

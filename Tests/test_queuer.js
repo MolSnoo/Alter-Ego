@@ -14,6 +14,10 @@ exports.run = function () {
     test_cleanQueue_1();
     test_cleanQueue_2();
     test_cleanQueue_3();
+
+    test_createRequests_0();
+
+    test_pushQueue_0();
     return;
 };
 
@@ -98,6 +102,44 @@ function test_cleanQueue_3() {
         arraysEqual(queue, result),
         queue
     );
+}
+
+function test_createRequests_0() {
+    queue.length = 0;
+    const timestamp = Date.now();
+    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B2", [["Test A", "Test B"], ["Test C", "Test D"]]));
+    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!C1:C3", ["Test E", "Test F", "Test G"]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!D1", 1));
+
+    const result = [
+        {
+            "range": "Sheet1!A1:B2",
+            "values": [["Test A", "Test B"], ["Test C", "Test D"]]
+        },
+        {
+            "range": "Sheet1!C1:C3",
+            "values": [["Test E", "Test F", "Test G"]]
+        },
+        {
+            "range": "Sheet1!D1",
+            "values": [["1"]]
+        }
+    ];
+    const actual = queuer.createRequests();
+    assert.ok(
+        arraysEqual(result, actual),
+        actual
+    );
+}
+
+function test_pushQueue_0() {
+    queue.length = 0;
+    const timestamp = Date.now();
+    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B2", [["Test A", "Test B"], ["Test C", "Test D"]]));
+    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!C1:E1", ["Test E", "Test F", "Test G"]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A4", 1));
+
+    queuer.pushQueue("13z3_2ZYUfmB1CiSAxmK70S3viR-LxlaDKvCwo-Bkqeg");
 }
 
 function arraysEqual(a, b) {
