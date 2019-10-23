@@ -1,7 +1,4 @@
-﻿const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
-
-class QueueEntry {
+﻿class QueueEntry {
     constructor(timestamp, type, range, data) {
         this.timestamp = timestamp;
         this.type = type;

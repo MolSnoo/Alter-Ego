@@ -1,5 +1,7 @@
 const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
+
+var game = include('game.json');
 
 class Exit {
     constructor(name, pos, unlocked, dest, link, description, row) {
@@ -14,12 +16,12 @@ class Exit {
 
     unlock() {
         this.unlocked = true;
-        sheets.updateCell(this.unlockedCell(), "TRUE");
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.unlockedCell(), "TRUE"));
     }
 
     lock() {
         this.unlocked = false;
-        sheets.updateCell(this.unlockedCell(), "FALSE");
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.unlockedCell(), "FALSE"));
     }
 
     unlockedCell() {

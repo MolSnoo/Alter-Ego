@@ -61,4 +61,5 @@ module.exports.createRequests = function () {
 
 function sendQueue(requests, spreadsheetId) {
     sheets.batchUpdate(requests, null, spreadsheetId);
+    queue.length = 0;
 }

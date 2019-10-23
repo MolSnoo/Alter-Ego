@@ -9,6 +9,7 @@ const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
@@ -657,7 +658,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                             }
                         }
                     }
-                    sheets.updateCell(currentPlayer.statusCell(), currentPlayer.statusString);
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), currentPlayer.statusString));
 
                     for (let k = 0; k < game.rooms.length; k++) {
                         if (game.rooms[k].name === currentPlayer.location.name) {

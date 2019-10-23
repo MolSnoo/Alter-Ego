@@ -3,6 +3,7 @@ const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Puzzle {
     constructor(name, solved, requiresMod, location, parentObjectName, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
@@ -29,22 +30,24 @@ class Puzzle {
 
     setAccessible(game) {
         this.accessible = true;
-        sheets.updateCell(this.accessibleCell(), "TRUE", function (response) {
+        /*sheets.updateCell(this.accessibleCell(), "TRUE", function (response) {
             const loader = include(`${settings.modulesDir}/loader.js`);
             loader.loadObjects(game, false);
             loader.loadItems(game, false);
             loader.loadPuzzles(game, false);
-        });
+        });*/
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
     }
 
     setInaccessible(game) {
         this.accessible = false;
-        sheets.updateCell(this.accessibleCell(), "FALSE", function (response) {
+        /*sheets.updateCell(this.accessibleCell(), "FALSE", function (response) {
             const loader = include(`${settings.modulesDir}/loader.js`);
             loader.loadObjects(game, false);
             loader.loadItems(game, false);
             loader.loadPuzzles(game, false);
-        });
+        });*/
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
     }
 
     async solve(bot, game, player, message, doSolvedCommands) {
@@ -56,12 +59,13 @@ class Puzzle {
 
         // Now mark it as solved.
         this.solved = true;
-        sheets.updateCell(this.solvedCell(), "TRUE", function (response) {
+        /*sheets.updateCell(this.solvedCell(), "TRUE", function (response) {
             const loader = include(`${settings.modulesDir}/loader.js`);
             loader.loadObjects(game, false);
             loader.loadItems(game, false);
             loader.loadPuzzles(game, false);
-        });
+        });*/
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), "TRUE"));
 
         if (doSolvedCommands === true) {
             // Run any needed commands.
@@ -97,12 +101,13 @@ class Puzzle {
 
         // Now mark it as unsolved.
         this.solved = false;
-        sheets.updateCell(this.solvedCell(), "FALSE", function (response) {
+        /*sheets.updateCell(this.solvedCell(), "FALSE", function (response) {
             const loader = include(`${settings.modulesDir}/loader.js`);
             loader.loadObjects(game, false);
             loader.loadItems(game, false);
             loader.loadPuzzles(game, false);
-        });
+        });*/
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), "FALSE"));
 
         if (doUnsolvedCommands === true) {
             // Run any needed commands.
@@ -137,9 +142,10 @@ class Puzzle {
             // The incorrect cell might use the attempts cell to tell the player how many attempts are remaining,
             // so get the message only after updating the attempts cell.
             let puzzle = this;
-            sheets.updateCell(this.attemptsCell(), this.remainingAttempts.toString(), function (response) {
+            /*sheets.updateCell(this.attemptsCell(), this.remainingAttempts.toString(), function (response) {
                 player.sendDescription(puzzle.incorrectDescription);
-            });
+            });*/
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.attemptsCell(), this.remainingAttempts));
         }
         else
             player.sendDescription(this.incorrectDescription);
