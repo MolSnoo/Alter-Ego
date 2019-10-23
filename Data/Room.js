@@ -63,14 +63,30 @@ class Room {
             }
         }
         else if (!player.hasAttribute("no sight") && this.occupants.length > 0) {
+            // Come up with lists of concealed and sleeping players.
             let concealedPlayers = new Array();
+            let sleepingPlayers = new Array();
             for (let i = 0; i < this.occupants.length; i++) {
                 if (this.occupants[i].hasAttribute("concealed") && !this.occupants[i].hasAttribute("hidden"))
                     concealedPlayers.push(this.occupants[i]);
+                if (this.occupants[i].hasAttribute("unconscious") && !this.occupants[i].hasAttribute("hidden"))
+                    sleepingPlayers.push(this.occupants[i]);
             }
             if (concealedPlayers.length > 0) {
                 let concealedPlayersString = concealedPlayers.map(player => player.displayName).join(", ");
                 player.member.send(`In this room you see: ${concealedPlayersString}.`);
+            }
+            if (sleepingPlayers.length > 0) {
+                let sleepingPlayersString = "";
+                if (sleepingPlayers.length === 1) sleepingPlayersString = `${sleepingPlayers[0].displayName} is `;
+                else if (sleepingPlayers.length === 2) sleepingPlayersString = `${sleepingPlayers[0].displayName} and ${sleepingPlayers[1].displayName} are `;
+                else if (sleepingPlayers.length >= 3) {
+                    for (let i = 0; i < sleepingPlayers.length - 1; i++)
+                        sleepingPlayersString += `${sleepingPlayers[i].displayName}, `;
+                    sleepingPlayersString += `and ${sleepingPlayers[sleepingPlayers.length - 1].displayName} are `;
+                }
+                sleepingPlayersString += "sleeping in this room.";
+                player.member.send(sleepingPlayersString);
             }
         }
 
