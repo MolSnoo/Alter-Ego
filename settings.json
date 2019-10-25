@@ -26,6 +26,7 @@
   "diceMax": 6,
   "defaultDropObject": "FLOOR",
   "autoDeleteWhisperChannels": true,
+  "queueInterval": 30,
 
   "onlineActivity": {
     "type": "LISTENING",
@@ -42,8 +43,8 @@
   },
 
   "testerRole": "585226322859655175",
-  "eligibleRole": "593106830100791304",
-  "playerRole": "581612389993152532",
+  "eligibleRole": "581612389993152532",
+  "playerRole": "581612815194783795",
   "headmasterRole": "581613155269214218",
   "moderatorRole": "581613661731422237",
   "deadRole": "581612036514119680",

@@ -718,6 +718,7 @@ class Player {
             "",
             this.inventory[slotNo].row
         );
+        var game = include(`game.json`);
         game.queue.push(new QueueEntry(Date.now(), "updateRow", this.inventory[slotNo].itemCells(), settings.emptyInventoryItem));
         return;
     }

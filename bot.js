@@ -5,10 +5,13 @@ const settings = include('settings.json');
 const credentials = include('credentials.json');
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
+const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 const discord = require('discord.js');
 const bot = new discord.Client();
 const fs = require('fs');
+
+var game = include(`game.json`);
 
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
@@ -55,6 +58,11 @@ bot.on('ready', async () => {
         console.log("Error: Bot must be on one and only one server.");
         return process.exit(2);
     }
+
+    // Run queuer periodically.
+    setInterval(() => {
+        queuer.pushQueue();
+    }, settings.queueInterval * 1000);
 });
 
 bot.on('message', async message => {
@@ -62,7 +70,6 @@ bot.on('message', async message => {
     if (message.author === bot.user) return;
     if (settings.debug && message.channel.type === 'dm') console.log(message.author.username + ': "' + message.content + '"');
 
-    let game = include('game.json');
     game.guild = bot.guilds.first();
     game.commandChannel = game.guild.channels.find(channel => channel.id === settings.commandChannel);
     game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
