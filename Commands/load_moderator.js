@@ -104,7 +104,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 if (!settings.debug)
                     bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
                 for (let i = 0; i < game.players_alive.length; i++)
-                    game.players_alive[i].sendDescription(game.players_alive[i].location.description);
+                    game.players_alive[i].sendDescription(game.players_alive[i].location.description, game.players_alive[i].location);
             }
             else if (args[1] && args[1] === "resume") {
                 game.game = true;

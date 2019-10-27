@@ -345,7 +345,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         sheet[i][columnType],
                         sheet[i][columnAccessible] === true,
                         sheet[i][columnRequires] ? sheet[i][columnRequires] : null,
-                        sheet[i][columnSolution] ? sheet[i][columnSolution] : "",
+                        sheet[i][columnSolution] ? sheet[i][columnSolution].toString() : "",
                         parseInt(sheet[i][columnAttempts]),
                         solvedCommands,
                         unsolvedCommands,

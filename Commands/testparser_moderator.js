@@ -129,7 +129,7 @@ testparse = async (file) => {
                     text += "      ";
                     text += sheet[i + j][columnExitName] + os.EOL;
                     const oldDescription = sheet[i + j][columnDescription];
-                    const newDescription = parser.parseDescription(oldDescription, player, true);
+                    const newDescription = parser.parseDescription(oldDescription, null, player, true);
                     if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.roomSheetDescriptionColumn + (i + j + 1), warnings: newDescription.warnings });
                     if (newDescription.errors.length !== 0) errors.push({ cell: settings.roomSheetDescriptionColumn + (i + j + 1), errors: newDescription.errors });
 
@@ -158,7 +158,7 @@ testparse = async (file) => {
             text += sheet[i][columnObjectName] + os.EOL;
 
             const oldDescription = sheet[i][columnDescription];
-            const newDescription = parser.parseDescription(oldDescription, player, true);
+            const newDescription = parser.parseDescription(oldDescription, null, player, true);
             if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.objectSheetDescriptionColumn + (i + 1), warnings: newDescription.warnings });
             if (newDescription.errors.length !== 0) errors.push({ cell: settings.objectSheetDescriptionColumn + (i + 1), errors: newDescription.errors });
 
@@ -184,7 +184,7 @@ testparse = async (file) => {
                 text += sheet[i][columnItemName] + os.EOL;
 
                 const oldDescription = sheet[i][columnDescription];
-                const newDescription = parser.parseDescription(oldDescription, player, true);
+                const newDescription = parser.parseDescription(oldDescription, null, player, true);
                 if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.itemSheetDescriptionColumn + (i + 1), warnings: newDescription.warnings });
                 if (newDescription.errors.length !== 0) errors.push({ cell: settings.itemSheetDescriptionColumn + (i + 1), errors: newDescription.errors });
 
@@ -212,7 +212,7 @@ testparse = async (file) => {
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 const oldDescription = sheet[i][columnDescription];
-                const newDescription = parser.parseDescription(oldDescription, player, true);
+                const newDescription = parser.parseDescription(oldDescription, null, player, true);
                 if (newDescription.warnings.length !== 0) warnings.push({ cell: settings.puzzleSheetAlreadySolvedColumn + (i + 1), warnings: newDescription.warnings });
                 if (newDescription.errors.length !== 0) errors.push({ cell: settings.puzzleSheetAlreadySolvedColumn + (i + 1), errors: newDescription.errors });
 
@@ -247,7 +247,7 @@ testadd = async (file, formatted) => {
                 text += sheet[i][columnObjectName] + os.EOL;
 
                 text += "      ";
-                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], null, player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = "";
@@ -269,7 +269,7 @@ testadd = async (file, formatted) => {
                     item.quantity = 0;
                     text += `(Drop ${item.name}): `;
                     description = parser.addItem(description, item);
-                    text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
+                    text += (formatted ? description : parser.parseDescription(description, null, player)) + os.EOL;
                     tabs++;
                 }
             }
@@ -291,7 +291,7 @@ testadd = async (file, formatted) => {
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 text += "      ";
-                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], null, player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = "";
@@ -313,7 +313,7 @@ testadd = async (file, formatted) => {
                     item.quantity = 0;
                     text += `(Drop ${item.name}): `;
                     description = parser.addItem(description, item);
-                    text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
+                    text += (formatted ? description : parser.parseDescription(description, null, player)) + os.EOL;
                     tabs++;
                 }
             }
@@ -365,7 +365,7 @@ testremove = async (file, formatted) => {
                     text += sheet[i + j][columnExitName] + os.EOL;
 
                     text += "         ";
-                    text += (formatted ? sheet[i + j][columnDescription] : parser.parseDescription(sheet[i + j][columnDescription], player)) + os.EOL;
+                    text += (formatted ? sheet[i + j][columnDescription] : parser.parseDescription(sheet[i + j][columnDescription], null, player)) + os.EOL;
 
                     for (let k = 0; k < orders.length; k++) {
                         let description = sheet[i + j][columnDescription];
@@ -385,7 +385,7 @@ testremove = async (file, formatted) => {
                             }
                             text += `(Take ${permutation[l]}): `;
                             description = parser.removeItem(description, item);
-                            text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
+                            text += (formatted ? description : parser.parseDescription(description, null, player)) + os.EOL;
                             tabs++;
                         }
                     }
@@ -412,7 +412,7 @@ testremove = async (file, formatted) => {
                 text += sheet[i][columnObjectName] + os.EOL;
 
                 text += "      ";
-                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], null, player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
@@ -451,7 +451,7 @@ testremove = async (file, formatted) => {
                         }
                         text += `(Take ${permutation[k]}): `;
                         description = parser.removeItem(description, item);
-                        text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
+                        text += (formatted ? description : parser.parseDescription(description, null, player)) + os.EOL;
                         tabs++;
                     }
                 }
@@ -475,7 +475,7 @@ testremove = async (file, formatted) => {
                 text += sheet[i][columnPuzzleName] + os.EOL;
 
                 text += "      ";
-                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], player)) + os.EOL;
+                text += (formatted ? sheet[i][columnDescription] : parser.parseDescription(sheet[i][columnDescription], null, player)) + os.EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
@@ -512,7 +512,7 @@ testremove = async (file, formatted) => {
                         }
                         text += `(Take ${permutation[k]}): `;
                         description = parser.removeItem(description, item);
-                        text += (formatted ? description : parser.parseDescription(description, player)) + os.EOL;
+                        text += (formatted ? description : parser.parseDescription(description, null, player)) + os.EOL;
                         tabs++;
                     }
                 }

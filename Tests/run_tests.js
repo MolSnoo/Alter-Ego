@@ -10,7 +10,7 @@ const test_queuer = include(`${settings.testsDir}/test_queuer.js`);
 
 exports.runTests = async function (bot) {
     //test_cell_responses.run();
-    //test_parse_description.run();
+    test_parse_description.run();
     //test_remove_item.run();
     //test_add_item.run();
     //await test_whispers.run(bot);

@@ -88,11 +88,11 @@ module.exports.run = async (bot, game, command, args, player) => {
         const announcementChannel = game.guild.channels.find(channel => channel.id === settings.announcementChannel);
         if (command === "inflict") {
             if (status.inflictedDescription !== "")
-                announcementChannel.send(parser.parseDescription(status.inflictedDescription));
+                announcementChannel.send(parser.parseDescription(status.inflictedDescription, status));
         }
         else if (command === "cure") {
             if (status.curedDescription !== "")
-                announcementChannel.send(parser.parseDescription(status.curedDescription));
+                announcementChannel.send(parser.parseDescription(status.curedDescription, status));
         }
     }
 

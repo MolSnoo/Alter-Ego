@@ -1,6 +1,15 @@
 ﻿const settings = include('settings.json');
 var parser = include(`${settings.modulesDir}/parser.js`);
 
+const Exit = include(`${settings.dataDir}/Exit.js`);
+const Room = include(`${settings.dataDir}/Room.js`);
+const Object = include(`${settings.dataDir}/Object.js`);
+const Item = include(`${settings.dataDir}/Item.js`);
+const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
+const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
+const Status = include(`${settings.dataDir}/Status.js`);
+//const Player = include(`${settings.dataDir}/Player.js`);
+
 var assert = require('assert');
 
 class Player {
@@ -28,6 +37,12 @@ exports.run = function () {
     test_parseDescription_14();
     test_parseDescription_15();
     test_parseDescription_16();
+    test_parseDescription_17();
+    test_parseDescription_18();
+    test_parseDescription_19();
+    test_parseDescription_20();
+    test_parseDescription_21();
+    test_parseDescription_22();
     return;
 };
 
@@ -36,7 +51,7 @@ function test_parseDescription_0() {
     const player = new Player("", 5);
 
     const result = `The floor beneath you is soft and earthy.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -48,7 +63,7 @@ function test_parseDescription_1() {
     const player = new Player("", 5);
 
     const result = `You look at the sink. It looks to be very clean. On the wall above it is a mirror.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -60,7 +75,7 @@ function test_parseDescription_2() {
     const player = new Player("", 5);
 
     const result = "You open the locker. Inside, you find a pair of SWIM TRUNKS.";
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -72,7 +87,7 @@ function test_parseDescription_3() {
     const player = new Player("", 5);
 
     const result = `You inspect Joshua's body. He looks pretty emaciated, like he hasn't eaten or drank in days. You don't find any injuries except for a gash in his **NECK**.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -84,7 +99,7 @@ function test_parseDescription_4() {
     const player = new Player("", 4);
 
     const result = `You inspect Joshua's body. Nothing seems out of the ordinary except for a gash in his **NECK**.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -96,7 +111,7 @@ function test_parseDescription_5() {
     const player = new Player("", 5);
 
     const result = `You find Veronica's body lying face up. Her arms are extended straight out with her palms facing up. There's a bloody WOUND on her chest, and the blood has soaked her shirt. In her pockets, you find a CIGARETTE, a KNIFE, and a pair of NEEDLES.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -108,7 +123,7 @@ function test_parseDescription_6() {
     const player = new Player("", 4);
 
     const result = `You find Veronica's body lying face up. Her arms are extended straight out with her palms facing up. There's a bloody WOUND on her chest, and the blood has soaked her shirt.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -120,7 +135,7 @@ function test_parseDescription_7() {
     const player = new Player("", 5);
 
     const result = `You find Veronica's body lying face up. Her arms are extended straight out with her palms facing up. There's a bloody WOUND on her chest, and the blood has soaked her shirt.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -132,7 +147,7 @@ function test_parseDescription_8() {
     const player = new Player("", 4);
 
     const result = `You find Veronica's body lying face up. Her arms are extended straight out with her palms facing up. There's a bloody WOUND on her chest, and the blood has soaked her shirt. In her pockets, you find a CIGARETTE and a pair of NEEDLES.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -144,7 +159,7 @@ function test_parseDescription_9() {
     const player = new Player("Ultimate Herbalist", 5);
 
     const result = `You take a look at the nemu tree. It's unlike anything you've ever seen before. It has purple wood and blue leaves. Supposedly if you boil a piece of bark from this it creates some kind of sleep medicine.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -156,7 +171,7 @@ function test_parseDescription_10() {
     const player = new Player("Ultimate Dancer", 5);
 
     const result = `You take a look at the nemu tree. It's unlike anything you've ever seen before. It has purple wood and blue leaves.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -168,7 +183,7 @@ function test_parseDescription_11() {
     const player = new Player("", 5);
 
     const result = `You examine the pool table. It seems to have everything you need to play a game of pool: 2 POOL STICKS, a TRIANGLE, and BALLS.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -180,7 +195,7 @@ function test_parseDescription_12() {
     const player = new Player("", 5);
 
     const result = `You open the locker. Inside, you find a FIRST AID KIT, a bottle of PAINKILLERS, a PILL BOTTLE, and an OLD KEY.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -192,7 +207,7 @@ function test_parseDescription_13() {
     const player = new Player("Ultimate Lumberjack", 5);
 
     const result = `You examine the shelves. There are a number of tools on them. In particular, you find a SAW, an AX, and a pair of HEDGE TRIMMERS.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -204,7 +219,7 @@ function test_parseDescription_14() {
     const player = new Player("Ultimate Botanist", 5);
 
     const result = `You examine the shelves. There are a number of tools on them. In particular, you find a SAW and a pair of HEDGE TRIMMERS.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -216,7 +231,7 @@ function test_parseDescription_15() {
     const player = new Player("Ultimate Botanist", 5);
 
     const result = `You open the locker.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual
@@ -228,7 +243,85 @@ function test_parseDescription_16() {
     const player = new Player("Monokuma", 5);
 
     const result = `You flip through the photo album. It's full of pictures of a married couple in various places around the world. You've never seen these people before.`;
-    const actual = parser.parseDescription(text, player);
+    const actual = parser.parseDescription(text, null, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_17() {
+    const item = new InventoryItem("CODE RED MOUNTAIN DEW", "", 1, true, "refreshed", "", "a bottle of CODE RED MOUNTAIN DEW", "bottles of CODE RED MOUNTAIN DEW");
+    const text = `<desc><s>It's a bottle of Code Red Mountain Dew, which has a cherry flavor.</s> <if cond="player.name === 'Veronica'"><s>This is your favorite flavor, naturally.</s></if><if cond="player.name !== 'Veronica'"><s>For some reason, when you hold it, you get the urge to play video games.</s></if> <s>The drink and label are both red.</s> <if cond="this.uses > 0"><s>It's nice and cold.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
+    const player = new Player("Monokuma", 5);
+
+    const result = `It's a bottle of Code Red Mountain Dew, which has a cherry flavor. For some reason, when you hold it, you get the urge to play video games. The drink and label are both red. It's nice and cold.`;
+    const actual = parser.parseDescription(text, item, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_18() {
+    const item = new InventoryItem("CODE RED MOUNTAIN DEW", "", 0, true, "refreshed", "", "a bottle of CODE RED MOUNTAIN DEW", "bottles of CODE RED MOUNTAIN DEW");
+    const text = `<desc><s>It's a bottle of Code Red Mountain Dew, which has a cherry flavor.</s> <if cond="player.name === 'Veronica'"><s>This is your favorite flavor, naturally.</s></if><if cond="player.name !== 'Veronica'"><s>For some reason, when you hold it, you get the urge to play video games.</s></if> <s>The drink and label are both red.</s> <if cond="this.uses > 0"><s>It's nice and cold.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
+    const player = new Player("Monokuma", 5);
+
+    const result = `It's a bottle of Code Red Mountain Dew, which has a cherry flavor. For some reason, when you hold it, you get the urge to play video games. The drink and label are both red. It's empty.`;
+    const actual = parser.parseDescription(text, item, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_19() {
+    const item = new InventoryItem("BREADSTICKS", "", 6, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const text = `<desc><s>It's a box of frozen garlic breadsticks.</s> <s>There are <var v="this.uses" /> breadsticks inside.</s></desc>`;
+    const player = new Player("Monokuma", 5);
+
+    const result = `It's a box of frozen garlic breadsticks. There are 6 breadsticks inside.`;
+    const actual = parser.parseDescription(text, item, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_20() {
+    const item = new InventoryItem("BREADSTICKS", "", 6, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const text = `<desc><s>It's a box of frozen garlic <var v="this.name">.</s> <if cond="this.uses > 1"><s>There are <var v="this.uses" /> <var v="this.name"> inside.</s></if><if cond="this.uses === 1"><s>There is only <var v="this.uses"> breadstick inside.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
+    const player = new Player("Monokuma", 5);
+
+    const result = `It's a box of frozen garlic BREADSTICKS. There are 6 BREADSTICKS inside.`;
+    const actual = parser.parseDescription(text, item, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_21() {
+    const item = new InventoryItem("BREADSTICKS", "", 1, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const text = `<desc><s>It's a box of frozen garlic <var v="this.name">.</s> <if cond="this.uses > 1"><s>There are <var v="this.uses" /> <var v="this.name"> inside.</s></if><if cond="this.uses === 1"><s>There is only <var v="this.uses"> breadstick inside.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
+    const player = new Player("Monokuma", 5);
+
+    const result = `It's a box of frozen garlic BREADSTICKS. There is only 1 breadstick inside.`;
+    const actual = parser.parseDescription(text, item, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_22() {
+    const item = new InventoryItem("BREADSTICKS", "", 0, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const text = `<desc><s>It's a box of frozen garlic <var v="this.name">.</s> <if cond="this.uses > 1"><s>There are <var v="this.uses" /> <var v="this.name"> inside.</s></if><if cond="this.uses === 1"><s>There is only <var v="this.uses"> breadstick inside.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
+    const player = new Player("Monokuma", 5);
+
+    const result = `It's a box of frozen garlic BREADSTICKS. It's empty.`;
+    const actual = parser.parseDescription(text, item, player);
     assert.ok(
         actual === result,
         actual

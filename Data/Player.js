@@ -1,6 +1,7 @@
 const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
+const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
@@ -286,7 +287,7 @@ class Player {
 
         // Inform player what happened.
         if (notify)
-            this.sendDescription(status.inflictedDescription);
+            this.sendDescription(status.inflictedDescription, status);
 
         this.statusString = this.generate_statusList();
         if (updateSheet) game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), this.statusString));
@@ -339,10 +340,10 @@ class Player {
 
         // Inform player what happened.
         if (notify) {
-            this.sendDescription(status.curedDescription);
+            this.sendDescription(status.curedDescription, status);
             // If the player is waking up, send them the description of the room they wake up in.
             if (status.name === "asleep")
-                this.sendDescription(this.location.description);
+                this.sendDescription(this.location.description, this.location);
         }
 
         // Post log message.
@@ -592,7 +593,7 @@ class Player {
         }
     }
 
-    drop(game, slotNo, container) {
+    async drop(game, slotNo, container) {
         // First, check if the player is putting this item back in original spot unmodified.
         const invItem = this.inventory[slotNo];
         const roomItems = game.items.filter(item => item.location.name === this.location.name);
@@ -651,12 +652,14 @@ class Player {
             const lastContainerItem = containerItems[containerItems.length - 1];
             const lastGameItem = game.items[game.items.length - 1];
             if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
+                await queuer.pushQueue();
                 sheets.insertRow(lastContainerItem.itemCells(), data, function (response) {
                     loader.loadItems(game, false);
                 });
             }
             // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
             else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
+                await queuer.pushQueue();
                 sheets.insertRow(lastRoomItem.itemCells(), data, function (response) {
                     loader.loadItems(game, false);
                 });
@@ -736,7 +739,7 @@ class Player {
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
-                this.sendDescription(puzzle.noMoreAttemptsDescription);
+                this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
                 new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
 
                 return;
@@ -779,7 +782,7 @@ class Player {
                 else if (puzzle.type === "toggle") {
                     if (puzzle.solved) {
                         let message = null;
-                        if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, this);
+                        if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
                         puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, message, true);
                     }
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
@@ -885,9 +888,9 @@ class Player {
         return;
     }
 
-    sendDescription(description) {
+    sendDescription(description, container) {
         if (description)
-            this.member.send(parser.parseDescription(description, this));
+            this.member.send(parser.parseDescription(description, container, this));
         return;
     }
 

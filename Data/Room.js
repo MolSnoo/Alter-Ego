@@ -50,7 +50,7 @@ class Room {
                 if (entrance) description = entrance.description;
                 else description = this.description;
                 // Send the room description of the entrance the player enters from.
-                player.sendDescription(description);
+                player.sendDescription(description, this);
             }
         }
         if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {

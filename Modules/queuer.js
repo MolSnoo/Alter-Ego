@@ -6,10 +6,10 @@ const _ = require('lodash');
 var game = include('game.json');
 const queue = game.queue;
 
-module.exports.pushQueue = function (spreadsheetId) {
+module.exports.pushQueue = async function (spreadsheetId) {
     this.cleanQueue();
     var requests = this.createRequests();
-    if (requests.length > 0) sendQueue(requests, spreadsheetId);
+    if (requests.length > 0) await sendQueue(requests, spreadsheetId);
 };
 
 module.exports.cleanQueue = function () {

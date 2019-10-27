@@ -47,7 +47,7 @@ class Item {
     }
 }
 
-module.exports.parseDescription = function (description, player, doErrorChecking) {
+module.exports.parseDescription = function (description, container, player, doErrorChecking) {
     let prefix = '';
     if (description.startsWith('=CONCATENATE("'))
         prefix = '=CONCATENATE("';
@@ -61,12 +61,15 @@ module.exports.parseDescription = function (description, player, doErrorChecking
     // Now we just need the document.
     document = document.document;
 
+    // Include game data for variable functionality.
+    var game = include('game.json');
     // Find any conditionals.
     var conditionals = document.getElementsByTagName('if');
     let conditionalsToRemove = [];
     for (let i = 0; i < conditionals.length; i++) {
         let conditional = conditionals[i].getAttribute('cond');
         if (conditional !== null && conditional !== undefined) {
+            conditional = conditional.replace(/this/g, "container");
             if (eval(conditional) === false)
                 conditionalsToRemove.push(conditionals[i]);
         }
@@ -90,6 +93,23 @@ module.exports.parseDescription = function (description, player, doErrorChecking
             if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
             else document.removeChild(sentence);
         }
+    }
+
+    // Replace any var tags.
+    var variables = document.getElementsByTagName('var');
+    var variableStrings = [];
+    for (let i = 0; i < variables.length; i++) {
+        let varAttribute = variables[i].getAttribute('v');
+        if (varAttribute !== null && varAttribute !== undefined) {
+            varAttribute = varAttribute.replace(/this/g, "container");
+            variableStrings.push({ element: variables[i], attribute: eval(varAttribute) });
+            if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
+                variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
+        }
+    }
+    for (let i = 0; i < variableStrings.length; i++) {
+        let newNode = document.createTextNode(variableStrings[i].attribute);
+        variableStrings[i].element.parentNode.replaceChild(newNode, variableStrings[i].element);
     }
 
     // Convert the document to a string.
