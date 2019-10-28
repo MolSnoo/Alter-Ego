@@ -1,5 +1,7 @@
 const settings = include('settings.json');
 
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
+
 class Item {
     constructor(name, pluralName, location, sublocationName, accessible, requiresName, quantity, uses, discreet, effectsStrings, curesStrings, singleContainingPhrase, pluralContainingPhrase, description, row) {
         this.name = name;
@@ -23,9 +25,23 @@ class Item {
         this.row = row;
     }
 
+    setAccessible(game) {
+        this.accessible = true;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
+    }
+
+    setInaccessible(game) {
+        this.accessible = false;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
+    }
+
     itemCells() {
         const descriptionColumn = settings.itemSheetDescriptionColumn.split('!');
         return settings.itemSheetNameColumn + this.row + ":" + descriptionColumn[1] + this.row;
+    }
+
+    accessibleCell() {
+        return settings.itemSheetAccessibleColumn + this.row;
     }
 
     quantityCell() {

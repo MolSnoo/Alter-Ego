@@ -1,5 +1,7 @@
 const settings = include('settings.json');
 
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
+
 class Object {
     constructor(name, location, accessible, childPuzzleName, isHidingSpot, preposition, description, row) {
         this.name = name;
@@ -11,6 +13,20 @@ class Object {
         this.preposition = preposition;
         this.description = description;
         this.row = row;
+    }
+
+    setAccessible(game) {
+        this.accessible = true;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
+    }
+
+    setInaccessible(game) {
+        this.accessible = false;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
+    }
+
+    accessibleCell() {
+        return settings.objectSheetAccessibleColumn + this.row;
     }
 
     descriptionCell() {

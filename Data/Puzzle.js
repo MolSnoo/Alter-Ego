@@ -1,6 +1,5 @@
 ﻿const settings = include('settings.json');
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
