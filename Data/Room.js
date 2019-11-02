@@ -13,6 +13,7 @@ class Room {
         this.row = row;
 
         this.occupants = new Array();
+        this.occupantsString = "";
     }
 
     addPlayer(game, player, entrance, entranceMessage, sendDescription) {
@@ -54,26 +55,12 @@ class Room {
             }
         }
         if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {
-            let occupants = new Array();
-            for (let i = 0; i < this.occupants.length; i++) {
-                if (!this.occupants[i].hasAttribute("hidden"))
-                    occupants.push(this.occupants[i]);
-            }
-            if (occupants.length > 0) {
-                let occupantsString = occupants.map(player => player.displayName).join(", ");
-                player.member.send(`Players in the room: ${occupantsString}.`);
-            }
+            if (this.occupantsString !== "")
+                player.member.send(`You see ${this.occupantsString} in this room.`);
         }
         else if (!player.hasAttribute("no sight") && this.occupants.length > 0) {
-            let concealedPlayers = new Array();
-            for (let i = 0; i < this.occupants.length; i++) {
-                if (this.occupants[i].hasAttribute("concealed") && !this.occupants[i].hasAttribute("hidden"))
-                    concealedPlayers.push(this.occupants[i]);
-            }
-            if (concealedPlayers.length > 0) {
-                let concealedPlayersString = concealedPlayers.map(player => player.displayName).join(", ");
-                player.member.send(`In this room you see: ${concealedPlayersString}.`);
-            }
+            let concealedPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("concealed") && !occupant.hasAttribute("hidden")));
+            if (concealedPlayersString !== "") player.member.send(`You see ${concealedPlayersString} in this room.`);
         }
 
         // Update the player's location on the spreadsheet.
@@ -87,12 +74,28 @@ class Room {
             if (nameA > nameB) return 1;
             return 0;
         });
+        this.occupantsString = this.generate_occupantsString(this.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
     }
+
     removePlayer(game, player, exit, exitMessage) {
         if (exitMessage) new Narration(game, player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
+        this.occupantsString = this.generate_occupantsString(this.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         player.removeFromWhispers(game, `${player.displayName} leaves the room.`);
+    }
+
+    // List should be an array of Players.
+    generate_occupantsString(list) {
+        var occupantsString = "";
+        if (list.length === 1) occupantsString = list[0].displayName;
+        else if (list.length === 2) occupantsString = `${list[0].displayName} and ${list[1].displayName}`;
+        else if (list.length >= 3) {
+            for (let i = 0; i < list.length - 1; i++)
+                occupantsString += `${list[i].displayName}, `;
+            occupantsString += `and ${list[list.length - 1].displayName}`;
+        }
+        return occupantsString;
     }
 
     joinChannel(player) {
