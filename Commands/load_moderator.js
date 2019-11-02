@@ -1,6 +1,6 @@
 ﻿const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 const loader = include(`${settings.modulesDir}/loader.js`);
+const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 module.exports.config = {
     name: "load_moderator",
@@ -34,6 +34,9 @@ module.exports.run = async (bot, game, message, command, args) => {
         message.channel.send(exports.config.usage);
         return;
     }
+
+    // Push the queue before loading anything.
+    await queuer.pushQueue();
 
     if (args[0] === "all") {
         await loader.loadRooms(game, false);
