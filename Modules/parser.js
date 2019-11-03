@@ -48,9 +48,6 @@ class Item {
 }
 
 module.exports.parseDescription = function (description, container, player, doErrorChecking) {
-    let prefix = '';
-    if (description.startsWith('=CONCATENATE("'))
-        prefix = '=CONCATENATE("';
     // First, split the description into a DOMParser document.
     var document = createDocument(description);
     // Check for any warnings and errors. If they exist, store them.
@@ -102,7 +99,14 @@ module.exports.parseDescription = function (description, container, player, doEr
         let varAttribute = variables[i].getAttribute('v');
         if (varAttribute !== null && varAttribute !== undefined) {
             varAttribute = varAttribute.replace(/this/g, "container");
-            variableStrings.push({ element: variables[i], attribute: eval(varAttribute) });
+            try {
+                let variableText = eval(varAttribute);
+                if (variableText === undefined || variableText === "undefined")
+                    errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
+                variableStrings.push({ element: variables[i], attribute: variableText });
+            } catch (err) {
+                    errors.push(err);
+            }
             if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
                 variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
         }
@@ -121,15 +125,12 @@ module.exports.parseDescription = function (description, container, player, doEr
         doErrorChecking = false;
 
     if (doErrorChecking)
-        return { text: prefix + newDescription, warnings: warnings, errors: errors };
+        return { text: newDescription, warnings: warnings, errors: errors };
     else
-        return prefix + newDescription;
+        return newDescription;
 };
 
 module.exports.addItem = function (description, item) {
-    let prefix = '';
-    if (description.startsWith('=CONCATENATE("'))
-        prefix = '=CONCATENATE("';
     // First, split the description into a DOMParser document.
     var document = createDocument(description).document;
 
@@ -197,7 +198,7 @@ module.exports.addItem = function (description, item) {
         }
     }
 
-    return prefix + stringify(document);
+    return stringify(document);
 };
 
 module.exports.removeItem = function (description, item, document) {
@@ -205,9 +206,6 @@ module.exports.removeItem = function (description, item, document) {
     if (document)
         returnDocument = true;
     else {
-        var prefix = '';
-        if (description.startsWith('=CONCATENATE("'))
-            prefix = '=CONCATENATE("';
         // First, split the description into a DOMParser document.
         document = createDocument(description).document;
     }
@@ -263,7 +261,7 @@ module.exports.removeItem = function (description, item, document) {
     }
 
     if (returnDocument) return document;
-    else return prefix + stringify(document);
+    else return stringify(document);
 };
 
 function createDocument(description) {
