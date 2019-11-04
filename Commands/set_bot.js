@@ -20,6 +20,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, command, args, player) => {
+    const cmdString = command + " " + args.join(" ");
+
     if (args.length < 2) {
         game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
