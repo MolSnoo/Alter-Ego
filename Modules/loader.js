@@ -4,6 +4,7 @@ const sheets = include(`${settings.modulesDir}/sheets.js`);
 const Exit = include(`${settings.dataDir}/Exit.js`);
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
+const Prefab = include(`${settings.dataDir}/Prefab.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
@@ -194,6 +195,105 @@ module.exports.checkObject = function (object) {
         return new Error(`Couldn't load object on row ${object.row}. The child puzzle on row ${object.childPuzzle.row} has no parent object.`);
     if (object.childPuzzle !== null && object.childPuzzle.parentObject !== null && object.childPuzzle.parentObject.name !== object.name)
         return new Error(`Couldn't load object on row ${object.row}. The child puzzle has a different parent object.`);
+    return;
+};
+
+module.exports.loadPrefabs = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        sheets.getDataFormulas(settings.prefabSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnID = 0;
+            const columnName = 1;
+            const columnPluralName = 2;
+            const columnDiscreet = 3;
+            const columnUses = 4;
+            const columnEffect = 5;
+            const columnCures = 6;
+            const columnNextStage = 7; 
+            const columnContainingPhrase = 8;
+            const columnDescription = 9;
+
+            game.prefabs.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                const containingPhrase = sheet[i][columnContainingPhrase] ? sheet[i][columnContainingPhrase].split(',') : "";
+                var effects = sheet[i][columnEffect] ? sheet[i][columnEffect].split(',') : [];
+                for (let j = 0; j < effects.length; j++)
+                    effects[j] = effects[j].trim();
+                var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
+                for (let j = 0; j < cures.length; j++)
+                    cures[j] = cures[j].trim();
+                var nextStages = sheet[i][columnNextStage] ? sheet[i][columnNextStage].split(',') : [];
+                for (let j = 0; j < nextStages.length; j++)
+                    nextStages[j] = nextStages[j].trim();
+                game.prefabs.push(
+                    new Prefab(
+                        sheet[i][columnID],
+                        sheet[i][columnName],
+                        sheet[i][columnPluralName] ? sheet[i][columnPluralName] : "",
+                        sheet[i][columnDiscreet] === true,
+                        parseInt(sheet[i][columnUses]),
+                        effects,
+                        cures,
+                        nextStages,
+                        containingPhrase[0] ? containingPhrase[0].trim() : "",
+                        containingPhrase[1] ? containingPhrase[1].trim() : "",
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
+                        i + 1
+                    )
+                );
+            }
+            var errors = [];
+            for (let i = 0; i < game.prefabs.length; i++) {
+                for (let j = 0; j < game.prefabs[i].effects.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].effects[j]);
+                    if (status) game.prefabs[i].effects[j] = status;
+                }
+                for (let j = 0; j < game.prefabs[i].cures.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].cures[j]);
+                    if (status) game.prefabs[i].cures[j] = status;
+                }
+                for (let j = 0; j < game.prefabs[i].nextStage.length; j++) {
+                    let prefab = game.prefabs.find(prefab => prefab.id === game.prefabs[i].nextStage[j]);
+                    if (prefab) game.prefabs[i].nextStage[j] = prefab;
+                }
+                if (doErrorChecking) {
+                    let error = exports.checkPrefab(game.prefabs[i], game);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkPrefab = function (prefab, game) {
+    if (game.prefabs.filter(other => other.id === prefab.id && other.row < prefab.row).length > 0)
+        return new Error(`Couldn't load prefab on row ${prefab.row}. Another prefab with this ID already exists.`);
+    if (prefab.name === "" || prefab.name === null || prefab.name === undefined)
+        return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab name was given.`);
+    if (prefab.singleContainingPhrase === "")
+        return new Error(`Couldn't load prefab on row ${prefab.row}. No single containing phrase was given.`);
+    for (let i = 0; i < prefab.effects.length; i++) {
+        if (!(prefab.effects[i] instanceof Status))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.effects[i]}" in effects is not a status effect.`);
+    }
+    for (let i = 0; i < prefab.cures.length; i++) {
+        if (!(prefab.cures[i] instanceof Status))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.cures[i]}" in cures is not a status effect.`);
+    }
+    for (let i = 0; i < prefab.nextStage.length; i++) {
+        if (!(prefab.nextStage[i] instanceof Prefab))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStage[i]}" in turns into is not a prefab.`);
+    }
     return;
 };
 

@@ -72,6 +72,8 @@
   "objectSheetAllCells": "Objects!A1:G",
   "objectSheetAccessibleColumn": "Objects!C",
   "objectSheetDescriptionColumn": "Objects!G",
+  "prefabSheetAllCells": "Prefabs!A1:J",
+  "prefabSheetDescriptionColumn": "Prefabs!J",
   "itemSheetAllCells": "Items!A1:M",
   "itemSheetNameColumn": "Items!A",
   "itemSheetAccessibleColumn": "Items!E",

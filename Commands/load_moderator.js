@@ -41,6 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args[0] === "all") {
         await loader.loadRooms(game, false);
         await loader.loadObjects(game, false);
+        await loader.loadPrefabs(game, false);
         await loader.loadItems(game, false);
         await loader.loadPuzzles(game, false);
         await loader.loadStatusEffects(game, false);
@@ -53,6 +54,10 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
         for (let i = 0; i < game.objects.length; i++) {
             let error = loader.checkObject(game.objects[i]);
+            if (error instanceof Error) errors.push(error);
+        }
+        for (let i = 0; i < game.prefabs.length; i++) {
+            let error = loader.checkPrefab(game.prefabs[i], game);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.items.length; i++) {
@@ -86,6 +91,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (settings.debug) {
                 printData(game.rooms);
                 printData(game.objects);
+                printData(game.prefabs);
                 printData(game.items);
                 printData(game.puzzles);
                 printData(game.statusEffects);
@@ -95,6 +101,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             message.channel.send(
                 game.rooms.length + " rooms, " +
                 game.objects.length + " objects, " +
+                game.prefabs.length + " prefabs, " +
                 game.items.length + " items, " +
                 game.puzzles.length + " puzzles, " +
                 game.statusEffects.length + " status effects, and " +
@@ -132,6 +139,16 @@ module.exports.run = async (bot, game, message, command, args) => {
             await loader.loadObjects(game, true);
             if (settings.debug) printData(game.objects);
             message.channel.send(game.objects.length + " objects retrieved.");
+        }
+        catch (err) {
+            message.channel.send(err);
+        }
+    }
+    else if (args[0] === "prefabs") {
+        try {
+            await loader.loadPrefabs(game, true);
+            if (settings.debug) printData(game.prefabs);
+            message.channel.send(game.prefabs.length + " prefabs retrieved.");
         }
         catch (err) {
             message.channel.send(err);
