@@ -20,6 +20,7 @@
     "app-root-path": "^2.2.1",
     "discord.js": "^11.5.0",
     "googleapis": "^39.2.0",
+    "lodash": "^4.17.15",
     "nodemon": "^1.19.0",
     "xmldom": "^0.1.27"
   }

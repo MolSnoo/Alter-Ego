@@ -9,10 +9,11 @@ const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.roomSheetLoadCells, function (response) {
+        sheets.getDataFormulas(settings.roomSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
@@ -24,6 +25,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             const columnUnlocked = 6;
             const columnLeadsTo = 7;
             const columnFrom = 8;
+            const columnDescription = 9;
 
             game.rooms.length = 0;
             for (let i = 1, j = 0; i < sheet.length; i = i + j) {
@@ -38,9 +40,10 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         new Exit(
                             sheet[i + j][columnExits],
                             pos,
-                            sheet[i + j][columnUnlocked] === "TRUE",
+                            sheet[i + j][columnUnlocked] === true,
                             sheet[i + j][columnLeadsTo],
                             sheet[i + j][columnFrom],
+                            sheet[i + j][columnDescription] ? sheet[i + j][columnDescription] : "",
                             i + j + 1
                         ));
                 }
@@ -50,6 +53,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         sheet[i][columnRoomName],
                         channel,
                         exits,
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
                     )
                 );
@@ -122,7 +126,7 @@ module.exports.checkRoom = function (room) {
 
 module.exports.loadObjects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.objectSheetLoadCells, function (response) {
+        sheets.getDataFormulas(settings.objectSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -131,6 +135,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             const columnChildPuzzle = 3;
             const columnHidingSpot = 4;
             const columnPreposition = 5;
+            const columnDescription = 6;
 
             game.objects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -138,10 +143,11 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                     new Object(
                         sheet[i][columnName],
                         sheet[i][columnLocation],
-                        sheet[i][columnAccessibility] === "TRUE",
+                        sheet[i][columnAccessibility] === true,
                         sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle] : "",
-                        sheet[i][columnHidingSpot] === "TRUE",
+                        sheet[i][columnHidingSpot] === true,
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
                     )
                 );
@@ -193,7 +199,7 @@ module.exports.checkObject = function (object) {
 
 module.exports.loadItems = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.itemSheetLoadCells, function (response) {
+        sheets.getDataFormulas(settings.itemSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -208,6 +214,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
             const columnEffect = 9;
             const columnCures = 10;
             const columnContainingPhrase = 11;
+            const columnDescription = 12;
 
             game.items.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -224,15 +231,16 @@ module.exports.loadItems = function (game, doErrorChecking) {
                         sheet[i][columnPluralName] ? sheet[i][columnPluralName] : "",
                         sheet[i][columnLocation],
                         sheet[i][columnSublocation] ? sheet[i][columnSublocation] : "",
-                        sheet[i][columnAccessibility] === "TRUE",
+                        sheet[i][columnAccessibility] === true,
                         sheet[i][columnRequires] ? sheet[i][columnRequires] : "",
                         parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
-                        sheet[i][columnDiscreet] === "TRUE",
+                        sheet[i][columnDiscreet] === true,
                         effects,
                         cures,
                         containingPhrase[0] ? containingPhrase[0].trim() : "",
                         containingPhrase[1] ? containingPhrase[1].trim() : "",
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
                     )
                 );
@@ -298,7 +306,7 @@ module.exports.checkItem = function (item) {
 
 module.exports.loadPuzzles = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.puzzleSheetLoadCells, function (response) {
+        sheets.getDataFormulas(settings.puzzleSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -312,6 +320,11 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
             const columnSolution = 8;
             const columnAttempts = 9;
             const columnWhenSolved = 10;
+            const columnCorrectDescription = 11;
+            const columnAlreadySolvedDescription = 12;
+            const columnIncorrectDescription = 13;
+            const columnNoMoreAttemptsDescription = 14;
+            const columnRequirementsNotMetDescription = 15;
 
             game.puzzles.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -325,17 +338,22 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 game.puzzles.push(
                     new Puzzle(
                         sheet[i][columnName],
-                        sheet[i][columnSolved] === "TRUE",
-                        sheet[i][columnRequiresMod] === "TRUE",
+                        sheet[i][columnSolved] === true,
+                        sheet[i][columnRequiresMod] === true,
                         sheet[i][columnLocation],
                         sheet[i][columnParentObject] ? sheet[i][columnParentObject] : "",
                         sheet[i][columnType],
-                        sheet[i][columnAccessible] === "TRUE",
+                        sheet[i][columnAccessible] === true,
                         sheet[i][columnRequires] ? sheet[i][columnRequires] : null,
-                        sheet[i][columnSolution] ? sheet[i][columnSolution] : "",
+                        sheet[i][columnSolution] ? sheet[i][columnSolution].toString() : "",
                         parseInt(sheet[i][columnAttempts]),
                         solvedCommands,
                         unsolvedCommands,
+                        sheet[i][columnCorrectDescription] ? sheet[i][columnCorrectDescription] : "",
+                        sheet[i][columnAlreadySolvedDescription] ? sheet[i][columnAlreadySolvedDescription] : "",
+                        sheet[i][columnIncorrectDescription] ? sheet[i][columnIncorrectDescription] : "",
+                        sheet[i][columnNoMoreAttemptsDescription] ? sheet[i][columnNoMoreAttemptsDescription] : "",
+                        sheet[i][columnRequirementsNotMetDescription] ? sheet[i][columnRequirementsNotMetDescription] : "",
                         i + 1
                     )
                 );
@@ -393,7 +411,7 @@ module.exports.checkPuzzle = function (puzzle) {
 
 module.exports.loadStatusEffects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.statusSheetLoadCells, function (response) {
+        sheets.getDataFormulas(settings.statusSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -405,6 +423,8 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnCuredCondition = 6;
             const columnRollModifier = 7;
             const columnAttributes = 8;
+            const columnInflictedDescription = 10;
+            const columnCuredDescription = 11;
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -418,7 +438,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     new Status(
                         sheet[i][columnName],
                         sheet[i][columnDuration].toLowerCase(),
-                        sheet[i][columnFatal] === "TRUE",
+                        sheet[i][columnFatal] === true,
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage] : null,
                         sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus] : null,
@@ -426,6 +446,8 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                         sheet[i][columnRollModifier] ? parseInt(sheet[i][columnRollModifier].substring(1)) : "",
                         modifiesSelf,
                         sheet[i][columnAttributes] ? sheet[i][columnAttributes] : "",
+                        sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription] : "",
+                        sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription] : "",
                         i + 1
                     )
                 );
@@ -530,7 +552,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getData(settings.playerSheetLoadCells, function (response) {
+        sheets.getDataFormulas(settings.playerSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -552,6 +574,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             const columnItemEffect = 16;
             const columnItemCures = 17;
             const columnItemContainingPhrase = 18;
+            const columnItemDescription = 19;
 
             game.players.length = 0;
             game.players_alive.length = 0;
@@ -573,11 +596,12 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                                 sheet[i + j][columnItemName],
                                 sheet[i + j][columnItemPluralName] ? sheet[i + j][columnItemPluralName] : "",
                                 parseInt(sheet[i + j][columnItemUses]),
-                                sheet[i + j][columnItemDiscreet] === "TRUE",
+                                sheet[i + j][columnItemDiscreet] === true,
                                 effects,
                                 cures,
                                 containingPhrase[0] ? containingPhrase[0].trim() : "",
                                 containingPhrase[1] ? containingPhrase[1].trim() : "",
+                                sheet[i + j][columnItemDescription] ? sheet[i + j][columnItemDescription] : "",
                                 i + j + 1
                             );
                     }
@@ -592,6 +616,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                                 [],
                                 null,
                                 null,
+                                "",
                                 i + j + 1
                             );
                 }
@@ -610,7 +635,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnName],
                         sheet[i][columnTalent],
                         stats,
-                        sheet[i][columnAlive] === "TRUE",
+                        sheet[i][columnAlive] === true,
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],
                         new Array(),
@@ -633,7 +658,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                             }
                         }
                     }
-                    sheets.updateCell(currentPlayer.statusCell(), currentPlayer.statusString);
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), currentPlayer.statusString));
 
                     for (let k = 0; k < game.rooms.length; k++) {
                         if (game.rooms[k].name === currentPlayer.location.name) {
@@ -705,7 +730,7 @@ module.exports.checkPlayer = function (player) {
 
 module.exports.loadInventories = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.playerSheetLoadCells, function (response) {
+        sheets.getDataFormulas(settings.playerSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -716,6 +741,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             const columnItemEffect = 16;
             const columnItemCures = 17;
             const columnItemContainingPhrase = 18;
+            const columnItemDescription = 19;
 
             for (let i = 0; i < game.players_alive.length; i++) {
                 game.players_alive[i].inventory.length = 0;
@@ -736,11 +762,12 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                                         sheet[j + k][columnItemName],
                                         sheet[j + k][columnItemPluralName] ? sheet[j + k][columnItemPluralName] : "",
                                         parseInt(sheet[j + k][columnItemUses]),
-                                        sheet[j + k][columnItemDiscreet] === "TRUE",
+                                        sheet[j + k][columnItemDiscreet] === true,
                                         effects,
                                         cures,
                                         containingPhrase[0] ? containingPhrase[0].trim() : "",
                                         containingPhrase[1] ? containingPhrase[1].trim() : "",
+                                        sheet[j + k][columnItemDescription] ? sheet[j + k][columnItemDescription] : "",
                                         j + k + 1
                                     );
                             }
@@ -755,6 +782,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                                         [],
                                         null,
                                         null,
+                                        "",
                                         j + k + 1
                                     );
                             }

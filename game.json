@@ -14,5 +14,6 @@
   "items": [],
   "puzzles": [],
   "whispers": [],
-  "statusEffects": []
+  "statusEffects": [],
+  "queue": []
 }

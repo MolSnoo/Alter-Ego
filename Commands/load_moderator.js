@@ -1,6 +1,6 @@
 ﻿const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 const loader = include(`${settings.modulesDir}/loader.js`);
+const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 module.exports.config = {
     name: "load_moderator",
@@ -34,6 +34,9 @@ module.exports.run = async (bot, game, message, command, args) => {
         message.channel.send(exports.config.usage);
         return;
     }
+
+    // Push the queue before loading anything.
+    await queuer.pushQueue();
 
     if (args[0] === "all") {
         await loader.loadRooms(game, false);
@@ -104,7 +107,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 if (!settings.debug)
                     bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
                 for (let i = 0; i < game.players_alive.length; i++)
-                    game.players_alive[i].sendDescription(game.players_alive[i].location.descriptionCell());
+                    game.players_alive[i].sendDescription(game.players_alive[i].location.description, game.players_alive[i].location);
             }
             else if (args[1] && args[1] === "resume") {
                 game.game = true;

@@ -1,11 +1,11 @@
 ﻿const settings = include('settings.json');
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Puzzle {
-    constructor(name, solved, requiresMod, location, parentObjectName, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, row) {
+    constructor(name, solved, requiresMod, location, parentObjectName, type, accessible, requires, solution, remainingAttempts, solvedCommands, unsolvedCommands, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
         this.name = name;
         this.solved = solved;
         this.requiresMod = requiresMod;
@@ -19,44 +19,34 @@ class Puzzle {
         this.remainingAttempts = remainingAttempts;
         this.solvedCommands = solvedCommands;
         this.unsolvedCommands = unsolvedCommands;
+        this.correctDescription = correctDescription;
+        this.alreadySolvedDescription = alreadySolvedDescription;
+        this.incorrectDescription = incorrectDescription;
+        this.noMoreAttemptsDescription = noMoreAttemptsDescription;
+        this.requirementsNotMetDescription = requirementsNotMetDescription;
         this.row = row;
     }
 
     setAccessible(game) {
         this.accessible = true;
-        sheets.updateCell(this.accessibleCell(), "TRUE", function (response) {
-            const loader = include(`${settings.modulesDir}/loader.js`);
-            loader.loadObjects(game, false);
-            loader.loadItems(game, false);
-            loader.loadPuzzles(game, false);
-        });
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
     }
 
     setInaccessible(game) {
         this.accessible = false;
-        sheets.updateCell(this.accessibleCell(), "FALSE", function (response) {
-            const loader = include(`${settings.modulesDir}/loader.js`);
-            loader.loadObjects(game, false);
-            loader.loadItems(game, false);
-            loader.loadPuzzles(game, false);
-        });
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
     }
 
     async solve(bot, game, player, message, doSolvedCommands) {
-        // Let the palyer and anyone else in the room know that the puzzle was solved.
+        // Let the player and anyone else in the room know that the puzzle was solved.
         if (player !== null)
-            player.sendDescription(this.correctCell());
+            player.sendDescription(this.correctDescription, this);
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
         // Now mark it as solved.
         this.solved = true;
-        sheets.updateCell(this.solvedCell(), "TRUE", function (response) {
-            const loader = include(`${settings.modulesDir}/loader.js`);
-            loader.loadObjects(game, false);
-            loader.loadItems(game, false);
-            loader.loadPuzzles(game, false);
-        });
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), "TRUE"));
 
         if (doSolvedCommands === true) {
             // Run any needed commands.
@@ -92,12 +82,7 @@ class Puzzle {
 
         // Now mark it as unsolved.
         this.solved = false;
-        sheets.updateCell(this.solvedCell(), "FALSE", function (response) {
-            const loader = include(`${settings.modulesDir}/loader.js`);
-            loader.loadObjects(game, false);
-            loader.loadItems(game, false);
-            loader.loadPuzzles(game, false);
-        });
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), "FALSE"));
 
         if (doUnsolvedCommands === true) {
             // Run any needed commands.
@@ -128,16 +113,11 @@ class Puzzle {
         // Decrease the number of remaining attempts, if applicable.
         if (!isNaN(this.remainingAttempts)) {
             this.remainingAttempts--;
-
-            // The incorrect cell might use the attempts cell to tell the player how many attempts are remaining,
-            // so get the message only after updating the attempts cell.
-            let puzzle = this;
-            sheets.updateCell(this.attemptsCell(), this.remainingAttempts.toString(), function (response) {
-                player.sendDescription(puzzle.incorrectCell());
-            });
+            player.sendDescription(this.incorrectDescription, this);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.attemptsCell(), this.remainingAttempts));
         }
         else
-            player.sendDescription(this.incorrectCell());
+            player.sendDescription(this.incorrectDescription, this);
         new Narration(game, player, player.location, message).send();
 
         // Post log message.
@@ -148,24 +128,21 @@ class Puzzle {
     }
 
     alreadySolved(game, player, message) {
-        player.sendDescription(this.alreadySolvedCell());
+        player.sendDescription(this.alreadySolvedDescription, this);
         new Narration(game, player, player.location, message).send();
 
         return;
     }
 
     requirementsNotMet(game, player, message, misc) {
-        sheets.getData(this.requirementsNotMetCell(), function (response) {
-            // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
-            if (!response.data.values || response.data.values[0][0] === "")
-                misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
-            // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
-            else {
-                const parser = include(`${settings.modulesDir}/parser.js`);
-                player.member.send(parser.parseDescription(response.data.values[0][0], player));
-                new Narration(game, player, player.location, message).send();
-            }
-        });
+        // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
+        if (this.requirementsNotMetDescription === "")
+            misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
+        // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
+        else {
+            player.sendDescription(this.requirementsNotMetDescription, this);
+            new Narration(game, player, player.location, message).send();
+        }
         return;
     }
 

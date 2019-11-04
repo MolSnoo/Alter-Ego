@@ -1,16 +1,19 @@
 const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
-
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
+//var game = include('game.json');
+
 class Room {
-    constructor(name, channel, exit, row) {
+    constructor(name, channel, exit, description, row) {
         this.name = name;
         this.channel = channel;
         this.exit = exit;
+        this.description = description;
         this.row = row;
 
         this.occupants = new Array();
+        this.occupantsString = "";
     }
 
     addPlayer(game, player, entrance, entranceMessage, sendDescription) {
@@ -44,54 +47,27 @@ class Room {
             if (player.hasAttribute("no sight"))
                 player.member.send("Fumbling against the wall, you make your way to the next room over.");
             else {
-                let descriptionCell;
-                if (entrance) descriptionCell = entrance.descriptionCell();
-                else descriptionCell = this.descriptionCell();
+                let description;
+                if (entrance) description = entrance.description;
+                else description = this.description;
                 // Send the room description of the entrance the player enters from.
-                player.sendDescription(descriptionCell);
+                player.sendDescription(description, this);
             }
         }
         if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {
-            let occupants = new Array();
-            for (let i = 0; i < this.occupants.length; i++) {
-                if (!this.occupants[i].hasAttribute("hidden"))
-                    occupants.push(this.occupants[i]);
-            }
-            if (occupants.length > 0) {
-                let occupantsString = occupants.map(player => player.displayName).join(", ");
-                player.member.send(`Players in the room: ${occupantsString}.`);
-            }
+            if (this.occupantsString !== "")
+                player.member.send(`You see ${this.occupantsString} in this room.`);
         }
         else if (!player.hasAttribute("no sight") && this.occupants.length > 0) {
             // Come up with lists of concealed and sleeping players.
-            let concealedPlayers = new Array();
-            let sleepingPlayers = new Array();
-            for (let i = 0; i < this.occupants.length; i++) {
-                if (this.occupants[i].hasAttribute("concealed") && !this.occupants[i].hasAttribute("hidden"))
-                    concealedPlayers.push(this.occupants[i]);
-                if (this.occupants[i].hasAttribute("unconscious") && !this.occupants[i].hasAttribute("hidden"))
-                    sleepingPlayers.push(this.occupants[i]);
-            }
-            if (concealedPlayers.length > 0) {
-                let concealedPlayersString = concealedPlayers.map(player => player.displayName).join(", ");
-                player.member.send(`In this room you see: ${concealedPlayersString}.`);
-            }
-            if (sleepingPlayers.length > 0) {
-                let sleepingPlayersString = "";
-                if (sleepingPlayers.length === 1) sleepingPlayersString = `${sleepingPlayers[0].displayName} is `;
-                else if (sleepingPlayers.length === 2) sleepingPlayersString = `${sleepingPlayers[0].displayName} and ${sleepingPlayers[1].displayName} are `;
-                else if (sleepingPlayers.length >= 3) {
-                    for (let i = 0; i < sleepingPlayers.length - 1; i++)
-                        sleepingPlayersString += `${sleepingPlayers[i].displayName}, `;
-                    sleepingPlayersString += `and ${sleepingPlayers[sleepingPlayers.length - 1].displayName} are `;
-                }
-                sleepingPlayersString += "sleeping in this room.";
-                player.member.send(sleepingPlayersString);
-            }
+            let concealedPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("concealed") && !occupant.hasAttribute("hidden")));
+            if (concealedPlayersString !== "") player.member.send(`You see ${concealedPlayersString} in this room.`);
+            let sleepingPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
+            if (sleepingPlayersString !== "") player.member.send(`You see ${sleepingPlayersString} sleeping in this room.`);
         }
 
         // Update the player's location on the spreadsheet.
-        sheets.updateCell(player.locationCell(), this.name);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", player.locationCell(), this.name));
 
         this.occupants.push(player);
         this.occupants.sort(function (a, b) {
@@ -101,12 +77,28 @@ class Room {
             if (nameA > nameB) return 1;
             return 0;
         });
+        this.occupantsString = this.generate_occupantsString(this.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
     }
+
     removePlayer(game, player, exit, exitMessage) {
         if (exitMessage) new Narration(game, player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
+        this.occupantsString = this.generate_occupantsString(this.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         player.removeFromWhispers(game, `${player.displayName} leaves the room.`);
+    }
+
+    // List should be an array of Players.
+    generate_occupantsString(list) {
+        var occupantsString = "";
+        if (list.length === 1) occupantsString = list[0].displayName;
+        else if (list.length === 2) occupantsString = `${list[0].displayName} and ${list[1].displayName}`;
+        else if (list.length >= 3) {
+            for (let i = 0; i < list.length - 1; i++)
+                occupantsString += `${list[i].displayName}, `;
+            occupantsString += `and ${list[list.length - 1].displayName}`;
+        }
+        return occupantsString;
     }
 
     joinChannel(player) {

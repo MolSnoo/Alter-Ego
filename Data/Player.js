@@ -1,6 +1,7 @@
 const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
+const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
@@ -9,6 +10,7 @@ const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Narration = include(`${settings.dataDir}/Narration.js`);
 const Die = include(`${settings.dataDir}/Die.js`);
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Player {
     constructor(id, member, name, displayName, talent, stats, alive, location, hidingSpot, status, inventory, row) {
@@ -208,7 +210,7 @@ class Player {
         if (status.attributes.includes("no hearing")) this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
-            sheets.updateCell(this.hidingSpotCell(), this.hidingSpot);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), this.hidingSpot));
         }
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
@@ -227,7 +229,7 @@ class Player {
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -285,10 +287,10 @@ class Player {
 
         // Inform player what happened.
         if (notify)
-            this.sendDescription(status.inflictedCell());
+            this.sendDescription(status.inflictedDescription, status);
 
         this.statusString = this.generate_statusList();
-        if (updateSheet) sheets.updateCell(this.statusCell(), this.statusString);
+        if (updateSheet) game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), this.statusString));
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -318,7 +320,7 @@ class Player {
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.hidingSpot = "";
-            sheets.updateCell(this.hidingSpotCell(), " ");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), " "));
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
@@ -338,10 +340,10 @@ class Player {
 
         // Inform player what happened.
         if (notify) {
-            this.sendDescription(status.curedCell());
+            this.sendDescription(status.curedDescription, status);
             // If the player is waking up, send them the description of the room they wake up in.
             if (status.name === "asleep")
-                this.sendDescription(this.location.descriptionCell());
+                this.sendDescription(this.location.description, this.location);
         }
 
         // Post log message.
@@ -352,7 +354,7 @@ class Player {
         this.status.splice(statusIndex, 1);
 
         this.statusString = this.generate_statusList();
-        if (updateSheet) sheets.updateCell(this.statusCell(), this.statusString);
+        if (updateSheet) game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), this.statusString));
 
         return returnMessage;
     }
@@ -444,7 +446,7 @@ class Player {
 
         if (!isNaN(item.uses)) {
             item.uses--;
-            sheets.updateCell(item.usesCell(), item.uses.toString());
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), item.uses));
         }
         if (item.name !== "MASK")
             new Narration(game, this, this.location, `${this.displayName} takes out ${item.singleContainingPhrase} and uses it.`).send();
@@ -452,28 +454,25 @@ class Player {
         return;
     }
 
-    async take(game, item, slotNo, container) {
+    take(game, item, slotNo, container) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
-            sheets.updateCell(item.quantityCell(), item.quantity.toString());
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), item.quantity));
         }
 
         if (container instanceof Puzzle) {
-            const description = await sheets.fetchDescription(container.alreadySolvedCell());
-            const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.alreadySolvedCell(), newDescription);
+            container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), container.alreadySolvedDescription));
         }
         else if (container instanceof Object) {
-            const description = await sheets.fetchDescription(container.descriptionCell());
-            const newDescription = parser.removeItem(description, item);
-            sheets.updateCell(container.descriptionCell(), newDescription);
+            container.description = parser.removeItem(container.description, item);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
         }
         else if (container instanceof Room) {
             for (let i = 0; i < container.exit.length; i++) {
-                const description = await sheets.fetchDescription(container.exit[i].descriptionCell());
-                const newDescription = parser.removeItem(description, item);
-                sheets.updateCell(container.exit[i].descriptionCell(), newDescription);
+                container.exit[i].description = parser.removeItem(container.exit[i].description, item);
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), container.exit[i].description));
             }
         }
 
@@ -487,6 +486,7 @@ class Player {
             item.cures,
             item.singleContainingPhrase,
             item.pluralContainingPhrase,
+            item.description,
             this.inventory[slotNo].row
         );
         this.inventory[slotNo] = createdItem;
@@ -498,19 +498,17 @@ class Player {
         var cures = createdItem.cures.length > 0 ? createdItem.cures.map(status => status.name).join(",") : "";
         var containingPhrase = createdItem.singleContainingPhrase;
         if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
-        sheets.getData(item.descriptionCell(), function (response) {
-            const data = new Array(new Array(
-                createdItem.name,
-                createdItem.pluralName,
-                createdItem.uses,
-                createdItem.discreet,
-                effects,
-                cures,
-                containingPhrase,
-                response.data.values[0][0]
-            ));
-            sheets.updateData(createdItem.itemCells(), data);
-        });
+        const data = new Array(
+            createdItem.name,
+            createdItem.pluralName,
+            createdItem.uses,
+            createdItem.discreet,
+            effects,
+            cures,
+            containingPhrase,
+            createdItem.description
+        );
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), data));
 
         if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
 
@@ -549,6 +547,7 @@ class Player {
                 victim.inventory[index].cures,
                 victim.inventory[index].singleContainingPhrase,
                 victim.inventory[index].pluralContainingPhrase,
+                victim.inventory[index].description,
                 this.inventory[slotNo].row
             );
             this.inventory[slotNo] = copiedItem;
@@ -559,21 +558,19 @@ class Player {
             var cures = copiedItem.cures ? copiedItem.cures.map(status => status.name).join(",") : "";
             var containingPhrase = copiedItem.singleContainingPhrase;
             if (copiedItem.pluralContainingPhrase !== "") containingPhrase += `,${copiedItem.pluralContainingPhrase}`;
-            sheets.getData(victim.inventory[index].descriptionCell(), function (response) {
-                const data = new Array(new Array(
-                    copiedItem.name,
-                    copiedItem.pluralName,
-                    copiedItem.uses,
-                    copiedItem.discreet,
-                    effects,
-                    cures,
-                    containingPhrase,
-                    response.data.values[0][0]
-                ));
-                sheets.updateData(copiedItem.itemCells(), data);
-                // Delete stolen item from victim's inventory.
-                victim.clearInventorySlot(index);
-            });
+            const data = new Array(
+                copiedItem.name,
+                copiedItem.pluralName,
+                copiedItem.uses,
+                copiedItem.discreet,
+                effects,
+                cures,
+                containingPhrase,
+                copiedItem.description
+            );
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", copiedItem.itemCells(), data));
+            // Delete stolen item from victim's inventory.
+            victim.clearInventorySlot(index);
 
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious"))
@@ -616,11 +613,9 @@ class Player {
         
         // Now that the list of items to check is significantly smaller,
         // check if the descriptions are the same.
-        const invItemDescription = await sheets.fetchDescription(invItem.descriptionCell());
         for (let i = 0; i < matchedItems.length; i++) {
             const item = matchedItems[i];
-            const itemDescription = await sheets.fetchDescription(item.descriptionCell());
-            if (itemDescription !== invItemDescription) {
+            if (item.description !== invItem.description) {
                 matchedItems.splice(i, 1);
                 i--;
             }
@@ -644,7 +639,7 @@ class Player {
                 effects,
                 cures,
                 containingPhrase,
-                invItemDescription
+                invItem.description
             );
 
             // We want to insert this item near items in the same container, so get all of the items in that container.
@@ -657,12 +652,14 @@ class Player {
             const lastContainerItem = containerItems[containerItems.length - 1];
             const lastGameItem = game.items[game.items.length - 1];
             if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
+                await queuer.pushQueue();
                 sheets.insertRow(lastContainerItem.itemCells(), data, function (response) {
                     loader.loadItems(game, false);
                 });
             }
             // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
             else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
+                await queuer.pushQueue();
                 sheets.insertRow(lastRoomItem.itemCells(), data, function (response) {
                     loader.loadItems(game, false);
                 });
@@ -680,27 +677,24 @@ class Player {
             // Increase the quantity if the quantity is finite.
             if (!isNaN(item.quantity)) {
                 item.quantity++;
-                sheets.updateCell(item.quantityCell(), item.quantity.toString());
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), item.quantity));
             }
         }
 
-        var descriptionCell = "";
         var objectName = "";
         var preposition = "in";
         if (container instanceof Puzzle) {
-            descriptionCell = container.alreadySolvedCell();
+            container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, invItem);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), container.alreadySolvedDescription));
             objectName = container.parentObject.name;
             preposition = container.parentObject.preposition;
         }
         else {
-            descriptionCell = container.descriptionCell();
+            container.description = parser.addItem(container.description, invItem);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
             objectName = container.name;
             preposition = container.preposition;
         }
-
-        const description = await sheets.fetchDescription(descriptionCell);
-        const newDescription = parser.addItem(description, invItem);
-        sheets.updateCell(descriptionCell, newDescription);
 
         if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
         this.member.send(`You discard ${invItem.singleContainingPhrase}.`);
@@ -724,9 +718,11 @@ class Player {
             [],
             null,
             null,
+            "",
             this.inventory[slotNo].row
         );
-        sheets.updateData(this.inventory[slotNo].itemCells(), new Array(settings.emptyInventoryItem));
+        var game = include(`game.json`);
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.inventory[slotNo].itemCells(), settings.emptyInventoryItem));
         return;
     }
 
@@ -743,7 +739,7 @@ class Player {
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
-                this.sendDescription(puzzle.noMoreAttemptsCell());
+                this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
                 new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
 
                 return;
@@ -785,12 +781,9 @@ class Player {
                 }
                 else if (puzzle.type === "toggle") {
                     if (puzzle.solved) {
-                        let player = this;
-                        sheets.getData(puzzle.alreadySolvedCell(), function (response) {
-                            let message = null;
-                            if (response.data.values) message = parser.parseDescription(response.data.values[0][0]);
-                            puzzle.unsolve(bot, game, player, `${player.displayName} uses the ${puzzle.name}.`, message, true);
-                        });
+                        let message = null;
+                        if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
+                        puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, message, true);
                     }
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
                 }
@@ -855,7 +848,7 @@ class Player {
             clearInterval(this.status[i].timer);
         this.status.length = 0;
         // Update that data on the sheet, as well.
-        sheets.updateData(this.playerCells(), new Array(new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "")));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);
@@ -895,13 +888,9 @@ class Player {
         return;
     }
 
-    sendDescription(descriptionCell) {
-        let player = this;
-        sheets.getData(descriptionCell, function (response) {
-            if (response.data.values)
-                player.member.send(parser.parseDescription(response.data.values[0][0], player));
-        });
-
+    sendDescription(description, container) {
+        if (description)
+            this.member.send(parser.parseDescription(description, container, this));
         return;
     }
 
