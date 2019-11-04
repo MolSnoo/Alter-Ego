@@ -302,45 +302,25 @@ module.exports.loadItems = function (game, doErrorChecking) {
         sheets.getDataFormulas(settings.itemSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnPluralName = 1;
-            const columnLocation = 2;
-            const columnSublocation = 3;
-            const columnAccessibility = 4;
-            const columnRequires = 5;
-            const columnQuantity = 6;
-            const columnUses = 7;
-            const columnDiscreet = 8;
-            const columnEffect = 9;
-            const columnCures = 10;
-            const columnContainingPhrase = 11;
-            const columnDescription = 12;
+            const columnPrefab = 0;
+            const columnLocation = 1;
+            const columnSublocation = 2;
+            const columnAccessibility = 3;
+            const columnRequires = 4;
+            const columnQuantity = 5;
+            const columnUses = 6;
 
             game.items.length = 0;
             for (let i = 1; i < sheet.length; i++) {
-                const containingPhrase = sheet[i][columnContainingPhrase] ? sheet[i][columnContainingPhrase].split(',') : "";
-                var effects = sheet[i][columnEffect] ? sheet[i][columnEffect].split(',') : [];
-                for (let j = 0; j < effects.length; j++)
-                    effects[j] = effects[j].trim();
-                var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
-                for (let j = 0; j < cures.length; j++)
-                    cures[j] = cures[j].trim();
                 game.items.push(
                     new Item(
-                        sheet[i][columnName],
-                        sheet[i][columnPluralName] ? sheet[i][columnPluralName] : "",
+                        sheet[i][columnPrefab],
                         sheet[i][columnLocation],
                         sheet[i][columnSublocation] ? sheet[i][columnSublocation] : "",
                         sheet[i][columnAccessibility] === true,
                         sheet[i][columnRequires] ? sheet[i][columnRequires] : "",
                         parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
-                        sheet[i][columnDiscreet] === true,
-                        effects,
-                        cures,
-                        containingPhrase[0] ? containingPhrase[0].trim() : "",
-                        containingPhrase[1] ? containingPhrase[1].trim() : "",
-                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
                     )
                 );
@@ -348,18 +328,11 @@ module.exports.loadItems = function (game, doErrorChecking) {
             var errors = [];
             for (let i = 0; i < game.items.length; i++) {
                 game.items[i].location = game.rooms.find(room => room.name === game.items[i].location && room.name !== "");
-                let sublocation = game.objects.find(object => object.name === game.items[i].sublocationName && object.location.name === game.items[i].location.name);
+                game.items[i].prefab = game.prefabs.find(prefab => prefab.id === game.items[i].prefab && prefab.id !== "");
+                let sublocation = game.objects.find(object => object.name === game.items[i].sublocationName && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
                 if (sublocation) game.items[i].sublocation = sublocation;
                 let requires = game.puzzles.find(puzzle => puzzle.name === game.items[i].requiresName && puzzle.location.name === game.items[i].location.name);
                 if (requires) game.items[i].requires = requires;
-                for (let j = 0; j < game.items[i].effects.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].effects[j]);
-                    if (status) game.items[i].effects[j] = status;
-                }
-                for (let j = 0; j < game.items[i].cures.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].cures[j]);
-                    if (status) game.items[i].cures[j] = status;
-                }
                 if (doErrorChecking) {
                     let error = exports.checkItem(game.items[i]);
                     if (error instanceof Error) errors.push(error);
@@ -379,12 +352,10 @@ module.exports.loadItems = function (game, doErrorChecking) {
 };
 
 module.exports.checkItem = function (item) {
-    if (item.name === "" || item.name === null || item.name === undefined)
-        return new Error(`Couldn't load item on row ${item.row}. No item name was given.`);
-    if (item.singleContainingPhrase === "")
-        return new Error(`Couldn't load item on row ${item.row}. No single containing phrase was given.`);
-    if (item.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
-        return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but no plural containing phrase was given.`);
+    if (!(item.prefab instanceof Prefab))
+        return new Error(`Couldn't load item on row ${item.row}. The prefab given is not a prefab.`);
+    if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+        return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
         return new Error(`Couldn't load item on row ${item.row}. The location given is not a room.`);
     if (item.sublocationName !== "" && !(item.sublocation instanceof Object))
@@ -393,14 +364,6 @@ module.exports.checkItem = function (item) {
         return new Error(`Couldn't load item on row ${item.row}. The requirement given is not a puzzle.`);
     if (item.sublocation !== null && item.requires !== null)
         return new Error(`Couldn't load item on row ${item.row}. Item has both a sublocation and requirement. It must have one or the other.`);
-    for (let i = 0; i < item.effects.length; i++) {
-        if (!(item.effects[i] instanceof Status))
-            return new Error(`Couldn't load item on row ${item.row}. "${item.effects[i]}" in effects is not a status effect.`);
-    }
-    for (let i = 0; i < item.cures.length; i++) {
-        if (!(item.cures[i] instanceof Status))
-            return new Error(`Couldn't load item on row ${item.row}. "${item.cures[i]}" in cures is not a status effect.`);
-    }
     return;
 };
 
@@ -576,14 +539,14 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     if (error instanceof Error) errors.push(error);
                 }
             }
-            for (let i = 0; i < game.items.length; i++) {
-                for (let j = 0; j < game.items[i].effectsStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].effectsStrings[j]);
-                    if (status) game.items[i].effects[j] = status;
+            for (let i = 0; i < game.prefabs.length; i++) {
+                for (let j = 0; j < game.prefabs[i].effectsStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].effectsStrings[j]);
+                    if (status) game.prefabs[i].effects[j] = status;
                 }
-                for (let j = 0; j < game.items[i].curesStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].curesStrings[j]);
-                    if (status) game.items[i].cures[j] = status;
+                for (let j = 0; j < game.prefabs[i].curesStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].curesStrings[j]);
+                    if (status) game.prefabs[i].cures[j] = status;
                 }
             }
             for (let i = 0; i < game.players.length; i++) {

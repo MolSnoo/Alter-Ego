@@ -3,9 +3,8 @@ const settings = include('settings.json');
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Item {
-    constructor(name, pluralName, location, sublocationName, accessible, requiresName, quantity, uses, discreet, effectsStrings, curesStrings, singleContainingPhrase, pluralContainingPhrase, description, row) {
-        this.name = name;
-        this.pluralName = pluralName;
+    constructor(prefab, location, sublocationName, accessible, requiresName, quantity, uses, row) {
+        this.prefab = prefab;
         this.location = location;
         this.sublocationName = sublocationName;
         this.sublocation = null;
@@ -14,14 +13,6 @@ class Item {
         this.requires = null;
         this.quantity = quantity;
         this.uses = uses;
-        this.discreet = discreet;
-        this.effectsStrings = effectsStrings;
-        this.effects = [...effectsStrings];
-        this.curesStrings = curesStrings;
-        this.cures = [...curesStrings];
-        this.singleContainingPhrase = singleContainingPhrase;
-        this.pluralContainingPhrase = pluralContainingPhrase;
-        this.description = description;
         this.row = row;
     }
 
@@ -36,8 +27,8 @@ class Item {
     }
 
     itemCells() {
-        const descriptionColumn = settings.itemSheetDescriptionColumn.split('!');
-        return settings.itemSheetNameColumn + this.row + ":" + descriptionColumn[1] + this.row;
+        const usesColumn = settings.itemSheetUsesColumn.split('!');
+        return settings.itemSheetPrefabColumn + this.row + ":" + usesColumn[1] + this.row;
     }
 
     accessibleCell() {
@@ -46,10 +37,6 @@ class Item {
 
     quantityCell() {
         return settings.itemSheetQuantityColumn + this.row;
-    }
-
-    descriptionCell() {
-        return settings.itemSheetDescriptionColumn + this.row;
     }
 }
 
