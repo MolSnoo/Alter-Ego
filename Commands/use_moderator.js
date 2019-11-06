@@ -52,7 +52,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         return;
     }
     else if (response.startsWith("that item has no programmed use")) return message.reply("that item has no programmed use.");
-    else if (response.startsWith("you cannot use that item")) return message.reply(`${player.name} is already under the efffect of ${item.name}.`);
+    else if (response.startsWith("you cannot use that item")) return message.reply(`${player.name} is already under the effect of ${item.name}.`);
     else if (response.startsWith("you attempted to use the")) return message.reply(`${item.name} currently has no effect on ${player.name}.`);
     else return message.reply(response);
 };
