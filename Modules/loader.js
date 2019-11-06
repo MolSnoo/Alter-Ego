@@ -205,39 +205,82 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
             const columnName = 1;
-            const columnPluralName = 2;
+            const columnContainingPhrase = 2;
             const columnDiscreet = 3;
-            const columnUses = 4;
-            const columnEffect = 5;
-            const columnCures = 6;
-            const columnNextStage = 7; 
-            const columnContainingPhrase = 8;
-            const columnDescription = 9;
+            const columnSize = 4;
+            const columnWeight = 5;
+            const columnUsable = 6;
+            const columnUseVerb = 7;
+            const columnUses = 8;
+            const columnEffect = 9;
+            const columnCures = 10;
+            const columnNextStage = 11;
+            const columnEquippable = 12;
+            const columnSlots = 13;
+            const columnEquipCommands = 14;
+            const columnInventorySlots = 15;
+            const columnPreposition = 16;
+            const columnDescription = 17;
 
             game.prefabs.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                // Separate name and plural name.
+                const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
+                // Separate single containing phrase and plural containing phrase.
                 const containingPhrase = sheet[i][columnContainingPhrase] ? sheet[i][columnContainingPhrase].split(',') : "";
+                // Create a list of all status effect names this prefab will inflict when used.
                 var effects = sheet[i][columnEffect] ? sheet[i][columnEffect].split(',') : [];
                 for (let j = 0; j < effects.length; j++)
                     effects[j] = effects[j].trim();
+                // Create a list of all status effect names this prefab will cure when used.
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
+                // Create a list of all prefabs this prefab will turn into when destroyed.
                 var nextStages = sheet[i][columnNextStage] ? sheet[i][columnNextStage].split(',') : [];
                 for (let j = 0; j < nextStages.length; j++)
                     nextStages[j] = nextStages[j].trim();
+                // Create a list of equipment slots this prefab can be equipped to.
+                var equipmentSlots = sheet[i][columnSlots] ? sheet[i][columnSlots].split(',') : [];
+                for (let j = 0; j < equipmentSlots.length; j++)
+                    equipmentSlots[j] = equipmentSlots[j].trim();
+                // Create a list of commands to run when this prefab is equipped/unequipped.
+                const commands = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].split('/') : new Array("", "");
+                var equipCommands = commands[0] ? commands[0].split(',') : "";
+                for (let j = 0; j < equipCommands.length; j++)
+                    equipCommands[j] = equipCommands[j].trim();
+                var unequipCommands = commands[1] ? commands[1].split(',') : "";
+                for (let j = 0; j < unequipCommands.length; j++)
+                    unequipCommands[j] = unequipCommands[j].trim();
+                // Create a list of inventory slots this prefab contains.
+                var inventorySlots = sheet[i][columnInventorySlots] ? sheet[i][columnInventorySlots].split(',') : [];
+                for (let j = 0; j < inventorySlots.length; j++) {
+                    const inventorySlot = inventorySlots[j].split(':');
+                    inventorySlots[j] = { name: inventorySlot[0].trim(), capacity: parseInt(inventorySlot[1]), item: [] };
+                }
+
                 game.prefabs.push(
                     new Prefab(
                         sheet[i][columnID],
-                        sheet[i][columnName],
-                        sheet[i][columnPluralName] ? sheet[i][columnPluralName] : "",
+                        name[0] ? name[0].trim() : "",
+                        name[1] ? name[1].trim() : "",
+                        containingPhrase[0] ? containingPhrase[0].trim() : "",
+                        containingPhrase[1] ? containingPhrase[1].trim() : "",
                         sheet[i][columnDiscreet] === true,
+                        parseInt(sheet[i][columnSize]),
+                        parseInt(sheet[i][columnWeight]),
+                        sheet[i][columnUsable] === true,
+                        sheet[i][columnUseVerb] ? sheet[i][columnUseVerb] : "",
                         parseInt(sheet[i][columnUses]),
                         effects,
                         cures,
                         nextStages,
-                        containingPhrase[0] ? containingPhrase[0].trim() : "",
-                        containingPhrase[1] ? containingPhrase[1].trim() : "",
+                        sheet[i][columnEquippable] === true,
+                        equipmentSlots,
+                        equipCommands,
+                        unequipCommands,
+                        inventorySlots,
+                        sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
                     )
@@ -294,6 +337,7 @@ module.exports.checkPrefab = function (prefab, game) {
         if (!(prefab.nextStage[i] instanceof Prefab))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStage[i]}" in turns into is not a prefab.`);
     }
+    // TODO: Add error checking to new prefab attributes.
     return;
 };
 
