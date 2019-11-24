@@ -3,17 +3,31 @@ const settings = include('settings.json');
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Item {
-    constructor(prefab, location, sublocationName, accessible, requiresName, quantity, uses, row) {
+    constructor(prefab, location, accessible, containerName, quantity, uses, description, row) {
         this.prefab = prefab;
         this.location = location;
-        this.sublocationName = sublocationName;
-        this.sublocation = null;
         this.accessible = accessible;
-        this.requiresName = requiresName;
-        this.requires = null;
+        this.containerName = containerName;
+        this.container = null;
+        this.slot = "";
         this.quantity = quantity;
         this.uses = uses;
+        this.weight = 0;
+        this.inventory = [];
         this.row = row;
+    }
+
+    insertItem(item, slot) {
+        for (let i = 0; i < this.inventory.length; i++) {
+            if (this.inventory[i].name === slot) {
+                this.inventory[i].item.push(item);
+                if (!isNaN(item.quantity)) {
+                    this.inventory[i].weight += item.weight * item.quantity;
+                    this.inventory[i].takenSpace += item.prefab.size * item.quantity;
+                    this.weight += item.weight * item.quantity;
+                }
+            }
+        }
     }
 
     setAccessible(game) {

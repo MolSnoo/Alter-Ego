@@ -164,8 +164,8 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                 }
             }
             for (let i = 0; i < game.items.length; i++) {
-                if (game.items[i].sublocationName !== "")
-                    game.items[i].sublocation = game.objects.find(object => object.name === game.items[i].sublocationName && object.location.name === game.items[i].location.name);
+                if (game.items[i].containerName.startsWith("Object:"))
+                    game.items[i].container = game.objects.find(object => object.name === game.items[i].containerName.substring("Object:".length).trim() && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
             }
             for (let i = 0; i < game.puzzles.length; i++) {
                 if (game.puzzles[i].parentObjectName !== "")
@@ -256,7 +256,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 var inventorySlots = sheet[i][columnInventorySlots] ? sheet[i][columnInventorySlots].split(',') : [];
                 for (let j = 0; j < inventorySlots.length; j++) {
                     const inventorySlot = inventorySlots[j].split(':');
-                    inventorySlots[j] = { name: inventorySlot[0].trim(), capacity: parseInt(inventorySlot[1]), item: [] };
+                    inventorySlots[j] = { name: inventorySlot[0].trim(), capacity: parseInt(inventorySlot[1]), takenSpace: 0, weight: 0, item: [] };
                 }
 
                 game.prefabs.push(
@@ -348,11 +348,11 @@ module.exports.loadItems = function (game, doErrorChecking) {
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
             const columnLocation = 1;
-            const columnSublocation = 2;
-            const columnAccessibility = 3;
-            const columnRequires = 4;
-            const columnQuantity = 5;
-            const columnUses = 6;
+            const columnAccessibility = 2;
+            const columnContainer = 3;
+            const columnQuantity = 4;
+            const columnUses = 5;
+            const columnDescription = 6;
 
             game.items.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -360,11 +360,11 @@ module.exports.loadItems = function (game, doErrorChecking) {
                     new Item(
                         sheet[i][columnPrefab],
                         sheet[i][columnLocation],
-                        sheet[i][columnSublocation] ? sheet[i][columnSublocation] : "",
                         sheet[i][columnAccessibility] === true,
-                        sheet[i][columnRequires] ? sheet[i][columnRequires] : "",
+                        sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
                         parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
                     )
                 );
@@ -373,10 +373,31 @@ module.exports.loadItems = function (game, doErrorChecking) {
             for (let i = 0; i < game.items.length; i++) {
                 game.items[i].location = game.rooms.find(room => room.name === game.items[i].location && room.name !== "");
                 game.items[i].prefab = game.prefabs.find(prefab => prefab.id === game.items[i].prefab && prefab.id !== "");
-                let sublocation = game.objects.find(object => object.name === game.items[i].sublocationName && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
-                if (sublocation) game.items[i].sublocation = sublocation;
-                let requires = game.puzzles.find(puzzle => puzzle.name === game.items[i].requiresName && puzzle.location.name === game.items[i].location.name);
-                if (requires) game.items[i].requires = requires;
+                if (game.items[i].prefab) {
+                    const prefab = game.items[i].prefab;
+                    game.items[i].weight = game.items[i].prefab.weight;
+                    for (let j = 0; j < prefab.inventory.length; j++)
+                        game.items[i].inventory.push({ name: prefab.inventory[j].name, capacity: prefab.inventory[j].capacity, takenSpace: prefab.inventory[j].takenSpace, weight: prefab.inventory[j].weight, item: [] });
+                }
+                if (game.items[i].containerName.startsWith("Object:")) {
+                    let container = game.objects.find(object => object.name === game.items[i].containerName.substring("Object:".length).trim() && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
+                    if (container) game.items[i].container = container;
+                }
+                else if (game.items[i].containerName.startsWith("Item:")) {
+                    const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
+                    const prefabName = containerName[0] ? containerName[0].trim() : "";
+                    const slotName = containerName[1] ? containerName[1].trim() : "";
+                    let container = game.items.find(item => item.prefab.id === prefabName && item.location.name === game.items[i].location.name);
+                    if (container) {
+                        game.items[i].container = container;
+                        game.items[i].slot = slotName;
+                        container.insertItem(game.items[i], slotName);
+                    }
+                }
+                else if (game.items[i].containerName.startsWith("Puzzle:")) {
+                    let container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location.name === game.items[i].location.name);
+                    if (container) game.items[i].container = container;
+                }
                 if (doErrorChecking) {
                     let error = exports.checkItem(game.items[i]);
                     if (error instanceof Error) errors.push(error);
@@ -402,12 +423,28 @@ module.exports.checkItem = function (item) {
         return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
         return new Error(`Couldn't load item on row ${item.row}. The location given is not a room.`);
-    if (item.sublocationName !== "" && !(item.sublocation instanceof Object))
-        return new Error(`Couldn't load item on row ${item.row}. The sublocation given is not an object.`);
-    if (item.requiresName !== "" && !(item.requires instanceof Puzzle))
-        return new Error(`Couldn't load item on row ${item.row}. The requirement given is not a puzzle.`);
-    if (item.sublocation !== null && item.requires !== null)
-        return new Error(`Couldn't load item on row ${item.row}. Item has both a sublocation and requirement. It must have one or the other.`);
+    if (item.containerName.startsWith("Object:") && !(item.container instanceof Object))
+        return new Error(`Couldn't load item on row ${item.row}. The container given is not an object.`);
+    if (item.containerName.startsWith("Item:") && !(item.container instanceof Item))
+        return new Error(`Couldn't load item on row ${item.row}. The container given is not an item.`);
+    if (item.containerName.startsWith("Puzzle:") && !(item.container instanceof Puzzle))
+        return new Error(`Couldn't load item on row ${item.row}. The container given is not a puzzle.`);
+    if (item.containerName !== "" && !item.containerName.startsWith("Object:") && !item.containerName.startsWith("Item:") && !item.containerName.startsWith("Puzzle:"))
+        return new Error(`Couldn't load item on row ${item.row}. The given container type is invalid.`);
+    if (item.container instanceof Item && item.container.inventory.length === 0)
+        return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but the item's prefab on row ${item.prefab.row} has no inventory slots.`);
+    if (item.container instanceof Item) {
+        if (item.slot === "") return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but a prefab inventory slot name was not given.`);
+        let foundSlot = false;
+        for (let i = 0; i < item.container.inventory.length; i++) {
+            if (item.container.inventory[i].name === item.slot) {
+                foundSlot = true;
+                if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
+                    return new Error(`Couldn't load item on row ${item.row}. The item's container is over capacity.`);
+            }
+        }
+        if (!foundSlot) return new Error(`Couldn't load item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+    }
     return;
 };
 
@@ -482,8 +519,8 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                     game.objects[i].childPuzzle = game.puzzles.find(puzzle => puzzle.name === game.objects[i].childPuzzleName && puzzle.location.name === game.objects[i].location.name);
             }
             for (let i = 0; i < game.items.length; i++) {
-                if (game.items[i].requiresName !== "")
-                    game.items[i].requires = game.puzzles.find(puzzle => puzzle.name === game.items[i].requiresName && puzzle.location.name === game.items[i].location.name);
+                if (game.items[i].containerName.startsWith("Puzzle:"))
+                    game.items[i].container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location.name === game.items[i].location.name);
             }
             if (errors.length > 0) {
                 if (errors.length > 5) {
