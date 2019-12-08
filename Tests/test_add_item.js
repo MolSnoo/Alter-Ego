@@ -17,9 +17,9 @@ exports.run = function () {
     test_increaseQuantity_0();
     test_increaseQuantity_1();
     test_increaseQuantity_2();
-
+    
     test_addToInfiniteItems();
-
+    
     test_addItem_1();
     test_addItem_2();
     test_addItem_3();
@@ -32,6 +32,7 @@ exports.run = function () {
     test_addItem_10();
     test_addItem_11();
     test_addItem_12();
+    test_addItem_13();
     return;
 };
 
@@ -221,6 +222,18 @@ function test_addItem_12() {
 
     const result = "<desc><s>You find <il><item>a TOWEL</item></il> haphazardly placed on it.</s></desc>";
     const actual = parser.addItem(text, item);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_addItem_13() {
+    const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`;
+    const item = new Item("GUN", 1, "a GUN");
+
+    const result = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a GUN</item></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`;
+    const actual = parser.addItem(text, item, "RIGHT POCKET");
     assert.ok(
         actual === result,
         actual

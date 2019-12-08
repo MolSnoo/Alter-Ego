@@ -4,6 +4,7 @@ class InventoryItem {
     constructor(player, prefab, equipmentSlot, containerName, uses, description, row) {
         this.player = player;
         this.prefab = prefab;
+        this.name = prefab ? prefab.name : "";
         this.equipmentSlot = equipmentSlot;
         this.foundEquipmentSlot = false;
         this.containerName = containerName;

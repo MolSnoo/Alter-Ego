@@ -30,10 +30,11 @@ class Clause {
 }
 
 class Sentence {
-    constructor(clause, itemCount, itemList) {
+    constructor(clause, itemCount, itemList, itemListName) {
         this.clause = clause;
         this.itemCount = itemCount;
         this.itemList = itemList;
+        this.itemListName = itemListName;
     }
 }
 
@@ -75,20 +76,23 @@ module.exports.parseDescription = function (description, container, player, doEr
         if (conditionalsToRemove[i].childNodes[0].tagName === 'item') {
             let itemElement = conditionalsToRemove[i].childNodes[0].childNodes[0];
             let item = new Item("", 0, itemElement.data, itemElement.data);
-            document = this.removeItem(description, item, document);
+            document = this.removeItem(description, item, "", document);
         }
         else if (conditionalsToRemove[i].parentNode) conditionalsToRemove[i].parentNode.removeChild(conditionalsToRemove[i]);
         else document.removeChild(conditionalsToRemove[i]);
     }
 
     // Check if there's an item list in the document.
-    var sentence = getItemListSentence(document);
-    if (sentence !== null) {
-        var itemList = sentence.getElementsByTagName('il').item(0);
-        // If the item list is empty, remove the sentence from the document.
-        if (itemList.childNodes.length === 0 || itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null') {
-            if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
-            else document.removeChild(sentence);
+    var itemListSentences = getItemListSentences(document);
+    if (itemListSentences.length > 0) {
+        for (let i = 0; i < itemListSentences.length; i++) {
+            const sentence = itemListSentences[i];
+            var itemList = sentence.getElementsByTagName('il').item(0);
+            // If the item list is empty, remove the sentence from the document.
+            if (itemList.childNodes.length === 0 || itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null') {
+                if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
+                else document.removeChild(sentence);
+            }
         }
     }
 
@@ -130,7 +134,7 @@ module.exports.parseDescription = function (description, container, player, doEr
         return newDescription;
 };
 
-module.exports.addItem = function (description, item) {
+module.exports.addItem = function (description, item, slot) {
     // First, split the description into a DOMParser document.
     var document = createDocument(description).document;
 
@@ -182,10 +186,11 @@ module.exports.addItem = function (description, item) {
     }
     // The sentence doesn't already contain this item.
     else if (!itemAlreadyExists) {
+        if (slot === null || slot === undefined) slot = "";
         // We need to find the location of the beginning of the item list.
         var containsItemList = false;
         for (i = 0; i < sentences.length; i++) {
-            if (sentences[i].itemList !== null) {
+            if (sentences[i].itemList !== null && sentences[i].itemListName === slot) {
                 containsItemList = true;
                 break;
             }
@@ -201,7 +206,7 @@ module.exports.addItem = function (description, item) {
     return stringify(document);
 };
 
-module.exports.removeItem = function (description, item, document) {
+module.exports.removeItem = function (description, item, slot, document) {
     var returnDocument = false;
     if (document)
         returnDocument = true;
@@ -219,19 +224,22 @@ module.exports.removeItem = function (description, item, document) {
     var removeItem = false;
     for (let j = 0; j < sentences.length; j++) {
         var sentence = sentences[j];
-        // Determine if an item needs to be removed from the sentence.
-        var i;
-        for (i = 0; i < sentence.clause.length; i++) {
-            if (sentence.clause[i].isItem) {
-                var text = sentence.clause[i].node.data.toLowerCase();
-                if (text.includes(item.singleContainingPhrase.toLowerCase())
-                    || item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase())) {
-                    removeItem = true;
-                    break;
+        if ((slot === null || slot === undefined || slot === "") && sentence.itemListName === ""
+            || sentence.itemListName === slot) {
+            // Determine if an item needs to be removed from the sentence.
+            var i;
+            for (i = 0; i < sentence.clause.length; i++) {
+                if (sentence.clause[i].isItem) {
+                    var text = sentence.clause[i].node.data.toLowerCase();
+                    if (text.includes(item.singleContainingPhrase.toLowerCase())
+                        || item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase())) {
+                        removeItem = true;
+                        break;
+                    }
                 }
             }
+            if (removeItem) break;
         }
-        if (removeItem) break;
     }
 
     if (removeItem) {
@@ -309,10 +317,14 @@ function createSentence(sentenceNode) {
         }
     }
     var itemList = null;
+    var itemListName = "";
     let itemLists = sentenceNode.getElementsByTagName('il');
-    if (itemLists.length > 0) itemList = itemLists[0];
+    if (itemLists.length > 0) {
+        itemList = itemLists[0];
+        itemListName = itemList.getAttribute('name');
+    }
 
-    let sentence = new Sentence(clauses, itemCount, itemList);
+    let sentence = new Sentence(clauses, itemCount, itemList, itemListName);
     return sentence;
 }
 
@@ -326,32 +338,31 @@ function parseNodes(clauses, node) {
     return clauses;
 }
 
-function getItemListSentence(document) {
+function getItemListSentences(document) {
     // Get a list of sentences in the document.
     var sentences = document.getElementsByTagName('s');
     // Find the sentence containing an item list, if there is one.
-    var sentence = null;
+    var itemListSentences = [];
     for (let i = 0; i < sentences.length; i++) {
-        if (sentences[i].getElementsByTagName('il').length > 0) {
-            sentence = sentences[i];
-            break;
-        }
+        if (sentences[i].getElementsByTagName('il').length > 0)
+            itemListSentences.push(sentences[i]);
     }
 
-    return sentence;
+    return itemListSentences;
 }
 
 function stringify(document) {
     var description = new XMLSerializer().serializeToString(document);
-    description = description.replace(/<il\/>/g, "<il></il>").replace(/<s\/>/g, "").replace(/<null\/>/g, "").replace(/<\/s> <\/desc>/g, "</s></desc>").replace(/ {2,}/g, " ").trim();
+    description = description.replace(/<il\/>/g, "<il></il>").replace(/(<(il)\s[^>]+?)\/>/g, "$1></$2>").replace(/<s\/>/g, "").replace(/<null\/>/g, "").replace(/<\/s> <\/desc>/g, "</s></desc>").replace(/ {2,}/g, " ").trim();
     return description;
 }
 
 function initializeNewClause(sentence, phrase) {
     var document = sentence.itemList.ownerDocument;
-
     let firstChild = sentence.itemList.firstChild;
-    if (firstChild.tagName === 'null') {
+    if (firstChild === null || firstChild === undefined)
+        firstChild = sentence.itemList.nextSibling;
+    else if (firstChild.tagName === 'null') {
         firstChild.parentNode.removeChild(firstChild);
         firstChild = sentence.itemList.nextSibling;
     }

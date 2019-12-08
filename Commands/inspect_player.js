@@ -83,33 +83,34 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             && (item.quantity > 0 || isNaN(item.quantity)));
         var item = null;
         for (let i = 0; i < items.length; i++) {
-            if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
+            if (items[i].prefab.name === parsedInput || items[i].prefab.pluralName === parsedInput) {
                 item = items[i];
                 break;
             }
         }
 
         if (item !== null) {
-            if (!item.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.singleContainingPhrase}.`).send();
+            if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase}.`).send();
             player.sendDescription(item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} inspected ${item.name} in ${player.location.channel}`);
+            game.logChannel.send(`${time} - ${player.name} inspected ${item.prefab.id} in ${player.location.channel}`);
 
             return;
         }
     }
 
     // Finally, check if the input is an item in the player's inventory.
-    for (let i = 0; i < player.inventory.length; i++) {
+    const inventory = game.inventoryItems.filter(item => item.player.id === player.id);
+    for (let i = 0; i < inventory.length; i++) {
         parsedInput = parsedInput.replace("MY ", "");
-        if (player.inventory[i].name === parsedInput) {
-            const item = player.inventory[i];
-            if (!item.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.singleContainingPhrase} and begins inspecting it.`).send();
+        if (inventory[i].prefab.name === parsedInput) {
+            const item = inventory[i];
+            if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.prefab.singleContainingPhrase} and begins inspecting it.`).send();
             player.sendDescription(item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} inspected ${item.name} from their inventory in ${player.location.channel}`);
+            game.logChannel.send(`${time} - ${player.name} inspected ${item.prefab.id} from their inventory in ${player.location.channel}`);
 
             return;
         }

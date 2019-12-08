@@ -42,6 +42,8 @@ exports.run = function () {
     test_removeItem_21();
     test_removeItem_22();
     test_removeItem_23();
+    test_removeItem_24();
+    test_removeItem_25();
     return;
 };
 
@@ -363,6 +365,30 @@ function test_removeItem_23() {
 
     const result = `<desc><s>You examine the pool table.</s> <s>It seems to have everything you need to play a game of pool: <il><item>2 POOL STICKS</item>, <item>a TRIANGLE</item>, and <item>BALLS</item></il>.</s></desc>`;
     const actual = parser.removeItem(text, item);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_removeItem_24() {
+    const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a GUN</item></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`;
+    const item = new Item("GUN", 0, "a GUN");
+
+    const result = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`;
+    const actual = parser.removeItem(text, item, "RIGHT POCKET");
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_removeItem_25() {
+    const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>a GUN</item></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a GUN</item></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"><item>a GUN</item></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"><item>a GUN</item></il>.</s></desc>`;
+    const item = new Item("GUN", 0, "a GUN");
+
+    const result = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>a GUN</item></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a GUN</item></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"><item>a GUN</item></il>.</s></desc>`;
+    const actual = parser.removeItem(text, item, "LEFT BACK POCKET");
     assert.ok(
         actual === result,
         actual

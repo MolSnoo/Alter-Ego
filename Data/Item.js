@@ -5,6 +5,7 @@ const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 class Item {
     constructor(prefab, location, accessible, containerName, quantity, uses, description, row) {
         this.prefab = prefab;
+        this.name = prefab ? prefab.name : "";
         this.location = location;
         this.accessible = accessible;
         this.containerName = containerName;
