@@ -9,10 +9,8 @@ module.exports.config = {
         + '"all start" must be used at the beginning of the game after the startgame timer is over, as it will '
         + 'gather all the data and send the room description of the room they start in to each player. '
         + 'If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. '
-        + 'You do NOT need to use this command  when you update descriptions, as the bot does not store those. '
-        + 'Any other data you edit manually will require use of this command. Note that when updating players, '
-        + 'all of the timers associated with player status effects will be reset, so try to avoid manually '
-        + 'editing the player sheet. If you just need to refresh player inventories, use the "inventories" argument.',
+        + 'Note that when updating players, all of the timers associated with player status effects will be reset, '
+        + 'so try to avoid manually editing the player sheet.',
     usage: `${settings.commandPrefix}load all start\n`
         + `${settings.commandPrefix}load all resume\n`
         + `${settings.commandPrefix}load all\n`
@@ -46,6 +44,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         await loader.loadPuzzles(game, false);
         await loader.loadStatusEffects(game, false);
         await loader.loadPlayers(game, false);
+        await loader.loadInventories(game, false);
 
         var errors = [];
         for (let i = 0; i < game.rooms.length; i++) {
@@ -75,10 +74,10 @@ module.exports.run = async (bot, game, message, command, args) => {
         for (let i = 0; i < game.players.length; i++) {
             let error = loader.checkPlayer(game.players[i]);
             if (error instanceof Error) errors.push(error);
-            for (let j = 0; j < game.players[i].inventory.length; j++) {
-                error = loader.checkInventoryItem(game.players[i].inventory[j]);
-                if (error instanceof Error) errors.push(error);
-            }
+        }
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            let error = loader.checkInventoryItem(game.inventoryItems[i]);
+            if (error instanceof Error) errors.push(error);
         }
         if (errors.length > 0) {
             if (errors.length > 5) {
@@ -96,6 +95,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 printData(game.puzzles);
                 printData(game.statusEffects);
                 printData(game.players);
+                printData(game.inventoryItems);
             }
 
             message.channel.send(
@@ -104,8 +104,9 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.prefabs.length + " prefabs, " +
                 game.items.length + " items, " +
                 game.puzzles.length + " puzzles, " +
-                game.statusEffects.length + " status effects, and " +
-                game.players.length + " players retrieved."
+                game.statusEffects.length + " status effects, " +
+                game.players.length + " players, and " +
+                game.inventoryItems.length + " inventory items retrieved."
             );
 
             if (args[1] && args[1] === "start") {
@@ -197,8 +198,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     else if (args[0] === "inventories") {
         try {
             await loader.loadInventories(game, true);
-            if (settings.debug) printData(game.players_alive);
-            message.channel.send(game.players_alive.length + " player inventories retrieved.");
+            if (settings.debug) printData(game.inventoryItems);
+            message.channel.send(game.inventoryItems.length + " inventory items retrieved.");
         }
         catch (err) {
             message.channel.send(err);

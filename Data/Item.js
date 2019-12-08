@@ -14,6 +14,7 @@ class Item {
         this.uses = uses;
         this.weight = 0;
         this.inventory = [];
+        this.description = description;
         this.row = row;
     }
 
@@ -51,6 +52,10 @@ class Item {
 
     quantityCell() {
         return settings.itemSheetQuantityColumn + this.row;
+    }
+
+    usesCell() {
+        return settings.playerSheetItemUsesColumn + this.row;
     }
 }
 

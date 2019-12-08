@@ -92,13 +92,14 @@
   "statusSheetAllCells": "Status Effects!A1:L",
   "statusSheetInflictedColumn": "Status Effects!K",
   "statusSheetCuredColumn": "Status Effects!L",
-  "playerSheetInitCells": "Players!A3:T",
-  "playerSheetAllCells": "Players!A1:T",
+  "playerSheetInitCells": "Players!A3:L",
+  "playerSheetAllCells": "Players!A1:L",
   "playerSheetIDColumn": "Players!A",
   "playerSheetLocationColumn": "Players!J",
   "playerSheetHidingSpotColumn": "Players!K",
   "playerSheetStatusColumn": "Players!L",
   "playerSheetItemNameColumn": "Players!M",
   "playerSheetItemUsesColumn": "Players!O",
-  "playerSheetItemDescriptionColumn": "Players!T"
+  "playerSheetItemDescriptionColumn": "Players!T",
+  "inventorySheetAllCells": "Inventory Items!A1:F"
 }
