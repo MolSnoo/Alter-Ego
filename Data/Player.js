@@ -726,12 +726,30 @@ class Player {
         return;
     }
 
-    viewInventory(possessive) {
-        var itemString = `${possessive} inventory: \n`;
-        for (let i = 0; i < this.inventory.length; i++) {
-            if (this.inventory[i].name !== null) itemString += `[${this.inventory[i].name}] `;
-            else itemString += `[ ] `;
+    viewInventory(game, possessive) {
+        var itemString = `__${possessive} inventory:__\n`;
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            //itemString += `${equippedItems[i].equipmentSlot}: [${equippedItems[i].prefab.name}]\n `;
+            itemString += `${this.inventory[slot].name}: `;
+            const equippedItem = this.inventory[slot].equippedItem;
+            if (equippedItem === null) itemString += `[ ]\n`;
+            else {
+                itemString += `[${equippedItem.prefab.name}]\n`;
+                // If item is capable of holding other items, show what items it has inside.
+                if (equippedItem.inventory.length > 0) {
+                    for (let i = 0; i < equippedItem.inventory.length; i++) {
+                        itemString += `    ${equippedItem.inventory[i].name}: `;
+                        if (equippedItem.inventory[i].item.length === 0) itemString += `[ ]`;
+                        else {
+                            for (let j = 0; j < equippedItem.inventory[i].item.length; j++)
+                                itemString += `[${equippedItem.inventory[i].item[j].prefab.name}] `;
+                        }
+                        itemString += '\n';
+                    }
+                }
+            }
         }
+
         return itemString;
     }
 

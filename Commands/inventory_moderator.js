@@ -26,7 +26,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     if (player === null) return message.reply(`player "${args[0]}" not found.`);
 
-    const inventoryString = player.viewInventory(`${player.name}'s`);
+    const inventoryString = player.viewInventory(game, `${player.name}'s`);
     message.channel.send(inventoryString);
 
     return;
