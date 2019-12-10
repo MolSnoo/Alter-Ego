@@ -37,6 +37,22 @@ function loadCommands() {
     console.log(`Loaded all commands.`);
 }
 
+function updateStatus() {
+    var numPlayersOnline = game.players_alive.reduce(function (total, player) {
+        return total + (player.online ? 1 : 0);
+    }, 0);
+    var onlineString = " - " + numPlayersOnline + " players online";
+
+    if (settings.debug) {
+        bot.user.setActivity(settings.debugModeActivity.string + onlineString, { type: settings.debugModeActivity.type });
+        bot.user.setStatus("dnd");
+    }
+    else {
+        bot.user.setActivity(settings.onlineActivity.string + onlineString, { type: settings.onlineActivity.type });
+        bot.user.setStatus("online");
+    }
+}
+
 bot.on('ready', async () => {
     if (bot.guilds.size === 1) {
         console.log(`${bot.user.username} is online on 1 server.`);
@@ -45,14 +61,7 @@ bot.on('ready', async () => {
             const tests = require(`./${settings.testsDir}/run_tests.js`);
             await tests.runTests(bot);
         }
-        if (settings.debug) {
-            bot.user.setActivity(settings.debugModeActivity.string, { type: settings.debugModeActivity.type });
-            bot.user.setStatus("dnd");
-        }
-        else {
-            bot.user.setActivity(settings.onlineActivity.string, { type: settings.onlineActivity.type });
-            bot.user.setStatus("online");
-        }
+        updateStatus();
     }
     else {
         console.log("Error: Bot must be on one and only one server.");
@@ -63,6 +72,11 @@ bot.on('ready', async () => {
     setInterval(() => {
         queuer.pushQueue();
     }, settings.queueInterval * 1000);
+
+    // Run online players check periodically
+    setInterval(() => {
+        updateStatus()
+    }, settings.onlinePlayersStatusInterval * 1000);
 });
 
 bot.on('message', async message => {
