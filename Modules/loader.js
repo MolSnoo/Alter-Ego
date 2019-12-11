@@ -723,8 +723,8 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     new EquipmentSlot("BAG"),
                     new EquipmentSlot("SHIRT"),
                     new EquipmentSlot("JACKET"),
-                    new EquipmentSlot("LEFT HAND"),
                     new EquipmentSlot("RIGHT HAND"),
+                    new EquipmentSlot("LEFT HAND"),
                     new EquipmentSlot("PANTS"),
                     new EquipmentSlot("UNDERWEAR"),
                     new EquipmentSlot("SOCKS"),
@@ -826,8 +826,9 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             const columnPrefab = 1;
             const columnEquipmentSlot = 2;
             const columnContainer = 3;
-            const columnUses = 4;
-            const columnDescription = 5;
+            const columnQuantity = 4;
+            const columnUses = 5;
+            const columnDescription = 6;
 
             game.inventoryItems.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -840,6 +841,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         prefab ? prefab : sheet[i][columnPrefab],
                         sheet[i][columnEquipmentSlot],
                         sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
+                        parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
@@ -901,6 +903,8 @@ module.exports.checkInventoryItem = function (item) {
         return new Error(`Couldn't load inventory item on row ${item.row}. The player name given is not a player.`);
     if (!(item.prefab instanceof Prefab))
         return new Error(`Couldn't load inventory item on row ${item.row}. The prefab given is not a prefab.`);
+    if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+        return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!item.foundEquipmentSlot)
         return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find equipment slot "${item.equipmentSlot}".`);
     if (item.containerName !== "" && (item.container === null || item.container === undefined))

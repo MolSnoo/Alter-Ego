@@ -102,7 +102,7 @@
   "playerSheetItemNameColumn": "Players!M",
   "playerSheetItemUsesColumn": "Players!O",
   "playerSheetItemDescriptionColumn": "Players!T",
-  "inventorySheetAllCells": "Inventory Items!A1:F",
-  "inventorySheetUsesColumn": "Inventory Items!E",
-  "inventorySheetDescriptionColumn": "Inventory Items!F"
+  "inventorySheetAllCells": "Inventory Items!A1:G",
+  "inventorySheetUsesColumn": "Inventory Items!F",
+  "inventorySheetDescriptionColumn": "Inventory Items!G"
 }

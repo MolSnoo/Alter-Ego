@@ -35,17 +35,31 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (freeSlot === -1) return message.reply("your inventory is full. You cannot take anymore items until you drop something.");
     */
 
+    // First, check if the player has a free hand.
+    var hand = "";
+    for (let i = 0; i < player.inventory.length; i++) {
+        if (player.inventory[i].name === "RIGHT HAND" && player.inventory[i].equippedItem === null) {
+            hand = "RIGHT HAND";
+            break;
+        }
+        else if (player.inventory[i].name === "LEFT HAND" && player.inventory[i].equippedItem === null) {
+            hand = "LEFT HAND";
+            break;
+        }
+        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
+        else if (player.inventory[i].name === "LEFT HAND")
+            break;
+    }
+    if (hand === "") return message.reply("you do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     var newArgs = parsedInput.split(" FROM ");
     var itemName = newArgs[0].trim();
     newArgs = newArgs[1] ? newArgs[1].split(" OF ") : [];
-    console.log(newArgs);
     var containerName = newArgs[1] ? newArgs[1] : newArgs[0];
-    console.log(`"${containerName}"`);
     var slotName = newArgs[1] ? newArgs[0] : "";
-    console.log(`"${slotName}"`);
 
     // Gather all items in the room with a matching name.
     var items = game.items.filter(item => item.prefab.name === itemName && item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
@@ -110,8 +124,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     console.log(container);
     console.log(`"${slotName}"`);
 
-    // TODO: add inventory slot
-    player.take(game, item, null, container, slotName);
+    player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.

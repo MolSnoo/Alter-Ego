@@ -455,7 +455,7 @@ class Player {
         return;
     }
 
-    take(game, item, slotNo, container, slotName) {
+    async take(game, item, hand, container, slotName) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
@@ -471,9 +471,9 @@ class Player {
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
         }
         else if (container instanceof Item) {
+            container.removeItem(item, slotName);
             container.description = parser.removeItem(container.description, item, slotName);
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
-            // remove it from the actual item inventory
         }
         else if (container instanceof Room) {
             container.description = parser.removeItem(container.description, item);
