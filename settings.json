@@ -1,7 +1,7 @@
 ﻿{
   "commandPrefix": ".",
-  "debug": true,
-  "testing": true,
+  "debug": false,
+  "testing": false,
 
   "commandsDir": "Commands",
   "dataDir": "Data",
@@ -27,6 +27,8 @@
   "defaultDropObject": "FLOOR",
   "autoDeleteWhisperChannels": true,
   "queueInterval": 30,
+  "offlineStatusInterval": 15,
+  "onlinePlayersStatusInterval": 30,
 
   "onlineActivity": {
     "type": "LISTENING",

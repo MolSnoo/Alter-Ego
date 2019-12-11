@@ -29,6 +29,8 @@ module.exports.execute = async (game, message, deletable) => {
     if (room === null) return;
 
     if (player !== null) {
+        player.setOnline();
+
         if (player.hasAttribute("no speech")) {
             player.member.send("You are mute, so you cannot speak.");
             if(deletable) message.delete().catch();

@@ -43,6 +43,9 @@ class Player {
         this.interval = setInterval(function () {
             if (!player.isMoving) player.regenerateStamina();
         }, 30000);
+
+        this.online = false;
+        this.onlineInterval = null;
     }
 
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
@@ -892,6 +895,23 @@ class Player {
         if (description)
             this.member.send(parser.parseDescription(description, container, this));
         return;
+    }
+
+    setOnline() {
+        this.online = true;
+
+        // Clear the existing timeout if necessary
+        this.onlineInterval && clearTimeout(this.onlineInterval);
+        // Set the timeout to the number of minutes in the settings
+        let player = this;
+        this.onlineInterval = setTimeout(function () {
+            player.setOffline();
+        }, 1000 * 60 * settings.offlineStatusInterval);
+    }
+
+    setOffline() {
+        this.online = false;
+        this.onlineInterval && clearTimeout(this.onlineInterval);
     }
 
     playerCells() {
