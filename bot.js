@@ -41,14 +41,17 @@ function updateStatus() {
     var numPlayersOnline = game.players_alive.reduce(function (total, player) {
         return total + (player.online ? 1 : 0);
     }, 0);
-    var onlineString = " - " + numPlayersOnline + " players online";
+    var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
 
     if (settings.debug) {
         bot.user.setActivity(settings.debugModeActivity.string + onlineString, { type: settings.debugModeActivity.type });
         bot.user.setStatus("dnd");
     }
     else {
-        bot.user.setActivity(settings.onlineActivity.string + onlineString, { type: settings.onlineActivity.type });
+        if (game.game && !game.canJoin)
+            bot.user.setActivity(settings.gameInProgressActivity.string + onlineString, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
+        else
+            bot.user.setActivity(settings.onlineActivity.string, { type: settings.onlineActivity.type });
         bot.user.setStatus("online");
     }
 }
@@ -75,7 +78,7 @@ bot.on('ready', async () => {
 
     // Run online players check periodically
     setInterval(() => {
-        updateStatus()
+        updateStatus();
     }, settings.onlinePlayersStatusInterval * 1000);
 });
 
