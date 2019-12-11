@@ -24,7 +24,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable take");
     if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
 
-    // First, check if the player has free space in their inventory.
+    /*// First, check if the player has free space in their inventory.
     var freeSlot = -1;
     for (let i = 0; i < player.inventory.length; i++) {
         if (player.inventory[i].name === null) {
@@ -33,93 +33,96 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
     }
     if (freeSlot === -1) return message.reply("your inventory is full. You cannot take anymore items until you drop something.");
+    */
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    // Check if the player specified an object.
-    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
-    var object = null;
-    for (let i = 0; i < objects.length; i++) {
-        if (objects[i].name === parsedInput) return message.reply(`the ${objects[i].name} is not an item.`);
-        if (parsedInput.endsWith(objects[i].name)) {
-            if (objects[i].preposition === "") return message.reply(`${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
-            object = objects[i];
-            parsedInput = parsedInput.substring(0, parsedInput.indexOf(objects[i].name)).trimEnd();
-            // Check if the object has a puzzle attached to it.
-            if (object.childPuzzle !== null && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
-                return message.reply(`any items ${object.preposition} ${object.name} are currently inaccessible.`);
-            break;
-        }
-    }
+    var newArgs = parsedInput.split(" FROM ");
+    var itemName = newArgs[0].trim();
+    newArgs = newArgs[1] ? newArgs[1].split(" OF ") : [];
+    console.log(newArgs);
+    var containerName = newArgs[1] ? newArgs[1] : newArgs[0];
+    console.log(`"${containerName}"`);
+    var slotName = newArgs[1] ? newArgs[0] : "";
+    console.log(`"${slotName}"`);
 
-    // Now find the item.
-    var item = null;
-    if (object !== null && object.childPuzzle !== null) {
-        const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && item.requires !== null && item.requires.name === object.childPuzzle.name && (item.quantity > 0 || isNaN(item.quantity)));
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
-                item = items[i];
-                break;
+    // Gather all items in the room with a matching name.
+    var items = game.items.filter(item => item.prefab.name === itemName && item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    if (items.length > 0) {
+        // Look for the container.
+        var matches = [];
+        var container = null;
+        var item = null;
+        // Container name was specified.
+        if (containerName !== "" && containerName !== null && containerName !== undefined) {
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].container !== null && (items[i].container.name === containerName || items[i].container.hasOwnProperty("parentObject") && items[i].container.parentObject.name === containerName))
+                    matches.push({ container: items[i].container, slot: items[i].slot, item: items[i] });
             }
-        }
-        if (item === null) return message.reply(`couldn't find item "${parsedInput}" ${object.preposition} ${object.name}.`);
-    }
-    else if (object !== null) {
-        const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && item.sublocation !== null && item.sublocation.name === object.name && (item.quantity > 0 || isNaN(item.quantity)));
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
-                item = items[i];
-                break;
-            }
-        }
-        if (item === null) return message.reply(`couldn't find item "${parsedInput}" ${object.preposition} ${object.name}.`);
-    }
-    else {
-        const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
-                item = items[i];
-                if (item.requires !== null) {
-                    const puzzles = game.puzzles.filter(puzzle => puzzle.location.name === item.location.name && puzzle.accessible && puzzle.solved);
-                    for (let j = 0; j < puzzles.length; j++) {
-                        if (puzzles[j].name === item.requires.name) {
-                            object = puzzles[j].parentObject;
-                            break;
+            if (matches.length === 0) return message.reply(`couldn't find "${containerName}" containing item "${itemName}".`);
+
+            // Slot name was specified.
+            if (slotName !== "" && slotName !== null && slotName !== undefined) {
+                for (let i = 0; i < matches.length; i++) {
+                    // Only Items have an inventory property, so skip this part if the container is an Object or Puzzle.
+                    if (matches[i].container.hasOwnProperty("inventory")) {
+                        for (let slot = 0; slot < matches[i].container.inventory.length; slot++) {
+                            if (matches[i].container.inventory[slot].name === slotName && matches[i].slot === slotName) {
+                                container = matches[i].container;
+                                item = matches[i].item;
+                                break;
+                            }
                         }
                     }
                 }
-                else if (item.sublocation !== null) {
-                    const objects = game.objects.filter(object => object.location.name === item.location.name && object.accessible);
-                    for (let j = 0; j < objects.length; j++) {
-                        if (objects[j].name === item.sublocation.name) {
-                            object = objects[j];
-                            break;
-                        }
-                    }
-                }
-                break;
+                if (container === null) return message.reply(`couldn't find "${containerName}" with inventory slot "${slotName}".`);
+            }
+            // Slot name wasn't specified. Pick the first container.
+            else {
+                item = matches[0].item;
+                container = item.container;
+                slotName = item.slot;
             }
         }
-        if (item === null) return message.reply(`couldn't find item "${parsedInput}" in the room.`);
+        // Container name wasn't specified. Select the first item in the room.
+        else {
+            item = items[0];
+            container = item ? item.container : null;
+            slotName = item ? item.slot : null;
+        }
     }
+    if (items.length === 0 || item === null || item === undefined) {
+        // Check if the player is trying to take an object.
+        const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+        for (let i = 0; i < objects.length; i++) {
+            if (objects[i].name === itemName)
+                return message.reply(`the ${objects[i].name} is not an item.`);
+        }
+        // If nothing was found at all, tell the player.
+        return message.reply(`couldn't find item "${itemName}" in the room.`);
+    }
+    // If no container was found, make the container the Room.
+    if (item !== null && item !== undefined && item.container === null)
+        container = item.location;
 
+    console.log(item);
+    console.log(container);
+    console.log(`"${slotName}"`);
+
+    // TODO: add inventory slot
+    player.take(game, item, null, container, slotName);
+    // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
-    if (object !== null && object.childPuzzle !== null) {
-        player.take(game, item, freeSlot, object.childPuzzle);
-        // Post log message.
-        game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${object.name} in ${player.location.channel}`);
-    }
-    else if (object !== null) {
-        player.take(game, item, freeSlot, object);
-        // Post log message.
-        game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${object.name} in ${player.location.channel}`);
-    }
-    else {
-        player.take(game, item, freeSlot, player.location);
-        // Post log message.
+    // Container is an Object or Puzzle.
+    if (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved"))
+        game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${container.name} in ${player.location.channel}`);
+    // Container is an Item.
+    else if (container.hasOwnProperty("inventory"))
+        game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${slotName} of ${container.name} in ${player.location.channel}`);
+    // Container is a Room.
+    else
         game.logChannel.send(`${time} - ${player.name} took ${item.name} from ${player.location.channel}`);
-    }
 
     return;
 };

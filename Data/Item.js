@@ -5,7 +5,10 @@ const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 class Item {
     constructor(prefab, location, accessible, containerName, quantity, uses, description, row) {
         this.prefab = prefab;
-        this.name = prefab ? prefab.name : "";
+        this.name = prefab.name ? prefab.name : "";
+        this.pluralName = prefab.pluralName ? prefab.pluralName : "";
+        this.singleContainingPhrase = prefab.singleContainingPhrase ? prefab.singleContainingPhrase : "";
+        this.pluralContainingPhrase = prefab.pluralContainingPhrase ? prefab.pluralContainingPhrase : "";
         this.location = location;
         this.accessible = accessible;
         this.containerName = containerName;
@@ -57,6 +60,10 @@ class Item {
 
     usesCell() {
         return settings.playerSheetItemUsesColumn + this.row;
+    }
+
+    descriptionCell() {
+        return settings.itemSheetDescriptionColumn + this.row;
     }
 }
 

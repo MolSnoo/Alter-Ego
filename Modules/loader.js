@@ -357,9 +357,12 @@ module.exports.loadItems = function (game, doErrorChecking) {
 
             game.items.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                // Find the prefab first.
+                const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab] && prefab.id !== "");
+
                 game.items.push(
                     new Item(
-                        sheet[i][columnPrefab],
+                        prefab ? prefab : sheet[i][columnPrefab],
                         sheet[i][columnLocation],
                         sheet[i][columnAccessibility] === true,
                         sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
@@ -373,7 +376,6 @@ module.exports.loadItems = function (game, doErrorChecking) {
             var errors = [];
             for (let i = 0; i < game.items.length; i++) {
                 game.items[i].location = game.rooms.find(room => room.name === game.items[i].location && room.name !== "");
-                game.items[i].prefab = game.prefabs.find(prefab => prefab.id === game.items[i].prefab && prefab.id !== "");
                 if (game.items[i].prefab) {
                     const prefab = game.items[i].prefab;
                     game.items[i].weight = game.items[i].prefab.weight;
@@ -829,10 +831,13 @@ module.exports.loadInventories = function (game, doErrorChecking) {
 
             game.inventoryItems.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                // Find the prefab first.
+                const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab] && prefab.id !== "");
+
                 game.inventoryItems.push(
                     new InventoryItem(
                         sheet[i][columnPlayer],
-                        sheet[i][columnPrefab],
+                        prefab ? prefab : sheet[i][columnPrefab],
                         sheet[i][columnEquipmentSlot],
                         sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
                         parseInt(sheet[i][columnUses]),
@@ -844,7 +849,6 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             var errors = [];
             for (let i = 0; i < game.inventoryItems.length; i++) {
                 game.inventoryItems[i].player = game.players_alive.find(player => player.name === game.inventoryItems[i].player && player.name !== "");
-                game.inventoryItems[i].prefab = game.prefabs.find(prefab => prefab.id === game.inventoryItems[i].prefab && prefab.id !== "");
                 if (game.inventoryItems[i].prefab) {
                     const prefab = game.inventoryItems[i].prefab;
                     game.inventoryItems[i].weight = game.inventoryItems[i].prefab.weight;

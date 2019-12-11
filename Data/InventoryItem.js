@@ -5,6 +5,9 @@ class InventoryItem {
         this.player = player;
         this.prefab = prefab;
         this.name = prefab ? prefab.name : "";
+        this.pluralName = prefab ? prefab.pluralName : "";
+        this.singleContainingPhrase = prefab ? prefab.singleContainingPhrase : "";
+        this.pluralContainingPhrase = prefab ? prefab.pluralContainingPhrase : "";
         this.equipmentSlot = equipmentSlot;
         this.foundEquipmentSlot = false;
         this.containerName = containerName;
@@ -28,17 +31,17 @@ class InventoryItem {
         }
     }
 
-    itemCells() {
+    /*itemCells() {
         const descriptionColumn = settings.playerSheetItemDescriptionColumn.split('!');
         return settings.playerSheetItemNameColumn + this.row + ":" + descriptionColumn[1] + this.row;
-    }
+    }*/
 
     usesCell() {
-        return settings.playerSheetItemUsesColumn + this.row;
+        return settings.inventorySheetUsesColumn + this.row;
     }
 
     descriptionCell() {
-        return settings.playerSheetItemDescriptionColumn + this.row;
+        return settings.inventorySheetDescriptionColumn + this.row;
     }
 }
 

@@ -225,6 +225,7 @@ module.exports.removeItem = function (description, item, slot, document) {
     for (let j = 0; j < sentences.length; j++) {
         var sentence = sentences[j];
         if ((slot === null || slot === undefined || slot === "") && sentence.itemListName === ""
+            || slot !== null && slot !== undefined && slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 < 2
             || sentence.itemListName === slot) {
             // Determine if an item needs to be removed from the sentence.
             var i;

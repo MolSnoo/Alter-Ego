@@ -79,6 +79,7 @@
   "itemSheetAccessibleColumn": "Items!C",
   "itemSheetQuantityColumn": "Items!E",
   "itemSheetUsesColumn": "Items!F",
+  "itemSheetDescriptionColumn": "Items!G",
   "puzzleSheetAllCells": "Puzzles!A1:P",
   "puzzleSheetNameColumn": "Puzzles!A",
   "puzzleSheetSolvedColumn": "Puzzles!B",
@@ -101,5 +102,7 @@
   "playerSheetItemNameColumn": "Players!M",
   "playerSheetItemUsesColumn": "Players!O",
   "playerSheetItemDescriptionColumn": "Players!T",
-  "inventorySheetAllCells": "Inventory Items!A1:F"
+  "inventorySheetAllCells": "Inventory Items!A1:F",
+  "inventorySheetUsesColumn": "Inventory Items!E",
+  "inventorySheetDescriptionColumn": "Inventory Items!F"
 }

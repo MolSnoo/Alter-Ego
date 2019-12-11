@@ -5,6 +5,7 @@ const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
+const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
@@ -454,7 +455,7 @@ class Player {
         return;
     }
 
-    take(game, item, slotNo, container) {
+    take(game, item, slotNo, container, slotName) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
@@ -469,13 +470,19 @@ class Player {
             container.description = parser.removeItem(container.description, item);
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
         }
+        else if (container instanceof Item) {
+            container.description = parser.removeItem(container.description, item, slotName);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
+            // remove it from the actual item inventory
+        }
         else if (container instanceof Room) {
+            container.description = parser.removeItem(container.description, item);
             for (let i = 0; i < container.exit.length; i++) {
                 container.exit[i].description = parser.removeItem(container.exit[i].description, item);
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), container.exit[i].description));
             }
         }
-
+        /*
         // Make a copy of the item and put it in the player's inventory.
         const createdItem = new InventoryItem(
             item.name,
@@ -511,7 +518,7 @@ class Player {
         game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), data));
 
         if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
-
+        */
         return;
     }
 
