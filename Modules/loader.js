@@ -687,7 +687,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getDataFormulas(settings.playerSheetAllCells, function (response) {
+        sheets.getDataFormulas(settings.playerSheetAllCells, async function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -715,21 +715,6 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     speed: parseInt(sheet[i][columnSpeed]),
                     stamina: parseInt(sheet[i][columnStamina])
                 };
-                var inventory = [
-                    new EquipmentSlot("HAT"),
-                    new EquipmentSlot("GLASSES"),
-                    new EquipmentSlot("FACE"),
-                    new EquipmentSlot("NECK"),
-                    new EquipmentSlot("BAG"),
-                    new EquipmentSlot("SHIRT"),
-                    new EquipmentSlot("JACKET"),
-                    new EquipmentSlot("RIGHT HAND"),
-                    new EquipmentSlot("LEFT HAND"),
-                    new EquipmentSlot("PANTS"),
-                    new EquipmentSlot("UNDERWEAR"),
-                    new EquipmentSlot("SOCKS"),
-                    new EquipmentSlot("SHOES")
-                ];
                 const player =
                     new Player(
                         sheet[i][columnID],
@@ -742,7 +727,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],
                         new Array(),
-                        inventory,
+                        new Array(),
                         i + 1
                     );
                 game.players.push(player);
@@ -773,11 +758,20 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 else
                     game.players_dead.push(player);
             }
+
+            await exports.loadInventories(game, false);
+
             var errors = [];
             for (let i = 0; i < game.players.length; i++) {
                 if (doErrorChecking) {
                     let error = exports.checkPlayer(game.players[i]);
                     if (error instanceof Error) errors.push(error);
+
+                    let playerInventory = game.inventoryItems.filter(item => item.player.id === game.players[i].id);
+                    for (let j = 0; j < playerInventory.length; j++) {
+                        error = exports.checkInventoryItem(playerInventory[j]);
+                        if (error instanceof Error) errors.push(error);
+                    }
                 }
             }
             if (errors.length > 0) {
@@ -832,48 +826,75 @@ module.exports.loadInventories = function (game, doErrorChecking) {
 
             game.inventoryItems.length = 0;
             for (let i = 1; i < sheet.length; i++) {
-                // Find the prefab first.
-                const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab] && prefab.id !== "");
+                const player = game.players_alive.find(player => player.name === sheet[i][columnPlayer] && player.name !== "");
+                if (sheet[i][columnPrefab] !== "NULL") {
+                    // Find the prefab first.
+                    const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab] && prefab.id !== "");
 
-                game.inventoryItems.push(
-                    new InventoryItem(
-                        sheet[i][columnPlayer],
-                        prefab ? prefab : sheet[i][columnPrefab],
-                        sheet[i][columnEquipmentSlot],
-                        sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
-                        parseInt(sheet[i][columnQuantity]),
-                        parseInt(sheet[i][columnUses]),
-                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
-                        i + 1
-                    )
-                );
+                    game.inventoryItems.push(
+                        new InventoryItem(
+                            player ? player : sheet[i][columnPlayer],
+                            prefab ? prefab : sheet[i][columnPrefab],
+                            sheet[i][columnEquipmentSlot],
+                            sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
+                            parseInt(sheet[i][columnQuantity]),
+                            parseInt(sheet[i][columnUses]),
+                            sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
+                            i + 1
+                        )
+                    );
+                }
+                else {
+                    game.inventoryItems.push(
+                        new InventoryItem(
+                            player ? player : sheet[i][columnPlayer],
+                            null,
+                            sheet[i][columnEquipmentSlot],
+                            "",
+                            null,
+                            null,
+                            "",
+                            i + 1
+                        )
+                    );
+                }
+            }
+            // Create EquipmentSlots for each player.
+            for (let i = 0; i < game.players_alive.length; i++) {
+                let inventory = [];
+                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players_alive[i].id && item.equipmentSlot !== "" && item.containerName === "");
+                for (let j = 0; j < equipmentItems.length; j++)
+                    inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
+                game.players_alive[i].inventory = inventory;
             }
             var errors = [];
             for (let i = 0; i < game.inventoryItems.length; i++) {
-                game.inventoryItems[i].player = game.players_alive.find(player => player.name === game.inventoryItems[i].player && player.name !== "");
-                if (game.inventoryItems[i].prefab) {
+                if (game.inventoryItems[i].prefab instanceof Prefab) {
                     const prefab = game.inventoryItems[i].prefab;
                     game.inventoryItems[i].weight = game.inventoryItems[i].prefab.weight;
                     for (let j = 0; j < prefab.inventory.length; j++)
                         game.inventoryItems[i].inventory.push({ name: prefab.inventory[j].name, capacity: prefab.inventory[j].capacity, takenSpace: prefab.inventory[j].takenSpace, weight: prefab.inventory[j].weight, item: [] });
-                }
-                if (game.inventoryItems[i].player) {
-                    const player = game.inventoryItems[i].player;
-                    for (let slot = 0; slot < player.inventory.length; slot++) {
-                        if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot) {
-                            game.inventoryItems[i].foundEquipmentSlot = true;
-                            player.inventory[slot].items.push(game.inventoryItems[i]);
-                            if (game.inventoryItems[i].containerName === "")
-                                player.inventory[slot].equippedItem = game.inventoryItems[i];
-                            else if (game.inventoryItems[i].prefab) {
-                                const splitContainer = game.inventoryItems[i].containerName.split('/');
-                                const containerItemName = splitContainer[0] ? splitContainer[0].trim() : "";
-                                const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
-                                for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                                    if (player.inventory[slot].items[j].prefab.id === containerItemName) {
-                                        game.inventoryItems[i].container = player.inventory[slot].items[j];
-                                        game.inventoryItems[i].slot = containerItemSlot;
-                                        game.inventoryItems[i].container.insertItem(game.inventoryItems[i], containerItemSlot);
+
+                    if (game.inventoryItems[i].player) {
+                        const player = game.inventoryItems[i].player;
+                        for (let slot = 0; slot < player.inventory.length; slot++) {
+                            if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot) {
+                                game.inventoryItems[i].foundEquipmentSlot = true;
+                                player.inventory[slot].items.push(game.inventoryItems[i]);
+                                if (game.inventoryItems[i].containerName === "") {
+                                    if (prefab === null) player.inventory[slot].equippedItem = null;
+                                    else player.inventory[slot].equippedItem = game.inventoryItems[i];
+                                }
+                                else {
+                                    const splitContainer = game.inventoryItems[i].containerName.split('/');
+                                    const containerItemName = splitContainer[0] ? splitContainer[0].trim() : "";
+                                    const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
+                                    for (let j = 0; j < player.inventory[slot].items.length; j++) {
+                                        if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].prefab.id === containerItemName) {
+                                            game.inventoryItems[i].container = player.inventory[slot].items[j];
+                                            game.inventoryItems[i].slot = containerItemSlot;
+                                            game.inventoryItems[i].container.insertItem(game.inventoryItems[i], containerItemSlot);
+                                        }
                                     }
                                 }
                             }
@@ -901,27 +922,29 @@ module.exports.loadInventories = function (game, doErrorChecking) {
 module.exports.checkInventoryItem = function (item) {
     if (!(item.player instanceof Player))
         return new Error(`Couldn't load inventory item on row ${item.row}. The player name given is not a player.`);
-    if (!(item.prefab instanceof Prefab))
-        return new Error(`Couldn't load inventory item on row ${item.row}. The prefab given is not a prefab.`);
-    if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
-        return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
-    if (!item.foundEquipmentSlot)
-        return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find equipment slot "${item.equipmentSlot}".`);
-    if (item.containerName !== "" && (item.container === null || item.container === undefined))
-        return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
-    if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
-        return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
-    if (item.container instanceof InventoryItem) {
-        if (item.slot === "") return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but a prefab inventory slot name was not given.`);
-        let foundSlot = false;
-        for (let i = 0; i < item.container.inventory.length; i++) {
-            if (item.container.inventory[i].name === item.slot) {
-                foundSlot = true;
-                if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
-                    return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is over capacity.`);
+    if (item.prefab !== null) {
+        if (!(item.prefab instanceof Prefab))
+            return new Error(`Couldn't load inventory item on row ${item.row}. The prefab given is not a prefab.`);
+        if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+            return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
+        if (!item.foundEquipmentSlot)
+            return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find equipment slot "${item.equipmentSlot}".`);
+        if (item.containerName !== "" && (item.container === null || item.container === undefined))
+            return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
+        if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
+            return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+        if (item.container instanceof InventoryItem) {
+            if (item.slot === "") return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but a prefab inventory slot name was not given.`);
+            let foundSlot = false;
+            for (let i = 0; i < item.container.inventory.length; i++) {
+                if (item.container.inventory[i].name === item.slot) {
+                    foundSlot = true;
+                    if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
+                        return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is over capacity.`);
+                }
             }
+            if (!foundSlot) return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
         }
-        if (!foundSlot) return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
     }
     return;
 };
