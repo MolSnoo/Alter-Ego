@@ -394,13 +394,60 @@ module.exports.loadItems = function (game, doErrorChecking) {
                     if (container) {
                         game.items[i].container = container;
                         game.items[i].slot = slotName;
-                        container.insertItem(game.items[i], slotName);
+                        // This is a pseudo-copy of the insertItems function without weight and takenSpace changing.
+                        if (game.items[i].quantity !== 0) {
+                            for (let j = 0; j < container.inventory.length; j++) {
+                                if (container.inventory[j].name === slotName)
+                                    container.inventory[j].item.push(game.items[i]);
+                            }
+                        }
                     }
                 }
                 else if (game.items[i].containerName.startsWith("Puzzle:")) {
                     let container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location.name === game.items[i].location.name);
                     if (container) game.items[i].container = container;
                 }
+            }
+            // Create a recursive function for properly inserting item inventories.
+            let insertInventory = function (item) {
+                var createdItem = new Item(
+                    item.prefab,
+                    item.location,
+                    item.accessible,
+                    item.containerName,
+                    item.quantity,
+                    item.uses,
+                    item.description,
+                    item.row
+                );
+                createdItem.container = item.container;
+                createdItem.slot = item.slot;
+                createdItem.weight = item.weight;
+
+                // Initialize the item's inventory slots.
+                for (let i = 0; i < item.prefab.inventory.length; i++)
+                    createdItem.inventory.push({
+                        name: item.prefab.inventory[i].name,
+                        capacity: item.prefab.inventory[i].capacity,
+                        takenSpace: item.prefab.inventory[i].takenSpace,
+                        weight: item.prefab.inventory[i].weight,
+                        item: []
+                    });
+
+                for (let i = 0; i < item.inventory.length; i++) {
+                    for (let j = 0; j < item.inventory[i].item.length; j++) {
+                        let inventoryItem = insertInventory(item.inventory[i].item[j]);
+                        if (inventoryItem.containerName !== "")
+                            createdItem.insertItem(inventoryItem, inventoryItem.slot);
+                        else createdItem.inventory[i].item.push(inventoryItem);
+                    }
+                }
+                return createdItem;
+            };
+            // Run through items one more time to properly insert their inventories.
+            for (let i = 0; i < game.items.length; i++) {
+                game.items[i] = insertInventory(game.items[i]);
+
                 if (doErrorChecking) {
                     let error = exports.checkItem(game.items[i]);
                     if (error instanceof Error) errors.push(error);
@@ -871,9 +918,14 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             for (let i = 0; i < game.inventoryItems.length; i++) {
                 if (game.inventoryItems[i].prefab instanceof Prefab) {
                     const prefab = game.inventoryItems[i].prefab;
-                    game.inventoryItems[i].weight = game.inventoryItems[i].prefab.weight;
                     for (let j = 0; j < prefab.inventory.length; j++)
-                        game.inventoryItems[i].inventory.push({ name: prefab.inventory[j].name, capacity: prefab.inventory[j].capacity, takenSpace: prefab.inventory[j].takenSpace, weight: prefab.inventory[j].weight, item: [] });
+                        game.inventoryItems[i].inventory.push({
+                            name: prefab.inventory[j].name,
+                            capacity: prefab.inventory[j].capacity,
+                            takenSpace: prefab.inventory[j].takenSpace,
+                            weight: prefab.inventory[j].weight,
+                            item: []
+                        });
 
                     if (game.inventoryItems[i].player) {
                         const player = game.inventoryItems[i].player;
@@ -893,7 +945,10 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                                         if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].prefab.id === containerItemName) {
                                             game.inventoryItems[i].container = player.inventory[slot].items[j];
                                             game.inventoryItems[i].slot = containerItemSlot;
-                                            game.inventoryItems[i].container.insertItem(game.inventoryItems[i], containerItemSlot);
+                                            for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
+                                                if (game.inventoryItems[i].container.inventory[k].name === containerItemSlot)
+                                                    game.inventoryItems[i].container.inventory[k].item.push(game.inventoryItems[i]);
+                                            }
                                         }
                                     }
                                 }
@@ -901,9 +956,53 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         }
                     }
                 }
-                if (doErrorChecking) {
-                    let error = exports.checkInventoryItem(game.inventoryItems[i]);
-                    if (error instanceof Error) errors.push(error);
+            }
+            // Create a recursive function for properly inserting item inventories.
+            let insertInventory = function (item) {
+                var createdItem = new InventoryItem(
+                    item.player,
+                    item.prefab,
+                    item.equipmentSlot,
+                    item.containerName,
+                    item.quantity,
+                    item.uses,
+                    item.description,
+                    item.row
+                );
+                createdItem.foundEquipmentSlot = item.foundEquipmentSlot;
+                createdItem.container = item.container;
+                createdItem.slot = item.slot;
+                createdItem.weight = item.weight;
+
+                // Initialize the item's inventory slots.
+                for (let i = 0; i < item.prefab.inventory.length; i++)
+                    createdItem.inventory.push({
+                        name: item.prefab.inventory[i].name,
+                        capacity: item.prefab.inventory[i].capacity,
+                        takenSpace: item.prefab.inventory[i].takenSpace,
+                        weight: item.prefab.inventory[i].weight,
+                        item: []
+                    });
+
+                for (let i = 0; i < item.inventory.length; i++) {
+                    for (let j = 0; j < item.inventory[i].item.length; j++) {
+                        let inventoryItem = insertInventory(item.inventory[i].item[j]);
+                        if (inventoryItem.containerName !== "")
+                            createdItem.insertItem(inventoryItem, inventoryItem.slot);
+                        else createdItem.inventory[i].item.push(inventoryItem);
+                    }
+                }
+                return createdItem;
+            };
+            // Run through inventoryItems one more time to properly insert their inventories.
+            for (let i = 0; i < game.inventoryItems.length; i++) {
+                if (game.inventoryItems[i].prefab instanceof Prefab) {
+                    game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
+
+                    if (doErrorChecking) {
+                        let error = exports.checkInventoryItem(game.inventoryItems[i]);
+                        if (error instanceof Error) errors.push(error);
+                    }
                 }
             }
             if (errors.length > 0) {

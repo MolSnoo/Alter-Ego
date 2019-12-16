@@ -101,7 +101,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
 
     // Finally, check if the input is an item in the player's inventory.
-    const inventory = game.inventoryItems.filter(item => item.player.id === player.id);
+    const inventory = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null);
     for (let i = 0; i < inventory.length; i++) {
         parsedInput = parsedInput.replace("MY ", "");
         if (inventory[i].prefab.name === parsedInput) {

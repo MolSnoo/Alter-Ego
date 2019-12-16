@@ -457,7 +457,7 @@ class Player {
 
     async take(game, item, hand, container, slotName) {
         // Reduce quantity if the quantity is finite.
-        if (!isNaN(item.quantity)) {
+        /*if (!isNaN(item.quantity)) {
             item.quantity--;
             game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), item.quantity));
         }
@@ -481,7 +481,65 @@ class Player {
                 container.exit[i].description = parser.removeItem(container.exit[i].description, item);
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), container.exit[i].description));
             }
+        }*/
+
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === hand) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
         }
+
+        //console.log(item);
+        //console.log(item.inventory[0]);
+        var createdItem = this.convertItem(item, hand, 1);
+        createdItem.row = rowNumber;
+        //console.log(createdItem);
+        //console.log(createdItem.inventory[0]);
+
+        // Equip the item and add it to the player's inventory.
+        this.inventory[slot].equippedItem = createdItem;
+        this.inventory[slot].items.push(createdItem);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === createdItem.row) {
+                game.inventoryItems.splice(i, 1, createdItem);
+                break;
+            }
+        }
+        // Create a list of all the child items.
+        var items = [];
+        this.getChildItems(items, createdItem);
+        console.log(items);
+
+        // Find the last item in this player's equipment slots. We need the row and index number.
+        var startingRow = this.inventory[this.inventory.length - 1].row;
+        for (var startingIndex = 0; startingIndex < game.inventoryItems.length; startingIndex++) {
+            if (game.inventoryItems[startingIndex].row === startingRow)
+                break;
+        }
+        var endingRow = 0;
+        var endingIndex = 0;
+        for (let i = 0; i < items.length; i++) {
+            items[i].row = startingRow + i + 1;
+            game.inventoryItems.splice(startingIndex + i + 1, 0, items[i]);
+            this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, items[i]);
+
+            endingRow = startingRow + i + 1;
+            endingIndex = startingIndex + i + 1;
+        }
+        // Update the rows for all of the inventoryItems after this.
+        for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.inventoryItems.length; i++, newRow++) {
+            game.inventoryItems[i].row = newRow;
+            // Update any entries in the queue.
+        }
+
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            console.log(`${game.inventoryItems[i].player.name}: ${game.inventoryItems[i].name}, ${game.inventoryItems[i].row}`);
+        }
+
         /*
         // Make a copy of the item and put it in the player's inventory.
         const createdItem = new InventoryItem(
@@ -713,6 +771,55 @@ class Player {
         this.clearInventorySlot(slotNo);
         
         return;
+    }
+
+    // This recursive function is used to convert Items to InventoryItems.
+    convertItem(item, hand, quantity) {
+        // Make a copy of the Item as an InventoryItem.
+        var createdItem = new InventoryItem(
+            this,
+            item.prefab,
+            hand,
+            item.container.prefab ? item.container.prefab.id + '/' + item.slot : "",
+            quantity,
+            item.uses,
+            item.description,
+            0
+        );
+
+        // Initialize the item's inventory slots.
+        for (let i = 0; i < item.prefab.inventory.length; i++)
+            createdItem.inventory.push({
+                name: item.prefab.inventory[i].name,
+                capacity: item.prefab.inventory[i].capacity,
+                takenSpace: item.prefab.inventory[i].takenSpace,
+                weight: item.prefab.inventory[i].weight,
+                item: []
+            });
+
+        // Now recursively run through all of the inventory items and convert them.
+        for (let i = 0; i < item.inventory.length; i++) {
+            for (let j = 0; j < item.inventory[i].item.length; j++) {
+                let inventoryItem = this.convertItem(item.inventory[i].item[j], hand, item.inventory[i].item[j].quantity);
+                if (inventoryItem.containerName !== "") {
+                    inventoryItem.container = item;
+                    inventoryItem.slot = createdItem.inventory[i].name;
+                    createdItem.insertItem(inventoryItem, inventoryItem.slot);
+                }
+                else createdItem.inventory[i].item.push(inventoryItem);
+            }
+        }
+
+        return createdItem;
+    }
+
+    getChildItems(items, item) {
+        for (let i = 0; i < item.inventory.length; i++) {
+            for (let j = 0; j < item.inventory[i].item.length; j++) {
+                items.push(item.inventory[i].item[j]);
+                this.getChildItems(items, item.inventory[i].item[j]);
+            }
+        }
     }
 
     clearInventorySlot(slotNo) {
