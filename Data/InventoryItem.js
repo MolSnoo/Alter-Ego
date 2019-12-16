@@ -15,7 +15,7 @@ class InventoryItem {
         this.slot = "";
         this.quantity = quantity;
         this.uses = uses;
-        this.weight = 0;
+        this.weight = prefab ? prefab.weight : 0;
         this.inventory = [];
         this.description = description;
         this.row = row;

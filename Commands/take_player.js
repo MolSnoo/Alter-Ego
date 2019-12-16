@@ -37,17 +37,17 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     // First, check if the player has a free hand.
     var hand = "";
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (player.inventory[i].name === "RIGHT HAND" && player.inventory[i].equippedItem === null) {
+    for (let slot = 0; slot < player.inventory.length; slot++) {
+        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
             break;
         }
-        else if (player.inventory[i].name === "LEFT HAND" && player.inventory[i].equippedItem === null) {
+        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[i].name === "LEFT HAND")
+        else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
     if (hand === "") return message.reply("you do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
@@ -120,9 +120,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (item !== null && item !== undefined && item.container === null)
         container = item.location;
 
-    console.log(item);
-    console.log(container);
-    console.log(`"${slotName}"`);
+    //console.log(item);
+    //console.log(container);
+    //console.log(`"${slotName}"`);
 
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
