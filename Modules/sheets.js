@@ -297,6 +297,90 @@ module.exports.insertRow = function (sheetrange, data, dataOperation) {
     });
 };
 
+module.exports.insertData = function (sheetrange, data, dataOperation) {
+    const sheetrangeArgs = sheetrange.split('!');
+    const sheetName = sheetrangeArgs[0];
+    var sheetId;
+    switch (sheetName) {
+        case "Rooms":
+            sheetId = roomSheetID;
+            break;
+        case "Objects":
+            sheetId = objectSheetID;
+            break;
+        case "Items":
+            sheetId = itemSheetID;
+            break;
+        case "Puzzles":
+            sheetId = puzzleSheetID;
+            break;
+        case "Status Effects":
+            sheetId = statusEffectSheetID;
+            break;
+        case "Players":
+            sheetId = playerSheetID;
+            break;
+    }
+    var rowNumber;
+    for (var i = sheetrangeArgs[1].length - 1; i >= 0; i--) {
+        if (isNaN(parseInt(sheetrangeArgs[1].charAt(i)))) {
+            rowNumber = parseInt(sheetrangeArgs[1].substring(i + 1));
+        }
+    }
+
+    const dataString = data.join("@");
+
+    authorize(function (authClient) {
+        var request = {
+            // The ID of the spreadsheet to update.
+            spreadsheetId: spreadsheetID,
+
+            resource: {
+                // A list of updates to apply to the spreadsheet.
+                // Requests will be applied in the order they are specified.
+                // If any request is not valid, no requests will be applied.
+                requests: [
+                    {
+                        "insertRange": {
+                            "range": {
+                                "sheetId": sheetId,
+                                "startRowIndex": rowNumber,
+                                "endRowIndex": rowNumber + data.length
+                            },
+                            "shiftDimension": "ROWS"
+                        }
+                    },
+                    {
+                        "pasteData": {
+                            "data": dataString,
+                            "type": "PASTE_NORMAL",
+                            "delimiter": "@",
+                            "coordinate": {
+                                "sheetId": sheetId,
+                                "rowIndex": rowNumber
+                            }
+                        }
+                    }
+                ]
+            },
+
+            auth: authClient,
+        };
+
+        sheets.spreadsheets.batchUpdate(request, function (err, response) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            if (dataOperation) {
+                dataOperation(response);
+            }
+            //console.log("Inserted row(s).");
+        });
+    });
+};
+
 module.exports.fetchData = function (sheetrange) {
     return new Promise((resolve) => {
         exports.getDataFormulas(sheetrange, (response) => {

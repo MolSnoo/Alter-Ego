@@ -1,7 +1,7 @@
 ﻿{
   "commandPrefix": ".",
   "debug": true,
-  "testing": false,
+  "testing": true,
 
   "commandsDir": "Commands",
   "dataDir": "Data",
