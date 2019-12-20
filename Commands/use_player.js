@@ -61,13 +61,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
         else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
         for (let i = 0; i < puzzles.length; i++) {
-            if (puzzles[i].parentObject !== null && parsedInput.startsWith(puzzles[i].parentObject.name)) {
+            if (puzzles[i].parentObject !== null &&
+                (parsedInput.startsWith(puzzles[i].parentObject.name + ' ') || parsedInput === puzzles[i].parentObject.name)) {
                 puzzle = puzzles[i];
                 parsedInput = parsedInput.substring(puzzle.parentObject.name.length).trim();
                 input = input.substring(puzzle.parentObject.name.length).trim();
                 break;
             }
-            else if (parsedInput.startsWith(puzzles[i].name)) {
+            else if (parsedInput.startsWith(puzzles[i].name + ' ') || parsedInput === puzzles[i].name) {
                 puzzle = puzzles[i];
                 parsedInput = parsedInput.substring(puzzle.name.length).trim();
                 input = input.substring(puzzle.name.length).trim();

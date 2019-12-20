@@ -56,7 +56,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     // Find the prospective list of puzzles.
-    var puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name));
+    var puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
     if (puzzles.length > 0) {
         input = input.substring(puzzles[0].name.length).trim();
         args = input.split(" ");
