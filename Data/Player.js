@@ -634,7 +634,7 @@ class Player {
                 invItem.pluralName,
                 this.location.name,
                 container instanceof Object ? container.name : "",
-                container instanceof Puzzle ? `=${container.solvedCell()}` : "TRUE",
+                "TRUE",
                 container instanceof Puzzle ? container.name : "",
                 "1",
                 !isNaN(invItem.uses) ? invItem.uses : "",
