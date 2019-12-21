@@ -52,10 +52,10 @@ class InventoryItem {
         }
     }
 
-    /*itemCells() {
-        const descriptionColumn = settings.playerSheetItemDescriptionColumn.split('!');
-        return settings.playerSheetItemNameColumn + this.row + ":" + descriptionColumn[1] + this.row;
-    }*/
+    itemCells() {
+        const descriptionColumn = settings.inventorySheetDescriptionColumn.split('!');
+        return settings.itemSheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
+    }
 
     usesCell() {
         return settings.inventorySheetUsesColumn + this.row;

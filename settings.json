@@ -1,7 +1,7 @@
 ﻿{
   "commandPrefix": ".",
   "debug": true,
-  "testing": true,
+  "testing": false,
 
   "commandsDir": "Commands",
   "dataDir": "Data",
@@ -61,10 +61,12 @@
   "spreadsheetID": "1l97PXTDbOnqteophmnIrIYp5T-YpEiXXqwl1rhTuVE0",
   "roomSheetID": 0,
   "objectSheetID": 1923975664,
+  "prefabSheetID": 1950777859,
   "itemSheetID": 388122416,
   "puzzleSheetID": 1961307123,
   "statusEffectSheetID": 1040343283,
   "playerSheetID": 680018352,
+  "inventoryItemSheetID": 115011186,
 
   "roomSheetAllCells": "Rooms!A1:J",
   "roomSheetUnlockedColumn": "Rooms!G",

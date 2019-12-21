@@ -40,26 +40,126 @@ module.exports.cleanQueue = function () {
 module.exports.createRequests = function () {
     var requests = [];
     for (let i = 0; i < queue.length; i++) {
-        if (queue[i].type === "updateCell")
+        const sheetrangeArgs = queue[i].range.split('!');
+        const sheetName = sheetrangeArgs[0];
+        let sheetId;
+        switch (sheetName) {
+            case "Rooms":
+                sheetId = settings.roomSheetID;
+                break;
+            case "Objects":
+                sheetId = settings.objectSheetID;
+                break;
+            case "Prefabs":
+                sheetId = settings.prefabSheetID;
+                break;
+            case "Items":
+                sheetId = settings.itemSheetID;
+                break;
+            case "Puzzles":
+                sheetId = settings.puzzleSheetID;
+                break;
+            case "Status Effects":
+                sheetId = settings.statusEffectSheetID;
+                break;
+            case "Players":
+                sheetId = settings.playerSheetID;
+                break;
+            case "Inventory Items":
+                sheetId = settings.inventoryItemSheetID;
+                break;
+            default:
+                sheetId = 0;
+                break;
+        }
+        // Find the row number.
+        let rowNumber;
+        for (let j = sheetrangeArgs[1].length - 1; j >= 0; j--) {
+            if (isNaN(parseInt(sheetrangeArgs[1].charAt(j)))) {
+                rowNumber = parseInt(sheetrangeArgs[1].substring(j + 1)) - 1;
+            }
+        }
+        // Find the column number. We do this by taking the index of the letter in the alphabet.
+        let columnLetter = sheetrangeArgs[1].charAt(0);
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let columnNumber = alphabet.indexOf(columnLetter);
+        if (columnNumber === -1) columnNumber = 0;
+
+        if (queue[i].type === "updateCell") {
             requests.push({
-                "range": queue[i].range,
-                "values": [[queue[i].data.toString()]]
+                "pasteData": {
+                    "data": queue[i].data.toString(),
+                    "type": "PASTE_NORMAL",
+                    "delimiter": "@@@",
+                    "coordinate": {
+                        "sheetId": sheetId,
+                        "columnIndex": columnNumber,
+                        "rowIndex": rowNumber
+                    }
+                }
             });
-        else if (queue[i].type === "updateRow")
+        }
+        else if (queue[i].type === "updateRow") {
             requests.push({
-                "range": queue[i].range,
-                "values": [queue[i].data]
+                "pasteData": {
+                    "data": queue[i].data.join("@@@"),
+                    "type": "PASTE_NORMAL",
+                    "delimiter": "@@@",
+                    "coordinate": {
+                        "sheetId": sheetId,
+                        "columnIndex": columnNumber,
+                        "rowIndex": rowNumber
+                    }
+                }
             });
-        else if (queue[i].type === "updateData")
+        }
+        else if (queue[i].type === "updateData") {
+            for (let j = 0; j < queue[i].data.length; j++) {
+                requests.push({
+                    "pasteData": {
+                        "data": queue[i].data[j].join("@@@"),
+                        "type": "PASTE_NORMAL",
+                        "delimiter": "@@@",
+                        "coordinate": {
+                            "sheetId": sheetId,
+                            "columnIndex": columnNumber,
+                            "rowIndex": rowNumber + j
+                        }
+                    }
+                });
+            }
+        }
+        else if (queue[i].type === "insertData") {
             requests.push({
-                "range": queue[i].range,
-                "values": queue[i].data
+                "insertRange": {
+                    "range": {
+                        "sheetId": sheetId,
+                        "startRowIndex": rowNumber + 1,
+                        "endRowIndex": rowNumber + 1 + queue[i].data.length
+                    },
+                    "shiftDimension": "ROWS"
+                }
             });
+            for (let j = 0; j < queue[i].data.length; j++) {
+                requests.push({
+                    "pasteData": {
+                        "data": queue[i].data[j].join("@@@"),
+                        "type": "PASTE_NORMAL",
+                        "delimiter": "@@@",
+                        "coordinate": {
+                            "sheetId": sheetId,
+                            "columnIndex": columnNumber,
+                            "rowIndex": rowNumber + j + 1
+                        }
+                    }
+                });
+            }
+        }
     }
     return requests;
 };
 
 function sendQueue(requests, spreadsheetId) {
-    sheets.batchUpdate(requests, null, spreadsheetId);
+    sheets.insertData(requests, null, spreadsheetId);
     queue.length = 0;
 }

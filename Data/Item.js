@@ -66,8 +66,8 @@ class Item {
     }
 
     itemCells() {
-        const usesColumn = settings.itemSheetUsesColumn.split('!');
-        return settings.itemSheetPrefabColumn + this.row + ":" + usesColumn[1] + this.row;
+        const descriptionColumn = settings.itemSheetDescriptionColumn.split('!');
+        return settings.itemSheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
     }
 
     accessibleCell() {
