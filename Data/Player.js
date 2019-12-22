@@ -533,7 +533,22 @@ class Player {
         // Update the rows for all of the inventoryItems after this.
         for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.inventoryItems.length; i++, newRow++) {
             game.inventoryItems[i].row = newRow;
-            // Update any entries in the queue.
+        }
+        // Update any entries in the queue.
+        for (let i = 0; i < game.queue.length; i++) {
+            const sheetrangeArgs = queue[i].range.split('!');
+            const sheetName = sheetrangeArgs[0];
+            let rowNumber;
+            for (let j = sheetrangeArgs[1].length - 1; j >= 0; j--) {
+                if (isNaN(parseInt(sheetrangeArgs[1].charAt(j)))) {
+                    rowNumber = parseInt(sheetrangeArgs[1].substring(j + 1)) - 1;
+                }
+            }
+            if (sheetName === "Inventory Items" && rowNumber > startingRow) {
+                // We need a regex that will match only the given number, not any numbers containing this number.
+                let regex = "/(?<!\\d)" + rowNumber + "(?!\\d)/g";
+                game.queue[i].range = game.queue[i].range.replace(eval(regex), rowNumber + items.length);
+            }
         }
 
         for (let i = 0; i < game.inventoryItems.length; i++) {
