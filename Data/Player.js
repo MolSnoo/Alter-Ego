@@ -455,9 +455,9 @@ class Player {
         return;
     }
 
-    async take(game, item, hand, container, slotName) {
+    take(game, item, hand, container, slotName) {
         // Reduce quantity if the quantity is finite.
-        /*if (!isNaN(item.quantity)) {
+        if (!isNaN(item.quantity)) {
             item.quantity--;
             game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), item.quantity));
         }
@@ -481,7 +481,7 @@ class Player {
                 container.exit[i].description = parser.removeItem(container.exit[i].description, item);
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), container.exit[i].description));
             }
-        }*/
+        }
 
         // Get the row number of the EquipmentSlot that the item will go into.
         var rowNumber = 0;
@@ -501,6 +501,7 @@ class Player {
 
         // Equip the item and add it to the player's inventory.
         this.inventory[slot].equippedItem = createdItem;
+        this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(createdItem);
         // Replace the null entry in the inventoryItems list.
         for (let i = 0; i < game.inventoryItems.length; i++) {
@@ -513,6 +514,14 @@ class Player {
         var items = [];
         this.getChildItems(items, createdItem);
         console.log(items);
+
+        // Now that the item has been converted, we can update the quantities of child items.
+        for (let slot = 0; slot < item.inventory.length; slot++) {
+            for (let i = 0; i < item.inventory[slot].item.length; i++) {
+                item.inventory[slot].item[i].quantity = 0;
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), "0"));
+            }
+        }
 
         // Find the last item in this player's equipment slots. We need the row and index number.
         var startingRow = this.inventory[this.inventory.length - 1].row;
@@ -535,13 +544,13 @@ class Player {
             game.inventoryItems[i].row = newRow;
         }
         // Update any entries in the queue.
-        for (let i = 0; i < game.queue.length; i++) {
-            const sheetrangeArgs = queue[i].range.split('!');
+        /*for (let i = 0; i < game.queue.length; i++) {
+            const sheetrangeArgs = game.queue[i].range.split('!');
             const sheetName = sheetrangeArgs[0];
             let rowNumber;
             for (let j = sheetrangeArgs[1].length - 1; j >= 0; j--) {
                 if (isNaN(parseInt(sheetrangeArgs[1].charAt(j)))) {
-                    rowNumber = parseInt(sheetrangeArgs[1].substring(j + 1)) - 1;
+                    rowNumber = parseInt(sheetrangeArgs[1].substring(j + 1));
                 }
             }
             if (sheetName === "Inventory Items" && rowNumber > startingRow) {
@@ -549,7 +558,36 @@ class Player {
                 let regex = "/(?<!\\d)" + rowNumber + "(?!\\d)/g";
                 game.queue[i].range = game.queue[i].range.replace(eval(regex), rowNumber + items.length);
             }
+        }*/
+
+        // Add the equipped item to the queue.
+        const createdItemData = [
+            this.name,
+            createdItem.prefab.name,
+            createdItem.equipmentSlot,
+            createdItem.containerName,
+            isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+            isNaN(createdItem.uses) ? "" : createdItem.uses,
+            createdItem.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), createdItemData));
+
+        // Add the child items to the queue.
+        var childItemsData = [];
+        for (let i = 0; i < items.length; i++) {
+            childItemsData.push(
+                [
+                    this.name,
+                    items[i].prefab.name,
+                    items[i].equipmentSlot,
+                    items[i].containerName,
+                    isNaN(items[i].quantity) ? "" : items[i].quantity,
+                    isNaN(items[i].uses) ? "" : items[i].uses,
+                    items[i].description
+                ]
+            );
         }
+        game.queue.push(new QueueEntry(Date.now(), "insertData", game.inventoryItems[startingIndex].itemCells(), childItemsData));
 
         for (let i = 0; i < game.inventoryItems.length; i++) {
             console.log(`${game.inventoryItems[i].player.name}: ${game.inventoryItems[i].name}, ${game.inventoryItems[i].row}`);
@@ -817,7 +855,7 @@ class Player {
             for (let j = 0; j < item.inventory[i].item.length; j++) {
                 let inventoryItem = this.convertItem(item.inventory[i].item[j], hand, item.inventory[i].item[j].quantity);
                 if (inventoryItem.containerName !== "") {
-                    inventoryItem.container = item;
+                    inventoryItem.container = createdItem;
                     inventoryItem.slot = createdItem.inventory[i].name;
                     createdItem.insertItem(inventoryItem, inventoryItem.slot);
                 }

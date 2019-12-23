@@ -1,4 +1,4 @@
-﻿const settings = include('settings.json');
+﻿var settings = include('settings.json');
 var game = include('game.json');
 const queuer = include(`${settings.modulesDir}/queuer.js`);
 const sheets = include(`${settings.modulesDir}/sheets.js`);
@@ -17,6 +17,9 @@ const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 exports.run = async function () {
     init();
+    test_take_item_0();
+    test_take_item_1();
+    await test_push_queue_0();
     return;
 };
 
@@ -44,7 +47,7 @@ function init() {
     var objectFloor = new Object("FLOOR", roomBeachHouse, true, "", false, "on", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il><item>a SKIRT</item></il> haphazardly placed on the floor.</s></desc>", 2);
     var objectCouches = new Object("COUCHES", roomBeachHouse, true, "", false, "in", "<desc><s>You inspect the couches.</s> <s>They are soft and comfortable, and each is lined with a few pillows.</s> <s>Looking underneath the cushions, you find <il><item>a GUN</item></il>.</s></desc>", 3);
     var objectTable = new Object("TABLE", roomBeachHouse, true, "CHEST", false, "in", `<desc><s>You examine the table.</s> <if cond="game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === true"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open, but it seems to be unlocked.</s> <var v=" game.puzzles.find(puzzle => puzzle.name === 'CHEST').alreadySolvedDescription" /></if><if cond="game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === false"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open.</s></if></desc>`, 4);
-    var objectCloset = new Object("CLOSET", roomBeachHouse, true, "", true, "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item> and <item>a TOOL BOX</item></il>.</s></desc>", 5);
+    var objectCloset = new Object("CLOSET", roomBeachHouse, true, "", true, "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item>, <item>a TOOL BOX</item>, and <item>a SATCHEL</item></il>.</s></desc>", 5);
     var objectClothes = new Object("CLOTHES", roomBeachHouse, true, "", false, "", "<desc><s>Examining the clothes, you find a variety of different garments.</s> <s>Sundresses, T-shirts, shorts, skirts - this closet seems to have everything you could think of.</s></desc>", 6);
     var objectHotTub = new Object("HOT TUB", roomBeachHouse, true, "", false, "", "<desc><s>You inspect the hot tub.</s> <s>It looks to be fairly spacious, with room for probably up to 3 people to use at once.</s> <s>It has a digital thermometer to increase the temperature up to 100 degrees Fahrenheit, and buttons to turn it on.</s> <s>In the middle, you find <il></il>.</s></desc>", 7);
     game.objects.push(objectFloor);
@@ -55,7 +58,7 @@ function init() {
     game.objects.push(objectHotTub);
 
     // Initialize puzzles.
-    var puzzleChest = new Puzzle("CHEST", true, false, roomBeachHouse, "TABLE", "key lock", true, null, "", NaN, ["set accessible puzzle items chest beach-house"], ["set inaccessible puzzle items chest beach-house"], `<desc><s>You insert the key into the lock and turn it.</s> <s>It unlocks.</s> <var v="this.alreadySolvedDescription" /></desc>`, "<desc><s>You open the chest.</s> <s>Inside, you find <il><item>a bottle of PEPSI</item>, <item>a ROPE</item>, and <item>a KNIFE</item></il>.</s></desc>", "", "", "<desc><s>You can't seem to get the chest open. If only you had the key for it...</s></desc>", 2);
+    var puzzleChest = new Puzzle("CHEST", true, false, roomBeachHouse, "TABLE", "key lock", true, null, "", NaN, ["set accessible puzzle items chest beach-house"], ["set inaccessible puzzle items chest beach-house"], `<desc><s>You insert the key into the lock and turn it.</s> <s>It unlocks.</s> <var v="this.alreadySolvedDescription" /></desc>`, "<desc><s>You open the chest.</s> <s>Inside, you find <il><item>a HAMMER</item>, <item>a bottle of PEPSI</item>, <item>a ROPE</item>, and <item>a KNIFE</item></il>.</s></desc>", "", "", "<desc><s>You can't seem to get the chest open. If only you had the key for it...</s></desc>", 2);
     game.puzzles.push(puzzleChest);
 
     // Link objects and puzzles.
@@ -127,12 +130,16 @@ function init() {
     var itemChestHammer = new Item(prefabHammer, roomBeachHouse, true, "Puzzle: CHEST", 1, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 7);
     var itemSlingshot = new Item(prefabSlingshot, roomBeachHouse, true, "Object: CLOSET", 1, NaN, "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>", 8);
     var itemToolBox = new Item(prefabToolBox, roomBeachHouse, true, "Object: CLOSET", 1, NaN, "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SKIRT</item>, <item>4 SCREWDRIVERS</item>, <item>2 HAMMERS</item>, and <item>4 WRENCHES</item></il>.</s></desc>", 9);
-    var itemScrewdriver = new Item(prefabScrewdriver, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 4, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 10);
-    var itemToolBoxHammer = new Item(prefabHammer, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 2, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 11);
-    var itemWrench = new Item(prefabWrench, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 4, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 12);
-    var itemViviansSkirt = new Item(prefabViviansSkirt, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 1, NaN, `<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>a HAMMER</item></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a HAMMER</item></il>.</s></desc>`, 13);
-    var itemSkirtLeftHammer = new Item(prefabHammer, roomBeachHouse, true, "Item: VIVIANS SKIRT/LEFT POCKET", 1, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 14);
-    var itemSkirtRightHammer = new Item(prefabHammer, roomBeachHouse, true, "Item: VIVIANS SKIRT/RIGHT POCKET", 1, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 15);
+    var itemSatchel = new Item(prefabViviansSatchel, roomBeachHouse, true, "Object: CLOSET", 1, NaN, "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>", 10);
+    var itemScrewdriver = new Item(prefabScrewdriver, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 4, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 11);
+    var itemToolBoxHammer = new Item(prefabHammer, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 2, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 12);
+    var itemWrench = new Item(prefabWrench, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 4, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 13);
+    var itemViviansSkirt = new Item(prefabViviansSkirt, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 1, NaN, `<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>a HAMMER</item></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a HAMMER</item></il>.</s></desc>`, 14);
+    var itemSkirtLeftHammer = new Item(prefabHammer, roomBeachHouse, true, "Item: VIVIANS SKIRT/LEFT POCKET", 1, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 15);
+    var itemSkirtRightHammer = new Item(prefabHammer, roomBeachHouse, true, "Item: VIVIANS SKIRT/RIGHT POCKET", 1, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 16);
+    var itemLaptop = new Item(prefabViviansLaptop, roomBeachHouse, true, "Item: VIVIANS SATCHEL/SATCHEL", 1, NaN, `<desc><if cond="player.name === 'Vivian'"><s>This is your laptop.</s> <s>You take it with you everywhere you go.</s></if><if cond="player.name !== 'Vivian'"><s>This is a very expensive-looking laptop.</s> <s>The keyboard lights up when a key is pressed.</s> <s>The login screen is asking for a password for Vivian's account.</s></if></desc>`, 17);
+    var itemSmallBag = new Item(prefabSmallBag, roomBeachHouse, true, "Item: VIVIANS SATCHEL/SATCHEL", 1, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>", 18);
+    var itemSmallBagWrench = new Item(prefabWrench, roomBeachHouse, true, "Item: SMALL BAG/SMALL BAG", 1, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 19);
 
     game.items.push(itemRoomHammer);
     game.items.push(itemGun);
@@ -142,12 +149,16 @@ function init() {
     game.items.push(itemChestHammer);
     game.items.push(itemSlingshot);
     game.items.push(itemToolBox);
+    game.items.push(itemSatchel);
     game.items.push(itemScrewdriver);
     game.items.push(itemToolBoxHammer);
     game.items.push(itemWrench);
     game.items.push(itemViviansSkirt);
     game.items.push(itemSkirtLeftHammer);
     game.items.push(itemSkirtRightHammer);
+    game.items.push(itemLaptop);
+    game.items.push(itemSmallBag);
+    game.items.push(itemSmallBagWrench);
 
     // Set item containers.
     itemGun.container = objectCouches;
@@ -157,12 +168,16 @@ function init() {
     itemChestHammer.container = puzzleChest;
     itemSlingshot.container = objectCloset;
     itemToolBox.container = objectCloset;
+    itemSatchel.container = objectCloset;
     itemScrewdriver.container = itemToolBox; itemScrewdriver.slot = "TOOL BOX";
     itemToolBoxHammer.container = itemToolBox; itemToolBoxHammer.slot = "TOOL BOX";
     itemWrench.container = itemToolBox; itemWrench.slot = "TOOL BOX";
     itemViviansSkirt.container = itemToolBox; itemViviansSkirt.slot = "TOOL BOX";
     itemSkirtLeftHammer.container = itemViviansSkirt; itemSkirtLeftHammer.slot = "LEFT POCKET";
     itemSkirtRightHammer.container = itemViviansSkirt; itemSkirtRightHammer.slot = "RIGHT POCKET";
+    itemLaptop.container = itemSatchel; itemLaptop.slot = "SATCHEL";
+    itemSmallBag.container = itemSatchel; itemSmallBag.slot = "SATCHEL";
+    itemSmallBagWrench.container = itemSmallBag; itemSmallBagWrench.slot = "SMALL BAG";
 
     // Set item weights and inventories.
     for (let i = 0; i < game.items.length; i++) {
@@ -179,6 +194,15 @@ function init() {
     itemToolBox.insertItem(itemToolBoxHammer, itemToolBoxHammer.slot);
     itemToolBox.insertItem(itemWrench, itemWrench.slot);
     itemToolBox.insertItem(itemViviansSkirt, itemViviansSkirt.slot);
+    itemSatchel.insertItem(itemLaptop, itemLaptop.slot);
+    itemSmallBag.insertItem(itemSmallBagWrench, itemSmallBagWrench.slot);
+    itemSatchel.insertItem(itemSmallBag, itemSmallBag.slot);
+
+    // Run some tests.
+    assert.ok(itemSmallBag.weight === 3, itemSmallBag.weight);
+    assert.ok(itemSmallBag.inventory[0].takenSpace === 1, itemSmallBag.inventory[0].takenSpace);
+    assert.ok(itemSatchel.weight === 6, itemSatchel.weight);
+    assert.ok(itemSatchel.inventory[0].takenSpace === 6, itemSatchel.inventory[0].takenSpace);
 
     // Initialize players.
     var vivian = new Player("621550382253998081", null, "Vivian", "Vivian", "Ultimate Programmer", { strength: 3, intelligence: 10, dexterity: 2, speed: 4, stamina: 4 }, true, roomBeachHouse, "", [], [], 3);
@@ -204,7 +228,7 @@ function init() {
     var inventoryViviansGlasses = new InventoryItem(vivian, prefabViviansGlasses, "GLASSES", "", 1, NaN, "<desc><s>It's a pair of black glasses with squarish frames.</s></desc>", 16);
     var inventoryViviansFace = new InventoryItem(vivian, null, "FACE", "", null, null, "", 17);
     var inventoryViviansNeck = new InventoryItem(vivian, null, "NECK", "", null, null, "", 18);
-    var inventoryViviansSatchel = new InventoryItem(vivian, prefabViviansSatchel, "BAG", "", 1, NaN, "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>", 19);
+    var inventoryViviansBag = new InventoryItem(vivian, null, "BAG", "", null, null, "", 19);
     var inventoryViviansShirt = new InventoryItem(vivian, prefabViviansShirt, "SHIRT", "", 1, NaN, "<desc><s>It's a short-sleeved, white dress shirt.</s> <s>The buttons are on the left side of the shirt, from the wearer's perspective.</s></desc>", 20);
     var inventoryViviansSweater = new InventoryItem(vivian, prefabViviansSweater, "JACKET", "", 1, NaN, "<desc><s>It's a salmon-colored pullover sweater.</s> <s>It looks quite warm.</s></desc>", 21);
     var inventoryViviansRightHand = new InventoryItem(vivian, null, "RIGHT HAND", "", null, null, "", 22);
@@ -213,9 +237,7 @@ function init() {
     var inventoryViviansUnderwear = new InventoryItem(vivian, prefabViviansUnderwear, "UNDERWEAR", "", 1, NaN, "<desc><s>It's a pair of plain, pink panties.</s></desc>", 25);
     var inventoryViviansSocks = new InventoryItem(vivian, prefabViviansSocks, "SOCKS", "", 1, NaN, "<desc><s>It's a pair of black thigh high socks.</s></desc>", 26);
     var inventoryViviansShoes = new InventoryItem(vivian, prefabViviansShoes, "SHOES", "", 1, NaN, "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>", 27);
-    var inventoryViviansLaptop = new InventoryItem(vivian, prefabViviansLaptop, "BAG", "VIVIANS SATCHEL/SATCHEL", 1, NaN, `<desc><if cond="player.name === 'Vivian'"><s>This is your laptop.</s> <s>You take it with you everywhere you go.</s></if><if cond="player.name !== 'Vivian'"><s>This is a very expensive-looking laptop.</s> <s>The keyboard lights up when a key is pressed.</s> <s>The login screen is asking for a password for Vivian's account.</s></if></desc>`, 28);
-    var inventoryViviansSmallBag = new InventoryItem(vivian, prefabSmallBag, "BAG", "VIVIANS SATCHEL/SATCHEL", 1, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>", 29);
-    var inventoryViviansWrench = new InventoryItem(vivian, prefabWrench, "BAG", "SMALL BAG/SMALL BAG", 1, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 30);
+
     game.inventoryItems.push(inventoryNerosHat);
     game.inventoryItems.push(inventoryNerosGlasses);
     game.inventoryItems.push(inventoryNerosFace);
@@ -233,7 +255,7 @@ function init() {
     game.inventoryItems.push(inventoryViviansGlasses);
     game.inventoryItems.push(inventoryViviansFace);
     game.inventoryItems.push(inventoryViviansNeck);
-    game.inventoryItems.push(inventoryViviansSatchel);
+    game.inventoryItems.push(inventoryViviansBag);
     game.inventoryItems.push(inventoryViviansShirt);
     game.inventoryItems.push(inventoryViviansSweater);
     game.inventoryItems.push(inventoryViviansRightHand);
@@ -242,14 +264,6 @@ function init() {
     game.inventoryItems.push(inventoryViviansUnderwear);
     game.inventoryItems.push(inventoryViviansSocks);
     game.inventoryItems.push(inventoryViviansShoes);
-    game.inventoryItems.push(inventoryViviansLaptop);
-    game.inventoryItems.push(inventoryViviansSmallBag);
-    game.inventoryItems.push(inventoryViviansWrench);
-
-    // Set inventory item containers.
-    inventoryViviansLaptop.container = inventoryViviansSatchel; inventoryViviansLaptop.slot = "SATCHEL";
-    inventoryViviansSmallBag.container = inventoryViviansSatchel; inventoryViviansSmallBag.slot = "SATCHEL";
-    inventoryViviansWrench.container = inventoryViviansSmallBag; inventoryViviansWrench.slot = "SMALL BAG";
 
     // Create EquipmentSlots for each player.
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -297,11 +311,8 @@ function init() {
     vivian.inventory[1].equippedItem = inventoryViviansGlasses;
     vivian.inventory[2].items.push(inventoryViviansFace);
     vivian.inventory[3].items.push(inventoryViviansNeck);
-    vivian.inventory[4].items.push(inventoryViviansSatchel);
-    vivian.inventory[4].equippedItem = inventoryViviansSatchel;
-    vivian.inventory[4].items.push(inventoryViviansLaptop);
-    vivian.inventory[4].items.push(inventoryViviansSmallBag);
-    vivian.inventory[4].items.push(inventoryViviansWrench);
+    vivian.inventory[4].items.push(inventoryViviansBag);
+    vivian.inventory[4].equippedItem = inventoryViviansBag;
     vivian.inventory[5].items.push(inventoryViviansShirt);
     vivian.inventory[5].equippedItem = inventoryViviansShirt;
     vivian.inventory[6].items.push(inventoryViviansSweater);
@@ -317,8 +328,320 @@ function init() {
     vivian.inventory[12].items.push(inventoryViviansShoes);
     vivian.inventory[12].equippedItem = inventoryViviansShoes;
 
-    // Insert inventory items.
-    inventoryViviansSatchel.insertItem(inventoryViviansLaptop, inventoryViviansLaptop.slot);
-    inventoryViviansSatchel.insertItem(inventoryViviansSmallBag, inventoryViviansSmallBag.slot);
-    inventoryViviansSmallBag.insertItem(inventoryViviansWrench, inventoryViviansWrench.slot);
+    // Run some tests.
+    assert.ok(itemViviansSkirt.weight === 5, itemViviansSkirt.weight);
+    assert.ok(itemViviansSkirt.inventory[0].takenSpace === 1, itemViviansSkirt.inventory[0].takenSpace);
+    assert.ok(itemViviansSkirt.inventory[1].takenSpace === 1, itemViviansSkirt.inventory[1].takenSpace);
+    assert.ok(itemToolBox.weight === 26, itemToolBox.weight);
+    assert.ok(itemToolBox.inventory[0].takenSpace === 14, itemToolBox.inventory[0].takenSpace);
+
+    // Add some entries to the queue.
+    const timestamp = Date.now();
+    game.queue.push(new QueueEntry(timestamp, "updateRow", "Inventory Items!A26:G26", ["Vivian", "VIVIANS SOCKS", "SOCKS", "", 1, "", "<desc><s>It's a pair of gray thigh high socks.</s></desc>"]));
+    game.queue.push(new QueueEntry(timestamp, "updateCell", "Inventory Items!E27", 2)); // Set quantity of Vivian's shoes to 2.
+    game.queue.push(new QueueEntry(timestamp, "updateRow", "Inventory Items!A15:G15", ["Vivian", "NULL", "HAT", "", "", "", ""]));
+
+    return;
+}
+
+function test_take_item_0() {
+    var nero = game.players[1];
+    var itemToolBox = game.items[7];
+    var hand = "RIGHT HAND";
+    var container = itemToolBox.container;
+    var slot = "";
+
+    nero.take(game, itemToolBox, hand, container, slot);
+
+    // Test that all of the data was converted properly.
+    var rightHand = nero.inventory[7];
+    assert.ok(rightHand.equippedItem.name === "TOOL BOX", rightHand.equippedItem);
+    assert.ok(rightHand.equippedItem.weight === 26, rightHand.equippedItem.weight);
+    assert.ok(rightHand.equippedItem.inventory[0].takenSpace === 14, rightHand.equippedItem.inventory[0].takenSpace);
+    assert.ok(rightHand.items.length === 7, rightHand.items.length);
+    assert.ok(
+        rightHand.items[0].name === "TOOL BOX" &&
+        rightHand.items[0].pluralName === "" &&
+        rightHand.items[0].singleContainingPhrase === "a TOOL BOX" &&
+        rightHand.items[0].pluralContainingPhrase === "" &&
+        rightHand.items[0].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[0].containerName === "" &&
+        rightHand.items[0].container === null &&
+        rightHand.items[0].slot === "" &&
+        rightHand.items[0].quantity === 1 &&
+        isNaN(rightHand.items[0].uses) &&
+        rightHand.items[0].weight === 26 &&
+        rightHand.items[0].inventory.length > 0 &&
+        rightHand.items[0].row === 9,
+        rightHand.items[0]
+    );
+    assert.ok(
+        rightHand.items[1].name === "SCREWDRIVER" &&
+        rightHand.items[1].pluralName === "SCREWDRIVERS" &&
+        rightHand.items[1].singleContainingPhrase === "a SCREWDRIVER" &&
+        rightHand.items[1].pluralContainingPhrase === "SCREWDRIVERS" &&
+        rightHand.items[1].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[1].containerName === "TOOL BOX/TOOL BOX" &&
+        rightHand.items[1].container.name === "TOOL BOX" &&
+        rightHand.items[1].slot === "TOOL BOX" &&
+        rightHand.items[1].quantity === 4 &&
+        isNaN(rightHand.items[1].uses) &&
+        rightHand.items[1].weight === 1 &&
+        rightHand.items[1].inventory.length === 0 &&
+        rightHand.items[1].row === 15,
+        rightHand.items[1]
+    );
+    assert.ok(
+        rightHand.items[2].name === "HAMMER" &&
+        rightHand.items[2].pluralName === "HAMMERS" &&
+        rightHand.items[2].singleContainingPhrase === "a HAMMER" &&
+        rightHand.items[2].pluralContainingPhrase === "HAMMERS" &&
+        rightHand.items[2].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[2].containerName === "TOOL BOX/TOOL BOX" &&
+        rightHand.items[2].container.name === "TOOL BOX" &&
+        rightHand.items[2].slot === "TOOL BOX" &&
+        rightHand.items[2].quantity === 2 &&
+        isNaN(rightHand.items[2].uses) &&
+        rightHand.items[2].weight === 2 &&
+        rightHand.items[2].inventory.length === 0 &&
+        rightHand.items[2].row === 16,
+        rightHand.items[2]
+    );
+    assert.ok(
+        rightHand.items[3].name === "WRENCH" &&
+        rightHand.items[3].pluralName === "WRENCHES" &&
+        rightHand.items[3].singleContainingPhrase === "a WRENCH" &&
+        rightHand.items[3].pluralContainingPhrase === "WRENCHES" &&
+        rightHand.items[3].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[3].containerName === "TOOL BOX/TOOL BOX" &&
+        rightHand.items[3].container.name === "TOOL BOX" &&
+        rightHand.items[3].slot === "TOOL BOX" &&
+        rightHand.items[3].quantity === 4 &&
+        isNaN(rightHand.items[3].uses) &&
+        rightHand.items[3].weight === 2 &&
+        rightHand.items[3].inventory.length === 0 &&
+        rightHand.items[3].row === 17,
+        rightHand.items[3]
+    );
+    assert.ok(
+        rightHand.items[4].name === "SKIRT" &&
+        rightHand.items[4].pluralName === "SKIRTS" &&
+        rightHand.items[4].singleContainingPhrase === "a SKIRT" &&
+        rightHand.items[4].pluralContainingPhrase === "SKIRTS" &&
+        rightHand.items[4].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[4].containerName === "TOOL BOX/TOOL BOX" &&
+        rightHand.items[4].container.name === "TOOL BOX" &&
+        rightHand.items[4].slot === "TOOL BOX" &&
+        rightHand.items[4].quantity === 1 &&
+        isNaN(rightHand.items[4].uses) &&
+        rightHand.items[4].weight === 5 &&
+        rightHand.items[4].inventory.length > 0 &&
+        rightHand.items[4].row === 18,
+        rightHand.items[4]
+    );
+    assert.ok(
+        rightHand.items[5].name === "HAMMER" &&
+        rightHand.items[5].pluralName === "HAMMERS" &&
+        rightHand.items[5].singleContainingPhrase === "a HAMMER" &&
+        rightHand.items[5].pluralContainingPhrase === "HAMMERS" &&
+        rightHand.items[5].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[5].containerName === "VIVIANS SKIRT/LEFT POCKET" &&
+        rightHand.items[5].container.name === "SKIRT" &&
+        rightHand.items[5].slot === "LEFT POCKET" &&
+        rightHand.items[5].quantity === 1 &&
+        isNaN(rightHand.items[5].uses) &&
+        rightHand.items[5].weight === 2 &&
+        rightHand.items[5].inventory.length === 0 &&
+        rightHand.items[5].row === 19,
+        rightHand.items[5]
+    );
+    assert.ok(
+        rightHand.items[6].name === "HAMMER" &&
+        rightHand.items[6].pluralName === "HAMMERS" &&
+        rightHand.items[6].singleContainingPhrase === "a HAMMER" &&
+        rightHand.items[6].pluralContainingPhrase === "HAMMERS" &&
+        rightHand.items[6].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[6].containerName === "VIVIANS SKIRT/RIGHT POCKET" &&
+        rightHand.items[6].container.name === "SKIRT" &&
+        rightHand.items[6].slot === "RIGHT POCKET" &&
+        rightHand.items[6].quantity === 1 &&
+        isNaN(rightHand.items[6].uses) &&
+        rightHand.items[6].weight === 2 &&
+        rightHand.items[6].inventory.length === 0 &&
+        rightHand.items[6].row === 20,
+        rightHand.items[6]
+    );
+
+    // Test that all of the inventoryItem row numbers were updated properly.
+    for (let i = 0; i < game.inventoryItems.length; i++)
+        assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
+
+    // Test that all of the queue entries were updated properly.
+    /*console.log(game.queue);
+    assert.ok(
+        game.queue[0].type === "updateRow" &&
+        game.queue[0].range === "Inventory Items!A32:G32" &&
+        arraysEqual(
+            game.queue[0].data,
+            ["Vivian", "VIVIANS SOCKS", "SOCKS", "", 1, "", "<desc><s>It's a pair of gray thigh high socks.</s></desc>"]
+        ),
+        game.queue[0]
+    );
+    assert.ok(
+        game.queue[1].type === "updateCell" &&
+        game.queue[1].range === "Inventory Items!E33" &&
+        game.queue[1].data === 2,
+        game.queue[1]
+    );
+    assert.ok(
+        game.queue[2].type === "updateRow" &&
+        game.queue[2].range === "Inventory Items!A21:G21" &&
+        arraysEqual(
+            game.queue[2].data,
+            ["Vivian", "NULL", "HAT", "", "", "", ""]
+        ),
+        game.queue[2]
+    );*/
+
+    return;
+}
+
+function test_take_item_1() {
+    var vivian = game.players[0];
+    var itemSatchel = game.items[8];
+    var hand = "RIGHT HAND";
+    var container = itemSatchel.container;
+    var slot = "";
+
+    vivian.take(game, itemSatchel, hand, container, slot);
+
+    // Test that all of the data was converted properly.
+    var rightHand = vivian.inventory[7];
+    console.log(rightHand);
+    assert.ok(rightHand.equippedItem.name === "SATCHEL", rightHand.equippedItem);
+    assert.ok(rightHand.equippedItem.weight === 6, rightHand.equippedItem.weight);
+    assert.ok(rightHand.equippedItem.inventory[0].takenSpace === 6, rightHand.equippedItem.inventory[0].takenSpace);
+    assert.ok(rightHand.items.length === 4, rightHand.items.length);
+    assert.ok(
+        rightHand.items[0].name === "SATCHEL" &&
+        rightHand.items[0].pluralName === "SATCHELS" &&
+        rightHand.items[0].singleContainingPhrase === "a SATCHEL" &&
+        rightHand.items[0].pluralContainingPhrase === "SATCHELS" &&
+        rightHand.items[0].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[0].containerName === "" &&
+        rightHand.items[0].container === null &&
+        rightHand.items[0].slot === "" &&
+        rightHand.items[0].quantity === 1 &&
+        isNaN(rightHand.items[0].uses) &&
+        rightHand.items[0].weight === 6 &&
+        rightHand.items[0].inventory.length > 0 &&
+        rightHand.items[0].row === 22,
+        rightHand.items[0]
+    );
+    assert.ok(
+        rightHand.items[1].name === "LAPTOP" &&
+        rightHand.items[1].pluralName === "LAPTOPS" &&
+        rightHand.items[1].singleContainingPhrase === "a LAPTOP" &&
+        rightHand.items[1].pluralContainingPhrase === "LAPTOPS" &&
+        rightHand.items[1].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[1].containerName === "VIVIANS SATCHEL/SATCHEL" &&
+        rightHand.items[1].container.name === "SATCHEL" &&
+        rightHand.items[1].slot === "SATCHEL" &&
+        rightHand.items[1].quantity === 1 &&
+        isNaN(rightHand.items[1].uses) &&
+        rightHand.items[1].weight === 2 &&
+        rightHand.items[1].inventory.length === 0 &&
+        rightHand.items[1].row === 28,
+        rightHand.items[1]
+    );
+    assert.ok(
+        rightHand.items[2].name === "SMALL BAG" &&
+        rightHand.items[2].pluralName === "" &&
+        rightHand.items[2].singleContainingPhrase === "a SMALL BAG" &&
+        rightHand.items[2].pluralContainingPhrase === "" &&
+        rightHand.items[2].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[2].containerName === "VIVIANS SATCHEL/SATCHEL" &&
+        rightHand.items[2].container.name === "SATCHEL" &&
+        rightHand.items[2].slot === "SATCHEL" &&
+        rightHand.items[2].quantity === 1 &&
+        isNaN(rightHand.items[2].uses) &&
+        rightHand.items[2].weight === 3 &&
+        rightHand.items[2].inventory.length > 0 &&
+        rightHand.items[2].row === 29,
+        rightHand.items[2]
+    );
+    assert.ok(
+        rightHand.items[3].name === "WRENCH" &&
+        rightHand.items[3].pluralName === "WRENCHES" &&
+        rightHand.items[3].singleContainingPhrase === "a WRENCH" &&
+        rightHand.items[3].pluralContainingPhrase === "WRENCHES" &&
+        rightHand.items[3].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[3].containerName === "SMALL BAG/SMALL BAG" &&
+        rightHand.items[3].container.name === "SMALL BAG" &&
+        rightHand.items[3].slot === "SMALL BAG" &&
+        rightHand.items[3].quantity === 1 &&
+        isNaN(rightHand.items[3].uses) &&
+        rightHand.items[3].weight === 2 &&
+        rightHand.items[3].inventory.length === 0 &&
+        rightHand.items[3].row === 30,
+        rightHand.items[3]
+    );
+
+    // Test that all of the inventoryItem row numbers were updated properly.
+    for (let i = 0; i < game.inventoryItems.length; i++)
+        assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
+
+    // Test that all of the queue entries were updated properly.
+    /*console.log(game.queue);
+    assert.ok(
+        game.queue[0].type === "updateRow" &&
+        game.queue[0].range === "Inventory Items!A26:G26" &&
+        arraysEqual(
+            game.queue[0].data,
+            ["Vivian", "VIVIANS SOCKS", "SOCKS", "", 1, "", "<desc><s>It's a pair of gray thigh high socks.</s></desc>"]
+        ),
+        game.queue[0]
+    );
+    assert.ok(
+        game.queue[1].type === "updateCell" &&
+        game.queue[1].range === "Inventory Items!E27" &&
+        game.queue[1].data === 2,
+        game.queue[1]
+    );
+    assert.ok(
+        game.queue[2].type === "updateRow" &&
+        game.queue[2].range === "Inventory Items!A15:G15" &&
+        arraysEqual(
+            game.queue[2].data,
+            ["Vivian", "NULL", "HAT", "", "", "", ""]
+        ),
+        game.queue[2]
+    );*/
+
+    return;
+}
+
+function test_push_queue_0() {
+    return new Promise((resolve, reject) => {
+
+    });
+}
+
+function arraysEqual(a, b) {
+    a = a.map(object => object.name);
+    b = b.map(object => object.name);
+    if (a === b) return true;
+    if (a === null || b === null) return false;
+    if (a.length !== b.length) return false;
+
+    // Make copies before sorting both arrays so as not to modify the original arrays.
+    let c = a.slice(), d = b.slice();
+    c.sort();
+    d.sort();
+
+    // Now check if both have the same elements.
+    for (let i = 0; i < c.length; i++) {
+        if (c[i] !== d[i]) return false;
+    }
+    return true;
 }

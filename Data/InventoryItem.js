@@ -54,7 +54,7 @@ class InventoryItem {
 
     itemCells() {
         const descriptionColumn = settings.inventorySheetDescriptionColumn.split('!');
-        return settings.itemSheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
+        return settings.inventorySheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
     }
 
     usesCell() {
