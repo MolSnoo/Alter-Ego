@@ -476,33 +476,6 @@ function test_take_item_0() {
     for (let i = 0; i < game.inventoryItems.length; i++)
         assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
 
-    // Test that all of the queue entries were updated properly.
-    /*console.log(game.queue);
-    assert.ok(
-        game.queue[0].type === "updateRow" &&
-        game.queue[0].range === "Inventory Items!A32:G32" &&
-        arraysEqual(
-            game.queue[0].data,
-            ["Vivian", "VIVIANS SOCKS", "SOCKS", "", 1, "", "<desc><s>It's a pair of gray thigh high socks.</s></desc>"]
-        ),
-        game.queue[0]
-    );
-    assert.ok(
-        game.queue[1].type === "updateCell" &&
-        game.queue[1].range === "Inventory Items!E33" &&
-        game.queue[1].data === 2,
-        game.queue[1]
-    );
-    assert.ok(
-        game.queue[2].type === "updateRow" &&
-        game.queue[2].range === "Inventory Items!A21:G21" &&
-        arraysEqual(
-            game.queue[2].data,
-            ["Vivian", "NULL", "HAT", "", "", "", ""]
-        ),
-        game.queue[2]
-    );*/
-
     return;
 }
 
@@ -517,7 +490,6 @@ function test_take_item_1() {
 
     // Test that all of the data was converted properly.
     var rightHand = vivian.inventory[7];
-    console.log(rightHand);
     assert.ok(rightHand.equippedItem.name === "SATCHEL", rightHand.equippedItem);
     assert.ok(rightHand.equippedItem.weight === 6, rightHand.equippedItem.weight);
     assert.ok(rightHand.equippedItem.inventory[0].takenSpace === 6, rightHand.equippedItem.inventory[0].takenSpace);
@@ -591,45 +563,115 @@ function test_take_item_1() {
     for (let i = 0; i < game.inventoryItems.length; i++)
         assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
 
-    // Test that all of the queue entries were updated properly.
-    /*console.log(game.queue);
-    assert.ok(
-        game.queue[0].type === "updateRow" &&
-        game.queue[0].range === "Inventory Items!A26:G26" &&
-        arraysEqual(
-            game.queue[0].data,
-            ["Vivian", "VIVIANS SOCKS", "SOCKS", "", 1, "", "<desc><s>It's a pair of gray thigh high socks.</s></desc>"]
-        ),
-        game.queue[0]
-    );
-    assert.ok(
-        game.queue[1].type === "updateCell" &&
-        game.queue[1].range === "Inventory Items!E27" &&
-        game.queue[1].data === 2,
-        game.queue[1]
-    );
-    assert.ok(
-        game.queue[2].type === "updateRow" &&
-        game.queue[2].range === "Inventory Items!A15:G15" &&
-        arraysEqual(
-            game.queue[2].data,
-            ["Vivian", "NULL", "HAT", "", "", "", ""]
-        ),
-        game.queue[2]
-    );*/
-
     return;
 }
 
 function test_push_queue_0() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
+        queuer.pushQueue("1oZxppuByy64QTb9pOJ-G1m2PEoVCO-egL0gycKVDjFU", function (response) {
+            var errors = [];
 
+            const objectData = [
+                ["FLOOR", "beach-house", "TRUE", "", "FALSE", "on", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il><item>a SKIRT</item></il> haphazardly placed on the floor.</s></desc>"],
+                ["COUCHES", "beach-house", "TRUE", "", "FALSE", "in", "<desc><s>You inspect the couches.</s> <s>They are soft and comfortable, and each is lined with a few pillows.</s> <s>Looking underneath the cushions, you find <il><item>a GUN</item></il>.</s></desc>"],
+                ["TABLE", "beach-house", "TRUE", "CHEST", "FALSE", "in", "<desc><s>You examine the table.</s> <if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === true\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open, but it seems to be unlocked.</s> <var v=\" game.puzzles.find(puzzle => puzzle.name === 'CHEST').alreadySolvedDescription\" /></if><if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === false\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open.</s></if></desc>"],
+                ["CLOSET", "beach-house", "TRUE", "", "TRUE", "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item></il>.</s></desc>"],
+                ["CLOTHES", "beach-house", "TRUE", "", "FALSE", "", "<desc><s>Examining the clothes, you find a variety of different garments.</s> <s>Sundresses, T-shirts, shorts, skirts - this closet seems to have everything you could think of.</s></desc>"],
+                ["HOT TUB", "beach-house", "TRUE", "", "FALSE", "in", "<desc><s>You inspect the hot tub.</s> <s>It looks to be fairly spacious, with room for probably up to 3 people to use at once.</s> <s>It has a digital thermometer to increase the temperature up to 100 degrees Fahrenheit, and buttons to turn it on.</s> <s>In the middle, you find <il></il>.</s></desc>"]
+            ];
+            sheets.getData("Objects!A1:G", function (response) {
+                const sheet = response.data.values;
+                for (let i = 1; i < sheet.length && i < objectData.length; i++) {
+                    if (!arraysEqual(objectData[i - 1], sheet[i]))
+                        errors.push(`Objects Row ${i + 1}: ` + sheet[i].join(','));
+
+                    assert.ok(errors.length === 0, errors.join('\n'));
+                }
+            });
+
+            const itemData = [
+                ["HAMMER", "beach-house", "TRUE", "", "1", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["GUN", "beach-house", "TRUE", "Object: COUCHES", "1", "", "<desc><s>You examine the gun.</s> <s>It appears to be just a simple handgun.</s> <s>It seems there are no bullets inside, but you could still dry fire if you wanted to make a loud noise.</s> <s>Perhaps you'll find bullets somewhere else?</s></desc>"],
+                ["PEPSI", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the bottle.</s> <s>It's a simple glass bottle containing Pepsi.</s> <s>It looks to be fairly old.</s> <s>It might not be very good, but maybe you can do something with the bottle.</s></desc>"],
+                ["ROPE", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the rope.</s> <s>It looks fairly strong, and it's very long.</s> <s>You could use it for so many things.</s></desc>"],
+                ["KNIFE", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the knife.</s> <s>It appears to be a very sharp kitchen knife.</s> <s>It's small enough that you could hide it, but large enough that you could do some real damage with it.</s></desc>"],
+                ["HAMMER", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["SLINGSHOT", "beach-house", "TRUE", "Object: CLOSET", "1", "", "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>"],
+                ["TOOL BOX", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SKIRT</item>, <item>4 SCREWDRIVERS</item>, <item>2 HAMMERS</item>, and <item>4 WRENCHES</item></il>.</s></desc>"],
+                ["VIVIANS SATCHEL", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>"],
+                ["SCREWDRIVER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
+                ["HAMMER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["WRENCH", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["VIVIANS SKIRT", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"><item>a HAMMER</item></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"><item>a HAMMER</item></il>.</s></desc>"],
+                ["HAMMER", "beach-house", "TRUE", "Item: VIVIANS SKIRT/LEFT POCKET", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["HAMMER", "beach-house", "TRUE", "Item: VIVIANS SKIRT/RIGHT POCKET", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["VIVIANS LAPTOP", "beach-house", "TRUE", "Item: VIVIANS SATCHEL/SATCHEL", "0", "", "<desc><if cond=\"player.name === 'Vivian'\"><s>This is your laptop.</s> <s>You take it with you everywhere you go.</s></if><if cond=\"player.name !== 'Vivian'\"><s>This is a very expensive-looking laptop.</s> <s>The keyboard lights up when a key is pressed.</s> <s>The login screen is asking for a password for Vivian's account.</s></if></desc>"],
+                ["SMALL BAG", "beach-house", "TRUE", "Item: VIVIANS SATCHEL/SATCHEL", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
+                ["WRENCH", "beach-house", "TRUE", "Item: SMALL BAG/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
+            ];
+            sheets.getData("Items!A1:G", function (response) {
+                const sheet = response.data.values;
+                for (let i = 1; i < sheet.length && i < itemData.length; i++) {
+                    if (!arraysEqual(itemData[i - 1], sheet[i]))
+                        errors.push(`Items Row ${i + 1}: ` + sheet[i].join(','));
+
+                    assert.ok(errors.length === 0, errors.join('\n'));
+                }
+            });
+
+            const inventoryData = [
+                ["Nero", "NULL", "HAT"],
+                ["Nero", "NEROS GLASSES", "GLASSES", "", "1", "", "<desc><s>It's a pair of glasses with a black frame only on the top of the lenses and the bridge.</s> <s>The lenses themselves are rounded at the bottom.</s></desc>"],
+                ["Nero", "NULL", "FACE"],
+                ["Nero", "NULL", "NECK"],
+                ["Nero", "NULL", "BAG"],
+                ["Nero", "NEROS SHIRT", "SHIRT", "", "1", "", "<desc><s>It's a long-sleeved, white dress shirt with a slight purple tinge.</s> <s>The collar is rather large.</s> <s>The buttons are on the right side of the shirt, from the wearer's perspective.</s></desc>"],
+                ["Nero", "NEROS BLAZER", "JACKET", "", "1", "", "<desc><s>It's a long-sleeved, purple blazer with two gold buttons on the right side, from the wearer's perspective.</s> <s>The lapels have white borders.</s> <s>It has three pockets: a breast pocket on the left side, and two pockets lower down on the left and right.</s> <s>In the breast pocket, you find <il name=\"BREAST POCKET\"></il>.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s></desc>"],
+                ["Nero", "TOOL BOX", "RIGHT HAND", "", "1", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SKIRT</item>, <item>4 SCREWDRIVERS</item>, <item>2 HAMMERS</item>, and <item>4 WRENCHES</item></il>.</s></desc>"],
+                ["Nero", "NULL", "LEFT HAND"],
+                ["Nero", "NEROS PANTS", "PANTS", "", "1", "", "<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s> <s>In the left back pocket, you find <il name=\"LEFT BACK POCKET\"></il>.</s> <s>In the right back pocket, you find <il name=\"RIGHT BACK POCKET\"></il>.</s></desc>"],
+                ["Nero", "NEROS UNDERWEAR", "UNDERWEAR", "", "1", "", "<desc><s>It's a pair of black, plaid boxers.</s></desc>"],
+                ["Nero", "NEROS SOCKS", "SOCKS", "", "1", "", "<desc><s>It's a pair of plain, black ankle socks.</s></desc>"],
+                ["Nero", "NEROS SHOES", "SHOES", "", "1", "", "<desc><s>It's a large pair of black tennis shoes with white laces and soles.</s></desc>"],
+                ["Nero", "SCREWDRIVER", "RIGHT HAND", "TOOL BOX/TOOL BOX", "4", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
+                ["Nero", "HAMMER", "RIGHT HAND", "TOOL BOX/TOOL BOX", "2", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["Nero", "WRENCH", "RIGHT HAND", "TOOL BOX/TOOL BOX", "4", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["Nero", "VIVIANS SKIRT", "RIGHT HAND", "TOOL BOX/TOOL BOX", "1", "", "<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"><item>a HAMMER</item></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"><item>a HAMMER</item></il>.</s></desc>"],
+                ["Nero", "HAMMER", "RIGHT HAND", "VIVIANS SKIRT/LEFT POCKET", "1", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["Nero", "HAMMER", "RIGHT HAND", "VIVIANS SKIRT/RIGHT POCKET", "1", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["Vivian", "NULL", "HAT"],
+                ["Vivian", "VIVIANS GLASSES", "GLASSES", "", "1", "", "<desc><s>It's a pair of black glasses with squarish frames.</s></desc>"],
+                ["Vivian", "NULL", "FACE"],
+                ["Vivian", "NULL", "NECK"],
+                ["Vivian", "NULL", "BAG"],
+                ["Vivian", "VIVIANS SHIRT", "SHIRT", "", "1", "", "<desc><s>It's a short-sleeved, white dress shirt.</s> <s>The buttons are on the left side of the shirt, from the wearer's perspective.</s></desc>"],
+                ["Vivian", "VIVIANS SWEATER", "JACKET", "", "1", "", "<desc><s>It's a salmon-colored pullover sweater.</s> <s>It looks quite warm.</s></desc>"],
+                ["Vivian", "VIVIANS SATCHEL", "RIGHT HAND", "", "1", "", "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>"],
+                ["Vivian", "NULL", "LEFT HAND"],
+                ["Vivian", "VIVIANS SKIRT", "PANTS", "", "1", "", "<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s></desc>"],
+                ["Vivian", "VIVIANS UNDERWEAR", "UNDERWEAR", "", "1", "", "<desc><s>It's a pair of plain, pink panties.</s></desc>"],
+                ["Vivian", "VIVIANS SOCKS", "SOCKS", "", "1", "", "<desc><s>It's a pair of gray thigh high socks.</s></desc>"],
+                ["Vivian", "VIVIANS SHOES", "SHOES", "", "2", "", "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>"],
+                ["Vivian", "VIVIANS LAPTOP", "RIGHT HAND", "VIVIANS SATCHEL/SATCHEL", "1", "", "<desc><if cond=\"player.name === 'Vivian'\"><s>This is your laptop.</s> <s>You take it with you everywhere you go.</s></if><if cond=\"player.name !== 'Vivian'\"><s>This is a very expensive-looking laptop.</s> <s>The keyboard lights up when a key is pressed.</s> <s>The login screen is asking for a password for Vivian's account.</s></if></desc>"],
+                ["Vivian", "SMALL BAG", "RIGHT HAND", "VIVIANS SATCHEL/SATCHEL", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
+                ["Vivian", "WRENCH", "RIGHT HAND", "SMALL BAG/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
+            ];
+            sheets.getData("Inventory Items!A1:G", function (response) {
+                const sheet = response.data.values;
+                for (let i = 1; i < sheet.length && i < inventoryData.length; i++) {
+                    if (!arraysEqual(inventoryData[i - 1], sheet[i]))
+                        errors.push(`Inventory Items Row ${i + 1}: ` + sheet[i].join(','));
+
+                    assert.ok(errors.length === 0, errors.join('\n'));
+                }
+            });
+
+            resolve();
+        });
     });
 }
 
 function arraysEqual(a, b) {
-    a = a.map(object => object.name);
-    b = b.map(object => object.name);
     if (a === b) return true;
     if (a === null || b === null) return false;
     if (a.length !== b.length) return false;

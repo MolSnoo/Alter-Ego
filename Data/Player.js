@@ -492,12 +492,8 @@ class Player {
             }
         }
 
-        //console.log(item);
-        //console.log(item.inventory[0]);
         var createdItem = this.convertItem(item, hand, 1);
         createdItem.row = rowNumber;
-        //console.log(createdItem);
-        //console.log(createdItem.inventory[0]);
 
         // Equip the item and add it to the player's inventory.
         this.inventory[slot].equippedItem = createdItem;
@@ -513,15 +509,20 @@ class Player {
         // Create a list of all the child items.
         var items = [];
         this.getChildItems(items, createdItem);
-        console.log(items);
 
         // Now that the item has been converted, we can update the quantities of child items.
-        for (let slot = 0; slot < item.inventory.length; slot++) {
-            for (let i = 0; i < item.inventory[slot].item.length; i++) {
-                item.inventory[slot].item[i].quantity = 0;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), "0"));
+        // We need a recursive function for this.
+        let deleteChildQuantities = function (item) {
+            for (let slot = 0; slot < item.inventory.length; slot++) {
+                for (let i = 0; i < item.inventory[slot].item.length; i++) {
+                    deleteChildQuantities(item.inventory[slot].item[i]);
+                    item.inventory[slot].item[i].quantity = 0;
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), "0"));
+                }
             }
-        }
+            return;
+        };
+        deleteChildQuantities(item);
 
         // Find the last item in this player's equipment slots. We need the row and index number.
         var startingRow = this.inventory[this.inventory.length - 1].row;
@@ -540,30 +541,13 @@ class Player {
             endingIndex = startingIndex + i + 1;
         }
         // Update the rows for all of the inventoryItems after this.
-        for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.inventoryItems.length; i++, newRow++) {
+        for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.inventoryItems.length; i++, newRow++)
             game.inventoryItems[i].row = newRow;
-        }
-        // Update any entries in the queue.
-        /*for (let i = 0; i < game.queue.length; i++) {
-            const sheetrangeArgs = game.queue[i].range.split('!');
-            const sheetName = sheetrangeArgs[0];
-            let rowNumber;
-            for (let j = sheetrangeArgs[1].length - 1; j >= 0; j--) {
-                if (isNaN(parseInt(sheetrangeArgs[1].charAt(j)))) {
-                    rowNumber = parseInt(sheetrangeArgs[1].substring(j + 1));
-                }
-            }
-            if (sheetName === "Inventory Items" && rowNumber > startingRow) {
-                // We need a regex that will match only the given number, not any numbers containing this number.
-                let regex = "/(?<!\\d)" + rowNumber + "(?!\\d)/g";
-                game.queue[i].range = game.queue[i].range.replace(eval(regex), rowNumber + items.length);
-            }
-        }*/
 
         // Add the equipped item to the queue.
         const createdItemData = [
             this.name,
-            createdItem.prefab.name,
+            createdItem.prefab.id,
             createdItem.equipmentSlot,
             createdItem.containerName,
             isNaN(createdItem.quantity) ? "" : createdItem.quantity,
@@ -578,7 +562,7 @@ class Player {
             childItemsData.push(
                 [
                     this.name,
-                    items[i].prefab.name,
+                    items[i].prefab.id,
                     items[i].equipmentSlot,
                     items[i].containerName,
                     isNaN(items[i].quantity) ? "" : items[i].quantity,
@@ -588,10 +572,6 @@ class Player {
             );
         }
         game.queue.push(new QueueEntry(Date.now(), "insertData", game.inventoryItems[startingIndex].itemCells(), childItemsData));
-
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            console.log(`${game.inventoryItems[i].player.name}: ${game.inventoryItems[i].name}, ${game.inventoryItems[i].row}`);
-        }
 
         /*
         // Make a copy of the item and put it in the player's inventory.
