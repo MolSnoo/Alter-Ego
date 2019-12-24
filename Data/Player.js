@@ -573,43 +573,9 @@ class Player {
         }
         game.queue.push(new QueueEntry(Date.now(), "insertData", game.inventoryItems[startingIndex].itemCells(), childItemsData));
 
-        /*
-        // Make a copy of the item and put it in the player's inventory.
-        const createdItem = new InventoryItem(
-            item.name,
-            item.pluralName,
-            item.uses,
-            item.discreet,
-            item.effects,
-            item.cures,
-            item.singleContainingPhrase,
-            item.pluralContainingPhrase,
-            item.description,
-            this.inventory[slotNo].row
-        );
-        this.inventory[slotNo] = createdItem;
         this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
+        if (!createdItem.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
 
-        // Add the new item to the Players sheet so that it's in their inventory.
-        // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-        var effects = createdItem.effects.length > 0 ? createdItem.effects.map(status => status.name).join(",") : "";
-        var cures = createdItem.cures.length > 0 ? createdItem.cures.map(status => status.name).join(",") : "";
-        var containingPhrase = createdItem.singleContainingPhrase;
-        if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
-        const data = new Array(
-            createdItem.name,
-            createdItem.pluralName,
-            createdItem.uses,
-            createdItem.discreet,
-            effects,
-            cures,
-            containingPhrase,
-            createdItem.description
-        );
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), data));
-
-        if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
-        */
         return;
     }
 
