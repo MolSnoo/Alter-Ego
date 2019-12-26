@@ -493,6 +493,8 @@ class Player {
         }
 
         var createdItem = this.convertItem(item, hand, 1);
+        createdItem.containerName = "";
+        createdItem.container = null;
         createdItem.row = rowNumber;
 
         // Equip the item and add it to the player's inventory.
@@ -657,8 +659,9 @@ class Player {
         }
     }
 
-    async drop(game, slotNo, container) {
-        // First, check if the player is putting this item back in original spot unmodified.
+    drop(game, slotNo, container) {
+
+        /*// First, check if the player is putting this item back in original spot unmodified.
         const invItem = this.inventory[slotNo];
         const roomItems = game.items.filter(item => item.location.name === this.location.name);
         var matchedItems = roomItems.filter(item =>
@@ -767,7 +770,7 @@ class Player {
             this.cure(game, "concealed", true, false, true, true);
         }
 
-        this.clearInventorySlot(slotNo);
+        this.clearInventorySlot(slotNo);*/
         
         return;
     }

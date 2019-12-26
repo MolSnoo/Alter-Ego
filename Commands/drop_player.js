@@ -28,9 +28,126 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    var newArgs = null;
+
+    // drop hammer
+    // drop hammer on desk
+    // drop hammer from skirt on desk
+    // drop hammer in left pocket of skirt on desk
+
+    //var newArgs = parsedInput.split(" FROM ");
+    //var itemName = newArgs[0].trim();
+    //newArgs = newArgs[1] ? newArgs[1].split(" OF ") : [];
 
     // Check if the player specified an object.
     const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+    var object = null;
+    for (let i = 0; i < objects.length; i++) {
+        if (objects[i].name === parsedInput) return message.reply(`you need to specify an item to drop.`);
+        if (parsedInput.endsWith(objects[i].name)) {
+            if (objects[i].preposition === "") return message.reply(`${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+            object = objects[i];
+            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
+            // Check if the object has a puzzle attached to it.
+            if (object.childPuzzle !== null && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
+                return message.reply(`you cannot put items ${object.preposition} ${object.name} right now.`);
+            newArgs = parsedInput.split(' ');
+            var objectPreposition = newArgs[newArgs.length - 1];
+            newArgs.splice(newArgs.length - 1, 1);
+            parsedInput = newArgs.join(' ');
+            break;
+        }
+    }
+
+    // Check if the player specified a container item.
+    var items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    var containerItem = null;
+    var containerItemSlot = null;
+    for (let i = 0; i < items.length; i++) {
+        if (parsedInput.endsWith(items[i].name)) {
+            if (object === null || object !== null && items[i].container !== null && (items[i].container.name === object.name || items[i].container.hasOwnProperty("parentObject") && items[i].container.parentObject.name === object.name)) {
+                if (items[i].inventory.length === 0) return message.reply(`${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+                containerItem = items[i];
+                parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].name)).trimEnd();
+                // Check if a slot was specified.
+                if (parsedInput.endsWith(" OF")) {
+                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
+                    for (let slot = 0; slot < containerItem.inventory.length; slot++) {
+                        if (parsedInput.endsWith(containerItem.inventory[slot].name)) {
+                            containerItemSlot = containerItem.inventory[slot];
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.name)).trimEnd();
+                            break;
+                        }
+                    }
+                }
+                newArgs = parsedInput.split(' ');
+                var itemPreposition = newArgs[newArgs.length - 1];
+                newArgs.splice(newArgs.length - 1, 1);
+                parsedInput = newArgs.join(' ');
+                break;
+            }
+        }
+    }
+
+    // Now find the item in the player's inventory.
+    var item = null;
+    var hand = "";
+    for (let slot = 0; slot < player.inventory.length; slot++) {
+        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
+            item = player.inventory[slot].equippedItem;
+            hand = "RIGHT HAND";
+            break;
+        }
+        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
+            item = player.inventory[slot].equippedItem;
+            hand = "LEFT HAND";
+            break;
+        }
+        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
+        else if (player.inventory[slot].name === "LEFT HAND")
+            break;
+    }
+    if (item === null) return message.reply(`couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to drop it.`);
+
+    /*
+    console.log(object);
+    console.log(objectPreposition);
+    console.log(containerItem);
+    if (containerItemSlot !== null) console.log(containerItemSlot.name);
+    console.log(itemPreposition);
+    console.log(item);
+    console.log(hand);
+    console.log(`"${parsedInput}"`);
+    */
+    // Now decide what the container should be.
+    var container = null;
+    var slot = "";
+    if (object !== null && object.childPuzzle === null && containerItem === null)
+        container = object;
+    else if (object !== null && object.childPuzzle !== null && object.childPuzzle.accessible && object.childPuzzle.solved && containerItem === null)
+        container = object.childPuzzle;
+    else if (containerItem !== null) {
+        container = containerItem;
+        if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
+        slot = containerItemSlot.name;
+        if (item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
+        else if (item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${container.name} because it is too large.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because there isn't enough space left.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${container.name} because there isn't enough space left.`);
+    }
+    else {
+        const defaultDropOpject = objects.find(object => object.name === settings.defaultDropObject);
+        if (defaultDropOpject === null || defaultDropOpject === undefined) return message.reply(`you cannot drop items in this room.`);
+        container = defaultDropOpject;
+    }
+
+    console.log(container);
+    console.log(slot);
+    console.log(item);
+    console.log(hand);
+
+    // Check if the player specified an object.
+    /*const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
     var object = null;
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) return message.reply(`you need to specify an item to drop.`);
@@ -73,6 +190,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         // Post log message.
         game.logChannel.send(`${time} - ${player.name} dropped ${itemName} ${object.preposition} ${object.name} in ${player.location.channel}`);
     }
+    */
     
     return;
 };
