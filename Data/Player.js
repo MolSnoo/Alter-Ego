@@ -782,7 +782,7 @@ class Player {
             this,
             item.prefab,
             hand,
-            item.container.prefab ? item.container.prefab.id + '/' + item.slot : "",
+            item.container && item.container.prefab ? item.container.prefab.id + '/' + item.slot : "",
             quantity,
             item.uses,
             item.description,
