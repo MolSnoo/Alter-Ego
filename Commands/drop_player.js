@@ -64,7 +64,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var containerItem = null;
     var containerItemSlot = null;
     for (let i = 0; i < items.length; i++) {
-        if (parsedInput.endsWith(items[i].name)) {
+        if (parsedInput.endsWith(items[i].name) && parsedInput !== items[i].name) {
             if (object === null || object !== null && items[i].container !== null && (items[i].container.name === object.name || items[i].container.hasOwnProperty("parentObject") && items[i].container.parentObject.name === object.name)) {
                 if (items[i].inventory.length === 0) return message.reply(`${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
                 containerItem = items[i];
