@@ -420,7 +420,8 @@ module.exports.loadItems = function (game, doErrorChecking) {
                     item.description,
                     item.row
                 );
-                createdItem.container = item.container;
+                if (item.container instanceof Item) createdItem.container = game.items.find(gameItem => gameItem.row === item.container.row);
+                else createdItem.container = item.container;
                 createdItem.slot = item.slot;
                 createdItem.weight = item.weight;
 
