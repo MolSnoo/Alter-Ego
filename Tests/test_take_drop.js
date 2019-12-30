@@ -19,6 +19,7 @@ exports.run = async function () {
     init();
     test_take_item_0();
     test_take_item_1();
+    test_drop_item_0();
     await test_push_queue_0();
     return;
 };
@@ -490,6 +491,93 @@ function test_take_item_1() {
 
     // Test that all of the data was converted properly.
     var rightHand = vivian.inventory[7];
+    assert.ok(rightHand.equippedItem.name === "SATCHEL", rightHand.equippedItem);
+    assert.ok(rightHand.equippedItem.weight === 6, rightHand.equippedItem.weight);
+    assert.ok(rightHand.equippedItem.inventory[0].takenSpace === 6, rightHand.equippedItem.inventory[0].takenSpace);
+    assert.ok(rightHand.items.length === 4, rightHand.items.length);
+    assert.ok(
+        rightHand.items[0].name === "SATCHEL" &&
+        rightHand.items[0].pluralName === "SATCHELS" &&
+        rightHand.items[0].singleContainingPhrase === "a SATCHEL" &&
+        rightHand.items[0].pluralContainingPhrase === "SATCHELS" &&
+        rightHand.items[0].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[0].containerName === "" &&
+        rightHand.items[0].container === null &&
+        rightHand.items[0].slot === "" &&
+        rightHand.items[0].quantity === 1 &&
+        isNaN(rightHand.items[0].uses) &&
+        rightHand.items[0].weight === 6 &&
+        rightHand.items[0].inventory.length > 0 &&
+        rightHand.items[0].row === 22,
+        rightHand.items[0]
+    );
+    assert.ok(
+        rightHand.items[1].name === "LAPTOP" &&
+        rightHand.items[1].pluralName === "LAPTOPS" &&
+        rightHand.items[1].singleContainingPhrase === "a LAPTOP" &&
+        rightHand.items[1].pluralContainingPhrase === "LAPTOPS" &&
+        rightHand.items[1].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[1].containerName === "VIVIANS SATCHEL/SATCHEL" &&
+        rightHand.items[1].container.name === "SATCHEL" &&
+        rightHand.items[1].slot === "SATCHEL" &&
+        rightHand.items[1].quantity === 1 &&
+        isNaN(rightHand.items[1].uses) &&
+        rightHand.items[1].weight === 2 &&
+        rightHand.items[1].inventory.length === 0 &&
+        rightHand.items[1].row === 28,
+        rightHand.items[1]
+    );
+    assert.ok(
+        rightHand.items[2].name === "SMALL BAG" &&
+        rightHand.items[2].pluralName === "" &&
+        rightHand.items[2].singleContainingPhrase === "a SMALL BAG" &&
+        rightHand.items[2].pluralContainingPhrase === "" &&
+        rightHand.items[2].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[2].containerName === "VIVIANS SATCHEL/SATCHEL" &&
+        rightHand.items[2].container.name === "SATCHEL" &&
+        rightHand.items[2].slot === "SATCHEL" &&
+        rightHand.items[2].quantity === 1 &&
+        isNaN(rightHand.items[2].uses) &&
+        rightHand.items[2].weight === 3 &&
+        rightHand.items[2].inventory.length > 0 &&
+        rightHand.items[2].row === 29,
+        rightHand.items[2]
+    );
+    assert.ok(
+        rightHand.items[3].name === "WRENCH" &&
+        rightHand.items[3].pluralName === "WRENCHES" &&
+        rightHand.items[3].singleContainingPhrase === "a WRENCH" &&
+        rightHand.items[3].pluralContainingPhrase === "WRENCHES" &&
+        rightHand.items[3].equipmentSlot === "RIGHT HAND" &&
+        rightHand.items[3].containerName === "SMALL BAG/SMALL BAG" &&
+        rightHand.items[3].container.name === "SMALL BAG" &&
+        rightHand.items[3].slot === "SMALL BAG" &&
+        rightHand.items[3].quantity === 1 &&
+        isNaN(rightHand.items[3].uses) &&
+        rightHand.items[3].weight === 2 &&
+        rightHand.items[3].inventory.length === 0 &&
+        rightHand.items[3].row === 30,
+        rightHand.items[3]
+    );
+
+    // Test that all of the inventoryItem row numbers were updated properly.
+    for (let i = 0; i < game.inventoryItems.length; i++)
+        assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
+
+    return;
+}
+
+function test_drop_item_0() {
+    var vivian = game.players[0];
+    var rightHand = vivian.inventory[7];
+    var inventoryViviansSatchel = rightHand.items[0];
+    var hand = "RIGHT HAND";
+    var objectCloset = game.objects[3];
+    var slot = "";
+
+    vivian.drop(game, inventoryViviansSatchel, hand, objectCloset, slot);
+
+    // Test that all of the data was converted properly.
     assert.ok(rightHand.equippedItem.name === "SATCHEL", rightHand.equippedItem);
     assert.ok(rightHand.equippedItem.weight === 6, rightHand.equippedItem.weight);
     assert.ok(rightHand.equippedItem.inventory[0].takenSpace === 6, rightHand.equippedItem.inventory[0].takenSpace);
