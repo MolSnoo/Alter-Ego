@@ -106,6 +106,7 @@
   "playerSheetItemDescriptionColumn": "Players!T",
   "inventorySheetAllCells": "Inventory Items!A1:G",
   "inventorySheetPrefabColumn": "Inventory Items!A",
+  "inventorySheetQuantityColumn": "Inventory Items!E",
   "inventorySheetUsesColumn": "Inventory Items!F",
   "inventorySheetDescriptionColumn": "Inventory Items!G"
 }

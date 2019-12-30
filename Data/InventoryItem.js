@@ -57,6 +57,10 @@ class InventoryItem {
         return settings.inventorySheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
     }
 
+    quantityCell() {
+        return settings.inventorySheetQuantityColumn + this.row;
+    }
+
     usesCell() {
         return settings.inventorySheetUsesColumn + this.row;
     }

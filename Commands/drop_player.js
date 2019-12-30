@@ -93,6 +93,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var item = null;
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
+        console.log(`${player.inventory[slot].name} === "RIGHT HAND" ? ` + (player.inventory[slot].name === "RIGHT HAND"));
+        console.log(`${player.inventory[slot].equippedItem} !== null ? ` + (player.inventory[slot].equippedItem !== null));
+        if (player.inventory[slot].equippedItem) console.log(`${player.inventory[slot].equippedItem.name} === ${parsedInput} ? ` + (player.inventory[slot].equippedItem.name === parsedInput));
         if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
             item = player.inventory[slot].equippedItem;
             hand = "RIGHT HAND";
@@ -121,7 +124,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     */
     // Now decide what the container should be.
     var container = null;
-    var slot = "";
+    var slotName = "";
     if (object !== null && object.childPuzzle === null && containerItem === null)
         container = object;
     else if (object !== null && object.childPuzzle !== null && object.childPuzzle.accessible && object.childPuzzle.solved && containerItem === null)
@@ -129,7 +132,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     else if (containerItem !== null) {
         container = containerItem;
         if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-        slot = containerItemSlot.name;
+        slotName = containerItemSlot.name;
         if (item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
         else if (item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${container.name} because it is too large.`);
         else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because there isn't enough space left.`);
@@ -142,9 +145,21 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
 
     console.log(container);
-    console.log(slot);
+    console.log(slotName);
     console.log(item);
     console.log(hand);
+
+    player.drop(game, item, hand, container, slotName);
+    // Post log message. Message should vary based on container type.
+    const time = new Date().toLocaleTimeString();
+    // Container is an Object.
+    if (container.hasOwnProperty("isHidingSpot"))
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.preposition} ${container.name} in ${player.location.channel}`);
+    else if (container.hasOwnProperty("solved"))
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
+    // Container is an Item.
+    else if (container.hasOwnProperty("inventory"))
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.prefab.preposition} ${slotName} of ${container.name} in ${player.location.channel}`);
 
     // Check if the player specified an object.
     /*const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
