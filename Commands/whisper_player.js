@@ -20,7 +20,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0) {
         message.reply("you need to choose at least one player. Usage:");
-        message.channel.send(usage);
+        message.channel.send(exports.config.usage);
         return;
     }
 
