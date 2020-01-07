@@ -546,6 +546,14 @@ class Player {
         for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.inventoryItems.length; i++, newRow++)
             game.inventoryItems[i].row = newRow;
 
+        // Update the rows for all Player EquipmentSlots.
+        for (let i = 0; i < game.players.length; i++) {
+            for (let slot = 0; slot < game.players[i].inventory.length; slot++) {
+                if (game.players[i].inventory[slot].equippedItem === null) game.players[i].inventory[slot].row = game.players[i].inventory[slot].items[0].row;
+                else game.players[i].inventory[slot].row = game.players[i].inventory[slot].equippedItem.row;
+            }
+        }
+
         // Add the equipped item to the queue.
         const createdItemData = [
             this.name,
@@ -669,20 +677,20 @@ class Player {
         // Update the container's description.
         if (container instanceof Puzzle) {
             container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, item);
-            //game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), container.alreadySolvedDescription));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), container.alreadySolvedDescription));
             containerName = container.parentObject ? container.parentObject.name : container.name;
             preposition = container.parentObject ? container.parentObject.preposition : "in";
         }
         else if (container instanceof Object) {
             container.description = parser.addItem(container.description, item);
-            //game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
             containerName = container.name;
             preposition = container.preposition;
         }
         else if (container instanceof Item) {
             container.insertItem(item, slotName);
             container.description = parser.addItem(container.description, item, slotName);
-            //game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
             containerName = container.name;
             preposition = container.prefab ? container.prefab.preposition : "in";
         }
@@ -694,7 +702,6 @@ class Player {
         var items = [];
         items.push(createdItem);
         this.getChildItems(items, createdItem);
-        console.log(items);
 
         // Now that the item has been converted, we can update the quantities of child items.
         // We need a recursive function for this.
@@ -703,7 +710,7 @@ class Player {
                 for (let i = 0; i < item.inventory[slot].item.length; i++) {
                     deleteChildQuantities(item.inventory[slot].item[i]);
                     item.inventory[slot].item[i].quantity = 0;
-                    //game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), "0"));
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), "0"));
                 }
             }
             return;
@@ -712,6 +719,9 @@ class Player {
 
         // Check if the player is putting this item back in original spot unmodified.
         const roomItems = game.items.filter(item => item.location.name === this.location.name);
+        var lastItemCells = "";
+        var startingRow = -1;
+        var data = [];
         for (let i = 0; i < items.length; i++) {
             let matchedItem = roomItems.find(item =>
                 item.prefab.id === items[i].prefab.id &&
@@ -723,11 +733,11 @@ class Player {
             if (matchedItem) {
                 if (!isNaN(matchedItem.quantity)) {
                     matchedItem.quantity++;
-                    //game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), matchedItem.quantity));
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), matchedItem.quantity));
                 }
             }
             else {
-                const data = [
+                data.push([
                     items[i].prefab.id,
                     items[i].location.name,
                     items[i].accessible,
@@ -735,35 +745,40 @@ class Player {
                     items[i].quantity.toString(),
                     !isNaN(items[i].uses) ? items[i].uses.toString() : "",
                     items[i].description
-                ];
+                ]);
 
                 // We want to insert this item near items in the same container, so get all of the items in that container.
                 var containerItems;
                 containerItems = roomItems.filter(item => item.containerName === items[i].containerName);
 
-                const lastRoomItem = roomItems[roomItems.length - 1];
-                const lastContainerItem = containerItems[containerItems.length - 1];
-                const lastGameItem = game.items[game.items.length - 1];
-                // We also need the row and index number of the last item before the inserted items.
-                var startingRow, startingIndex;
-                // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
-                if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), data));
-                    startingRow = lastContainerItem.row;
-                }
-                // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
-                else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastRoomItem.itemCells(), data));
-                    startingRow = lastRoomItem.row;
-                }
-                // If there are none, just insert it at the end of the sheet.
-                else {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastGameItem.itemCells(), data));
-                    startingRow = lastGameItem.row;
+                if (startingRow === -1) {
+                    const lastRoomItem = roomItems[roomItems.length - 1];
+                    const lastContainerItem = containerItems[containerItems.length - 1];
+                    const lastGameItem = game.items[game.items.length - 1];
+                    // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
+                    if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
+                        //game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), data));
+                        lastItemCells = lastContainerItem.itemCells();
+                        startingRow = lastContainerItem.row;
+                    }
+                    // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
+                    else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
+                        //game.queue.push(new QueueEntry(Date.now(), "insertData", lastRoomItem.itemCells(), data));
+                        lastItemCells = lastRoomItem.itemCells();
+                        startingRow = lastRoomItem.row;
+                    }
+                    // If there are none, just insert it at the end of the sheet.
+                    else {
+                        //game.queue.push(new QueueEntry(Date.now(), "insertData", lastGameItem.itemCells(), data));
+                        lastItemCells = lastGameItem.itemCells();
+                        startingRow = lastGameItem.row;
+                    }
                 }
             }
         }
+        game.queue.push(new QueueEntry(Date.now(), "insertData", lastItemCells, data));
 
+        var startingIndex;
         // Update rows.
         for (startingIndex = 0; startingIndex < game.items.length; startingIndex++) {
             if (game.items[startingIndex].row === startingRow)
@@ -785,120 +800,8 @@ class Player {
         if (!item.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
         this.member.send(`You discard ${item.singleContainingPhrase}.`);
 
-        if (item.name === "MASK" && this.statusString.includes("concealed")) {
+        if (item.name.includes("MASK") && this.statusString.includes("concealed"))
             this.cure(game, "concealed", true, false, true, true);
-        }
-
-        /*// First, check if the player is putting this item back in original spot unmodified.
-        const invItem = this.inventory[slotNo];
-        const roomItems = game.items.filter(item => item.location.name === this.location.name);
-        var matchedItems = roomItems.filter(item =>
-            item.name === invItem.name &&
-            item.pluralName === invItem.pluralName &&
-            item.location.name === this.location.name &&
-            ((container instanceof Object && item.sublocation !== null && item.sublocation.name === container.name) || (container instanceof Puzzle && item.sublocation === null)) &&
-            ((container instanceof Puzzle && item.requires !== null && item.requires.name === container.name) || (container instanceof Object && item.requires === null)) &&
-            (item.uses === invItem.uses || (isNaN(item.uses) && isNaN(invItem.uses))) &&
-            item.discreet === invItem.discreet &&
-            arraysEqual(item.effects, invItem.effects) &&
-            arraysEqual(item.cures, invItem.cures) &&
-            item.singleContainingPhrase === invItem.singleContainingPhrase &&
-            item.pluralContainingPhrase === invItem.pluralContainingPhrase
-        );
-        
-        // Now that the list of items to check is significantly smaller,
-        // check if the descriptions are the same.
-        for (let i = 0; i < matchedItems.length; i++) {
-            const item = matchedItems[i];
-            if (item.description !== invItem.description) {
-                matchedItems.splice(i, 1);
-                i--;
-            }
-        }
-        // The player is putting this item somewhere else, or it's changed somehow.
-        if (matchedItems.length === 0) {
-            var effects = invItem.effects.length > 0 ? invItem.effects.map(status => status.name).join(",") : "";
-            var cures = invItem.cures.length > 0 ? invItem.cures.map(status => status.name).join(",") : "";
-            var containingPhrase = invItem.singleContainingPhrase;
-            if (invItem.pluralContainingPhrase !== "") containingPhrase += `,${invItem.pluralContainingPhrase}`;
-            const data = new Array(
-                invItem.name,
-                invItem.pluralName,
-                this.location.name,
-                container instanceof Object ? container.name : "",
-                container instanceof Puzzle ? `=${container.solvedCell()}` : "TRUE",
-                container instanceof Puzzle ? container.name : "",
-                "1",
-                !isNaN(invItem.uses) ? invItem.uses : "",
-                invItem.discreet ? "TRUE" : "FALSE",
-                effects,
-                cures,
-                containingPhrase,
-                invItem.description
-            );
-
-            // We want to insert this item near items in the same container, so get all of the items in that container.
-            var containerItems;
-            if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires !== null && item.requires.name === container.name);
-            else containerItems = roomItems.filter(item => item.sublocation !== null && item.sublocation.name === container.name);
-            // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
-            const loader = include(`${settings.modulesDir}/loader.js`);
-            const lastRoomItem = roomItems[roomItems.length - 1];
-            const lastContainerItem = containerItems[containerItems.length - 1];
-            const lastGameItem = game.items[game.items.length - 1];
-            if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
-                await queuer.pushQueue();
-                sheets.insertRow(lastContainerItem.itemCells(), data, function (response) {
-                    loader.loadItems(game, false);
-                });
-            }
-            // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
-            else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
-                await queuer.pushQueue();
-                sheets.insertRow(lastRoomItem.itemCells(), data, function (response) {
-                    loader.loadItems(game, false);
-                });
-            }
-            // If there are none, just insert it at the end of the sheet.
-            else {
-                sheets.appendRow(lastGameItem.itemCells(), data, function (response) {
-                    loader.loadItems(game, false);
-                });
-            }
-        }
-        // The player is putting the item back.
-        else {
-            var item = matchedItems[0];
-            // Increase the quantity if the quantity is finite.
-            if (!isNaN(item.quantity)) {
-                item.quantity++;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), item.quantity));
-            }
-        }
-
-        var objectName = "";
-        var preposition = "in";
-        if (container instanceof Puzzle) {
-            container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, invItem);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), container.alreadySolvedDescription));
-            objectName = container.parentObject.name;
-            preposition = container.parentObject.preposition;
-        }
-        else {
-            container.description = parser.addItem(container.description, invItem);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
-            objectName = container.name;
-            preposition = container.preposition;
-        }
-
-        if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
-        this.member.send(`You discard ${invItem.singleContainingPhrase}.`);
-
-        if (invItem.name === "MASK" && this.statusString.includes("concealed")) {
-            this.cure(game, "concealed", true, false, true, true);
-        }
-
-        this.clearInventorySlot(slotNo);*/
         
         return;
     }
@@ -948,7 +851,7 @@ class Player {
         var containerName = "";
         if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
         else if (container instanceof Object) containerName = "Object: " + container.name;
-        else if (container instanceof Item) containerName = "Item: " + container.prefab.id + '/' + item.slot;
+        else if (container instanceof InventoryItem) containerName = "Item: " + container.prefab.id + '/' + item.slot;
         // Make a copy of the Item as an InventoryItem.
         var createdItem = new Item(
             item.prefab,
@@ -1045,6 +948,7 @@ class Player {
                 break;
             }
         }
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), [this.name, "NULL", nullItem.equipmentSlot, "", "", "", "", ""]));
 
         return;
     }

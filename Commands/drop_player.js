@@ -30,15 +30,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
     var newArgs = null;
 
-    // drop hammer
-    // drop hammer on desk
-    // drop hammer from skirt on desk
-    // drop hammer in left pocket of skirt on desk
-
-    //var newArgs = parsedInput.split(" FROM ");
-    //var itemName = newArgs[0].trim();
-    //newArgs = newArgs[1] ? newArgs[1].split(" OF ") : [];
-
     // Check if the player specified an object.
     const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
     var object = null;
@@ -93,9 +84,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var item = null;
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        console.log(`${player.inventory[slot].name} === "RIGHT HAND" ? ` + (player.inventory[slot].name === "RIGHT HAND"));
-        console.log(`${player.inventory[slot].equippedItem} !== null ? ` + (player.inventory[slot].equippedItem !== null));
-        if (player.inventory[slot].equippedItem) console.log(`${player.inventory[slot].equippedItem.name} === ${parsedInput} ? ` + (player.inventory[slot].equippedItem.name === parsedInput));
         if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
             item = player.inventory[slot].equippedItem;
             hand = "RIGHT HAND";
@@ -112,16 +100,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     if (item === null) return message.reply(`couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to drop it.`);
 
-    /*
-    console.log(object);
-    console.log(objectPreposition);
-    console.log(containerItem);
-    if (containerItemSlot !== null) console.log(containerItemSlot.name);
-    console.log(itemPreposition);
-    console.log(item);
-    console.log(hand);
-    console.log(`"${parsedInput}"`);
-    */
     // Now decide what the container should be.
     var container = null;
     var slotName = "";
@@ -144,11 +122,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         container = defaultDropOpject;
     }
 
-    console.log(container);
-    console.log(slotName);
-    console.log(item);
-    console.log(hand);
-
     player.drop(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
@@ -160,52 +133,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Container is an Item.
     else if (container.hasOwnProperty("inventory"))
         game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.prefab.preposition} ${slotName} of ${container.name} in ${player.location.channel}`);
-
-    // Check if the player specified an object.
-    /*const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
-    var object = null;
-    for (let i = 0; i < objects.length; i++) {
-        if (objects[i].name === parsedInput) return message.reply(`you need to specify an item to drop.`);
-        if (parsedInput.endsWith(objects[i].name)) {
-            if (objects[i].preposition === "") return message.reply(`${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
-            object = objects[i];
-            parsedInput = parsedInput.substring(0, parsedInput.indexOf(objects[i].name)).trimEnd();
-            // Check if the object has a puzzle attached to it.
-            if (object.childPuzzle !== null && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
-                return message.reply(`you cannot put items ${object.preposition} ${object.name} right now.`);
-            break;
-        }
-    }
-    if (object === null) {
-        const defaultDropOpject = objects.find(object => object.name === settings.defaultDropObject);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return message.reply(`you cannot drop items in this room.`);
-        object = defaultDropOpject;
-    }
-
-    // Now find the item in the player's inventory.
-    var slotNo = -1;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (player.inventory[i].name === parsedInput) {
-            slotNo = i;
-            break;
-        }
-    }
-    if (slotNo === -1) return message.reply(`couldn't find item "${parsedInput}" in your inventory.`);
-
-    // The player can definitely drop an item now.
-    const itemName = player.inventory[slotNo].name;
-    const time = new Date().toLocaleTimeString();
-    if (object.childPuzzle !== null) {
-        player.drop(game, slotNo, object.childPuzzle);
-        // Post log message.
-        game.logChannel.send(`${time} - ${player.name} dropped ${itemName} ${object.preposition} ${object.name} in ${player.location.channel}`);
-    }
-    else {
-        player.drop(game, slotNo, object);
-        // Post log message.
-        game.logChannel.send(`${time} - ${player.name} dropped ${itemName} ${object.preposition} ${object.name} in ${player.location.channel}`);
-    }
-    */
     
     return;
 };

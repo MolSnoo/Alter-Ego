@@ -94,6 +94,8 @@ function init() {
     var prefabNerosSocks = new Prefab("NEROS SOCKS", "SOCKS", "", "a pair of SOCKS", "pairs of SOCKS", true, 1, 0, false, "", NaN, [], [], [], true, ["SOCKS"], [], [], [], "", "<desc><s>It's a pair of plain, black ankle socks.</s></desc>", 26);
     var prefabNerosShoes = new Prefab("NEROS SHOES", "TENNIS SHOES", "", "a pair of TENNIS SHOES", "pairs of TENNIS SHOES", true, 3, 1, false, "", NaN, [], [], [], true, ["SHOES"], [], [], [], "", "<desc><s>It's a large pair of black tennis shoes with white laces and soles.</s></desc>", 27);
     var prefabSmallBag = new Prefab("SMALL BAG", "SMALL BAG", "", "a SMALL BAG", "", true, 2, 1, false, "", NaN, [], [], [], false, [], [], [], [{ name: "SMALL BAG", capacity: 2, takenSpace: 0, weight: 0, item: [] }], "in", "<desc><s>It's a small bag.</s> <s>Inside, you find <il></il>.</s></desc>", 28);
+    var prefabSmallBag2 = new Prefab("SMALL BAG 2", "SMALL BAG", "", "a SMALL BAG", "", true, 2, 1, false, "", NaN, [], [], [], false, [], [], [], [{ name: "SMALL BAG", capacity: 2, takenSpace: 0, weight: 0, item: [] }], "in", "<desc><s>It's a small bag.</s> <s>Inside, you find <il></il>.</s></desc>", 29);
+
     game.prefabs.push(prefabGun);
     game.prefabs.push(prefabPepsi);
     game.prefabs.push(prefabGlassBottle);
@@ -121,6 +123,7 @@ function init() {
     game.prefabs.push(prefabNerosSocks);
     game.prefabs.push(prefabNerosShoes);
     game.prefabs.push(prefabSmallBag);
+    game.prefabs.push(prefabSmallBag2);
 
     // Initialize items.
     var itemRoomHammer = new Item(prefabHammer, roomBeachHouse, true, "", 1, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 2);
@@ -233,11 +236,12 @@ function init() {
     var inventoryViviansShirt = new InventoryItem(vivian, prefabViviansShirt, "SHIRT", "", 1, NaN, "<desc><s>It's a short-sleeved, white dress shirt.</s> <s>The buttons are on the left side of the shirt, from the wearer's perspective.</s></desc>", 20);
     var inventoryViviansSweater = new InventoryItem(vivian, prefabViviansSweater, "JACKET", "", 1, NaN, "<desc><s>It's a salmon-colored pullover sweater.</s> <s>It looks quite warm.</s></desc>", 21);
     var inventoryViviansRightHand = new InventoryItem(vivian, null, "RIGHT HAND", "", null, null, "", 22);
-    var inventoryViviansLeftHand = new InventoryItem(vivian, null, "LEFT HAND", "", null, null, "", 23);
+    var inventoryViviansSmallBag = new InventoryItem(vivian, prefabSmallBag2, "LEFT HAND", "", 1, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>", 23);
     var inventoryViviansSkirt = new InventoryItem(vivian, prefabViviansSkirt, "PANTS", "", 1, NaN, `<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s></desc>`, 24);
     var inventoryViviansUnderwear = new InventoryItem(vivian, prefabViviansUnderwear, "UNDERWEAR", "", 1, NaN, "<desc><s>It's a pair of plain, pink panties.</s></desc>", 25);
     var inventoryViviansSocks = new InventoryItem(vivian, prefabViviansSocks, "SOCKS", "", 1, NaN, "<desc><s>It's a pair of black thigh high socks.</s></desc>", 26);
     var inventoryViviansShoes = new InventoryItem(vivian, prefabViviansShoes, "SHOES", "", 1, NaN, "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>", 27);
+    var inventoryViviansWrench = new InventoryItem(vivian, prefabWrench, "LEFT HAND", "SMALL BAG 2", 1, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 28);
 
     game.inventoryItems.push(inventoryNerosHat);
     game.inventoryItems.push(inventoryNerosGlasses);
@@ -260,11 +264,12 @@ function init() {
     game.inventoryItems.push(inventoryViviansShirt);
     game.inventoryItems.push(inventoryViviansSweater);
     game.inventoryItems.push(inventoryViviansRightHand);
-    game.inventoryItems.push(inventoryViviansLeftHand);
+    game.inventoryItems.push(inventoryViviansSmallBag);
     game.inventoryItems.push(inventoryViviansSkirt);
     game.inventoryItems.push(inventoryViviansUnderwear);
     game.inventoryItems.push(inventoryViviansSocks);
     game.inventoryItems.push(inventoryViviansShoes);
+    game.inventoryItems.push(inventoryViviansWrench);
 
     // Create EquipmentSlots for each player.
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -285,6 +290,9 @@ function init() {
                 game.inventoryItems[i].inventory.push({ name: prefab.inventory[j].name, capacity: prefab.inventory[j].capacity, takenSpace: prefab.inventory[j].takenSpace, weight: prefab.inventory[j].weight, item: [] });
         }
     }
+
+    inventoryViviansWrench.container = inventoryViviansSmallBag; inventoryViviansWrench.slot = "SMALL BAG";
+    inventoryViviansSmallBag.insertItem(inventoryViviansWrench, inventoryViviansWrench.slot);
 
     // Assign items to inventory slots.
     nero.inventory[0].items.push(inventoryNerosHat);
@@ -319,7 +327,8 @@ function init() {
     vivian.inventory[6].items.push(inventoryViviansSweater);
     vivian.inventory[6].equippedItem = inventoryViviansSweater;
     vivian.inventory[7].items.push(inventoryViviansRightHand);
-    vivian.inventory[8].items.push(inventoryViviansLeftHand);
+    vivian.inventory[8].items.push(inventoryViviansSmallBag);
+    vivian.inventory[8].equippedItem = inventoryViviansSmallBag;
     vivian.inventory[9].items.push(inventoryViviansSkirt);
     vivian.inventory[9].equippedItem = inventoryViviansSkirt;
     vivian.inventory[10].items.push(inventoryViviansUnderwear);
@@ -328,13 +337,15 @@ function init() {
     vivian.inventory[11].equippedItem = inventoryViviansSocks;
     vivian.inventory[12].items.push(inventoryViviansShoes);
     vivian.inventory[12].equippedItem = inventoryViviansShoes;
-
+    
     // Run some tests.
     assert.ok(itemViviansSkirt.weight === 5, itemViviansSkirt.weight);
     assert.ok(itemViviansSkirt.inventory[0].takenSpace === 1, itemViviansSkirt.inventory[0].takenSpace);
     assert.ok(itemViviansSkirt.inventory[1].takenSpace === 1, itemViviansSkirt.inventory[1].takenSpace);
     assert.ok(itemToolBox.weight === 26, itemToolBox.weight);
     assert.ok(itemToolBox.inventory[0].takenSpace === 14, itemToolBox.inventory[0].takenSpace);
+    assert.ok(inventoryViviansSmallBag.weight === 3, inventoryViviansSmallBag.weight);
+    assert.ok(inventoryViviansSmallBag.inventory[0].takenSpace === 1, inventoryViviansSmallBag.inventory[0].takenSpace);
 
     // Add some entries to the queue.
     const timestamp = Date.now();
@@ -477,6 +488,15 @@ function test_take_item_0() {
     for (let i = 0; i < game.inventoryItems.length; i++)
         assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
 
+    // Test that all of the inventoryItems and Player inventory items have the same row numbers.
+    for (let i = 0; i < nero.inventory.length; i++) {
+        for (let j = 0; j < nero.inventory[i].items.length; j++) {
+            const match = game.inventoryItems.find(item => item.player.id === nero.id && (item.prefab === null && nero.inventory[i].items[j].prefab === null || item.prefab !== null && nero.inventory[i].items[j].prefab !== null && item.prefab.id === nero.inventory[i].items[j].prefab.id) && item.equipmentSlot === nero.inventory[i].items[j].equipmentSlot && item.containerName === nero.inventory[i].items[j].containerName );
+            assert.ok(match !== null && match !== undefined, nero.inventory[i].items[j].row);
+            assert.ok(nero.inventory[i].items[j].row === match.row);
+        }
+    }
+
     return;
 }
 
@@ -508,7 +528,7 @@ function test_take_item_1() {
         isNaN(rightHand.items[0].uses) &&
         rightHand.items[0].weight === 6 &&
         rightHand.items[0].inventory.length > 0 &&
-        rightHand.items[0].row === 22,
+        rightHand.items[0].row === 28,
         rightHand.items[0]
     );
     assert.ok(
@@ -524,7 +544,7 @@ function test_take_item_1() {
         isNaN(rightHand.items[1].uses) &&
         rightHand.items[1].weight === 2 &&
         rightHand.items[1].inventory.length === 0 &&
-        rightHand.items[1].row === 28,
+        rightHand.items[1].row === 34,
         rightHand.items[1]
     );
     assert.ok(
@@ -540,7 +560,7 @@ function test_take_item_1() {
         isNaN(rightHand.items[2].uses) &&
         rightHand.items[2].weight === 3 &&
         rightHand.items[2].inventory.length > 0 &&
-        rightHand.items[2].row === 29,
+        rightHand.items[2].row === 35,
         rightHand.items[2]
     );
     assert.ok(
@@ -556,100 +576,85 @@ function test_take_item_1() {
         isNaN(rightHand.items[3].uses) &&
         rightHand.items[3].weight === 2 &&
         rightHand.items[3].inventory.length === 0 &&
-        rightHand.items[3].row === 30,
+        rightHand.items[3].row === 36,
         rightHand.items[3]
     );
 
     // Test that all of the inventoryItem row numbers were updated properly.
     for (let i = 0; i < game.inventoryItems.length; i++)
         assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
+
+    // Test that all of the inventoryItems and Player inventory items have the same row numbers.
+    for (let i = 0; i < vivian.inventory.length; i++) {
+        for (let j = 0; j < vivian.inventory[i].items.length; j++) {
+            const match = game.inventoryItems.find(item => item.player.id === vivian.id && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
+            assert.ok(match !== null && match !== undefined, vivian.inventory[i].items[j].row);
+            assert.ok(vivian.inventory[i].items[j].row === match.row);
+        }
+    }
 
     return;
 }
 
 function test_drop_item_0() {
     var vivian = game.players[0];
-    var rightHand = vivian.inventory[7];
-    var inventoryViviansSatchel = rightHand.items[0];
-    var hand = "RIGHT HAND";
+    var leftHand = vivian.inventory[8];
+    var inventoryViviansSmallBag = leftHand.items[0];
+    var hand = "LEFT HAND";
     var objectCloset = game.objects[3];
     var slot = "";
 
-    vivian.drop(game, inventoryViviansSatchel, hand, objectCloset, slot);
+    vivian.drop(game, inventoryViviansSmallBag, hand, objectCloset, slot);
 
     // Test that all of the data was converted properly.
-    assert.ok(rightHand.equippedItem.name === "SATCHEL", rightHand.equippedItem);
-    assert.ok(rightHand.equippedItem.weight === 6, rightHand.equippedItem.weight);
-    assert.ok(rightHand.equippedItem.inventory[0].takenSpace === 6, rightHand.equippedItem.inventory[0].takenSpace);
-    assert.ok(rightHand.items.length === 4, rightHand.items.length);
+    assert.ok(leftHand.equippedItem === null, leftHand.equippedItem);
     assert.ok(
-        rightHand.items[0].name === "SATCHEL" &&
-        rightHand.items[0].pluralName === "SATCHELS" &&
-        rightHand.items[0].singleContainingPhrase === "a SATCHEL" &&
-        rightHand.items[0].pluralContainingPhrase === "SATCHELS" &&
-        rightHand.items[0].equipmentSlot === "RIGHT HAND" &&
-        rightHand.items[0].containerName === "" &&
-        rightHand.items[0].container === null &&
-        rightHand.items[0].slot === "" &&
-        rightHand.items[0].quantity === 1 &&
-        isNaN(rightHand.items[0].uses) &&
-        rightHand.items[0].weight === 6 &&
-        rightHand.items[0].inventory.length > 0 &&
-        rightHand.items[0].row === 22,
-        rightHand.items[0]
+        game.items[9].name === "SMALL BAG" &&
+        game.items[9].pluralName === "" &&
+        game.items[9].singleContainingPhrase === "a SMALL BAG" &&
+        game.items[9].pluralContainingPhrase === "" &&
+        game.items[9].location.name === "beach-house" &&
+        game.items[9].accessible &&
+        game.items[9].containerName === "Object: CLOSET" &&
+        game.items[9].container.name === "CLOSET" &&
+        game.items[9].slot === "" &&
+        game.items[9].quantity === 1 &&
+        isNaN(game.items[9].uses) &&
+        game.items[9].weight === 3 &&
+        game.items[9].inventory.length > 0 &&
+        game.items[9].row === 11,
+        game.items[9]
     );
     assert.ok(
-        rightHand.items[1].name === "LAPTOP" &&
-        rightHand.items[1].pluralName === "LAPTOPS" &&
-        rightHand.items[1].singleContainingPhrase === "a LAPTOP" &&
-        rightHand.items[1].pluralContainingPhrase === "LAPTOPS" &&
-        rightHand.items[1].equipmentSlot === "RIGHT HAND" &&
-        rightHand.items[1].containerName === "VIVIANS SATCHEL/SATCHEL" &&
-        rightHand.items[1].container.name === "SATCHEL" &&
-        rightHand.items[1].slot === "SATCHEL" &&
-        rightHand.items[1].quantity === 1 &&
-        isNaN(rightHand.items[1].uses) &&
-        rightHand.items[1].weight === 2 &&
-        rightHand.items[1].inventory.length === 0 &&
-        rightHand.items[1].row === 28,
-        rightHand.items[1]
-    );
-    assert.ok(
-        rightHand.items[2].name === "SMALL BAG" &&
-        rightHand.items[2].pluralName === "" &&
-        rightHand.items[2].singleContainingPhrase === "a SMALL BAG" &&
-        rightHand.items[2].pluralContainingPhrase === "" &&
-        rightHand.items[2].equipmentSlot === "RIGHT HAND" &&
-        rightHand.items[2].containerName === "VIVIANS SATCHEL/SATCHEL" &&
-        rightHand.items[2].container.name === "SATCHEL" &&
-        rightHand.items[2].slot === "SATCHEL" &&
-        rightHand.items[2].quantity === 1 &&
-        isNaN(rightHand.items[2].uses) &&
-        rightHand.items[2].weight === 3 &&
-        rightHand.items[2].inventory.length > 0 &&
-        rightHand.items[2].row === 29,
-        rightHand.items[2]
-    );
-    assert.ok(
-        rightHand.items[3].name === "WRENCH" &&
-        rightHand.items[3].pluralName === "WRENCHES" &&
-        rightHand.items[3].singleContainingPhrase === "a WRENCH" &&
-        rightHand.items[3].pluralContainingPhrase === "WRENCHES" &&
-        rightHand.items[3].equipmentSlot === "RIGHT HAND" &&
-        rightHand.items[3].containerName === "SMALL BAG/SMALL BAG" &&
-        rightHand.items[3].container.name === "SMALL BAG" &&
-        rightHand.items[3].slot === "SMALL BAG" &&
-        rightHand.items[3].quantity === 1 &&
-        isNaN(rightHand.items[3].uses) &&
-        rightHand.items[3].weight === 2 &&
-        rightHand.items[3].inventory.length === 0 &&
-        rightHand.items[3].row === 30,
-        rightHand.items[3]
+        game.items[10].name === "WRENCH" &&
+        game.items[10].pluralName === "WRENCHES" &&
+        game.items[10].singleContainingPhrase === "a WRENCH" &&
+        game.items[10].pluralContainingPhrase === "WRENCHES" &&
+        game.items[10].location.name === "beach-house" &&
+        game.items[10].accessible &&
+        game.items[10].containerName === "Item: SMALL BAG 2/SMALL BAG" &&
+        game.items[10].container.name === "SMALL BAG" &&
+        game.items[10].slot === "SMALL BAG" &&
+        game.items[10].quantity === 1 &&
+        isNaN(game.items[10].uses) &&
+        game.items[10].weight === 2 &&
+        game.items[10].inventory.length === 0 &&
+        game.items[10].row === 12,
+        game.items[10]
     );
 
     // Test that all of the inventoryItem row numbers were updated properly.
-    for (let i = 0; i < game.inventoryItems.length; i++)
-        assert.ok(game.inventoryItems[i].row === i + 2, game.inventoryItems[i].row);
+    for (let i = 0; i < game.items.length; i++)
+        assert.ok(game.items[i].row === i + 2, game.items[i].row);
+
+    // Test that all of the inventoryItems and Player inventory items have the same row numbers.
+    for (let i = 0; i < vivian.inventory.length; i++) {
+        for (let j = 0; j < vivian.inventory[i].items.length; j++) {
+            const match = game.inventoryItems.find(item => item.player.id === vivian.id && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
+            assert.ok(match !== null && match !== undefined, vivian.inventory[i].items[j].row);
+            assert.ok(vivian.inventory[i].items[j].row === match.row);
+        }
+    }
 
     return;
 }
@@ -663,7 +668,7 @@ function test_push_queue_0() {
                 ["FLOOR", "beach-house", "TRUE", "", "FALSE", "on", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il><item>a SKIRT</item></il> haphazardly placed on the floor.</s></desc>"],
                 ["COUCHES", "beach-house", "TRUE", "", "FALSE", "in", "<desc><s>You inspect the couches.</s> <s>They are soft and comfortable, and each is lined with a few pillows.</s> <s>Looking underneath the cushions, you find <il><item>a GUN</item></il>.</s></desc>"],
                 ["TABLE", "beach-house", "TRUE", "CHEST", "FALSE", "in", "<desc><s>You examine the table.</s> <if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === true\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open, but it seems to be unlocked.</s> <var v=\" game.puzzles.find(puzzle => puzzle.name === 'CHEST').alreadySolvedDescription\" /></if><if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === false\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open.</s></if></desc>"],
-                ["CLOSET", "beach-house", "TRUE", "", "TRUE", "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item></il>.</s></desc>"],
+                ["CLOSET", "beach-house", "TRUE", "", "TRUE", "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SMALL BAG</item> and <item>a SLINGSHOT</item></il>.</s></desc>"],
                 ["CLOTHES", "beach-house", "TRUE", "", "FALSE", "", "<desc><s>Examining the clothes, you find a variety of different garments.</s> <s>Sundresses, T-shirts, shorts, skirts - this closet seems to have everything you could think of.</s></desc>"],
                 ["HOT TUB", "beach-house", "TRUE", "", "FALSE", "in", "<desc><s>You inspect the hot tub.</s> <s>It looks to be fairly spacious, with room for probably up to 3 people to use at once.</s> <s>It has a digital thermometer to increase the temperature up to 100 degrees Fahrenheit, and buttons to turn it on.</s> <s>In the middle, you find <il></il>.</s></desc>"]
             ];
@@ -687,6 +692,8 @@ function test_push_queue_0() {
                 ["SLINGSHOT", "beach-house", "TRUE", "Object: CLOSET", "1", "", "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>"],
                 ["TOOL BOX", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SKIRT</item>, <item>4 SCREWDRIVERS</item>, <item>2 HAMMERS</item>, and <item>4 WRENCHES</item></il>.</s></desc>"],
                 ["VIVIANS SATCHEL", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>"],
+                ["SMALL BAG 2", "beach-house", "TRUE", "Object: CLOSET", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
+                ["WRENCH", "beach-house", "TRUE", "Item: SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
                 ["SCREWDRIVER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
                 ["HAMMER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
                 ["WRENCH", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
@@ -742,7 +749,8 @@ function test_push_queue_0() {
                 ["Vivian", "VIVIANS SHOES", "SHOES", "", "2", "", "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>"],
                 ["Vivian", "VIVIANS LAPTOP", "RIGHT HAND", "VIVIANS SATCHEL/SATCHEL", "1", "", "<desc><if cond=\"player.name === 'Vivian'\"><s>This is your laptop.</s> <s>You take it with you everywhere you go.</s></if><if cond=\"player.name !== 'Vivian'\"><s>This is a very expensive-looking laptop.</s> <s>The keyboard lights up when a key is pressed.</s> <s>The login screen is asking for a password for Vivian's account.</s></if></desc>"],
                 ["Vivian", "SMALL BAG", "RIGHT HAND", "VIVIANS SATCHEL/SATCHEL", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
-                ["Vivian", "WRENCH", "RIGHT HAND", "SMALL BAG/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
+                ["Vivian", "WRENCH", "RIGHT HAND", "SMALL BAG/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["Vivian", "WRENCH", "LEFT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
             ];
             sheets.getData("Inventory Items!A1:G", function (response) {
                 const sheet = response.data.values;

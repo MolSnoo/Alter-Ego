@@ -35,34 +35,6 @@ module.exports.cleanQueue = function () {
         const index = deleteIndexes[i];
         queue.splice(index, 1);
     }
-    // Sort the queue so that insertData entries go last.
-    queue.sort(function (a, b) {
-        if (a.type !== "insertData" && b.type === "insertData")
-            return -1;
-        else if (a.type === "insertData" && b.type !== "insertData")
-            return 1;
-        else return 0;
-    });
-    // Detect insertData entries and update subsequent rows accordingly.
-    for (let i = 0; i < queue.length; i++) {
-        if (queue[i].type === "insertData") {
-            // Get all of the insertData requests before this entry.
-            const inserts = queue.filter(
-                entry =>
-                    entry.type === "insertData" &&
-                    entry.range.substring(0, entry.range.indexOf('!')) === queue[i].range.substring(0, queue[i].range.indexOf('!')) &&
-                    entry.startingRow < queue[i].startingRow
-            );
-            if (inserts.length > 0) {
-                let insertedRows = inserts.reduce(function (total, insert) {
-                    return total + insert.data.length;
-                }, 0);
-                // We need a regex that will match only the given number, not any numbers containing this number.
-                let regex = "/(?<!\\d)" + queue[i].startingRow + "(?!\\d)/g";
-                queue[i].range = queue[i].range.replace(eval(regex), queue[i].startingRow + insertedRows);
-            }
-        }
-    }
 };
 
 module.exports.createRequests = function () {

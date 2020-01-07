@@ -917,8 +917,8 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             }
             var errors = [];
             for (let i = 0; i < game.inventoryItems.length; i++) {
-                if (game.inventoryItems[i].prefab instanceof Prefab) {
-                    const prefab = game.inventoryItems[i].prefab;
+                const prefab = game.inventoryItems[i].prefab;
+                if (prefab instanceof Prefab) {
                     for (let j = 0; j < prefab.inventory.length; j++)
                         game.inventoryItems[i].inventory.push({
                             name: prefab.inventory[j].name,
@@ -927,29 +927,28 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                             weight: prefab.inventory[j].weight,
                             item: []
                         });
-
-                    if (game.inventoryItems[i].player) {
-                        const player = game.inventoryItems[i].player;
-                        for (let slot = 0; slot < player.inventory.length; slot++) {
-                            if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot) {
-                                game.inventoryItems[i].foundEquipmentSlot = true;
-                                player.inventory[slot].items.push(game.inventoryItems[i]);
-                                if (game.inventoryItems[i].containerName === "") {
-                                    if (prefab === null) player.inventory[slot].equippedItem = null;
-                                    else player.inventory[slot].equippedItem = game.inventoryItems[i];
-                                }
-                                else {
-                                    const splitContainer = game.inventoryItems[i].containerName.split('/');
-                                    const containerItemName = splitContainer[0] ? splitContainer[0].trim() : "";
-                                    const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
-                                    for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                                        if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].prefab.id === containerItemName) {
-                                            game.inventoryItems[i].container = player.inventory[slot].items[j];
-                                            game.inventoryItems[i].slot = containerItemSlot;
-                                            for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
-                                                if (game.inventoryItems[i].container.inventory[k].name === containerItemSlot)
-                                                    game.inventoryItems[i].container.inventory[k].item.push(game.inventoryItems[i]);
-                                            }
+                }
+                if (game.inventoryItems[i].player) {
+                    const player = game.inventoryItems[i].player;
+                    for (let slot = 0; slot < player.inventory.length; slot++) {
+                        if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot) {
+                            game.inventoryItems[i].foundEquipmentSlot = true;
+                            player.inventory[slot].items.push(game.inventoryItems[i]);
+                            if (game.inventoryItems[i].containerName === "") {
+                                if (prefab === null) player.inventory[slot].equippedItem = null;
+                                else player.inventory[slot].equippedItem = game.inventoryItems[i];
+                            }
+                            else {
+                                const splitContainer = game.inventoryItems[i].containerName.split('/');
+                                const containerItemName = splitContainer[0] ? splitContainer[0].trim() : "";
+                                const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
+                                for (let j = 0; j < player.inventory[slot].items.length; j++) {
+                                    if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].prefab.id === containerItemName) {
+                                        game.inventoryItems[i].container = player.inventory[slot].items[j];
+                                        game.inventoryItems[i].slot = containerItemSlot;
+                                        for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
+                                            if (game.inventoryItems[i].container.inventory[k].name === containerItemSlot)
+                                                game.inventoryItems[i].container.inventory[k].item.push(game.inventoryItems[i]);
                                         }
                                     }
                                 }
