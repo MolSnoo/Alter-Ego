@@ -48,11 +48,12 @@ class Player {
         this.onlineInterval = null;
     }
 
-    move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
-        const time = this.calculateMoveTime(exit);
+    move(game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
+        const time = this.calculateMoveTime(exit, isRunning);
         this.remainingTime = time;
         this.isMoving = true;
-        if (time > 1000) new Narration(game, this, this.location, `${this.displayName} starts walking toward ${exit.name}.`).send();
+        const verb = isRunning ? "running" : "walking";
+        if (time > 1000) new Narration(game, this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
         let player = this;
@@ -68,16 +69,17 @@ class Player {
             let distance = Math.sqrt(Math.pow(x - player.pos.x, 2) + Math.pow(z - player.pos.z, 2)) * settings.metersPerPixel;
             let rise = (y - player.pos.y) * settings.metersPerPixel;
             // Calculate the amount of stamina the player has lost traveling this distance.
+            const staminaUseMultiplier = isRunning ? 3 : 1;
             var lostStamina;
             // If distance is 0, we'll treat it like a staircase.
             if (distance === 0 && rise !== 0) {
                 const uphill = rise > 0 ? true : false;
                 distance = rise;
-                lostStamina = uphill ? 4 * settings.staminaUseRate * distance : settings.staminaUseRate / 4 * -distance;
+                lostStamina = uphill ? 4 * staminaUseMultiplier * settings.staminaUseRate * distance : staminaUseMultiplier * settings.staminaUseRate / 4 * -distance;
             }
             else {
                 const slope = rise / distance;
-                lostStamina = !isNaN(slope) ? (settings.staminaUseRate + slope * settings.staminaUseRate) * distance : settings.staminaUseRate * distance;
+                lostStamina = !isNaN(slope) ? staminaUseMultiplier * (settings.staminaUseRate + slope * settings.staminaUseRate) * distance : staminaUseMultiplier * settings.staminaUseRate * distance;
                 if (isNaN(lostStamina)) lostStamina = 0;
             }
             player.pos.x = x;
@@ -105,12 +107,13 @@ class Player {
         }, 100);
     }
 
-    calculateMoveTime(exit) {
+    calculateMoveTime(exit, isRunning) {
         let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
         distance = distance * settings.metersPerPixel;
         // The formula to calculate the rate is a quadratic function.
-        // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
-        let rate = 0.0183 * Math.pow(this.speed, 2) + 0.005 * this.speed + 0.916;
+        // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat multiplied by 2 or 1, depending on if the player is running or not.
+        const speedMultiplier = isRunning ? 2 : 1;
+        let rate = 0.0183 * Math.pow(speedMultiplier * this.speed, 2) + 0.005 * speedMultiplier * this.speed + 0.916;
         // Slope should affect the rate.
         const rise = (exit.pos.y - this.pos.y) * settings.metersPerPixel;
         var time = 0;
