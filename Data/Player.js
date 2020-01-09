@@ -671,6 +671,11 @@ class Player {
         // Unequip the item from the player's hand.
         this.unequip(game, hand, item);
 
+        // Convert the InventoryItem to an Item.
+        var createdItem = this.convertInventoryItem(item, container, slotName, 1);
+        createdItem.container = container;
+        createdItem.slot = slotName;
+
         // These two variables are needed at the end, but since we're checking the data type of the container anyway, set them now.
         var containerName = "";
         var preposition = "in";
@@ -688,16 +693,13 @@ class Player {
             preposition = container.preposition;
         }
         else if (container instanceof Item) {
-            container.insertItem(item, slotName);
+            container.insertItem(createdItem, slotName);
             container.description = parser.addItem(container.description, item, slotName);
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
             containerName = container.name;
             preposition = container.prefab ? container.prefab.preposition : "in";
         }
 
-        var createdItem = this.convertInventoryItem(item, container, 1);
-        createdItem.container = container;
-        createdItem.slot = slotName;
         // Create a list of all the child items.
         var items = [];
         items.push(createdItem);
@@ -732,7 +734,7 @@ class Player {
             );
             if (matchedItem) {
                 if (!isNaN(matchedItem.quantity)) {
-                    matchedItem.quantity++;
+                    matchedItem.quantity += items[i].quantity;
                     game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), matchedItem.quantity));
                 }
             }
@@ -776,26 +778,28 @@ class Player {
                 }
             }
         }
-        game.queue.push(new QueueEntry(Date.now(), "insertData", lastItemCells, data));
+        if (lastItemCells !== "" && data.length > 0) {
+            game.queue.push(new QueueEntry(Date.now(), "insertData", lastItemCells, data));
 
-        var startingIndex;
-        // Update rows.
-        for (startingIndex = 0; startingIndex < game.items.length; startingIndex++) {
-            if (game.items[startingIndex].row === startingRow)
-                break;
-        }
-        var endingRow = startingRow;
-        var endingIndex = startingIndex;
-        for (let i = 0; i < items.length; i++) {
-            items[i].row = startingRow + i + 1;
-            game.items.splice(startingIndex + i + 1, 0, items[i]);
+            var startingIndex;
+            // Update rows.
+            for (startingIndex = 0; startingIndex < game.items.length; startingIndex++) {
+                if (game.items[startingIndex].row === startingRow)
+                    break;
+            }
+            var endingRow = startingRow;
+            var endingIndex = startingIndex;
+            for (let i = 0; i < items.length; i++) {
+                items[i].row = startingRow + i + 1;
+                game.items.splice(startingIndex + i + 1, 0, items[i]);
 
-            endingRow = startingRow + i + 1;
-            endingIndex = startingIndex + i + 1;
+                endingRow = startingRow + i + 1;
+                endingIndex = startingIndex + i + 1;
+            }
+            // Update the rows for all of the inventoryItems after this.
+            for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.items.length; i++ , newRow++)
+                game.items[i].row = newRow;
         }
-        // Update the rows for all of the inventoryItems after this.
-        for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.items.length; i++ , newRow++)
-            game.items[i].row = newRow;
 
         if (!item.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
         this.member.send(`You discard ${item.singleContainingPhrase}.`);
@@ -847,10 +851,11 @@ class Player {
     }
 
     // This recursive function is used to convert InventoryItems to Items.
-    convertInventoryItem(item, container, quantity) {
+    convertInventoryItem(item, container, slotName, quantity) {
         var containerName = "";
         if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
         else if (container instanceof Object) containerName = "Object: " + container.name;
+        else if (container instanceof Item) containerName = "Item: " + container.prefab.id + '/' + slotName;
         else if (container instanceof InventoryItem) containerName = "Item: " + container.prefab.id + '/' + item.slot;
         // Make a copy of the Item as an InventoryItem.
         var createdItem = new Item(
@@ -877,7 +882,7 @@ class Player {
         // Now recursively run through all of the inventory items and convert them.
         for (let i = 0; i < item.inventory.length; i++) {
             for (let j = 0; j < item.inventory[i].item.length; j++) {
-                let inventoryItem = this.convertInventoryItem(item.inventory[i].item[j], item, item.inventory[i].item[j].quantity);
+                let inventoryItem = this.convertInventoryItem(item.inventory[i].item[j], item, "", item.inventory[i].item[j].quantity);
                 if (inventoryItem.containerName !== "") {
                     inventoryItem.container = createdItem;
                     inventoryItem.slot = createdItem.inventory[i].name;

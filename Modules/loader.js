@@ -438,16 +438,38 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 for (let i = 0; i < item.inventory.length; i++) {
                     for (let j = 0; j < item.inventory[i].item.length; j++) {
                         let inventoryItem = insertInventory(item.inventory[i].item[j]);
-                        if (inventoryItem.containerName !== "")
-                            createdItem.insertItem(inventoryItem, inventoryItem.slot);
-                        else createdItem.inventory[i].item.push(inventoryItem);
+                        let foundItem = false;
+                        for (var k = 0; k < game.items.length; k++) {
+                            if (game.items[k].row === inventoryItem.row) {
+                                foundItem = true;
+                                game.items[k] = inventoryItem;
+                                break;
+                            }
+                        }
+                        if (foundItem) {
+                            game.items[k].container = createdItem;
+                            if (game.items[k].containerName !== "")
+                                createdItem.insertItem(game.items[k], game.items[k].slot);
+                            else createdItem.inventory[i].item.push(game.items[k]);
+                        }
                     }
                 }
                 return createdItem;
             };
             // Run through items one more time to properly insert their inventories.
             for (let i = 0; i < game.items.length; i++) {
-                game.items[i] = insertInventory(game.items[i]);
+                if (game.items[i].container instanceof Item) {
+                    let container = game.items[i].container;
+                    for (let slot = 0; slot < container.inventory.length; slot++) {
+                        for (let j = 0; j < container.inventory[slot].item.length; j++) {
+                            if (container.inventory[slot].item[j].row === game.items[i].row) {
+                                game.items[i] = container.inventory[slot].item[j];
+                                break;
+                            }
+                        }
+                    }
+                }
+                else game.items[i] = insertInventory(game.items[i]);
 
                 if (doErrorChecking) {
                     let error = exports.checkItem(game.items[i]);
@@ -970,7 +992,8 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                     item.row
                 );
                 createdItem.foundEquipmentSlot = item.foundEquipmentSlot;
-                createdItem.container = item.container;
+                if (item.container instanceof InventoryItem) createdItem.container = game.inventoryItems.find(gameItem => gameItem.row === item.container.row);
+                else createdItem.container = item.container;
                 createdItem.slot = item.slot;
                 createdItem.weight = item.weight;
 
@@ -987,9 +1010,20 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                 for (let i = 0; i < item.inventory.length; i++) {
                     for (let j = 0; j < item.inventory[i].item.length; j++) {
                         let inventoryItem = insertInventory(item.inventory[i].item[j]);
-                        if (inventoryItem.containerName !== "")
-                            createdItem.insertItem(inventoryItem, inventoryItem.slot);
-                        else createdItem.inventory[i].item.push(inventoryItem);
+                        let foundItem = false;
+                        for (var k = 0; k < game.inventoryItems.length; k++) {
+                            if (game.inventoryItems[k].row === inventoryItem.row) {
+                                foundItem = true;
+                                game.inventoryItems[k] = inventoryItem;
+                                break;
+                            }
+                        }
+                        if (foundItem) {
+                            game.inventoryItems[k].container = createdItem;
+                            if (game.inventoryItems[k].containerName !== "")
+                                createdItem.insertItem(game.inventoryItems[k], game.inventoryItems[k].slot);
+                            else createdItem.inventory[i].item.push(game.inventoryItems[k]);
+                        }
                     }
                 }
                 return createdItem;
@@ -1005,6 +1039,8 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                     }
                 }
             }
+            game.inventoryItems[26].quantity++;
+
             if (errors.length > 0) {
                 if (errors.length > 5) {
                     errors = errors.slice(0, 5);
