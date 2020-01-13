@@ -520,34 +520,6 @@ class Player {
             game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Items!${oldChildItems[i].name}|${oldChildItems[i].location.name}|${oldChildItems[i].containerName}`, "0"));
         }
 
-        // Find the last item in this player's equipment slots. We need the row and index number.
-        var startingRow = this.inventory[this.inventory.length - 1].row;
-        for (var startingIndex = 0; startingIndex < game.inventoryItems.length; startingIndex++) {
-            if (game.inventoryItems[startingIndex].row === startingRow)
-                break;
-        }
-        var endingRow = startingRow;
-        var endingIndex = startingIndex;
-        for (let i = 0; i < items.length; i++) {
-            items[i].row = startingRow + i + 1;
-            game.inventoryItems.splice(startingIndex + i + 1, 0, items[i]);
-            this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, items[i]);
-
-            endingRow = startingRow + i + 1;
-            endingIndex = startingIndex + i + 1;
-        }
-        // Update the rows for all of the inventoryItems after this.
-        for (let i = endingIndex + 1, newRow = endingRow + 1; i < game.inventoryItems.length; i++, newRow++)
-            game.inventoryItems[i].row = newRow;
-
-        // Update the rows for all Player EquipmentSlots.
-        for (let i = 0; i < game.players.length; i++) {
-            for (let slot = 0; slot < game.players[i].inventory.length; slot++) {
-                if (game.players[i].inventory[slot].equippedItem === null) game.players[i].inventory[slot].row = game.players[i].inventory[slot].items[0].row;
-                else game.players[i].inventory[slot].row = game.players[i].inventory[slot].equippedItem.row;
-            }
-        }
-
         // Add the equipped item to the queue.
         const createdItemData = [
             this.name,
@@ -560,11 +532,46 @@ class Player {
         ];
         game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-        // Add the child items to the queue.
-        var childItemsData = [];
+        var lastNewItem = this.inventory[this.inventory.length - 1].equippedItem;
         for (let i = 0; i < items.length; i++) {
-            childItemsData.push(
-                [
+            // Check if the player is picking this item up again.
+            const playerItems = game.inventoryItems.filter(item => item.player.id === this.id);
+            let matchedItem = playerItems.find(item =>
+                item.prefab !== null &&
+                item.prefab.id === items[i].prefab.id &&
+                item.equipmentSlot === items[i].equipmentSlot &&
+                item.containerName === items[i].containerName &&
+                item.slot === items[i].slot &&
+                (item.uses === items[i].uses || isNaN(item.uses) && isNaN(items[i].uses)) &&
+                item.description === items[i].description
+            );
+            if (matchedItem) {
+                if (!isNaN(matchedItem.quantity)) {
+                    matchedItem.quantity += items[i].quantity;
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Inventory Items!${matchedItem.prefab.id}|${this.name}|${matchedItem.equipmentSlot}|${matchedItem.containerName}`, matchedItem.quantity));
+                }
+                // Update container's references to this item.
+                if (items[i].container instanceof InventoryItem) {
+                    let foundItem = false;
+                    for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
+                        if (items[i].container.inventory[slot].name === items[i].slot) {
+                            const containerSlot = items[i].container.inventory[slot];
+                            for (let j = 0; j < containerSlot.item.length; j++) {
+                                if (containerSlot.item[j].prefab.id === items[i].prefab.id) {
+                                    foundItem = true;
+                                    containerSlot.item.splice(j, 1, matchedItem);
+                                    break;
+                                }
+                            }
+                            if (foundItem) break;
+                        }
+                    }
+                }
+                this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, matchedItem);
+            }
+            // The player hasn't picked this item up before or it's been modified somehow.
+            else {
+                let data = [[
                     this.name,
                     items[i].prefab.id,
                     items[i].equipmentSlot,
@@ -572,10 +579,55 @@ class Player {
                     isNaN(items[i].quantity) ? "" : items[i].quantity,
                     isNaN(items[i].uses) ? "" : items[i].uses,
                     items[i].description
-                ]
-            );
+                ]];
+
+                // We want to insert this item near items in the same container slot, so get all of the items in that container slot.
+                const slotItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.containerName === items[i].containerName);
+                // Just in case there aren't any, get items just within the same container.
+                const containerItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.container !== null && item.container.prefab !== null && item.container.prefab.id === items[i].container.prefab.id);
+
+                const lastSlotItem = slotItems[slotItems.length - 1];
+                const lastContainerItem = containerItems[containerItems.length - 1];
+
+                var insertRow = -1;
+                // If the list of items in that slot isn't empty, insert the new item.
+                if (slotItems.length !== 0) {
+                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastSlotItem.itemCells(), `Inventory Items!${lastSlotItem.prefab.id}|${this.name}|${lastSlotItem.equipmentSlot}|${lastSlotItem.containerName}`, data));
+                    insertRow = lastSlotItem.row;
+                }
+                // If there are none, it might just be that there are no items in that slot yet. Try to at least put it near items in the same container.
+                else if (containerItems.length !== 0) {
+                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Inventory Items!${lastContainerItem.prefab.id}|${this.name}|${lastContainerItem.equipmentSlot}|${lastContainerItem.containerName}`, data));
+                    insertRow = lastContainerItem.row;
+                }
+                // If there are none, just insert it after the last new item.
+                else {
+                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastNewItem.itemCells(), `Inventory Items!|${this.name}|${lastNewItem.equipmentSlot}|${lastNewItem.containerName}`, data));
+                    insertRow = lastNewItem.row;
+                }
+                lastNewItem = items[i];
+
+                // Insert the new item into the inventoryItems list at the appropriate position.
+                for (var insertIndex = 0; insertIndex < game.inventoryItems.length; insertIndex++) {
+                    if (game.inventoryItems[insertIndex].row === insertRow) {
+                        game.inventoryItems.splice(insertIndex + 1, 0, items[i]);
+                        this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, items[i]);
+                        break;
+                    }
+                }
+                // Update the rows for all of the inventoryItems after this.
+                for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++ , newRow++)
+                    game.inventoryItems[j].row = newRow;
+
+                // Update the rows for all Player EquipmentSlots.
+                for (let j = 0; j < game.players.length; j++) {
+                    for (let slot = 0; slot < game.players[j].inventory.length; slot++) {
+                        if (game.players[j].inventory[slot].equippedItem === null) game.players[j].inventory[slot].row = game.players[j].inventory[slot].items[0].row;
+                        else game.players[j].inventory[slot].row = game.players[j].inventory[slot].equippedItem.row;
+                    }
+                }
+            }
         }
-        game.queue.push(new QueueEntry(Date.now(), "insertData", game.inventoryItems[startingIndex].itemCells(), `Inventory Items!|${this.name}|${game.inventoryItems[startingIndex].equipmentSlot}|${game.inventoryItems[startingIndex].containerName}`, childItemsData));
 
         this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();

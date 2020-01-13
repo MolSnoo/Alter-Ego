@@ -628,21 +628,21 @@ function test_drop_item_0() {
         game.items[9]
     );
     assert.ok(
-        game.items[10].name === "WRENCH" &&
-        game.items[10].pluralName === "WRENCHES" &&
-        game.items[10].singleContainingPhrase === "a WRENCH" &&
-        game.items[10].pluralContainingPhrase === "WRENCHES" &&
-        game.items[10].location.name === "beach-house" &&
-        game.items[10].accessible &&
-        game.items[10].containerName === "Item: SMALL BAG 2/SMALL BAG" &&
-        game.items[10].container.name === "SMALL BAG" &&
-        game.items[10].slot === "SMALL BAG" &&
-        game.items[10].quantity === 1 &&
-        isNaN(game.items[10].uses) &&
-        game.items[10].weight === 2 &&
-        game.items[10].inventory.length === 0 &&
-        game.items[10].row === 12,
-        game.items[10]
+        game.items[19].name === "WRENCH" &&
+        game.items[19].pluralName === "WRENCHES" &&
+        game.items[19].singleContainingPhrase === "a WRENCH" &&
+        game.items[19].pluralContainingPhrase === "WRENCHES" &&
+        game.items[19].location.name === "beach-house" &&
+        game.items[19].accessible &&
+        game.items[19].containerName === "Item: SMALL BAG 2/SMALL BAG" &&
+        game.items[19].container.name === "SMALL BAG" &&
+        game.items[19].slot === "SMALL BAG" &&
+        game.items[19].quantity === 1 &&
+        isNaN(game.items[19].uses) &&
+        game.items[19].weight === 2 &&
+        game.items[19].inventory.length === 0 &&
+        game.items[19].row === 21,
+        game.items[19]
     );
 
     // Test that all of the inventoryItem row numbers were updated properly.
@@ -695,7 +695,6 @@ function test_push_queue_0() {
                 ["TOOL BOX", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SKIRT</item>, <item>4 SCREWDRIVERS</item>, <item>2 HAMMERS</item>, and <item>4 WRENCHES</item></il>.</s></desc>"],
                 ["VIVIANS SATCHEL", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>"],
                 ["SMALL BAG 2", "beach-house", "TRUE", "Object: CLOSET", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
-                ["WRENCH", "beach-house", "TRUE", "Item: SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
                 ["SCREWDRIVER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
                 ["HAMMER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
                 ["WRENCH", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
@@ -704,7 +703,8 @@ function test_push_queue_0() {
                 ["HAMMER", "beach-house", "TRUE", "Item: VIVIANS SKIRT/RIGHT POCKET", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
                 ["VIVIANS LAPTOP", "beach-house", "TRUE", "Item: VIVIANS SATCHEL/SATCHEL", "0", "", "<desc><if cond=\"player.name === 'Vivian'\"><s>This is your laptop.</s> <s>You take it with you everywhere you go.</s></if><if cond=\"player.name !== 'Vivian'\"><s>This is a very expensive-looking laptop.</s> <s>The keyboard lights up when a key is pressed.</s> <s>The login screen is asking for a password for Vivian's account.</s></if></desc>"],
                 ["SMALL BAG", "beach-house", "TRUE", "Item: VIVIANS SATCHEL/SATCHEL", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
-                ["WRENCH", "beach-house", "TRUE", "Item: SMALL BAG/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
+                ["WRENCH", "beach-house", "TRUE", "Item: SMALL BAG/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["WRENCH", "beach-house", "TRUE", "Item: SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
             ];
             sheets.getData("Items!A1:G", function (response) {
                 const sheet = response.data.values;
@@ -1835,9 +1835,7 @@ function test_push_queue_1() {
                 ["Vivian", "SMALL BAG 2", "RIGHT HAND", "TOOL BOX/TOOL BOX", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
                 ["Vivian", "WRENCH", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
                 ["Vivian", "SCREWDRIVER", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
-                ["Vivian", "WRENCH", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
-                ["Vivian", "SCREWDRIVER", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
-                ["Vivian", "WRENCH", "LEFT HAND", "SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
+                ["Vivian", "WRENCH", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
             ];
             sheets.getData("Inventory Items!A1:G", function (response) {
                 const sheet = response.data.values;
