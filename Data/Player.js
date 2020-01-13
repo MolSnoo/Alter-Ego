@@ -857,6 +857,10 @@ class Player {
         return;
     }
 
+    stash(game, item, hand, container, slotName) {
+        return;
+    }
+
     // This recursive function is used to convert Items to InventoryItems.
     convertItem(item, hand, quantity) {
         // Make a copy of the Item as an InventoryItem.
