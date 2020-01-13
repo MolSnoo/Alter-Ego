@@ -15,6 +15,7 @@ exports.run = async function () {
     test_cleanQueue_1();
     test_cleanQueue_2();
     test_cleanQueue_3();
+    test_cleanQueue_4();
 
     test_createRequests_0();
     
@@ -25,7 +26,7 @@ exports.run = async function () {
 
 function test_constructor() {
     const timestamp = Date.now();
-    const entry = new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test");
+    const entry = new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test");
     
     assert.ok(entry.timestamp === timestamp, entry.timestamp);
     assert.ok(entry.type === "updateCell", entry.type);
@@ -36,13 +37,13 @@ function test_constructor() {
 function test_cleanQueue_0() {
     queue.length = 0;
     const timestamp = Date.now();
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test1"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "Test A"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test2"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test1"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "", "Test A"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test2"));
 
     const result = [
-        new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "Test A"),
-        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test2")
+        new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "", "Test A"),
+        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test2")
     ];
     queuer.cleanQueue();
     assert.ok(
@@ -54,17 +55,17 @@ function test_cleanQueue_0() {
 function test_cleanQueue_1() {
     queue.length = 0;
     const timestamp = Date.now();
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test1"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "Test A"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test2"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "Test B"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test3"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A3", "Test"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test1"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "", "Test A"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test2"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "", "Test B"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test3"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A3", "", "Test"));
 
     const result = [
-        new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "Test B"),
-        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test3"),
-        new QueueEntry(timestamp, "updateCell", "Sheet1!A3", "Test")
+        new QueueEntry(timestamp, "updateCell", "Sheet1!A2", "", "Test B"),
+        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test3"),
+        new QueueEntry(timestamp, "updateCell", "Sheet1!A3", "", "Test")
     ];
     queuer.cleanQueue();
     assert.ok(
@@ -76,11 +77,11 @@ function test_cleanQueue_1() {
 function test_cleanQueue_2() {
     queue.length = 0;
     const timestamp = Date.now();
-    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1", "Test1"));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test2"));
+    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1", "", "Test1"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test2"));
 
     const result = [
-        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test2")
+        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test2")
     ];
     queuer.cleanQueue();
     assert.ok(
@@ -92,12 +93,69 @@ function test_cleanQueue_2() {
 function test_cleanQueue_3() {
     queue.length = 0;
     const timestamp = Date.now();
-    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B1", [["Test A", "Test B"]]));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test2"));
+    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B1", "", [["Test A", "Test B"]]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test2"));
 
     const result = [
-        new QueueEntry(timestamp, "updateData", "Sheet1!A1:B1", [["Test A", "Test B"]]),
-        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "Test2")
+        new QueueEntry(timestamp, "updateData", "Sheet1!A1:B1", "", [["Test A", "Test B"]]),
+        new QueueEntry(timestamp, "updateCell", "Sheet1!A1", "", "Test2")
+    ];
+    queuer.cleanQueue();
+    assert.ok(
+        arraysEqual(queue, result),
+        queue
+    );
+}
+
+function test_cleanQueue_4() {
+    queue.length = 0;
+    const timestamp = Date.now();
+    queue.push(new QueueEntry(timestamp, "updateRow", "Inventory Items!A23:G23", "Inventory Items!|Vivian|LEFT HAND|", ["Vivian", "NULL", "LEFT HAND", "", "", "", "", ""]));
+    queue.push(new QueueEntry(timestamp, "insertData", "Items!A12:G12", "Items!WRENCH|beach-house|Item: TOOL BOX/TOOL BOX", [["SMALL BAG 2", "beach-house", true, "Object: FLOOR", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"]]));
+    queue.push(new QueueEntry(timestamp, "insertData", "Items!A13:G13", "Items!SMALL BAG 2|beach-house|Object: FLOOR", [["WRENCH", "beach-house", true, "Item: SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]]));
+    queue.push(new QueueEntry(timestamp, "insertData", "Items!A14:G14", "Items!SCREWDRIVER|beach-house|Item: SMALL BAG 2/SMALL BAG", [["SCREWDRIVER", "beach-house", true, "Item: SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"]]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!G13", "Items!SMALL BAG 2|beach-house|Object: FLOOR", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E13", "Items!SMALL BAG 2|beach-house|Object: FLOOR", 0));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Objects!G2", "Objects!FLOOR|beach-house", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il></il> haphazardly placed on the floor.</s></desc>"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E14", "Items!SCREWDRIVER|beach-house|Item: SMALL BAG 2/SMALL BAG", "0"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!G8", "Items!TOOL BOX|beach-house|Object: CLOSET", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Inventory Items!E28", "Inventory Items!WRENCH|Vivian|LEFT HAND|SMALL BAG 2/SMALL BAG", "0"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Inventory Items!E29", "Inventory Items!WRENCH|Vivian|LEFT HAND|SMALL BAG 2/SMALL BAG", "0"));
+    queue.push(new QueueEntry(timestamp, "insertData", "Items!A11:G11", "Items!WRENCH|beach-house|Item: TOOL BOX/TOOL BOX", [["SMALL BAG 2", "beach-house", true, "Item: TOOL BOX/TOOL BOX", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"]]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E8", "Items!TOOL BOX|beach-house|Object: CLOSET", 0));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Objects!G5", "Objects!CLOSET|beach-house", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item></il>.</s></desc>"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E9", "Items!SCREWDRIVER|beach-house|Item: TOOL BOX/TOOL BOX", "0"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E10", "Items!HAMMER|beach-house|Item: TOOL BOX/TOOL BOX", "0"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E11", "Items!WRENCH|beach-house|Item: TOOL BOX/TOOL BOX", "0"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E12", "Items!SMALL BAG 2|beach-house|Item: TOOL BOX/TOOL BOX", "0"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E15", "Items!WRENCH|beach-house|Item: SMALL BAG 2/SMALL BAG", "0"));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Items!E16", "Items!SCREWDRIVER|beach-house|Item: SMALL BAG 2/SMALL BAG", "0"));
+    queue.push(new QueueEntry(timestamp, "updateRow", "Inventory Items!A22:G22", "Inventory Items!|Vivian|RIGHT HAND|", ["Vivian", "TOOL BOX", "RIGHT HAND", "", 1, "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"]));
+
+    const result = [
+        new QueueEntry(timestamp, "updateRow", "Inventory Items!A23:G23", "Inventory Items!|Vivian|LEFT HAND|", ["Vivian", "NULL", "LEFT HAND", "", "", "", "", ""]),
+        new QueueEntry(timestamp, "insertData", "Items!A12:G12", "Items!WRENCH|beach-house|Item: TOOL BOX/TOOL BOX", [
+            ["SMALL BAG 2", "beach-house", true, "Object: FLOOR", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
+            ["WRENCH", "beach-house", true, "Item: SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+            ["SCREWDRIVER", "beach-house", true, "Item: SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"]
+        ]),
+        new QueueEntry(timestamp, "updateCell", "Items!G13", "Items!SMALL BAG 2|beach-house|Object: FLOOR", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"),
+        new QueueEntry(timestamp, "updateCell", "Items!E13", "Items!SMALL BAG 2|beach-house|Object: FLOOR", 0),
+        new QueueEntry(timestamp, "updateCell", "Objects!G2", "Objects!FLOOR|beach-house", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il></il> haphazardly placed on the floor.</s></desc>"),
+        new QueueEntry(timestamp, "updateCell", "Items!E14", "Items!SCREWDRIVER|beach-house|Item: SMALL BAG 2/SMALL BAG", "0"),
+        new QueueEntry(timestamp, "updateCell", "Items!G8", "Items!TOOL BOX|beach-house|Object: CLOSET", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"),
+        new QueueEntry(timestamp, "updateCell", "Inventory Items!E28", "Inventory Items!WRENCH|Vivian|LEFT HAND|SMALL BAG 2/SMALL BAG", "0"),
+        new QueueEntry(timestamp, "updateCell", "Inventory Items!E29", "Inventory Items!WRENCH|Vivian|LEFT HAND|SMALL BAG 2/SMALL BAG", "0"),
+        new QueueEntry(timestamp, "insertData", "Items!A11:G11", "Items!WRENCH|beach-house|Item: TOOL BOX/TOOL BOX", [["SMALL BAG 2", "beach-house", true, "Item: TOOL BOX/TOOL BOX", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"]]),
+        new QueueEntry(timestamp, "updateCell", "Items!E8", "Items!TOOL BOX|beach-house|Object: CLOSET", 0),
+        new QueueEntry(timestamp, "updateCell", "Objects!G5", "Objects!CLOSET|beach-house", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item></il>.</s></desc>"),
+        new QueueEntry(timestamp, "updateCell", "Items!E9", "Items!SCREWDRIVER|beach-house|Item: TOOL BOX/TOOL BOX", "0"),
+        new QueueEntry(timestamp, "updateCell", "Items!E10", "Items!HAMMER|beach-house|Item: TOOL BOX/TOOL BOX", "0"),
+        new QueueEntry(timestamp, "updateCell", "Items!E11", "Items!WRENCH|beach-house|Item: TOOL BOX/TOOL BOX", "0"),
+        new QueueEntry(timestamp, "updateCell", "Items!E12", "Items!SMALL BAG 2|beach-house|Item: TOOL BOX/TOOL BOX", "0"),
+        new QueueEntry(timestamp, "updateCell", "Items!E15", "Items!WRENCH|beach-house|Item: SMALL BAG 2/SMALL BAG", "0"),
+        new QueueEntry(timestamp, "updateCell", "Items!E16", "Items!SCREWDRIVER|beach-house|Item: SMALL BAG 2/SMALL BAG", "0"),
+        new QueueEntry(timestamp, "updateRow", "Inventory Items!A22:G22", "Inventory Items!|Vivian|RIGHT HAND|", ["Vivian", "TOOL BOX", "RIGHT HAND", "", 1, "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"]),
     ];
     queuer.cleanQueue();
     assert.ok(
@@ -109,9 +167,9 @@ function test_cleanQueue_3() {
 function test_createRequests_0() {
     queue.length = 0;
     const timestamp = Date.now();
-    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B2", [["Test A", "Test B"], ["Test C", "Test D"]]));
-    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!C1:E1", ["Test E", "Test F", "Test G"]));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!D1", 1));
+    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B2", "", [["Test A", "Test B"], ["Test C", "Test D"]]));
+    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!C1:E1", "", ["Test E", "Test F", "Test G"]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!D1", "", 1));
 
     const result = [
         {
@@ -173,9 +231,9 @@ function test_createRequests_0() {
 function test_pushQueue_0() {
     queue.length = 0;
     const timestamp = Date.now();
-    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B2", [["Test A", "Test B"], ["Test C", "Test D"]]));
-    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!C1:E1", ["Test E", "Test F", "Test G"]));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A4", 1));
+    queue.push(new QueueEntry(timestamp, "updateData", "Sheet1!A1:B2", "", [["Test A", "Test B"], ["Test C", "Test D"]]));
+    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!C1:E1", "", ["Test E", "Test F", "Test G"]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!A4", "", 1));
 
     queuer.pushQueue("13z3_2ZYUfmB1CiSAxmK70S3viR-LxlaDKvCwo-Bkqeg");
 }
@@ -184,8 +242,8 @@ async function test_pushQueue_1() {
     queue.length = 0;
     const timestamp = Date.now();
 
-    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!A9:G9", ["Nero", "TOOL BOX", "RIGHT HAND", "", 1, "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SKIRT</item>, <item>4 SCREWDRIVERS</item>, <item>2 HAMMERS</item>, and <item>4 WRENCHES</item></il>.</s></desc>"]));
-    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!G19", "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>"));
+    queue.push(new QueueEntry(timestamp, "updateRow", "Sheet1!A9:G9", "", ["Nero", "TOOL BOX", "RIGHT HAND", "", 1, "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SKIRT</item>, <item>4 SCREWDRIVERS</item>, <item>2 HAMMERS</item>, and <item>4 WRENCHES</item></il>.</s></desc>"]));
+    queue.push(new QueueEntry(timestamp, "updateCell", "Sheet1!G19", "", "<desc><s>It's a beige satchel with a long strap to go over the shoulder.</s> <s>Inside, you find <il><item>a LAPTOP</item> and <item>a SMALL BAG</item></il>.</s></desc>"));
     let data =
         [
             ["Nero", "SCREWDRIVER", "RIGHT HAND", "TOOL BOX/TOOL BOX", 4, "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
@@ -195,7 +253,7 @@ async function test_pushQueue_1() {
             ["Nero", "HAMMER", "RIGHT HAND", "VIVIANS SKIRT/LEFT POCKET", 1, "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
             ["Nero", "HAMMER", "RIGHT HAND", "VIVIANS SKIRT/RIGHT POCKET", 1, "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"]
         ];
-    queue.push(new QueueEntry(timestamp, "insertData", "Sheet1!A14:G14", data));
+    queue.push(new QueueEntry(timestamp, "insertData", "Sheet1!A14:G14", "", data));
 
     data =
         [
@@ -203,7 +261,7 @@ async function test_pushQueue_1() {
             ["Vivian", "SMALL BAG", "BAG", "VIVIANS SATCHEL/SATCHEL", 1, "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a WRENCH</item></il>.</s></desc>"],
             ["Vivian", "WRENCH", "BAG", "SMALL BAG/SMALL BAG", 1, "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"]
         ];
-    queue.push(new QueueEntry(timestamp, "insertData", "Sheet1!A33:G33", data));
+    queue.push(new QueueEntry(timestamp, "insertData", "Sheet1!A33:G33", "", data));
 
     await queuer.pushQueue("1Jff929xJkpABqIHns4ZWPalNiq4sB8AiVur7ApuamPc");
 

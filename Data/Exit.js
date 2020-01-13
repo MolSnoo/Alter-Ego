@@ -16,12 +16,12 @@ class Exit {
 
     unlock() {
         this.unlocked = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.unlockedCell(), "TRUE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.unlockedCell(), `Rooms!|${this.name}`, "TRUE"));
     }
 
     lock() {
         this.unlocked = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.unlockedCell(), "FALSE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.unlockedCell(), `Rooms!|${this.name}`, "FALSE"));
     }
 
     unlockedCell() {

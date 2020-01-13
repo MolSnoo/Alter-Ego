@@ -1,8 +1,9 @@
 ﻿class QueueEntry {
-    constructor(timestamp, type, range, data) {
+    constructor(timestamp, type, range, item, data) {
         this.timestamp = timestamp;
         this.type = type;
         this.range = range;
+        this.item = item;
         this.data = data;
         this.startingRow = this.getStartingRow();
     }

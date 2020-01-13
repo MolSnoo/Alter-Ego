@@ -29,12 +29,12 @@ class Puzzle {
 
     setAccessible(game) {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Puzzles!${this.name}|${this.location.name}`, "TRUE"));
     }
 
     setInaccessible(game) {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Puzzles!${this.name}|${this.location.name}`, "FALSE"));
     }
 
     async solve(bot, game, player, message, doSolvedCommands) {
@@ -46,7 +46,7 @@ class Puzzle {
 
         // Now mark it as solved.
         this.solved = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), "TRUE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), `Puzzles!${this.name}|${this.location.name}`, "TRUE"));
 
         if (doSolvedCommands === true) {
             // Run any needed commands.
@@ -82,7 +82,7 @@ class Puzzle {
 
         // Now mark it as unsolved.
         this.solved = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), "FALSE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), `Puzzles!${this.name}|${this.location.name}`, "FALSE"));
 
         if (doUnsolvedCommands === true) {
             // Run any needed commands.
@@ -114,7 +114,7 @@ class Puzzle {
         if (!isNaN(this.remainingAttempts)) {
             this.remainingAttempts--;
             player.sendDescription(this.incorrectDescription, this);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.attemptsCell(), this.remainingAttempts));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.attemptsCell(), `Puzzles!${this.name}|${this.location.name}`, this.remainingAttempts));
         }
         else
             player.sendDescription(this.incorrectDescription, this);

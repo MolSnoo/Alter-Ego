@@ -34,8 +34,7 @@ class Item {
                         (inventoryItem.uses === item.uses || isNaN(inventoryItem.uses) && isNaN(item.uses)) &&
                         inventoryItem.description === item.description
                     );
-                    if (matchedItem && !isNaN(matchedItem.quantity)) matchedItem.quantity += item.quantity;
-                    else this.inventory[i].item.push(item);
+                    if (!matchedItem || isNaN(matchedItem.quantity)) this.inventory[i].item.push(item);
                     if (!isNaN(item.quantity)) {
                         this.inventory[i].weight += item.weight * item.quantity;
                         this.inventory[i].takenSpace += item.prefab.size * item.quantity;
@@ -64,12 +63,12 @@ class Item {
 
     setAccessible(game) {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.location.name}|${this.containerName}`, "TRUE"));
     }
 
     setInaccessible(game) {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.location.name}|${this.containerName}`, "FALSE"));
     }
 
     itemCells() {

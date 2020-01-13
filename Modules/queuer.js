@@ -13,21 +13,35 @@ module.exports.pushQueue = async function (spreadsheetId, dataOperation) {
 };
 
 module.exports.cleanQueue = function () {
+    var deleteIndexes = new Array();
+    // Combine any subsequent insertData entries.
+    for (let i = queue.length - 2; i >= 0; i--) {
+        if (queue[i].type === "insertData" && queue[i + 1].type === "insertData" &&
+            queue[i].range.substring(0, queue[i].range.indexOf('!')) === queue[i + 1].range.substring(0, queue[i + 1].range.indexOf('!')) &&
+            queue[i].startingRow === queue[i + 1].startingRow - 1) {
+            queue[i].data = queue[i].data.concat(queue[i + 1].data);
+            deleteIndexes.push(i + 1);
+        }
+    }
     // Group the queue by the range each entry is writing to.
     const groupedQueue = _.groupBy(queue, 'range');
-    var deleteIndexes = new Array();
     _.forEach(groupedQueue, function (value) {
         const set = value;
-        // In each set, sort queue entries by their timestamps.
-        set.sort(function (a, b) {
-            if (a.timestamp < b.timestamp) return -1;
-            if (a.timestamp > b.timestamp) return 1;
-            return 0;
-        });
-        // Add the index of each entry except the last one to the list of indexes to delete.
-        for (let i = 0; i < set.length - 1; i++)
-            deleteIndexes.push(queue.indexOf(set[i]));
+        if (set[0].type !== "insertData") {
+            // In each set, sort queue entries by their timestamps.
+            set.sort(function (a, b) {
+                if (a.timestamp < b.timestamp) return -1;
+                if (a.timestamp > b.timestamp) return 1;
+                return 0;
+            });
+            // Add the index of each entry except the last one to the list of indexes to delete.
+            for (let i = 0; i < set.length - 1; i++) {
+                if (set[i + 1] && set[i].item === set[i + 1].item)
+                    deleteIndexes.push(queue.indexOf(set[i]));
+            }
+        }
     });
+    
     // Sort the indexes to delete by decreasing value.
     deleteIndexes.sort((a, b) => b - a);
     // Now delete each one.

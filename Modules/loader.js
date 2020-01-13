@@ -374,6 +374,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 );
             }
             var errors = [];
+            var childItemIndexes = [];
             for (let i = 0; i < game.items.length; i++) {
                 game.items[i].location = game.rooms.find(room => room.name === game.items[i].location && room.name !== "");
                 if (game.items[i].prefab) {
@@ -387,25 +388,38 @@ module.exports.loadItems = function (game, doErrorChecking) {
                     if (container) game.items[i].container = container;
                 }
                 else if (game.items[i].containerName.startsWith("Item:")) {
-                    const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
-                    const prefabName = containerName[0] ? containerName[0].trim() : "";
-                    const slotName = containerName[1] ? containerName[1].trim() : "";
-                    let container = game.items.find(item => item.prefab.id === prefabName && item.location.name === game.items[i].location.name);
-                    if (container) {
-                        game.items[i].container = container;
-                        game.items[i].slot = slotName;
-                        // This is a pseudo-copy of the insertItems function without weight and takenSpace changing.
-                        if (game.items[i].quantity !== 0) {
-                            for (let j = 0; j < container.inventory.length; j++) {
-                                if (container.inventory[j].name === slotName)
-                                    container.inventory[j].item.push(game.items[i]);
-                            }
-                        }
-                    }
+                    childItemIndexes.push(i);
                 }
                 else if (game.items[i].containerName.startsWith("Puzzle:")) {
                     let container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location.name === game.items[i].location.name);
                     if (container) game.items[i].container = container;
+                }
+            }
+            // Only assign child item containers once all items have been properly initialized.
+            for (let index = 0; index < childItemIndexes.length; index++) {
+                const i = childItemIndexes[index];
+                const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
+                const prefabName = containerName[0] ? containerName[0].trim() : "";
+                const slotName = containerName[1] ? containerName[1].trim() : "";
+                let possibleContainers = game.items.filter(item => item.prefab.id === prefabName && item.location.name === game.items[i].location.name);
+                let container = null;
+                for (let i = 0; i < possibleContainers.length; i++) {
+                    if (possibleContainers[i].quantity > 0) {
+                        container = possibleContainers[i];
+                        break;
+                    }
+                }
+                if (container === null && possibleContainers.length > 0) container = possibleContainers[0];
+                if (container) {
+                    game.items[i].container = container;
+                    game.items[i].slot = slotName;
+                    // This is a pseudo-copy of the insertItems function without weight and takenSpace changing.
+                    if (game.items[i].quantity !== 0) {
+                        for (let j = 0; j < container.inventory.length; j++) {
+                            if (container.inventory[j].name === slotName)
+                                container.inventory[j].item.push(game.items[i]);
+                        }
+                    }
                 }
             }
             // Create a recursive function for properly inserting item inventories.
@@ -816,7 +830,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                             }
                         }
                     }
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), currentPlayer.statusString));
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), `Players!|${currentPlayer.name}`, currentPlayer.statusString));
 
                     for (let k = 0; k < game.rooms.length; k++) {
                         if (game.rooms[k].name === currentPlayer.location.name) {
@@ -1028,18 +1042,44 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                 }
                 return createdItem;
             };
-            // Run through inventoryItems one more time to properly insert their inventories.
+            // Run through inventoryItems one more time to properly insert their inventories and assign them to players.
             for (let i = 0; i < game.inventoryItems.length; i++) {
                 if (game.inventoryItems[i].prefab instanceof Prefab) {
-                    game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
-
-                    if (doErrorChecking) {
-                        let error = exports.checkInventoryItem(game.inventoryItems[i]);
-                        if (error instanceof Error) errors.push(error);
+                    let container = game.inventoryItems[i].container;
+                    if (game.inventoryItems[i].container instanceof InventoryItem) {
+                        for (let slot = 0; slot < container.inventory.length; slot++) {
+                            for (let j = 0; j < container.inventory[slot].item.length; j++) {
+                                if (container.inventory[slot].item[j].row === game.inventoryItems[i].row) {
+                                    game.inventoryItems[i] = container.inventory[slot].item[j];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
+                }
+                if (game.inventoryItems[i].player) {
+                    const player = game.inventoryItems[i].player;
+                    for (let slot = 0; slot < player.inventory.length; slot++) {
+                        if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot && game.inventoryItems[i].containerName === "" && game.inventoryItems[i].prefab !== null)
+                            player.inventory[slot].equippedItem = game.inventoryItems[i];
+                        let foundItem = false;
+                        for (let j = 0; j < player.inventory[slot].items.length; j++) {
+                            if (player.inventory[slot].items[j].row === game.inventoryItems[i].row) {
+                                foundItem = true;
+                                player.inventory[slot].items[j] = game.inventoryItems[i];
+                                break;
+                            }
+                        }
+                        if (foundItem) break;
                     }
                 }
+
+                if (doErrorChecking) {
+                    let error = exports.checkInventoryItem(game.inventoryItems[i]);
+                    if (error instanceof Error) errors.push(error);
+                }
             }
-            game.inventoryItems[26].quantity++;
 
             if (errors.length > 0) {
                 if (errors.length > 5) {
@@ -1064,7 +1104,7 @@ module.exports.checkInventoryItem = function (item) {
             return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
         if (!item.foundEquipmentSlot)
             return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find equipment slot "${item.equipmentSlot}".`);
-        if (item.containerName !== "" && (item.container === null || item.container === undefined))
+        if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
             return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
         if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
             return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);

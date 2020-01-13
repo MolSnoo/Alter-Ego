@@ -25,7 +25,15 @@ class InventoryItem {
         if (item.quantity !== 0) {
             for (let i = 0; i < this.inventory.length; i++) {
                 if (this.inventory[i].name === slot) {
-                    this.inventory[i].item.push(item);
+                    let matchedItem = this.inventory[i].item.find(inventoryItem =>
+                        inventoryItem.prefab !== null && item.prefab !== null &&
+                        inventoryItem.prefab.id === item.prefab.id &&
+                        inventoryItem.containerName === item.containerName &&
+                        inventoryItem.slot === item.slot &&
+                        (inventoryItem.uses === item.uses || isNaN(inventoryItem.uses) && isNaN(item.uses)) &&
+                        inventoryItem.description === item.description
+                    );
+                    if (!matchedItem || isNaN(matchedItem.quantity)) this.inventory[i].item.push(item);
                     if (!isNaN(item.quantity)) {
                         this.inventory[i].weight += item.weight * item.quantity;
                         this.inventory[i].takenSpace += item.prefab.size * item.quantity;

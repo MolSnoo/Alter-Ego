@@ -28,17 +28,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable take");
     if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
 
-    /*// First, check if the player has free space in their inventory.
-    var freeSlot = -1;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (player.inventory[i].name === null) {
-            freeSlot = i;
-            break;
-        }
-    }
-    if (freeSlot === -1) return message.reply("your inventory is full. You cannot take anymore items until you drop something.");
-    */
-
     // First, check if the player has a free hand.
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
@@ -123,10 +112,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // If no container was found, make the container the Room.
     if (item !== null && item !== undefined && item.container === null)
         container = item.location;
-
-    //console.log(item);
-    //console.log(container);
-    //console.log(`"${slotName}"`);
 
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.

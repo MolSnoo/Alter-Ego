@@ -190,7 +190,8 @@ module.exports.addItem = function (description, item, slot) {
         // We need to find the location of the beginning of the item list.
         var containsItemList = false;
         for (i = 0; i < sentences.length; i++) {
-            if (sentences[i].itemList !== null && sentences[i].itemListName === slot) {
+            if (sentences[i].itemList !== null && 
+                (sentences[i].itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1)) {
                 containsItemList = true;
                 break;
             }
