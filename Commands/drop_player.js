@@ -43,7 +43,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (object.childPuzzle !== null && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
                 return message.reply(`you cannot put items ${object.preposition} ${object.name} right now.`);
             newArgs = parsedInput.split(' ');
-            var objectPreposition = newArgs[newArgs.length - 1];
+            var objectPreposition = newArgs[newArgs.length - 1].toLowerCase();
             newArgs.splice(newArgs.length - 1, 1);
             parsedInput = newArgs.join(' ');
             break;
@@ -63,6 +63,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 // Check if a slot was specified.
                 if (parsedInput.endsWith(" OF")) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
+                    newArgs = parsedInput.split(' ');
                     for (let slot = 0; slot < containerItem.inventory.length; slot++) {
                         if (parsedInput.endsWith(containerItem.inventory[slot].name)) {
                             containerItemSlot = containerItem.inventory[slot];
@@ -70,9 +71,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                             break;
                         }
                     }
+                    if (containerItemSlot === null) return message.reply(`couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
                 }
                 newArgs = parsedInput.split(' ');
-                var itemPreposition = newArgs[newArgs.length - 1];
+                var itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
                 newArgs.splice(newArgs.length - 1, 1);
                 parsedInput = newArgs.join(' ');
                 break;
