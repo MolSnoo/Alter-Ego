@@ -6,7 +6,7 @@ module.exports.config = {
     details: "Adds an item from the room you're in to your inventory. You must have a free hand to take an item. "
         + "If there are multiple items with the same name in a room, you can specify which object or item you want to take it from. "
         + "Additionally, if the item is contained in another item with multiple inventory slots (such as pockets), you can specify which slot to "
-        + "take it from. If you're carrying a very large item (a sword, for example), people will see you carrying it when you enter or exit a room.",
+        + "take it from. If you take a very large item (a sword, for example), people will see you pick it up and see you carrying it when you enter or exit a room.",
     usage: `${settings.commandPrefix}take butcher's knife\n`
         + `${settings.commandPrefix}get first aid kit\n`
         + `${settings.commandPrefix}take pill bottle from medicine cabinet\n`

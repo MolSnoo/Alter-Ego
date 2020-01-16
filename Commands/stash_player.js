@@ -2,9 +2,16 @@
 
 module.exports.config = {
     name: "stash_player",
-    description: "An example command.",
-    details: "Tells you your role.",
-    usage: `${settings.commandPrefix}example`,
+    description: "Stores an inventory item inside another inventory item.",
+    details: "Moves an item from your hand to another item in your inventory. You can specify any item in your inventory "
+        + "that has the capacity to hold items. If the inventory item you choose has multiple slots for items (such as multiple pockets), "
+        + "you can specify which slot you want to store the item in. Note that each slot has a maximum capacity that it can hold, so if it's "
+        + "too full or too small to contain the item you're trying to stash, you won't be able to stash it there. If you attempt to stash a "
+        + "very large item (a sword, for example), people in the room with you will see you doing so.",
+    usage: `${settings.commandPrefix}stash laptop in satchel\n`
+        + `${settings.commandPrefix}store sword in sheath\n`
+        + `${settings.commandPrefix}stash old key in right pocket of pants\n`
+        + `${settings.commandPrefix}store water bottle in side pouch of backpack`,
     usableBy: "Player",
     aliases: ["stash", "store"]
 };
@@ -82,10 +89,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (item.row === containerItem.row) return message.reply(`can't stash ${item.name} ${itemPreposition} itself.`);
 
     if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-    if (item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
-    else if (item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${container.name} because it is too large.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because there isn't enough space left.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${container.name} because there isn't enough space left.`);
+    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${containerItem.name} because it is too large.`);
+    else if (item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${containerItem.name} because it is too large.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${containerItem.name} because there isn't enough space left.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
 
     player.stash(game, item, hand, containerItem, containerItemSlot.name);
     // Post log message.

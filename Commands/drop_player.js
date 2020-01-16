@@ -3,15 +3,17 @@
 module.exports.config = {
     name: "drop_player",
     description: "Discards an item from your inventory.",
-    details: "Discards an item from your inventory and leaves it in the room you're currently in. "
-        + "You can specify where in the room you'd like to leave it by putting the name of an object in the room after the item. "
-        + "Not all objects can contain items, but it should be fairly obvious which ones can. If you don't specify an object, "
-        + "you will simply leave it on the floor. If you drop a very large item (a sword, for example), "
-        + "people in the room with you will see you discard it.",
+    details: "Discards an item from your inventory and leaves it in the room you're currently in. The item you want to discard must be in either of your hands. "
+        + "You can specify where in the room you'd like to leave it by putting the name of an object or item in the room after the item. "
+        + "Not all objects and items can contain items, but it should be fairly obvious which ones can. If you want to discard it in an item with multiple "
+        + "inventory slots (such as pockets), you can specify which slot to put it in. If you don't specify an object or item, you will simply leave it on the floor. "
+        + "If you drop a very large item (a sword, for example), people in the room with you will see you discard it.",
     usage: `${settings.commandPrefix}drop first aid kit\n`
         + `${settings.commandPrefix}discard basketball\n`
-        + `${settings.commandPrefix}drop knife sink\n`
-        + `${settings.commandPrefix}discard towel benches`,
+        + `${settings.commandPrefix}drop knife in sink\n`
+        + `${settings.commandPrefix}discard towel on benches\n`
+        + `${settings.commandPrefix}drop key in right pocket of skirt\n`
+        + `${settings.commandPrefix}discard wrench on top rack of tool box`,
     usableBy: "Player",
     aliases: ["drop", "discard"]
 };
