@@ -8,6 +8,7 @@ const test_whispers = include(`${settings.testsDir}/test_whispers.js`);
 const test_calculate_move_time = include(`${settings.testsDir}/test_calculate_move_time.js`);
 const test_queuer = include(`${settings.testsDir}/test_queuer.js`);
 const test_take_drop = include(`${settings.testsDir}/test_take_drop.js`);
+const test_stash_unstash = include(`${settings.testsDir}/test_stash_unstash.js`);
 
 exports.runTests = async function (bot) {
     //test_cell_responses.run();
@@ -17,6 +18,7 @@ exports.runTests = async function (bot) {
     //await test_whispers.run(bot);
     //test_calculate_move_time.run();
     //test_queuer.run();
-    test_take_drop.run();
+    //test_take_drop.run();
+    test_stash_unstash.run();
     console.log("All tests passed.");
 };
