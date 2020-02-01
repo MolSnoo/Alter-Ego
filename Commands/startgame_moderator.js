@@ -52,10 +52,11 @@ module.exports.run = async (bot, game, message, command, args) => {
         game.canJoin = false;
         const playerRole = game.guild.roles.find(role => role.id === settings.playerRole);
         channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
-        var cells = new Array();
+        var playerCells = [];
+        var inventoryCells = [];
         for (let i = 0; i < game.players.length; i++) {
             const player = game.players[i];
-            const playerData = new Array(
+            const playerData = [
                 player.id,
                 player.name,
                 player.talent,
@@ -68,13 +69,17 @@ module.exports.run = async (bot, game, message, command, args) => {
                 player.location,
                 player.hidingSpot,
                 player.status
-            );
+            ];
+            playerCells.push(playerData);
 
-            cells.push(playerData.concat(settings.emptyInventoryItem));
-            cells.push(settings.emptyPlayerRow.concat(settings.emptyInventoryItem));
-            cells.push(settings.emptyPlayerRow.concat(settings.emptyInventoryItem));
+            for (let j = 0; j < settings.defaultInventory.length; j++) {
+                var row = [player.name];
+                row = row.concat(settings.defaultInventory[j]);
+                inventoryCells.push(row);
+            }
         }
-        sheets.updateData(settings.playerSheetInitCells, cells);
+        sheets.updateData(settings.playerSheetInitCells, playerCells);
+        sheets.updateData(settings.inventorySheetInitCells, inventoryCells);
     }, time);
 
     game.game = true;
