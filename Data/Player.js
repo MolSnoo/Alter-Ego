@@ -893,6 +893,7 @@ class Player {
 
         item.containerName = container.prefab.id + '/' + slotName;
         item.container = container;
+        item.slot = slotName;
         container.insertItem(item, slotName);
         container.description = parser.addItem(container.description, item, slotName);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
@@ -902,7 +903,7 @@ class Player {
         // Get the row number of the EquipmentSlot that the item will go into.
         var rowNumber = 0;
         for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === item.equipmentSlot) {
+            if (this.inventory[slot].name === container.equipmentSlot) {
                 rowNumber = this.inventory[slot].row;
                 break;
             }
@@ -1024,13 +1025,27 @@ class Player {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
         }
 
         container.removeItem(item, slotName);
         container.description = parser.removeItem(container.description, item);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
+        // Remove the item from its EquipmentSlot.
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            let foundItem = false;
+            if (this.inventory[slot].name === item.equipmentSlot) {
+                for (let i = 0; i < this.inventory[slot].items.length; i++) {
+                    if (this.inventory[slot].items[i].row === item.row) {
+                        foundItem = true;
+                        this.inventory[slot].items.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            if (foundItem) break;
+        }
         // Get the row number of the EquipmentSlot that the item will go into.
         var rowNumber = 0;
         for (var slot = 0; slot < this.inventory.length; slot++) {
