@@ -53,7 +53,7 @@ class Puzzle {
             for (let i = 0; i < this.solvedCommands.length; i++) {
                 if (this.solvedCommands[i].startsWith("wait")) {
                     let args = this.solvedCommands[i].split(" ");
-                    if (!args[1]) game.commandChannel.send(`Error: Couldn't execute command "${this.solvedCommands[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${this.solvedCommands[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
                     if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.solvedCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
@@ -89,7 +89,7 @@ class Puzzle {
             for (let i = 0; i < this.unsolvedCommands.length; i++) {
                 if (this.unsolvedCommands[i].startsWith("wait")) {
                     let args = this.unsolvedCommands[i].split(" ");
-                    if (!args[1]) game.commandChannel.send(`Error: Couldn't execute command "${this.unsolvedCommands[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${this.unsolvedCommands[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
                     if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.unsolvedCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
