@@ -2,6 +2,7 @@ const settings = include('settings.json');
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
 const queuer = include(`${settings.modulesDir}/queuer.js`);
+const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
@@ -532,107 +533,7 @@ class Player {
         ];
         game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-        var lastNewItem = this.inventory[this.inventory.length - 1].equippedItem;
-        for (let i = 0; i < items.length; i++) {
-            // Check if the player is picking this item up again.
-            const playerItems = game.inventoryItems.filter(item => item.player.id === this.id);
-            let matchedItem = playerItems.find(item =>
-                item.prefab !== null &&
-                item.prefab.id === items[i].prefab.id &&
-                item.equipmentSlot === items[i].equipmentSlot &&
-                item.containerName === items[i].containerName &&
-                item.slot === items[i].slot &&
-                (item.uses === items[i].uses || isNaN(item.uses) && isNaN(items[i].uses)) &&
-                item.description === items[i].description
-            );
-            if (matchedItem) {
-                if (!isNaN(matchedItem.quantity)) {
-                    matchedItem.quantity += items[i].quantity;
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Inventory Items!${matchedItem.prefab.id}|${this.name}|${matchedItem.equipmentSlot}|${matchedItem.containerName}`, matchedItem.quantity));
-                }
-                const containerRow = matchedItem.container !== null ? matchedItem.container.row : 0;
-                matchedItem.container = items[i].container;
-                if (containerRow !== 0) matchedItem.container.row = containerRow;
-                matchedItem.weight = items[i].weight;
-                matchedItem.inventory = items[i].inventory;
-                // Update container's references to this item.
-                if (items[i].container instanceof InventoryItem) {
-                    let foundItem = false;
-                    for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
-                        if (items[i].container.inventory[slot].name === items[i].slot) {
-                            const containerSlot = items[i].container.inventory[slot];
-                            for (let j = 0; j < containerSlot.item.length; j++) {
-                                if (containerSlot.item[j].prefab.id === items[i].prefab.id) {
-                                    foundItem = true;
-                                    containerSlot.item.splice(j, 1, matchedItem);
-                                    break;
-                                }
-                            }
-                            if (foundItem) break;
-                        }
-                    }
-                }
-                this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, matchedItem);
-            }
-            // The player hasn't picked this item up before or it's been modified somehow.
-            else {
-                let data = [[
-                    this.name,
-                    items[i].prefab.id,
-                    items[i].equipmentSlot,
-                    items[i].containerName,
-                    isNaN(items[i].quantity) ? "" : items[i].quantity,
-                    isNaN(items[i].uses) ? "" : items[i].uses,
-                    items[i].description
-                ]];
-
-                // We want to insert this item near items in the same container slot, so get all of the items in that container slot.
-                const slotItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.containerName === items[i].containerName);
-                // Just in case there aren't any, get items just within the same container.
-                const containerItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.container !== null && item.container.prefab !== null && item.container.prefab.id === items[i].container.prefab.id);
-
-                const lastSlotItem = slotItems[slotItems.length - 1];
-                const lastContainerItem = containerItems[containerItems.length - 1];
-
-                var insertRow = -1;
-                // If the list of items in that slot isn't empty, insert the new item.
-                if (slotItems.length !== 0) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastSlotItem.itemCells(), `Inventory Items!${lastSlotItem.prefab.id}|${this.name}|${lastSlotItem.equipmentSlot}|${lastSlotItem.containerName}`, data));
-                    insertRow = lastSlotItem.row;
-                }
-                // If there are none, it might just be that there are no items in that slot yet. Try to at least put it near items in the same container.
-                else if (containerItems.length !== 0) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Inventory Items!${lastContainerItem.prefab.id}|${this.name}|${lastContainerItem.equipmentSlot}|${lastContainerItem.containerName}`, data));
-                    insertRow = lastContainerItem.row;
-                }
-                // If there are none, just insert it after the last new item.
-                else {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastNewItem.itemCells(), `Inventory Items!|${this.name}|${lastNewItem.equipmentSlot}|${lastNewItem.containerName}`, data));
-                    insertRow = lastNewItem.row;
-                }
-                lastNewItem = items[i];
-
-                // Insert the new item into the inventoryItems list at the appropriate position.
-                for (var insertIndex = 0; insertIndex < game.inventoryItems.length; insertIndex++) {
-                    if (game.inventoryItems[insertIndex].row === insertRow) {
-                        game.inventoryItems.splice(insertIndex + 1, 0, items[i]);
-                        this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, items[i]);
-                        break;
-                    }
-                }
-                // Update the rows for all of the inventoryItems after this.
-                for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++ , newRow++)
-                    game.inventoryItems[j].row = newRow;
-
-                // Update the rows for all Player EquipmentSlots.
-                for (let j = 0; j < game.players.length; j++) {
-                    for (let slot = 0; slot < game.players[j].inventory.length; slot++) {
-                        if (game.players[j].inventory[slot].equippedItem === null) game.players[j].inventory[slot].row = game.players[j].inventory[slot].items[0].row;
-                        else game.players[j].inventory[slot].row = game.players[j].inventory[slot].equippedItem.row;
-                    }
-                }
-            }
-        }
+        this.insertInventoryItems(game, items, slot, container, false);
 
         this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
@@ -720,7 +621,7 @@ class Player {
 
     drop(game, item, hand, container, slotName) {
         // Unequip the item from the player's hand.
-        this.unequip(game, hand, item);
+        this.unequip(game, item, hand, null);
 
         // Convert the InventoryItem to an Item.
         var createdItem = this.convertInventoryItem(item, container, slotName, 1);
@@ -889,7 +790,7 @@ class Player {
 
     stash(game, item, hand, container, slotName) {
         // Unequip the item from the player's hand.
-        this.unequip(game, hand, item);
+        this.unequip(game, item, hand, null);
 
         item.containerName = container.prefab.id + '/' + slotName;
         item.container = container;
@@ -914,106 +815,7 @@ class Player {
         items.push(item);
         this.getChildItems(items, item);
 
-        var lastNewItem = this.inventory[this.inventory.length - 1].equippedItem;
-        for (let i = 0; i < items.length; i++) {
-            items[i].equipmentSlot = container.equipmentSlot;
-            // Check if the player is stashing this item again.
-            const playerItems = game.inventoryItems.filter(item => item.player.id === this.id);
-            let matchedItem = playerItems.find(item =>
-                item.prefab !== null &&
-                item.prefab.id === items[i].prefab.id &&
-                item.equipmentSlot === items[i].equipmentSlot &&
-                item.containerName === items[i].containerName &&
-                item.slot === items[i].slot &&
-                (item.uses === items[i].uses || isNaN(item.uses) && isNaN(items[i].uses)) &&
-                item.description === items[i].description
-            );
-            if (matchedItem) {
-                if (!isNaN(matchedItem.quantity)) {
-                    matchedItem.quantity += items[i].quantity;
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Inventory Items!${matchedItem.prefab.id}|${this.name}|${matchedItem.equipmentSlot}|${matchedItem.containerName}`, matchedItem.quantity));
-                }
-                const containerRow = matchedItem.container !== null ? matchedItem.container.row : 0;
-                matchedItem.container = items[i].container;
-                if (containerRow !== 0) matchedItem.container.row = containerRow;
-                matchedItem.weight = items[i].weight;
-                matchedItem.inventory = items[i].inventory;
-                // Update container's references to this item.
-                if (items[i].container instanceof InventoryItem) {
-                    let foundItem = false;
-                    for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
-                        if (items[i].container.inventory[slot].name === items[i].slot) {
-                            const containerSlot = items[i].container.inventory[slot];
-                            for (let j = 0; j < containerSlot.item.length; j++) {
-                                if (containerSlot.item[j].prefab.id === items[i].prefab.id) {
-                                    foundItem = true;
-                                    containerSlot.item.splice(j, 1, matchedItem);
-                                    break;
-                                }
-                            }
-                            if (foundItem) break;
-                        }
-                    }
-                }
-                this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, matchedItem);
-            }
-            else {
-                let data = [[
-                    this.name,
-                    items[i].prefab.id,
-                    items[i].equipmentSlot,
-                    items[i].containerName,
-                    isNaN(items[i].quantity) ? "" : items[i].quantity,
-                    isNaN(items[i].uses) ? "" : items[i].uses,
-                    items[i].description
-                ]];
-
-                // We want to insert this item near items in the same container slot, so get all of the items in that container slot.
-                const slotItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.containerName === items[i].containerName);
-                // Just in case there aren't any, get items just within the same container.
-                const containerItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.container !== null && item.container.prefab !== null && item.container.prefab.id === items[i].container.prefab.id);
-
-                const lastSlotItem = slotItems[slotItems.length - 1];
-                const lastContainerItem = containerItems[containerItems.length - 1];
-
-                var insertRow = -1;
-                if (slotItems.length !== 0) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastSlotItem.itemCells(), `Inventory Items!${lastSlotItem.prefab.id}|${this.name}|${lastSlotItem.equipmentSlot}|${lastSlotItem.containerName}`, data));
-                    insertRow = lastSlotItem.row;
-                }
-                // If there are none, it might just be that there are no items in that slot yet. Try to at least put it near items in the same container.
-                else if (containerItems.length !== 0) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Inventory Items!${lastContainerItem.prefab.id}|${this.name}|${lastContainerItem.equipmentSlot}|${lastContainerItem.containerName}`, data));
-                    insertRow = lastContainerItem.row;
-                }
-                // If there are none, just insert it after the last new item.
-                else {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastNewItem.itemCells(), `Inventory Items!|${this.name}|${lastNewItem.equipmentSlot}|${lastNewItem.containerName}`, data));
-                    insertRow = lastNewItem.row;
-                }
-                lastNewItem = items[i];
-
-                // Insert the new item into the inventoryItems list at the appropriate position.
-                for (var insertIndex = 0; insertIndex < game.inventoryItems.length; insertIndex++) {
-                    if (game.inventoryItems[insertIndex].row === insertRow) {
-                        game.inventoryItems.splice(insertIndex + 1, 0, items[i]);
-                        this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, items[i]);
-                        break;
-                    }
-                }
-                // Update the rows for all of the inventoryItems after this.
-                for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++ , newRow++)
-                    game.inventoryItems[j].row = newRow;
-
-                // Update the rows for all Player EquipmentSlots.
-                for (let j = 0; j < game.players.length; j++) {
-                    for (let slot = 0; slot < game.players[j].inventory.length; slot++) {
-                        if (game.players[j].inventory[slot].equippedItem === null) game.players[j].inventory[slot].row = game.players[j].inventory[slot].items[0].row;
-                        else game.players[j].inventory[slot].row = game.players[j].inventory[slot].equippedItem.row;
-                    }
-                }
-            }
-        }
+        this.insertInventoryItems(game, items, slot, container, true);
 
         this.member.send(`You stash ${item.singleContainingPhrase}.`);
         if (!item.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${container.singleContainingPhrase}.`).send();
@@ -1096,108 +898,8 @@ class Player {
         ];
         game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-        var lastNewItem = this.inventory[this.inventory.length - 1].equippedItem;
-        for (let i = 0; i < items.length; i++) {
-            // Check if the player is picking this item up again.
-            const playerItems = game.inventoryItems.filter(item => item.player.id === this.id);
-            let matchedItem = playerItems.find(item =>
-                item.prefab !== null &&
-                item.prefab.id === items[i].prefab.id &&
-                item.equipmentSlot === items[i].equipmentSlot &&
-                item.containerName === items[i].containerName &&
-                item.slot === items[i].slot &&
-                (item.uses === items[i].uses || isNaN(item.uses) && isNaN(items[i].uses)) &&
-                item.description === items[i].description
-            );
-            if (matchedItem) {
-                if (!isNaN(matchedItem.quantity)) {
-                    matchedItem.quantity += items[i].quantity;
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Inventory Items!${matchedItem.prefab.id}|${this.name}|${matchedItem.equipmentSlot}|${matchedItem.containerName}`, matchedItem.quantity));
-                }
-                const containerRow = matchedItem.container !== null ? matchedItem.container.row : 0;
-                matchedItem.container = items[i].container;
-                if (containerRow !== 0) matchedItem.container.row = containerRow;
-                matchedItem.weight = items[i].weight;
-                matchedItem.inventory = items[i].inventory;
-                // Update container's references to this item.
-                if (items[i].container instanceof InventoryItem) {
-                    let foundItem = false;
-                    for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
-                        if (items[i].container.inventory[slot].name === items[i].slot) {
-                            const containerSlot = items[i].container.inventory[slot];
-                            for (let j = 0; j < containerSlot.item.length; j++) {
-                                if (containerSlot.item[j].prefab.id === items[i].prefab.id) {
-                                    foundItem = true;
-                                    containerSlot.item.splice(j, 1, matchedItem);
-                                    break;
-                                }
-                            }
-                            if (foundItem) break;
-                        }
-                    }
-                }
-                this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, matchedItem);
-            }
-            // The player hasn't picked this item up before or it's been modified somehow.
-            else {
-                let data = [[
-                    this.name,
-                    items[i].prefab.id,
-                    items[i].equipmentSlot,
-                    items[i].containerName,
-                    isNaN(items[i].quantity) ? "" : items[i].quantity,
-                    isNaN(items[i].uses) ? "" : items[i].uses,
-                    items[i].description
-                ]];
-
-                // We want to insert this item near items in the same container slot, so get all of the items in that container slot.
-                const slotItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.containerName === items[i].containerName);
-                // Just in case there aren't any, get items just within the same container.
-                const containerItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.container !== null && item.container.prefab !== null && item.container.prefab.id === items[i].container.prefab.id);
-
-                const lastSlotItem = slotItems[slotItems.length - 1];
-                const lastContainerItem = containerItems[containerItems.length - 1];
-
-                var insertRow = -1;
-                // If the list of items in that slot isn't empty, insert the new item.
-                if (slotItems.length !== 0) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastSlotItem.itemCells(), `Inventory Items!${lastSlotItem.prefab.id}|${this.name}|${lastSlotItem.equipmentSlot}|${lastSlotItem.containerName}`, data));
-                    insertRow = lastSlotItem.row;
-                }
-                // If there are none, it might just be that there are no items in that slot yet. Try to at least put it near items in the same container.
-                else if (containerItems.length !== 0) {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Inventory Items!${lastContainerItem.prefab.id}|${this.name}|${lastContainerItem.equipmentSlot}|${lastContainerItem.containerName}`, data));
-                    insertRow = lastContainerItem.row;
-                }
-                // If there are none, just insert it after the last new item.
-                else {
-                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastNewItem.itemCells(), `Inventory Items!|${this.name}|${lastNewItem.equipmentSlot}|${lastNewItem.containerName}`, data));
-                    insertRow = lastNewItem.row;
-                }
-                lastNewItem = items[i];
-
-                // Insert the new item into the inventoryItems list at the appropriate position.
-                for (var insertIndex = 0; insertIndex < game.inventoryItems.length; insertIndex++) {
-                    if (game.inventoryItems[insertIndex].row === insertRow) {
-                        game.inventoryItems.splice(insertIndex + 1, 0, items[i]);
-                        this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, items[i]);
-                        break;
-                    }
-                }
-                // Update the rows for all of the inventoryItems after this.
-                for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++ , newRow++)
-                    game.inventoryItems[j].row = newRow;
-
-                // Update the rows for all Player EquipmentSlots.
-                for (let j = 0; j < game.players.length; j++) {
-                    for (let slot = 0; slot < game.players[j].inventory.length; slot++) {
-                        if (game.players[j].inventory[slot].equippedItem === null) game.players[j].inventory[slot].row = game.players[j].inventory[slot].items[0].row;
-                        else game.players[j].inventory[slot].row = game.players[j].inventory[slot].equippedItem.row;
-                    }
-                }
-            }
-        }
-
+        this.insertInventoryItems(game, items, slot, container, false);
+        
         this.member.send(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of their ${container.name}.`).send();
 
@@ -1298,7 +1000,7 @@ class Player {
         }
     }
 
-    unequip(game, slotName, item) {
+    async unequip(game, item, slotName, hand, bot) {
         // Get the row number of the EquipmentSlot that the item is being unequipped from.
         var rowNumber = 0;
         for (var slot = 0; slot < this.inventory.length; slot++) {
@@ -1330,6 +1032,183 @@ class Player {
             }
         }
         game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!|${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", nullItem.equipmentSlot, "", "", "", "", ""]));
+
+        // If the item is going to be put in the player's hand, move it.
+        if (hand !== null) {
+            // Get the row number of the EquipmentSlot that the item will go into.
+            rowNumber = 0;
+            for (slot = 0; slot < this.inventory.length; slot++) {
+                if (this.inventory[slot].name === hand) {
+                    rowNumber = this.inventory[slot].row;
+                    break;
+                }
+            }
+
+            // convertItem can also be used to copy an InventoryItem.
+            var createdItem = this.convertItem(item, hand, 1);
+            createdItem.row = rowNumber;
+
+            // Equip the item to the player's hand.
+            this.inventory[slot].equippedItem = createdItem;
+            this.inventory[slot].items.length = 0;
+            this.inventory[slot].items.push(createdItem);
+            // Replace the null entry in the inventoryItems list.
+            for (let i = 0; i < game.inventoryItems.length; i++) {
+                if (game.inventoryItems[i].row === createdItem.row) {
+                    game.inventoryItems.splice(i, 1, createdItem);
+                    break;
+                }
+            }
+            // Create a list of all the child items.
+            var items = [];
+            this.getChildItems(items, createdItem);
+
+            // Update the quantities of child items.
+            var oldChildItems = [];
+            this.getChildItems(oldChildItems, item);
+            for (let i = 0; i < oldChildItems.length; i++) {
+                oldChildItems[i].quantity = 0;
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            }
+
+            // Add the equipped item to the queue.
+            const createdItemData = [
+                this.name,
+                createdItem.prefab.id,
+                createdItem.equipmentSlot,
+                createdItem.containerName,
+                isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+                isNaN(createdItem.uses) ? "" : createdItem.uses,
+                createdItem.description
+            ];
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+            this.insertInventoryItems(game, items, slot, null, false);
+
+            this.member.send(`You unequip the ${createdItem.name}.`);
+            new Narration(game, this, this.location, `${this.displayName} takes off their ${createdItem.name}.`).send();
+
+            // Run unequip commands.
+            for (let i = 0; i < createdItem.prefab.unequipCommands.length; i++) {
+                const command = createdItem.prefab.unequipCommands[i];
+                if (command.startsWith("wait")) {
+                    let args = command.split(" ");
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(command, bot, game, null, this);
+                }
+            }
+        }
+        return;
+    }
+
+    insertInventoryItems(game, items, slot, container, setEquipmentSlot) {
+        var lastNewItem = this.inventory[this.inventory.length - 1].equippedItem;
+        for (let i = 0; i < items.length; i++) {
+            if (setEquipmentSlot) items[i].equipmentSlot = container.equipmentSlot;
+            // Check if this item already exists in the player's inventory.
+            const playerItems = game.inventoryItems.filter(item => item.player.id === this.id);
+            let matchedItem = playerItems.find(item =>
+                item.prefab !== null &&
+                item.prefab.id === items[i].prefab.id &&
+                item.equipmentSlot === items[i].equipmentSlot &&
+                item.containerName === items[i].containerName &&
+                item.slot === items[i].slot &&
+                (item.uses === items[i].uses || isNaN(item.uses) && isNaN(items[i].uses)) &&
+                item.description === items[i].description
+            );
+            if (matchedItem) {
+                if (!isNaN(matchedItem.quantity)) {
+                    matchedItem.quantity += items[i].quantity;
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Inventory Items!${matchedItem.prefab.id}|${this.name}|${matchedItem.equipmentSlot}|${matchedItem.containerName}`, matchedItem.quantity));
+                }
+                const containerRow = matchedItem.container !== null ? matchedItem.container.row : 0;
+                matchedItem.container = items[i].container;
+                if (containerRow !== 0) matchedItem.container.row = containerRow;
+                matchedItem.weight = items[i].weight;
+                matchedItem.inventory = items[i].inventory;
+                // Update container's references to this item.
+                if (items[i].container instanceof InventoryItem) {
+                    let foundItem = false;
+                    for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
+                        if (items[i].container.inventory[slot].name === items[i].slot) {
+                            const containerSlot = items[i].container.inventory[slot];
+                            for (let j = 0; j < containerSlot.item.length; j++) {
+                                if (containerSlot.item[j].prefab.id === items[i].prefab.id) {
+                                    foundItem = true;
+                                    containerSlot.item.splice(j, 1, matchedItem);
+                                    break;
+                                }
+                            }
+                            if (foundItem) break;
+                        }
+                    }
+                }
+                this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, matchedItem);
+            }
+            // The player hasn't picked this item up before or it's been modified somehow.
+            else {
+                let data = [[
+                    this.name,
+                    items[i].prefab.id,
+                    items[i].equipmentSlot,
+                    items[i].containerName,
+                    isNaN(items[i].quantity) ? "" : items[i].quantity,
+                    isNaN(items[i].uses) ? "" : items[i].uses,
+                    items[i].description
+                ]];
+
+                // We want to insert this item near items in the same container slot, so get all of the items in that container slot.
+                const slotItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.containerName === items[i].containerName);
+                // Just in case there aren't any, get items just within the same container.
+                const containerItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.container !== null && item.container.prefab !== null && item.container.prefab.id === items[i].container.prefab.id);
+
+                const lastSlotItem = slotItems[slotItems.length - 1];
+                const lastContainerItem = containerItems[containerItems.length - 1];
+
+                var insertRow = -1;
+                // If the list of items in that slot isn't empty, insert the new item.
+                if (slotItems.length !== 0) {
+                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastSlotItem.itemCells(), `Inventory Items!${lastSlotItem.prefab.id}|${this.name}|${lastSlotItem.equipmentSlot}|${lastSlotItem.containerName}`, data));
+                    insertRow = lastSlotItem.row;
+                }
+                // If there are none, it might just be that there are no items in that slot yet. Try to at least put it near items in the same container.
+                else if (containerItems.length !== 0) {
+                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Inventory Items!${lastContainerItem.prefab.id}|${this.name}|${lastContainerItem.equipmentSlot}|${lastContainerItem.containerName}`, data));
+                    insertRow = lastContainerItem.row;
+                }
+                // If there are none, just insert it after the last new item.
+                else {
+                    game.queue.push(new QueueEntry(Date.now(), "insertData", lastNewItem.itemCells(), `Inventory Items!|${this.name}|${lastNewItem.equipmentSlot}|${lastNewItem.containerName}`, data));
+                    insertRow = lastNewItem.row;
+                }
+                lastNewItem = items[i];
+
+                // Insert the new item into the inventoryItems list at the appropriate position.
+                for (var insertIndex = 0; insertIndex < game.inventoryItems.length; insertIndex++) {
+                    if (game.inventoryItems[insertIndex].row === insertRow) {
+                        game.inventoryItems.splice(insertIndex + 1, 0, items[i]);
+                        this.inventory[slot].items.splice(this.inventory[slot].items.length, 0, items[i]);
+                        break;
+                    }
+                }
+                // Update the rows for all of the inventoryItems after this.
+                for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++ , newRow++)
+                    game.inventoryItems[j].row = newRow;
+
+                // Update the rows for all Player EquipmentSlots.
+                for (let j = 0; j < game.players.length; j++) {
+                    for (let slot = 0; slot < game.players[j].inventory.length; slot++) {
+                        if (game.players[j].inventory[slot].equippedItem === null) game.players[j].inventory[slot].row = game.players[j].inventory[slot].items[0].row;
+                        else game.players[j].inventory[slot].row = game.players[j].inventory[slot].equippedItem.row;
+                    }
+                }
+            }
+        }
 
         return;
     }
@@ -1570,4 +1449,8 @@ function arraysEqual(a, b) {
         if (c[i] !== d[i]) return false;
     }
     return true;
+}
+
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
