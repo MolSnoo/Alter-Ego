@@ -65,30 +65,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (player.inventory[i].equippedItem !== null) return message.reply(`cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
         }
     }
-    /*
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName !== "" && slotName !== "RIGHT HAND" && slotName !== "LEFT HAND" && player.inventory[i].name === slotName) {
-            if (player.inventory[i].equippedItem !== null && player.inventory[i].equippedItem.name === itemName) {
-                item = player.inventory[i].equippedItem;
-                break;
-            }
-            else return message.reply(`couldn't find "${itemName}" equipped to ${slotName}.`);
-        }
-        else if (slotName === "" && player.inventory[i].equippedItem !== null && player.inventory[i].equippedItem.name === itemName) {
-            item = player.inventory[i].equippedItem;
-            slotName = player.inventory[i].name;
-            break;
-        }
-    }
-    if (slotName !== "" && item === null) return message.reply(`couldn't find equipment slot "${slotName}".`);
-    if (item === null) return message.reply(`couldn't find equipped item "${itemName}".`);
 
-    if (!item.prefab.equippable) return message.reply(`you cannot unequip the ${itemName}.`);
-
-    player.unequip(game, item, slotName, hand, bot);
+    player.equip(game, item, slotName, hand, bot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} unequipped ${item.name} from ${slotName} in ${player.location.channel}`);
-    */
+    game.logChannel.send(`${time} - ${player.name} equipped ${item.name} to ${slotName} in ${player.location.channel}`);
+
     return;
 };

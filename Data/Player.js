@@ -1000,6 +1000,80 @@ class Player {
         }
     }
 
+    async equip(game, item, slotName, hand, bot) {
+        // Unequip the item from the player's hand.
+        this.unequip(game, item, hand, null);
+
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === slotName) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
+        }
+
+        // convertItem can also be used to copy an InventoryItem.
+        var createdItem = this.convertItem(item, slotName, 1);
+        createdItem.row = rowNumber;
+
+        // Equip the item to the player's hand.
+        this.inventory[slot].equippedItem = createdItem;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(createdItem);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === createdItem.row) {
+                game.inventoryItems.splice(i, 1, createdItem);
+                break;
+            }
+        }
+        // Create a list of all the child items.
+        var items = [];
+        this.getChildItems(items, createdItem);
+
+        // Update the quantities of child items.
+        var oldChildItems = [];
+        this.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+        }
+
+        // Add the equipped item to the queue.
+        const createdItemData = [
+            this.name,
+            createdItem.prefab.id,
+            createdItem.equipmentSlot,
+            createdItem.containerName,
+            isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+            isNaN(createdItem.uses) ? "" : createdItem.uses,
+            createdItem.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+        this.insertInventoryItems(game, items, slot, null, false);
+
+        this.member.send(`You equip the ${createdItem.name}.`);
+        new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
+
+        // Run equip commands.
+        for (let i = 0; i < createdItem.prefab.equipCommands.length; i++) {
+            const command = createdItem.prefab.equipCommands[i];
+            if (command.startsWith("wait")) {
+                let args = command.split(" ");
+                if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                const seconds = parseInt(args[1]);
+                if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                await sleep(seconds);
+            }
+            else {
+                commandHandler.execute(command, bot, game, null, this);
+            }
+        }
+        return;
+    }
+
     async unequip(game, item, slotName, hand, bot) {
         // Get the row number of the EquipmentSlot that the item is being unequipped from.
         var rowNumber = 0;
