@@ -216,7 +216,6 @@ class Player {
         }
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
-            if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
         }
         if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
