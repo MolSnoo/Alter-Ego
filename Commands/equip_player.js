@@ -5,7 +5,7 @@ module.exports.config = {
     description: "Equips an item.",
     details: "Equips an item currently in your hand. You can specify which equipment slot you want to equip the item to, if you want. "
         + "However, some items can only be equipped to certain equipment slots (for example, a mask can only be equipped to the FACE slot). "
-        + "People in the room will see you unequip an item, regardless of its size.",
+        + "People in the room will see you equip an item, regardless of its size.",
     usage: `${settings.commandPrefix}equip mask\n`
         + `${settings.commandPrefix}wear coat\n`
         + `${settings.commandPrefix}equip sweater to shirt`,
