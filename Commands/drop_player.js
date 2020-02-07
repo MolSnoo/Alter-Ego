@@ -132,6 +132,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Container is an Object.
     if (container.hasOwnProperty("isHidingSpot"))
         game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.preposition} ${container.name} in ${player.location.channel}`);
+    // Container is a Puzzle.
     else if (container.hasOwnProperty("solved"))
         game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
     // Container is an Item.
