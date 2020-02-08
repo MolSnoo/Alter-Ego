@@ -60,6 +60,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 player.id,
                 player.name,
                 player.talent,
+                player.pronouns,
                 player.strength,
                 player.intelligence,
                 player.dexterity,
@@ -68,7 +69,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 player.alive,
                 player.location,
                 player.hidingSpot,
-                player.status
+                player.status,
+                player.description
             ];
             playerCells.push(playerData);
 

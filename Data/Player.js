@@ -15,12 +15,13 @@ const Die = include(`${settings.dataDir}/Die.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Player {
-    constructor(id, member, name, displayName, talent, stats, alive, location, hidingSpot, status, inventory, row) {
+    constructor(id, member, name, displayName, talent, pronouns, stats, alive, location, hidingSpot, status, description, inventory, row) {
         this.id = id;
         this.member = member;
         this.name = name;
         this.displayName = displayName;
         this.talent = talent;
+        this.pronouns = pronouns;
         this.strength = stats.strength;
         this.intelligence = stats.intelligence;
         this.dexterity = stats.dexterity;
@@ -33,6 +34,7 @@ class Player {
         this.hidingSpot = hidingSpot;
         this.status = status;
         this.statusString = "";
+        this.description = description;
         this.inventory = inventory;
         this.row = row;
 
@@ -1440,8 +1442,9 @@ class Player {
         for (let i = 0; i < this.status.length; i++)
             clearInterval(this.status[i].timer);
         this.status.length = 0;
+        const pronouns = `${this.pronouns.sbj}/${this.pronouns.obj}/${this.pronouns.dpos}/${this.pronouns.ipos}/${this.pronouns.ref}/${this.pronouns.plural}`;
         // Update that data on the sheet, as well.
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "")));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, pronouns, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);

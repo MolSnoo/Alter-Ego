@@ -777,21 +777,68 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             const columnID = 0;
             const columnName = 1;
             const columnTalent = 2;
-            const columnStrength = 3;
-            const columnIntelligence = 4;
-            const columnDexterity = 5;
-            const columnSpeed = 6;
-            const columnStamina = 7;
-            const columnAlive = 8;
-            const columnLocation = 9;
-            const columnHidingSpot = 10;
-            const columnStatus = 11;
+            const columnPronouns = 3;
+            const columnStrength = 4;
+            const columnIntelligence = 5;
+            const columnDexterity = 6;
+            const columnSpeed = 7;
+            const columnStamina = 8;
+            const columnAlive = 9;
+            const columnLocation = 10;
+            const columnHidingSpot = 11;
+            const columnStatus = 12;
+            const columnDescription = 13;
 
             game.players.length = 0;
             game.players_alive.length = 0;
             game.players_dead.length = 0;
 
             for (let i = 2; i < sheet.length; i++) {
+                var pronouns = {
+                    sbj: null,
+                    obj: null,
+                    dpos: null,
+                    ipos: null,
+                    ref: null,
+                    plural: null
+                };
+                const pronounCell = sheet[i][columnPronouns].toLowerCase();
+                if (pronounCell === "male") {
+                    pronouns.sbj = "he";
+                    pronouns.obj = "him";
+                    pronouns.dpos = "his";
+                    pronouns.ipos = "his";
+                    pronouns.ref = "himself";
+                    pronouns.plural = false;
+                }
+                else if (pronounCell === "female") {
+                    pronouns.sbj = "she";
+                    pronouns.obj = "her";
+                    pronouns.dpos = "her";
+                    pronouns.ipos = "hers";
+                    pronouns.ref = "herself";
+                    pronouns.plural = false;
+                }
+                else if (pronounCell === "neutral") {
+                    pronouns.sbj = "they";
+                    pronouns.obj = "them";
+                    pronouns.dpos = "their";
+                    pronouns.ipos = "theirs";
+                    pronouns.ref = "themself";
+                    pronouns.plural = true;
+                }
+                // If none of the standard pronouns are given, let the user define their own.
+                else {
+                    var pronounSet = pronounCell.split('/');
+                    if (pronounSet.length === 6) {
+                        pronouns.sbj = pronounSet[0].trim();
+                        pronouns.obj = pronounSet[1].trim();
+                        pronouns.dpos = pronounSet[2].trim();
+                        pronouns.ipos = pronounSet[3].trim();
+                        pronouns.ref = pronounSet[4].trim();
+                        pronouns.plural = pronounSet[5] === "true";
+                    }
+                }
                 const stats = {
                     strength: parseInt(sheet[i][columnStrength]),
                     intelligence: parseInt(sheet[i][columnIntelligence]),
@@ -806,11 +853,13 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
+                        pronouns,
                         stats,
                         sheet[i][columnAlive] === true,
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],
                         new Array(),
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         new Array(),
                         i + 1
                     );
@@ -880,6 +929,18 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
     if (player.name.includes(" "))
         return new Error(`Couldn't load player on row ${player.row}. Player names must not have any spaces.`);
+    if (player.pronouns.sbj === null || player.pronouns.sbj === "")
+        return new Error(`Couldn't load player on row ${player.row}. No subject pronoun was given.`);
+    if (player.pronouns.obj === null || player.pronouns.obj === "")
+        return new Error(`Couldn't load player on row ${player.row}. No object pronoun was given.`);
+    if (player.pronouns.dpos === null || player.pronouns.dpos === "")
+        return new Error(`Couldn't load player on row ${player.row}. No dependent possessive pronoun was given.`);
+    if (player.pronouns.ipos === null || player.pronouns.ipos === "")
+        return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
+    if (player.pronouns.ref === null || player.pronouns.ref === "")
+        return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
+    if (player.pronouns.plural === null || player.pronouns.plural === "")
+        return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
     if (isNaN(player.strength))
         return new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`);
     if (isNaN(player.intelligence))
