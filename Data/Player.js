@@ -830,7 +830,7 @@ class Player {
         }
 
         container.removeItem(item, slotName);
-        container.description = parser.removeItem(container.description, item);
+        container.description = parser.removeItem(container.description, item, slotName);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
         // Remove the item from its EquipmentSlot.
