@@ -15,13 +15,21 @@ const Die = include(`${settings.dataDir}/Die.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Player {
-    constructor(id, member, name, displayName, talent, pronouns, stats, alive, location, hidingSpot, status, description, inventory, row) {
+    constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, row) {
         this.id = id;
         this.member = member;
         this.name = name;
         this.displayName = displayName;
         this.talent = talent;
-        this.pronouns = pronouns;
+        this.pronounString = pronounString;
+        this.pronouns = {
+            sbj: null, Sbj: null,
+            obj: null, Obj: null,
+            dpos: null, Dpos: null,
+            ipos: null, Ipos: null,
+            ref: null, Ref: null,
+            plural: null
+        };
         this.strength = stats.strength;
         this.intelligence = stats.intelligence;
         this.dexterity = stats.dexterity;
@@ -47,6 +55,65 @@ class Player {
         this.interval = setInterval(function () {
             if (!player.isMoving) player.regenerateStamina();
         }, 30000);
+    }
+
+    setPronouns(pronounString) {
+        if (pronounString === "male") {
+            this.pronouns.sbj = "he";
+            this.pronouns.Sbj = "He";
+            this.pronouns.obj = "him";
+            this.pronouns.Obj = "Him";
+            this.pronouns.dpos = "his";
+            this.pronouns.Dpos = "His";
+            this.pronouns.ipos = "his";
+            this.pronouns.Ipos = "His";
+            this.pronouns.ref = "himself";
+            this.pronouns.Ref = "Himself";
+            this.pronouns.plural = false;
+        }
+        else if (pronounString === "female") {
+            this.pronouns.sbj = "she";
+            this.pronouns.Sbj = "She";
+            this.pronouns.obj = "her";
+            this.pronouns.Obj = "Her";
+            this.pronouns.dpos = "her";
+            this.pronouns.Dpos = "Her";
+            this.pronouns.ipos = "hers";
+            this.pronouns.Ipos = "Hers";
+            this.pronouns.ref = "herself";
+            this.pronouns.Ref = "Herself";
+            this.pronouns.plural = false;
+        }
+        else if (pronounString === "neutral") {
+            this.pronouns.sbj = "they";
+            this.pronouns.Sbj = "They";
+            this.pronouns.obj = "them";
+            this.pronouns.Obj = "Them";
+            this.pronouns.dpos = "their";
+            this.pronouns.Dpos = "Their";
+            this.pronouns.ipos = "theirs";
+            this.pronouns.Ipos = "Theirs";
+            this.pronouns.ref = "themself";
+            this.pronouns.Ref = "Themself";
+            this.pronouns.plural = true;
+        }
+        // If none of the standard pronouns are given, let the user define their own.
+        else {
+            var pronounSet = pronounString.split('/');
+            if (pronounSet.length === 6) {
+                this.pronouns.sbj = pronounSet[0].trim();
+                this.pronouns.Sbj = this.pronouns.sbj.charAt(0).toUpperCase() + this.pronouns.sbj.substring(1);
+                this.pronouns.obj = pronounSet[1].trim();
+                this.pronouns.Obj = this.pronouns.obj.charAt(0).toUpperCase() + this.pronouns.obj.substring(1);
+                this.pronouns.dpos = pronounSet[2].trim();
+                this.pronouns.Dpos = this.pronouns.dpos.charAt(0).toUpperCase() + this.pronouns.dpos.substring(1);
+                this.pronouns.ipos = pronounSet[3].trim();
+                this.pronouns.Ipos = this.pronouns.ipos.charAt(0).toUpperCase() + this.pronouns.ipos.substring(1);
+                this.pronouns.ref = pronounSet[4].trim();
+                this.pronouns.Ref = this.pronouns.ref.charAt(0).toUpperCase() + this.pronouns.ref.substring(1);
+                this.pronouns.plural = pronounSet[5] === "true";
+            }
+        }
     }
 
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
@@ -1442,9 +1509,8 @@ class Player {
         for (let i = 0; i < this.status.length; i++)
             clearInterval(this.status[i].timer);
         this.status.length = 0;
-        const pronouns = `${this.pronouns.sbj}/${this.pronouns.obj}/${this.pronouns.dpos}/${this.pronouns.ipos}/${this.pronouns.ref}/${this.pronouns.plural}`;
         // Update that data on the sheet, as well.
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, pronouns, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "", "")));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, this.pronounString, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);

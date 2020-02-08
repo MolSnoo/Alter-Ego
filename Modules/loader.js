@@ -794,51 +794,6 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             game.players_dead.length = 0;
 
             for (let i = 2; i < sheet.length; i++) {
-                var pronouns = {
-                    sbj: null,
-                    obj: null,
-                    dpos: null,
-                    ipos: null,
-                    ref: null,
-                    plural: null
-                };
-                const pronounCell = sheet[i][columnPronouns].toLowerCase();
-                if (pronounCell === "male") {
-                    pronouns.sbj = "he";
-                    pronouns.obj = "him";
-                    pronouns.dpos = "his";
-                    pronouns.ipos = "his";
-                    pronouns.ref = "himself";
-                    pronouns.plural = false;
-                }
-                else if (pronounCell === "female") {
-                    pronouns.sbj = "she";
-                    pronouns.obj = "her";
-                    pronouns.dpos = "her";
-                    pronouns.ipos = "hers";
-                    pronouns.ref = "herself";
-                    pronouns.plural = false;
-                }
-                else if (pronounCell === "neutral") {
-                    pronouns.sbj = "they";
-                    pronouns.obj = "them";
-                    pronouns.dpos = "their";
-                    pronouns.ipos = "theirs";
-                    pronouns.ref = "themself";
-                    pronouns.plural = true;
-                }
-                // If none of the standard pronouns are given, let the user define their own.
-                else {
-                    var pronounSet = pronounCell.split('/');
-                    if (pronounSet.length === 6) {
-                        pronouns.sbj = pronounSet[0].trim();
-                        pronouns.obj = pronounSet[1].trim();
-                        pronouns.dpos = pronounSet[2].trim();
-                        pronouns.ipos = pronounSet[3].trim();
-                        pronouns.ref = pronounSet[4].trim();
-                        pronouns.plural = pronounSet[5] === "true";
-                    }
-                }
                 const stats = {
                     strength: parseInt(sheet[i][columnStrength]),
                     intelligence: parseInt(sheet[i][columnIntelligence]),
@@ -853,7 +808,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
-                        pronouns,
+                        sheet[i][columnPronouns] ? sheet[i][columnPronouns].toLowerCase() : "",
                         stats,
                         sheet[i][columnAlive] === true,
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
@@ -863,6 +818,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         new Array(),
                         i + 1
                     );
+                player.setPronouns(player.pronounString);
                 game.players.push(player);
 
                 if (player.alive) {
