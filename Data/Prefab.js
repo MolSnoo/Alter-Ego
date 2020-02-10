@@ -1,7 +1,7 @@
 ﻿const settings = include('settings.json');
 
 class Prefab {
-    constructor(id, name, pluralName, singleContainingPhrase, pluralContainingPhrase, discreet, size, weight, usable, verb, uses, effectsStrings, curesStrings, nextStageStrings, equippable, equipmentSlots, equipCommands, unequipCommands, inventory, preposition, description, row) {
+    constructor(id, name, pluralName, singleContainingPhrase, pluralContainingPhrase, discreet, size, weight, usable, verb, uses, effectsStrings, curesStrings, nextStageStrings, equippable, equipmentSlots, coveredEquipmentSlots, equipCommands, unequipCommands, inventory, preposition, description, row) {
         this.id = id;
         this.name = name;
         this.pluralName = pluralName;
@@ -21,6 +21,7 @@ class Prefab {
         this.nextStage = [...nextStageStrings];
         this.equippable = equippable;
         this.equipmentSlots = equipmentSlots;
+        this.coveredEquipmentSlots = coveredEquipmentSlots;
         this.equipCommands = equipCommands;
         this.unequipCommands = unequipCommands;
         this.inventory = inventory;

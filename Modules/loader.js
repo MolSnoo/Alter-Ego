@@ -218,10 +218,11 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             const columnNextStage = 11;
             const columnEquippable = 12;
             const columnSlots = 13;
-            const columnEquipCommands = 14;
-            const columnInventorySlots = 15;
-            const columnPreposition = 16;
-            const columnDescription = 17;
+            const columnCoveredSlots = 14;
+            const columnEquipCommands = 15;
+            const columnInventorySlots = 16;
+            const columnPreposition = 17;
+            const columnDescription = 18;
 
             game.prefabs.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -245,6 +246,10 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 var equipmentSlots = sheet[i][columnSlots] ? sheet[i][columnSlots].split(',') : [];
                 for (let j = 0; j < equipmentSlots.length; j++)
                     equipmentSlots[j] = equipmentSlots[j].trim();
+                // Create a list of equipment slots this prefab covers when equipped.
+                var coveredEquipmentSlots = sheet[i][columnCoveredSlots] ? sheet[i][columnCoveredSlots].split(',') : [];
+                for (let j = 0; j < coveredEquipmentSlots.length; j++)
+                    coveredEquipmentSlots[j] = coveredEquipmentSlots[j].trim();
                 // Create a list of commands to run when this prefab is equipped/unequipped.
                 const commands = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].split('/') : new Array("", "");
                 var equipCommands = commands[0] ? commands[0].split(',') : "";
@@ -278,6 +283,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                         nextStages,
                         sheet[i][columnEquippable] === true,
                         equipmentSlots,
+                        coveredEquipmentSlots,
                         equipCommands,
                         unequipCommands,
                         inventorySlots,
@@ -326,6 +332,10 @@ module.exports.checkPrefab = function (prefab, game) {
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab name was given.`);
     if (prefab.singleContainingPhrase === "")
         return new Error(`Couldn't load prefab on row ${prefab.row}. No single containing phrase was given.`);
+    if (isNaN(prefab.size))
+        return new Error(`Couldn't load prefab on row ${prefab.row}. The size given is not a number.`);
+    if (isNaN(prefab.weight))
+        return new Error(`Couldn't load prefab on row ${prefab.row}. The weight given is not a number.`);
     for (let i = 0; i < prefab.effects.length; i++) {
         if (!(prefab.effects[i] instanceof Status))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.effects[i]}" in effects is not a status effect.`);
@@ -338,7 +348,14 @@ module.exports.checkPrefab = function (prefab, game) {
         if (!(prefab.nextStage[i] instanceof Prefab))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStage[i]}" in turns into is not a prefab.`);
     }
-    // TODO: Add error checking to new prefab attributes.
+    for (let i = 0; i < prefab.inventory.length; i++) {
+        if (prefab.inventory[i].name === "" || prefab.inventory[i].name === null || prefab.inventory[i].name === undefined)
+            return new Error(`Couldn't load prefab on row ${prefab.row}. No name was given for inventory slot ${i + 1}.`);
+        if (isNaN(prefab.inventory[i].capacity))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. The capacity given for inventory slot "${prefab.inventory[i].name}" is not a number.`);
+    }
+    if (prefab.inventory.length !== 0 && prefab.preposition === "")
+        return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
     return;
 };
 
