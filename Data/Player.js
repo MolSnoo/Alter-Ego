@@ -286,6 +286,7 @@ class Player {
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
+            this.setPronouns("neutral");
         }
         if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
             // Clear the player's movement timer.
@@ -395,6 +396,7 @@ class Player {
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
             if (narrate) new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${this.displayName}.`).send();
+            this.setPronouns(this.pronounString);
         }
 
         // Announce when a player awakens.
@@ -604,7 +606,12 @@ class Player {
         this.insertInventoryItems(game, items, slot, container, false);
 
         this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
-        if (!createdItem.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
+        if (!createdItem.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
+            // Add the new item to the player's hands item list.
+            this.description = parser.addItem(this.description, createdItem, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+        }
 
         return;
     }
@@ -739,6 +746,7 @@ class Player {
             return;
         };
         deleteChildQuantities(item);
+        item.quantity = 0;
         
         for (let i = 0; i < items.length; i++) {
             // Check if the player is putting this item back in original spot unmodified.
@@ -850,8 +858,13 @@ class Player {
             }
         }
 
-        if (!item.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
         this.member.send(`You discard ${item.singleContainingPhrase}.`);
+        if (!item.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
+            // Remove the item from the player's hands item list.
+            this.description = parser.removeItem(this.description, item, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+        }
         
         return;
     }
@@ -886,7 +899,16 @@ class Player {
         this.insertInventoryItems(game, items, slot, container, true);
 
         this.member.send(`You stash ${item.singleContainingPhrase}.`);
-        if (!item.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${container.singleContainingPhrase}.`).send();
+        if (!item.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${container.singleContainingPhrase}.`).send();
+            // Remove the item from the player's hands item list.
+            // In order to properly do so, its quantity needs to be 0, but this item has simply been moved elsewhere. Preserve its quantity.
+            const quantity = item.quantity;
+            item.quantity = 0;
+            this.description = parser.removeItem(this.description, item, "hands");
+            item.quantity = quantity;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+        }
 
         return;
     }
@@ -969,7 +991,12 @@ class Player {
         this.insertInventoryItems(game, items, slot, container, false);
         
         this.member.send(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
-        if (!item.prefab.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of their ${container.name}.`).send();
+        if (!item.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of their ${container.name}.`).send();
+            // Add the new item to the player's hands item list.
+            this.description = parser.addItem(this.description, item, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+        }
 
         return;
     }
@@ -1107,6 +1134,7 @@ class Player {
             oldChildItems[i].quantity = 0;
             game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
         }
+        item.quantity = 0;
 
         // Add the equipped item to the queue.
         const createdItemData = [
@@ -1124,6 +1152,27 @@ class Player {
 
         this.member.send(`You equip the ${createdItem.name}.`);
         new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
+        // Remove mention of any equipped items that this item covers.
+        for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
+            const coveredEquipmentSlot = createdItem.prefab.coveredEquipmentSlots[i];
+            for (let j = 0; j < this.inventory.length; j++) {
+                if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                    // Preserve quantity.
+                    const quantity = this.inventory[j].equippedItem.quantity;
+                    this.inventory[j].equippedItem.quantity = 0;
+                    this.description = parser.removeItem(this.description, this.inventory[j].equippedItem, "equipment");
+                    this.inventory[j].equippedItem.quantity = quantity;
+                    break;
+                }
+            }
+        }
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
+            this.description = parser.removeItem(this.description, item, "hands");
+
+        // Now add mention of this item to the player's equipment item list.
+        this.description = parser.addItem(this.description, createdItem, "equipment");
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
 
         // Run equip commands.
         for (let i = 0; i < createdItem.prefab.equipCommands.length; i++) {
@@ -1212,6 +1261,7 @@ class Player {
                 oldChildItems[i].quantity = 0;
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
             }
+            item.quantity = 0;
 
             // Add the equipped item to the queue.
             const createdItemData = [
@@ -1229,6 +1279,32 @@ class Player {
 
             this.member.send(`You unequip the ${createdItem.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off their ${createdItem.name}.`).send();
+            // Remove mention of this item from the player's equipment item list.
+            this.description = parser.removeItem(this.description, item, "equipment");
+            // Add mention of this item to the player's hands item list.
+            if (!createdItem.prefab.discreet)
+                this.description = parser.addItem(this.description, createdItem, "hands");
+            // Find any items that were covered by this item and add them to the equipment item list.
+            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
+                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
+                for (let j = 0; j < this.inventory.length; j++) {
+                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                        // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
+                        const coveringItems = game.inventoryItems.filter(item =>
+                            item.player.id === this.id &&
+                            item.prefab !== null &&
+                            item.equipmentSlot !== "RIGHT HAND" &&
+                            item.equipmentSlot !== "LEFT HAND" &&
+                            item.containerName === "" &&
+                            item.container === null &&
+                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].name)
+                        );
+                        if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
+                        break;
+                    }
+                }
+            }
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
 
             // Run unequip commands.
             for (let i = 0; i < createdItem.prefab.unequipCommands.length; i++) {
@@ -1568,6 +1644,9 @@ class Player {
     }
     statusCell() {
         return settings.playerSheetStatusColumn + this.row;
+    }
+    descriptionCell() {
+        return settings.playerSheetDescriptionColumn + this.row;
     }
 }
 
