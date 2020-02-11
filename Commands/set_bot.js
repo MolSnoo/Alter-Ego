@@ -19,7 +19,7 @@ module.exports.config = {
     aliases: ["set"]
 };
 
-module.exports.run = async (bot, game, command, args, player) => {
+module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
 
     if (args.length < 2) {

@@ -16,7 +16,7 @@ module.exports.config = {
     aliases: ["move"]
 };
 
-module.exports.run = async (bot, game, command, args, player) => {
+module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
         game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);

@@ -1,7 +1,7 @@
 ﻿const settings = include('settings.json');
 const discord = require('discord.js');
 
-module.exports.execute = async (command, bot, game, message, player) => {
+module.exports.execute = async (command, bot, game, message, player, data) => {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
@@ -29,7 +29,7 @@ module.exports.execute = async (command, bot, game, message, player) => {
     const commandName = commandConfig.name.substring(0, commandConfig.name.indexOf('_'));
 
     if (isBot) {
-        commandFile.run(bot, game, commandSplit[0], args, player);
+        commandFile.run(bot, game, commandSplit[0], args, player, data);
         return true;
     }
     else if (isModerator) {

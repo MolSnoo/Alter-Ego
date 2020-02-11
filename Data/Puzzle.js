@@ -59,7 +59,7 @@ class Puzzle {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(this.solvedCommands[i], bot, game, null, player);
+                    commandHandler.execute(this.solvedCommands[i], bot, game, null, player, this);
                 }
             }
         }
@@ -95,7 +95,7 @@ class Puzzle {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player);
+                    commandHandler.execute(this.unsolvedCommands[i], bot, game, null, player, this);
                 }
             }
         }

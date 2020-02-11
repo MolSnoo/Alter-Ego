@@ -1185,7 +1185,7 @@ class Player {
                 await sleep(seconds);
             }
             else {
-                commandHandler.execute(command, bot, game, null, this);
+                commandHandler.execute(command, bot, game, null, this, createdItem);
             }
         }
         return;
@@ -1317,7 +1317,7 @@ class Player {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(command, bot, game, null, this);
+                    commandHandler.execute(command, bot, game, null, this, createdItem);
                 }
             }
         }

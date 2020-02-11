@@ -24,7 +24,7 @@ module.exports.config = {
     aliases: ["puzzle", "solve", "unsolve"]
 };
 
-module.exports.run = async (bot, game, command, args, player) => {
+module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
     var input = cmdString;
     if (command === "puzzle") {
