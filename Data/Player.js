@@ -370,7 +370,7 @@ class Player {
         return "Status successfully added.";
     }
 
-    cure(game, statusName, notify, doCuredCondition, updateSheet, narrate) {
+    cure(game, statusName, notify, doCuredCondition, updateSheet, narrate, item) {
         var status = null;
         var statusIndex = -1;
         for (let i = 0; i < this.status.length; i++) {
@@ -395,7 +395,8 @@ class Player {
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
-            if (narrate) new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${this.displayName}.`).send();
+            if (item === null || item === undefined) item = { name: "MASK" };
+            if (narrate) new Narration(game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
             this.setPronouns(this.pronounString);
         }
 
