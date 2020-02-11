@@ -617,82 +617,138 @@ class Player {
         return;
     }
 
-    steal(game, slotNo, victim) {
-        /*// Make sure the victim has items first.
-        var hasItems = false;
-        for (let i = 0; i < victim.inventory.length; i++) {
-            if (victim.inventory[i].name !== null) {
-                hasItems = true;
-                break;
-            }
+    steal(game, hand, victim, container, slotNo) {
+        // There might be multiple of the same item, so we need to make an array where each item's index is inserted as many times as its quantity.
+        var actualItems = [];
+        for (let i = 0; i < container.inventory[slotNo].item.length; i++) {
+            const item = container.inventory[slotNo].item[i];
+            for (let j = 0; j < item.quantity; j++)
+                actualItems.push(i);
         }
-        if (hasItems === false) return this.member.send(`You try to steal from ${victim.displayName}, but they don't have any items.`);
+        const actualItemsIndex = Math.floor(Math.random() * actualItems.length);
+        const index = actualItems[actualItemsIndex];
+        var item = container.inventory[slotNo].item[index];
 
-        // Randomly select an item to be stolen.
-        let index;
-        do index = Math.floor(Math.random() * victim.inventory.length);
-        while (!victim.inventory[index] || victim.inventory[index].name === null);
         // Determine how successful the player is.
         const failMax = Math.floor((settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
         const partialMax = Math.floor(2 * (settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
-        var dieRoll = new Die(this, victim);
-        if (!victim.inventory[index].discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
+        // TODO: Replace this snippet when the Die class has been rewritten.
+        var dieRoll = { result: Math.floor(Math.random() * (settings.diceMax - settings.diceMin + 1)) + settings.diceMin };
+        if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
         // Player didn't fail.
         if (dieRoll.result > failMax) {
-            const copiedItem = new InventoryItem(
-                victim.inventory[index].name,
-                victim.inventory[index].pluralName,
-                victim.inventory[index].uses,
-                victim.inventory[index].discreet,
-                victim.inventory[index].effects,
-                victim.inventory[index].cures,
-                victim.inventory[index].singleContainingPhrase,
-                victim.inventory[index].pluralContainingPhrase,
-                victim.inventory[index].description,
-                this.inventory[slotNo].row
-            );
-            this.inventory[slotNo] = copiedItem;
+            // Reduce quantity if the quantity is finite.
+            if (!isNaN(item.quantity)) {
+                item.quantity--;
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${victim.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
+            }
 
-            // Add the item to the Players sheet so that it's in their inventory.
-            // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-            var effects = copiedItem.effects ? copiedItem.effects.map(status => status.name).join(",") : "";
-            var cures = copiedItem.cures ? copiedItem.cures.map(status => status.name).join(",") : "";
-            var containingPhrase = copiedItem.singleContainingPhrase;
-            if (copiedItem.pluralContainingPhrase !== "") containingPhrase += `,${copiedItem.pluralContainingPhrase}`;
-            const data = new Array(
-                copiedItem.name,
-                copiedItem.pluralName,
-                copiedItem.uses,
-                copiedItem.discreet,
-                effects,
-                cures,
-                containingPhrase,
-                copiedItem.description
-            );
-            game.queue.push(new QueueEntry(Date.now(), "updateRow", copiedItem.itemCells(), data));
-            // Delete stolen item from victim's inventory.
-            victim.clearInventorySlot(index);
+            container.removeItem(item, container.inventory[slotNo].name);
+            container.description = parser.removeItem(container.description, item, container.inventory[slotNo].name);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${victim.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+
+            // Remove the item from its EquipmentSlot.
+            for (let slot = 0; slot < victim.inventory.length; slot++) {
+                let foundItem = false;
+                if (victim.inventory[slot].name === item.equipmentSlot) {
+                    for (let i = 0; i < victim.inventory[slot].items.length; i++) {
+                        if (victim.inventory[slot].items[i].row === item.row) {
+                            foundItem = true;
+                            victim.inventory[slot].items.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+                if (foundItem) break;
+            }
+            // Get the row number of the EquipmentSlot that the item will go into.
+            var rowNumber = 0;
+            for (var slot = 0; slot < this.inventory.length; slot++) {
+                if (this.inventory[slot].name === hand) {
+                    rowNumber = this.inventory[slot].row;
+                    break;
+                }
+            }
+
+            // convertItem can also be used to copy an InventoryItem.
+            var createdItem = this.convertItem(item, hand, 1);
+            createdItem.containerName = "";
+            createdItem.container = null;
+            createdItem.row = rowNumber;
+
+            // Equip the item and add it to the player's inventory.
+            this.inventory[slot].equippedItem = createdItem;
+            this.inventory[slot].items.length = 0;
+            this.inventory[slot].items.push(createdItem);
+            // Replace the null entry in the inventoryItems list.
+            for (let i = 0; i < game.inventoryItems.length; i++) {
+                if (game.inventoryItems[i].row === createdItem.row) {
+                    game.inventoryItems.splice(i, 1, createdItem);
+                    break;
+                }
+            }
+            // Create a list of all the child items.
+            var items = [];
+            this.getChildItems(items, createdItem);
+
+            // Now that the item has been converted, we can update the quantities of child items.
+            var oldChildItems = [];
+            this.getChildItems(oldChildItems, item);
+            for (let i = 0; i < oldChildItems.length; i++) {
+                oldChildItems[i].quantity = 0;
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${victim.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            }
+
+            // Add the equipped item to the queue.
+            const createdItemData = [
+                this.name,
+                createdItem.prefab.id,
+                createdItem.equipmentSlot,
+                createdItem.containerName,
+                isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+                isNaN(createdItem.uses) ? "" : createdItem.uses,
+                createdItem.description
+            ];
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+            this.insertInventoryItems(game, items, slot, container, false);
 
             // Decide what messages to send.
-            if (dieRoll.result > partialMax || victim.hasAttribute("unconscious"))
-                this.member.send(`You steal ${copiedItem.singleContainingPhrase} from ${victim.displayName} without them noticing!`);
-            else {
-                this.member.send(`You steal ${copiedItem.singleContainingPhrase} from ${victim.displayName}, but they seem to notice.`);
-                victim.member.send(`${this.displayName} steals ${copiedItem.singleContainingPhrase} from you!`);
+            if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
+                if (container.inventory.length === 1) this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                else this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
             }
-            if (!copiedItem.discreet)
-                new Narration(game, this, this.location, `${this.displayName} steals ${copiedItem.singleContainingPhrase} from ${victim.displayName}.`).send();
+            else {
+                if (container.inventory.length === 1) {
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
+                    if (!createdItem.prefab.discreet)
+                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
+                }
+                else {
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
+                    if (!createdItem.prefab.discreet)
+                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}.`).send();
+                }
+            }
 
-            return { itemName: copiedItem.name, successful: true };
+            return { itemName: createdItem.name, successful: true };
         }
         // Player failed to steal the item.
         else {
-            this.member.send(`You try to steal ${victim.displayName}'s ${victim.inventory[index].name}, but they notice you before you can.`);
-            victim.member.send(`${this.displayName} attempts to steal your ${victim.inventory[index].name}, but you notice in time!`);
+            if (container.inventory.length === 1) {
+                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
+            }
+            else {
+                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
+            }
 
-            return { itemName: victim.inventory[index].name, successful: false };
-        }*/
+            return { itemName: item.name, successful: false };
+        }
     }
 
     drop(game, item, hand, container, slotName) {

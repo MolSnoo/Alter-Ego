@@ -3,21 +3,27 @@
 module.exports.config = {
     name: "steal_player",
     description: "Steals an item from another player.",
-    details: "Attempts to steal an item from another player in the room with you. "
-        + "The item you attempt to steal from the given player is randomized, and so is the outcome. "
-        + "There are three possible outcomes: you steal the item without them noticing, you steal the item but they notice, "
-        + "and you fail to steal the item because they notice in time. If you happen to steal a very large item "
-        + "(a sword, for example), the other player will notice you taking it whether you successfully steal it or not, "
-        + "and so will everyone else in the room. Various status effects affect the outcome. For example, "
-        + "if the player you're stealing from is unconscious, they won't notice you stealing their items no matter what.",
-    usage: `${settings.commandPrefix}steal faye`,
+    details: "Attempts to steal an item from another player in the room. You must specify one of the player's equipped items to steal from. "
+        + "You can also specify which of that item's inventory slots to steal from. If no slot is specified and the item has multiple inventory slots, "
+        + "one slot will be randomly chosen. If the inventory slot contains multiple items, you will attempt to steal one at random.\n\n"
+        + "There are three possible outcomes to attempting to steal an item: you steal the item without them noticing, you steal the item but they notice, "
+        + "and you fail to steal the item because they notice in time. If you happen to steal a very large item, the other player "
+        + "will notice you taking it whether you successfully steal it or not, and so will everyone else in the room. "
+        + "Your dexterity stat has a significant impact on how successful you are at stealing an item. "
+        + "Various status effects affect the outcome as well. For example, if the player you're stealing from is unconscious, they won't notice you stealing their items no matter what.",
+    usage: `${settings.commandPrefix}steal from faye's pants\n`
+        + `${settings.commandPrefix}pickpocket from veronicas jacket\n`
+        + `${settings.commandPrefix}steal micah's right pocket of pants\n`
+        + `${settings.commandPrefix}pickpocket devyns left pocket of pants\n`
+        + `${settings.commandPrefix}steal from an individual wearing a mask's cloak\n`
+        + `${settings.commandPrefix}pickpocket an individual wearing a buckets side pouch of backpack`,
     usableBy: "Player",
-    aliases: ["steal"]
+    aliases: ["steal", "pickpocket"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        message.reply("you need to specify a player. Usage:");
+    if (args.length < 2) {
+        message.reply("you need to specify a player and one of their equipped items. Usage:");
         message.channel.send(exports.config.usage);
         return;
     }
@@ -25,46 +31,92 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable steal");
     if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
 
-    // First, check if the player has free space in their inventory.
-    var freeSlot = -1;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (player.inventory[i].name === null) {
-            freeSlot = i;
+    // First, check if the player has a free hand.
+    var hand = "";
+    for (let slot = 0; slot < player.inventory.length; slot++) {
+        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
+            hand = "RIGHT HAND";
+            break;
+        }
+        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
+            hand = "LEFT HAND";
+            break;
+        }
+        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
+        else if (player.inventory[slot].name === "LEFT HAND")
+            break;
+    }
+    if (hand === "") return message.reply("you do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+
+    if (args[0].toUpperCase() === "FROM") args.splice(0, 1);
+    var input = args.join(' ');
+    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+
+    var victim = null;
+    // Check if the input is a player in the room.
+    for (let i = 0; i < player.location.occupants.length; i++) {
+        let occupant = player.location.occupants[i];
+        const possessive = occupant.displayName.toUpperCase() + "S ";
+        if (parsedInput.startsWith(possessive) && !occupant.hasAttribute("hidden")) {
+            // Player cannot steal from themselves.
+            if (occupant.id === player.id) return message.reply("you can't steal from yourself.");
+
+            victim = occupant;
+            parsedInput = parsedInput.substring(possessive.length).trim();
             break;
         }
     }
-    if (freeSlot === -1) return message.reply("your inventory is full. You cannot steal an item until you drop something.");
+    if (victim === null) return message.reply(`couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
-    var victim = null;
-    // Player cannot steal from themselves.
-    if (args[0].toLowerCase() === player.name.toLowerCase()) return message.reply("you can't steal from yourself.");
-    // Player cannot steal from dead players.
-    for (let i = 0; i < game.players_dead.length; i++) {
-        if (game.players_dead[i].name.toLowerCase() === args[0].toLowerCase()) return message.reply(`can't steal from ${game.players_dead[i].name} because they aren't in the room with you.`);
-    }
-    for (let i = 0; i < game.players_alive.length; i++) {
-        let other = game.players_alive[i];
-        // Check if player exists and is in the same room.
-        if (other.name.toLowerCase() === args[0].toLowerCase() && other.location.name === player.location.name) {
-            // Check attributes that would prohibit the player from stealing from someone.
-            if (other.hasAttribute("hidden") || other.hasAttribute("concealed"))
-                return message.reply(`can't steal from ${other.name} because they aren't in the room with you.`);
-            victim = other;
+    // parsedInput should be the equipped item and possibly a slot name. Get the names of those.
+    var newArgs = parsedInput.split(" OF ");
+    const itemName = newArgs[1] ? newArgs[1].trim() : newArgs[0].trim();
+    var slotName = newArgs[1] ? newArgs[0].trim() : "";
+
+    // Find the equipped item to steal from.
+    const inventory = game.inventoryItems.filter(item => item.player.id === victim.id && item.prefab !== null && item.containerName === "" && item.container === null);
+    var container = null;
+    for (let i = 0; i < inventory.length; i++) {
+        if (inventory[i].prefab.name === itemName && (inventory[i].equipmentSlot !== "LEFT HAND" && inventory[i].equipmentSlot !== "RIGHT HAND" || !inventory[i].prefab.discreet)) {
+            // Make sure the item isn't covered by anything first.
+            const coveringItems = inventory.filter(item =>
+                item.equipmentSlot !== "RIGHT HAND" &&
+                item.equipmentSlot !== "LEFT HAND" &&
+                item.prefab.coveredEquipmentSlots.includes(inventory[i].equipmentSlot)
+            );
+            if (coveringItems.length === 0) container = inventory[i];
         }
-        // If the player exists but is not in the same room, return error.
-        else if (other.name.toLowerCase() === args[0].toLowerCase()) return message.reply(`can't steal from ${other.name} because they aren't in the room with you.`);
     }
-    if (victim === null) return message.reply(`couldn't find player "${args[0]}". Make sure you spelled it right.`);
+    if (container === null) return message.reply(`couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
+    if (container.inventory.length === 0) return message.reply(`${victim.displayName}'s ${container.name} cannot hold items.`);
 
-    const result = player.steal(game, freeSlot, victim);
+    // If no slot name was specified, pick one.
+    var slotNo = -1;
+    if (slotName === "")
+        slotNo = Math.floor(Math.random() * container.inventory.length);
+    else {
+        for (let i = 0; i < container.inventory.length; i++) {
+            if (container.inventory[i].name === slotName) {
+                slotNo = i;
+                break;
+            }
+        }
+        if (slotNo === -1) return message.reply(`couldn't find "${slotName}" of ${container.name}.`);
+    }
+    // If there are no items in that slot, tell the player.
+    if (container.inventory[slotNo].item.length === 0) {
+        if (container.inventory.length === 1) return player.member.send(`You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
+        else return player.member.send(`You try to steal from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but it's empty.`);
+    }
 
+    const result = player.steal(game, hand, victim, container, slotNo);
+
+    // Post log message.
     const time = new Date().toLocaleTimeString();
     if (result.successful)
-        // Post log message.
-        game.logChannel.send(`${time} - ${player.name} stole ${result.itemName} from ${victim.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} stole ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
     else
-        // Post log message.
-        game.logChannel.send(`${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${victim.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
 
     return;
 };
