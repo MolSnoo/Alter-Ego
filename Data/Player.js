@@ -604,7 +604,7 @@ class Player {
         ];
         game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-        this.insertInventoryItems(game, items, slot, container, false);
+        this.insertInventoryItems(game, items, slot);
 
         this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) {
@@ -712,7 +712,7 @@ class Player {
             ];
             game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-            this.insertInventoryItems(game, items, slot, container, false);
+            this.insertInventoryItems(game, items, slot);
 
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
@@ -930,40 +930,45 @@ class Player {
         // Unequip the item from the player's hand.
         this.unequip(game, item, hand, null);
 
-        item.containerName = container.prefab.id + '/' + slotName;
-        item.container = container;
-        item.slot = slotName;
-        container.insertItem(item, slotName);
-        container.description = parser.addItem(container.description, item, slotName);
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
-        var containerName = container.name;
-        var preposition = container.prefab ? container.prefab.preposition : "in";
-
-        // Get the row number of the EquipmentSlot that the item will go into.
-        var rowNumber = 0;
+        // Get the slot number of the EquipmentSlot that the item will go into.
         for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === container.equipmentSlot) {
-                rowNumber = this.inventory[slot].row;
+            if (this.inventory[slot].name === container.equipmentSlot)
                 break;
-            }
         }
+
+        // convertItem can also be used to copy an InventoryItem.
+        var createdItem = this.convertItem(item, this.inventory[slot].name, 1);
+        createdItem.containerName = container.prefab.id + '/' + slotName;
+        createdItem.container = container;
+        createdItem.slot = slotName;
+
+        // Update container.
+        container.insertItem(createdItem, slotName);
+        container.description = parser.addItem(container.description, createdItem, slotName);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
         // Create a list of all the child items.
         var items = [];
-        items.push(item);
-        this.getChildItems(items, item);
+        items.push(createdItem);
+        this.getChildItems(items, createdItem);
 
-        this.insertInventoryItems(game, items, slot, container, true);
+        // Now that the item has been converted, we can update the quantities of child items.
+        var oldChildItems = [];
+        oldChildItems.push(item);
+        this.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+        }
 
-        this.member.send(`You stash ${item.singleContainingPhrase}.`);
+        this.insertInventoryItems(game, items, slot);
+
+        this.member.send(`You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
+            var preposition = container.prefab ? container.prefab.preposition : "in";
             new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${container.singleContainingPhrase}.`).send();
             // Remove the item from the player's hands item list.
-            // In order to properly do so, its quantity needs to be 0, but this item has simply been moved elsewhere. Preserve its quantity.
-            const quantity = item.quantity;
-            item.quantity = 0;
             this.description = parser.removeItem(this.description, item, "hands");
-            item.quantity = quantity;
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
         }
 
@@ -1045,7 +1050,7 @@ class Player {
         ];
         game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-        this.insertInventoryItems(game, items, slot, container, false);
+        this.insertInventoryItems(game, items, slot);
         
         this.member.send(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
@@ -1205,7 +1210,7 @@ class Player {
         ];
         game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-        this.insertInventoryItems(game, items, slot, null, false);
+        this.insertInventoryItems(game, items, slot);
 
         this.member.send(`You equip the ${createdItem.name}.`);
         new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
@@ -1332,7 +1337,7 @@ class Player {
             ];
             game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
-            this.insertInventoryItems(game, items, slot, null, false);
+            this.insertInventoryItems(game, items, slot);
 
             this.member.send(`You unequip the ${createdItem.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off their ${createdItem.name}.`).send();
@@ -1381,10 +1386,9 @@ class Player {
         return;
     }
 
-    insertInventoryItems(game, items, slot, container, setEquipmentSlot) {
+    insertInventoryItems(game, items, slot) {
         var lastNewItem = this.inventory[this.inventory.length - 1].equippedItem;
         for (let i = 0; i < items.length; i++) {
-            if (setEquipmentSlot) items[i].equipmentSlot = container.equipmentSlot;
             // Check if this item already exists in the player's inventory.
             const playerItems = game.inventoryItems.filter(item => item.player.id === this.id);
             let matchedItem = playerItems.find(item =>
