@@ -20,7 +20,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
 
     if (player.statusString.includes("hidden") && command === "unhide")
-        player.cure(game, "hidden", true, false, true, true);
+        player.cure(game, "hidden", true, false, true);
     else if (player.statusString.includes("hidden"))
         return message.reply(`you are already **hidden**. If you wish to stop hiding, use "${settings.commandPrefix}unhide".`);
     else if (command === "unhide")
@@ -61,13 +61,13 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         // It is already taken.
         if (hiddenPlayer !== null) {
             player.member.send(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayer.displayName} is already there!`);
-            hiddenPlayer.cure(game, "hidden", false, false, true, true);
+            hiddenPlayer.cure(game, "hidden", false, false, true);
             hiddenPlayer.member.send(`You've been found by ${player.displayName}. You are no longer hidden.`);
         }
         // It's free real estate!
         else {
             player.hidingSpot = object.name;
-            player.inflict(game, "hidden", true, false, true, true);
+            player.inflict(game, "hidden", true, false, true);
 
             // Log message is sent when status is inflicted.
         }

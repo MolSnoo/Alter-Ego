@@ -71,9 +71,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     var statusName = input.substring(input.indexOf(args[1])).toLowerCase();
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict")
-            players[i].inflict(game, statusName, notify, true, true, true, data);
+            players[i].inflict(game, statusName, notify, true, true, data);
         else if (command === "cure")
-            players[i].cure(game, statusName, notify, true, true, true, data);
+            players[i].cure(game, statusName, notify, true, true, data);
     }
     if (!notify) {
         var status = null;

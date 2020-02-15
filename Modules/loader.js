@@ -843,12 +843,12 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     for (let j = 0; j < game.statusEffects.length; j++) {
                         for (let k = 0; k < statuses.length; k++) {
                             if (game.statusEffects[j].name === statuses[k].trim()) {
-                                currentPlayer.inflict(game, game.statusEffects[j].name, false, false, false, false);
+                                currentPlayer.inflict(game, game.statusEffects[j].name, false, false, false);
                                 break;
                             }
                         }
                     }
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), `Players!|${currentPlayer.name}`, currentPlayer.statusString));
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), `Players!${currentPlayer.name}|Status`, currentPlayer.statusString));
 
                     for (let k = 0; k < game.rooms.length; k++) {
                         if (game.rooms[k].name === currentPlayer.location.name) {

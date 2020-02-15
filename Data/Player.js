@@ -163,7 +163,7 @@ class Player {
             if (player.stamina <= 0) {
                 clearInterval(player.moveTimer);
                 player.stamina = 0;
-                player.inflict(game, "weary", true, true, true, true);
+                player.inflict(game, "weary", true, true, true);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
@@ -245,7 +245,7 @@ class Player {
         return appendString;
     }
 
-    inflict(game, statusName, notify, doCures, updateSheet, narrate, item) {
+    inflict(game, statusName, notify, doCures, narrate, item) {
         var status = null;
         for (let i = 0; i < game.statusEffects.length; i++) {
             if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
@@ -257,8 +257,8 @@ class Player {
 
         if (this.statusString.includes(statusName)) {
             if (status.duplicatedStatus !== null) {
-                this.cure(game, statusName, false, false, false, false);
-                this.inflict(game, status.duplicatedStatus.name, true, false, true, true);
+                this.cure(game, statusName, false, false, false);
+                this.inflict(game, status.duplicatedStatus.name, true, false, true);
                 return `Status was duplicated, so inflicted ${status.duplicatedStatus.name} instead.`;
             }
             else return "Specified player already has that status effect.";
@@ -266,12 +266,11 @@ class Player {
 
         if (notify === null || notify === undefined) notify = true;
         if (doCures === null || doCures === undefined) doCures = true;
-        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
         if (narrate === null || narrate === undefined) narrate = true;
 
         if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
-                this.cure(game, status.cures[i].name, false, false, false, false);
+                this.cure(game, status.cures[i].name, false, false, false);
         }
 
         // Apply the effects of any attributes that require immediate action.
@@ -282,7 +281,7 @@ class Player {
         if (status.attributes.includes("no hearing")) this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), `Players!${this.name}`, this.hidingSpot));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), `Players!${this.name}|Hiding Spot`, this.hidingSpot));
         }
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
@@ -324,8 +323,8 @@ class Player {
 
                 if (status.duration <= 0) {
                     if (status.nextStage) {
-                        player.cure(game, status.name, false, false, false, true);
-                        player.inflict(game, status.nextStage.name, true, false, true, true);
+                        player.cure(game, status.name, false, false, true);
+                        player.inflict(game, status.nextStage.name, true, false, true);
                     }
                     else {
                         if (status.fatal) {
@@ -333,7 +332,7 @@ class Player {
                             player.die(game);
                         }
                         else {
-                            player.cure(game, status.name, true, true, true, true);
+                            player.cure(game, status.name, true, true, true);
                         }
                     }
                 }
@@ -362,7 +361,7 @@ class Player {
             this.sendDescription(status.inflictedDescription, status);
 
         this.statusString = this.generate_statusList();
-        if (updateSheet) game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}`, this.statusString));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -371,7 +370,7 @@ class Player {
         return "Status successfully added.";
     }
 
-    cure(game, statusName, notify, doCuredCondition, updateSheet, narrate, item) {
+    cure(game, statusName, notify, doCuredCondition, narrate, item) {
         var status = null;
         var statusIndex = -1;
         for (let i = 0; i < this.status.length; i++) {
@@ -385,14 +384,13 @@ class Player {
 
         if (notify === null || notify === undefined) notify = true;
         if (doCuredCondition === null || doCuredCondition === undefined) doCuredCondition = true;
-        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
 
         if (status.attributes.includes("no channel") && this.getAttributeStatusEffects("no channel").length - 1 === 0)
             this.location.joinChannel(this);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.hidingSpot = "";
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), `Players!${this.name}`, " "));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), `Players!${this.name}|Hiding Spot`, " "));
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
@@ -408,7 +406,7 @@ class Player {
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(game, status.curedCondition.name, false, false, false, true);
+            this.inflict(game, status.curedCondition.name, false, false, true);
             returnMessage += ` Player is now ${status.curedCondition.name}.`;
         }
 
@@ -428,7 +426,7 @@ class Player {
         this.status.splice(statusIndex, 1);
 
         this.statusString = this.generate_statusList();
-        if (updateSheet) game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}`, this.statusString));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         return returnMessage;
     }
@@ -508,13 +506,13 @@ class Player {
 
         if (item.prefab.effects.length !== 0) {
             for (let i = 0; i < item.prefab.effects.length; i++)
-                this.inflict(game, item.prefab.effects[i].name, true, true, true, true, item);
+                this.inflict(game, item.prefab.effects[i].name, true, true, true, item);
         }
 
         if (item.prefab.cures.length !== 0) {
             // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
             for (let i = 0; i < item.prefab.cures.length; i++)
-                this.cure(game, item.prefab.cures[i].name, true, true, true, true, item);
+                this.cure(game, item.prefab.cures[i].name, true, true, true, item);
         }
 
         const verb = item.prefab.verb ? item.prefab.verb : "uses";
@@ -615,7 +613,7 @@ class Player {
             new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
             // Add the new item to the player's hands item list.
             this.description = parser.addItem(this.description, createdItem, "hands");
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
         }
 
         return;
@@ -924,7 +922,7 @@ class Player {
             new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, item, "hands");
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
         }
         
         return;
@@ -973,7 +971,7 @@ class Player {
             new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${container.singleContainingPhrase}.`).send();
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, item, "hands");
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
         }
 
         return;
@@ -1061,7 +1059,7 @@ class Player {
             new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of their ${container.name}.`).send();
             // Add the new item to the player's hands item list.
             this.description = parser.addItem(this.description, item, "hands");
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
         }
 
         return;
@@ -1238,7 +1236,7 @@ class Player {
 
         // Now add mention of this item to the player's equipment item list.
         this.description = parser.addItem(this.description, createdItem, "equipment");
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
 
         // Run equip commands.
         for (let i = 0; i < createdItem.prefab.equipCommands.length; i++) {
@@ -1370,7 +1368,7 @@ class Player {
                     }
                 }
             }
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}`, this.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
 
             // Run unequip commands.
             for (let i = 0; i < createdItem.prefab.unequipCommands.length; i++) {
