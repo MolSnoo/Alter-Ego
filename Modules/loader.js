@@ -280,7 +280,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                         parseInt(sheet[i][columnUses]),
                         effects,
                         cures,
-                        nextStages,
+                        sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
                         sheet[i][columnEquippable] === true,
                         equipmentSlots,
                         coveredEquipmentSlots,
@@ -303,10 +303,8 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                     let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].cures[j]);
                     if (status) game.prefabs[i].cures[j] = status;
                 }
-                for (let j = 0; j < game.prefabs[i].nextStage.length; j++) {
-                    let prefab = game.prefabs.find(prefab => prefab.id === game.prefabs[i].nextStage[j]);
-                    if (prefab) game.prefabs[i].nextStage[j] = prefab;
-                }
+                let nextStage = game.prefabs.find(prefab => prefab.id === game.prefabs[i].nextStageName);
+                if (nextStage) game.prefabs[i].nextStage = nextStage;
                 if (doErrorChecking) {
                     let error = exports.checkPrefab(game.prefabs[i], game);
                     if (error instanceof Error) errors.push(error);
@@ -344,10 +342,8 @@ module.exports.checkPrefab = function (prefab, game) {
         if (!(prefab.cures[i] instanceof Status))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.cures[i]}" in cures is not a status effect.`);
     }
-    for (let i = 0; i < prefab.nextStage.length; i++) {
-        if (!(prefab.nextStage[i] instanceof Prefab))
-            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStage[i]}" in turns into is not a prefab.`);
-    }
+    if (prefab.nextStageName !== "" && !(prefab.nextStage instanceof Prefab))
+        return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStageName}" in turns into is not a prefab.`);
     for (let i = 0; i < prefab.inventory.length; i++) {
         if (prefab.inventory[i].name === "" || prefab.inventory[i].name === null || prefab.inventory[i].name === undefined)
             return new Error(`Couldn't load prefab on row ${prefab.row}. No name was given for inventory slot ${i + 1}.`);

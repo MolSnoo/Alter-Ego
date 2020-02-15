@@ -41,15 +41,29 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var parsedInput = input.toUpperCase();
     //parsedInput = parsedInput.replace(/\'/g, "");
 
-    // First find the item in the player's inventory, if applicable.
+    // First find the item in the player's hand, if applicable.
     var item = null;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (parsedInput.startsWith(player.inventory[i].name + ' ') || player.inventory[i].name === parsedInput) {
-            item = player.inventory[i];
-            parsedInput = parsedInput.substring(item.name.length).trim();
-            input = input.substring(item.name.length).trim();
-            break;
+    var hand = "";
+    for (let slot = 0; slot < player.inventory.length; slot++) {
+        if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
+            if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
+                item = player.inventory[slot].equippedItem;
+                hand = "RIGHT HAND";
+                break;
+            }
+            else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
+                item = player.inventory[slot].equippedItem;
+                hand = "LEFT HAND";
+                break;
+            }
         }
+        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
+        else if (player.inventory[slot].name === "LEFT HAND")
+            break;
+    }
+    if (item !== null) {
+        parsedInput = parsedInput.substring(item.name.length).trim();
+        input = input.substring(item.name.length).trim();
     }
 
     // Now check to see if the player is trying to solve a puzzle.
@@ -91,7 +105,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
-        const response = player.use(game, item);
+        const response = player.use(game, item, hand);
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();

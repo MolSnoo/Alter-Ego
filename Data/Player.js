@@ -3,6 +3,7 @@ const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
 const queuer = include(`${settings.modulesDir}/queuer.js`);
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
+const itemManager = include(`${settings.modulesDir}/itemManager.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
@@ -486,44 +487,47 @@ class Player {
         return statusEffects;
     }
 
-    use(game, item) {
-        /*if (item.uses === 0) return "that item has no uses left.";
-        if (item.effects.length === 0 && item.cures.length === 0) return "that item has no programmed use on its own, but you may be able to use it some other way.";
-        if (!item.name.endsWith("MASK") && item.effects.length !== 0) {
-            for (let i = 0; i < item.effects.length; i++) {
-                if (this.statusString.includes(item.effects[i].name) && item.effects[i].duplicatedStatus === null)
-                    return "you cannot use that item as you are already under its effect.";
+    use(game, item, hand) {
+        if (item.uses === 0) return "that item has no uses left.";
+        if (!item.prefab.usable) return "that item has no programmed use on its own, but you may be able to use it some other way.";
+        let hasEffect = false;
+        let hasCure = false;
+        if (item.prefab.effects.length !== 0) {
+            for (let i = 0; i < item.prefab.effects.length; i++) {
+                if (!this.statusString.includes(item.prefab.effects[i].name) || item.prefab.effects[i].duplicatedStatus !== null)
+                    hasEffect = true;
             }
         }
-
-        if (item.effects.length !== 0) {
-            if (item.name.endsWith("MASK") && this.statusString.includes("concealed"))
-                this.cure(game, "concealed", true, false, true, true);
-            else {
-                // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
-                for (let i = 0; i < item.effects.length - 1; i++)
-                    this.inflict(game, item.effects[i].name, true, true, false, true, item);
-                this.inflict(game, item.effects[item.effects.length - 1].name, true, true, true, true, item);
+        if (item.prefab.cures.length !== 0) {
+            for (let i = 0; i < item.prefab.cures.length; i++) {
+                if (this.statusString.includes(item.prefab.cures[i].name))
+                    hasCure = true;
             }
         }
+        if (!hasEffect && !hasCure) return `you attempt to use the ${item.name}, but it has no effect.`;
 
-        if (item.cures.length !== 0) {
-            var hasEffect = false;
+        if (item.prefab.effects.length !== 0) {
+            for (let i = 0; i < item.prefab.effects.length; i++)
+                this.inflict(game, item.prefab.effects[i].name, true, true, true, true, item);
+        }
+
+        if (item.prefab.cures.length !== 0) {
             // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
-            for (let i = 0; i < item.cures.length; i++) {
-                const statusMessage = this.cure(game, item.cures[i].name, true, true, true, true);
-                if (statusMessage !== "Specified player doesn't have that status effect.") hasEffect = true;
-            }
-            if (!hasEffect) return `you attempted to use the ${item.name}, but it had no effect.`;
+            for (let i = 0; i < item.prefab.cures.length; i++)
+                this.cure(game, item.prefab.cures[i].name, true, true, true, true, item);
         }
+
+        const verb = item.prefab.verb ? item.prefab.verb : "uses";
+        new Narration(game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
 
         if (!isNaN(item.uses)) {
             item.uses--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), item.uses));
+
+            if (item.uses === 0 && item.prefab.nextStage !== null) itemManager.replaceInventoryItem(item, item.prefab.nextStage);
+            else if (item.uses === 0) itemManager.destroyInventoryItem(item);
+            else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
         }
-        if (item.name !== "MASK")
-            new Narration(game, this, this.location, `${this.displayName} takes out ${item.singleContainingPhrase} and uses it.`).send();
-            */
+
         return;
     }
 
