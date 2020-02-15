@@ -31,12 +31,17 @@ class Player {
             ref: null, Ref: null,
             plural: null
         };
-        this.strength = stats.strength;
-        this.intelligence = stats.intelligence;
-        this.dexterity = stats.dexterity;
-        this.speed = stats.speed;
-        this.maxStamina = stats.stamina;
-        this.stamina = stats.stamina;
+        this.defaultStrength = stats.strength;
+        this.strength = this.defaultStrength;
+        this.defaultIntelligence = stats.intelligence;
+        this.intelligence = this.defaultIntelligence;
+        this.defaultDexterity = stats.dexterity;
+        this.dexterity = this.defaultDexterity;
+        this.defaultSpeed = stats.speed;
+        this.speed = this.defaultSpeed;
+        this.defaultStamina = stats.stamina;
+        this.maxStamina = this.defaultStamina;
+        this.stamina = this.defaultStamina;
         this.alive = alive;
         this.location = location;
         this.pos = { x: 0, y: 0, z: 0 };
@@ -115,6 +120,12 @@ class Player {
                 this.pronouns.plural = pronounSet[5] === "true";
             }
         }
+    }
+
+    getStatModifier(stat) {
+        const statMax = 10;
+        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
+        return modifier;
     }
 
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
