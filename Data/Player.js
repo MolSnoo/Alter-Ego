@@ -311,7 +311,7 @@ class Player {
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.visible, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -442,13 +442,12 @@ class Player {
         return returnMessage;
     }
     
-    generate_statusList() {
+    generate_statusList(includeHidden) {
+        if (includeHidden === null || includeHidden === undefined) includeHidden = true;
         var statusList = "";
-        if (this.status.length > 0) {
-            statusList = this.status[0].name;
-            for (let i = 1; i < this.status.length; i++)
-                statusList += `, ${this.status[i].name}`;
-        }
+        var visibleStatuses = [...this.status];
+        if (!includeHidden) visibleStatuses = visibleStatuses.filter(status => status.visible === true);
+        statusList = visibleStatuses.map(status => status.name).join(", ");
         return statusList;
     }
 

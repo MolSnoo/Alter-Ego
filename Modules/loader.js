@@ -661,34 +661,68 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnName = 0;
             const columnDuration = 1;
             const columnFatal = 2;
-            const columnCures = 3;
-            const columnNextStage = 4;
-            const columnDuplicatedStatus = 5;
-            const columnCuredCondition = 6;
-            const columnRollModifier = 7;
-            const columnAttributes = 8;
-            const columnInflictedDescription = 10;
-            const columnCuredDescription = 11;
+            const columnVisible = 3;
+            const columnCures = 4;
+            const columnNextStage = 5;
+            const columnDuplicatedStatus = 6;
+            const columnCuredCondition = 7;
+            const columnStatModifier = 8;
+            const columnAttributes = 9;
+            const columnInflictedDescription = 11;
+            const columnCuredDescription = 12;
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
-                var modifiesSelf = null;
-                if (sheet[i][columnRollModifier] && sheet[i][columnRollModifier].charAt(0) === 's') modifiesSelf = true;
-                else if (sheet[i][columnRollModifier] && sheet[i][columnRollModifier].charAt(0) === 'o') modifiesSelf = false;
+                var modifierStrings = sheet[i][columnStatModifier] ? sheet[i][columnStatModifier].split(',') : [];
+                var modifiers = [];
+                for (let j = 0; j < modifierStrings.length; j++) {
+                    modifierStrings[j] = modifierStrings[j].toLowerCase().trim();
+
+                    var modifiesSelf = true;
+                    if (modifierStrings[j].charAt(0) === '@') {
+                        modifiesSelf = false;
+                        modifierStrings[j] = modifierStrings[j].substring(1);
+                    }
+
+                    var stat = null;
+                    var assignValue = false;
+                    var value = null;
+                    if (modifierStrings[j].includes('+')) {
+                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('+'));
+                        value = parseInt(modifierStrings[j].substring(stat.length));
+                    }
+                    else if (modifierStrings[j].includes('-')) {
+                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('-'));
+                        value = parseInt(modifierStrings[j].substring(stat.length));
+                    }
+                    else if (modifierStrings[j].includes('=')) {
+                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('='));
+                        assignValue = true;
+                        value = parseInt(modifierStrings[j].substring(stat.length + 1));
+                    }
+
+                    if (stat === "strength") stat = "str";
+                    else if (stat === "intelligence") stat = "int";
+                    else if (stat === "dexterity") stat = "dex";
+                    else if (stat === "speed") stat = "spd";
+                    else if (stat === "stamina") stat = "sta";
+
+                    modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
+                }
                 game.statusEffects.push(
                     new Status(
                         sheet[i][columnName],
                         sheet[i][columnDuration].toLowerCase(),
                         sheet[i][columnFatal] === true,
+                        sheet[i][columnVisible] === true,
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage] : null,
                         sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus] : null,
                         sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition] : null,
-                        sheet[i][columnRollModifier] ? parseInt(sheet[i][columnRollModifier].substring(1)) : "",
-                        modifiesSelf,
+                        modifiers,
                         sheet[i][columnAttributes] ? sheet[i][columnAttributes] : "",
                         sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription] : "",
                         sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription] : "",
@@ -749,12 +783,16 @@ module.exports.checkStatusEffect = function (status) {
     const timeInt = status.duration.substring(0, status.duration.length - 1);
     if (status.duration !== "" && (isNaN(timeInt) || !status.duration.endsWith('m') && !status.duration.endsWith('h')))
         return new Error(`Couldn't load status effect on row ${status.row}. Duration format is incorrect. Must be a number followed by 'm' or 'h'.`);
-    if (status.rollModifier === "")
-        return new Error(`Couldn't load status effect on row ${status.row}. No roll modifier was given.`);
-    if (status.modifiesSelf === null)
-        return new Error(`Couldn't load status effect on row ${status.row}. Whether the roll modifier affects self (s) or other (o) was not specified.`);
-    if (isNaN(status.rollModifier))
-        return new Error(`Couldn't load status effect on row ${status.row}. The roll modifier given is not an integer.`);
+    for (let i = 0; i < status.statModifiers.length; i++) {
+        if (status.statModifiers[i].stat === null)
+            return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
+        if (status.statModifiers[i].stat !== "str" && status.statModifiers[i].stat !== "int" && status.statModifiers[i].stat !== "dex" && status.statModifiers[i].stat !== "spd" && status.statModifiers[i].stat !== "sta")
+            return new Error(`Couldn't load status effect on row ${status.row}. "${status.statModifiers[i].stat}" in stat modifier ${i + 1} is not a valid stat.`);
+        if (status.statModifiers[i].value === null)
+            return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
+        if (isNaN(status.statModifiers[i].value))
+            return new Error(`Couldn't load status effect on row ${status.row}. The value given in stat modifier ${i + 1} is not an integer.`);
+    }
     if (status.cures.length > 0) {
         for (let i = 0; i < status.cures.length; i++)
             if (!(status.cures[i] instanceof Status))
