@@ -707,8 +707,7 @@ class Player {
         // Determine how successful the player is.
         const failMax = Math.floor((settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
         const partialMax = Math.floor(2 * (settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
-        // TODO: Replace this snippet when the Die class has been rewritten.
-        var dieRoll = { result: Math.floor(Math.random() * (settings.diceMax - settings.diceMin + 1)) + settings.diceMin };
+        var dieRoll = new Die("dex", this, victim);
         if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
         // Player didn't fail.
