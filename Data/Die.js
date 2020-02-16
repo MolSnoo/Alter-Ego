@@ -1,7 +1,10 @@
 ﻿const settings = include('settings.json');
+var game = include('game.json');
+
+const Status = include(`${settings.dataDir}/Status.js`);
 
 class Die {
-    constructor(attacker, defender) {
+    constructor(stat, attacker, defender) {
         this.min = settings.diceMin;
         this.max = settings.diceMax;
 
@@ -15,7 +18,7 @@ class Die {
         else baseRoll = this.doBaseRoll();
         this.baseRoll = baseRoll;
 
-        let modifiers = this.calculateModifiers(attacker, defender);
+        let modifiers = this.calculateModifiers(stat, attacker, defender);
         this.modifier = modifiers.number;
         this.modifierString = modifiers.strings.join(", ");
         this.result = this.baseRoll + this.modifier;
@@ -27,14 +30,15 @@ class Die {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    calculateModifiers(attacker, defender) {
+    calculateModifiers(stat, attacker, defender) {
         var modifier = 0;
         var modifierStrings = [];
         if (attacker) {
             if (attacker.hasAttribute("coin flipper")) {
                 let hasCoin = false;
                 for (let i = 0; i < attacker.inventory.length; i++) {
-                    if (attacker.inventory[i].name === "COIN") {
+                    if ((attacker.inventory[i].name === "LEFT HAND" || attacker.inventory[i].name === "RIGHT HAND") &&
+                        attacker.inventory[i].equippedItem !== null && attacker.inventory[i].equippedItem.name.includes("COIN")) {
                         hasCoin = true;
                         break;
                     }
@@ -48,37 +52,50 @@ class Die {
                 }
             }
 
-            // Get attacker's modifiers.
-            for (let i = 0; i < attacker.status.length; i++) {
-                if (attacker.status[i].modifiesSelf) {
-                    modifier += attacker.status[i].rollModifier;
-                    if (attacker.status[i].rollModifier > 0)
-                        modifierStrings.push(`+${attacker.status[i].rollModifier} (${attacker.status[i].name})`);
-                    else if (attacker.status[i].rollModifier < 0)
-                        modifierStrings.push(`${attacker.status[i].rollModifier} (${attacker.status[i].name})`);
+            var tempStatuses = [];
+            if (defender) {
+                if (stat === "str") {
+                    const dexterityModifier = -1 * defender.getStatModifier(defender.dexterity);
+                    modifier += dexterityModifier;
+                    if (dexterityModifier > 0)
+                        modifierStrings.push(`+${dexterityModifier} (-1 * stat modifier of ${defender.name}'s dexterity stat: ${defender.dexterity})`);
+                    else if (dexterityModifier < 0)
+                        modifierStrings.push(`${dexterityModifier} (-1 * stat modifier of ${defender.name}'s dexterity stat: ${defender.dexterity})`);
+                }
+                // Apply any of the defender's status effect modifiers that affect the attacker.
+                for (let i = 0; i < defender.status.length; i++) {
+                    for (let j = 0; j < defender.status[i].statModifiers.length; j++) {
+                        const statModifier = defender.status[i].statModifiers[j];
+                        // Get defender's modifiers that affect the attacker's roll.
+                        if (!statModifier.modifiesSelf) {
+                            const tempStatus = new Status(`${defender.name} ${defender.status[i].name}`, "", false, false, [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], "", "", "", -1);
+                            tempStatuses.push(tempStatus);
+                            attacker.inflict(game, tempStatus, false, false, false);
+                        }
+                    }
                 }
             }
 
-            if (defender) {
-                for (let i = 0; i < defender.status.length; i++) {
-                    // Get defender's modifiers that affect the attacker's roll.
-                    if (!defender.status[i].modifiesSelf) {
-                        modifier += defender.status[i].rollModifier;
-                        if (defender.status[i].rollModifier > 0)
-                            modifierStrings.push(`+${defender.status[i].rollModifier} (${defender.name} ${defender.status[i].name})`);
-                        else if (defender.status[i].rollModifier < 0)
-                            modifierStrings.push(`${defender.status[i].rollModifier} (${defender.name} ${defender.status[i].name})`);
-                    }
-                    // Now invert any of the defender's modifiers and add them to the attacker's roll.
-                    else {
-                        modifier += -1 * defender.status[i].rollModifier;
-                        if (defender.status[i].rollModifier > 0)
-                            modifierStrings.push(`${-1 * defender.status[i].rollModifier} (${defender.name} ${defender.status[i].name})`);
-                        else if (defender.status[i].rollModifier < 0)
-                            modifierStrings.push(`+${-1 * defender.status[i].rollModifier} (${defender.name} ${defender.status[i].name})`);
-                    }
-                }
+            // Apply attacker's stat modifier.
+            if (stat) {
+                let statValue = 0;
+                if (stat === "str") statValue = attacker.strength;
+                else if (stat === "int") statValue = attacker.intelligence;
+                else if (stat === "dex") statValue = attacker.dexterity;
+                else if (stat === "spd") statValue = attacker.speed;
+                else if (stat === "sta") statValue = attacker.stamina;
+
+                const statModifier = attacker.getStatModifier(statValue);
+                modifier += statModifier;
+                if (statModifier > 0)
+                    modifierStrings.push(`+${statModifier} (stat modifier of ${attacker.name}'s ${stat} stat: ${statValue})`);
+                else if (statModifier < 0)
+                    modifierStrings.push(`${statModifier} (stat modifier of ${attacker.name}'s ${stat} stat: ${statValue})`);
             }
+
+            // Cure attacker of all tempStatuses.
+            for (let i = 0; i < tempStatuses.length; i++)
+                attacker.cure(game, tempStatuses[i].name, false, false, false);
         }
 
         return { number: modifier, strings: modifierStrings };

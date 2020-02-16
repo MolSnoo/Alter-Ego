@@ -252,13 +252,16 @@ class Player {
 
     inflict(game, statusName, notify, doCures, narrate, item) {
         var status = null;
-        for (let i = 0; i < game.statusEffects.length; i++) {
-            if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
-                status = game.statusEffects[i];
-                break;
+        if (statusName instanceof Status) status = statusName;
+        else {
+            for (let i = 0; i < game.statusEffects.length; i++) {
+                if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
+                    status = game.statusEffects[i];
+                    break;
+                }
             }
+            if (status === null) return `Couldn't find status effect "${statusName}".`;
         }
-        if (status === null) return `Couldn't find status effect "${statusName}".`;
 
         if (this.statusString.includes(statusName)) {
             if (status.duplicatedStatus !== null) {
