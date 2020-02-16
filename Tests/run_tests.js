@@ -9,16 +9,18 @@ const test_calculate_move_time = include(`${settings.testsDir}/test_calculate_mo
 const test_queuer = include(`${settings.testsDir}/test_queuer.js`);
 const test_take_drop = include(`${settings.testsDir}/test_take_drop.js`);
 const test_stash_unstash = include(`${settings.testsDir}/test_stash_unstash.js`);
+const test_recalculate_stats = include(`${settings.testsDir}/test_recalculate_stats.js`);
 
 exports.runTests = async function (bot) {
     //test_cell_responses.run();
-    test_parse_description.run();
+    //test_parse_description.run();
     //test_remove_item.run();
     //test_add_item.run();
     //await test_whispers.run(bot);
     //test_calculate_move_time.run();
     //test_queuer.run();
     //test_take_drop.run();
-    test_stash_unstash.run();
+    //test_stash_unstash.run();
+    test_recalculate_stats.run(bot);
     console.log("All tests passed.");
 };

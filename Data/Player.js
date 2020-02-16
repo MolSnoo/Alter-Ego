@@ -122,12 +122,6 @@ class Player {
         }
     }
 
-    getStatModifier(stat) {
-        const statMax = 10;
-        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
-        return modifier;
-    }
-
     move(game, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
         const time = this.calculateMoveTime(exit);
         this.remainingTime = time;
@@ -366,6 +360,7 @@ class Player {
         }
 
         this.status.push(status);
+        this.recalculateStats();
 
         // Inform player what happened.
         if (notify)
@@ -435,6 +430,7 @@ class Player {
 
         clearInterval(status.timer);
         this.status.splice(statusIndex, 1);
+        this.recalculateStats();
 
         this.statusString = this.generate_statusList();
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
@@ -493,6 +489,70 @@ class Player {
                 statusEffects.push(this.status[i]);
         }
         return statusEffects;
+    }
+
+    recalculateStats() {
+        var strength = this.defaultStrength;
+        var intelligence = this.defaultIntelligence;
+        var dexterity = this.defaultDexterity;
+        var speed = this.defaultSpeed;
+        var stamina = this.defaultStamina;
+
+        var strModifiers = [];
+        var intModifiers = [];
+        var dexModifiers = [];
+        var spdModifiers = [];
+        var staModifiers = [];
+
+        for (let i = 0; i < this.status.length; i++) {
+            for (let j = 0; j < this.status[i].statModifiers.length; j++) {
+                const modifier = this.status[i].statModifiers[j];
+                if (modifier.modifiesSelf) {
+                    switch (modifier.stat) {
+                        case "str":
+                            strModifiers.push(modifier);
+                            break;
+                        case "int":
+                            intModifiers.push(modifier);
+                            break;
+                        case "dex":
+                            dexModifiers.push(modifier);
+                            break;
+                        case "spd":
+                            spdModifiers.push(modifier);
+                            break;
+                        case "sta":
+                            staModifiers.push(modifier);
+                            break;
+                    }
+                }
+            }
+        }
+
+        this.strength = this.recalculateStat(strength, strModifiers);
+        this.intelligence = this.recalculateStat(intelligence, intModifiers);
+        this.dexterity = this.recalculateStat(dexterity, dexModifiers);
+        this.speed = this.recalculateStat(speed, spdModifiers);
+        const staminaRatio = this.stamina / this.maxStamina;
+        this.maxStamina = this.recalculateStat(stamina, staModifiers);
+        this.stamina = staminaRatio * this.maxStamina;
+    }
+
+    recalculateStat(stat, modifiers) {
+        var assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
+        if (assignModifiers.length !== 0) return assignModifiers[0].value;
+
+        for (let i = 0; i < modifiers.length; i++)
+            stat += modifiers[i].value;
+        if (stat < 1) stat = 1;
+        if (stat > 10) stat = 10;
+        return stat;
+    }
+
+    getStatModifier(stat) {
+        const statMax = 10;
+        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
+        return modifier;
     }
 
     use(game, item, hand) {
