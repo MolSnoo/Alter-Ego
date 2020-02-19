@@ -688,6 +688,7 @@ class Player {
 
         this.insertInventoryItems(game, items, slot);
 
+        this.carryWeight += createdItem.weight;
         this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
@@ -795,6 +796,8 @@ class Player {
 
             this.insertInventoryItems(game, items, slot);
 
+            victim.carryWeight -= createdItem.weight;
+            this.carryWeight += createdItem.weight;
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
                 if (container.inventory.length === 1) this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
@@ -996,6 +999,7 @@ class Player {
             }
         }
 
+        this.carryWeight -= item.weight;
         this.member.send(`You discard ${item.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();

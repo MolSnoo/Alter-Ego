@@ -1,5 +1,7 @@
 ﻿const settings = include('settings.json');
 
+const Narration = include(`${settings.dataDir}/Narration.js`);
+
 module.exports.config = {
     name: "take_player",
     description: "Takes an item and puts it in your inventory.",
@@ -112,6 +114,13 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // If no container was found, make the container the Room.
     if (item !== null && item !== undefined && item.container === null)
         container = item.location;
+
+    if (item.weight > player.maxCarryWeight) {
+        player.member.send(`You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
+        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();
+        return;
+    }
+    else if (player.carryWeight + item.weight > player.maxCarryWeight) return message.reply(`you try to take ${item.singleContainingPhrase}, but you're carrying too much weight.`);
 
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.

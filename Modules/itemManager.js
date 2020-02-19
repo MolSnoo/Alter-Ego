@@ -6,6 +6,7 @@ const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 module.exports.replaceInventoryItem = function (item, newPrefab) {
+    item.player.carryWeight -= item.weight * item.quantity;
     item.prefab = newPrefab;
     item.name = newPrefab.name;
     item.pluralName = newPrefab.pluralName;
@@ -13,6 +14,7 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     item.pluralContainingPhrase = newPrefab.pluralContainingPhrase;
     item.uses = newPrefab.uses;
     item.weight = newPrefab.weight;
+    item.player.carryWeight += item.weight * item.quantity;
     // TODO: Add destroy method that properly destroys and deallocates all child items.
     item.inventory.length = 0;
     for (let i = 0; i < newPrefab.inventory.length; i++) {
@@ -53,6 +55,7 @@ module.exports.destroyInventoryItem = function (item) {
     item.player.inventory[slot].equippedItem = null;
     item.player.inventory[slot].items.length = 0;
     item.player.inventory[slot].items.push(nullItem);
+    item.player.carryWeight -= item.weight * item.quantity;
     // Replace the equipped item's entry in the inventoryItems list.
     for (let i = 0; i < game.inventoryItems.length; i++) {
         if (game.inventoryItems[i].row === item.row) {

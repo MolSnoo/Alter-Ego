@@ -1014,7 +1014,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             // Create EquipmentSlots for each player.
             for (let i = 0; i < game.players_alive.length; i++) {
                 let inventory = [];
-                game.players_alive.carryWeight = 0;
+                game.players_alive[i].carryWeight = 0;
                 let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players_alive[i].id && item.equipmentSlot !== "" && item.containerName === "");
                 for (let j = 0; j < equipmentItems.length; j++)
                     inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
