@@ -1,7 +1,5 @@
 const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
-const queuer = include(`${settings.modulesDir}/queuer.js`);
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const itemManager = include(`${settings.modulesDir}/itemManager.js`);
 
@@ -31,6 +29,7 @@ class Player {
             ref: null, Ref: null,
             plural: null
         };
+
         this.defaultStrength = stats.strength;
         this.strength = this.defaultStrength;
         this.defaultIntelligence = stats.intelligence;
@@ -42,6 +41,7 @@ class Player {
         this.defaultStamina = stats.stamina;
         this.maxStamina = this.defaultStamina;
         this.stamina = this.defaultStamina;
+
         this.alive = alive;
         this.location = location;
         this.pos = { x: 0, y: 0, z: 0 };
@@ -50,6 +50,8 @@ class Player {
         this.statusString = "";
         this.description = description;
         this.inventory = inventory;
+        this.maxCarryWeight = this.getMaxCarryWeight();
+        this.carryWeight = 0;
         this.row = row;
 
         this.isMoving = false;
@@ -533,6 +535,7 @@ class Player {
         }
 
         this.strength = this.recalculateStat(strength, strModifiers);
+        this.maxCarryWeight = this.getMaxCarryWeight();
         this.intelligence = this.recalculateStat(intelligence, intModifiers);
         this.dexterity = this.recalculateStat(dexterity, dexModifiers);
         this.speed = this.recalculateStat(speed, spdModifiers);
@@ -556,6 +559,10 @@ class Player {
         const statMax = 10;
         let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
         return modifier;
+    }
+
+    getMaxCarryWeight() {
+        return Math.floor(1.783 * Math.pow(this.strength, 2) - 2 * this.strength + 22);
     }
 
     use(game, item, hand) {
