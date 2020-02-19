@@ -60,10 +60,14 @@ module.exports.run = async (bot, game, message, command, args) => {
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
 
+    let foundSlot = false;
     for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName && player.inventory[i].name === slotName)
+        if (slotName && player.inventory[i].name === slotName) {
+            foundSlot = true;
             if (player.inventory[i].equippedItem !== null) return message.reply(`cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
+        }
     }
+    if (!foundSlot) return message.reply(`couldn't find equipment slot "${slotName}".`);
 
     player.equip(game, item, slotName, hand, bot);
     // Post log message.
