@@ -174,6 +174,7 @@ module.exports.insertItems = function (game, player, items) {
         const roomItems = game.items.filter(item => item.location.name === player.location.name);
         let matchedItem = roomItems.find(item =>
             item.prefab.id === items[i].prefab.id &&
+            item.accessible &&
             item.containerName === items[i].containerName &&
             item.slot === items[i].slot &&
             (item.uses === items[i].uses || isNaN(item.uses) && isNaN(items[i].uses)) &&

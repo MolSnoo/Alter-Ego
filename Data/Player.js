@@ -1320,12 +1320,13 @@ class Player {
             var hasRequiredItem = false;
             var requirementsMet = false;
             if (puzzle.solution.startsWith("Item: ")) {
-                if (item !== null && item.name === puzzle.solution.substring("Item: ".length))
+                if (item !== null && item.prefab.id === puzzle.solution.substring("Item: ".length))
                     hasRequiredItem = true;
                 else if (item === null) {
                     const requiredItem = puzzle.solution.substring("Item: ".length);
-                    for (let i = 0; i < this.inventory.length; i++) {
-                        if (this.inventory[i].name === requiredItem) {
+                    const playerItems = game.inventoryItems.filter(item => item.player.id === this.id && item.prefab !== null && item.quantity > 0);
+                    for (let i = 0; i < playerItems.length; i++) {
+                        if (playerItems[i].prefab.id === requiredItem) {
                             hasRequiredItem = true;
                             break;
                         }
