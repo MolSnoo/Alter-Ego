@@ -187,6 +187,10 @@ class Player {
         // The formula to calculate the rate is a quadratic function.
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat.
         let rate = 0.0183 * Math.pow(this.speed, 2) + 0.005 * this.speed + 0.916;
+        // Slow down the player relative to how much weight they're carrying.
+        // The equation is Slowdown = 15/x, where x is the number of kilograms a player is carrying, and 1/4 <= Slowdown <= 1.
+        const slowdown = Math.min(Math.max(15.0 / this.carryWeight, 0.25), 1.0);
+        rate = rate * slowdown;
         // Slope should affect the rate.
         const rise = (exit.pos.y - this.pos.y) * settings.metersPerPixel;
         var time = 0;
