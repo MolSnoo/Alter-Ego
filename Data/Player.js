@@ -234,9 +234,11 @@ class Player {
 
     createMoveAppendString() {
         var nonDiscreetItems = new Array();
-        for (let i = 0; i < this.inventory.length; i++) {
-            if (this.inventory[i].discreet === false)
-                nonDiscreetItems.push(this.inventory[i].singleContainingPhrase);
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            if ((this.inventory[slot].name === "RIGHT HAND" || this.inventory[slot].name === "LEFT HAND") &&
+                this.inventory[slot].equippedItem !== null &&
+                this.inventory[slot].equippedItem.prefab.discreet === false)
+                nonDiscreetItems.push(this.inventory[slot].equippedItem.singleContainingPhrase);
         }
 
         var appendString = "";
@@ -246,12 +248,6 @@ class Player {
             appendString = ` carrying ${nonDiscreetItems[0]}.`;
         else if (nonDiscreetItems.length === 2)
             appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}.`;
-        else if (nonDiscreetItems.length >= 3) {
-            appendString = " carrying ";
-            for (let i = 0; i < nonDiscreetItems.length - 1; i++)
-                appendString += `${nonDiscreetItems[i]}, `;
-            appendString += `and ${nonDiscreetItems[nonDiscreetItems.length - 1]}.`;
-        }
 
         return appendString;
     }
