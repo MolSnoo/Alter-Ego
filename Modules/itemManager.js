@@ -284,7 +284,9 @@ module.exports.insertItems = function (game, player, items) {
 };
 
 module.exports.insertInventoryItems = function (game, player, items, slot) {
-    var lastNewItem = player.inventory[player.inventory.length - 1].equippedItem;
+    var lastNewItem = player.inventory[player.inventory.length - 1].equippedItem !== null ?
+        player.inventory[player.inventory.length - 1].equippedItem :
+        player.inventory[player.inventory.length - 1].items[0];
     for (let i = 0; i < items.length; i++) {
         // Check if this item already exists in the player's inventory.
         const playerItems = game.inventoryItems.filter(item => item.player.id === player.id);
