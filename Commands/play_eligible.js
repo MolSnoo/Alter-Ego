@@ -25,13 +25,13 @@ module.exports.run = async (bot, game, message, args) => {
         member.displayName,
         member.displayName,
         "",
-        "",
+        "neutral",
         settings.defaultStats,
         true,
         settings.defaultLocation,
         "",
         settings.defaultStatusEffects,
-        "",
+        settings.defaultDescription,
         new Array(),
         null
     );

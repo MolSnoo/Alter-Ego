@@ -60,7 +60,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 player.id,
                 player.name,
                 player.talent,
-                player.pronouns,
+                player.pronounString,
                 player.strength,
                 player.intelligence,
                 player.dexterity,
