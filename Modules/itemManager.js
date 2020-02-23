@@ -30,7 +30,9 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     }
     item.description = newPrefab.description;
 
-    game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!|${item.player.name}|${item.equipmentSlot}|${item.containerName}`, [item.player.name, item.prefab.id, item.equipmentSlot, item.containerName, item.quantity.toString(), item.uses.toString(), item.description]));
+    const quantityString = !isNaN(item.quantity) ? item.quantity.toString() : "";
+    const usesString = !isNaN(item.uses) ? item.uses.toString() : "";
+    game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!|${item.player.name}|${item.equipmentSlot}|${item.containerName}`, [item.player.name, item.prefab.id, item.equipmentSlot, item.containerName, quantityString, usesString, item.description]));
 };
 
 module.exports.destroyInventoryItem = function (item) {
