@@ -573,7 +573,7 @@ class Player {
         return Math.floor(1.783 * Math.pow(this.strength, 2) - 2 * this.strength + 22);
     }
 
-    use(game, item, hand) {
+    use(game, item) {
         if (item.uses === 0) return "that item has no uses left.";
         if (!item.prefab.usable) return "that item has no programmed use on its own, but you may be able to use it some other way.";
         let hasEffect = false;

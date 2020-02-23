@@ -39,21 +39,17 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase();
-    //parsedInput = parsedInput.replace(/\'/g, "");
 
     // First find the item in the player's hand, if applicable.
     var item = null;
-    var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
             if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
-                hand = "RIGHT HAND";
                 break;
             }
             else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
-                hand = "LEFT HAND";
                 break;
             }
         }
@@ -105,7 +101,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
-        const response = player.use(game, item, hand);
+        const response = player.use(game, item);
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
