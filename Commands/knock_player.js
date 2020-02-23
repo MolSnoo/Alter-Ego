@@ -6,7 +6,7 @@ module.exports.config = {
     name: "knock_player",
     description: "Knocks on a door.",
     details: "Knocks on a door in the room you're in.",
-    usage: `${settings.commandPrefix}example`,
+    usage: `${settings.commandPrefix}knock door 1`,
     usableBy: "Player",
     aliases: ["knock"]
 };
