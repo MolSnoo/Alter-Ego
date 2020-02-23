@@ -76,7 +76,7 @@ module.exports.parseDescription = function (description, container, player, doEr
         if (conditionalsToRemove[i].childNodes[0].tagName === 'item') {
             let itemElement = conditionalsToRemove[i].childNodes[0].childNodes[0];
             let item = new Item("", 0, itemElement.data, itemElement.data);
-            document = this.removeItem(description, item, "", document);
+            document = this.removeItem(description, item, "", true, document);
         }
         else if (conditionalsToRemove[i].parentNode) conditionalsToRemove[i].parentNode.removeChild(conditionalsToRemove[i]);
         else document.removeChild(conditionalsToRemove[i]);
@@ -153,9 +153,9 @@ module.exports.addItem = function (description, item, slot) {
             var text = sentence.clause[i].node.data.toLowerCase();
             if ((sentence.itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1) &&
                 (text.includes(item.singleContainingPhrase.toLowerCase()) ||
-                item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase()) ||
+                item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase())/* ||
                 text.includes(item.name.toLowerCase()) ||
-                item.pluralName && text.includes(item.pluralName.toLowerCase()))) {
+                item.pluralName && text.includes(item.pluralName.toLowerCase())*/)) {
                 itemAlreadyExists = true;
                 break;
             }
@@ -208,7 +208,8 @@ module.exports.addItem = function (description, item, slot) {
     return stringify(document);
 };
 
-module.exports.removeItem = function (description, item, slot, document) {
+module.exports.removeItem = function (description, item, slot, force, document) {
+    if (!force) force = false;
     var returnDocument = false;
     if (document)
         returnDocument = true;
@@ -246,26 +247,26 @@ module.exports.removeItem = function (description, item, slot, document) {
     }
 
     if (removeItem) {
+        // If force argument is true, remove the item clause regardless of its quantity.
+        if (!force) removeItem = false;
+
         // First make sure there aren't multiple of that item.
-        if (item.quantity > 0) {
-            if (item.quantity === 1)
-                sentence.clause[i].set(item.singleContainingPhrase);
-            else {
-                let start = text.search(/\d/);
-                if (start !== -1) {
-                    let end;
-                    for (end = start; end < text.length; end++) {
-                        if (isNaN(text.charAt(end + 1)))
-                            break;
-                    }
-                    const quantity = parseInt(text.substring(start, end));
-                    sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - 1));
-                }
+        let start = text.search(/\d/);
+        if (start !== -1) {
+            let end;
+            for (end = start; end < text.length; end++) {
+                if (isNaN(text.charAt(end + 1)))
+                    break;
             }
+            const quantity = parseInt(text.substring(start, end));
+            if (quantity - 1 === 1) sentence.clause[i].set(item.singleContainingPhrase);
+            else if (quantity > 1) sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - 1));
+            else removeItem = true;
         }
+        else removeItem = true;
 
         // Remove the item from the sentence.
-        else {
+        if (removeItem) {
             let result = removeClause(sentence, i);
             //console.log(result);
         }

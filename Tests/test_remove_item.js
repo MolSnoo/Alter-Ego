@@ -75,7 +75,7 @@ function test_decreaseQuantity_2() {
     const text = "<desc><s>In the bottom drawer, you find <il><item>15 PENCILS</item> and <item>a stack of PAPER</item></il>.</s></desc>";
     const item = new Item("PENCIL", 1, "a PENCIL", "PENCILS");
 
-    const result = "<desc><s>In the bottom drawer, you find <il><item>a PENCIL</item> and <item>a stack of PAPER</item></il>.</s></desc>";
+    const result = "<desc><s>In the bottom drawer, you find <il><item>14 PENCILS</item> and <item>a stack of PAPER</item></il>.</s></desc>";
     const actual = parser.removeItem(text, item);
     assert.ok(
         actual === result,
@@ -120,7 +120,7 @@ function test_removeItem_2() {
 }
 
 function test_removeItem_3() {
-    const text = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item> and <item>3 bottles of ZZZQUIL</item></il>.</s></desc>";
+    const text = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item> and <item>a bottle of ZZZQUIL</item></il>.</s></desc>";
     const item = new Item("ZZZQUIL", 0, "a bottle of ZZZQUIL", "bottles of ZZZQUIL");
 
     const result = "<desc><s>On these shelves is <il><item>a bottle of PAINKILLERS</item></il>.</s></desc>";
@@ -168,7 +168,7 @@ function test_removeItem_6() {
 }
 
 function test_removeItem_7() {
-    const text = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>3 bottles of ZZZQUIL</item>, and <item>a bottle of LAXATIVES</item></il>.</s></desc>";
+    const text = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>a bottle of ZZZQUIL</item>, and <item>a bottle of LAXATIVES</item></il>.</s></desc>";
     const item = new Item("ZZZQUIL", 0, "a bottle of ZZZQUIL", "bottles of ZZZQUIL");
 
     const result = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item> and <item>a bottle of LAXATIVES</item></il>.</s></desc>";
@@ -252,7 +252,7 @@ function test_removeItem_13() {
 }
 
 function test_removeItem_14() {
-    const text = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, <item>2 CUTTING BOARDS</item>, and various other things</il>.</s></desc>";
+    const text = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, <item>a CUTTING BOARD</item>, and various other things</il>.</s></desc>";
     const item = new Item("CUTTING BOARD", 0, "a CUTTING BOARD", "CUTTING BOARDS");
 
     const result = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, and various other things</il>.</s></desc>";
@@ -264,7 +264,7 @@ function test_removeItem_14() {
 }
 
 function test_removeItem_15() {
-    const text = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>3 bottles of ZZZQUIL</item>, <item>a bottle of LAXATIVES</item>, and <item>a bottle of ISOPROPYL ALCOHOL</item></il>.</s></desc>";
+    const text = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>a bottle of ZZZQUIL</item>, <item>a bottle of LAXATIVES</item>, and <item>a bottle of ISOPROPYL ALCOHOL</item></il>.</s></desc>";
     const item = new Item("ZZZQUIL", 0, "a bottle of ZZZQUIL", "bottles of ZZZQUIL");
 
     const result = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>a bottle of LAXATIVES</item>, and <item>a bottle of ISOPROPYL ALCOHOL</item></il>.</s></desc>";
@@ -348,7 +348,7 @@ function test_removeItem_21() {
 }
 
 function test_removeItem_22() {
-    const text = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, <item>2 CUTTING BOARDS</item>, and various other things</il>.</s></desc>";
+    const text = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, <item>a CUTTING BOARD</item>, and various other things</il>.</s></desc>";
     const item = new Item("CUTTING BOARD", 0, "a CUTTING BOARD", "CUTTING BOARDS");
 
     const result = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, and various other things</il>.</s></desc>";

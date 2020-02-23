@@ -18,8 +18,8 @@ module.exports.config = {
         + `parse the text as if that player is reading it. Note that if using the "formatted" argument, `
         + `a player name cannot be used. This command should be used to make sure you've written properly formatted descriptions.\n`
         + `-**parse**: Outputs the formatted and parsed descriptions.\n`
-        + `-**add**: Goes through each object and puzzle description with item containers and adds random items.\n`
-        + `-**remove**: Goes through each room, object, and puzzle description with items and removes each item `
+        + `-**add**: Goes through each object, item, puzzle, player, and inventory item description with item containers and adds random items.\n`
+        + `-**remove**: Goes through each room, object, item, puzzle, player, and inventory item description with items and removes each item `
         + `in every order possible until there are none left. It will only remove up to 4 items in a description.`,
     usage: `${settings.commandPrefix}testparser parse\n`
         + `${settings.commandPrefix}testparser parse nero\n`
@@ -439,7 +439,7 @@ testadd = async (file, formatted, player) => {
         let text = "";
         for (let i = 0; i < game.items.length; i++) {
             const item = game.items[i];
-            if (item.description.includes('<il>') && item.description.includes('</il>')) {
+            if (item.description.includes('<il') && item.description.includes('</il>')) {
                 text += "   ";
                 text += item.name + os.EOL;
 
@@ -465,7 +465,8 @@ testadd = async (file, formatted, player) => {
                     let newItem = items[j];
                     newItem.quantity = 0;
                     text += `(Drop ${newItem.name}): `;
-                    description = parser.addItem(description, newItem);
+                    let slot = item.inventory[Math.floor(Math.random() * item.inventory.length)].name;
+                    description = parser.addItem(description, newItem, slot);
                     text += (formatted ? description : parser.parseDescription(description, item, player)) + os.EOL;
                     tabs++;
                 }
@@ -521,7 +522,7 @@ testadd = async (file, formatted, player) => {
         let text = "";
         for (let i = 0; i < game.players.length; i++) {
             const currentPlayer = game.players[i];
-            if (currentPlayer.description.includes('<il>') && currentPlayer.description.includes('</il>')) {
+            if (currentPlayer.description.includes('<il') && currentPlayer.description.includes('</il>')) {
                 text += "   ";
                 text += currentPlayer.name + os.EOL;
 
@@ -546,8 +547,8 @@ testadd = async (file, formatted, player) => {
                         text += "   ";
                     let item = items[j];
                     item.quantity = 0;
-                    text += `(Drop ${item.name}): `;
-                    description = parser.addItem(description, item);
+                    text += `(Equip ${item.name}): `;
+                    description = parser.addItem(description, item, "equipment");
                     text += (formatted ? description : parser.parseDescription(description, currentPlayer, player)) + os.EOL;
                     tabs++;
                 }
@@ -562,7 +563,7 @@ testadd = async (file, formatted, player) => {
         let text = "";
         for (let i = 0; i < game.inventoryItems.length; i++) {
             const inventoryItem = game.inventoryItems[i];
-            if (inventoryItem.prefab !== null && inventoryItem.description.includes('<il>') && inventoryItem.description.includes('</il>')) {
+            if (inventoryItem.prefab !== null && inventoryItem.description.includes('<il') && inventoryItem.description.includes('</il>')) {
                 text += "   ";
                 text += inventoryItem.name + os.EOL;
 
@@ -587,8 +588,9 @@ testadd = async (file, formatted, player) => {
                         text += "   ";
                     let newItem = items[j];
                     newItem.quantity = 0;
-                    text += `(Drop ${newItem.name}): `;
-                    description = parser.addItem(description, newItem);
+                    text += `(Stash ${newItem.name}): `;
+                    let slot = inventoryItem.inventory[Math.floor(Math.random() * inventoryItem.inventory.length)].name;
+                    description = parser.addItem(description, newItem, slot);
                     text += (formatted ? description : parser.parseDescription(description, inventoryItem, player)) + os.EOL;
                     tabs++;
                 }
@@ -655,7 +657,7 @@ testremove = async (file, formatted, player) => {
                                 }
                             }
                             text += `(Take ${permutation[l]}): `;
-                            description = parser.removeItem(description, item);
+                            description = parser.removeItem(description, item, null, true);
                             text += (formatted ? description : parser.parseDescription(description, room, player)) + os.EOL;
                             tabs++;
                         }
@@ -717,7 +719,7 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, item);
+                        description = parser.removeItem(description, item, null, true);
                         text += (formatted ? description : parser.parseDescription(description, object, player)) + os.EOL;
                         tabs++;
                     }
@@ -779,7 +781,7 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, newItem);
+                        description = parser.removeItem(description, newItem, newItem.slot, true);
                         text += (formatted ? description : parser.parseDescription(description, item, player)) + os.EOL;
                         tabs++;
                     }
@@ -836,7 +838,7 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, item);
+                        description = parser.removeItem(description, item, null, true);
                         text += (formatted ? description : parser.parseDescription(description, puzzle, player)) + os.EOL;
                         tabs++;
                     }
@@ -893,8 +895,9 @@ testremove = async (file, formatted, player) => {
                                 break;
                             }
                         }
-                        text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, item);
+                        text += `(Unequip ${permutation[k]}): `;
+                        if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") description = parser.removeItem(description, item, "hands", true);
+                        else description = parser.removeItem(description, item, "equipment", true);
                         text += (formatted ? description : parser.parseDescription(description, currentPlayer, player)) + os.EOL;
                         tabs++;
                     }
@@ -923,6 +926,7 @@ testremove = async (file, formatted, player) => {
                     if (game.inventoryItems[j].player.name === inventoryItem.player.name
                         && game.inventoryItems[j].prefab !== null
                         && game.inventoryItems[j].containerName.startsWith(`${inventoryItem.prefab.id}/`)
+                        && game.inventoryItems[j].container !== null
                         && game.inventoryItems[j].container.row === inventoryItem.row
                         && inventoryItem.prefab.preposition !== "") {
                         items.push(game.inventoryItems[j]);
@@ -953,8 +957,8 @@ testremove = async (file, formatted, player) => {
                                 break;
                             }
                         }
-                        text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, item);
+                        text += `(Unstash ${permutation[k]}): `;
+                        description = parser.removeItem(description, item, item.slot, true);
                         text += (formatted ? description : parser.parseDescription(description, inventoryItem, player)) + os.EOL;
                         tabs++;
                     }
