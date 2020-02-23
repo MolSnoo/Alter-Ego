@@ -151,10 +151,11 @@ module.exports.addItem = function (description, item, slot) {
         var i;
         for (i = 0; i < sentence.clause.length; i++) {
             var text = sentence.clause[i].node.data.toLowerCase();
-            if (text.includes(item.singleContainingPhrase.toLowerCase())
-                || item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase())
-                || text.includes(item.name.toLowerCase())
-                || item.pluralName && text.includes(item.pluralName.toLowerCase())) {
+            if ((sentence.itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1) &&
+                (text.includes(item.singleContainingPhrase.toLowerCase()) ||
+                item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase()) ||
+                text.includes(item.name.toLowerCase()) ||
+                item.pluralName && text.includes(item.pluralName.toLowerCase()))) {
                 itemAlreadyExists = true;
                 break;
             }
