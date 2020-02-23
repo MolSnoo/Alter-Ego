@@ -869,7 +869,8 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         new Array(),
                         i + 1
                     );
-                player.setPronouns(player.pronounString);
+                player.setPronouns(player.originalPronouns, player.pronounString);
+                player.setPronouns(player.pronouns, player.pronounString);
                 game.players.push(player);
 
                 if (player.alive) {
@@ -936,17 +937,17 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
     if (player.name.includes(" "))
         return new Error(`Couldn't load player on row ${player.row}. Player names must not have any spaces.`);
-    if (player.pronouns.sbj === null || player.pronouns.sbj === "")
+    if (player.originalPronouns.sbj === null || player.originalPronouns.sbj === "")
         return new Error(`Couldn't load player on row ${player.row}. No subject pronoun was given.`);
-    if (player.pronouns.obj === null || player.pronouns.obj === "")
+    if (player.originalPronouns.obj === null || player.originalPronouns.obj === "")
         return new Error(`Couldn't load player on row ${player.row}. No object pronoun was given.`);
-    if (player.pronouns.dpos === null || player.pronouns.dpos === "")
+    if (player.originalPronouns.dpos === null || player.originalPronouns.dpos === "")
         return new Error(`Couldn't load player on row ${player.row}. No dependent possessive pronoun was given.`);
-    if (player.pronouns.ipos === null || player.pronouns.ipos === "")
+    if (player.originalPronouns.ipos === null || player.originalPronouns.ipos === "")
         return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
-    if (player.pronouns.ref === null || player.pronouns.ref === "")
+    if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
         return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
-    if (player.pronouns.plural === null || player.pronouns.plural === "")
+    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "")
         return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
     if (isNaN(player.strength))
         return new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`);

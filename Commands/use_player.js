@@ -109,7 +109,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} used ${item.name} from their inventory in ${player.location.channel}`);
+            game.logChannel.send(`${time} - ${player.name} used ${item.name} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
         else return message.reply(response);

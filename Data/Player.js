@@ -21,6 +21,14 @@ class Player {
         this.displayName = displayName;
         this.talent = talent;
         this.pronounString = pronounString;
+        this.originalPronouns = {
+            sbj: null, Sbj: null,
+            obj: null, Obj: null,
+            dpos: null, Dpos: null,
+            ipos: null, Ipos: null,
+            ref: null, Ref: null,
+            plural: null
+        };
         this.pronouns = {
             sbj: null, Sbj: null,
             obj: null, Obj: null,
@@ -65,61 +73,61 @@ class Player {
         }, 30000);
     }
 
-    setPronouns(pronounString) {
+    setPronouns(pronouns, pronounString) {
         if (pronounString === "male") {
-            this.pronouns.sbj = "he";
-            this.pronouns.Sbj = "He";
-            this.pronouns.obj = "him";
-            this.pronouns.Obj = "Him";
-            this.pronouns.dpos = "his";
-            this.pronouns.Dpos = "His";
-            this.pronouns.ipos = "his";
-            this.pronouns.Ipos = "His";
-            this.pronouns.ref = "himself";
-            this.pronouns.Ref = "Himself";
-            this.pronouns.plural = false;
+            pronouns.sbj = "he";
+            pronouns.Sbj = "He";
+            pronouns.obj = "him";
+            pronouns.Obj = "Him";
+            pronouns.dpos = "his";
+            pronouns.Dpos = "His";
+            pronouns.ipos = "his";
+            pronouns.Ipos = "His";
+            pronouns.ref = "himself";
+            pronouns.Ref = "Himself";
+            pronouns.plural = false;
         }
         else if (pronounString === "female") {
-            this.pronouns.sbj = "she";
-            this.pronouns.Sbj = "She";
-            this.pronouns.obj = "her";
-            this.pronouns.Obj = "Her";
-            this.pronouns.dpos = "her";
-            this.pronouns.Dpos = "Her";
-            this.pronouns.ipos = "hers";
-            this.pronouns.Ipos = "Hers";
-            this.pronouns.ref = "herself";
-            this.pronouns.Ref = "Herself";
-            this.pronouns.plural = false;
+            pronouns.sbj = "she";
+            pronouns.Sbj = "She";
+            pronouns.obj = "her";
+            pronouns.Obj = "Her";
+            pronouns.dpos = "her";
+            pronouns.Dpos = "Her";
+            pronouns.ipos = "hers";
+            pronouns.Ipos = "Hers";
+            pronouns.ref = "herself";
+            pronouns.Ref = "Herself";
+            pronouns.plural = false;
         }
         else if (pronounString === "neutral") {
-            this.pronouns.sbj = "they";
-            this.pronouns.Sbj = "They";
-            this.pronouns.obj = "them";
-            this.pronouns.Obj = "Them";
-            this.pronouns.dpos = "their";
-            this.pronouns.Dpos = "Their";
-            this.pronouns.ipos = "theirs";
-            this.pronouns.Ipos = "Theirs";
-            this.pronouns.ref = "themself";
-            this.pronouns.Ref = "Themself";
-            this.pronouns.plural = true;
+            pronouns.sbj = "they";
+            pronouns.Sbj = "They";
+            pronouns.obj = "them";
+            pronouns.Obj = "Them";
+            pronouns.dpos = "their";
+            pronouns.Dpos = "Their";
+            pronouns.ipos = "theirs";
+            pronouns.Ipos = "Theirs";
+            pronouns.ref = "themself";
+            pronouns.Ref = "Themself";
+            pronouns.plural = true;
         }
         // If none of the standard pronouns are given, let the user define their own.
         else {
             var pronounSet = pronounString.split('/');
             if (pronounSet.length === 6) {
-                this.pronouns.sbj = pronounSet[0].trim();
-                this.pronouns.Sbj = this.pronouns.sbj.charAt(0).toUpperCase() + this.pronouns.sbj.substring(1);
-                this.pronouns.obj = pronounSet[1].trim();
-                this.pronouns.Obj = this.pronouns.obj.charAt(0).toUpperCase() + this.pronouns.obj.substring(1);
-                this.pronouns.dpos = pronounSet[2].trim();
-                this.pronouns.Dpos = this.pronouns.dpos.charAt(0).toUpperCase() + this.pronouns.dpos.substring(1);
-                this.pronouns.ipos = pronounSet[3].trim();
-                this.pronouns.Ipos = this.pronouns.ipos.charAt(0).toUpperCase() + this.pronouns.ipos.substring(1);
-                this.pronouns.ref = pronounSet[4].trim();
-                this.pronouns.Ref = this.pronouns.ref.charAt(0).toUpperCase() + this.pronouns.ref.substring(1);
-                this.pronouns.plural = pronounSet[5] === "true";
+                pronouns.sbj = pronounSet[0].trim();
+                pronouns.Sbj = pronouns.sbj.charAt(0).toUpperCase() + pronouns.sbj.substring(1);
+                pronouns.obj = pronounSet[1].trim();
+                pronouns.Obj = pronouns.obj.charAt(0).toUpperCase() + pronouns.obj.substring(1);
+                pronouns.dpos = pronounSet[2].trim();
+                pronouns.Dpos = pronouns.dpos.charAt(0).toUpperCase() + pronouns.dpos.substring(1);
+                pronouns.ipos = pronounSet[3].trim();
+                pronouns.Ipos = pronouns.ipos.charAt(0).toUpperCase() + pronouns.ipos.substring(1);
+                pronouns.ref = pronounSet[4].trim();
+                pronouns.Ref = pronouns.ref.charAt(0).toUpperCase() + pronouns.ref.substring(1);
+                pronouns.plural = pronounSet[5] === "true";
             }
         }
     }
@@ -286,7 +294,7 @@ class Player {
         // Apply the effects of any attributes that require immediate action.
         if (status.attributes.includes("no channel")) {
             this.location.leaveChannel(this);
-            this.removeFromWhispers(game, `${this.name} can no longer whisper because they are ${status.name}.`);
+            this.removeFromWhispers(game, `${this.name} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.name}.`);
         }
         if (status.attributes.includes("no hearing")) this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
         if (status.attributes.includes("hidden")) {
@@ -296,7 +304,7 @@ class Player {
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
-            this.setPronouns("neutral");
+            this.setPronouns(this.pronouns, "neutral");
         }
         if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
             // Clear the player's movement timer.
@@ -407,7 +415,7 @@ class Player {
             this.displayName = this.name;
             if (item === null || item === undefined) item = { name: "MASK" };
             if (narrate) new Narration(game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
-            this.setPronouns(this.pronounString);
+            this.setPronouns(this.pronouns, this.pronounString);
         }
 
         // Announce when a player awakens.
@@ -941,7 +949,7 @@ class Player {
         this.member.send(`You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             var preposition = container.prefab ? container.prefab.preposition : "in";
-            new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${container.singleContainingPhrase}.`).send();
+            new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, item, "hands");
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
@@ -1028,7 +1036,7 @@ class Player {
         
         this.member.send(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
-            new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of their ${container.name}.`).send();
+            new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
             this.description = parser.addItem(this.description, item, "hands");
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
@@ -1218,7 +1226,7 @@ class Player {
             itemManager.insertInventoryItems(game, this, items, slot);
 
             this.member.send(`You unequip the ${createdItem.name}.`);
-            new Narration(game, this, this.location, `${this.displayName} takes off their ${createdItem.name}.`).send();
+            new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
             // Add mention of this item to the player's hands item list.

@@ -32,7 +32,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (player.statusString.includes("hidden") && command === "unhide")
         player.cure(game, "hidden", true, false, true);
     else if (player.statusString.includes("hidden"))
-        return message.reply(`${player.name} is already **hidden**. If you want them to stop hiding, use "${settings.commandPrefix}unhide ${player.name}".`);
+        return message.reply(`${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${settings.commandPrefix}unhide ${player.name}".`);
     else if (command === "unhide")
         return message.reply(`${player.name} is not currently hidden.`);
     // Player is currently not hidden and the hide command is being used.
