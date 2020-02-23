@@ -1119,9 +1119,23 @@ class Player {
         if (!item.prefab.discreet)
             this.description = parser.removeItem(this.description, item, "hands");
 
-        // Now add mention of this item to the player's equipment item list.
-        this.description = parser.addItem(this.description, createdItem, "equipment");
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        // Check to make sure that this item isn't covered by something else the player has equipped.
+        var isCovered = false;
+        for (let i = 0; i < this.inventory.length; i++) {
+            if (this.inventory[i].equippedItem !== null) {
+                for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
+                    if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === createdItem.equipmentSlot) {
+                        isCovered = true;
+                        break;
+                    }
+                }
+            }
+        }
+        // If it's not covered, add mention of this item to the player's equipment item list.
+        if (!isCovered) {
+            this.description = parser.addItem(this.description, createdItem, "equipment");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        }
 
         // Run equip commands.
         for (let i = 0; i < createdItem.prefab.equipCommands.length; i++) {
