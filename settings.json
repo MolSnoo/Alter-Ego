@@ -1,6 +1,6 @@
 ﻿{
   "commandPrefix": ".",
-  "debug": true,
+  "debug": false,
   "testing": false,
 
   "commandsDir": "Commands",
@@ -40,7 +40,9 @@
   "diceMax": 6,
   "defaultDropObject": "FLOOR",
   "autoDeleteWhisperChannels": true,
-  "queueInterval": 10,
+  "queueInterval": 30,
+  "offlineStatusInterval": 15,
+  "onlinePlayersStatusInterval": 30,
 
   "onlineActivity": {
     "type": "LISTENING",

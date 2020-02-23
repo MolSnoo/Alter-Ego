@@ -817,6 +817,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             game.players[i].isMoving = false;
             clearInterval(game.players[i].moveTimer);
             game.players[i].remainingTime = 0;
+            game.players[i].setOffline();
         }
         // Clear all rooms of their occupants.
         for (let i = 0; i < game.rooms.length; i++)

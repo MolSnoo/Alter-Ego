@@ -64,7 +64,9 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
                 return false;
             }
 
-            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && message.channel.type !== "dm") message.delete().catch(); });
+            player.setOnline();
+
+            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && commandName !== "say" && message.channel.type !== "dm") message.delete().catch(); });
             return true;
         }
         return false;

@@ -29,6 +29,8 @@ module.exports.execute = async (game, message, deletable) => {
     if (room === null) return;
 
     if (player !== null) {
+        player.setOnline();
+
         if (player.hasAttribute("no speech")) {
             player.member.send("You are mute, so you cannot speak.");
             if(deletable) message.delete().catch();
@@ -69,8 +71,10 @@ module.exports.execute = async (game, message, deletable) => {
                     deafPlayerInRoom = true;
                 }
                 // Players with the hear room attribute should hear all messages sent to the room.
-                else if (occupant.hasAttribute("hear room") && occupant.id !== player.id && !message.content.startsWith('('))
-                    occupant.member.send(`You hear a voice in the room say "${message.content}".`);
+                else if (occupant.hasAttribute("hear room") && !occupant.hasAttribute("no sight") && occupant.id !== player.id && !message.content.startsWith('('))
+                    occupant.member.send(`${player.displayName} says "${message.content}".`);
+		else if (occupant.hasAttribute("hear room") && occupant.id !== player.id && !message.content.startsWith('('))
+		    occupant.member.send(`You hear a voice in the room say "${message.content}".`);
             }
             // Handle messages in adjacent rooms.
             for (let i = 0; i < room.exit.length; i++) {

@@ -44,6 +44,7 @@ exports.run = function () {
     test_removeItem_23();
     test_removeItem_24();
     test_removeItem_25();
+  
     return;
 };
 
@@ -264,6 +265,18 @@ function test_removeItem_14() {
 }
 
 function test_removeItem_15() {
+    const text = `<desc><s>The cupboards are wooden and filled with kitchen accessories and a few food items.</s> <s>When you pull open the doors, you notice one of them seems a little bit loose.</s> <s>The shelves are lined with <il><item>2 bags of POTATOES</item>, <item>2 bags of RICE</item>, different ingredients for baking, and dough mixes</il>.</s> <s>There are LINENS on the shelves on top, and there is even a shelf dedicated to COOKBOOKS alone.</s></desc>`;
+    const item = new Item("RICE", 0, "a bag of RICE", "bags of RICE");
+
+    const result = `<desc><s>The cupboards are wooden and filled with kitchen accessories and a few food items.</s> <s>When you pull open the doors, you notice one of them seems a little bit loose.</s> <s>The shelves are lined with <il><item>2 bags of POTATOES</item>, different ingredients for baking, and dough mixes</il>.</s> <s>There are LINENS on the shelves on top, and there is even a shelf dedicated to COOKBOOKS alone.</s></desc>`;
+    const actual = parser.removeItem(text, item);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_removeItem_16() {
     const text = "<desc><s>On these shelves are <il><item>a bottle of PAINKILLERS</item>, <item>a bottle of ZZZQUIL</item>, <item>a bottle of LAXATIVES</item>, and <item>a bottle of ISOPROPYL ALCOHOL</item></il>.</s></desc>";
     const item = new Item("ZZZQUIL", 0, "a bottle of ZZZQUIL", "bottles of ZZZQUIL");
 
@@ -275,7 +288,7 @@ function test_removeItem_15() {
     );
 }
 
-function test_removeItem_16() {
+function test_removeItem_17() {
     const text = "<desc><s>A few grab your attention though: <il>ROSE OF SHARON, PINK LACEFLOWER, and <item>a MIRACLE FLOWER</item></il>.</s></desc>";
     const item = new Item("MIRACLE FLOWER", 0, "a MIRACLE FLOWER");
 
@@ -287,7 +300,7 @@ function test_removeItem_16() {
     );
 }
 
-function test_removeItem_17() {
+function test_removeItem_18() {
     const text = "<desc><s>However, you do find <il>a wooden ruler and <item>a KEYBOARD</item></il>.</s></desc>";
     const item = new Item("KEYBOARD", 0, "a KEYBOARD");
 
@@ -299,7 +312,7 @@ function test_removeItem_17() {
     );
 }
 
-function test_removeItem_18() {
+function test_removeItem_19() {
     const text = "<desc><s><il><item>On one of the desks is a FIRST AID KIT</item> and hung on the wall behind the desks is a MEDICINE CABINET</il>.</s></desc>";
     const item = new Item("FIRST AID KIT", 0, "a FIRST AID KIT");
 
@@ -311,7 +324,7 @@ function test_removeItem_18() {
     );
 }
 
-function test_removeItem_19() {
+function test_removeItem_20() {
     const text = "<desc><s>However, you do find <il><item>a KEYBOARD</item> and a wooden ruler</il>.</s></desc>";
     const item = new Item("KEYBOARD", 0, "a KEYBOARD");
 
@@ -323,7 +336,7 @@ function test_removeItem_19() {
     );
 }
 
-function test_removeItem_20() {
+function test_removeItem_21() {
     const text = "<desc><s>There are <il><item>CLARINETS</item>, a PIANO, and some SNARE DRUMS</il>.</s></desc>";
     const item = new Item("CLARINET", 0, "a CLARINET", "CLARINETS");
 
@@ -335,7 +348,7 @@ function test_removeItem_20() {
     );
 }
 
-function test_removeItem_21() {
+function test_removeItem_22() {
     const text = "<desc><s><il><item>There is a rather large TARP on the FLOOR.</item></il></s></desc>";
     const item = new Item("TARP", 0, "a rather large TARP");
 
@@ -347,7 +360,7 @@ function test_removeItem_21() {
     );
 }
 
-function test_removeItem_22() {
+function test_removeItem_23() {
     const text = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, <item>a CUTTING BOARD</item>, and various other things</il>.</s></desc>";
     const item = new Item("CUTTING BOARD", 0, "a CUTTING BOARD", "CUTTING BOARDS");
 
@@ -359,7 +372,7 @@ function test_removeItem_22() {
     );
 }
 
-function test_removeItem_23() {
+function test_removeItem_24() {
     const text = `<desc><s>You examine the pool table.</s> <s>It seems to have everything you need to play a game of pool: <il><item>2 POOL STICKS</item>, <if cond="player.talent === 'Ultimate Tabletop Player'"><item>CHALK</item>,</if> <item>a TRIANGLE</item>, and <item>BALLS</item></il>.</s></desc>`;
     const item = new Item("CHALK", 0, "CHALK");
 
