@@ -979,7 +979,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
 
             game.inventoryItems.length = 0;
             for (let i = 1; i < sheet.length; i++) {
-                const player = game.players_alive.find(player => player.name === sheet[i][columnPlayer] && player.name !== "");
+                const player = game.players.find(player => player.name === sheet[i][columnPlayer] && player.name !== "");
                 if (sheet[i][columnPrefab] !== "NULL") {
                     // Find the prefab first.
                     const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab] && prefab.id !== "");
@@ -1013,13 +1013,13 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                 }
             }
             // Create EquipmentSlots for each player.
-            for (let i = 0; i < game.players_alive.length; i++) {
+            for (let i = 0; i < game.players.length; i++) {
                 let inventory = [];
-                game.players_alive[i].carryWeight = 0;
-                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players_alive[i].id && item.equipmentSlot !== "" && item.containerName === "");
+                game.players[i].carryWeight = 0;
+                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players[i].id && item.equipmentSlot !== "" && item.containerName === "");
                 for (let j = 0; j < equipmentItems.length; j++)
                     inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
-                game.players_alive[i].inventory = inventory;
+                game.players[i].inventory = inventory;
             }
             var errors = [];
             for (let i = 0; i < game.inventoryItems.length; i++) {

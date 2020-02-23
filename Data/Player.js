@@ -1442,7 +1442,7 @@ class Player {
             clearInterval(this.status[i].timer);
         this.status.length = 0;
         // Update that data on the sheet, as well.
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, this.pronounString, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "", "")));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, this.pronounString, this.defaultStrength, this.defaultIntelligence, this.defaultDexterity, this.defaultSpeed, this.defaultStamina, this.alive, "", "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);
