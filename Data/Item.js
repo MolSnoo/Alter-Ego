@@ -3,41 +3,77 @@ const settings = include('settings.json');
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Item {
-    constructor(name, pluralName, location, sublocationName, accessible, requiresName, quantity, uses, discreet, effectsStrings, curesStrings, singleContainingPhrase, pluralContainingPhrase, description, row) {
-        this.name = name;
-        this.pluralName = pluralName;
+    constructor(prefab, location, accessible, containerName, quantity, uses, description, row) {
+        this.prefab = prefab;
+        this.name = prefab.name ? prefab.name : "";
+        this.pluralName = prefab.pluralName ? prefab.pluralName : "";
+        this.singleContainingPhrase = prefab.singleContainingPhrase ? prefab.singleContainingPhrase : "";
+        this.pluralContainingPhrase = prefab.pluralContainingPhrase ? prefab.pluralContainingPhrase : "";
         this.location = location;
-        this.sublocationName = sublocationName;
-        this.sublocation = null;
         this.accessible = accessible;
-        this.requiresName = requiresName;
-        this.requires = null;
+        this.containerName = containerName;
+        this.container = null;
+        this.slot = "";
         this.quantity = quantity;
         this.uses = uses;
-        this.discreet = discreet;
-        this.effectsStrings = effectsStrings;
-        this.effects = [...effectsStrings];
-        this.curesStrings = curesStrings;
-        this.cures = [...curesStrings];
-        this.singleContainingPhrase = singleContainingPhrase;
-        this.pluralContainingPhrase = pluralContainingPhrase;
+        this.weight = prefab ? prefab.weight : 0;
+        this.inventory = [];
         this.description = description;
         this.row = row;
     }
 
+    insertItem(item, slot) {
+        if (item.quantity !== 0) {
+            for (let i = 0; i < this.inventory.length; i++) {
+                if (this.inventory[i].name === slot) {
+                    let matchedItem = this.inventory[i].item.find(inventoryItem =>
+                        inventoryItem.prefab !== null && item.prefab !== null &&
+                        inventoryItem.prefab.id === item.prefab.id &&
+                        inventoryItem.containerName === item.containerName &&
+                        inventoryItem.slot === item.slot &&
+                        (inventoryItem.uses === item.uses || isNaN(inventoryItem.uses) && isNaN(item.uses)) &&
+                        inventoryItem.description === item.description
+                    );
+                    if (!matchedItem || isNaN(matchedItem.quantity)) this.inventory[i].item.push(item);
+                    if (!isNaN(item.quantity)) {
+                        this.inventory[i].weight += item.weight * item.quantity;
+                        this.inventory[i].takenSpace += item.prefab.size * item.quantity;
+                        this.weight += item.weight * item.quantity;
+                    }
+                }
+            }
+        }
+    }
+
+    removeItem(item, slot) {
+        for (let i = 0; i < this.inventory.length; i++) {
+            if (this.inventory[i].name === slot) {
+                for (let j = 0; j < this.inventory[i].item.length; j++) {
+                    if (this.inventory[i].item[j].name === item.name && this.inventory[i].item[j].description === item.description) {
+                        if (item.quantity === 0) this.inventory[i].item.splice(j, 1);
+                        this.inventory[i].weight -= item.weight;
+                        this.inventory[i].takenSpace -= item.prefab.size;
+                        this.weight -= item.weight;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     setAccessible(game) {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.location.name}|${this.containerName}`, "TRUE"));
     }
 
     setInaccessible(game) {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.location.name}|${this.containerName}`, "FALSE"));
     }
 
     itemCells() {
         const descriptionColumn = settings.itemSheetDescriptionColumn.split('!');
-        return settings.itemSheetNameColumn + this.row + ":" + descriptionColumn[1] + this.row;
+        return settings.itemSheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
     }
 
     accessibleCell() {
@@ -46,6 +82,10 @@ class Item {
 
     quantityCell() {
         return settings.itemSheetQuantityColumn + this.row;
+    }
+
+    usesCell() {
+        return settings.playerSheetItemUsesColumn + this.row;
     }
 
     descriptionCell() {

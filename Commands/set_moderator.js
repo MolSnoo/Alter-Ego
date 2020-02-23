@@ -1,4 +1,5 @@
 ﻿const settings = include('settings.json');
+const itemManager = include(`${settings.modulesDir}/itemManager.js`);
 
 module.exports.config = {
     name: "set_moderator",
@@ -13,7 +14,7 @@ module.exports.config = {
     usage: `${settings.commandPrefix}set accessible puzzle button\n`
         + `${settings.commandPrefix}set inaccessible object terminal\n`
         + `${settings.commandPrefix}set accessible object keypad tool shed\n`
-        + `${settings.commandPrefix}set accessible object items tool box\n`
+        + `${settings.commandPrefix}set accessible object items medicine cabinet\n`
         + `${settings.commandPrefix}set inaccessible puzzle items lock men's locker room`,
     usableBy: "Moderator",
     aliases: ["set"],
@@ -114,7 +115,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (isObject) {
             if (doItems) {
                 // Update all of the items contained in this object.
-                let items = game.items.filter(item => item.location.name === object.location.name && item.sublocation !== null && item.sublocation.name === object.name && !item.accessible);
+                let items = game.items.filter(item => item.location.name === object.location.name && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && !item.accessible);
+                let childItems = [];
+                for (let i = 0; i < items.length; i++)
+                    itemManager.getChildItems(childItems, items[i]);
+                items = items.concat(childItems);
+
                 for (let i = 0; i < items.length; i++)
                     items[i].setAccessible(game);
                 message.channel.send(`Successfully made ${items.length} items in ${object.name} accessible.`);
@@ -127,7 +133,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (isPuzzle) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
-                let items = game.items.filter(item => item.location.name === puzzle.location.name && item.requires !== null && item.requires.name === puzzle.name && !item.accessible);
+                let items = game.items.filter(item => item.location.name === puzzle.location.name && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && !item.accessible);
+                let childItems = [];
+                for (let i = 0; i < items.length; i++)
+                    itemManager.getChildItems(childItems, items[i]);
+                items = items.concat(childItems);
+
                 for (let i = 0; i < items.length; i++)
                     items[i].setAccessible(game);
                 message.channel.send(`Successfully made ${items.length} items in ${puzzle.name} accessible.`);
@@ -142,7 +153,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (isObject) {
             if (doItems) {
                 // Update all of the items contained in this object.
-                let items = game.items.filter(item => item.location.name === object.location.name && item.sublocation !== null && item.sublocation.name === object.name && item.accessible);
+                let items = game.items.filter(item => item.location.name === object.location.name && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && item.accessible);
+                let childItems = [];
+                for (let i = 0; i < items.length; i++)
+                    itemManager.getChildItems(childItems, items[i]);
+                items = items.concat(childItems);
+
                 for (let i = 0; i < items.length; i++)
                     items[i].setInaccessible(game);
                 message.channel.send(`Successfully made ${items.length} items in ${object.name} inaccessible.`);
@@ -155,7 +171,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (isPuzzle) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
-                let items = game.items.filter(item => item.location.name === puzzle.location.name && item.requires !== null && item.requires.name === puzzle.name && item.accessible);
+                let items = game.items.filter(item => item.location.name === puzzle.location.name && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && item.accessible);
+                let childItems = [];
+                for (let i = 0; i < items.length; i++)
+                    itemManager.getChildItems(childItems, items[i]);
+                items = items.concat(childItems);
+
                 for (let i = 0; i < items.length; i++)
                     items[i].setInaccessible(game);
                 message.channel.send(`Successfully made ${items.length} items in ${puzzle.name} inaccessible.`);

@@ -4,6 +4,7 @@ var parser = include(`${settings.modulesDir}/parser.js`);
 const Exit = include(`${settings.dataDir}/Exit.js`);
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
+const Prefab = include(`${settings.dataDir}/Prefab.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
@@ -46,6 +47,8 @@ exports.run = function () {
     test_parseDescription_23();
     test_parseDescription_24();
     test_parseDescription_25();
+    test_parseDescription_26();
+    test_parseDescription_27();
     return;
 };
 
@@ -253,10 +256,12 @@ function test_parseDescription_16() {
     );
 }
 
+const codeRed = new Prefab("CODE RED MOUNTAIN DEW", "CODE RED MOUNTAIN DEW", "", "a bottle of CODE RED MOUNTAIN DEW", "bottles of CODE RED MOUNTAIN DEW", true, 1, 1, true, "drinks", 1, ["refreshed"], [], [], false, [], "", "", [], "", "", 2);
+const player = new Player("Monokuma", 5);
+
 function test_parseDescription_17() {
-    const item = new InventoryItem("CODE RED MOUNTAIN DEW", "", 1, true, "refreshed", "", "a bottle of CODE RED MOUNTAIN DEW", "bottles of CODE RED MOUNTAIN DEW");
+    const item = new InventoryItem(player, codeRed, "LEFT HAND", "", 1, 1, "", 2);
     const text = `<desc><s>It's a bottle of Code Red Mountain Dew, which has a cherry flavor.</s> <if cond="player.name === 'Veronica'"><s>This is your favorite flavor, naturally.</s></if><if cond="player.name !== 'Veronica'"><s>For some reason, when you hold it, you get the urge to play video games.</s></if> <s>The drink and label are both red.</s> <if cond="this.uses > 0"><s>It's nice and cold.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a bottle of Code Red Mountain Dew, which has a cherry flavor. For some reason, when you hold it, you get the urge to play video games. The drink and label are both red. It's nice and cold.`;
     const actual = parser.parseDescription(text, item, player);
@@ -267,9 +272,8 @@ function test_parseDescription_17() {
 }
 
 function test_parseDescription_18() {
-    const item = new InventoryItem("CODE RED MOUNTAIN DEW", "", 0, true, "refreshed", "", "a bottle of CODE RED MOUNTAIN DEW", "bottles of CODE RED MOUNTAIN DEW");
+    const item = new InventoryItem(player, codeRed, "LEFT HAND", "", 1, 0, "", 2);
     const text = `<desc><s>It's a bottle of Code Red Mountain Dew, which has a cherry flavor.</s> <if cond="player.name === 'Veronica'"><s>This is your favorite flavor, naturally.</s></if><if cond="player.name !== 'Veronica'"><s>For some reason, when you hold it, you get the urge to play video games.</s></if> <s>The drink and label are both red.</s> <if cond="this.uses > 0"><s>It's nice and cold.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a bottle of Code Red Mountain Dew, which has a cherry flavor. For some reason, when you hold it, you get the urge to play video games. The drink and label are both red. It's empty.`;
     const actual = parser.parseDescription(text, item, player);
@@ -279,10 +283,11 @@ function test_parseDescription_18() {
     );
 }
 
+const breadsticks = new Prefab("BREADSTICKS", "BREADSTICKS", "", "a box of BREADSTICKS", "boxes of BREADSTICKS", true, 1, 1, true, "eats", 6, [], ["satisfied", "hungry", "famished", "starving"], [], false, [], "", "", [], "", "", 2);
+
 function test_parseDescription_19() {
-    const item = new InventoryItem("BREADSTICKS", "", 6, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const item = new InventoryItem(player, breadsticks, "LEFT HAND", "", 1, 6, "", 2);
     const text = `<desc><s>It's a box of frozen garlic breadsticks.</s> <s>There are <var v="this.uses" /> breadsticks inside.</s></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a box of frozen garlic breadsticks. There are 6 breadsticks inside.`;
     const actual = parser.parseDescription(text, item, player);
@@ -293,9 +298,8 @@ function test_parseDescription_19() {
 }
 
 function test_parseDescription_20() {
-    const item = new InventoryItem("BREADSTICKS", "", 6, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const item = new InventoryItem(player, breadsticks, "LEFT HAND", "", 1, 6, "", 2);
     const text = `<desc><s>It's a box of frozen garlic <var v="this.name">.</s> <if cond="this.uses > 1"><s>There are <var v="this.uses" /> <var v="this.name"> inside.</s></if><if cond="this.uses === 1"><s>There is only <var v="this.uses"> breadstick inside.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a box of frozen garlic BREADSTICKS. There are 6 BREADSTICKS inside.`;
     const actual = parser.parseDescription(text, item, player);
@@ -306,9 +310,8 @@ function test_parseDescription_20() {
 }
 
 function test_parseDescription_21() {
-    const item = new InventoryItem("BREADSTICKS", "", 1, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const item = new InventoryItem(player, breadsticks, "LEFT HAND", "", 1, 1, "", 2);
     const text = `<desc><s>It's a box of frozen garlic <var v="this.name">.</s> <if cond="this.uses > 1"><s>There are <var v="this.uses" /> <var v="this.name"> inside.</s></if><if cond="this.uses === 1"><s>There is only <var v="this.uses"> breadstick inside.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a box of frozen garlic BREADSTICKS. There is only 1 breadstick inside.`;
     const actual = parser.parseDescription(text, item, player);
@@ -319,9 +322,8 @@ function test_parseDescription_21() {
 }
 
 function test_parseDescription_22() {
-    const item = new InventoryItem("BREADSTICKS", "", 0, false, "", "satisfied, hungry, famished, starving", "a box of BREADSTICKS", "boxes of BREADSTICKS");
+    const item = new InventoryItem(player, breadsticks, "LEFT HAND", "", 1, 0, "", 2);
     const text = `<desc><s>It's a box of frozen garlic <var v="this.name">.</s> <if cond="this.uses > 1"><s>There are <var v="this.uses" /> <var v="this.name"> inside.</s></if><if cond="this.uses === 1"><s>There is only <var v="this.uses"> breadstick inside.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a box of frozen garlic BREADSTICKS. It's empty.`;
     const actual = parser.parseDescription(text, item, player);
@@ -331,10 +333,11 @@ function test_parseDescription_22() {
     );
 }
 
+const chickenNuggets = new Prefab("CHICKEN NUGGETS", "CHICKEN NUGGETS", "", "a bag of CHICKEN NUGGETS", "bags of CHICKEN NUGGETS", true, 1, 1, true, "eats", 5, [], ["satisfied", "hungry", "famished", "starving"], [], false, [], "", "", [], "", "", 2);
+
 function test_parseDescription_23() {
-    const item = new InventoryItem("CHICKEN NUGGETS", "", 5, false, "", "satisfied, hungry, famished, starving", "a bag of CHICKEN NUGGETS", "bags of CHICKEN NUGGETS");
+    const item = new InventoryItem(player, chickenNuggets, "LEFT HAND", "", 1, 5, "", 2);
     const text = `<desc><s>It's a bag of frozen chicken nuggets.</s> <s>Sadly, they don't come in fun shapes.</s> <if cond="this.uses > 0"><s>It looks like there are enough in here for <var v="this.uses" /> serving<if cond="this.uses > 1">s</if>, though.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a bag of frozen chicken nuggets. Sadly, they don't come in fun shapes. It looks like there are enough in here for 5 servings, though.`;
     const actual = parser.parseDescription(text, item, player);
@@ -345,9 +348,8 @@ function test_parseDescription_23() {
 }
 
 function test_parseDescription_24() {
-    const item = new InventoryItem("CHICKEN NUGGETS", "", 1, false, "", "satisfied, hungry, famished, starving", "a bag of CHICKEN NUGGETS", "bags of CHICKEN NUGGETS");
+    const item = new InventoryItem(player, chickenNuggets, "LEFT HAND", "", 1, 1, "", 2);
     const text = `<desc><s>It's a bag of frozen chicken nuggets.</s> <s>Sadly, they don't come in fun shapes.</s> <if cond="this.uses > 0"><s>It looks like there are enough in here for <var v="this.uses" /> serving<if cond="this.uses > 1">s</if>, though.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a bag of frozen chicken nuggets. Sadly, they don't come in fun shapes. It looks like there are enough in here for 1 serving, though.`;
     const actual = parser.parseDescription(text, item, player);
@@ -358,12 +360,33 @@ function test_parseDescription_24() {
 }
 
 function test_parseDescription_25() {
-    const item = new InventoryItem("CHICKEN NUGGETS", "", 0, false, "", "satisfied, hungry, famished, starving", "a bag of CHICKEN NUGGETS", "bags of CHICKEN NUGGETS");
+    const item = new InventoryItem(player, chickenNuggets, "LEFT HAND", "", 1, 0, "", 2);
     const text = `<desc><s>It's a bag of frozen chicken nuggets.</s> <s>Sadly, they don't come in fun shapes.</s> <if cond="this.uses > 0"><s>It looks like there are enough in here for <var v="this.uses" /> serving<if cond="this.uses > 1">s</if>, though.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`;
-    const player = new Player("Monokuma", 5);
 
     const result = `It's a bag of frozen chicken nuggets. Sadly, they don't come in fun shapes. It's empty.`;
     const actual = parser.parseDescription(text, item, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_26() {
+    const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`;
+
+    const result = `It's a pair of long, purple pants with a checker pattern. There are four pockets altogether.`;
+    const actual = parser.parseDescription(text, null, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_27() {
+    const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>a GUN</item></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"><item>3 pairs of DICE</item></il>.</s></desc>`;
+
+    const result = `It's a pair of long, purple pants with a checker pattern. There are four pockets altogether. In the left pocket, you find a GUN. In the right back pocket, you find 3 pairs of DICE.`;
+    const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
         actual

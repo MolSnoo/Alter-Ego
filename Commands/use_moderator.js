@@ -3,10 +3,10 @@
 module.exports.config = {
     name: "use_moderator",
     description: "Uses an item in the given player's inventory.",
-    details: "Uses an item in the given player's inventory. Note that you cannot solve puzzles using this command. "
+    details: "Uses an item in one of the given player's hands. Note that you cannot solve puzzles using this command. "
         + "To do that, use the puzzle command.",
     usage: `${settings.commandPrefix}use veronica first aid kit\n`
-        + `${settings.commandPrefix}use colin food`,
+        + `${settings.commandPrefix}use colin's food`,
     usableBy: "Moderator",
     aliases: ["use"],
     requiresGame: true
@@ -21,7 +21,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
             player = game.players_alive[i];
             args.splice(0, 1);
             break;
@@ -34,25 +34,31 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     // First find the item in the player's inventory, if applicable.
     var item = null;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (player.inventory[i].name === parsedInput) {
-            item = player.inventory[i];
+    for (let slot = 0; slot < player.inventory.length; slot++) {
+        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
+            item = player.inventory[slot].equippedItem;
             break;
         }
+        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
+            item = player.inventory[slot].equippedItem;
+            break;
+        }
+        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
+        else if (player.inventory[slot].name === "LEFT HAND")
+            break;
     }
-    if (item === null) return message.reply(`couldn't find item "${input}" in ${player.name}'s inventory.`);
+    if (item === null) return message.reply(`couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
 
     // Use the player's item.
     const response = player.use(game, item);
     if (response === "" || !response) {
-        message.channel.send(`${player.name} uses the ${item.name}.`);
+        message.channel.send(`Successfully used ${item.name} for ${player.name}.`);
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${player.name} forcefully used ${item.name} from their inventory in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} forcefully used ${item.name} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
         return;
     }
     else if (response.startsWith("that item has no programmed use")) return message.reply("that item has no programmed use.");
-    else if (response.startsWith("you cannot use that item")) return message.reply(`${player.name} is already under the effect of ${item.name}.`);
-    else if (response.startsWith("you attempted to use the")) return message.reply(`${item.name} currently has no effect on ${player.name}.`);
+    else if (response.startsWith("you attempt to use the")) return message.reply(`${item.name} currently has no effect on ${player.name}.`);
     else return message.reply(response);
 };

@@ -4,8 +4,10 @@ const sheets = include(`${settings.modulesDir}/sheets.js`);
 const Exit = include(`${settings.dataDir}/Exit.js`);
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
+const Prefab = include(`${settings.dataDir}/Prefab.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
+const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
@@ -163,8 +165,8 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                 }
             }
             for (let i = 0; i < game.items.length; i++) {
-                if (game.items[i].sublocationName !== "")
-                    game.items[i].sublocation = game.objects.find(object => object.name === game.items[i].sublocationName && object.location.name === game.items[i].location.name);
+                if (game.items[i].containerName.startsWith("Object:"))
+                    game.items[i].container = game.objects.find(object => object.name === game.items[i].containerName.substring("Object:".length).trim() && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
             }
             for (let i = 0; i < game.puzzles.length; i++) {
                 if (game.puzzles[i].parentObjectName !== "")
@@ -197,69 +199,305 @@ module.exports.checkObject = function (object) {
     return;
 };
 
-module.exports.loadItems = function (game, doErrorChecking) {
+module.exports.loadPrefabs = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.itemSheetAllCells, function (response) {
+        sheets.getDataFormulas(settings.prefabSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnPluralName = 1;
-            const columnLocation = 2;
-            const columnSublocation = 3;
-            const columnAccessibility = 4;
-            const columnRequires = 5;
-            const columnQuantity = 6;
-            const columnUses = 7;
-            const columnDiscreet = 8;
+            const columnID = 0;
+            const columnName = 1;
+            const columnContainingPhrase = 2;
+            const columnDiscreet = 3;
+            const columnSize = 4;
+            const columnWeight = 5;
+            const columnUsable = 6;
+            const columnUseVerb = 7;
+            const columnUses = 8;
             const columnEffect = 9;
             const columnCures = 10;
-            const columnContainingPhrase = 11;
-            const columnDescription = 12;
+            const columnNextStage = 11;
+            const columnEquippable = 12;
+            const columnSlots = 13;
+            const columnCoveredSlots = 14;
+            const columnEquipCommands = 15;
+            const columnInventorySlots = 16;
+            const columnPreposition = 17;
+            const columnDescription = 18;
 
-            game.items.length = 0;
+            game.prefabs.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                // Separate name and plural name.
+                const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
+                // Separate single containing phrase and plural containing phrase.
                 const containingPhrase = sheet[i][columnContainingPhrase] ? sheet[i][columnContainingPhrase].split(',') : "";
+                // Create a list of all status effect names this prefab will inflict when used.
                 var effects = sheet[i][columnEffect] ? sheet[i][columnEffect].split(',') : [];
                 for (let j = 0; j < effects.length; j++)
                     effects[j] = effects[j].trim();
+                // Create a list of all status effect names this prefab will cure when used.
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
-                game.items.push(
-                    new Item(
-                        sheet[i][columnName],
-                        sheet[i][columnPluralName] ? sheet[i][columnPluralName] : "",
-                        sheet[i][columnLocation],
-                        sheet[i][columnSublocation] ? sheet[i][columnSublocation] : "",
-                        sheet[i][columnAccessibility] === true,
-                        sheet[i][columnRequires] ? sheet[i][columnRequires] : "",
-                        parseInt(sheet[i][columnQuantity]),
-                        parseInt(sheet[i][columnUses]),
-                        sheet[i][columnDiscreet] === true,
-                        effects,
-                        cures,
+                // Create a list of all prefabs this prefab will turn into when destroyed.
+                var nextStages = sheet[i][columnNextStage] ? sheet[i][columnNextStage].split(',') : [];
+                for (let j = 0; j < nextStages.length; j++)
+                    nextStages[j] = nextStages[j].trim();
+                // Create a list of equipment slots this prefab can be equipped to.
+                var equipmentSlots = sheet[i][columnSlots] ? sheet[i][columnSlots].split(',') : [];
+                for (let j = 0; j < equipmentSlots.length; j++)
+                    equipmentSlots[j] = equipmentSlots[j].trim();
+                // Create a list of equipment slots this prefab covers when equipped.
+                var coveredEquipmentSlots = sheet[i][columnCoveredSlots] ? sheet[i][columnCoveredSlots].split(',') : [];
+                for (let j = 0; j < coveredEquipmentSlots.length; j++)
+                    coveredEquipmentSlots[j] = coveredEquipmentSlots[j].trim();
+                // Create a list of commands to run when this prefab is equipped/unequipped.
+                const commands = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].split('/') : new Array("", "");
+                var equipCommands = commands[0] ? commands[0].split(',') : "";
+                for (let j = 0; j < equipCommands.length; j++)
+                    equipCommands[j] = equipCommands[j].trim();
+                var unequipCommands = commands[1] ? commands[1].split(',') : "";
+                for (let j = 0; j < unequipCommands.length; j++)
+                    unequipCommands[j] = unequipCommands[j].trim();
+                // Create a list of inventory slots this prefab contains.
+                var inventorySlots = sheet[i][columnInventorySlots] ? sheet[i][columnInventorySlots].split(',') : [];
+                for (let j = 0; j < inventorySlots.length; j++) {
+                    const inventorySlot = inventorySlots[j].split(':');
+                    inventorySlots[j] = { name: inventorySlot[0].trim(), capacity: parseInt(inventorySlot[1]), takenSpace: 0, weight: 0, item: [] };
+                }
+
+                game.prefabs.push(
+                    new Prefab(
+                        sheet[i][columnID],
+                        name[0] ? name[0].trim() : "",
+                        name[1] ? name[1].trim() : "",
                         containingPhrase[0] ? containingPhrase[0].trim() : "",
                         containingPhrase[1] ? containingPhrase[1].trim() : "",
+                        sheet[i][columnDiscreet] === true,
+                        parseInt(sheet[i][columnSize]),
+                        parseInt(sheet[i][columnWeight]),
+                        sheet[i][columnUsable] === true,
+                        sheet[i][columnUseVerb] ? sheet[i][columnUseVerb] : "",
+                        parseInt(sheet[i][columnUses]),
+                        effects,
+                        cures,
+                        sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
+                        sheet[i][columnEquippable] === true,
+                        equipmentSlots,
+                        coveredEquipmentSlots,
+                        equipCommands,
+                        unequipCommands,
+                        inventorySlots,
+                        sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
                     )
                 );
             }
             var errors = [];
+            for (let i = 0; i < game.prefabs.length; i++) {
+                for (let j = 0; j < game.prefabs[i].effects.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].effects[j]);
+                    if (status) game.prefabs[i].effects[j] = status;
+                }
+                for (let j = 0; j < game.prefabs[i].cures.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].cures[j]);
+                    if (status) game.prefabs[i].cures[j] = status;
+                }
+                let nextStage = game.prefabs.find(prefab => prefab.id === game.prefabs[i].nextStageName);
+                if (nextStage) game.prefabs[i].nextStage = nextStage;
+                if (doErrorChecking) {
+                    let error = exports.checkPrefab(game.prefabs[i], game);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkPrefab = function (prefab, game) {
+    if (game.prefabs.filter(other => other.id === prefab.id && other.row < prefab.row).length > 0)
+        return new Error(`Couldn't load prefab on row ${prefab.row}. Another prefab with this ID already exists.`);
+    if (prefab.name === "" || prefab.name === null || prefab.name === undefined)
+        return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab name was given.`);
+    if (prefab.singleContainingPhrase === "")
+        return new Error(`Couldn't load prefab on row ${prefab.row}. No single containing phrase was given.`);
+    if (isNaN(prefab.size))
+        return new Error(`Couldn't load prefab on row ${prefab.row}. The size given is not a number.`);
+    if (isNaN(prefab.weight))
+        return new Error(`Couldn't load prefab on row ${prefab.row}. The weight given is not a number.`);
+    for (let i = 0; i < prefab.effects.length; i++) {
+        if (!(prefab.effects[i] instanceof Status))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.effects[i]}" in effects is not a status effect.`);
+    }
+    for (let i = 0; i < prefab.cures.length; i++) {
+        if (!(prefab.cures[i] instanceof Status))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.cures[i]}" in cures is not a status effect.`);
+    }
+    if (prefab.nextStageName !== "" && !(prefab.nextStage instanceof Prefab))
+        return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStageName}" in turns into is not a prefab.`);
+    for (let i = 0; i < prefab.inventory.length; i++) {
+        if (prefab.inventory[i].name === "" || prefab.inventory[i].name === null || prefab.inventory[i].name === undefined)
+            return new Error(`Couldn't load prefab on row ${prefab.row}. No name was given for inventory slot ${i + 1}.`);
+        if (isNaN(prefab.inventory[i].capacity))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. The capacity given for inventory slot "${prefab.inventory[i].name}" is not a number.`);
+    }
+    if (prefab.inventory.length !== 0 && prefab.preposition === "")
+        return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
+    return;
+};
+
+module.exports.loadItems = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        sheets.getDataFormulas(settings.itemSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnPrefab = 0;
+            const columnLocation = 1;
+            const columnAccessibility = 2;
+            const columnContainer = 3;
+            const columnQuantity = 4;
+            const columnUses = 5;
+            const columnDescription = 6;
+
+            game.items.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                // Find the prefab first.
+                const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab] && prefab.id !== "");
+
+                game.items.push(
+                    new Item(
+                        prefab ? prefab : sheet[i][columnPrefab],
+                        sheet[i][columnLocation],
+                        sheet[i][columnAccessibility] === true,
+                        sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
+                        parseInt(sheet[i][columnQuantity]),
+                        parseInt(sheet[i][columnUses]),
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
+                        i + 1
+                    )
+                );
+            }
+            var errors = [];
+            var childItemIndexes = [];
             for (let i = 0; i < game.items.length; i++) {
                 game.items[i].location = game.rooms.find(room => room.name === game.items[i].location && room.name !== "");
-                let sublocation = game.objects.find(object => object.name === game.items[i].sublocationName && object.location.name === game.items[i].location.name);
-                if (sublocation) game.items[i].sublocation = sublocation;
-                let requires = game.puzzles.find(puzzle => puzzle.name === game.items[i].requiresName && puzzle.location.name === game.items[i].location.name);
-                if (requires) game.items[i].requires = requires;
-                for (let j = 0; j < game.items[i].effects.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].effects[j]);
-                    if (status) game.items[i].effects[j] = status;
+                if (game.items[i].prefab) {
+                    const prefab = game.items[i].prefab;
+                    game.items[i].weight = game.items[i].prefab.weight;
+                    for (let j = 0; j < prefab.inventory.length; j++)
+                        game.items[i].inventory.push({ name: prefab.inventory[j].name, capacity: prefab.inventory[j].capacity, takenSpace: prefab.inventory[j].takenSpace, weight: prefab.inventory[j].weight, item: [] });
                 }
-                for (let j = 0; j < game.items[i].cures.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].cures[j]);
-                    if (status) game.items[i].cures[j] = status;
+                if (game.items[i].containerName.startsWith("Object:")) {
+                    let container = game.objects.find(object => object.name === game.items[i].containerName.substring("Object:".length).trim() && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
+                    if (container) game.items[i].container = container;
                 }
+                else if (game.items[i].containerName.startsWith("Item:")) {
+                    childItemIndexes.push(i);
+                }
+                else if (game.items[i].containerName.startsWith("Puzzle:")) {
+                    let container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location.name === game.items[i].location.name);
+                    if (container) game.items[i].container = container;
+                }
+            }
+            // Only assign child item containers once all items have been properly initialized.
+            for (let index = 0; index < childItemIndexes.length; index++) {
+                const i = childItemIndexes[index];
+                const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
+                const prefabName = containerName[0] ? containerName[0].trim() : "";
+                const slotName = containerName[1] ? containerName[1].trim() : "";
+                let possibleContainers = game.items.filter(item => item.prefab.id === prefabName && item.location.name === game.items[i].location.name);
+                let container = null;
+                for (let i = 0; i < possibleContainers.length; i++) {
+                    if (possibleContainers[i].quantity > 0) {
+                        container = possibleContainers[i];
+                        break;
+                    }
+                }
+                if (container === null && possibleContainers.length > 0) container = possibleContainers[0];
+                if (container) {
+                    game.items[i].container = container;
+                    game.items[i].slot = slotName;
+                    // This is a pseudo-copy of the insertItems function without weight and takenSpace changing.
+                    if (game.items[i].quantity !== 0) {
+                        for (let j = 0; j < container.inventory.length; j++) {
+                            if (container.inventory[j].name === slotName)
+                                container.inventory[j].item.push(game.items[i]);
+                        }
+                    }
+                }
+            }
+            // Create a recursive function for properly inserting item inventories.
+            let insertInventory = function (item) {
+                var createdItem = new Item(
+                    item.prefab,
+                    item.location,
+                    item.accessible,
+                    item.containerName,
+                    item.quantity,
+                    item.uses,
+                    item.description,
+                    item.row
+                );
+                if (item.container instanceof Item) createdItem.container = game.items.find(gameItem => gameItem.row === item.container.row);
+                else createdItem.container = item.container;
+                createdItem.slot = item.slot;
+                createdItem.weight = item.weight;
+
+                // Initialize the item's inventory slots.
+                for (let i = 0; i < item.prefab.inventory.length; i++)
+                    createdItem.inventory.push({
+                        name: item.prefab.inventory[i].name,
+                        capacity: item.prefab.inventory[i].capacity,
+                        takenSpace: item.prefab.inventory[i].takenSpace,
+                        weight: item.prefab.inventory[i].weight,
+                        item: []
+                    });
+
+                for (let i = 0; i < item.inventory.length; i++) {
+                    for (let j = 0; j < item.inventory[i].item.length; j++) {
+                        let inventoryItem = insertInventory(item.inventory[i].item[j]);
+                        let foundItem = false;
+                        for (var k = 0; k < game.items.length; k++) {
+                            if (game.items[k].row === inventoryItem.row) {
+                                foundItem = true;
+                                game.items[k] = inventoryItem;
+                                break;
+                            }
+                        }
+                        if (foundItem) {
+                            game.items[k].container = createdItem;
+                            if (game.items[k].containerName !== "")
+                                createdItem.insertItem(game.items[k], game.items[k].slot);
+                            else createdItem.inventory[i].item.push(game.items[k]);
+                        }
+                    }
+                }
+                return createdItem;
+            };
+            // Run through items one more time to properly insert their inventories.
+            for (let i = 0; i < game.items.length; i++) {
+                if (game.items[i].container instanceof Item) {
+                    let container = game.items[i].container;
+                    for (let slot = 0; slot < container.inventory.length; slot++) {
+                        for (let j = 0; j < container.inventory[slot].item.length; j++) {
+                            if (container.inventory[slot].item[j].row === game.items[i].row) {
+                                game.items[i] = container.inventory[slot].item[j];
+                                break;
+                            }
+                        }
+                    }
+                }
+                else game.items[i] = insertInventory(game.items[i]);
+
                 if (doErrorChecking) {
                     let error = exports.checkItem(game.items[i]);
                     if (error instanceof Error) errors.push(error);
@@ -279,27 +517,33 @@ module.exports.loadItems = function (game, doErrorChecking) {
 };
 
 module.exports.checkItem = function (item) {
-    if (item.name === "" || item.name === null || item.name === undefined)
-        return new Error(`Couldn't load item on row ${item.row}. No item name was given.`);
-    if (item.singleContainingPhrase === "")
-        return new Error(`Couldn't load item on row ${item.row}. No single containing phrase was given.`);
-    if (item.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
-        return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but no plural containing phrase was given.`);
+    if (!(item.prefab instanceof Prefab))
+        return new Error(`Couldn't load item on row ${item.row}. The prefab given is not a prefab.`);
+    if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+        return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
         return new Error(`Couldn't load item on row ${item.row}. The location given is not a room.`);
-    if (item.sublocationName !== "" && !(item.sublocation instanceof Object))
-        return new Error(`Couldn't load item on row ${item.row}. The sublocation given is not an object.`);
-    if (item.requiresName !== "" && !(item.requires instanceof Puzzle))
-        return new Error(`Couldn't load item on row ${item.row}. The requirement given is not a puzzle.`);
-    if (item.sublocation !== null && item.requires !== null)
-        return new Error(`Couldn't load item on row ${item.row}. Item has both a sublocation and requirement. It must have one or the other.`);
-    for (let i = 0; i < item.effects.length; i++) {
-        if (!(item.effects[i] instanceof Status))
-            return new Error(`Couldn't load item on row ${item.row}. "${item.effects[i]}" in effects is not a status effect.`);
-    }
-    for (let i = 0; i < item.cures.length; i++) {
-        if (!(item.cures[i] instanceof Status))
-            return new Error(`Couldn't load item on row ${item.row}. "${item.cures[i]}" in cures is not a status effect.`);
+    if (item.containerName.startsWith("Object:") && !(item.container instanceof Object))
+        return new Error(`Couldn't load item on row ${item.row}. The container given is not an object.`);
+    if (item.containerName.startsWith("Item:") && !(item.container instanceof Item))
+        return new Error(`Couldn't load item on row ${item.row}. The container given is not an item.`);
+    if (item.containerName.startsWith("Puzzle:") && !(item.container instanceof Puzzle))
+        return new Error(`Couldn't load item on row ${item.row}. The container given is not a puzzle.`);
+    if (item.containerName !== "" && !item.containerName.startsWith("Object:") && !item.containerName.startsWith("Item:") && !item.containerName.startsWith("Puzzle:"))
+        return new Error(`Couldn't load item on row ${item.row}. The given container type is invalid.`);
+    if (item.container instanceof Item && item.container.inventory.length === 0)
+        return new Error(`Couldn't load item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+    if (item.container instanceof Item) {
+        if (item.slot === "") return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but a prefab inventory slot name was not given.`);
+        let foundSlot = false;
+        for (let i = 0; i < item.container.inventory.length; i++) {
+            if (item.container.inventory[i].name === item.slot) {
+                foundSlot = true;
+                if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
+                    return new Error(`Couldn't load item on row ${item.row}. The item's container is over capacity.`);
+            }
+        }
+        if (!foundSlot) return new Error(`Couldn't load item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
     }
     return;
 };
@@ -375,8 +619,8 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                     game.objects[i].childPuzzle = game.puzzles.find(puzzle => puzzle.name === game.objects[i].childPuzzleName && puzzle.location.name === game.objects[i].location.name);
             }
             for (let i = 0; i < game.items.length; i++) {
-                if (game.items[i].requiresName !== "")
-                    game.items[i].requires = game.puzzles.find(puzzle => puzzle.name === game.items[i].requiresName && puzzle.location.name === game.items[i].location.name);
+                if (game.items[i].containerName.startsWith("Puzzle:"))
+                    game.items[i].container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location.name === game.items[i].location.name);
             }
             if (errors.length > 0) {
                 if (errors.length > 5) {
@@ -417,34 +661,68 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnName = 0;
             const columnDuration = 1;
             const columnFatal = 2;
-            const columnCures = 3;
-            const columnNextStage = 4;
-            const columnDuplicatedStatus = 5;
-            const columnCuredCondition = 6;
-            const columnRollModifier = 7;
-            const columnAttributes = 8;
-            const columnInflictedDescription = 10;
-            const columnCuredDescription = 11;
+            const columnVisible = 3;
+            const columnCures = 4;
+            const columnNextStage = 5;
+            const columnDuplicatedStatus = 6;
+            const columnCuredCondition = 7;
+            const columnStatModifier = 8;
+            const columnAttributes = 9;
+            const columnInflictedDescription = 11;
+            const columnCuredDescription = 12;
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
-                var modifiesSelf = null;
-                if (sheet[i][columnRollModifier] && sheet[i][columnRollModifier].charAt(0) === 's') modifiesSelf = true;
-                else if (sheet[i][columnRollModifier] && sheet[i][columnRollModifier].charAt(0) === 'o') modifiesSelf = false;
+                var modifierStrings = sheet[i][columnStatModifier] ? sheet[i][columnStatModifier].split(',') : [];
+                var modifiers = [];
+                for (let j = 0; j < modifierStrings.length; j++) {
+                    modifierStrings[j] = modifierStrings[j].toLowerCase().trim();
+
+                    var modifiesSelf = true;
+                    if (modifierStrings[j].charAt(0) === '@') {
+                        modifiesSelf = false;
+                        modifierStrings[j] = modifierStrings[j].substring(1);
+                    }
+
+                    var stat = null;
+                    var assignValue = false;
+                    var value = null;
+                    if (modifierStrings[j].includes('+')) {
+                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('+'));
+                        value = parseInt(modifierStrings[j].substring(stat.length));
+                    }
+                    else if (modifierStrings[j].includes('-')) {
+                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('-'));
+                        value = parseInt(modifierStrings[j].substring(stat.length));
+                    }
+                    else if (modifierStrings[j].includes('=')) {
+                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('='));
+                        assignValue = true;
+                        value = parseInt(modifierStrings[j].substring(stat.length + 1));
+                    }
+
+                    if (stat === "strength") stat = "str";
+                    else if (stat === "intelligence") stat = "int";
+                    else if (stat === "dexterity") stat = "dex";
+                    else if (stat === "speed") stat = "spd";
+                    else if (stat === "stamina") stat = "sta";
+
+                    modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
+                }
                 game.statusEffects.push(
                     new Status(
                         sheet[i][columnName],
                         sheet[i][columnDuration].toLowerCase(),
                         sheet[i][columnFatal] === true,
+                        sheet[i][columnVisible] === true,
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage] : null,
                         sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus] : null,
                         sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition] : null,
-                        sheet[i][columnRollModifier] ? parseInt(sheet[i][columnRollModifier].substring(1)) : "",
-                        modifiesSelf,
+                        modifiers,
                         sheet[i][columnAttributes] ? sheet[i][columnAttributes] : "",
                         sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription] : "",
                         sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription] : "",
@@ -476,26 +754,14 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     if (error instanceof Error) errors.push(error);
                 }
             }
-            for (let i = 0; i < game.items.length; i++) {
-                for (let j = 0; j < game.items[i].effectsStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].effectsStrings[j]);
-                    if (status) game.items[i].effects[j] = status;
+            for (let i = 0; i < game.prefabs.length; i++) {
+                for (let j = 0; j < game.prefabs[i].effectsStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].effectsStrings[j]);
+                    if (status) game.prefabs[i].effects[j] = status;
                 }
-                for (let j = 0; j < game.items[i].curesStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.items[i].curesStrings[j]);
-                    if (status) game.items[i].cures[j] = status;
-                }
-            }
-            for (let i = 0; i < game.players.length; i++) {
-                for (let j = 0; j < game.players[i].inventory.length; j++) {
-                    for (let k = 0; k < game.players[i].inventory[j].effects.length; k++) {
-                        let status = game.statusEffects.find(statusEffect => statusEffect.name === game.players[i].inventory[j].effectsStrings[k]);
-                        if (status) game.players[i].inventory[j].effects[k] = status;
-                    }
-                    for (let k = 0; k < game.players[i].inventory[j].cures.length; k++) {
-                        let status = game.statusEffects.find(statusEffect => statusEffect.name === game.players[i].inventory[j].curesStrings[k]);
-                        if (status) game.players[i].inventory[j].cures[k] = status;
-                    }
+                for (let j = 0; j < game.prefabs[i].curesStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].curesStrings[j]);
+                    if (status) game.prefabs[i].cures[j] = status;
                 }
             }
             if (errors.length > 0) {
@@ -517,12 +783,16 @@ module.exports.checkStatusEffect = function (status) {
     const timeInt = status.duration.substring(0, status.duration.length - 1);
     if (status.duration !== "" && (isNaN(timeInt) || !status.duration.endsWith('m') && !status.duration.endsWith('h')))
         return new Error(`Couldn't load status effect on row ${status.row}. Duration format is incorrect. Must be a number followed by 'm' or 'h'.`);
-    if (status.rollModifier === "")
-        return new Error(`Couldn't load status effect on row ${status.row}. No roll modifier was given.`);
-    if (status.modifiesSelf === null)
-        return new Error(`Couldn't load status effect on row ${status.row}. Whether the roll modifier affects self (s) or other (o) was not specified.`);
-    if (isNaN(status.rollModifier))
-        return new Error(`Couldn't load status effect on row ${status.row}. The roll modifier given is not an integer.`);
+    for (let i = 0; i < status.statModifiers.length; i++) {
+        if (status.statModifiers[i].stat === null)
+            return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
+        if (status.statModifiers[i].stat !== "str" && status.statModifiers[i].stat !== "int" && status.statModifiers[i].stat !== "dex" && status.statModifiers[i].stat !== "spd" && status.statModifiers[i].stat !== "sta")
+            return new Error(`Couldn't load status effect on row ${status.row}. "${status.statModifiers[i].stat}" in stat modifier ${i + 1} is not a valid stat.`);
+        if (status.statModifiers[i].value === null)
+            return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
+        if (isNaN(status.statModifiers[i].value))
+            return new Error(`Couldn't load status effect on row ${status.row}. The value given in stat modifier ${i + 1} is not an integer.`);
+    }
     if (status.cures.length > 0) {
         for (let i = 0; i < status.cures.length; i++)
             if (!(status.cures[i] instanceof Status))
@@ -553,74 +823,29 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getDataFormulas(settings.playerSheetAllCells, function (response) {
+        sheets.getDataFormulas(settings.playerSheetAllCells, async function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
             const columnName = 1;
             const columnTalent = 2;
-            const columnStrength = 3;
-            const columnIntelligence = 4;
-            const columnDexterity = 5;
-            const columnSpeed = 6;
-            const columnStamina = 7;
-            const columnAlive = 8;
-            const columnLocation = 9;
-            const columnHidingSpot = 10;
-            const columnStatus = 11;
-            const columnItemName = 12;
-            const columnItemPluralName = 13;
-            const columnItemUses = 14;
-            const columnItemDiscreet = 15;
-            const columnItemEffect = 16;
-            const columnItemCures = 17;
-            const columnItemContainingPhrase = 18;
-            const columnItemDescription = 19;
+            const columnPronouns = 3;
+            const columnStrength = 4;
+            const columnIntelligence = 5;
+            const columnDexterity = 6;
+            const columnSpeed = 7;
+            const columnStamina = 8;
+            const columnAlive = 9;
+            const columnLocation = 10;
+            const columnHidingSpot = 11;
+            const columnStatus = 12;
+            const columnDescription = 13;
 
             game.players.length = 0;
             game.players_alive.length = 0;
             game.players_dead.length = 0;
 
-            for (let i = 2, j = 0; i < sheet.length; i = i + j) {
-                var inventory = new Array(3);
-                for (j = 0; j < inventory.length; j++) {
-                    if (sheet[i + j][columnItemName] !== "NULL") {
-                        const containingPhrase = sheet[i + j][columnItemContainingPhrase] ? sheet[i + j][columnItemContainingPhrase].split(',') : "";
-                        var effects = sheet[i + j][columnItemEffect] ? sheet[i + j][columnItemEffect].split(',') : [];
-                        for (let k = 0; k < effects.length; k++)
-                            effects[k] = effects[k].trim();
-                        var cures = sheet[i + j][columnItemCures] ? sheet[i + j][columnItemCures].split(',') : [];
-                        for (let k = 0; k < cures.length; k++)
-                            cures[k] = cures[k].trim();
-                        inventory[j] =
-                            new InventoryItem(
-                                sheet[i + j][columnItemName],
-                                sheet[i + j][columnItemPluralName] ? sheet[i + j][columnItemPluralName] : "",
-                                parseInt(sheet[i + j][columnItemUses]),
-                                sheet[i + j][columnItemDiscreet] === true,
-                                effects,
-                                cures,
-                                containingPhrase[0] ? containingPhrase[0].trim() : "",
-                                containingPhrase[1] ? containingPhrase[1].trim() : "",
-                                sheet[i + j][columnItemDescription] ? sheet[i + j][columnItemDescription] : "",
-                                i + j + 1
-                            );
-                    }
-                    else
-                        inventory[j] =
-                            new InventoryItem(
-                                null,
-                                null,
-                                null,
-                                null,
-                                [],
-                                [],
-                                null,
-                                null,
-                                "",
-                                i + j + 1
-                            );
-                }
+            for (let i = 2; i < sheet.length; i++) {
                 const stats = {
                     strength: parseInt(sheet[i][columnStrength]),
                     intelligence: parseInt(sheet[i][columnIntelligence]),
@@ -635,14 +860,18 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
+                        sheet[i][columnPronouns] ? sheet[i][columnPronouns].toLowerCase() : "",
                         stats,
                         sheet[i][columnAlive] === true,
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],
                         new Array(),
-                        inventory,
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
+                        new Array(),
                         i + 1
                     );
+                player.setPronouns(player.originalPronouns, player.pronounString);
+                player.setPronouns(player.pronouns, player.pronounString);
                 game.players.push(player);
 
                 if (player.alive) {
@@ -651,15 +880,15 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     // Parse statuses and inflict the player with them.
                     const currentPlayer = game.players_alive[game.players_alive.length - 1];
                     const statuses = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : "";
-                    for (let k = 0; k < game.statusEffects.length; k++) {
-                        for (let l = 0; l < statuses.length; l++) {
-                            if (game.statusEffects[k].name === statuses[l].trim()) {
-                                currentPlayer.inflict(game, game.statusEffects[k].name, false, false, false, false);
+                    for (let j = 0; j < game.statusEffects.length; j++) {
+                        for (let k = 0; k < statuses.length; k++) {
+                            if (game.statusEffects[j].name === statuses[k].trim()) {
+                                currentPlayer.inflict(game, game.statusEffects[j].name, false, false, false);
                                 break;
                             }
                         }
                     }
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), currentPlayer.statusString));
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), `Players!${currentPlayer.name}|Status`, currentPlayer.statusString));
 
                     for (let k = 0; k < game.rooms.length; k++) {
                         if (game.rooms[k].name === currentPlayer.location.name) {
@@ -671,23 +900,18 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 else
                     game.players_dead.push(player);
             }
+
+            await exports.loadInventories(game, false);
+
             var errors = [];
             for (let i = 0; i < game.players.length; i++) {
                 if (doErrorChecking) {
                     let error = exports.checkPlayer(game.players[i]);
                     if (error instanceof Error) errors.push(error);
-                }
-                for (let j = 0; j < game.players[i].inventory.length; j++) {
-                    for (let k = 0; k < game.players[i].inventory[j].effects.length; k++) {
-                        let status = game.statusEffects.find(statusEffect => statusEffect.name === game.players[i].inventory[j].effects[k]);
-                        if (status) game.players[i].inventory[j].effects[k] = status;
-                    }
-                    for (let k = 0; k < game.players[i].inventory[j].cures.length; k++) {
-                        let status = game.statusEffects.find(statusEffect => statusEffect.name === game.players[i].inventory[j].cures[k]);
-                        if (status) game.players[i].inventory[j].cures[k] = status;
-                    }
-                    if (doErrorChecking) {
-                        let error = exports.checkInventoryItem(game.players[i].inventory[j]);
+
+                    let playerInventory = game.inventoryItems.filter(item => item.player.id === game.players[i].id);
+                    for (let j = 0; j < playerInventory.length; j++) {
+                        error = exports.checkInventoryItem(playerInventory[j]);
                         if (error instanceof Error) errors.push(error);
                     }
                 }
@@ -714,6 +938,18 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
     if (player.name.includes(" "))
         return new Error(`Couldn't load player on row ${player.row}. Player names must not have any spaces.`);
+    if (player.originalPronouns.sbj === null || player.originalPronouns.sbj === "")
+        return new Error(`Couldn't load player on row ${player.row}. No subject pronoun was given.`);
+    if (player.originalPronouns.obj === null || player.originalPronouns.obj === "")
+        return new Error(`Couldn't load player on row ${player.row}. No object pronoun was given.`);
+    if (player.originalPronouns.dpos === null || player.originalPronouns.dpos === "")
+        return new Error(`Couldn't load player on row ${player.row}. No dependent possessive pronoun was given.`);
+    if (player.originalPronouns.ipos === null || player.originalPronouns.ipos === "")
+        return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
+    if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
+        return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
+    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "")
+        return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
     if (isNaN(player.strength))
         return new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`);
     if (isNaN(player.intelligence))
@@ -731,85 +967,193 @@ module.exports.checkPlayer = function (player) {
 
 module.exports.loadInventories = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.playerSheetAllCells, function (response) {
+        sheets.getDataFormulas(settings.inventorySheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnID = 0;
-            const columnItemName = 12;
-            const columnItemPluralName = 13;
-            const columnItemUses = 14;
-            const columnItemDiscreet = 15;
-            const columnItemEffect = 16;
-            const columnItemCures = 17;
-            const columnItemContainingPhrase = 18;
-            const columnItemDescription = 19;
+            const columnPlayer = 0;
+            const columnPrefab = 1;
+            const columnEquipmentSlot = 2;
+            const columnContainer = 3;
+            const columnQuantity = 4;
+            const columnUses = 5;
+            const columnDescription = 6;
 
-            for (let i = 0; i < game.players_alive.length; i++) {
-                game.players_alive[i].inventory.length = 0;
-                var inventory = new Array(3);
-                for (let j = 2, k = 0; j < sheet.length; j = j + k) {
-                    if (sheet[j][columnID] === game.players_alive[i].id) {
-                        for (k = 0; k < inventory.length; k++) {
-                            if (sheet[j + k][columnItemName] !== "NULL") {
-                                const containingPhrase = sheet[j + k][columnItemContainingPhrase] ? sheet[j + k][columnItemContainingPhrase].split(',') : "";
-                                var effects = sheet[j + k][columnItemEffect] ? sheet[j + k][columnItemEffect].split(',') : [];
-                                for (let l = 0; l < effects.length; l++)
-                                    effects[l] = effects[l].trim();
-                                var cures = sheet[j + k][columnItemCures] ? sheet[j + k][columnItemCures].split(',') : [];
-                                for (let l = 0; l < cures.length; l++)
-                                    cures[l] = cures[l].trim();
-                                inventory[k] =
-                                    new InventoryItem(
-                                        sheet[j + k][columnItemName],
-                                        sheet[j + k][columnItemPluralName] ? sheet[j + k][columnItemPluralName] : "",
-                                        parseInt(sheet[j + k][columnItemUses]),
-                                        sheet[j + k][columnItemDiscreet] === true,
-                                        effects,
-                                        cures,
-                                        containingPhrase[0] ? containingPhrase[0].trim() : "",
-                                        containingPhrase[1] ? containingPhrase[1].trim() : "",
-                                        sheet[j + k][columnItemDescription] ? sheet[j + k][columnItemDescription] : "",
-                                        j + k + 1
-                                    );
-                            }
-                            else {
-                                inventory[k] =
-                                    new InventoryItem(
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        [],
-                                        [],
-                                        null,
-                                        null,
-                                        "",
-                                        j + k + 1
-                                    );
-                            }
-                        }
-                        game.players_alive[i].inventory = inventory;
-                    }
-                    else k = inventory.length;
+            game.inventoryItems.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                const player = game.players.find(player => player.name === sheet[i][columnPlayer] && player.name !== "");
+                if (sheet[i][columnPrefab] !== "NULL") {
+                    // Find the prefab first.
+                    const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab] && prefab.id !== "");
+
+                    game.inventoryItems.push(
+                        new InventoryItem(
+                            player ? player : sheet[i][columnPlayer],
+                            prefab ? prefab : sheet[i][columnPrefab],
+                            sheet[i][columnEquipmentSlot],
+                            sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
+                            parseInt(sheet[i][columnQuantity]),
+                            parseInt(sheet[i][columnUses]),
+                            sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
+                            i + 1
+                        )
+                    );
                 }
+                else {
+                    game.inventoryItems.push(
+                        new InventoryItem(
+                            player ? player : sheet[i][columnPlayer],
+                            null,
+                            sheet[i][columnEquipmentSlot],
+                            "",
+                            null,
+                            null,
+                            "",
+                            i + 1
+                        )
+                    );
+                }
+            }
+            // Create EquipmentSlots for each player.
+            for (let i = 0; i < game.players.length; i++) {
+                let inventory = [];
+                game.players[i].carryWeight = 0;
+                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players[i].id && item.equipmentSlot !== "" && item.containerName === "");
+                for (let j = 0; j < equipmentItems.length; j++)
+                    inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
+                game.players[i].inventory = inventory;
             }
             var errors = [];
-            for (let i = 0; i < game.players.length; i++) {
-                for (let j = 0; j < game.players[i].inventory.length; j++) {
-                    for (let k = 0; k < game.players[i].inventory[j].effects.length; k++) {
-                        let status = game.statusEffects.find(statusEffect => statusEffect.name === game.players[i].inventory[j].effects[k]);
-                        if (status) game.players[i].inventory[j].effects[k] = status;
-                    }
-                    for (let k = 0; k < game.players[i].inventory[j].cures.length; k++) {
-                        let status = game.statusEffects.find(statusEffect => statusEffect.name === game.players[i].inventory[j].cures[k]);
-                        if (status) game.players[i].inventory[j].cures[k] = status;
-                    }
-                    if (doErrorChecking) {
-                        let error = exports.checkInventoryItem(game.players[i].inventory[j]);
-                        if (error instanceof Error) errors.push(error);
+            for (let i = 0; i < game.inventoryItems.length; i++) {
+                const prefab = game.inventoryItems[i].prefab;
+                if (prefab instanceof Prefab) {
+                    for (let j = 0; j < prefab.inventory.length; j++)
+                        game.inventoryItems[i].inventory.push({
+                            name: prefab.inventory[j].name,
+                            capacity: prefab.inventory[j].capacity,
+                            takenSpace: prefab.inventory[j].takenSpace,
+                            weight: prefab.inventory[j].weight,
+                            item: []
+                        });
+                }
+                if (game.inventoryItems[i].player) {
+                    const player = game.inventoryItems[i].player;
+                    for (let slot = 0; slot < player.inventory.length; slot++) {
+                        if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot) {
+                            game.inventoryItems[i].foundEquipmentSlot = true;
+                            if (game.inventoryItems[i].quantity !== 0) player.inventory[slot].items.push(game.inventoryItems[i]);
+                            if (game.inventoryItems[i].containerName === "") {
+                                if (prefab === null) player.inventory[slot].equippedItem = null;
+                                else player.inventory[slot].equippedItem = game.inventoryItems[i];
+                            }
+                            else {
+                                const splitContainer = game.inventoryItems[i].containerName.split('/');
+                                const containerItemName = splitContainer[0] ? splitContainer[0].trim() : "";
+                                const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
+                                game.inventoryItems[i].slot = containerItemSlot;
+                                for (let j = 0; j < player.inventory[slot].items.length; j++) {
+                                    if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].prefab.id === containerItemName) {
+                                        game.inventoryItems[i].container = player.inventory[slot].items[j];
+                                        for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
+                                            if (game.inventoryItems[i].container.inventory[k].name === containerItemSlot)
+                                                game.inventoryItems[i].container.inventory[k].item.push(game.inventoryItems[i]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+            // Create a recursive function for properly inserting item inventories.
+            let insertInventory = function (item) {
+                var createdItem = new InventoryItem(
+                    item.player,
+                    item.prefab,
+                    item.equipmentSlot,
+                    item.containerName,
+                    item.quantity,
+                    item.uses,
+                    item.description,
+                    item.row
+                );
+                createdItem.foundEquipmentSlot = item.foundEquipmentSlot;
+                if (item.container instanceof InventoryItem) createdItem.container = game.inventoryItems.find(gameItem => gameItem.row === item.container.row);
+                else createdItem.container = item.container;
+                createdItem.slot = item.slot;
+                createdItem.weight = item.weight;
+
+                // Initialize the item's inventory slots.
+                for (let i = 0; i < item.prefab.inventory.length; i++)
+                    createdItem.inventory.push({
+                        name: item.prefab.inventory[i].name,
+                        capacity: item.prefab.inventory[i].capacity,
+                        takenSpace: item.prefab.inventory[i].takenSpace,
+                        weight: item.prefab.inventory[i].weight,
+                        item: []
+                    });
+
+                for (let i = 0; i < item.inventory.length; i++) {
+                    for (let j = 0; j < item.inventory[i].item.length; j++) {
+                        let inventoryItem = insertInventory(item.inventory[i].item[j]);
+                        let foundItem = false;
+                        for (var k = 0; k < game.inventoryItems.length; k++) {
+                            if (game.inventoryItems[k].row === inventoryItem.row) {
+                                foundItem = true;
+                                game.inventoryItems[k] = inventoryItem;
+                                break;
+                            }
+                        }
+                        if (foundItem) {
+                            game.inventoryItems[k].container = createdItem;
+                            if (game.inventoryItems[k].containerName !== "")
+                                createdItem.insertItem(game.inventoryItems[k], game.inventoryItems[k].slot);
+                            else createdItem.inventory[i].item.push(game.inventoryItems[k]);
+                        }
+                    }
+                }
+                return createdItem;
+            };
+            // Run through inventoryItems one more time to properly insert their inventories and assign them to players.
+            for (let i = 0; i < game.inventoryItems.length; i++) {
+                if (game.inventoryItems[i].prefab instanceof Prefab) {
+                    let container = game.inventoryItems[i].container;
+                    if (game.inventoryItems[i].container instanceof InventoryItem) {
+                        for (let slot = 0; slot < container.inventory.length; slot++) {
+                            for (let j = 0; j < container.inventory[slot].item.length; j++) {
+                                if (container.inventory[slot].item[j].row === game.inventoryItems[i].row) {
+                                    game.inventoryItems[i] = container.inventory[slot].item[j];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
+                }
+                if (game.inventoryItems[i].player) {
+                    const player = game.inventoryItems[i].player;
+                    for (let slot = 0; slot < player.inventory.length; slot++) {
+                        if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot && game.inventoryItems[i].containerName === "" && game.inventoryItems[i].prefab !== null) {
+                            player.inventory[slot].equippedItem = game.inventoryItems[i];
+                            player.carryWeight += game.inventoryItems[i].weight * game.inventoryItems[i].quantity;
+                        }
+                        let foundItem = false;
+                        for (let j = 0; j < player.inventory[slot].items.length; j++) {
+                            if (player.inventory[slot].items[j].row === game.inventoryItems[i].row) {
+                                foundItem = true;
+                                player.inventory[slot].items[j] = game.inventoryItems[i];
+                                break;
+                            }
+                        }
+                        if (foundItem) break;
+                    }
+                }
+
+                if (doErrorChecking) {
+                    let error = exports.checkInventoryItem(game.inventoryItems[i]);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+
             if (errors.length > 0) {
                 if (errors.length > 5) {
                     errors = errors.slice(0, 5);
@@ -824,17 +1168,31 @@ module.exports.loadInventories = function (game, doErrorChecking) {
 };
 
 module.exports.checkInventoryItem = function (item) {
-    if (item.name === "" || item.name === undefined)
-        return new Error(`Couldn't load inventory item on row ${item.row}. No item name was given. If this inventory slot is empty, its name should be "NULL".`);
-    if (item.singleContainingPhrase === "")
-        return new Error(`Couldn't load inventory item on row ${item.row}. No single containing phrase was given.`);
-    for (let i = 0; i < item.effects.length; i++) {
-        if (!(item.effects[i] instanceof Status))
-            return new Error(`Couldn't load inventory item on row ${item.row}. "${item.effects[i]}" in effects is not a status effect.`);
-    }
-    for (let i = 0; i < item.cures.length; i++) {
-        if (!(item.cures[i] instanceof Status))
-            return new Error(`Couldn't load inventory item on row ${item.row}. "${item.cures[i]}" in cures is not a status effect.`);
+    if (!(item.player instanceof Player))
+        return new Error(`Couldn't load inventory item on row ${item.row}. The player name given is not a player.`);
+    if (item.prefab !== null) {
+        if (!(item.prefab instanceof Prefab))
+            return new Error(`Couldn't load inventory item on row ${item.row}. The prefab given is not a prefab.`);
+        if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+            return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
+        if (!item.foundEquipmentSlot)
+            return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find equipment slot "${item.equipmentSlot}".`);
+        //if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
+        //    return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
+        if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
+            return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+        if (item.container instanceof InventoryItem) {
+            if (item.slot === "") return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but a prefab inventory slot name was not given.`);
+            let foundSlot = false;
+            for (let i = 0; i < item.container.inventory.length; i++) {
+                if (item.container.inventory[i].name === item.slot) {
+                    foundSlot = true;
+                    if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
+                        return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is over capacity.`);
+                }
+            }
+            if (!foundSlot) return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+        }
     }
     return;
 };

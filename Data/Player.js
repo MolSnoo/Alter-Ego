@@ -1,10 +1,11 @@
 const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
-const queuer = include(`${settings.modulesDir}/queuer.js`);
+const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
+const itemManager = include(`${settings.modulesDir}/itemManager.js`);
 
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
+const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
@@ -13,25 +14,52 @@ const Die = include(`${settings.dataDir}/Die.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Player {
-    constructor(id, member, name, displayName, talent, stats, alive, location, hidingSpot, status, inventory, row) {
+    constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, row) {
         this.id = id;
         this.member = member;
         this.name = name;
         this.displayName = displayName;
         this.talent = talent;
-        this.strength = stats.strength;
-        this.intelligence = stats.intelligence;
-        this.dexterity = stats.dexterity;
-        this.speed = stats.speed;
-        this.maxStamina = stats.stamina;
-        this.stamina = stats.stamina;
+        this.pronounString = pronounString;
+        this.originalPronouns = {
+            sbj: null, Sbj: null,
+            obj: null, Obj: null,
+            dpos: null, Dpos: null,
+            ipos: null, Ipos: null,
+            ref: null, Ref: null,
+            plural: null
+        };
+        this.pronouns = {
+            sbj: null, Sbj: null,
+            obj: null, Obj: null,
+            dpos: null, Dpos: null,
+            ipos: null, Ipos: null,
+            ref: null, Ref: null,
+            plural: null
+        };
+
+        this.defaultStrength = stats.strength;
+        this.strength = this.defaultStrength;
+        this.defaultIntelligence = stats.intelligence;
+        this.intelligence = this.defaultIntelligence;
+        this.defaultDexterity = stats.dexterity;
+        this.dexterity = this.defaultDexterity;
+        this.defaultSpeed = stats.speed;
+        this.speed = this.defaultSpeed;
+        this.defaultStamina = stats.stamina;
+        this.maxStamina = this.defaultStamina;
+        this.stamina = this.defaultStamina;
+
         this.alive = alive;
         this.location = location;
         this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
         this.status = status;
         this.statusString = "";
+        this.description = description;
         this.inventory = inventory;
+        this.maxCarryWeight = this.getMaxCarryWeight();
+        this.carryWeight = 0;
         this.row = row;
 
         this.isMoving = false;
@@ -46,6 +74,65 @@ class Player {
 
         this.online = false;
         this.onlineInterval = null;
+    }
+
+    setPronouns(pronouns, pronounString) {
+        if (pronounString === "male") {
+            pronouns.sbj = "he";
+            pronouns.Sbj = "He";
+            pronouns.obj = "him";
+            pronouns.Obj = "Him";
+            pronouns.dpos = "his";
+            pronouns.Dpos = "His";
+            pronouns.ipos = "his";
+            pronouns.Ipos = "His";
+            pronouns.ref = "himself";
+            pronouns.Ref = "Himself";
+            pronouns.plural = false;
+        }
+        else if (pronounString === "female") {
+            pronouns.sbj = "she";
+            pronouns.Sbj = "She";
+            pronouns.obj = "her";
+            pronouns.Obj = "Her";
+            pronouns.dpos = "her";
+            pronouns.Dpos = "Her";
+            pronouns.ipos = "hers";
+            pronouns.Ipos = "Hers";
+            pronouns.ref = "herself";
+            pronouns.Ref = "Herself";
+            pronouns.plural = false;
+        }
+        else if (pronounString === "neutral") {
+            pronouns.sbj = "they";
+            pronouns.Sbj = "They";
+            pronouns.obj = "them";
+            pronouns.Obj = "Them";
+            pronouns.dpos = "their";
+            pronouns.Dpos = "Their";
+            pronouns.ipos = "theirs";
+            pronouns.Ipos = "Theirs";
+            pronouns.ref = "themself";
+            pronouns.Ref = "Themself";
+            pronouns.plural = true;
+        }
+        // If none of the standard pronouns are given, let the user define their own.
+        else {
+            var pronounSet = pronounString.split('/');
+            if (pronounSet.length === 6) {
+                pronouns.sbj = pronounSet[0].trim();
+                pronouns.Sbj = pronouns.sbj.charAt(0).toUpperCase() + pronouns.sbj.substring(1);
+                pronouns.obj = pronounSet[1].trim();
+                pronouns.Obj = pronouns.obj.charAt(0).toUpperCase() + pronouns.obj.substring(1);
+                pronouns.dpos = pronounSet[2].trim();
+                pronouns.Dpos = pronouns.dpos.charAt(0).toUpperCase() + pronouns.dpos.substring(1);
+                pronouns.ipos = pronounSet[3].trim();
+                pronouns.Ipos = pronouns.ipos.charAt(0).toUpperCase() + pronouns.ipos.substring(1);
+                pronouns.ref = pronounSet[4].trim();
+                pronouns.Ref = pronouns.ref.charAt(0).toUpperCase() + pronouns.ref.substring(1);
+                pronouns.plural = pronounSet[5] === "true";
+            }
+        }
     }
 
     move(game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
@@ -96,7 +183,7 @@ class Player {
             if (player.stamina <= 0) {
                 clearInterval(player.moveTimer);
                 player.stamina = 0;
-                player.inflict(game, "weary", true, true, true, true);
+                player.inflict(game, "weary", true, true, true);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
@@ -114,6 +201,10 @@ class Player {
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat multiplied by 2 or 1, depending on if the player is running or not.
         const speedMultiplier = isRunning ? 2 : 1;
         let rate = 0.0183 * Math.pow(speedMultiplier * this.speed, 2) + 0.005 * speedMultiplier * this.speed + 0.916;
+        // Slow down the player relative to how much weight they're carrying.
+        // The equation is Slowdown = 15/x, where x is the number of kilograms a player is carrying, and 1/4 <= Slowdown <= 1.
+        const slowdown = Math.min(Math.max(15.0 / this.carryWeight, 0.25), 1.0);
+        rate = rate * slowdown;
         // Slope should affect the rate.
         const rise = (exit.pos.y - this.pos.y) * settings.metersPerPixel;
         var time = 0;
@@ -157,9 +248,11 @@ class Player {
 
     createMoveAppendString() {
         var nonDiscreetItems = new Array();
-        for (let i = 0; i < this.inventory.length; i++) {
-            if (this.inventory[i].discreet === false)
-                nonDiscreetItems.push(this.inventory[i].singleContainingPhrase);
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            if ((this.inventory[slot].name === "RIGHT HAND" || this.inventory[slot].name === "LEFT HAND") &&
+                this.inventory[slot].equippedItem !== null &&
+                this.inventory[slot].equippedItem.prefab.discreet === false)
+                nonDiscreetItems.push(this.inventory[slot].equippedItem.singleContainingPhrase);
         }
 
         var appendString = "";
@@ -169,30 +262,27 @@ class Player {
             appendString = ` carrying ${nonDiscreetItems[0]}.`;
         else if (nonDiscreetItems.length === 2)
             appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}.`;
-        else if (nonDiscreetItems.length >= 3) {
-            appendString = " carrying ";
-            for (let i = 0; i < nonDiscreetItems.length - 1; i++)
-                appendString += `${nonDiscreetItems[i]}, `;
-            appendString += `and ${nonDiscreetItems[nonDiscreetItems.length - 1]}.`;
-        }
 
         return appendString;
     }
 
-    inflict(game, statusName, notify, doCures, updateSheet, narrate, item) {
+    inflict(game, statusName, notify, doCures, narrate, item) {
         var status = null;
-        for (let i = 0; i < game.statusEffects.length; i++) {
-            if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
-                status = game.statusEffects[i];
-                break;
+        if (statusName instanceof Status) status = statusName;
+        else {
+            for (let i = 0; i < game.statusEffects.length; i++) {
+                if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
+                    status = game.statusEffects[i];
+                    break;
+                }
             }
+            if (status === null) return `Couldn't find status effect "${statusName}".`;
         }
-        if (status === null) return `Couldn't find status effect "${statusName}".`;
 
         if (this.statusString.includes(statusName)) {
             if (status.duplicatedStatus !== null) {
-                this.cure(game, statusName, false, false, false, false);
-                this.inflict(game, status.duplicatedStatus.name, true, false, true, true);
+                this.cure(game, statusName, false, false, false);
+                this.inflict(game, status.duplicatedStatus.name, true, false, true);
                 return `Status was duplicated, so inflicted ${status.duplicatedStatus.name} instead.`;
             }
             else return "Specified player already has that status effect.";
@@ -200,28 +290,27 @@ class Player {
 
         if (notify === null || notify === undefined) notify = true;
         if (doCures === null || doCures === undefined) doCures = true;
-        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
         if (narrate === null || narrate === undefined) narrate = true;
 
         if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
-                this.cure(game, status.cures[i].name, false, false, false, false);
+                this.cure(game, status.cures[i].name, false, false, false);
         }
 
         // Apply the effects of any attributes that require immediate action.
         if (status.attributes.includes("no channel")) {
             this.location.leaveChannel(this);
-            this.removeFromWhispers(game, `${this.name} can no longer whisper because they are ${status.name}.`);
+            this.removeFromWhispers(game, `${this.name} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.name}.`);
         }
         if (status.attributes.includes("no hearing")) this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), this.hidingSpot));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), `Players!${this.name}|Hiding Spot`, this.hidingSpot));
         }
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
-            if (!this.hasAttribute("hidden") && narrate) new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
+            this.setPronouns(this.pronouns, "neutral");
         }
         if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
             // Clear the player's movement timer.
@@ -235,7 +324,7 @@ class Player {
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.rollModifier, status.modifiesSelf, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.visible, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -258,8 +347,8 @@ class Player {
 
                 if (status.duration <= 0) {
                     if (status.nextStage) {
-                        player.cure(game, status.name, false, false, false, true);
-                        player.inflict(game, status.nextStage.name, true, false, true, true);
+                        player.cure(game, status.name, false, false, true);
+                        player.inflict(game, status.nextStage.name, true, false, true);
                     }
                     else {
                         if (status.fatal) {
@@ -267,7 +356,7 @@ class Player {
                             player.die(game);
                         }
                         else {
-                            player.cure(game, status.name, true, true, true, true);
+                            player.cure(game, status.name, true, true, true);
                         }
                     }
                 }
@@ -290,13 +379,14 @@ class Player {
         }
 
         this.status.push(status);
+        this.recalculateStats();
 
         // Inform player what happened.
         if (notify)
             this.sendDescription(status.inflictedDescription, status);
 
         this.statusString = this.generate_statusList();
-        if (updateSheet) game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), this.statusString));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -305,7 +395,7 @@ class Player {
         return "Status successfully added.";
     }
 
-    cure(game, statusName, notify, doCuredCondition, updateSheet, narrate) {
+    cure(game, statusName, notify, doCuredCondition, narrate, item) {
         var status = null;
         var statusIndex = -1;
         for (let i = 0; i < this.status.length; i++) {
@@ -319,18 +409,19 @@ class Player {
 
         if (notify === null || notify === undefined) notify = true;
         if (doCuredCondition === null || doCuredCondition === undefined) doCuredCondition = true;
-        if (updateSheet === null || updateSheet === undefined) updateSheet = true;
 
         if (status.attributes.includes("no channel") && this.getAttributeStatusEffects("no channel").length - 1 === 0)
             this.location.joinChannel(this);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.hidingSpot = "";
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), " "));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.hidingSpotCell(), `Players!${this.name}|Hiding Spot`, " "));
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
-            if (narrate) new Narration(game, this, this.location, `The mask comes off, revealing the figure to be ${this.displayName}.`).send();
+            if (item === null || item === undefined) item = { name: "MASK" };
+            if (narrate) new Narration(game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
+            this.setPronouns(this.pronouns, this.pronounString);
         }
 
         // Announce when a player awakens.
@@ -340,7 +431,7 @@ class Player {
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(game, status.curedCondition.name, false, false, false, true);
+            this.inflict(game, status.curedCondition.name, false, false, true);
             returnMessage += ` Player is now ${status.curedCondition.name}.`;
         }
 
@@ -358,20 +449,20 @@ class Player {
 
         clearInterval(status.timer);
         this.status.splice(statusIndex, 1);
+        this.recalculateStats();
 
         this.statusString = this.generate_statusList();
-        if (updateSheet) game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), this.statusString));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         return returnMessage;
     }
     
-    generate_statusList() {
+    generate_statusList(includeHidden) {
+        if (includeHidden === null || includeHidden === undefined) includeHidden = true;
         var statusList = "";
-        if (this.status.length > 0) {
-            statusList = this.status[0].name;
-            for (let i = 1; i < this.status.length; i++)
-                statusList += `, ${this.status[i].name}`;
-        }
+        var visibleStatuses = [...this.status];
+        if (!includeHidden) visibleStatuses = visibleStatuses.filter(status => status.visible === true);
+        statusList = visibleStatuses.map(status => status.name).join(", ");
         return statusList;
     }
 
@@ -419,325 +510,827 @@ class Player {
         return statusEffects;
     }
 
+    recalculateStats() {
+        var strength = this.defaultStrength;
+        var intelligence = this.defaultIntelligence;
+        var dexterity = this.defaultDexterity;
+        var speed = this.defaultSpeed;
+        var stamina = this.defaultStamina;
+
+        var strModifiers = [];
+        var intModifiers = [];
+        var dexModifiers = [];
+        var spdModifiers = [];
+        var staModifiers = [];
+
+        for (let i = 0; i < this.status.length; i++) {
+            for (let j = 0; j < this.status[i].statModifiers.length; j++) {
+                const modifier = this.status[i].statModifiers[j];
+                if (modifier.modifiesSelf) {
+                    switch (modifier.stat) {
+                        case "str":
+                            strModifiers.push(modifier);
+                            break;
+                        case "int":
+                            intModifiers.push(modifier);
+                            break;
+                        case "dex":
+                            dexModifiers.push(modifier);
+                            break;
+                        case "spd":
+                            spdModifiers.push(modifier);
+                            break;
+                        case "sta":
+                            staModifiers.push(modifier);
+                            break;
+                    }
+                }
+            }
+        }
+
+        this.strength = this.recalculateStat(strength, strModifiers);
+        this.maxCarryWeight = this.getMaxCarryWeight();
+        this.intelligence = this.recalculateStat(intelligence, intModifiers);
+        this.dexterity = this.recalculateStat(dexterity, dexModifiers);
+        this.speed = this.recalculateStat(speed, spdModifiers);
+        const staminaRatio = this.stamina / this.maxStamina;
+        this.maxStamina = this.recalculateStat(stamina, staModifiers);
+        this.stamina = staminaRatio * this.maxStamina;
+    }
+
+    recalculateStat(stat, modifiers) {
+        var assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
+        if (assignModifiers.length !== 0) return assignModifiers[0].value;
+
+        for (let i = 0; i < modifiers.length; i++)
+            stat += modifiers[i].value;
+        if (stat < 1) stat = 1;
+        if (stat > 10) stat = 10;
+        return stat;
+    }
+
+    getStatModifier(stat) {
+        const statMax = 10;
+        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
+        return modifier;
+    }
+
+    getMaxCarryWeight() {
+        return Math.floor(1.783 * Math.pow(this.strength, 2) - 2 * this.strength + 22);
+    }
+
     use(game, item) {
         if (item.uses === 0) return "that item has no uses left.";
-        if (item.effects.length === 0 && item.cures.length === 0) return "that item has no programmed use on its own, but you may be able to use it some other way.";
-        if (!item.name.endsWith("MASK") && item.effects.length !== 0) {
-            for (let i = 0; i < item.effects.length; i++) {
-                if (this.statusString.includes(item.effects[i].name) && item.effects[i].duplicatedStatus === null)
-                    return "you cannot use that item as you are already under its effect.";
+        if (!item.prefab.usable) return "that item has no programmed use on its own, but you may be able to use it some other way.";
+        let hasEffect = false;
+        let hasCure = false;
+        if (item.prefab.effects.length !== 0) {
+            for (let i = 0; i < item.prefab.effects.length; i++) {
+                if (!this.statusString.includes(item.prefab.effects[i].name) || item.prefab.effects[i].duplicatedStatus !== null)
+                    hasEffect = true;
             }
         }
-
-        if (item.effects.length !== 0) {
-            if (item.name.endsWith("MASK") && this.statusString.includes("concealed"))
-                this.cure(game, "concealed", true, false, true, true);
-            else {
-                // If the item inflicts multiple status effects, don't update the spreadsheet until inflicting the last one.
-                for (let i = 0; i < item.effects.length - 1; i++)
-                    this.inflict(game, item.effects[i].name, true, true, false, true, item);
-                this.inflict(game, item.effects[item.effects.length - 1].name, true, true, true, true, item);
+        if (item.prefab.cures.length !== 0) {
+            for (let i = 0; i < item.prefab.cures.length; i++) {
+                if (this.statusString.includes(item.prefab.cures[i].name))
+                    hasCure = true;
             }
         }
+        if (!hasEffect && !hasCure) return `you attempt to use the ${item.name}, but it has no effect.`;
 
-        if (item.cures.length !== 0) {
-            var hasEffect = false;
+        if (item.prefab.effects.length !== 0) {
+            for (let i = 0; i < item.prefab.effects.length; i++)
+                this.inflict(game, item.prefab.effects[i].name, true, true, true, item);
+        }
+
+        if (item.prefab.cures.length !== 0) {
             // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
-            for (let i = 0; i < item.cures.length; i++) {
-                const statusMessage = this.cure(game, item.cures[i].name, true, true, true, true);
-                if (statusMessage !== "Specified player doesn't have that status effect.") hasEffect = true;
-            }
-            if (!hasEffect) return `you attempted to use the ${item.name}, but it had no effect.`;
+            for (let i = 0; i < item.prefab.cures.length; i++)
+                this.cure(game, item.prefab.cures[i].name, true, true, true, item);
         }
+
+        const verb = item.prefab.verb ? item.prefab.verb : "uses";
+        new Narration(game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
 
         if (!isNaN(item.uses)) {
             item.uses--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), item.uses));
+
+            if (item.uses === 0 && item.prefab.nextStage !== null) itemManager.replaceInventoryItem(item, item.prefab.nextStage);
+            else if (item.uses === 0) itemManager.destroyInventoryItem(item);
+            else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
         }
-        if (item.name !== "MASK")
-            new Narration(game, this, this.location, `${this.displayName} takes out ${item.singleContainingPhrase} and uses it.`).send();
 
         return;
     }
 
-    take(game, item, slotNo, container) {
+    take(game, item, hand, container, slotName) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), item.quantity));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.location.name}|${item.containerName}`, item.quantity));
         }
 
         if (container instanceof Puzzle) {
             container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), container.alreadySolvedDescription));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), `Puzzles!${container.name}|${container.location.name}`, container.alreadySolvedDescription));
         }
         else if (container instanceof Object) {
             container.description = parser.removeItem(container.description, item);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
+        }
+        else if (container instanceof Item) {
+            container.removeItem(item, slotName);
+            container.description = parser.removeItem(container.description, item, slotName);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
         }
         else if (container instanceof Room) {
+            container.description = parser.removeItem(container.description, item);
             for (let i = 0; i < container.exit.length; i++) {
                 container.exit[i].description = parser.removeItem(container.exit[i].description, item);
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), container.exit[i].description));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), `Rooms!${container.name}|${container.exit[i].name}`, container.exit[i].description));
             }
         }
 
-        // Make a copy of the item and put it in the player's inventory.
-        const createdItem = new InventoryItem(
-            item.name,
-            item.pluralName,
-            item.uses,
-            item.discreet,
-            item.effects,
-            item.cures,
-            item.singleContainingPhrase,
-            item.pluralContainingPhrase,
-            item.description,
-            this.inventory[slotNo].row
-        );
-        this.inventory[slotNo] = createdItem;
-        this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
-
-        // Add the new item to the Players sheet so that it's in their inventory.
-        // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-        var effects = createdItem.effects.length > 0 ? createdItem.effects.map(status => status.name).join(",") : "";
-        var cures = createdItem.cures.length > 0 ? createdItem.cures.map(status => status.name).join(",") : "";
-        var containingPhrase = createdItem.singleContainingPhrase;
-        if (createdItem.pluralContainingPhrase !== "") containingPhrase += `,${createdItem.pluralContainingPhrase}`;
-        const data = new Array(
-            createdItem.name,
-            createdItem.pluralName,
-            createdItem.uses,
-            createdItem.discreet,
-            effects,
-            cures,
-            containingPhrase,
-            createdItem.description
-        );
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), data));
-
-        if (!createdItem.discreet) new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
-
-        return;
-    }
-
-    steal(game, slotNo, victim) {
-        // Make sure the victim has items first.
-        var hasItems = false;
-        for (let i = 0; i < victim.inventory.length; i++) {
-            if (victim.inventory[i].name !== null) {
-                hasItems = true;
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === hand) {
+                rowNumber = this.inventory[slot].row;
                 break;
             }
         }
-        if (hasItems === false) return this.member.send(`You try to steal from ${victim.displayName}, but they don't have any items.`);
 
-        // Randomly select an item to be stolen.
-        let index;
-        do index = Math.floor(Math.random() * victim.inventory.length);
-        while (!victim.inventory[index] || victim.inventory[index].name === null);
+        var createdItem = itemManager.convertItem(item, this, hand, 1);
+        createdItem.containerName = "";
+        createdItem.container = null;
+        createdItem.row = rowNumber;
+
+        // Equip the item and add it to the player's inventory.
+        this.inventory[slot].equippedItem = createdItem;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(createdItem);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === createdItem.row) {
+                game.inventoryItems.splice(i, 1, createdItem);
+                break;
+            }
+        }
+        // Create a list of all the child items.
+        var items = [];
+        itemManager.getChildItems(items, createdItem);
+
+        // Now that the item has been converted, we can update the quantities of child items.
+        var oldChildItems = [];
+        itemManager.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Items!${oldChildItems[i].name}|${oldChildItems[i].location.name}|${oldChildItems[i].containerName}`, "0"));
+        }
+
+        // Add the equipped item to the queue.
+        const createdItemData = [
+            this.name,
+            createdItem.prefab.id,
+            createdItem.equipmentSlot,
+            createdItem.containerName,
+            isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+            isNaN(createdItem.uses) ? "" : createdItem.uses,
+            createdItem.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+        itemManager.insertInventoryItems(game, this, items, slot);
+
+        this.carryWeight += createdItem.weight;
+        this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
+        if (!createdItem.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
+            // Add the new item to the player's hands item list.
+            this.description = parser.addItem(this.description, createdItem, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        }
+
+        return;
+    }
+
+    steal(game, hand, victim, container, slotNo) {
+        // There might be multiple of the same item, so we need to make an array where each item's index is inserted as many times as its quantity.
+        var actualItems = [];
+        for (let i = 0; i < container.inventory[slotNo].item.length; i++) {
+            const item = container.inventory[slotNo].item[i];
+            for (let j = 0; j < item.quantity; j++)
+                actualItems.push(i);
+        }
+        const actualItemsIndex = Math.floor(Math.random() * actualItems.length);
+        const index = actualItems[actualItemsIndex];
+        var item = container.inventory[slotNo].item[index];
+
         // Determine how successful the player is.
         const failMax = Math.floor((settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
         const partialMax = Math.floor(2 * (settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
-        var dieRoll = new Die(this, victim);
-        if (!victim.inventory[index].discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
+        var dieRoll = new Die("dex", this, victim);
+        if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
         // Player didn't fail.
         if (dieRoll.result > failMax) {
-            const copiedItem = new InventoryItem(
-                victim.inventory[index].name,
-                victim.inventory[index].pluralName,
-                victim.inventory[index].uses,
-                victim.inventory[index].discreet,
-                victim.inventory[index].effects,
-                victim.inventory[index].cures,
-                victim.inventory[index].singleContainingPhrase,
-                victim.inventory[index].pluralContainingPhrase,
-                victim.inventory[index].description,
-                this.inventory[slotNo].row
-            );
-            this.inventory[slotNo] = copiedItem;
-
-            // Add the item to the Players sheet so that it's in their inventory.
-            // First, concatenate the effects, cures, and containing phrases so they're formatted properly on the spreadsheet.
-            var effects = copiedItem.effects ? copiedItem.effects.map(status => status.name).join(",") : "";
-            var cures = copiedItem.cures ? copiedItem.cures.map(status => status.name).join(",") : "";
-            var containingPhrase = copiedItem.singleContainingPhrase;
-            if (copiedItem.pluralContainingPhrase !== "") containingPhrase += `,${copiedItem.pluralContainingPhrase}`;
-            const data = new Array(
-                copiedItem.name,
-                copiedItem.pluralName,
-                copiedItem.uses,
-                copiedItem.discreet,
-                effects,
-                cures,
-                containingPhrase,
-                copiedItem.description
-            );
-            game.queue.push(new QueueEntry(Date.now(), "updateRow", copiedItem.itemCells(), data));
-            // Delete stolen item from victim's inventory.
-            victim.clearInventorySlot(index);
-
-            // Decide what messages to send.
-            if (dieRoll.result > partialMax || victim.hasAttribute("unconscious"))
-                this.member.send(`You steal ${copiedItem.singleContainingPhrase} from ${victim.displayName} without them noticing!`);
-            else {
-                this.member.send(`You steal ${copiedItem.singleContainingPhrase} from ${victim.displayName}, but they seem to notice.`);
-                victim.member.send(`${this.displayName} steals ${copiedItem.singleContainingPhrase} from you!`);
+            // Reduce quantity if the quantity is finite.
+            if (!isNaN(item.quantity)) {
+                item.quantity--;
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${victim.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
             }
-            if (!copiedItem.discreet)
-                new Narration(game, this, this.location, `${this.displayName} steals ${copiedItem.singleContainingPhrase} from ${victim.displayName}.`).send();
 
-            return { itemName: copiedItem.name, successful: true };
+            container.removeItem(item, container.inventory[slotNo].name);
+            container.description = parser.removeItem(container.description, item, container.inventory[slotNo].name);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${victim.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+
+            // Remove the item from its EquipmentSlot.
+            for (let slot = 0; slot < victim.inventory.length; slot++) {
+                let foundItem = false;
+                if (victim.inventory[slot].name === item.equipmentSlot) {
+                    for (let i = 0; i < victim.inventory[slot].items.length; i++) {
+                        if (victim.inventory[slot].items[i].row === item.row) {
+                            foundItem = true;
+                            victim.inventory[slot].items.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+                if (foundItem) break;
+            }
+            // Get the row number of the EquipmentSlot that the item will go into.
+            var rowNumber = 0;
+            for (var slot = 0; slot < this.inventory.length; slot++) {
+                if (this.inventory[slot].name === hand) {
+                    rowNumber = this.inventory[slot].row;
+                    break;
+                }
+            }
+
+            var createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
+            createdItem.containerName = "";
+            createdItem.container = null;
+            createdItem.row = rowNumber;
+
+            // Equip the item and add it to the player's inventory.
+            this.inventory[slot].equippedItem = createdItem;
+            this.inventory[slot].items.length = 0;
+            this.inventory[slot].items.push(createdItem);
+            // Replace the null entry in the inventoryItems list.
+            for (let i = 0; i < game.inventoryItems.length; i++) {
+                if (game.inventoryItems[i].row === createdItem.row) {
+                    game.inventoryItems.splice(i, 1, createdItem);
+                    break;
+                }
+            }
+            // Create a list of all the child items.
+            var items = [];
+            itemManager.getChildItems(items, createdItem);
+
+            // Now that the item has been converted, we can update the quantities of child items.
+            var oldChildItems = [];
+            itemManager.getChildItems(oldChildItems, item);
+            for (let i = 0; i < oldChildItems.length; i++) {
+                oldChildItems[i].quantity = 0;
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${victim.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            }
+
+            // Add the equipped item to the queue.
+            const createdItemData = [
+                this.name,
+                createdItem.prefab.id,
+                createdItem.equipmentSlot,
+                createdItem.containerName,
+                isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+                isNaN(createdItem.uses) ? "" : createdItem.uses,
+                createdItem.description
+            ];
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+            itemManager.insertInventoryItems(game, this, items, slot);
+
+            victim.carryWeight -= createdItem.weight;
+            this.carryWeight += createdItem.weight;
+            // Decide what messages to send.
+            if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
+                if (container.inventory.length === 1) this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                else this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+            }
+            else {
+                if (container.inventory.length === 1) {
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
+                    if (!createdItem.prefab.discreet)
+                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
+                }
+                else {
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
+                    if (!createdItem.prefab.discreet)
+                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}.`).send();
+                }
+            }
+
+            return { itemName: createdItem.name, successful: true };
         }
         // Player failed to steal the item.
         else {
-            this.member.send(`You try to steal ${victim.displayName}'s ${victim.inventory[index].name}, but they notice you before you can.`);
-            victim.member.send(`${this.displayName} attempts to steal your ${victim.inventory[index].name}, but you notice in time!`);
+            if (container.inventory.length === 1) {
+                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
+            }
+            else {
+                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
+            }
 
-            return { itemName: victim.inventory[index].name, successful: false };
+            return { itemName: item.name, successful: false };
         }
     }
 
-    async drop(game, slotNo, container) {
-        // First, check if the player is putting this item back in original spot unmodified.
-        const invItem = this.inventory[slotNo];
-        const roomItems = game.items.filter(item => item.location.name === this.location.name);
-        var matchedItems = roomItems.filter(item =>
-            item.name === invItem.name &&
-            item.pluralName === invItem.pluralName &&
-            item.location.name === this.location.name &&
-            ((container instanceof Object && item.sublocation !== null && item.sublocation.name === container.name) || (container instanceof Puzzle && item.sublocation === null)) &&
-            ((container instanceof Puzzle && item.requires !== null && item.requires.name === container.name) || (container instanceof Object && item.requires === null)) &&
-            (item.uses === invItem.uses || (isNaN(item.uses) && isNaN(invItem.uses))) &&
-            item.discreet === invItem.discreet &&
-            arraysEqual(item.effects, invItem.effects) &&
-            arraysEqual(item.cures, invItem.cures) &&
-            item.singleContainingPhrase === invItem.singleContainingPhrase &&
-            item.pluralContainingPhrase === invItem.pluralContainingPhrase
-        );
-        
-        // Now that the list of items to check is significantly smaller,
-        // check if the descriptions are the same.
-        for (let i = 0; i < matchedItems.length; i++) {
-            const item = matchedItems[i];
-            if (item.description !== invItem.description) {
-                matchedItems.splice(i, 1);
-                i--;
-            }
-        }
-        // The player is putting this item somewhere else, or it's changed somehow.
-        if (matchedItems.length === 0) {
-            var effects = invItem.effects.length > 0 ? invItem.effects.map(status => status.name).join(",") : "";
-            var cures = invItem.cures.length > 0 ? invItem.cures.map(status => status.name).join(",") : "";
-            var containingPhrase = invItem.singleContainingPhrase;
-            if (invItem.pluralContainingPhrase !== "") containingPhrase += `,${invItem.pluralContainingPhrase}`;
-            const data = new Array(
-                invItem.name,
-                invItem.pluralName,
-                this.location.name,
-                container instanceof Object ? container.name : "",
-                "TRUE",
-                container instanceof Puzzle ? container.name : "",
-                "1",
-                !isNaN(invItem.uses) ? invItem.uses : "",
-                invItem.discreet ? "TRUE" : "FALSE",
-                effects,
-                cures,
-                containingPhrase,
-                invItem.description
-            );
+    drop(game, item, hand, container, slotName) {
+        // Unequip the item from the player's hand.
+        this.unequip(game, item, hand, null);
 
-            // We want to insert this item near items in the same container, so get all of the items in that container.
-            var containerItems;
-            if (container instanceof Puzzle) containerItems = roomItems.filter(item => item.requires !== null && item.requires.name === container.name);
-            else containerItems = roomItems.filter(item => item.sublocation !== null && item.sublocation.name === container.name);
-            // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
-            const loader = include(`${settings.modulesDir}/loader.js`);
-            const lastRoomItem = roomItems[roomItems.length - 1];
-            const lastContainerItem = containerItems[containerItems.length - 1];
-            const lastGameItem = game.items[game.items.length - 1];
-            if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
-                await queuer.pushQueue();
-                sheets.insertRow(lastContainerItem.itemCells(), data, function (response) {
-                    loader.loadItems(game, false);
-                });
-            }
-            // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
-            else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
-                await queuer.pushQueue();
-                sheets.insertRow(lastRoomItem.itemCells(), data, function (response) {
-                    loader.loadItems(game, false);
-                });
-            }
-            // If there are none, just insert it at the end of the sheet.
-            else {
-                sheets.appendRow(lastGameItem.itemCells(), data, function (response) {
-                    loader.loadItems(game, false);
-                });
-            }
-        }
-        // The player is putting the item back.
-        else {
-            var item = matchedItems[0];
-            // Increase the quantity if the quantity is finite.
-            if (!isNaN(item.quantity)) {
-                item.quantity++;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), item.quantity));
-            }
-        }
+        // Convert the InventoryItem to an Item.
+        var createdItem = itemManager.convertInventoryItem(item, this, container, slotName, 1);
+        createdItem.container = container;
+        createdItem.slot = slotName;
 
-        var objectName = "";
+        // These two variables are needed at the end, but since we're checking the data type of the container anyway, set them now.
+        var containerName = "";
         var preposition = "in";
+        // Update the container's description.
         if (container instanceof Puzzle) {
-            container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, invItem);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), container.alreadySolvedDescription));
-            objectName = container.parentObject.name;
-            preposition = container.parentObject.preposition;
+            container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, item);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), `Puzzles!${container.name}|${container.location.name}`, container.alreadySolvedDescription));
+            containerName = container.parentObject ? container.parentObject.name : container.name;
+            preposition = container.parentObject ? container.parentObject.preposition : "in";
         }
-        else {
-            container.description = parser.addItem(container.description, invItem);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), container.description));
-            objectName = container.name;
+        else if (container instanceof Object) {
+            container.description = parser.addItem(container.description, item);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
+            containerName = container.name;
             preposition = container.preposition;
         }
-
-        if (!invItem.discreet) new Narration(game, this, this.location, `${this.displayName} puts ${invItem.singleContainingPhrase} ${preposition} the ${objectName}.`).send();
-        this.member.send(`You discard ${invItem.singleContainingPhrase}.`);
-
-        if (invItem.name === "MASK" && this.statusString.includes("concealed")) {
-            this.cure(game, "concealed", true, false, true, true);
+        else if (container instanceof Item) {
+            container.insertItem(createdItem, slotName);
+            container.description = parser.addItem(container.description, item, slotName);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+            containerName = container.name;
+            preposition = container.prefab ? container.prefab.preposition : "in";
         }
 
-        this.clearInventorySlot(slotNo);
+        // Create a list of all the child items.
+        var items = [];
+        items.push(createdItem);
+        itemManager.getChildItems(items, createdItem);
+
+        // Now that the item has been converted, we can update the quantities of child items.
+        // We need a recursive function for this.
+        let player = this;
+        let deleteChildQuantities = function (item) {
+            for (let slot = 0; slot < item.inventory.length; slot++) {
+                for (let i = 0; i < item.inventory[slot].item.length; i++) {
+                    deleteChildQuantities(item.inventory[slot].item[i]);
+                    item.inventory[slot].item[i].quantity = 0;
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), `Inventory Items!${item.inventory[slot].item[i].prefab.id}|${player.name}|${item.inventory[slot].item[i].equipmentSlot}|${item.inventory[slot].item[i].containerName}`, "0"));
+                }
+            }
+            return;
+        };
+        deleteChildQuantities(item);
+        item.quantity = 0;
+        
+        itemManager.insertItems(game, this, items);
+
+        this.carryWeight -= item.weight;
+        this.member.send(`You discard ${item.singleContainingPhrase}.`);
+        if (!item.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
+            // Remove the item from the player's hands item list.
+            this.description = parser.removeItem(this.description, item, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        }
         
         return;
     }
 
-    clearInventorySlot(slotNo) {
-        this.inventory[slotNo] = new InventoryItem(
+    stash(game, item, hand, container, slotName) {
+        // Unequip the item from the player's hand.
+        this.unequip(game, item, hand, null);
+
+        // Get the slot number of the EquipmentSlot that the item will go into.
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === container.equipmentSlot)
+                break;
+        }
+
+        var createdItem = itemManager.copyInventoryItem(item, this, this.inventory[slot].name, 1);
+        createdItem.containerName = container.prefab.id + '/' + slotName;
+        createdItem.container = container;
+        createdItem.slot = slotName;
+
+        // Update container.
+        container.insertItem(createdItem, slotName);
+        container.description = parser.addItem(container.description, createdItem, slotName);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+
+        // Create a list of all the child items.
+        var items = [];
+        items.push(createdItem);
+        itemManager.getChildItems(items, createdItem);
+
+        // Now that the item has been converted, we can update the quantities of child items.
+        var oldChildItems = [];
+        oldChildItems.push(item);
+        itemManager.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+        }
+
+        itemManager.insertInventoryItems(game, this, items, slot);
+
+        this.member.send(`You stash ${createdItem.singleContainingPhrase}.`);
+        if (!item.prefab.discreet) {
+            var preposition = container.prefab ? container.prefab.preposition : "in";
+            new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
+            // Remove the item from the player's hands item list.
+            this.description = parser.removeItem(this.description, item, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        }
+
+        return;
+    }
+
+    unstash(game, item, hand, container, slotName) {
+        // Reduce quantity if the quantity is finite.
+        if (!isNaN(item.quantity)) {
+            item.quantity--;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
+        }
+
+        container.removeItem(item, slotName);
+        container.description = parser.removeItem(container.description, item, slotName);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+
+        // Remove the item from its EquipmentSlot.
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            let foundItem = false;
+            if (this.inventory[slot].name === item.equipmentSlot) {
+                for (let i = 0; i < this.inventory[slot].items.length; i++) {
+                    if (this.inventory[slot].items[i].row === item.row) {
+                        foundItem = true;
+                        this.inventory[slot].items.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            if (foundItem) break;
+        }
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === hand) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
+        }
+
+        var createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
+        createdItem.containerName = "";
+        createdItem.container = null;
+        createdItem.row = rowNumber;
+
+        // Equip the item and add it to the player's inventory.
+        this.inventory[slot].equippedItem = createdItem;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(createdItem);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === createdItem.row) {
+                game.inventoryItems.splice(i, 1, createdItem);
+                break;
+            }
+        }
+        // Create a list of all the child items.
+        var items = [];
+        itemManager.getChildItems(items, createdItem);
+
+        // Now that the item has been converted, we can update the quantities of child items.
+        var oldChildItems = [];
+        itemManager.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+        }
+
+        // Add the equipped item to the queue.
+        const createdItemData = [
+            this.name,
+            createdItem.prefab.id,
+            createdItem.equipmentSlot,
+            createdItem.containerName,
+            isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+            isNaN(createdItem.uses) ? "" : createdItem.uses,
+            createdItem.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+        itemManager.insertInventoryItems(game, this, items, slot);
+        
+        this.member.send(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
+        if (!item.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
+            // Add the new item to the player's hands item list.
+            this.description = parser.addItem(this.description, item, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        }
+
+        return;
+    }
+
+    async equip(game, item, slotName, hand, bot) {
+        // Unequip the item from the player's hand.
+        this.unequip(game, item, hand, null);
+
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === slotName) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
+        }
+
+        var createdItem = itemManager.copyInventoryItem(item, this, slotName, 1);
+        createdItem.row = rowNumber;
+
+        // Equip the item to the player's hand.
+        this.inventory[slot].equippedItem = createdItem;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(createdItem);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === createdItem.row) {
+                game.inventoryItems.splice(i, 1, createdItem);
+                break;
+            }
+        }
+        // Create a list of all the child items.
+        var items = [];
+        itemManager.getChildItems(items, createdItem);
+
+        // Update the quantities of child items.
+        var oldChildItems = [];
+        itemManager.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+        }
+        item.quantity = 0;
+
+        // Add the equipped item to the queue.
+        const createdItemData = [
+            this.name,
+            createdItem.prefab.id,
+            createdItem.equipmentSlot,
+            createdItem.containerName,
+            isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+            isNaN(createdItem.uses) ? "" : createdItem.uses,
+            createdItem.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+        itemManager.insertInventoryItems(game, this, items, slot);
+
+        this.member.send(`You equip the ${createdItem.name}.`);
+        new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
+        // Remove mention of any equipped items that this item covers.
+        for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
+            const coveredEquipmentSlot = createdItem.prefab.coveredEquipmentSlots[i];
+            for (let j = 0; j < this.inventory.length; j++) {
+                if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                    // Preserve quantity.
+                    const quantity = this.inventory[j].equippedItem.quantity;
+                    this.inventory[j].equippedItem.quantity = 0;
+                    this.description = parser.removeItem(this.description, this.inventory[j].equippedItem, "equipment");
+                    this.inventory[j].equippedItem.quantity = quantity;
+                    break;
+                }
+            }
+        }
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
+            this.description = parser.removeItem(this.description, item, "hands");
+
+        // Check to make sure that this item isn't covered by something else the player has equipped.
+        var isCovered = false;
+        for (let i = 0; i < this.inventory.length; i++) {
+            if (this.inventory[i].equippedItem !== null) {
+                for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
+                    if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === createdItem.equipmentSlot) {
+                        isCovered = true;
+                        break;
+                    }
+                }
+            }
+        }
+        // If it's not covered, add mention of this item to the player's equipment item list.
+        if (!isCovered) {
+            this.description = parser.addItem(this.description, createdItem, "equipment");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        }
+
+        // Run equip commands.
+        for (let i = 0; i < createdItem.prefab.equipCommands.length; i++) {
+            const command = createdItem.prefab.equipCommands[i];
+            if (command.startsWith("wait")) {
+                let args = command.split(" ");
+                if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                const seconds = parseInt(args[1]);
+                if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                await sleep(seconds);
+            }
+            else {
+                commandHandler.execute(command, bot, game, null, this, createdItem);
+            }
+        }
+        return;
+    }
+
+    async unequip(game, item, slotName, hand, bot) {
+        // Get the row number of the EquipmentSlot that the item is being unequipped from.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === slotName) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
+        }
+
+        // Replace this inventory slot with a null item.
+        const nullItem = new InventoryItem(
+            this,
             null,
-            null,
-            null,
-            null,
-            [],
-            [],
+            slotName,
+            "",
             null,
             null,
             "",
-            this.inventory[slotNo].row
+            rowNumber
         );
-        var game = include(`game.json`);
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.inventory[slotNo].itemCells(), settings.emptyInventoryItem));
+        this.inventory[slot].equippedItem = null;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(nullItem);
+        // Replace the equipped item's entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === item.row) {
+                game.inventoryItems.splice(i, 1, nullItem);
+                break;
+            }
+        }
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!|${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", nullItem.equipmentSlot, "", "", "", "", ""]));
+
+        // If the item is going to be put in the player's hand, move it.
+        if (hand !== null) {
+            // Get the row number of the EquipmentSlot that the item will go into.
+            rowNumber = 0;
+            for (slot = 0; slot < this.inventory.length; slot++) {
+                if (this.inventory[slot].name === hand) {
+                    rowNumber = this.inventory[slot].row;
+                    break;
+                }
+            }
+
+            var createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
+            createdItem.row = rowNumber;
+
+            // Equip the item to the player's hand.
+            this.inventory[slot].equippedItem = createdItem;
+            this.inventory[slot].items.length = 0;
+            this.inventory[slot].items.push(createdItem);
+            // Replace the null entry in the inventoryItems list.
+            for (let i = 0; i < game.inventoryItems.length; i++) {
+                if (game.inventoryItems[i].row === createdItem.row) {
+                    game.inventoryItems.splice(i, 1, createdItem);
+                    break;
+                }
+            }
+            // Create a list of all the child items.
+            var items = [];
+            itemManager.getChildItems(items, createdItem);
+
+            // Update the quantities of child items.
+            var oldChildItems = [];
+            itemManager.getChildItems(oldChildItems, item);
+            for (let i = 0; i < oldChildItems.length; i++) {
+                oldChildItems[i].quantity = 0;
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            }
+            item.quantity = 0;
+
+            // Add the equipped item to the queue.
+            const createdItemData = [
+                this.name,
+                createdItem.prefab.id,
+                createdItem.equipmentSlot,
+                createdItem.containerName,
+                isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+                isNaN(createdItem.uses) ? "" : createdItem.uses,
+                createdItem.description
+            ];
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+            itemManager.insertInventoryItems(game, this, items, slot);
+
+            this.member.send(`You unequip the ${createdItem.name}.`);
+            new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
+            // Remove mention of this item from the player's equipment item list.
+            this.description = parser.removeItem(this.description, item, "equipment");
+            // Add mention of this item to the player's hands item list.
+            if (!createdItem.prefab.discreet)
+                this.description = parser.addItem(this.description, createdItem, "hands");
+            // Find any items that were covered by this item and add them to the equipment item list.
+            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
+                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
+                for (let j = 0; j < this.inventory.length; j++) {
+                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                        // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
+                        const coveringItems = game.inventoryItems.filter(item =>
+                            item.player.id === this.id &&
+                            item.prefab !== null &&
+                            item.equipmentSlot !== "RIGHT HAND" &&
+                            item.equipmentSlot !== "LEFT HAND" &&
+                            item.containerName === "" &&
+                            item.container === null &&
+                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].name)
+                        );
+                        if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
+                        break;
+                    }
+                }
+            }
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+
+            // Run unequip commands.
+            for (let i = 0; i < createdItem.prefab.unequipCommands.length; i++) {
+                const command = createdItem.prefab.unequipCommands[i];
+                if (command.startsWith("wait")) {
+                    let args = command.split(" ");
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(command, bot, game, null, this, createdItem);
+                }
+            }
+        }
         return;
     }
 
-    viewInventory(possessive) {
-        var itemString = `${possessive} inventory: \n`;
-        for (let i = 0; i < this.inventory.length; i++) {
-            if (this.inventory[i].name !== null) itemString += `[${this.inventory[i].name}] `;
-            else itemString += `[ ] `;
+    viewInventory(game, possessive) {
+        var itemString = `__${possessive} inventory:__\n`;
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            //itemString += `${equippedItems[i].equipmentSlot}: [${equippedItems[i].prefab.name}]\n `;
+            itemString += `${this.inventory[slot].name}: `;
+            const equippedItem = this.inventory[slot].equippedItem;
+            if (equippedItem === null) itemString += `[ ]\n`;
+            else {
+                itemString += `[${equippedItem.prefab.name}]\n`;
+                let listChildItems = function (itemString, item) {
+                    // If item is capable of holding other items, show what items it has inside.
+                    if (item.inventory.length > 0) {
+                        for (let i = 0; i < item.inventory.length; i++) {
+                            var parentItemIndexes = [];
+                            itemString += `    ${item.inventory[i].name}: `;
+                            if (item.inventory[i].item.length === 0) itemString += `[ ]`;
+                            else {
+                                for (let j = 0; j < item.inventory[i].item.length; j++) {
+                                    if (item.inventory[i].item[j].quantity === 1) itemString += `[${item.inventory[i].item[j].name}] `;
+                                    else {
+                                        if (item.inventory[i].item[j].pluralName) itemString += `[${item.inventory[i].item[j].quantity} ${item.inventory[i].item[j].pluralName}] `;
+                                        else itemString += `[${item.inventory[i].item[j].quantity} ${item.inventory[i].item[j].name}] `;
+                                    }
+                                    if (item.inventory[i].item[j].inventory.length !== 0) parentItemIndexes.push(j);
+                                }
+                                for (let j = 0; j < parentItemIndexes.length; j++) {
+                                    itemString += `\n`;
+                                    itemString = listChildItems(itemString, item.inventory[i].item[parentItemIndexes[j]]);
+                                }
+                            }
+                            if (itemString[itemString.length - 1] !== '\n') itemString += '\n';
+                        }
+                    }
+                    return itemString;
+                };
+                itemString = listChildItems(itemString, equippedItem);
+            }
         }
+
         return itemString;
     }
 
@@ -755,12 +1348,13 @@ class Player {
             var hasRequiredItem = false;
             var requirementsMet = false;
             if (puzzle.solution.startsWith("Item: ")) {
-                if (item !== null && item.name === puzzle.solution.substring("Item: ".length))
+                if (item !== null && item.prefab.id === puzzle.solution.substring("Item: ".length))
                     hasRequiredItem = true;
                 else if (item === null) {
                     const requiredItem = puzzle.solution.substring("Item: ".length);
-                    for (let i = 0; i < this.inventory.length; i++) {
-                        if (this.inventory[i].name === requiredItem) {
+                    const playerItems = game.inventoryItems.filter(item => item.player.id === this.id && item.prefab !== null && item.quantity > 0);
+                    for (let i = 0; i < playerItems.length; i++) {
+                        if (playerItems[i].prefab.id === requiredItem) {
                             hasRequiredItem = true;
                             break;
                         }
@@ -854,7 +1448,7 @@ class Player {
             clearInterval(this.status[i].timer);
         this.status.length = 0;
         // Update that data on the sheet, as well.
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), new Array(this.id, this.name, this.talent, this.strength, this.intelligence, this.dexterity, this.speed, this.maxStamina, this.alive, "", "", "")));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, this.pronounString, this.defaultStrength, this.defaultIntelligence, this.defaultDexterity, this.defaultSpeed, this.defaultStamina, this.alive, "", "", "", "")));
 
         // Move player to dead list.
         game.players_dead.push(this);
@@ -930,26 +1524,13 @@ class Player {
     statusCell() {
         return settings.playerSheetStatusColumn + this.row;
     }
+    descriptionCell() {
+        return settings.playerSheetDescriptionColumn + this.row;
+    }
 }
 
 module.exports = Player;
 
-// This function is needed solely to compare the effects and cures of two items.
-function arraysEqual(a, b) {
-    a = a.map(object => object.name);
-    b = b.map(object => object.name);
-    if (a === b) return true;
-    if (a === null || b === null) return false;
-    if (a.length !== b.length) return false;
-
-    // Make copies before sorting both arrays so as not to modify the original arrays.
-    let c = a.slice(), d = b.slice();
-    c.sort();
-    d.sort();
-
-    // Now check if both have the same elements.
-    for (let i = 0; i < c.length; i++) {
-        if (c[i] !== d[i]) return false;
-    }
-    return true;
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

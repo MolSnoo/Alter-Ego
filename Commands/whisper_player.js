@@ -36,7 +36,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (args[i].toLowerCase() === player.name.toLowerCase()) return message.reply("you can't include yourself as a whisper recipient.");
         // Player cannot whisper to dead players.
         for (let j = 0; j < game.players_dead.length; j++) {
-            if (game.players_dead[j].name.toLowerCase() === args[i].toLowerCase()) return message.reply(`can't whisper to ${game.players_dead[j].name} because they aren't in the room with you.`);
+            if (game.players_dead[j].name.toLowerCase() === args[i].toLowerCase()) return message.reply(`can't whisper to ${game.players_dead[j].name} because ${game.players_dead[j].originalPronouns.sbj} ` + (game.players_dead[j].originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
         }
         for (let j = 0; j < game.players_alive.length; j++) {
             let other = game.players_alive[j];
@@ -44,18 +44,18 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (other.name.toLowerCase() === args[i].toLowerCase() && other.location.name === player.location.name) {
                 // Check attributes that would prohibit the player from whispering to someone in the room.
                 if (other.hasAttribute("hidden") || other.hasAttribute("concealed"))
-                    return message.reply(`can't whisper to ${other.name} because they aren't in the room with you.`);
+                    return message.reply(`can't whisper to ${other.name} because ${other.originalPronouns.sbj} ` + (other.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
                 if (other.hasAttribute("no hearing"))
-                    return message.reply(`can't whisper to ${other.name} because they can't hear you.`);
+                    return message.reply(`can't whisper to ${other.name} because ${other.originalPronouns.sbj} can't hear you.`);
                 if (other.hasAttribute("unconscious"))
-                    return message.reply(`can't whisper to ${other.name} because they are not awake.`);
+                    return message.reply(`can't whisper to ${other.name} because ${other.originalPronouns.sbj} ` + (other.originalPronouns.plural ? `are` : `is`) + ` not awake.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;
                 recipients.push(other);
                 break;
             }
             // If the player exists but is not in the same room, return error.
-            else if (other.name.toLowerCase() === args[i].toLowerCase()) return message.reply(`can't whisper to ${other.name} because they aren't in the room with you.`);
+            else if (other.name.toLowerCase() === args[i].toLowerCase()) return message.reply(`can't whisper to ${other.name} because ${other.originalPronouns.sbj} ` + (other.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
         }
         if (!playerExists) return message.reply(`couldn't find player "${args[i]}". Make sure you spelled it right.`);
     }

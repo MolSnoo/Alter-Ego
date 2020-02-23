@@ -39,17 +39,27 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase();
-    //parsedInput = parsedInput.replace(/\'/g, "");
 
-    // First find the item in the player's inventory, if applicable.
+    // First find the item in the player's hand, if applicable.
     var item = null;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (parsedInput.startsWith(player.inventory[i].name + ' ') || player.inventory[i].name === parsedInput) {
-            item = player.inventory[i];
-            parsedInput = parsedInput.substring(item.name.length).trim();
-            input = input.substring(item.name.length).trim();
-            break;
+    for (let slot = 0; slot < player.inventory.length; slot++) {
+        if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
+            if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
+                item = player.inventory[slot].equippedItem;
+                break;
+            }
+            else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
+                item = player.inventory[slot].equippedItem;
+                break;
+            }
         }
+        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
+        else if (player.inventory[slot].name === "LEFT HAND")
+            break;
+    }
+    if (item !== null) {
+        parsedInput = parsedInput.substring(item.name.length).trim();
+        input = input.substring(item.name.length).trim();
     }
 
     // Now check to see if the player is trying to solve a puzzle.
@@ -96,7 +106,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} used ${item.name} from their inventory in ${player.location.channel}`);
+            game.logChannel.send(`${time} - ${player.name} used ${item.name} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
         else return message.reply(response);

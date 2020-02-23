@@ -17,12 +17,12 @@ class Object {
 
     setAccessible(game) {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "TRUE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Objects!${this.name}|${this.location.name}`, "TRUE"));
     }
 
     setInaccessible(game) {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), "FALSE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Objects!${this.name}|${this.location.name}`, "FALSE"));
     }
 
     accessibleCell() {

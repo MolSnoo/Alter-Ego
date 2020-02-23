@@ -1,16 +1,16 @@
 ﻿const settings = include('settings.json');
 
 class Status {
-    constructor(name, duration, fatal, cures, nextStage, duplicatedStatus, curedCondition, rollModifier, modifiesSelf, attributes, inflictedDescription, curedDescription, row) {
+    constructor(name, duration, fatal, visible, cures, nextStage, duplicatedStatus, curedCondition, statModifiers, attributes, inflictedDescription, curedDescription, row) {
         this.name = name;
         this.duration = duration;
         this.fatal = fatal;
+        this.visible = visible;
         this.cures = cures;
         this.nextStage = nextStage;
         this.duplicatedStatus = duplicatedStatus;
         this.curedCondition = curedCondition;
-        this.rollModifier = rollModifier;
-        this.modifiesSelf = modifiesSelf;
+        this.statModifiers = statModifiers;
         this.attributes = attributes;
         this.inflictedDescription = inflictedDescription;
         this.curedDescription = curedDescription;

@@ -6,16 +6,19 @@ const settings = include('settings.json');
 const spreadsheetID = settings.spreadsheetID;
 const roomSheetID = settings.roomSheetID;
 const objectSheetID = settings.objectSheetID;
+const prefabSheetID = settings.prefabSheetID;
 const itemSheetID = settings.itemSheetID;
 const puzzleSheetID = settings.puzzleSheetID;
 const statusEffectSheetID = settings.statusEffectSheetID;
 const playerSheetID = settings.playerSheetID;
+const inventoryItemSheetID = settings.inventoryItemSheetID;
 
-module.exports.getData = function (sheetrange, dataOperation) {
+module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
     authorize(function (authClient) {
+        if (!spreadsheetId) spreadsheetId = spreadsheetID;
         var request = {
             // The ID of the spreadsheet to retrieve data from.
-            spreadsheetId: spreadsheetID,
+            spreadsheetId: spreadsheetId,
 
             // The A1 notation of the values to retrieve.
             range: sheetrange,
@@ -152,17 +155,17 @@ module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
             // The ID of the spreadsheet to update.
             spreadsheetId: spreadsheetId,
 
-            // How the input data should be interpreted.
-            valueInputOption: 'USER_ENTERED',
-
             resource: {
-                "data": requests
+                // A list of updates to apply to the spreadsheet.
+                // Requests will be applied in the order they are specified.
+                // If any request is not valid, no requests will be applied.
+                requests: requests
             },
 
             auth: authClient
         };
 
-        sheets.spreadsheets.values.batchUpdate(request, function (err, response) {
+        sheets.spreadsheets.batchUpdate(request, function (err, response) {
             if (err) {
                 console.error(err);
                 return;
@@ -171,7 +174,6 @@ module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
             if (dataOperation) {
                 dataOperation(response);
             }
-            
         });
     });
 };
