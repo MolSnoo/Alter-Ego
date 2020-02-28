@@ -29,7 +29,7 @@
     [ "NULL", "JACKET", "", "", "", "" ],
     [ "NULL", "RIGHT HAND", "", "", "", "" ],
     [ "NULL", "LEFT HAND", "", "", "", "" ],
-    [ "DEFAULT PANTS", "PANTS", "", "1", "", "<desc><s>It's a plain pair of blue jeans.</s> <s>It has two pairs of pockets on the front.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s></desc>" ],
+    [ "DEFAULT PANTS", "PANTS", "", "1", "", "<desc><s>It's a plain pair of blue jeans.</s> <s>It has two pockets on the front.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s></desc>" ],
     [ "DEFAULT UNDERWEAR", "UNDERWEAR", "", "1", "", "<desc><s>It's a plain, white pair of underwear.</s></desc>" ],
     [ "DEFAULT SOCKS", "SOCKS", "", "1", "", "<desc><s>It's a pair of plain, white ankle socks.</s></desc>" ],
     [ "DEFAULT SHOES", "SHOES", "", "1", "", "<desc><s>It's a pair of plain, white tennis shoes.</s></desc>" ]
