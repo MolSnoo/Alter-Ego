@@ -390,7 +390,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
             var childItemIndexes = [];
             for (let i = 0; i < game.items.length; i++) {
                 game.items[i].location = game.rooms.find(room => room.name === game.items[i].location && room.name !== "");
-                if (game.items[i].prefab) {
+                if (game.items[i].prefab instanceof Prefab) {
                     const prefab = game.items[i].prefab;
                     game.items[i].weight = game.items[i].prefab.weight;
                     for (let j = 0; j < prefab.inventory.length; j++)
@@ -453,14 +453,16 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 createdItem.weight = item.weight;
 
                 // Initialize the item's inventory slots.
-                for (let i = 0; i < item.prefab.inventory.length; i++)
-                    createdItem.inventory.push({
-                        name: item.prefab.inventory[i].name,
-                        capacity: item.prefab.inventory[i].capacity,
-                        takenSpace: item.prefab.inventory[i].takenSpace,
-                        weight: item.prefab.inventory[i].weight,
-                        item: []
-                    });
+                if (item.prefab instanceof Prefab) {
+                    for (let i = 0; i < item.prefab.inventory.length; i++)
+                        createdItem.inventory.push({
+                            name: item.prefab.inventory[i].name,
+                            capacity: item.prefab.inventory[i].capacity,
+                            takenSpace: item.prefab.inventory[i].takenSpace,
+                            weight: item.prefab.inventory[i].weight,
+                            item: []
+                        });
+                }
 
                 for (let i = 0; i < item.inventory.length; i++) {
                     for (let j = 0; j < item.inventory[i].item.length; j++) {
