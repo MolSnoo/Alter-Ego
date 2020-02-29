@@ -64,8 +64,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (parsedInput !== "") {
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) return message.reply(`you need to supply a preposition.`);
-            console.log(`"${parsedInput}" === "${newArgs[0]} ${objects[i].name}" ? ` + (parsedInput === `${newArgs[0]} ${objects[i].name}`));
-            console.log(`"${objects[i].preposition}" === "" ? ` + (objects[i].preposition === ""));
             if ((parsedInput === `${objects[i].preposition.toUpperCase()} ${objects[i].name}` || parsedInput === `IN ${objects[i].name}`) && objects[i].preposition !== "") {
                 object = objects[i];
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
