@@ -660,7 +660,7 @@ testremove = async (file, formatted, player) => {
                                 }
                             }
                             text += `(Take ${permutation[l]}): `;
-                            description = parser.removeItem(description, item, null, true);
+                            if (item) description = parser.removeItem(description, item, null, true);
                             text += (formatted ? description : parser.parseDescription(description, room, player)) + os.EOL;
                             tabs++;
                         }
@@ -725,7 +725,7 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, item, null, true);
+                        if (item) description = parser.removeItem(description, item, null, true);
                         text += (formatted ? description : parser.parseDescription(description, object, player)) + os.EOL;
                         tabs++;
                     }
@@ -790,7 +790,7 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, newItem, newItem.slot, true);
+                        if (newItem) description = parser.removeItem(description, newItem, newItem.slot, true);
                         text += (formatted ? description : parser.parseDescription(description, item, player)) + os.EOL;
                         tabs++;
                     }
@@ -850,7 +850,7 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Take ${permutation[k]}): `;
-                        description = parser.removeItem(description, item, null, true);
+                        if (item) description = parser.removeItem(description, item, null, true);
                         text += (formatted ? description : parser.parseDescription(description, puzzle, player)) + os.EOL;
                         tabs++;
                     }
@@ -911,8 +911,10 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Unequip ${permutation[k]}): `;
-                        if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") description = parser.removeItem(description, item, "hands", true);
-                        else description = parser.removeItem(description, item, "equipment", true);
+                        if (item) {
+                            if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") description = parser.removeItem(description, item, "hands", true);
+                            else description = parser.removeItem(description, item, "equipment", true);
+                        }
                         text += (formatted ? description : parser.parseDescription(description, currentPlayer, player)) + os.EOL;
                         tabs++;
                     }
@@ -976,7 +978,7 @@ testremove = async (file, formatted, player) => {
                             }
                         }
                         text += `(Unstash ${permutation[k]}): `;
-                        description = parser.removeItem(description, item, item.slot, true);
+                        if (item) description = parser.removeItem(description, item, item.slot, true);
                         text += (formatted ? description : parser.parseDescription(description, inventoryItem, player)) + os.EOL;
                         tabs++;
                     }
