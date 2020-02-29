@@ -20,7 +20,7 @@ module.exports.config = {
         + `-**parse**: Outputs the formatted and parsed descriptions.\n`
         + `-**add**: Goes through each object, item, puzzle, player, and inventory item description with item containers and adds random items.\n`
         + `-**remove**: Goes through each room, object, item, puzzle, player, and inventory item description with items and removes each item `
-        + `in every order possible until there are none left. It will only remove up to 4 items in a description.`,
+        + `in the list. In "formatted" mode, items will be removed in every possible order. However, it will only remove up to 4 items in a description.`,
     usage: `${settings.commandPrefix}testparser parse\n`
         + `${settings.commandPrefix}testparser parse nero\n`
         + `${settings.commandPrefix}testparser add\n`
@@ -619,18 +619,21 @@ testremove = async (file, formatted, player) => {
                     if (game.items[k].location.name === room.name
                         && game.items[k].containerName === ""
                         && game.items[k].container === null
-                        && game.items[k].accessible) {
+                        && game.items[k].accessible
+                        && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
                         items.push(game.items[k]);
                         itemNames.push(game.items[k].name);
                     }
                 }
-                // If the number of items is higher than 4, the bot usually runs out of memory.
-                // Make 4 the limit.
-                if (items.length > 4) {
-                    items = items.slice(0, 4);
-                    itemNames = itemNames.slice(0, 4);
+                if (formatted) {
+                    // If the number of items is higher than 4, the bot usually runs out of memory.
+                    // Make 4 the limit.
+                    if (items.length > 4) {
+                        items = items.slice(0, 4);
+                        itemNames = itemNames.slice(0, 4);
+                    }
                 }
-                const orders = permute(itemNames);
+                const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < room.exit.length; j++) {
                     const exit = room.exit[j];
@@ -689,18 +692,21 @@ testremove = async (file, formatted, player) => {
                         && game.items[j].containerName === `Object: ${object.name}`
                         && game.items[j].container.row === object.row
                         && game.items[j].accessible
-                        && object.preposition !== "") {
+                        && object.preposition !== ""
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
                 }
-                // If the number of items is higher than 4, the bot usually runs out of memory.
-                // Make 4 the limit.
-                if (items.length > 4) {
-                    items = items.slice(0, 4);
-                    itemNames = itemNames.slice(0, 4);
+                if (formatted) {
+                    // If the number of items is higher than 4, the bot usually runs out of memory.
+                    // Make 4 the limit.
+                    if (items.length > 4) {
+                        items = items.slice(0, 4);
+                        itemNames = itemNames.slice(0, 4);
+                    }
                 }
-                const orders = permute(itemNames);
+                const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
                     let description = object.description;
@@ -751,18 +757,21 @@ testremove = async (file, formatted, player) => {
                         && game.items[j].containerName.startsWith(`Item: ${item.prefab.id}/`)
                         && game.items[j].container.row === item.row
                         && game.items[j].accessible
-                        && item.prefab.preposition !== "") {
+                        && item.prefab.preposition !== ""
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
                 }
-                // If the number of items is higher than 4, the bot usually runs out of memory.
-                // Make 4 the limit.
-                if (items.length > 4) {
-                    items = items.slice(0, 4);
-                    itemNames = itemNames.slice(0, 4);
+                if (formatted) {
+                    // If the number of items is higher than 4, the bot usually runs out of memory.
+                    // Make 4 the limit.
+                    if (items.length > 4) {
+                        items = items.slice(0, 4);
+                        itemNames = itemNames.slice(0, 4);
+                    }
                 }
-                const orders = permute(itemNames);
+                const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
                     let description = item.description;
@@ -808,18 +817,21 @@ testremove = async (file, formatted, player) => {
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
                     if (game.items[j].location.name === puzzle.location.name
-                        && game.items[j].containerName === `Puzzle: ${puzzle.name}`) {
+                        && game.items[j].containerName === `Puzzle: ${puzzle.name}`
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
                 }
-                // If the number of items is higher than 4, the bot usually runs out of memory.
-                // Make 4 the limit.
-                if (items.length > 4) {
-                    items = items.slice(0, 4);
-                    itemNames = itemNames.slice(0, 4);
+                if (formatted) {
+                    // If the number of items is higher than 4, the bot usually runs out of memory.
+                    // Make 4 the limit.
+                    if (items.length > 4) {
+                        items = items.slice(0, 4);
+                        itemNames = itemNames.slice(0, 4);
+                    }
                 }
-                const orders = permute(itemNames);
+                const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
                     let description = puzzle.alreadySolvedDescription;
@@ -866,18 +878,21 @@ testremove = async (file, formatted, player) => {
                 for (let j = 0; j < game.inventoryItems.length; j++) {
                     if (game.inventoryItems[j].player.name === currentPlayer.name
                         && game.inventoryItems[j].prefab !== null
-                        && game.inventoryItems[j].container === null) {
+                        && game.inventoryItems[j].container === null
+                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
                         items.push(game.inventoryItems[j]);
                         itemNames.push(game.inventoryItems[j].name);
                     }
                 }
-                // If the number of items is higher than 4, the bot usually runs out of memory.
-                // Make 4 the limit.
-                if (items.length > 4) {
-                    items = items.slice(0, 4);
-                    itemNames = itemNames.slice(0, 4);
+                if (formatted) {
+                    // If the number of items is higher than 4, the bot usually runs out of memory.
+                    // Make 4 the limit.
+                    if (items.length > 4) {
+                        items = items.slice(0, 4);
+                        itemNames = itemNames.slice(0, 4);
+                    }
                 }
-                const orders = permute(itemNames);
+                const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
                     let description = currentPlayer.description;
@@ -928,18 +943,21 @@ testremove = async (file, formatted, player) => {
                         && game.inventoryItems[j].containerName.startsWith(`${inventoryItem.prefab.id}/`)
                         && game.inventoryItems[j].container !== null
                         && game.inventoryItems[j].container.row === inventoryItem.row
-                        && inventoryItem.prefab.preposition !== "") {
+                        && inventoryItem.prefab.preposition !== ""
+                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
                         items.push(game.inventoryItems[j]);
                         itemNames.push(game.inventoryItems[j].name);
                     }
                 }
-                // If the number of items is higher than 4, the bot usually runs out of memory.
-                // Make 4 the limit.
-                if (items.length > 4) {
-                    items = items.slice(0, 4);
-                    itemNames = itemNames.slice(0, 4);
+                if (formatted) {
+                    // If the number of items is higher than 4, the bot usually runs out of memory.
+                    // Make 4 the limit.
+                    if (items.length > 4) {
+                        items = items.slice(0, 4);
+                        itemNames = itemNames.slice(0, 4);
+                    }
                 }
-                const orders = permute(itemNames);
+                const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
                     let description = inventoryItem.description;
