@@ -1,6 +1,6 @@
 ﻿{
   "commandPrefix": ".",
-  "debug": false,
+  "debug": true,
   "testing": false,
 
   "commandsDir": "Commands",
@@ -92,6 +92,9 @@
   "objectSheetDescriptionColumn": "Objects!G",
   "prefabSheetAllCells": "Prefabs!A1:S",
   "prefabSheetDescriptionColumn": "Prefabs!S",
+  "recipeSheetAllCells": "Recipes!A1:F",
+  "recipeSheetInitiatedColumn": "Recipes!E",
+  "recipeSheetCompletedColumn": "Recipes!F",
   "itemSheetAllCells": "Items!A1:G",
   "itemSheetPrefabColumn": "Items!A",
   "itemSheetAccessibleColumn": "Items!C",

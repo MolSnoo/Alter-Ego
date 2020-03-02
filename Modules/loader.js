@@ -5,6 +5,7 @@ const Exit = include(`${settings.dataDir}/Exit.js`);
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
 const Prefab = include(`${settings.dataDir}/Prefab.js`);
+const Recipe = include(`${settings.dataDir}/Recipe.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
@@ -353,6 +354,89 @@ module.exports.checkPrefab = function (prefab, game) {
     if (prefab.inventory.length !== 0 && prefab.preposition === "")
         return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
     return;
+};
+
+module.exports.loadRecipes = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        sheets.getDataFormulas(settings.recipeSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnIngredients = 0;
+            const columnObjectTag = 1;
+            const columnDuration = 2;
+            const columnProducts = 3;
+            const columnInitiatedDescription = 4;
+            const columnCompletedDescription = 5;
+
+            game.recipes.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                // Separate the ingredients and sort them in alphabetical order.
+                var ingredients = sheet[i][columnIngredients] ? sheet[i][columnIngredients].split(',').sort() : "";
+                // For each ingredient, find its Prefab.
+                for (let j = 0; j < ingredients.length; j++) {
+                    ingredients[j] = ingredients[j].trim();
+                    let prefab = game.prefabs.find(prefab => prefab.id === ingredients[j] && prefab.id !== "");
+                    if (prefab) ingredients[j] = prefab;
+                }
+                // Separate the products.
+                var products = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : "";
+                // For each product, find its Prefab.
+                for (let j = 0; j < products.length; j++) {
+                    products[j] = products[j].trim();
+                    let prefab = game.prefabs.find(prefab => prefab.id === products[j] && prefab.id !== "");
+                    if (prefab) products[j] = prefab;
+                }
+
+                game.recipes.push(
+                    new Recipe(
+                        ingredients,
+                        sheet[i][columnObjectTag] ? sheet[i][columnObjectTag] : "",
+                        sheet[i][columnDuration] ? sheet[i][columnDuration].toLowerCase() : "0s",
+                        products,
+                        sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription] : "",
+                        sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription] : "",
+                        i + 1
+                    )
+                );
+            }
+            var errors = [];
+            for (let i = 0; i < game.recipes.length; i++) {
+                if (doErrorChecking) {
+                    let error = exports.checkRecipe(game.recipes[i]);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkRecipe = function (recipe) {
+    if (recipe.ingredients.length === 0)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
+    for (let i = 0; i < recipe.ingredients.length; i++) {
+        if (!(recipe.ingredients[i] instanceof Prefab))
+            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.ingredients[i]}" in ingredients is not a prefab.`);
+    }
+    if (recipe.ingredients.length > 2 && recipe.objectTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require an object tag.`);
+    if (recipe.products.length > 2 && recipe.objectTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require an object tag.`);
+    const timeInt = recipe.duration.substring(0, recipe.duration.length - 1);
+    if (recipe.duration !== "" && (isNaN(timeInt) || !recipe.duration.endsWith('s') && !recipe.duration.endsWith('m') && !recipe.duration.endsWith('h')))
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Duration format is incorrect. Must be a number followed by 's', 'm', or 'h'.`);
+    for (let i = 0; i < recipe.products.length; i++) {
+        if (!(recipe.products[i] instanceof Prefab))
+            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.products[i]}" in products is not a prefab.`);
+    }
 };
 
 module.exports.loadItems = function (game, doErrorChecking) {
