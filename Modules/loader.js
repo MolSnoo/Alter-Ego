@@ -136,9 +136,10 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             const columnLocation = 1;
             const columnAccessibility = 2;
             const columnChildPuzzle = 3;
-            const columnHidingSpot = 4;
-            const columnPreposition = 5;
-            const columnDescription = 6;
+            const columnRecipeTag = 4;
+            const columnHidingSpot = 5;
+            const columnPreposition = 6;
+            const columnDescription = 7;
 
             game.objects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -148,6 +149,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                         sheet[i][columnLocation],
                         sheet[i][columnAccessibility] === true,
                         sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle] : "",
+                        sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag] : "",
                         sheet[i][columnHidingSpot] === true,
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
