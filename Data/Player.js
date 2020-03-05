@@ -615,8 +615,7 @@ class Player {
         if (!isNaN(item.uses)) {
             item.uses--;
 
-            if (item.uses === 0 && item.prefab.nextStage !== null) itemManager.replaceInventoryItem(item, item.prefab.nextStage);
-            else if (item.uses === 0) itemManager.destroyInventoryItem(item);
+            if (item.uses === 0) itemManager.replaceInventoryItem(item, item.prefab.nextStage);
             else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
         }
 
@@ -943,7 +942,6 @@ class Player {
 
         // Now that the item has been converted, we can update the quantities of child items.
         var oldChildItems = [];
-        oldChildItems.push(item);
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
@@ -1332,6 +1330,28 @@ class Player {
         }
 
         return itemString;
+    }
+
+    craft(game, item1, item2, recipe) {
+        itemManager.replaceInventoryItem(item1, recipe.products[0]);
+        itemManager.replaceInventoryItem(item2, recipe.products[1]);
+
+        this.sendDescription(recipe.completedDescription, recipe);
+        // Decide if this should be narrated or not.
+        if (recipe.products[0] && !recipe.products[0].discreet || recipe.products[1] && !recipe.products[1].discreet) {
+            let productPhrase = "";
+            let product1Phrase = "";
+            let product2Phrase = "";
+            if (recipe.products[0] && !recipe.products[0].discreet) product1Phrase = recipe.products[0].singleContainingPhrase;
+            if (recipe.products[1] && !recipe.products[1].discreet) product2Phrase = recipe.products[1].singleContainingPhrase;
+            if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
+            else if (product1Phrase !== "") productPhrase = product1Phrase;
+            else if (product2Phrase !== "") productPhrase = product2Phrase;
+
+            if (productPhrase !== "") new Narration(game, this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
+        }
+
+        return;
     }
 
     attemptPuzzle(bot, game, puzzle, item, password, command, misc) {

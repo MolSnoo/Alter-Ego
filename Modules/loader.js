@@ -438,6 +438,8 @@ module.exports.checkRecipe = function (recipe) {
     const timeInt = recipe.duration.substring(0, recipe.duration.length - 1);
     if (recipe.duration !== "" && (isNaN(timeInt) || !recipe.duration.endsWith('s') && !recipe.duration.endsWith('m') && !recipe.duration.endsWith('h')))
         return new Error(`Couldn't load recipe on row ${recipe.row}. Duration format is incorrect. Must be a number followed by 's', 'm', or 'h'.`);
+    if (recipe.objectTag === "" && recipe.duration !== "0s")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without an object tag cannot have a duration.`);
     for (let i = 0; i < recipe.products.length; i++) {
         if (!(recipe.products[i] instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.products[i]}" in products is not a prefab.`);

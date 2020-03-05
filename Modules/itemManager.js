@@ -8,6 +8,10 @@ const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 module.exports.replaceInventoryItem = function (item, newPrefab) {
+    if (newPrefab === null || newPrefab === undefined) {
+        this.destroyInventoryItem(item);
+        return;
+    }
     item.player.carryWeight -= item.weight * item.quantity;
     item.prefab = newPrefab;
     item.name = newPrefab.name;
