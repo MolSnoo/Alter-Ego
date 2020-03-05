@@ -373,7 +373,14 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
             game.recipes.length = 0;
             for (let i = 1; i < sheet.length; i++) {
                 // Separate the ingredients and sort them in alphabetical order.
-                var ingredients = sheet[i][columnIngredients] ? sheet[i][columnIngredients].split(',').sort() : [];
+                var ingredients = sheet[i][columnIngredients] ? sheet[i][columnIngredients].split(',') : [];
+                ingredients.sort(function (a, b) {
+                    let trimmedA = a.trim();
+                    let trimmedB = b.trim();
+                    if (trimmedA < trimmedB) return -1;
+                    if (trimmedA > trimmedB) return 1;
+                    return 0;
+                });
                 // For each ingredient, find its Prefab.
                 for (let j = 0; j < ingredients.length; j++) {
                     ingredients[j] = ingredients[j].trim();
