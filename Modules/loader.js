@@ -241,10 +241,6 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
-                // Create a list of all prefabs this prefab will turn into when destroyed.
-                var nextStages = sheet[i][columnNextStage] ? sheet[i][columnNextStage].split(',') : [];
-                for (let j = 0; j < nextStages.length; j++)
-                    nextStages[j] = nextStages[j].trim();
                 // Create a list of equipment slots this prefab can be equipped to.
                 var equipmentSlots = sheet[i][columnSlots] ? sheet[i][columnSlots].split(',') : [];
                 for (let j = 0; j < equipmentSlots.length; j++)
