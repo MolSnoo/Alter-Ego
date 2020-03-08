@@ -620,7 +620,7 @@ testremove = async (file, formatted, player) => {
                         && game.items[k].containerName === ""
                         && game.items[k].container === null
                         && game.items[k].accessible
-                        && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
                         items.push(game.items[k]);
                         itemNames.push(game.items[k].name);
                     }
@@ -693,7 +693,7 @@ testremove = async (file, formatted, player) => {
                         && game.items[j].container.row === object.row
                         && game.items[j].accessible
                         && object.preposition !== ""
-                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
@@ -758,7 +758,7 @@ testremove = async (file, formatted, player) => {
                         && game.items[j].container.row === item.row
                         && game.items[j].accessible
                         && item.prefab.preposition !== ""
-                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
@@ -818,7 +818,7 @@ testremove = async (file, formatted, player) => {
                 for (let j = 0; j < game.items.length; j++) {
                     if (game.items[j].location.name === puzzle.location.name
                         && game.items[j].containerName === `Puzzle: ${puzzle.name}`
-                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
@@ -879,7 +879,7 @@ testremove = async (file, formatted, player) => {
                     if (game.inventoryItems[j].player.name === currentPlayer.name
                         && game.inventoryItems[j].prefab !== null
                         && game.inventoryItems[j].container === null
-                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
                         items.push(game.inventoryItems[j]);
                         itemNames.push(game.inventoryItems[j].name);
                     }
@@ -946,7 +946,7 @@ testremove = async (file, formatted, player) => {
                         && game.inventoryItems[j].container !== null
                         && game.inventoryItems[j].container.row === inventoryItem.row
                         && inventoryItem.prefab.preposition !== ""
-                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
                         items.push(game.inventoryItems[j]);
                         itemNames.push(game.inventoryItems[j].name);
                     }
