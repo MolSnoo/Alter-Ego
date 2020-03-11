@@ -129,6 +129,10 @@ module.exports.checkRoom = function (room) {
 
 module.exports.loadObjects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
+        // Clear all recipe intervals so they don't continue after these objects are unloaded.
+        for (let i = 0; i < game.objects.length; i++)
+            clearInterval(game.objects[i].recipeInterval);
+
         sheets.getDataFormulas(settings.objectSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
@@ -137,9 +141,10 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             const columnAccessibility = 2;
             const columnChildPuzzle = 3;
             const columnRecipeTag = 4;
-            const columnHidingSpot = 5;
-            const columnPreposition = 6;
-            const columnDescription = 7;
+            const columnActivated = 5;
+            const columnHidingSpot = 6;
+            const columnPreposition = 7;
+            const columnDescription = 8;
 
             game.objects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -150,6 +155,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                         sheet[i][columnAccessibility] === true,
                         sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle] : "",
                         sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag] : "",
+                        sheet[i][columnActivated] === true,
                         sheet[i][columnHidingSpot] === true,
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",

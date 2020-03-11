@@ -4,21 +4,21 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Object {
-    constructor(name, location, accessible, childPuzzleName, recipeTag, isHidingSpot, preposition, description, row) {
+    constructor(name, location, accessible, childPuzzleName, recipeTag, activated, isHidingSpot, preposition, description, row) {
         this.name = name;
         this.location = location;
         this.accessible = accessible;
         this.childPuzzleName = childPuzzleName;
         this.childPuzzle = null;
         this.recipeTag = recipeTag;
+        this.activated = activated;
         this.isHidingSpot = isHidingSpot;
         this.preposition = preposition;
         this.description = description;
         this.row = row;
 
-        this.activated = false;
         this.duration = 0;
-        this.timer = null;
+        this.recipeInterval = null;
     }
 
     setAccessible(game) {
@@ -33,6 +33,7 @@ class Object {
 
     activate(game, player) {
         this.activated = true;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.activatedCell(), `Objects!${this.name}|${this.location.name}`, "TRUE"));
         if (player) new Narration(game, player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
         else new Narration(game, null, this.location, `${this.name} turns on.`).send();
 
@@ -102,11 +103,11 @@ class Object {
         this.duration = time;
 
         let object = this;
-        this.timer = setInterval(function () {
+        this.recipeInterval = setInterval(function () {
             object.duration -= 1000;
 
             if (object.duration <= 0) {
-                clearInterval(object.timer);
+                clearInterval(object.recipeInterval);
                 object.duration = 0;
                 // Destroy the ingredients.
                 for (let i = 0; i < ingredients.length; i++)
@@ -123,10 +124,11 @@ class Object {
 
     deactivate(game, player) {
         this.activated = false;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.activatedCell(), `Objects!${this.name}|${this.location.name}`, "FALSE"));
         if (player) new Narration(game, player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
         else new Narration(game, null, this.location, `${this.name} turns off.`).send();
 
-        clearInterval(this.timer);
+        clearInterval(this.recipeInterval);
         this.duration = 0;
 
         return;
@@ -134,6 +136,10 @@ class Object {
     
     accessibleCell() {
         return settings.objectSheetAccessibleColumn + this.row;
+    }
+
+    activatedCell() {
+        return settings.objectSheetActivatedColumn + this.row;
     }
 
     descriptionCell() {
