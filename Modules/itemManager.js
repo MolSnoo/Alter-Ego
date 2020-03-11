@@ -1,11 +1,73 @@
 const settings = include('settings.json');
+const parser = include(`${settings.modulesDir}/parser.js`);
 var game = include('game.json');
 
+const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
+
+module.exports.instantiateItem = function (prefab, location, container, slotName, quantity) {
+    var containerName = "";
+    if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
+    else if (container instanceof Object) containerName = "Object: " + container.name;
+    else if (container instanceof Item) containerName = "Item: " + container.prefab.id + '/' + slotName;
+
+    var createdItem = new Item(
+        prefab,
+        location,
+        container instanceof Puzzle ? container.accessible && container.solved : true,
+        containerName,
+        quantity,
+        prefab.uses,
+        prefab.description,
+        0
+    );
+    createdItem.container = container;
+    createdItem.slot = slotName;
+
+    // Initialize the item's inventory slots.
+    for (let i = 0; i < prefab.inventory.length; i++)
+        createdItem.inventory.push({
+            name: prefab.inventory[i].name,
+            capacity: prefab.inventory[i].capacity,
+            takenSpace: prefab.inventory[i].takenSpace,
+            weight: prefab.inventory[i].weight,
+            item: []
+        });
+
+    var preposition = "in";
+    // Update the container's description.
+    if (container instanceof Puzzle) {
+        container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, createdItem);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), `Puzzles!${container.name}|${container.location.name}`, container.alreadySolvedDescription));
+        containerName = container.parentObject ? container.parentObject.name : container.name;
+        preposition = container.parentObject ? container.parentObject.preposition : "in";
+    }
+    else if (container instanceof Object) {
+        container.description = parser.addItem(container.description, createdItem);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
+        containerName = container.name;
+        preposition = container.preposition;
+    }
+    else if (container instanceof Item) {
+        container.insertItem(createdItem, slotName);
+        container.description = parser.addItem(container.description, createdItem, slotName);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+        containerName = `${slotName} of ${container.name}`;
+        preposition = container.prefab ? container.prefab.preposition : "in";
+    }
+
+    this.insertItems(game, location, [createdItem]);
+
+    // Post log message.
+    const time = new Date().toLocaleTimeString();
+    game.logChannel.send(`${time} - ${createdItem.name} was instantiated ${preposition} ${containerName} in ${location.channel}`);
+
+    return;
+};
 
 module.exports.replaceInventoryItem = function (item, newPrefab) {
     if (newPrefab === null || newPrefab === undefined) {
@@ -37,6 +99,50 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     const quantityString = !isNaN(item.quantity) ? item.quantity.toString() : "";
     const usesString = !isNaN(item.uses) ? item.uses.toString() : "";
     game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!|${item.player.name}|${item.equipmentSlot}|${item.containerName}`, [item.player.name, item.prefab.id, item.equipmentSlot, item.containerName, quantityString, usesString, item.description]));
+
+    return;
+};
+
+module.exports.destroyItem = function (item) {
+    item.quantity = 0;
+    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.location.name}|${item.containerName}`, item.quantity));
+
+    var containerName = "";
+    var preposition = "in";
+    const container = item.container;
+    if (container instanceof Puzzle) {
+        container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item, null, true);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), `Puzzles!${container.name}|${container.location.name}`, container.alreadySolvedDescription));
+        containerName = container.parentObject ? container.parentObject.name : container.name;
+        preposition = container.parentObject ? container.parentObject.preposition : "in";
+    }
+    else if (container instanceof Object) {
+        container.description = parser.removeItem(container.description, item, null, true);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
+        containerName = container.name;
+        preposition = container.preposition ? container.preposition : "in";
+    }
+    else if (container instanceof Item) {
+        container.removeItem(item, slotName);
+        container.description = parser.removeItem(container.description, item, slotName, true);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+        containerName = `${item.slot} of ${container.name}`;
+        preposition = container.prefab ? container.prefab.preposition : "in";
+    }
+    else if (container instanceof Room) {
+        container.description = parser.removeItem(container.description, item, null, true);
+        for (let i = 0; i < container.exit.length; i++) {
+            container.exit[i].description = parser.removeItem(container.exit[i].description, item, null, true);
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), `Rooms!${container.name}|${container.exit[i].name}`, container.exit[i].description));
+        }
+        preposition = "in";
+    }
+
+    // Post log message.
+    const time = new Date().toLocaleTimeString();
+    game.logChannel.send(`${time} - ${item.name} ${preposition} ${containerName} in ${item.location.channel} was destroyed`);
+
+    return;
 };
 
 module.exports.destroyInventoryItem = function (item) {
@@ -72,6 +178,8 @@ module.exports.destroyInventoryItem = function (item) {
         }
     }
     game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!|${item.player.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [item.player.name, "NULL", nullItem.equipmentSlot, "", "", "", "", ""]));
+
+    return;
 };
 
 // This recursive function is used to convert Items to InventoryItems.
@@ -172,12 +280,14 @@ module.exports.getChildItems = function (items, item) {
             this.getChildItems(items, item.inventory[i].item[j]);
         }
     }
+
+    return;
 };
 
-module.exports.insertItems = function (game, player, items) {
+module.exports.insertItems = function (game, location, items) {
     for (let i = 0; i < items.length; i++) {
         // Check if the player is putting this item back in original spot unmodified.
-        const roomItems = game.items.filter(item => item.location.name === player.location.name);
+        const roomItems = game.items.filter(item => item.location.name === location.name);
         let matchedItem = roomItems.find(item =>
             item.prefab.id === items[i].prefab.id &&
             item.accessible &&

@@ -901,7 +901,7 @@ class Player {
         deleteChildQuantities(item);
         item.quantity = 0;
         
-        itemManager.insertItems(game, this, items);
+        itemManager.insertItems(game, this.location, items);
 
         this.carryWeight -= item.weight;
         this.member.send(`You discard ${item.singleContainingPhrase}.`);

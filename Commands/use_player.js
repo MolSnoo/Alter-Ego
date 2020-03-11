@@ -74,19 +74,46 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (puzzles[i].parentObject !== null &&
                 (parsedInput.startsWith(puzzles[i].parentObject.name + ' ') || parsedInput === puzzles[i].parentObject.name)) {
                 puzzle = puzzles[i];
-                parsedInput = parsedInput.substring(puzzle.parentObject.name.length).trim();
+                //parsedInput = parsedInput.substring(puzzle.parentObject.name.length).trim();
                 input = input.substring(puzzle.parentObject.name.length).trim();
                 break;
             }
             else if (parsedInput.startsWith(puzzles[i].name + ' ') || parsedInput === puzzles[i].name) {
                 puzzle = puzzles[i];
-                parsedInput = parsedInput.substring(puzzle.name.length).trim();
+                //parsedInput = parsedInput.substring(puzzle.name.length).trim();
                 input = input.substring(puzzle.name.length).trim();
                 break;
             }
         }
-        if (puzzle === null) return message.reply(`couldn't find "${input}" to ${command}. Try using a different command?`);
-        password = input;
+        if (puzzle !== null) password = input;
+    }
+
+    // Check if the player specified an object.
+    var object = null;
+    if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
+        var objects = game.objects.filter(object => object.location.name === player.location.name);
+        for (let i = 0; i < objects.length; i++) {
+            if (objects[i].name === parsedInput) {
+                if (objects[i].recipeTag === "") return message.reply("that object has no programmed use on its own, but you may be able to use it some other way.");
+                object = objects[i];
+                break;
+            }
+        }
+    }
+
+    // If there is an object, do the required behavior.
+    if (object !== null) {
+        const time = new Date().toLocaleTimeString();
+        if (object.activated) {
+            object.deactivate(game, player);
+            // Post log message.
+            game.logChannel.send(`${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
+        }
+        else {
+            object.activate(game, player);
+            // Post log message.
+            game.logChannel.send(`${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
+        }
     }
 
     // If there is a puzzle, do the required behavior.
@@ -111,5 +138,5 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
         else return message.reply(response);
     }
-    else return message.reply(`couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (object === null) return message.reply(`couldn't find "${input}" to ${command}. Try using a different command?`);
 };
