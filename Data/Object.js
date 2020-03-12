@@ -4,13 +4,14 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Object {
-    constructor(name, location, accessible, childPuzzleName, recipeTag, activated, isHidingSpot, preposition, description, row) {
+    constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, isHidingSpot, preposition, description, row) {
         this.name = name;
         this.location = location;
         this.accessible = accessible;
         this.childPuzzleName = childPuzzleName;
         this.childPuzzle = null;
         this.recipeTag = recipeTag;
+        this.activatable = activatable;
         this.activated = activated;
         this.isHidingSpot = isHidingSpot;
         this.preposition = preposition;
@@ -18,7 +19,9 @@ class Object {
         this.row = row;
 
         this.duration = 0;
-        this.recipeInterval = null;
+        this.process = { recipe: null, ingredients: [], duration: 0, timer: null };
+        let object = this;
+        this.recipeInterval = setInterval(function () { object.processRecipes(object); }, 1000);
     }
 
     setAccessible(game) {
@@ -31,12 +34,145 @@ class Object {
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Objects!${this.name}|${this.location.name}`, "FALSE"));
     }
 
-    activate(game, player) {
+    activate(game, player, narrate) {
         this.activated = true;
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.activatedCell(), `Objects!${this.name}|${this.location.name}`, "TRUE"));
-        if (player) new Narration(game, player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
-        else new Narration(game, null, this.location, `${this.name} turns on.`).send();
+        if (narrate) {
+            if (player) new Narration(game, player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
+            else new Narration(game, null, this.location, `${this.name} turns on.`).send();
+        }
 
+        const result = this.findRecipe(game);
+        if (result.recipe === null) return;
+
+        this.process.recipe = result.recipe;
+        this.process.ingredients = result.ingredients;
+        if (player) player.sendDescription(this.process.recipe.initiatedDescription, this);
+
+        const timeInt = this.process.recipe.duration.substring(0, this.process.recipe.duration.length - 1);
+        let time;
+        if (this.process.recipe.duration.endsWith('s'))
+            time = timeInt * 1000;
+        else if (this.process.recipe.duration.endsWith('m'))
+            time = timeInt * 60000;
+        else if (this.process.recipe.duration.endsWith('h'))
+            time = timeInt * 3600000;
+        this.process.duration = time;
+
+        let object = this;
+        object.process.timer = setInterval(function () {
+            object.process.duration -= 1000;
+
+            if (object.process.duration <= 0) {
+                clearInterval(object.process.timer);
+                object.process.duration = 0;
+
+                // Make sure all the ingredients are still there.
+                let stillThere = true;
+                for (let i = 0; i < object.process.ingredients.length; i++) {
+                    if (object.process.ingredients[i].quantity === 0) {
+                        stillThere = false;
+                        break;
+                    }
+                }
+                if (stillThere) {
+                    const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+                    // Destroy the ingredients.
+                    for (let i = 0; i < object.process.ingredients.length; i++)
+                        itemManager.destroyItem(object.process.ingredients[i]);
+                    // Instantiate the products.
+                    for (let i = 0; i < object.process.recipe.products.length; i++)
+                        itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);
+                    if (player && player.location.name === object.location.name) player.sendDescription(object.process.recipe.completedDescription, object);
+                }
+
+                object.process.recipe = null;
+                object.process.ingredients.length = 0;
+            }
+        }, 1000);
+
+        return;
+    }
+
+    deactivate(game, player, narrate) {
+        this.activated = false;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.activatedCell(), `Objects!${this.name}|${this.location.name}`, "FALSE"));
+        if (narrate) {
+            if (player) new Narration(game, player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
+            else new Narration(game, null, this.location, `${this.name} turns off.`).send();
+        }
+
+        this.process.recipe = null;
+        this.process.ingredients.length = 0;
+        clearInterval(this.process.timer);
+        this.process.duration = 0;
+
+        return;
+    }
+
+    processRecipes(object) {
+        if (object.activated) {
+            var game = include('game.json');
+            const result = object.findRecipe(game);
+            // If the current recipe being processed is no longer the one it found, cancel it.
+            if (object.process.recipe !== null && result.recipe !== null && object.process.recipe.row !== result.recipe.row
+                || object.process.recipe !== null && result.recipe === null) {
+                object.process.recipe = null;
+                object.process.ingredients.length = 0;
+                clearInterval(object.process.timer);
+                object.process.duration = 0;
+            }
+            // Start a new process.
+            if (object.process.recipe === null && result.recipe !== null) {
+                object.process.recipe = result.recipe;
+                object.process.ingredients = result.ingredients;
+
+                const timeInt = object.process.recipe.duration.substring(0, object.process.recipe.duration.length - 1);
+                let time;
+                if (object.process.recipe.duration.endsWith('s'))
+                    time = timeInt * 1000;
+                else if (object.process.recipe.duration.endsWith('m'))
+                    time = timeInt * 60000;
+                else if (object.process.recipe.duration.endsWith('h'))
+                    time = timeInt * 3600000;
+                object.process.duration = time;
+
+                this.process.timer = setInterval(function () {
+                    object.process.duration -= 1000;
+
+                    if (object.process.duration <= 0) {
+                        clearInterval(object.process.timer);
+                        object.process.duration = 0;
+
+                        // Make sure all the ingredients are still there.
+                        let stillThere = true;
+                        for (let i = 0; i < object.process.ingredients.length; i++) {
+                            if (object.process.ingredients[i].quantity === 0) {
+                                stillThere = false;
+                                break;
+                            }
+                        }
+                        if (stillThere) {
+                            const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+                            // Destroy the ingredients.
+                            for (let i = 0; i < object.process.ingredients.length; i++)
+                                itemManager.destroyItem(object.process.ingredients[i]);
+                            // Instantiate the products.
+                            for (let i = 0; i < object.process.recipe.products.length; i++)
+                                itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);
+                        }
+
+                        object.process.recipe = null;
+                        object.process.ingredients.length = 0;
+                    }
+                }, 1000);
+            }
+        }
+
+        return;
+    }
+
+    findRecipe(game) {
         // Get all the items contained within this object.
         var items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container.row === this.row && item.quantity > 0);
         const itemManager = include(`${settings.modulesDir}/itemManager.js`);
@@ -48,7 +184,6 @@ class Object {
             return 0;
         });
 
-        // test if a recipe requiring two of the same prefab will use both of them
         const recipes = game.recipes.filter(recipe => recipe.objectTag === this.recipeTag);
         var recipe = null;
         var ingredients = [];
@@ -88,50 +223,9 @@ class Object {
                 recipe = matches[0].recipe;
                 ingredients = matches[0].ingredients;
             }
-            if (recipe === null) return;
         }
-        if (player) player.sendDescription(recipe.initiatedDescription, this);
 
-        const timeInt = recipe.duration.substring(0, recipe.duration.length - 1);
-        let time;
-        if (recipe.duration.endsWith('s'))
-            time = timeInt * 1000;
-        else if (recipe.duration.endsWith('m'))
-            time = timeInt * 60000;
-        else if (recipe.duration.endsWith('h'))
-            time = timeInt * 3600000;
-        this.duration = time;
-
-        let object = this;
-        this.recipeInterval = setInterval(function () {
-            object.duration -= 1000;
-
-            if (object.duration <= 0) {
-                clearInterval(object.recipeInterval);
-                object.duration = 0;
-                // Destroy the ingredients.
-                for (let i = 0; i < ingredients.length; i++)
-                    itemManager.destroyItem(ingredients[i]);
-                // Instantiate the products.
-                for (let i = 0; i < recipe.products.length; i++)
-                    itemManager.instantiateItem(recipe.products[i], object.location, object, "", 1);
-                if (player && player.location.name === object.location.name) player.sendDescription(recipe.completedDescription, object);
-            }
-        }, 1000);
-
-        return;
-    }
-
-    deactivate(game, player) {
-        this.activated = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.activatedCell(), `Objects!${this.name}|${this.location.name}`, "FALSE"));
-        if (player) new Narration(game, player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
-        else new Narration(game, null, this.location, `${this.name} turns off.`).send();
-
-        clearInterval(this.recipeInterval);
-        this.duration = 0;
-
-        return;
+        return { recipe: recipe, ingredients: ingredients };
     }
     
     accessibleCell() {

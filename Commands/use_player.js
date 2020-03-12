@@ -95,7 +95,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         var objects = game.objects.filter(object => object.location.name === player.location.name);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) {
-                if (objects[i].recipeTag === "") return message.reply("that object has no programmed use on its own, but you may be able to use it some other way.");
+                if (objects[i].recipeTag === "" || !objects[i].activatable) return message.reply("that object has no programmed use on its own, but you may be able to use it some other way.");
                 object = objects[i];
                 break;
             }
@@ -104,14 +104,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     // If there is an object, do the required behavior.
     if (object !== null) {
+        const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (object.activated) {
-            object.deactivate(game, player);
+            object.deactivate(game, player, narrate);
             // Post log message.
             game.logChannel.send(`${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
         }
         else {
-            object.activate(game, player);
+            object.activate(game, player, narrate);
             // Post log message.
             game.logChannel.send(`${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
         }
