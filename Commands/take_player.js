@@ -115,6 +115,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (item !== null && item !== undefined && item.container === null)
         container = item.location;
 
+    if (container.hasOwnProperty("isHidingSpot") && container.autoDeactivate && container.activated)
+        return message.reply(`you cannot take items from ${container.name} while it is turned on.`);
     if (item.weight > player.maxCarryWeight) {
         player.member.send(`You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();

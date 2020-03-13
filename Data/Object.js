@@ -4,7 +4,7 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Object {
-    constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, isHidingSpot, preposition, description, row) {
+    constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, isHidingSpot, preposition, description, row) {
         this.name = name;
         this.location = location;
         this.accessible = accessible;
@@ -13,6 +13,7 @@ class Object {
         this.recipeTag = recipeTag;
         this.activatable = activatable;
         this.activated = activated;
+        this.autoDeactivate = autoDeactivate;
         this.isHidingSpot = isHidingSpot;
         this.preposition = preposition;
         this.description = description;
@@ -43,7 +44,20 @@ class Object {
         }
 
         const result = this.findRecipe(game);
-        if (result.recipe === null) return;
+        if (result.recipe === null) {
+            // If this is supposed to deactivate automatically and no recipe was found, turn it off after 1 minute.
+            if (this.autoDeactivate) {
+                this.process.duration = 60000;
+                let object = this;
+                this.process.timer = setInterval(function () {
+                    object.process.duration -= 1000;
+                    if (object.process.duration <= 0) {
+                        object.deactivate(game, null, true);
+                    }
+                }, 1000);
+            }
+            return;
+        }
 
         this.process.recipe = result.recipe;
         this.process.ingredients = result.ingredients;
@@ -64,9 +78,6 @@ class Object {
             object.process.duration -= 1000;
 
             if (object.process.duration <= 0) {
-                clearInterval(object.process.timer);
-                object.process.duration = 0;
-
                 // Make sure all the ingredients are still there.
                 let stillThere = true;
                 for (let i = 0; i < object.process.ingredients.length; i++) {
@@ -86,8 +97,14 @@ class Object {
                     if (player && player.location.name === object.location.name) player.sendDescription(object.process.recipe.completedDescription, object);
                 }
 
-                object.process.recipe = null;
-                object.process.ingredients.length = 0;
+                if (object.autoDeactivate)
+                    object.deactivate(game, null, true);
+                else {
+                    clearInterval(object.process.timer);
+                    object.process.duration = 0;
+                    object.process.recipe = null;
+                    object.process.ingredients.length = 0;
+                }
             }
         }, 1000);
 
@@ -114,6 +131,16 @@ class Object {
         if (object.activated) {
             var game = include('game.json');
             const result = object.findRecipe(game);
+            if (object.process.recipe === null && object.process.duration === 0 && result.recipe === null && object.autoDeactivate) {
+                object.process.duration = 60000;
+                object.process.timer = setInterval(function () {
+                    object.process.duration -= 1000;
+                    if (object.process.duration <= 0) {
+                        object.deactivate(game, null, true);
+                    }
+                }, 1000);
+                return;
+            }
             // If the current recipe being processed is no longer the one it found, cancel it.
             if (object.process.recipe !== null && result.recipe !== null && object.process.recipe.row !== result.recipe.row
                 || object.process.recipe !== null && result.recipe === null) {
@@ -141,9 +168,6 @@ class Object {
                     object.process.duration -= 1000;
 
                     if (object.process.duration <= 0) {
-                        clearInterval(object.process.timer);
-                        object.process.duration = 0;
-
                         // Make sure all the ingredients are still there.
                         let stillThere = true;
                         for (let i = 0; i < object.process.ingredients.length; i++) {
@@ -162,8 +186,14 @@ class Object {
                                 itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);
                         }
 
-                        object.process.recipe = null;
-                        object.process.ingredients.length = 0;
+                        if (object.autoDeactivate)
+                            object.deactivate(game, null, true);
+                        else {
+                            clearInterval(object.process.timer);
+                            object.process.duration = 0;
+                            object.process.recipe = null;
+                            object.process.ingredients.length = 0;
+                        }
                     }
                 }, 1000);
             }
