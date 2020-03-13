@@ -135,8 +135,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (defaultDropOpject === null || defaultDropOpject === undefined) return message.reply(`you cannot drop items in this room.`);
         container = defaultDropOpject;
     }
-    if (container.hasOwnProperty("isHidingSpot") && container.autoDeactivate && container.activated)
-        return message.reply(`you cannot put items ${container.preposition} ${container.name} while it is turned on.`);
+
+    let topContainer = container;
+    while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+        topContainer = topContainer.container;
+
+    if (topContainer !== null) {
+        const topContainerPreposition = topContainer.preposition ? topContainer.preposition : "in";
+        if (topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+            return message.reply(`you cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
+    }
 
     player.drop(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
