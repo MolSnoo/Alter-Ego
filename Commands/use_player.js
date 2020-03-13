@@ -86,7 +86,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 break;
             }
         }
-        if (puzzle !== null) password = input;
+        if (puzzle !== null) {
+            password = input;
+            if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
+        }
     }
 
     // Check if the player specified an object.
@@ -95,7 +98,6 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         var objects = game.objects.filter(object => object.location.name === player.location.name);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) {
-                if (objects[i].recipeTag === "" || !objects[i].activatable) return message.reply("that object has no programmed use on its own, but you may be able to use it some other way.");
                 object = objects[i];
                 break;
             }
@@ -103,7 +105,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
 
     // If there is an object, do the required behavior.
-    if (object !== null) {
+    if (object !== null && object.recipeTag !== "" && object.activatable) {
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (object.activated) {
