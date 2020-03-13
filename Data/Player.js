@@ -615,7 +615,13 @@ class Player {
         if (!isNaN(item.uses)) {
             item.uses--;
 
-            if (item.uses === 0) itemManager.replaceInventoryItem(item, item.prefab.nextStage);
+            if (item.uses === 0) {
+                if (!item.prefab.discreet) this.description = parser.removeItem(this.description, item, "hands");
+                const nextStage = item.prefab.nextStage ? true : false;
+                itemManager.replaceInventoryItem(item, item.prefab.nextStage);
+                if (nextStage && !item.prefab.discreet) this.description = parser.addItem(this.description, item, "hands");
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+            }
             else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
         }
 
@@ -812,22 +818,30 @@ class Player {
             this.carryWeight += createdItem.weight;
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
-                if (container.inventory.length === 1) this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
-                else this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                if (container.inventory.length === 1)
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                else
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
             }
             else {
                 if (container.inventory.length === 1) {
                     this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
                     victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
-                    if (!createdItem.prefab.discreet)
-                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
                 }
                 else {
                     this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
                     victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
-                    if (!createdItem.prefab.discreet)
-                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}.`).send();
                 }
+            }
+            if (!createdItem.prefab.discreet) {
+                if (container.inventory.length === 1)
+                    new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
+                else
+                    new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}.`).send();
+
+                // Add the new item to the player's hands item list.
+                this.description = parser.addItem(this.description, createdItem, "hands");
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
             }
 
             return { itemName: createdItem.name, successful: true };
@@ -1333,6 +1347,8 @@ class Player {
     }
 
     craft(game, item1, item2, recipe) {
+        if (!item1.prefab.discreet) this.description = parser.removeItem(this.description, item1, "hands");
+        if (!item2.prefab.discreet) this.description = parser.removeItem(this.description, item2, "hands");
         itemManager.replaceInventoryItem(item1, recipe.products[0]);
         itemManager.replaceInventoryItem(item2, recipe.products[1]);
 
@@ -1342,14 +1358,21 @@ class Player {
             let productPhrase = "";
             let product1Phrase = "";
             let product2Phrase = "";
-            if (recipe.products[0] && !recipe.products[0].discreet) product1Phrase = recipe.products[0].singleContainingPhrase;
-            if (recipe.products[1] && !recipe.products[1].discreet) product2Phrase = recipe.products[1].singleContainingPhrase;
+            if (recipe.products[0] && !recipe.products[0].discreet) {
+                product1Phrase = recipe.products[0].singleContainingPhrase;
+                this.description = parser.addItem(this.description, item1, "hands");
+            }
+            if (recipe.products[1] && !recipe.products[1].discreet) {
+                product2Phrase = recipe.products[1].singleContainingPhrase;
+                this.description = parser.addItem(this.description, item2, "hands");
+            }
             if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
             else if (product1Phrase !== "") productPhrase = product1Phrase;
             else if (product2Phrase !== "") productPhrase = product2Phrase;
 
             if (productPhrase !== "") new Narration(game, this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
         }
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
 
         return;
     }
