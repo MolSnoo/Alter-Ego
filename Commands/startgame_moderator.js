@@ -52,6 +52,15 @@ module.exports.run = async (bot, game, message, command, args) => {
         game.canJoin = false;
         const playerRole = game.guild.roles.find(role => role.id === settings.playerRole);
         channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
+
+        game.players.sort(function (a, b) {
+            var nameA = a.name.toLowerCase();
+            var nameB = b.name.toLowerCase();
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
+            return 0;
+        });
+
         var playerCells = [];
         var inventoryCells = [];
         for (let i = 0; i < game.players.length; i++) {
@@ -75,8 +84,13 @@ module.exports.run = async (bot, game, message, command, args) => {
             playerCells.push(playerData);
 
             for (let j = 0; j < settings.defaultInventory.length; j++) {
+                // Update this so it replaces the number smybol in any cell.
                 var row = [player.name];
                 row = row.concat(settings.defaultInventory[j]);
+                for (let k = 0; k < row.length; k++) {
+                    if (row[k].includes('#'))
+                        row[k] = row[k].replace(/#/g, i + 1);
+                }
                 inventoryCells.push(row);
             }
         }

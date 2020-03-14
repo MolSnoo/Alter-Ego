@@ -464,12 +464,13 @@ module.exports.loadItems = function (game, doErrorChecking) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
-            const columnLocation = 1;
-            const columnAccessibility = 2;
-            const columnContainer = 3;
-            const columnQuantity = 4;
-            const columnUses = 5;
-            const columnDescription = 6;
+            const columnIdentifier = 1;
+            const columnLocation = 2;
+            const columnAccessibility = 3;
+            const columnContainer = 4;
+            const columnQuantity = 5;
+            const columnUses = 6;
+            const columnDescription = 7;
 
             game.items.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -479,6 +480,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 game.items.push(
                     new Item(
                         prefab ? prefab : sheet[i][columnPrefab],
+                        sheet[i][columnIdentifier] ? sheet[i][columnIdentifier] : "",
                         sheet[i][columnLocation],
                         sheet[i][columnAccessibility] === true,
                         sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
@@ -515,9 +517,9 @@ module.exports.loadItems = function (game, doErrorChecking) {
             for (let index = 0; index < childItemIndexes.length; index++) {
                 const i = childItemIndexes[index];
                 const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
-                const prefabName = containerName[0] ? containerName[0].trim() : "";
+                const identifier = containerName[0] ? containerName[0].trim() : "";
                 const slotName = containerName[1] ? containerName[1].trim() : "";
-                let possibleContainers = game.items.filter(item => item.prefab.id === prefabName && item.location.name === game.items[i].location.name);
+                let possibleContainers = game.items.filter(item => item.identifier === identifier && item.location.name === game.items[i].location.name);
                 let container = null;
                 for (let i = 0; i < possibleContainers.length; i++) {
                     if (possibleContainers[i].quantity > 0) {
@@ -542,6 +544,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
             let insertInventory = function (item) {
                 var createdItem = new Item(
                     item.prefab,
+                    item.identifier,
                     item.location,
                     item.accessible,
                     item.containerName,
@@ -604,7 +607,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 else game.items[i] = insertInventory(game.items[i]);
 
                 if (doErrorChecking) {
-                    let error = exports.checkItem(game.items[i]);
+                    let error = exports.checkItem(game.items[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
             }
@@ -621,9 +624,17 @@ module.exports.loadItems = function (game, doErrorChecking) {
     }); 
 };
 
-module.exports.checkItem = function (item) {
+module.exports.checkItem = function (item, game) {
     if (!(item.prefab instanceof Prefab))
         return new Error(`Couldn't load item on row ${item.row}. The prefab given is not a prefab.`);
+    if (item.inventory.length > 0 && item.identifier === "")
+        return new Error(`Couldn't load item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
+    if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+        return new Error(`Couldn't load item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
+    if (item.identifier !== "" && item.quantity !== 0 &&
+        game.items.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length
+        + game.inventoryItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length > 0)
+        return new Error(`Couldn't load item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
     if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
@@ -1077,11 +1088,12 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;
             const columnPrefab = 1;
-            const columnEquipmentSlot = 2;
-            const columnContainer = 3;
-            const columnQuantity = 4;
-            const columnUses = 5;
-            const columnDescription = 6;
+            const columnIdentifier = 2;
+            const columnEquipmentSlot = 3;
+            const columnContainer = 4;
+            const columnQuantity = 5;
+            const columnUses = 6;
+            const columnDescription = 7;
 
             game.inventoryItems.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -1094,6 +1106,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         new InventoryItem(
                             player ? player : sheet[i][columnPlayer],
                             prefab ? prefab : sheet[i][columnPrefab],
+                            sheet[i][columnIdentifier] ? sheet[i][columnIdentifier] : "",
                             sheet[i][columnEquipmentSlot],
                             sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
                             parseInt(sheet[i][columnQuantity]),
@@ -1108,6 +1121,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         new InventoryItem(
                             player ? player : sheet[i][columnPlayer],
                             null,
+                            "",
                             sheet[i][columnEquipmentSlot],
                             "",
                             null,
@@ -1152,11 +1166,11 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                             }
                             else {
                                 const splitContainer = game.inventoryItems[i].containerName.split('/');
-                                const containerItemName = splitContainer[0] ? splitContainer[0].trim() : "";
+                                const containerItemIdentifier = splitContainer[0] ? splitContainer[0].trim() : "";
                                 const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
                                 game.inventoryItems[i].slot = containerItemSlot;
                                 for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                                    if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].prefab.id === containerItemName) {
+                                    if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].identifier === containerItemIdentifier) {
                                         game.inventoryItems[i].container = player.inventory[slot].items[j];
                                         for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
                                             if (game.inventoryItems[i].container.inventory[k].name === containerItemSlot)
@@ -1174,6 +1188,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                 var createdItem = new InventoryItem(
                     item.player,
                     item.prefab,
+                    item.identifier,
                     item.equipmentSlot,
                     item.containerName,
                     item.quantity,
@@ -1254,7 +1269,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                 }
 
                 if (doErrorChecking) {
-                    let error = exports.checkInventoryItem(game.inventoryItems[i]);
+                    let error = exports.checkInventoryItem(game.inventoryItems[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
             }
@@ -1272,12 +1287,20 @@ module.exports.loadInventories = function (game, doErrorChecking) {
     });
 };
 
-module.exports.checkInventoryItem = function (item) {
+module.exports.checkInventoryItem = function (item, game) {
     if (!(item.player instanceof Player))
         return new Error(`Couldn't load inventory item on row ${item.row}. The player name given is not a player.`);
     if (item.prefab !== null) {
         if (!(item.prefab instanceof Prefab))
             return new Error(`Couldn't load inventory item on row ${item.row}. The prefab given is not a prefab.`);
+        if (item.inventory.length > 0 && item.identifier === "")
+            return new Error(`Couldn't load inventory item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
+        if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+            return new Error(`Couldn't load inventory item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
+        if (item.identifier !== "" && item.quantity !== 0 &&
+            game.items.filter(other => other.identifier === item.identifier && other.quantity !== 0).length
+            + game.inventoryItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length > 0)
+            return new Error(`Couldn't load inventory item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
         if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
             return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
         if (!item.foundEquipmentSlot)

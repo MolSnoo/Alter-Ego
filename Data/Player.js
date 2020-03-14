@@ -622,7 +622,7 @@ class Player {
                 if (nextStage && !item.prefab.discreet) this.description = parser.addItem(this.description, item, "hands");
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
             }
-            else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
+            else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
         }
 
         return;
@@ -632,7 +632,7 @@ class Player {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.location.name}|${item.containerName}`, item.quantity));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.identifier}|${item.location.name}|${item.containerName}`, item.quantity));
         }
 
         if (container instanceof Puzzle) {
@@ -646,7 +646,7 @@ class Player {
         else if (container instanceof Item) {
             container.removeItem(item, slotName);
             container.description = parser.removeItem(container.description, item, slotName);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         }
         else if (container instanceof Room) {
             container.description = parser.removeItem(container.description, item);
@@ -690,20 +690,21 @@ class Player {
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Items!${oldChildItems[i].name}|${oldChildItems[i].location.name}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Items!${oldChildItems[i].name}|${oldChildItems[i].identifier}|${oldChildItems[i].location.name}|${oldChildItems[i].containerName}`, "0"));
         }
 
         // Add the equipped item to the queue.
         const createdItemData = [
             this.name,
             createdItem.prefab.id,
+            createdItem.identifier,
             createdItem.equipmentSlot,
             createdItem.containerName,
             isNaN(createdItem.quantity) ? "" : createdItem.quantity,
             isNaN(createdItem.uses) ? "" : createdItem.uses,
             createdItem.description
         ];
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
@@ -742,12 +743,12 @@ class Player {
             // Reduce quantity if the quantity is finite.
             if (!isNaN(item.quantity)) {
                 item.quantity--;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${victim.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${victim.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
             }
 
             container.removeItem(item, container.inventory[slotNo].name);
             container.description = parser.removeItem(container.description, item, container.inventory[slotNo].name);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${victim.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${victim.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
             // Remove the item from its EquipmentSlot.
             for (let slot = 0; slot < victim.inventory.length; slot++) {
@@ -797,20 +798,21 @@ class Player {
             itemManager.getChildItems(oldChildItems, item);
             for (let i = 0; i < oldChildItems.length; i++) {
                 oldChildItems[i].quantity = 0;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${victim.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${victim.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
             }
 
             // Add the equipped item to the queue.
             const createdItemData = [
                 this.name,
                 createdItem.prefab.id,
+                createdItem.identifier,
                 createdItem.equipmentSlot,
                 createdItem.containerName,
                 isNaN(createdItem.quantity) ? "" : createdItem.quantity,
                 isNaN(createdItem.uses) ? "" : createdItem.uses,
                 createdItem.description
             ];
-            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
             itemManager.insertInventoryItems(game, this, items, slot);
 
@@ -889,7 +891,7 @@ class Player {
         else if (container instanceof Item) {
             container.insertItem(createdItem, slotName);
             container.description = parser.addItem(container.description, item, slotName);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
             containerName = container.name;
             preposition = container.prefab ? container.prefab.preposition : "in";
         }
@@ -907,7 +909,7 @@ class Player {
                 for (let i = 0; i < item.inventory[slot].item.length; i++) {
                     deleteChildQuantities(item.inventory[slot].item[i]);
                     item.inventory[slot].item[i].quantity = 0;
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), `Inventory Items!${item.inventory[slot].item[i].prefab.id}|${player.name}|${item.inventory[slot].item[i].equipmentSlot}|${item.inventory[slot].item[i].containerName}`, "0"));
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), `Inventory Items!${item.inventory[slot].item[i].prefab.id}|${item.inventory[slot].item[i].identifier}|${player.name}|${item.inventory[slot].item[i].equipmentSlot}|${item.inventory[slot].item[i].containerName}`, "0"));
                 }
             }
             return;
@@ -947,7 +949,7 @@ class Player {
         // Update container.
         container.insertItem(createdItem, slotName);
         container.description = parser.addItem(container.description, createdItem, slotName);
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
         // Create a list of all the child items.
         var items = [];
@@ -959,7 +961,7 @@ class Player {
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
         }
 
         itemManager.insertInventoryItems(game, this, items, slot);
@@ -980,12 +982,12 @@ class Player {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
         }
 
         container.removeItem(item, slotName);
         container.description = parser.removeItem(container.description, item, slotName);
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
         // Remove the item from its EquipmentSlot.
         for (let slot = 0; slot < this.inventory.length; slot++) {
@@ -1035,20 +1037,21 @@ class Player {
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
         }
 
         // Add the equipped item to the queue.
         const createdItemData = [
             this.name,
             createdItem.prefab.id,
+            createdItem.identifier,
             createdItem.equipmentSlot,
             createdItem.containerName,
             isNaN(createdItem.quantity) ? "" : createdItem.quantity,
             isNaN(createdItem.uses) ? "" : createdItem.uses,
             createdItem.description
         ];
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
         itemManager.insertInventoryItems(game, this, items, slot);
         
@@ -1099,7 +1102,7 @@ class Player {
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
         }
         item.quantity = 0;
 
@@ -1107,13 +1110,14 @@ class Player {
         const createdItemData = [
             this.name,
             createdItem.prefab.id,
+            createdItem.identifier,
             createdItem.equipmentSlot,
             createdItem.containerName,
             isNaN(createdItem.quantity) ? "" : createdItem.quantity,
             isNaN(createdItem.uses) ? "" : createdItem.uses,
             createdItem.description
         ];
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
@@ -1186,6 +1190,7 @@ class Player {
         const nullItem = new InventoryItem(
             this,
             null,
+            "",
             slotName,
             "",
             null,
@@ -1203,7 +1208,7 @@ class Player {
                 break;
             }
         }
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!|${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", nullItem.equipmentSlot, "", "", "", "", ""]));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!||${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", "", nullItem.equipmentSlot, "", "", "", "", ""]));
 
         // If the item is going to be put in the player's hand, move it.
         if (hand !== null) {
@@ -1239,7 +1244,7 @@ class Player {
             itemManager.getChildItems(oldChildItems, item);
             for (let i = 0; i < oldChildItems.length; i++) {
                 oldChildItems[i].quantity = 0;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
             }
             item.quantity = 0;
 
@@ -1247,13 +1252,14 @@ class Player {
             const createdItemData = [
                 this.name,
                 createdItem.prefab.id,
+                createdItem.identifier,
                 createdItem.equipmentSlot,
                 createdItem.containerName,
                 isNaN(createdItem.quantity) ? "" : createdItem.quantity,
                 isNaN(createdItem.uses) ? "" : createdItem.uses,
                 createdItem.description
             ];
-            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
             itemManager.insertInventoryItems(game, this, items, slot);
 

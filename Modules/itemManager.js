@@ -13,10 +13,11 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
     var containerName = "";
     if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
     else if (container instanceof Object) containerName = "Object: " + container.name;
-    else if (container instanceof Item) containerName = "Item: " + container.prefab.id + '/' + slotName;
+    else if (container instanceof Item) containerName = "Item: " + container.identifier + '/' + slotName;
 
     var createdItem = new Item(
         prefab,
+        generateIdentifier(prefab),
         location,
         container instanceof Puzzle ? container.accessible && container.solved : true,
         containerName,
@@ -55,7 +56,7 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
     else if (container instanceof Item) {
         container.insertItem(createdItem, slotName);
         container.description = parser.addItem(container.description, createdItem, slotName);
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         containerName = `${slotName} of ${container.name}`;
         preposition = container.prefab ? container.prefab.preposition : "in";
     }
@@ -76,6 +77,7 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     }
     item.player.carryWeight -= item.weight * item.quantity;
     item.prefab = newPrefab;
+    item.identifier = generateIdentifier(newPrefab);
     item.name = newPrefab.name;
     item.pluralName = newPrefab.pluralName;
     item.singleContainingPhrase = newPrefab.singleContainingPhrase;
@@ -98,14 +100,14 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
 
     const quantityString = !isNaN(item.quantity) ? item.quantity.toString() : "";
     const usesString = !isNaN(item.uses) ? item.uses.toString() : "";
-    game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!|${item.player.name}|${item.equipmentSlot}|${item.containerName}`, [item.player.name, item.prefab.id, item.equipmentSlot, item.containerName, quantityString, usesString, item.description]));
+    game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!||${item.player.name}|${item.equipmentSlot}|${item.containerName}`, [item.player.name, item.prefab.id, item.identifier, item.equipmentSlot, item.containerName, quantityString, usesString, item.description]));
 
     return;
 };
 
 module.exports.destroyItem = function (item) {
     item.quantity = 0;
-    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.location.name}|${item.containerName}`, item.quantity));
+    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.identifier}|${item.location.name}|${item.containerName}`, item.quantity));
 
     var containerName = "";
     var preposition = "in";
@@ -125,7 +127,7 @@ module.exports.destroyItem = function (item) {
     else if (container instanceof Item) {
         container.removeItem(item, slotName);
         container.description = parser.removeItem(container.description, item, slotName, true);
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         containerName = `${item.slot} of ${container.name}`;
         preposition = container.prefab ? container.prefab.preposition : "in";
     }
@@ -159,6 +161,7 @@ module.exports.destroyInventoryItem = function (item) {
     const nullItem = new InventoryItem(
         item.player,
         null,
+        "",
         item.equipmentSlot,
         "",
         null,
@@ -177,7 +180,7 @@ module.exports.destroyInventoryItem = function (item) {
             break;
         }
     }
-    game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!|${item.player.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [item.player.name, "NULL", nullItem.equipmentSlot, "", "", "", "", ""]));
+    game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!||${item.player.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [item.player.name, "NULL", "", nullItem.equipmentSlot, "", "", "", "", ""]));
 
     return;
 };
@@ -188,8 +191,9 @@ module.exports.convertItem = function (item, player, hand, quantity) {
     var createdItem = new InventoryItem(
         player,
         item.prefab,
+        item.identifier,
         hand,
-        item.container && item.container.prefab ? item.container.prefab.id + '/' + item.slot : "",
+        item.container && item.container.prefab ? item.container.identifier + '/' + item.slot : "",
         quantity,
         item.uses,
         item.description,
@@ -233,11 +237,12 @@ module.exports.convertInventoryItem = function (item, player, container, slotNam
     var containerName = "";
     if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
     else if (container instanceof Object) containerName = "Object: " + container.name;
-    else if (container instanceof Item) containerName = "Item: " + container.prefab.id + '/' + slotName;
-    else if (container instanceof InventoryItem) containerName = "Item: " + container.prefab.id + '/' + item.slot;
+    else if (container instanceof Item) containerName = "Item: " + container.identifier + '/' + slotName;
+    else if (container instanceof InventoryItem) containerName = "Item: " + container.identifier + '/' + item.slot;
     // Make a copy of the Item as an InventoryItem.
     var createdItem = new Item(
         item.prefab,
+        item.identifier,
         player.location,
         container instanceof Puzzle ? container.accessible && container.solved : true,
         containerName,
@@ -290,6 +295,7 @@ module.exports.insertItems = function (game, location, items) {
         const roomItems = game.items.filter(item => item.location.name === location.name);
         let matchedItem = roomItems.find(item =>
             item.prefab.id === items[i].prefab.id &&
+            item.identifier === items[i].identifier &&
             item.accessible &&
             item.containerName === items[i].containerName &&
             item.slot === items[i].slot &&
@@ -299,7 +305,7 @@ module.exports.insertItems = function (game, location, items) {
         if (matchedItem) {
             if (!isNaN(matchedItem.quantity)) {
                 matchedItem.quantity += items[i].quantity;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Items!${matchedItem.prefab.id}|${matchedItem.location.name}|${matchedItem.containerName}`, matchedItem.quantity));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Items!${matchedItem.prefab.id}|${matchedItem.identifier}|${matchedItem.location.name}|${matchedItem.containerName}`, matchedItem.quantity));
             }
             var itemContainer = null;
             if (items[i].container instanceof Item) {
@@ -313,7 +319,7 @@ module.exports.insertItems = function (game, location, items) {
                     return result;
                 };
                 const possibleContainers = roomItems.filter(item =>
-                    item.prefab.id === items[i].container.prefab.id &&
+                    item.identifier === items[i].container.identifier &&
                     item.containerName === items[i].container.containerName &&
                     item.slot === items[i].container.slot &&
                     (item.uses === items[i].container.uses || isNaN(item.uses) && isNaN(items[i].container.uses)) &&
@@ -352,6 +358,7 @@ module.exports.insertItems = function (game, location, items) {
         else {
             let data = [[
                 items[i].prefab.id,
+                items[i].identifier,
                 items[i].location.name,
                 items[i].accessible,
                 items[i].containerName,
@@ -369,17 +376,17 @@ module.exports.insertItems = function (game, location, items) {
             var insertRow = -1;
             // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
             if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row) {
-                game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Items!${lastContainerItem.prefab.id}|${lastContainerItem.location.name}|${lastContainerItem.containerName}`, data));
+                game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Items!${lastContainerItem.prefab.id}|${lastContainerItem.identifier}|${lastContainerItem.location.name}|${lastContainerItem.containerName}`, data));
                 insertRow = lastContainerItem.row;
             }
             // If there are none, it might just be that there are no items in that container yet. Try to at least put it near items in the same room.
             else if (roomItems.length !== 0 && lastRoomItem.row !== lastGameItem.row) {
-                game.queue.push(new QueueEntry(Date.now(), "insertData", lastRoomItem.itemCells(), `Items!${lastRoomItem.prefab.id}|${lastRoomItem.location.name}|${lastRoomItem.containerName}`, data));
+                game.queue.push(new QueueEntry(Date.now(), "insertData", lastRoomItem.itemCells(), `Items!${lastRoomItem.prefab.id}|${lastRoomItem.identifier}|${lastRoomItem.location.name}|${lastRoomItem.containerName}`, data));
                 insertRow = lastRoomItem.row;
             }
             // If there are none, just insert it at the end of the sheet.
             else {
-                game.queue.push(new QueueEntry(Date.now(), "insertData", lastGameItem.itemCells(), `Items!${lastGameItem.prefab.id}|${lastGameItem.location.name}|${lastGameItem.containerName}`, data));
+                game.queue.push(new QueueEntry(Date.now(), "insertData", lastGameItem.itemCells(), `Items!${lastGameItem.prefab.id}|${lastGameItem.identifier}|${lastGameItem.location.name}|${lastGameItem.containerName}`, data));
                 insertRow = lastGameItem.row;
             }
 
@@ -409,6 +416,7 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
         let matchedItem = playerItems.find(item =>
             item.prefab !== null &&
             item.prefab.id === items[i].prefab.id &&
+            item.identifier === items[i].identifier &&
             item.equipmentSlot === items[i].equipmentSlot &&
             item.containerName === items[i].containerName &&
             item.slot === items[i].slot &&
@@ -418,7 +426,7 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
         if (matchedItem) {
             if (!isNaN(matchedItem.quantity)) {
                 matchedItem.quantity += items[i].quantity;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Inventory Items!${matchedItem.prefab.id}|${player.name}|${matchedItem.equipmentSlot}|${matchedItem.containerName}`, matchedItem.quantity));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", matchedItem.quantityCell(), `Inventory Items!${matchedItem.prefab.id}|${matchedItem.identifier}|${player.name}|${matchedItem.equipmentSlot}|${matchedItem.containerName}`, matchedItem.quantity));
             }
             const containerRow = matchedItem.container !== null ? matchedItem.container.row : 0;
             matchedItem.container = items[i].container;
@@ -449,6 +457,7 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
             let data = [[
                 player.name,
                 items[i].prefab.id,
+                items[i].identifier,
                 items[i].equipmentSlot,
                 items[i].containerName,
                 isNaN(items[i].quantity) ? "" : items[i].quantity,
@@ -459,7 +468,7 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
             // We want to insert this item near items in the same container slot, so get all of the items in that container slot.
             const slotItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.containerName === items[i].containerName);
             // Just in case there aren't any, get items just within the same container.
-            const containerItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.container !== null && item.container.prefab !== null && item.container.prefab.id === items[i].container.prefab.id);
+            const containerItems = playerItems.filter(item => item.equipmentSlot === items[i].equipmentSlot && item.container !== null && item.container.identifier !== "" && item.container.identifier === items[i].container.identifier);
 
             const lastSlotItem = slotItems[slotItems.length - 1];
             const lastContainerItem = containerItems[containerItems.length - 1];
@@ -467,17 +476,17 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
             var insertRow = -1;
             // If the list of items in that slot isn't empty, insert the new item.
             if (slotItems.length !== 0) {
-                game.queue.push(new QueueEntry(Date.now(), "insertData", lastSlotItem.itemCells(), `Inventory Items!${lastSlotItem.prefab.id}|${player.name}|${lastSlotItem.equipmentSlot}|${lastSlotItem.containerName}`, data));
+                game.queue.push(new QueueEntry(Date.now(), "insertData", lastSlotItem.itemCells(), `Inventory Items!${lastSlotItem.prefab.id}|${lastSlotItem.identifier}|${player.name}|${lastSlotItem.equipmentSlot}|${lastSlotItem.containerName}`, data));
                 insertRow = lastSlotItem.row;
             }
             // If there are none, it might just be that there are no items in that slot yet. Try to at least put it near items in the same container.
             else if (containerItems.length !== 0) {
-                game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Inventory Items!${lastContainerItem.prefab.id}|${player.name}|${lastContainerItem.equipmentSlot}|${lastContainerItem.containerName}`, data));
+                game.queue.push(new QueueEntry(Date.now(), "insertData", lastContainerItem.itemCells(), `Inventory Items!${lastContainerItem.prefab.id}|${lastContainerItem.identifier}|${player.name}|${lastContainerItem.equipmentSlot}|${lastContainerItem.containerName}`, data));
                 insertRow = lastContainerItem.row;
             }
             // If there are none, just insert it after the last new item.
             else {
-                game.queue.push(new QueueEntry(Date.now(), "insertData", lastNewItem.itemCells(), `Inventory Items!|${player.name}|${lastNewItem.equipmentSlot}|${lastNewItem.containerName}`, data));
+                game.queue.push(new QueueEntry(Date.now(), "insertData", lastNewItem.itemCells(), `Inventory Items!||${player.name}|${lastNewItem.equipmentSlot}|${lastNewItem.containerName}`, data));
                 insertRow = lastNewItem.row;
             }
             lastNewItem = items[i];
@@ -506,3 +515,16 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
 
     return;
 };
+
+function generateIdentifier(prefab) {
+    var identifier = "";
+    if (prefab.inventory.length > 0) {
+        identifier = prefab.id;
+        var number = 1;
+        while (game.items.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0) ||
+            game.inventoryItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0))
+            number++;
+        identifier = `${identifier} ${number}`;
+    }
+    return identifier;
+}

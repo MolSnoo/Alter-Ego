@@ -3,8 +3,9 @@ const settings = include('settings.json');
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Item {
-    constructor(prefab, location, accessible, containerName, quantity, uses, description, row) {
+    constructor(prefab, identifier, location, accessible, containerName, quantity, uses, description, row) {
         this.prefab = prefab;
+        this.identifier = identifier;
         this.name = prefab.name ? prefab.name : "";
         this.pluralName = prefab.pluralName ? prefab.pluralName : "";
         this.singleContainingPhrase = prefab.singleContainingPhrase ? prefab.singleContainingPhrase : "";
@@ -29,6 +30,7 @@ class Item {
                     let matchedItem = this.inventory[i].item.find(inventoryItem =>
                         inventoryItem.prefab !== null && item.prefab !== null &&
                         inventoryItem.prefab.id === item.prefab.id &&
+                        inventoryItem.identifier === item.identifier &&
                         inventoryItem.containerName === item.containerName &&
                         inventoryItem.slot === item.slot &&
                         (inventoryItem.uses === item.uses || isNaN(inventoryItem.uses) && isNaN(item.uses)) &&
@@ -63,12 +65,12 @@ class Item {
 
     setAccessible(game) {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.location.name}|${this.containerName}`, "TRUE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.identifier}|${this.location.name}|${this.containerName}`, "TRUE"));
     }
 
     setInaccessible(game) {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.location.name}|${this.containerName}`, "FALSE"));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.identifier}|${this.location.name}|${this.containerName}`, "FALSE"));
     }
 
     itemCells() {

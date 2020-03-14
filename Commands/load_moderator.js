@@ -68,7 +68,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.items.length; i++) {
-            let error = loader.checkItem(game.items[i]);
+            let error = loader.checkItem(game.items[i], game);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.puzzles.length; i++) {
@@ -84,7 +84,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.inventoryItems.length; i++) {
-            let error = loader.checkInventoryItem(game.inventoryItems[i]);
+            let error = loader.checkInventoryItem(game.inventoryItems[i], game);
             if (error instanceof Error) errors.push(error);
         }
         if (errors.length > 0) {

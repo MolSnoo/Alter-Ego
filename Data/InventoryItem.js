@@ -1,9 +1,10 @@
 ﻿const settings = include('settings.json');
 
 class InventoryItem {
-    constructor(player, prefab, equipmentSlot, containerName, quantity, uses, description, row) {
+    constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row) {
         this.player = player;
         this.prefab = prefab;
+        this.identifier = identifier;
         this.name = prefab ? prefab.name : "";
         this.pluralName = prefab ? prefab.pluralName : "";
         this.singleContainingPhrase = prefab ? prefab.singleContainingPhrase : "";
@@ -28,6 +29,7 @@ class InventoryItem {
                     let matchedItem = this.inventory[i].item.find(inventoryItem =>
                         inventoryItem.prefab !== null && item.prefab !== null &&
                         inventoryItem.prefab.id === item.prefab.id &&
+                        inventoryItem.identifier === item.identifier &&
                         inventoryItem.containerName === item.containerName &&
                         inventoryItem.slot === item.slot &&
                         (inventoryItem.uses === item.uses || isNaN(inventoryItem.uses) && isNaN(item.uses)) &&
