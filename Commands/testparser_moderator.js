@@ -186,6 +186,48 @@ testparse = async (file, player) => {
         await appendText(file, text);
     }
 
+    // Get recipes next.
+    {
+        await appendText(file, "RECIPES:");
+        let text = "";
+        for (let i = 0; i < game.recipes.length; i++) {
+            text += "   ";
+            text += "ROW " + game.recipes[i].row + os.EOL;
+
+            const taggedObject = game.objects.find(object => object.recipeTag === game.recipes[i].objectTag);
+            // First, do the initiated text.
+            if (game.recipes[i].initiatedDescription !== "") {
+                text += "      MESSAGE WHEN INITIATED:" + os.EOL;
+
+                const parsedDescription = parser.parseDescription(game.recipes[i].initiatedDescription, taggedObject ? taggedObject : game.recipes[i], player, true);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].initiatedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].initiatedCell(), errors: parsedDescription.errors });
+
+                text += "         ";
+                text += game.recipes[i].initiatedDescription + os.EOL;
+
+                text += "         ";
+                text += parsedDescription.text + os.EOL;
+            }
+
+            // Finally, do the completed text.
+            if (game.recipes[i].completedDescription !== "") {
+                text += "      MESSAGE WHEN COMPLETED:" + os.EOL;
+
+                const parsedDescription = parser.parseDescription(game.recipes[i].completedDescription, taggedObject ? taggedObject : game.recipes[i], player, true);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].completedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].completedCell(), errors: parsedDescription.errors });
+
+                text += "         ";
+                text += game.recipes[i].completedDescription + os.EOL;
+
+                text += "         ";
+                text += parsedDescription.text + os.EOL;
+            }
+        }
+        await appendText(file, text);
+    }
+
     // Get items next.
     {
         await appendText(file, "ITEMS:");
