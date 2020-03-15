@@ -42,22 +42,22 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
     var preposition = "in";
     // Update the container's description.
     if (container instanceof Puzzle) {
-        container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, createdItem);
+        container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, createdItem, null, quantity);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), `Puzzles!${container.name}|${container.location.name}`, container.alreadySolvedDescription));
         containerName = container.parentObject ? container.parentObject.name : container.name;
         preposition = container.parentObject ? container.parentObject.preposition : "in";
     }
     else if (container instanceof Object) {
-        container.description = parser.addItem(container.description, createdItem);
+        container.description = parser.addItem(container.description, createdItem, null, quantity);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
         containerName = container.name;
         preposition = container.preposition;
     }
     else if (container instanceof Item) {
         container.insertItem(createdItem, slotName);
-        container.description = parser.addItem(container.description, createdItem, slotName);
+        container.description = parser.addItem(container.description, createdItem, slotName, quantity);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
-        containerName = `${slotName} of ${container.name}`;
+        containerName = `${slotName} of ${container.identifier}`;
         preposition = container.prefab ? container.prefab.preposition : "in";
     }
 
@@ -65,7 +65,66 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${createdItem.name} was instantiated ${preposition} ${containerName} in ${location.channel}`);
+    game.logChannel.send(`${time} - ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} was instantiated ${preposition} ${containerName} in ${location.channel}`);
+
+    return;
+};
+
+module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlot, container, slotName, quantity, bot) {
+    var createdItem = new InventoryItem(
+        player,
+        prefab,
+        generateIdentifier(prefab),
+        equipmentSlot,
+        container ? container.identifier + '/' + slotName : "",
+        quantity,
+        prefab.uses,
+        prefab.description,
+        0
+    );
+    createdItem.container = container;
+    createdItem.slot = slotName;
+
+    // Initialize the item's inventory slots.
+    for (let i = 0; i < prefab.inventory.length; i++)
+        createdItem.inventory.push({
+            name: prefab.inventory[i].name,
+            capacity: prefab.inventory[i].capacity,
+            takenSpace: prefab.inventory[i].takenSpace,
+            weight: prefab.inventory[i].weight,
+            item: []
+        });
+
+    // Get the slot number of the EquipmentSlot that the item will go into.
+    for (var slot = 0; slot < player.inventory.length; slot++) {
+        if (player.inventory[slot].name === equipmentSlot)
+            break;
+    }
+
+    player.carryWeight += createdItem.weight * quantity;
+
+    // Item is being stashed.
+    if (container !== null) {
+        container.insertItem(createdItem, slotName);
+        container.description = parser.addItem(container.description, createdItem, slotName, quantity);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${player.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+
+        this.insertInventoryItems(game, player, [createdItem], slot);
+
+        const containerName = `${slotName} of ${container.identifier}`;
+        const preposition = container.prefab ? container.prefab.preposition : "in";
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} was instantiated ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
+    }
+    // Item is being equipped.
+    else {
+        player.fastEquip(game, createdItem, equipmentSlot, bot);
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} was instantiated and equipped to ${player.name}'s ${equipmentSlot} in ${player.location.channel}`);
+    }
 
     return;
 };
@@ -125,8 +184,8 @@ module.exports.destroyItem = function (item) {
         preposition = container.preposition ? container.preposition : "in";
     }
     else if (container instanceof Item) {
-        container.removeItem(item, slotName);
-        container.description = parser.removeItem(container.description, item, slotName, true);
+        container.removeItem(item, item.slot);
+        container.description = parser.removeItem(container.description, item, item.slot, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         containerName = `${item.slot} of ${container.name}`;
         preposition = container.prefab ? container.prefab.preposition : "in";

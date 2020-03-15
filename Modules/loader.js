@@ -1027,7 +1027,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
 
                     let playerInventory = game.inventoryItems.filter(item => item.player.id === game.players[i].id);
                     for (let j = 0; j < playerInventory.length; j++) {
-                        error = exports.checkInventoryItem(playerInventory[j]);
+                        error = exports.checkInventoryItem(playerInventory[j], game);
                         if (error instanceof Error) errors.push(error);
                     }
                 }

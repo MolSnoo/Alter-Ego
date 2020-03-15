@@ -134,7 +134,8 @@ module.exports.parseDescription = function (description, container, player, doEr
         return newDescription;
 };
 
-module.exports.addItem = function (description, item, slot) {
+module.exports.addItem = function (description, item, slot, addedQuantity) {
+    if (!addedQuantity) addedQuantity = 1;
     // First, split the description into a DOMParser document.
     var document = createDocument(description).document;
 
@@ -166,9 +167,9 @@ module.exports.addItem = function (description, item, slot) {
         // If there's only 1 of this item, we need only use the plural containing phrase.
         if (sentence.clause[i].itemQuantity === 1) {
             if ("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz".includes(sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)))
-                sentence.clause[i].set(`2 ${item.pluralContainingPhrase}`);
+                sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase}`);
             else
-                sentence.clause[i].set(`2 ${item.pluralContainingPhrase + sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)}`);
+                sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase + sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)}`);
         }
         else {
             let start = sentence.clause[i].text.search(/\d/);
@@ -179,7 +180,7 @@ module.exports.addItem = function (description, item, slot) {
                         break;
                 }
                 const quantity = parseInt(text.substring(start, end));
-                sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity + 1));
+                sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity + addedQuantity));
             }
         }
     }
@@ -198,7 +199,8 @@ module.exports.addItem = function (description, item, slot) {
 
         // Add the clause to the sentence.
         if (containsItemList) {
-            let result = addClause(sentences[i], item.singleContainingPhrase);
+            const phrase = addedQuantity === 1 ? item.singleContainingPhrase : `${addedQuantity} ${item.pluralContainingPhrase}`;
+            let result = addClause(sentences[i], phrase);
             //console.log(result);
         }
     }
