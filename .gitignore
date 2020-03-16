@@ -4,6 +4,7 @@ credentials.json
 Old_Commands/
 parse.js
 parsedText.txt
+speeds.txt
 Commands/example_*
 Tests/test_whispers.js
 
