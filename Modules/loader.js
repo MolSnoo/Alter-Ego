@@ -1236,6 +1236,23 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             // Run through inventoryItems one more time to properly insert their inventories and assign them to players.
             for (let i = 0; i < game.inventoryItems.length; i++) {
                 if (game.inventoryItems[i].prefab instanceof Prefab) {
+                    if (game.inventoryItems[i].containerName !== "" && game.inventoryItems[i].container === null) {
+                        const splitContainer = game.inventoryItems[i].containerName.split('/');
+                        const containerItemIdentifier = splitContainer[0] ? splitContainer[0].trim() : "";
+                        const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
+                        let container = game.inventoryItems.find(item =>
+                            item.player.id === game.inventoryItems[i].player.id &&
+                            item.identifier === containerItemIdentifier &&
+                            item.quantity !== 0
+                        );
+                        if (container) {
+                            game.inventoryItems[i].container = container;
+                            for (let j = 0; j < game.inventoryItems[i].container.inventory.length; j++) {
+                                if (game.inventoryItems[i].container.inventory[j].name === containerItemSlot)
+                                    game.inventoryItems[i].container.inventory[j].item.push(game.inventoryItems[i]);
+                            }
+                        }
+                    }
                     let container = game.inventoryItems[i].container;
                     if (game.inventoryItems[i].container instanceof InventoryItem) {
                         for (let slot = 0; slot < container.inventory.length; slot++) {
