@@ -90,7 +90,7 @@ class Object {
                     const itemManager = include(`${settings.modulesDir}/itemManager.js`);
                     // Destroy the ingredients.
                     for (let i = 0; i < object.process.ingredients.length; i++)
-                        itemManager.destroyItem(object.process.ingredients[i]);
+                        itemManager.destroyItem(object.process.ingredients[i], true);
                     // Instantiate the products.
                     for (let i = 0; i < object.process.recipe.products.length; i++)
                         itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);
@@ -180,7 +180,7 @@ class Object {
                             const itemManager = include(`${settings.modulesDir}/itemManager.js`);
                             // Destroy the ingredients.
                             for (let i = 0; i < object.process.ingredients.length; i++)
-                                itemManager.destroyItem(object.process.ingredients[i]);
+                                itemManager.destroyItem(object.process.ingredients[i], true);
                             // Instantiate the products.
                             for (let i = 0; i < object.process.recipe.products.length; i++)
                                 itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);

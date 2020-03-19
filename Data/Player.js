@@ -616,11 +616,16 @@ class Player {
             item.uses--;
 
             if (item.uses === 0) {
-                if (!item.prefab.discreet) this.description = parser.removeItem(this.description, item, "hands");
                 const nextStage = item.prefab.nextStage ? true : false;
+                if (nextStage && !item.prefab.discreet) {
+                    this.description = parser.removeItem(this.description, item, "hands");
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+                }
                 itemManager.replaceInventoryItem(item, item.prefab.nextStage);
-                if (nextStage && !item.prefab.discreet) this.description = parser.addItem(this.description, item, "hands");
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+                if (nextStage && !item.prefab.discreet) {
+                    this.description = parser.addItem(this.description, item, "hands");
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+                }
             }
             else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
         }
@@ -1272,6 +1277,7 @@ class Player {
                 }
             }
         }
+        return;
     }
 
     async unequip(game, item, slotName, hand, bot) {
@@ -1405,6 +1411,91 @@ class Player {
                 }
             }
         }
+        return;
+    }
+
+    async fastUnequip(game, item, bot) {
+        // Get the row number of the EquipmentSlot that the item is being unequipped from.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === item.equipmentSlot) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
+        }
+
+        // Replace this inventory slot with a null item.
+        const nullItem = new InventoryItem(
+            this,
+            null,
+            "",
+            item.equipmentSlot,
+            "",
+            null,
+            null,
+            "",
+            rowNumber
+        );
+        this.inventory[slot].equippedItem = null;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(nullItem);
+        this.carryWeight -= item.weight * item.quantity;
+        // Replace the equipped item's entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === item.row) {
+                game.inventoryItems.splice(i, 1, nullItem);
+                break;
+            }
+        }
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!||${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", "", nullItem.equipmentSlot, "", "", "", "", ""]));
+
+        if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
+            // Remove the item from the player's hands item list.
+            if (!item.prefab.discreet)
+                this.description = parser.removeItem(this.description, item, "hands");
+        }
+        else {
+            this.member.send(`You unequip the ${item.name}.`);
+            new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
+            // Remove mention of this item from the player's equipment item list.
+            this.description = parser.removeItem(this.description, item, "equipment");
+            // Find any items that were covered by this item and add them to the equipment item list.
+            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
+                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
+                for (let j = 0; j < this.inventory.length; j++) {
+                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                        // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
+                        const coveringItems = game.inventoryItems.filter(item =>
+                            item.player.id === this.id &&
+                            item.prefab !== null &&
+                            item.equipmentSlot !== "RIGHT HAND" &&
+                            item.equipmentSlot !== "LEFT HAND" &&
+                            item.containerName === "" &&
+                            item.container === null &&
+                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].name)
+                        );
+                        if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
+                        break;
+                    }
+                }
+            }
+
+            // Run unequip commands.
+            for (let i = 0; i < item.prefab.unequipCommands.length; i++) {
+                const command = item.prefab.unequipCommands[i];
+                if (command.startsWith("wait")) {
+                    let args = command.split(" ");
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(command, bot, game, null, this, item);
+                }
+            }
+        }
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
         return;
     }
 

@@ -2,7 +2,6 @@ const settings = include('settings.json');
 const parser = include(`${settings.modulesDir}/parser.js`);
 var game = include('game.json');
 
-const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
@@ -65,7 +64,7 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} was instantiated ${preposition} ${containerName} in ${location.channel}`);
+    game.logChannel.send(`${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${location.channel}`);
 
     return;
 };
@@ -115,7 +114,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
         const preposition = container.prefab ? container.prefab.preposition : "in";
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} was instantiated ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
+        game.logChannel.send(`${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
     }
     // Item is being equipped.
     else {
@@ -123,7 +122,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} was instantiated and equipped to ${player.name}'s ${equipmentSlot} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlot} in ${player.location.channel}`);
     }
 
     return;
@@ -131,7 +130,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
 
 module.exports.replaceInventoryItem = function (item, newPrefab) {
     if (newPrefab === null || newPrefab === undefined) {
-        this.destroyInventoryItem(item);
+        this.destroyInventoryItem(item, true);
         return;
     }
     item.player.carryWeight -= item.weight * item.quantity;
@@ -144,7 +143,13 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     item.uses = newPrefab.uses;
     item.weight = newPrefab.weight;
     item.player.carryWeight += item.weight * item.quantity;
-    // TODO: Add destroy method that properly destroys and deallocates all child items.
+
+    // Destroy all child items.
+    let childItems = [];
+    this.getChildItems(childItems, item);
+    for (let i = 0; i < childItems.length; i++)
+        this.destroyInventoryItem(childItems[i], null, false);
+
     item.inventory.length = 0;
     for (let i = 0; i < newPrefab.inventory.length; i++) {
         item.inventory.push({
@@ -164,7 +169,7 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     return;
 };
 
-module.exports.destroyItem = function (item) {
+module.exports.destroyItem = function (item, getChildren) {
     item.quantity = 0;
     game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.identifier}|${item.location.name}|${item.containerName}`, item.quantity));
 
@@ -187,10 +192,10 @@ module.exports.destroyItem = function (item) {
         container.removeItem(item, item.slot);
         container.description = parser.removeItem(container.description, item, item.slot, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
-        containerName = `${item.slot} of ${container.name}`;
+        containerName = `${item.slot} of ${container.identifier}`;
         preposition = container.prefab ? container.prefab.preposition : "in";
     }
-    else if (container instanceof Room) {
+    else if (container === null) {
         container.description = parser.removeItem(container.description, item, null, true);
         for (let i = 0; i < container.exit.length; i++) {
             container.exit[i].description = parser.removeItem(container.exit[i].description, item, null, true);
@@ -199,47 +204,51 @@ module.exports.destroyItem = function (item) {
         preposition = "in";
     }
 
+    if (getChildren) {
+        let childItems = [];
+        this.getChildItems(childItems, item);
+        for (let i = 0; i < childItems.length; i++)
+            this.destroyItem(childItems[i], false);
+    }
+
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${item.name} ${preposition} ${containerName} in ${item.location.channel} was destroyed`);
+    game.logChannel.send(`${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.location.channel}`);
 
     return;
 };
 
-module.exports.destroyInventoryItem = function (item) {
-    // Get the row number of the EquipmentSlot that the item is being unequipped from.
-    var rowNumber = 0;
-    for (var slot = 0; slot < item.player.inventory.length; slot++) {
-        if (item.player.inventory[slot].name === item.equipmentSlot) {
-            rowNumber = item.player.inventory[slot].row;
-            break;
-        }
+module.exports.destroyInventoryItem = function (item, bot, getChildren) {
+    if (getChildren) {
+        let childItems = [];
+        this.getChildItems(childItems, item);
+        for (let i = 0; i < childItems.length; i++)
+            this.destroyInventoryItem(childItems[i], bot, false);
     }
 
-    // Replace this inventory slot with a null item.
-    const nullItem = new InventoryItem(
-        item.player,
-        null,
-        "",
-        item.equipmentSlot,
-        "",
-        null,
-        null,
-        "",
-        rowNumber
-    );
-    item.player.inventory[slot].equippedItem = null;
-    item.player.inventory[slot].items.length = 0;
-    item.player.inventory[slot].items.push(nullItem);
-    item.player.carryWeight -= item.weight * item.quantity;
-    // Replace the equipped item's entry in the inventoryItems list.
-    for (let i = 0; i < game.inventoryItems.length; i++) {
-        if (game.inventoryItems[i].row === item.row) {
-            game.inventoryItems.splice(i, 1, nullItem);
-            break;
-        }
+    // If the item is equipped, simply unequip it. The fastEquip method will destroy it.
+    if (item.container === null) {
+        item.player.fastUnequip(game, item, bot);
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
-    game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!||${item.player.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [item.player.name, "NULL", "", nullItem.equipmentSlot, "", "", "", "", ""]));
+    else {
+        item.quantity = 0;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${item.player.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
+
+        const container = item.container;
+        container.removeItem(item, item.slot);
+        container.description = parser.removeItem(container.description, item, item.slot, true);
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${container.player.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+        const containerName = `${item.slot} of ${container.identifier}`;
+        const preposition = container.prefab ? container.prefab.preposition : "in";
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
+    }
 
     return;
 };
