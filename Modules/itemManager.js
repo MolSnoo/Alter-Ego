@@ -170,6 +170,7 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
 };
 
 module.exports.destroyItem = function (item, getChildren) {
+    const removedQuantity = item.quantity;
     item.quantity = 0;
     game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.identifier}|${item.location.name}|${item.containerName}`, item.quantity));
 
@@ -189,7 +190,7 @@ module.exports.destroyItem = function (item, getChildren) {
         preposition = container.preposition ? container.preposition : "in";
     }
     else if (container instanceof Item) {
-        container.removeItem(item, item.slot);
+        container.removeItem(item, item.slot, removedQuantity);
         container.description = parser.removeItem(container.description, item, item.slot, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         containerName = `${item.slot} of ${container.identifier}`;
@@ -235,11 +236,12 @@ module.exports.destroyInventoryItem = function (item, bot, getChildren) {
         game.logChannel.send(`${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
     else {
+        const removedQuantity = item.quantity;
         item.quantity = 0;
         game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${item.player.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
 
         const container = item.container;
-        container.removeItem(item, item.slot);
+        container.removeItem(item, item.slot, removedQuantity);
         container.description = parser.removeItem(container.description, item, item.slot, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${container.player.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
         const containerName = `${item.slot} of ${container.identifier}`;

@@ -649,7 +649,7 @@ class Player {
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
         }
         else if (container instanceof Item) {
-            container.removeItem(item, slotName);
+            container.removeItem(item, slotName, 1);
             container.description = parser.removeItem(container.description, item, slotName);
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         }
@@ -751,7 +751,7 @@ class Player {
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${victim.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
             }
 
-            container.removeItem(item, container.inventory[slotNo].name);
+            container.removeItem(item, container.inventory[slotNo].name, 1);
             container.description = parser.removeItem(container.description, item, container.inventory[slotNo].name);
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${victim.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
@@ -990,7 +990,7 @@ class Player {
             game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
         }
 
-        container.removeItem(item, slotName);
+        container.removeItem(item, slotName, 1);
         container.description = parser.removeItem(container.description, item, slotName);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
