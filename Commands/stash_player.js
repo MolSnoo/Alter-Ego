@@ -36,8 +36,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var containerItemSlot = null;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab !== null && parsedInput.endsWith(items[i].name) && parsedInput !== items[i].name) {
-            if (items[i].inventory.length === 0) return message.reply(`${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
             containerItem = items[i];
+            if (items[i].inventory.length === 0) continue;
             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].name)).trimEnd();
             // Check if a slot was specified.
             if (parsedInput.endsWith(" OF")) {
@@ -65,6 +65,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
     }
     if (containerItem === null) return message.reply(`couldn't find container item "${newArgs[newArgs.length - 1]}".`);
+    else if (containerItem.inventory.length === 0) return message.reply(`${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
     var item = null;
@@ -97,7 +98,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     player.stash(game, item, hand, containerItem, containerItemSlot.name);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} stashed ${item.name} ${containerItem.prefab.preposition} ${containerItemSlot.name} of ${containerItem.name} in ${player.location.channel}`);
+    game.logChannel.send(`${time} - ${player.name} stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.name} of ${containerItem.identifier} in ${player.location.channel}`);
 
     return;
 };

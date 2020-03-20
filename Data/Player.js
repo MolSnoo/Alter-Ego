@@ -947,7 +947,7 @@ class Player {
         }
 
         var createdItem = itemManager.copyInventoryItem(item, this, this.inventory[slot].name, 1);
-        createdItem.containerName = container.prefab.id + '/' + slotName;
+        createdItem.containerName = container.identifier + '/' + slotName;
         createdItem.container = container;
         createdItem.slot = slotName;
 
