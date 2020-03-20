@@ -151,13 +151,13 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
     if (container.hasOwnProperty("isHidingSpot"))
-        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.preposition} ${container.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.preposition} ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved"))
-        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
     // Container is an Item.
     else if (container.hasOwnProperty("inventory"))
-        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.prefab.preposition} ${slotName} of ${container.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slotName} of ${container.identifier} in ${player.location.channel}`);
     
     return;
 };
