@@ -38,22 +38,44 @@ module.exports.run = async (bot, game, message, command, args) => {
     var itemName = newArgs[0].trim();
     var slotName = newArgs[1] ? newArgs[1] : "";
 
+    // First, find the item in the player's inventory.
     var item = null;
     var hand = "";
+    // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
+    var rightHand = null;
+    var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
-            item = player.inventory[slot].equippedItem;
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
-            item = player.inventory[slot].equippedItem;
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
+        if (player.inventory[slot].name === "RIGHT HAND")
+            rightHand = player.inventory[slot];
         else if (player.inventory[slot].name === "LEFT HAND")
-            break;
+            leftHand = player.inventory[slot];
+    }
+    // Check for the identifier first.
+    if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === itemName) {
+        item = rightHand.equippedItem;
+        hand = "RIGHT HAND";
+    }
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" && leftHand.equippedItem.identifier === itemName) {
+        item = leftHand.equippedItem;
+        hand = "LEFT HAND";
+    }
+    // Check for the prefab ID next.
+    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.prefab.id === itemName) {
+        item = rightHand.equippedItem;
+        hand = "RIGHT HAND";
+    }
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.prefab.id === itemName) {
+        item = leftHand.equippedItem;
+        hand = "LEFT HAND";
+    }
+    // Check for the name last.
+    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.name === itemName) {
+        item = rightHand.equippedItem;
+        hand = "RIGHT HAND";
+    }
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === itemName) {
+        item = leftHand.equippedItem;
+        hand = "LEFT HAND";
     }
     if (item === null) return message.reply(`couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
 
@@ -64,7 +86,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     for (let i = 0; i < player.inventory.length; i++) {
         if (slotName && player.inventory[i].name === slotName) {
             foundSlot = true;
-            if (player.inventory[i].equippedItem !== null) return message.reply(`cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
+            if (player.inventory[i].equippedItem !== null) return message.reply(`cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.identifier ? player.inventory[i].equippedItem.identifier : player.inventory[i].equippedItem.prefab.id} is already equipped to it.`);
         }
     }
     if (!foundSlot) return message.reply(`couldn't find equipment slot "${slotName}".`);
@@ -72,9 +94,9 @@ module.exports.run = async (bot, game, message, command, args) => {
     player.equip(game, item, slotName, hand, bot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} forcefully equipped ${item.name} to ${slotName} in ${player.location.channel}`);
+    game.logChannel.send(`${time} - ${player.name} forcefully equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
 
-    message.channel.send(`Successfully equipped ${item.name} to ${player.name}'s ${slotName}.`);
+    message.channel.send(`Successfully equipped ${item.identifier ? item.identifier : item.prefab.id} to ${player.name}'s ${slotName}.`);
 
     return;
 };
