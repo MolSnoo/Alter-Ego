@@ -851,7 +851,7 @@ class Player {
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
             }
 
-            return { itemName: createdItem.name, successful: true };
+            return { itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id, successful: true };
         }
         // Player failed to steal the item.
         else {
@@ -864,7 +864,7 @@ class Player {
                 victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
             }
 
-            return { itemName: item.name, successful: false };
+            return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
         }
     }
 
