@@ -92,8 +92,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     if (recipe === null) return message.reply(`couldn't find recipe requiring ${ingredients[0].name} and ${ingredients[1].name}. Contact a moderator if you think there should be one.`);
 
-    item1Name = ingredients[0].prefab.id;
-    item2Name = ingredients[1].prefab.id;
+    item1Name = ingredients[0].identifier ? ingredients[0].identifier : ingredients[0].prefab.id;
+    item2Name = ingredients[1].identifier ? ingredients[1].identifier : ingredients[1].prefab.id;
     const productString = recipe.products.length === 2 ? `${recipe.products[0].id} and ${recipe.products[1].id}` :
         recipe.products.length === 1 ? `${recipe.products[0].id}` : "nothing";
 

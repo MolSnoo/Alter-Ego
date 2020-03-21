@@ -51,29 +51,67 @@ module.exports.run = async (bot, game, message, command, args) => {
     // Now find the item in the player's inventory.
     var item1 = null;
     var item2 = null;
+    let item1Id = "";
+    let item2Id = "";
     let rightFirst = false;
     if (rightHand.equippedItem !== null) {
-        if (parsedInput.startsWith(rightHand.equippedItem.name + " WITH ") || parsedInput.startsWith(rightHand.equippedItem.name + " AND ")) {
+        if (item1 === null && rightHand.equippedItem.identifier !== "" && (parsedInput.startsWith(rightHand.equippedItem.identifier + " WITH ") || parsedInput.startsWith(rightHand.equippedItem.identifier + " AND "))) {
             item1 = rightHand.equippedItem;
+            item1Id = rightHand.equippedItem.identifier;
             rightFirst = true;
         }
-        else if (parsedInput.endsWith(" WITH " + rightHand.equippedItem.name) || parsedInput.endsWith(" AND " + rightHand.equippedItem.name))
+        else if (item1 === null && rightHand.equippedItem.identifier !== "" && (parsedInput.endsWith(" WITH " + rightHand.equippedItem.identifier) || parsedInput.endsWith(" AND " + rightHand.equippedItem.identifier))) {
             item1 = rightHand.equippedItem;
+            item1Id = rightHand.equippedItem.identifier;
+        }
+        else if (item1 === null && (parsedInput.startsWith(rightHand.equippedItem.prefab.id + " WITH ") || parsedInput.startsWith(rightHand.equippedItem.prefab.id + " AND "))) {
+            item1 = rightHand.equippedItem;
+            item1Id = rightHand.equippedItem.prefab.id;
+            rightFirst = true;
+        }
+        else if (item1 === null && (parsedInput.endsWith(" WITH " + rightHand.equippedItem.prefab.id) || parsedInput.endsWith(" AND " + rightHand.equippedItem.prefab.id))) {
+            item1 = rightHand.equippedItem;
+            item1Id = rightHand.equippedItem.prefab.id;
+        }
+        else if (item1 === null && (parsedInput.startsWith(rightHand.equippedItem.name + " WITH ") || parsedInput.startsWith(rightHand.equippedItem.name + " AND "))) {
+            item1 = rightHand.equippedItem;
+            item1Id = rightHand.equippedItem.name;
+            rightFirst = true;
+        }
+        else if (item1 === null && (parsedInput.endsWith(" WITH " + rightHand.equippedItem.name) || parsedInput.endsWith(" AND " + rightHand.equippedItem.name))) {
+            item1 = rightHand.equippedItem;
+            item1Id = rightHand.equippedItem.name;
+        }
     }
     if (leftHand.equippedItem !== null) {
-        if (rightFirst && (parsedInput.endsWith(" WITH " + leftHand.equippedItem.name) || parsedInput.endsWith(" AND " + leftHand.equippedItem.name))
-            || !rightFirst && (parsedInput.startsWith(leftHand.equippedItem.name + " WITH ") || parsedInput.startsWith(leftHand.equippedItem.name + " AND ")))
+        if (item2 === null && leftHand.equippedItem.identifier !== "" &&
+            (rightFirst && (parsedInput.endsWith(" WITH " + leftHand.equippedItem.identifier) || parsedInput.endsWith(" AND " + leftHand.equippedItem.identifier))
+            || !rightFirst && (parsedInput.startsWith(leftHand.equippedItem.identifier + " WITH ") || parsedInput.startsWith(leftHand.equippedItem.identifier + " AND ")))) {
             item2 = leftHand.equippedItem;
+            item2Id = leftHand.equippedItem.identifier;
+        }
+        else if (item2 === null &&
+            (rightFirst && (parsedInput.endsWith(" WITH " + leftHand.equippedItem.prefab.id) || parsedInput.endsWith(" AND " + leftHand.equippedItem.prefab.id))
+            || !rightFirst && (parsedInput.startsWith(leftHand.equippedItem.prefab.id + " WITH ") || parsedInput.startsWith(leftHand.equippedItem.prefab.id + " AND ")))) {
+            item2 = leftHand.equippedItem;
+            item2Id = leftHand.equippedItem.prefab.id;
+        }
+        else if (item2 === null &&
+            (rightFirst && (parsedInput.endsWith(" WITH " + leftHand.equippedItem.name) || parsedInput.endsWith(" AND " + leftHand.equippedItem.name))
+            || !rightFirst && (parsedInput.startsWith(leftHand.equippedItem.name + " WITH ") || parsedInput.startsWith(leftHand.equippedItem.name + " AND ")))) {
+            item2 = leftHand.equippedItem;
+            item2Id = leftHand.equippedItem.name;
+        }
     }
 
     let item1Name = "";
     let item2Name = "";
     if (item1 === null && item2 !== null) {
-        item1Name = parsedInput.replace(item2.name, "").replace(" WITH ", "").replace(" AND ", "");
+        item1Name = parsedInput.replace(item2Id, "").replace(" WITH ", "").replace(" AND ", "");
         return message.reply(`couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 !== null && item2 === null) {
-        item2Name = parsedInput.replace(item1.name, "").replace(" WITH ", "").replace(" AND ", "");
+        item2Name = parsedInput.replace(item1Id, "").replace(" WITH ", "").replace(" AND ", "");
         return message.reply(`couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 === null && item2 === null) {
@@ -98,10 +136,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (recipe === null) return message.reply(`couldn't find recipe requiring ${ingredients[0].name} and ${ingredients[1].name}.`);
+    if (recipe === null) return message.reply(`couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
 
-    item1Name = ingredients[0].prefab.id;
-    item2Name = ingredients[1].prefab.id;
+    item1Name = ingredients[0].identifier ? ingredients[0].identifier : ingredients[0].prefab.id;
+    item2Name = ingredients[1].identifier ? ingredients[1].identifier : ingredients[1].prefab.id;
     const productString = recipe.products.length === 2 ? `${recipe.products[0].id} and ${recipe.products[1].id}` :
         recipe.products.length === 1 ? `${recipe.products[0].id}` : "nothing";
 
