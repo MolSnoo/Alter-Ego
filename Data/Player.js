@@ -1499,15 +1499,14 @@ class Player {
         return;
     }
 
-    viewInventory(game, possessive) {
+    viewInventory(possessive, useID) {
         var itemString = `__${possessive} inventory:__\n`;
         for (let slot = 0; slot < this.inventory.length; slot++) {
-            //itemString += `${equippedItems[i].equipmentSlot}: [${equippedItems[i].prefab.name}]\n `;
             itemString += `${this.inventory[slot].name}: `;
             const equippedItem = this.inventory[slot].equippedItem;
             if (equippedItem === null) itemString += `[ ]\n`;
             else {
-                itemString += `[${equippedItem.prefab.name}]\n`;
+                itemString += `[${useID ? equippedItem.identifier ? equippedItem.identifier : equippedItem.prefab.id : equippedItem.name}]\n`;
                 let listChildItems = function (itemString, item) {
                     // If item is capable of holding other items, show what items it has inside.
                     if (item.inventory.length > 0) {
@@ -1517,12 +1516,14 @@ class Player {
                             if (item.inventory[i].item.length === 0) itemString += `[ ]`;
                             else {
                                 for (let j = 0; j < item.inventory[i].item.length; j++) {
-                                    if (item.inventory[i].item[j].quantity === 1) itemString += `[${item.inventory[i].item[j].name}] `;
+                                    const childItem = item.inventory[i].item[j];
+                                    if (childItem.quantity === 1) itemString += `[${useID ? childItem.identifier ? childItem.identifier : childItem.prefab.id : childItem.name}] `;
+                                    else if (useID) itemString += `[${childItem.quantity} ${childItem.identifier ? childItem.identifier : childItem.prefab.id}] `;
                                     else {
-                                        if (item.inventory[i].item[j].pluralName) itemString += `[${item.inventory[i].item[j].quantity} ${item.inventory[i].item[j].pluralName}] `;
-                                        else itemString += `[${item.inventory[i].item[j].quantity} ${item.inventory[i].item[j].name}] `;
+                                        if (childItem.pluralName) itemString += `[${childItem.quantity} ${childItem.pluralName}] `;
+                                        else itemString += `[${childItem.quantity} ${childItem.name}] `;
                                     }
-                                    if (item.inventory[i].item[j].inventory.length !== 0) parentItemIndexes.push(j);
+                                    if (childItem.inventory.length !== 0) parentItemIndexes.push(j);
                                 }
                                 for (let j = 0; j < parentItemIndexes.length; j++) {
                                     itemString += `\n`;
@@ -1538,7 +1539,7 @@ class Player {
             }
         }
 
-        return itemString;
+        return itemString.replace(/\n{2,}/g, '\n');
     }
 
     craft(game, item1, item2, recipe) {
