@@ -133,11 +133,12 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
+        const itemName = item.identifier ? item.identifier : item.prefab.id;
         const response = player.use(game, item);
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} used ${item.name} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            game.logChannel.send(`${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
         else return message.reply(response);
