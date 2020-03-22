@@ -148,6 +148,13 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (item !== null && item.container === null)
         container = item.location;
 
+    let topContainer = container;
+    while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+        topContainer = topContainer.container;
+
+    if (topContainer !== null && topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+        return message.reply(`items cannot be taken from ${topContainer.name} while it is turned on.`);
+
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
