@@ -936,6 +936,80 @@ class Player {
         return;
     }
 
+    give(game, item, hand, recipient, recipientHand) {
+        // Unequip the item from the player's hand.
+        this.unequip(game, item, hand, null);
+
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < recipient.inventory.length; slot++) {
+            if (recipient.inventory[slot].name === recipientHand) {
+                rowNumber = recipient.inventory[slot].row;
+                break;
+            }
+        }
+
+        var createdItem = itemManager.copyInventoryItem(item, recipient, recipientHand, 1);
+        createdItem.containerName = "";
+        createdItem.container = null;
+        createdItem.row = rowNumber;
+
+        // Equip the item and add it to the recipient's inventory.
+        recipient.inventory[slot].equippedItem = createdItem;
+        recipient.inventory[slot].items.length = 0;
+        recipient.inventory[slot].items.push(createdItem);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === createdItem.row) {
+                game.inventoryItems.splice(i, 1, createdItem);
+                break;
+            }
+        }
+        // Create a list of all the child items.
+        var items = [];
+        itemManager.getChildItems(items, createdItem);
+
+        // Now that the item has been converted, we can update the quantities of child items.
+        var oldChildItems = [];
+        itemManager.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+        }
+
+        // Add the equipped item to the queue.
+        const createdItemData = [
+            recipient.name,
+            createdItem.prefab.id,
+            createdItem.identifier,
+            createdItem.equipmentSlot,
+            createdItem.containerName,
+            isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+            isNaN(createdItem.uses) ? "" : createdItem.uses,
+            createdItem.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${recipient.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+        itemManager.insertInventoryItems(game, recipient, items, slot);
+
+        this.carryWeight -= createdItem.weight;
+        recipient.carryWeight += createdItem.weight;
+
+        this.member.send(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
+        recipient.member.send(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
+        if (!createdItem.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
+            // Remove the item from the player's hands item list.
+            this.description = parser.removeItem(this.description, createdItem, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+            // Add the item to the recipient's hands item list.
+            recipient.description = parser.addItem(recipient.description, createdItem, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", recipient.descriptionCell(), `Players!${recipient.name}|Description`, recipient.description));
+        }
+
+        return;
+    }
+
     stash(game, item, hand, container, slotName) {
         // Unequip the item from the player's hand.
         this.unequip(game, item, hand, null);
