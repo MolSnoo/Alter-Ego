@@ -43,12 +43,12 @@ function init_0() {
     game.rooms.push(roomBeachHouse);
 
     // Initialize objects;
-    var objectFloor = new Object("FLOOR", roomBeachHouse, true, "", false, "on", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il></il> haphazardly placed on the floor.</s></desc>", 2);
-    var objectCouches = new Object("COUCHES", roomBeachHouse, true, "", false, "in", "<desc><s>You inspect the couches.</s> <s>They are soft and comfortable, and each is lined with a few pillows.</s> <s>Looking underneath the cushions, you find <il><item>a GUN</item></il>.</s></desc>", 3);
-    var objectTable = new Object("TABLE", roomBeachHouse, true, "CHEST", false, "in", `<desc><s>You examine the table.</s> <if cond="game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === true"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open, but it seems to be unlocked.</s> <var v=" game.puzzles.find(puzzle => puzzle.name === 'CHEST').alreadySolvedDescription" /></if><if cond="game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === false"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open.</s></if></desc>`, 4);
-    var objectCloset = new Object("CLOSET", roomBeachHouse, true, "", true, "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item></il>.</s></desc>", 5);
-    var objectClothes = new Object("CLOTHES", roomBeachHouse, true, "", false, "", "<desc><s>Examining the clothes, you find a variety of different garments.</s> <s>Sundresses, T-shirts, shorts, skirts - this closet seems to have everything you could think of.</s></desc>", 6);
-    var objectHotTub = new Object("HOT TUB", roomBeachHouse, true, "", false, "", "<desc><s>You inspect the hot tub.</s> <s>It looks to be fairly spacious, with room for probably up to 3 people to use at once.</s> <s>It has a digital thermometer to increase the temperature up to 100 degrees Fahrenheit, and buttons to turn it on.</s> <s>In the middle, you find <il></il>.</s></desc>", 7);
+    var objectFloor = new Object("FLOOR", roomBeachHouse, true, "", "", false, false, false, false, "on", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il></il> haphazardly placed on the floor.</s></desc>", 2);
+    var objectCouches = new Object("COUCHES", roomBeachHouse, true, "", "", false, false, false, false, "in", "<desc><s>You inspect the couches.</s> <s>They are soft and comfortable, and each is lined with a few pillows.</s> <s>Looking underneath the cushions, you find <il><item>a GUN</item></il>.</s></desc>", 3);
+    var objectTable = new Object("TABLE", roomBeachHouse, true, "CHEST", "", false, false, false, false, "in", `<desc><s>You examine the table.</s> <if cond="game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === true"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open, but it seems to be unlocked.</s> <var v=" game.puzzles.find(puzzle => puzzle.name === 'CHEST').alreadySolvedDescription" /></if><if cond="game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === false"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open.</s></if></desc>`, 4);
+    var objectCloset = new Object("CLOSET", roomBeachHouse, true, "", "", false, false, false, true, "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il><item>a SLINGSHOT</item></il>.</s></desc>", 5);
+    var objectClothes = new Object("CLOTHES", roomBeachHouse, true, "", "", false, false, false, false, "", "<desc><s>Examining the clothes, you find a variety of different garments.</s> <s>Sundresses, T-shirts, shorts, skirts - this closet seems to have everything you could think of.</s></desc>", 6);
+    var objectHotTub = new Object("HOT TUB", roomBeachHouse, true, "", "", false, false, false, false, "", "<desc><s>You inspect the hot tub.</s> <s>It looks to be fairly spacious, with room for probably up to 3 people to use at once.</s> <s>It has a digital thermometer to increase the temperature up to 100 degrees Fahrenheit, and buttons to turn it on.</s> <s>In the middle, you find <il></il>.</s></desc>", 7);
     game.objects.push(objectFloor);
     game.objects.push(objectCouches);
     game.objects.push(objectTable);
@@ -92,7 +92,6 @@ function init_0() {
     var prefabNerosSocks = new Prefab("NEROS SOCKS", "SOCKS", "", "a pair of SOCKS", "pairs of SOCKS", true, 1, 0, false, "", NaN, [], [], "", true, ["SOCKS"], [], [], [], [], "", "<desc><s>It's a pair of plain, black ankle socks.</s></desc>", 26);
     var prefabNerosShoes = new Prefab("NEROS SHOES", "TENNIS SHOES", "", "a pair of TENNIS SHOES", "pairs of TENNIS SHOES", true, 3, 1, false, "", NaN, [], [], "", true, ["SHOES"], [], [], [], [], "", "<desc><s>It's a large pair of black tennis shoes with white laces and soles.</s></desc>", 27);
     var prefabSmallBag = new Prefab("SMALL BAG", "SMALL BAG", "", "a SMALL BAG", "", true, 2, 1, false, "", NaN, [], [], "", false, [], [], [], [], [{ name: "SMALL BAG", capacity: 2, takenSpace: 0, weight: 0, item: [] }], "in", "<desc><s>It's a small bag.</s> <s>Inside, you find <il></il>.</s></desc>", 28);
-    var prefabSmallBag2 = new Prefab("SMALL BAG 2", "SMALL BAG", "", "a SMALL BAG", "", true, 2, 1, false, "", NaN, [], [], "", false, [], [], [], [], [{ name: "SMALL BAG", capacity: 2, takenSpace: 0, weight: 0, item: [] }], "in", "<desc><s>It's a small bag.</s> <s>Inside, you find <il></il>.</s></desc>", 29);
 
     game.prefabs.push(prefabGun);
     game.prefabs.push(prefabPepsi);
@@ -121,21 +120,20 @@ function init_0() {
     game.prefabs.push(prefabNerosSocks);
     game.prefabs.push(prefabNerosShoes);
     game.prefabs.push(prefabSmallBag);
-    game.prefabs.push(prefabSmallBag2);
 
     // Initialize items.
-    var itemGun = new Item(prefabGun, roomBeachHouse, true, "Object: COUCHES", 1, NaN, "<desc><s>You examine the gun.</s> <s>It appears to be just a simple handgun.</s> <s>It seems there are no bullets inside, but you could still dry fire if you wanted to make a loud noise.</s> <s>Perhaps you'll find bullets somewhere else?</s></desc>", 2);
-    var itemPepsi = new Item(prefabPepsi, roomBeachHouse, true, "Puzzle: CHEST", 1, NaN, "<desc><s>You examine the bottle.</s> <s>It's a simple glass bottle containing Pepsi.</s> <s>It looks to be fairly old.</s> <s>It might not be very good, but maybe you can do something with the bottle.</s></desc>", 3);
-    var itemRope = new Item(prefabRope, roomBeachHouse, true, "Puzzle: CHEST", 1, NaN, "<desc><s>You examine the rope.</s> <s>It looks fairly strong, and it's very long.</s> <s>You could use it for so many things.</s></desc>", 4);
-    var itemKnife = new Item(prefabKnife, roomBeachHouse, true, "Puzzle: CHEST", 1, NaN, "<desc><s>You examine the knife.</s> <s>It appears to be a very sharp kitchen knife.</s> <s>It's small enough that you could hide it, but large enough that you could do some real damage with it.</s></desc>", 5);
-    var itemSlingshot = new Item(prefabSlingshot, roomBeachHouse, true, "Object: CLOSET", 1, NaN, "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>", 6);
-    var itemToolBox = new Item(prefabToolBox, roomBeachHouse, true, "Object: CLOSET", 0, NaN, "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>", 7);
-    var itemScrewdriver = new Item(prefabScrewdriver, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 8);
-    var itemHammer = new Item(prefabHammer, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 9);
-    var itemWrench = new Item(prefabWrench, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 10);
-    var itemSmallBag = new Item(prefabSmallBag2, roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>", 11);
-    var itemSmallBagWrench = new Item(prefabWrench, roomBeachHouse, true, "Item: SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 12);
-    var itemSmallBagScrewdriver = new Item(prefabScrewdriver, roomBeachHouse, true, "Item: SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 13);
+    var itemGun = new Item(prefabGun, "", roomBeachHouse, true, "Object: COUCHES", 1, NaN, "<desc><s>You examine the gun.</s> <s>It appears to be just a simple handgun.</s> <s>It seems there are no bullets inside, but you could still dry fire if you wanted to make a loud noise.</s> <s>Perhaps you'll find bullets somewhere else?</s></desc>", 2);
+    var itemPepsi = new Item(prefabPepsi, "", roomBeachHouse, true, "Puzzle: CHEST", 1, NaN, "<desc><s>You examine the bottle.</s> <s>It's a simple glass bottle containing Pepsi.</s> <s>It looks to be fairly old.</s> <s>It might not be very good, but maybe you can do something with the bottle.</s></desc>", 3);
+    var itemRope = new Item(prefabRope, "", roomBeachHouse, true, "Puzzle: CHEST", 1, NaN, "<desc><s>You examine the rope.</s> <s>It looks fairly strong, and it's very long.</s> <s>You could use it for so many things.</s></desc>", 4);
+    var itemKnife = new Item(prefabKnife, "", roomBeachHouse, true, "Puzzle: CHEST", 1, NaN, "<desc><s>You examine the knife.</s> <s>It appears to be a very sharp kitchen knife.</s> <s>It's small enough that you could hide it, but large enough that you could do some real damage with it.</s></desc>", 5);
+    var itemSlingshot = new Item(prefabSlingshot, "", roomBeachHouse, true, "Object: CLOSET", 1, NaN, "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>", 6);
+    var itemToolBox = new Item(prefabToolBox, "TOOL BOX", roomBeachHouse, true, "Object: CLOSET", 0, NaN, "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>", 7);
+    var itemScrewdriver = new Item(prefabScrewdriver, "", roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 8);
+    var itemHammer = new Item(prefabHammer, "", roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 9);
+    var itemWrench = new Item(prefabWrench, "", roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 10);
+    var itemSmallBag = new Item(prefabSmallBag, "SMALL BAG 2", roomBeachHouse, true, "Item: TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>", 11);
+    var itemSmallBagWrench = new Item(prefabWrench, "", roomBeachHouse, true, "Item: SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 12);
+    var itemSmallBagScrewdriver = new Item(prefabScrewdriver, "", roomBeachHouse, true, "Item: SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 13);
 
     game.items.push(itemGun);
     game.items.push(itemPepsi);
@@ -193,44 +191,44 @@ function init_0() {
     game.players.push(nero); game.players_alive.push(nero);
 
     // Initialize inventory items.
-    var inventoryNerosHat = new InventoryItem(nero, null, "HAT", "", null, null, "", 2);
-    var inventoryNerosGlasses = new InventoryItem(nero, prefabNerosGlasses, "GLASSES", "", 1, NaN, "<desc><s>It's a pair of glasses with a black frame only on the top of the lenses and the bridge.</s> <s>The lenses themselves are rounded at the bottom.</s></desc>", 3);
-    var inventoryNerosFace = new InventoryItem(nero, null, "FACE", "", null, null, "", 4);
-    var inventoryNerosNeck = new InventoryItem(nero, null, "NECK", "", null, null, "", 5);
-    var inventoryNerosBag = new InventoryItem(nero, null, "BAG", "", null, null, "", 6);
-    var inventoryNerosShirt = new InventoryItem(nero, prefabNerosShirt, "SHIRT", "", 1, NaN, "<desc><s>It's a long-sleeved, white dress shirt with a slight purple tinge.</s> <s>The collar is rather large.</s> <s>The buttons are on the right side of the shirt, from the wearer's perspective.</s></desc>", 7);
-    var inventoryNerosBlazer = new InventoryItem(nero, prefabNerosBlazer, "JACKET", "", 1, NaN, `<desc><s>It's a long-sleeved, purple blazer with two gold buttons on the right side, from the wearer's perspective.</s> <s>The lapels have white borders.</s> <s>It has three pockets: a breast pocket on the left side, and two pockets lower down on the left and right.</s> <s>In the breast pocket, you find <il name="BREAST POCKET"></il>.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s></desc>`, 8);
-    var inventoryNerosRightHand = new InventoryItem(nero, null, "RIGHT HAND", "", null, null, "", 9);
-    var inventoryNerosLeftHand = new InventoryItem(nero, null, "LEFT HAND", "", null, null, "", 10);
-    var inventoryNerosPants = new InventoryItem(nero, prefabNerosPants, "PANTS", "", 1, NaN, `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`, 11);
-    var inventoryNerosUnderwear = new InventoryItem(nero, prefabNerosUnderwear, "UNDERWEAR", "", 1, NaN, "<desc><s>It's a pair of black, plaid boxers.</s></desc>", 12);
-    var inventoryNerosSocks = new InventoryItem(nero, prefabNerosSocks, "SOCKS", "", 1, NaN, "<desc><s>It's a pair of plain, black ankle socks.</s></desc>", 13);
-    var inventoryNerosShoes = new InventoryItem(nero, prefabNerosShoes, "SHOES", "", 1, NaN, "<desc><s>It's a large pair of black tennis shoes with white laces and soles.</s></desc>", 14);
-    var inventoryViviansHat = new InventoryItem(vivian, null, "HAT", "", null, null, "", 15);
-    var inventoryViviansGlasses = new InventoryItem(vivian, prefabViviansGlasses, "GLASSES", "", 1, NaN, "<desc><s>It's a pair of black glasses with squarish frames.</s></desc>", 16);
-    var inventoryViviansFace = new InventoryItem(vivian, null, "FACE", "", null, null, "", 17);
-    var inventoryViviansNeck = new InventoryItem(vivian, null, "NECK", "", null, null, "", 18);
-    var inventoryViviansBag = new InventoryItem(vivian, null, "BAG", "", null, null, "", 19);
-    var inventoryViviansShirt = new InventoryItem(vivian, prefabViviansShirt, "SHIRT", "", 1, NaN, "<desc><s>It's a short-sleeved, white dress shirt.</s> <s>The buttons are on the left side of the shirt, from the wearer's perspective.</s></desc>", 20);
-    var inventoryViviansSweater = new InventoryItem(vivian, prefabViviansSweater, "JACKET", "", 1, NaN, "<desc><s>It's a salmon-colored pullover sweater.</s> <s>It looks quite warm.</s></desc>", 21);
-    var inventoryViviansToolBox = new InventoryItem(vivian, prefabToolBox, "RIGHT HAND", "", 1, NaN, "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>", 22);
-    var inventoryViviansLeftHand = new InventoryItem(vivian, null, "LEFT HAND", "", null, null, "", 23);
-    var inventoryViviansSkirt = new InventoryItem(vivian, prefabViviansSkirt, "PANTS", "", 1, NaN, `<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s></desc>`, 24);
-    var inventoryViviansUnderwear = new InventoryItem(vivian, prefabViviansUnderwear, "UNDERWEAR", "", 1, NaN, "<desc><s>It's a pair of plain, pink panties.</s></desc>", 25);
-    var inventoryViviansSocks = new InventoryItem(vivian, prefabViviansSocks, "SOCKS", "", 1, NaN, "<desc><s>It's a pair of black thigh high socks.</s></desc>", 26);
-    var inventoryViviansShoes = new InventoryItem(vivian, prefabViviansShoes, "SHOES", "", 1, NaN, "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>", 27);
-    var inventoryViviansScrewDriverLeftHand = new InventoryItem(vivian, prefabScrewdriver, "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 28);
-    var inventoryViviansHammerLeftHand = new InventoryItem(vivian, prefabHammer, "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 29);
-    var inventoryViviansWrenchLeftHand = new InventoryItem(vivian, prefabWrench, "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 30);
-    var inventoryViviansSmallBagLeftHand = new InventoryItem(vivian, prefabSmallBag2, "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>", 31);
-    var inventoryViviansScrewdriverRightHand = new InventoryItem(vivian, prefabScrewdriver, "RIGHT HAND", "TOOL BOX/TOOL BOX", 3, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 32);
-    var inventoryViviansHammerRightHand = new InventoryItem(vivian, prefabHammer, "RIGHT HAND", "TOOL BOX/TOOL BOX", 3, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 33);
-    var inventoryViviansWrenchRightHand = new InventoryItem(vivian, prefabWrench, "RIGHT HAND", "TOOL BOX/TOOL BOX", 2, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 34);
-    var inventoryViviansSmallBagRightHand = new InventoryItem(vivian, prefabSmallBag2, "RIGHT HAND", "TOOL BOX/TOOL BOX", 1, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>", 35);
-    var inventoryViviansSmallBagRightHandWrench = new InventoryItem(vivian, prefabWrench, "RIGHT HAND", "SMALL BAG 2/SMALL BAG", 1, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 36);
-    var inventoryViviansSmallBagRightHandScrewdriver = new InventoryItem(vivian, prefabScrewdriver, "RIGHT HAND", "SMALL BAG 2/SMALL BAG", 1, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 37);
-    var inventoryViviansSmallBagLeftHandWrench = new InventoryItem(vivian, prefabWrench, "LEFT HAND", "SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 38);
-    var inventoryViviansSmallBagLeftHandScrewdriver = new InventoryItem(vivian, prefabScrewdriver, "LEFT HAND", "SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 39);
+    var inventoryNerosHat = new InventoryItem(nero, null, "", "HAT", "", null, null, "", 2);
+    var inventoryNerosGlasses = new InventoryItem(nero, prefabNerosGlasses, "", "GLASSES", "", 1, NaN, "<desc><s>It's a pair of glasses with a black frame only on the top of the lenses and the bridge.</s> <s>The lenses themselves are rounded at the bottom.</s></desc>", 3);
+    var inventoryNerosFace = new InventoryItem(nero, null, "", "FACE", "", null, null, "", 4);
+    var inventoryNerosNeck = new InventoryItem(nero, null, "", "NECK", "", null, null, "", 5);
+    var inventoryNerosBag = new InventoryItem(nero, null, "", "BAG", "", null, null, "", 6);
+    var inventoryNerosShirt = new InventoryItem(nero, prefabNerosShirt, "", "SHIRT", "", 1, NaN, "<desc><s>It's a long-sleeved, white dress shirt with a slight purple tinge.</s> <s>The collar is rather large.</s> <s>The buttons are on the right side of the shirt, from the wearer's perspective.</s></desc>", 7);
+    var inventoryNerosBlazer = new InventoryItem(nero, prefabNerosBlazer, "NEROS BLAZER", "JACKET", "", 1, NaN, `<desc><s>It's a long-sleeved, purple blazer with two gold buttons on the right side, from the wearer's perspective.</s> <s>The lapels have white borders.</s> <s>It has three pockets: a breast pocket on the left side, and two pockets lower down on the left and right.</s> <s>In the breast pocket, you find <il name="BREAST POCKET"></il>.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s></desc>`, 8);
+    var inventoryNerosRightHand = new InventoryItem(nero, null, "", "RIGHT HAND", "", null, null, "", 9);
+    var inventoryNerosLeftHand = new InventoryItem(nero, null, "", "LEFT HAND", "", null, null, "", 10);
+    var inventoryNerosPants = new InventoryItem(nero, prefabNerosPants, "NEROS PANTS", "PANTS", "", 1, NaN, `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`, 11);
+    var inventoryNerosUnderwear = new InventoryItem(nero, prefabNerosUnderwear, "", "UNDERWEAR", "", 1, NaN, "<desc><s>It's a pair of black, plaid boxers.</s></desc>", 12);
+    var inventoryNerosSocks = new InventoryItem(nero, prefabNerosSocks, "", "SOCKS", "", 1, NaN, "<desc><s>It's a pair of plain, black ankle socks.</s></desc>", 13);
+    var inventoryNerosShoes = new InventoryItem(nero, prefabNerosShoes, "", "SHOES", "", 1, NaN, "<desc><s>It's a large pair of black tennis shoes with white laces and soles.</s></desc>", 14);
+    var inventoryViviansHat = new InventoryItem(vivian, null, "", "HAT", "", null, null, "", 15);
+    var inventoryViviansGlasses = new InventoryItem(vivian, prefabViviansGlasses, "", "GLASSES", "", 1, NaN, "<desc><s>It's a pair of black glasses with squarish frames.</s></desc>", 16);
+    var inventoryViviansFace = new InventoryItem(vivian, null, "", "FACE", "", null, null, "", 17);
+    var inventoryViviansNeck = new InventoryItem(vivian, null, "", "NECK", "", null, null, "", 18);
+    var inventoryViviansBag = new InventoryItem(vivian, null, "", "BAG", "", null, null, "", 19);
+    var inventoryViviansShirt = new InventoryItem(vivian, prefabViviansShirt, "", "SHIRT", "", 1, NaN, "<desc><s>It's a short-sleeved, white dress shirt.</s> <s>The buttons are on the left side of the shirt, from the wearer's perspective.</s></desc>", 20);
+    var inventoryViviansSweater = new InventoryItem(vivian, prefabViviansSweater, "", "JACKET", "", 1, NaN, "<desc><s>It's a salmon-colored pullover sweater.</s> <s>It looks quite warm.</s></desc>", 21);
+    var inventoryViviansToolBox = new InventoryItem(vivian, prefabToolBox, "TOOL BOX", "RIGHT HAND", "", 1, NaN, "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>", 22);
+    var inventoryViviansLeftHand = new InventoryItem(vivian, null, "", "LEFT HAND", "", null, null, "", 23);
+    var inventoryViviansSkirt = new InventoryItem(vivian, prefabViviansSkirt, "VIVIANS SKIRT", "PANTS", "", 1, NaN, `<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s></desc>`, 24);
+    var inventoryViviansUnderwear = new InventoryItem(vivian, prefabViviansUnderwear, "", "UNDERWEAR", "", 1, NaN, "<desc><s>It's a pair of plain, pink panties.</s></desc>", 25);
+    var inventoryViviansSocks = new InventoryItem(vivian, prefabViviansSocks, "", "SOCKS", "", 1, NaN, "<desc><s>It's a pair of black thigh high socks.</s></desc>", 26);
+    var inventoryViviansShoes = new InventoryItem(vivian, prefabViviansShoes, "", "SHOES", "", 1, NaN, "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>", 27);
+    var inventoryViviansScrewDriverLeftHand = new InventoryItem(vivian, prefabScrewdriver, "", "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 28);
+    var inventoryViviansHammerLeftHand = new InventoryItem(vivian, prefabHammer, "", "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 29);
+    var inventoryViviansWrenchLeftHand = new InventoryItem(vivian, prefabWrench, "", "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 30);
+    var inventoryViviansSmallBagLeftHand = new InventoryItem(vivian, prefabSmallBag, "SMALL BAG 2", "LEFT HAND", "TOOL BOX/TOOL BOX", 0, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>", 31);
+    var inventoryViviansScrewdriverRightHand = new InventoryItem(vivian, prefabScrewdriver, "", "RIGHT HAND", "TOOL BOX/TOOL BOX", 3, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 32);
+    var inventoryViviansHammerRightHand = new InventoryItem(vivian, prefabHammer, "", "RIGHT HAND", "TOOL BOX/TOOL BOX", 3, NaN, "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>", 33);
+    var inventoryViviansWrenchRightHand = new InventoryItem(vivian, prefabWrench, "", "RIGHT HAND", "TOOL BOX/TOOL BOX", 2, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 34);
+    var inventoryViviansSmallBagRightHand = new InventoryItem(vivian, prefabSmallBag, "SMALL BAG 2", "RIGHT HAND", "TOOL BOX/TOOL BOX", 1, NaN, "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>", 35);
+    var inventoryViviansSmallBagRightHandWrench = new InventoryItem(vivian, prefabWrench, "", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", 1, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 36);
+    var inventoryViviansSmallBagRightHandScrewdriver = new InventoryItem(vivian, prefabScrewdriver, "", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", 1, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 37);
+    var inventoryViviansSmallBagLeftHandWrench = new InventoryItem(vivian, prefabWrench, "", "LEFT HAND", "SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>", 38);
+    var inventoryViviansSmallBagLeftHandScrewdriver = new InventoryItem(vivian, prefabScrewdriver, "", "LEFT HAND", "SMALL BAG 2/SMALL BAG", 0, NaN, "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>", 39);
 
     game.inventoryItems.push(inventoryNerosHat);
     game.inventoryItems.push(inventoryNerosGlasses);
@@ -524,14 +522,14 @@ function test_push_queue_0() {
             var errors = [];
 
             const objectData = [
-                ["FLOOR", "beach-house", "TRUE", "", "FALSE", "on", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il></il> haphazardly placed on the floor.</s></desc>"],
-                ["COUCHES", "beach-house", "TRUE", "", "FALSE", "in", "<desc><s>You inspect the couches.</s> <s>They are soft and comfortable, and each is lined with a few pillows.</s> <s>Looking underneath the cushions, you find <il></il>.</s></desc>"],
-                ["TABLE", "beach-house", "TRUE", "CHEST", "FALSE", "in", "<desc><s>You examine the table.</s> <if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === true\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open, but it seems to be unlocked.</s> <var v=\" game.puzzles.find(puzzle => puzzle.name === 'CHEST').alreadySolvedDescription\" /></if><if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === false\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open.</s></if></desc>"],
-                ["CLOSET", "beach-house", "TRUE", "", "TRUE", "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il></il>.</s></desc>"],
-                ["CLOTHES", "beach-house", "TRUE", "", "FALSE", "", "<desc><s>Examining the clothes, you find a variety of different garments.</s> <s>Sundresses, T-shirts, shorts, skirts - this closet seems to have everything you could think of.</s></desc>"],
-                ["HOT TUB", "beach-house", "TRUE", "", "FALSE", "in", "<desc><s>You inspect the hot tub.</s> <s>It looks to be fairly spacious, with room for probably up to 3 people to use at once.</s> <s>It has a digital thermometer to increase the temperature up to 100 degrees Fahrenheit, and buttons to turn it on.</s> <s>In the middle, you find <il></il>.</s></desc>"]
+                ["FLOOR", "beach-house", "TRUE", "", "", "FALSE", "", "", "FALSE", "on", "<desc><s>The floor beneath you is smooth and wooden.</s> <s>There's a rug underneath the COUCHES and TABLE.</s> <s>You find <il></il> haphazardly placed on the floor.</s></desc>"],
+                ["COUCHES", "beach-house", "TRUE", "", "", "FALSE", "", "", "FALSE", "in", "<desc><s>You inspect the couches.</s> <s>They are soft and comfortable, and each is lined with a few pillows.</s> <s>Looking underneath the cushions, you find <il></il>.</s></desc>"],
+                ["TABLE", "beach-house", "TRUE", "CHEST", "", "FALSE", "", "", "FALSE", "in", "<desc><s>You examine the table.</s> <if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === true\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open, but it seems to be unlocked.</s> <var v=\" game.puzzles.find(puzzle => puzzle.name === 'CHEST').alreadySolvedDescription\" /></if><if cond=\"game.puzzles.find(puzzle => puzzle.name === 'CHEST').solved === false\"><s>Looking closely, you can see that it's not a table at all, but a chest!</s> <s>It looks like it requires an old key to open.</s></if></desc>"],
+                ["CLOSET", "beach-house", "TRUE", "", "", "FALSE", "", "", "TRUE", "in", "<desc><s>You open the closet and look inside.</s> <s>It's fairly large; someone could definitely fit in here.</s> <s>You find a variety of CLOTHES hanging from the rod.</s> <s>On the floor, you find <il></il>.</s></desc>"],
+                ["CLOTHES", "beach-house", "TRUE", "", "", "FALSE", "", "", "FALSE", "", "<desc><s>Examining the clothes, you find a variety of different garments.</s> <s>Sundresses, T-shirts, shorts, skirts - this closet seems to have everything you could think of.</s></desc>"],
+                ["HOT TUB", "beach-house", "TRUE", "", "", "FALSE", "", "", "FALSE", "in", "<desc><s>You inspect the hot tub.</s> <s>It looks to be fairly spacious, with room for probably up to 3 people to use at once.</s> <s>It has a digital thermometer to increase the temperature up to 100 degrees Fahrenheit, and buttons to turn it on.</s> <s>In the middle, you find <il></il>.</s></desc>"]
             ];
-            sheets.getData("Objects!A1:G", function (response) {
+            sheets.getData("Objects!A1:K", function (response) {
                 const sheet = response.data.values;
                 for (let i = 1; i < sheet.length && i < objectData.length; i++) {
                     if (!arraysEqual(objectData[i - 1], sheet[i]))
@@ -542,20 +540,20 @@ function test_push_queue_0() {
             });
 
             const itemData = [
-                ["GUN", "beach-house", "TRUE", "Object: COUCHES", "0", "", "<desc><s>You examine the gun.</s> <s>It appears to be just a simple handgun.</s> <s>It seems there are no bullets inside, but you could still dry fire if you wanted to make a loud noise.</s> <s>Perhaps you'll find bullets somewhere else?</s></desc>"],
-                ["PEPSI", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the bottle.</s> <s>It's a simple glass bottle containing Pepsi.</s> <s>It looks to be fairly old.</s> <s>It might not be very good, but maybe you can do something with the bottle.</s></desc>"],
-                ["ROPE", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the rope.</s> <s>It looks fairly strong, and it's very long.</s> <s>You could use it for so many things.</s></desc>"],
-                ["KNIFE", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the knife.</s> <s>It appears to be a very sharp kitchen knife.</s> <s>It's small enough that you could hide it, but large enough that you could do some real damage with it.</s></desc>"],
-                ["SLINGSHOT", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>"],
-                ["TOOL BOX", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"],
-                ["SCREWDRIVER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
-                ["HAMMER", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
-                ["WRENCH", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
-                ["SMALL BAG 2", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
-                ["WRENCH", "beach-house", "TRUE", "Item: SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
-                ["SCREWDRIVER", "beach-house", "TRUE", "Item: SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"]
+                ["GUN", "", "beach-house", "TRUE", "Object: COUCHES", "0", "", "<desc><s>You examine the gun.</s> <s>It appears to be just a simple handgun.</s> <s>It seems there are no bullets inside, but you could still dry fire if you wanted to make a loud noise.</s> <s>Perhaps you'll find bullets somewhere else?</s></desc>"],
+                ["PEPSI", "", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the bottle.</s> <s>It's a simple glass bottle containing Pepsi.</s> <s>It looks to be fairly old.</s> <s>It might not be very good, but maybe you can do something with the bottle.</s></desc>"],
+                ["ROPE", "", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the rope.</s> <s>It looks fairly strong, and it's very long.</s> <s>You could use it for so many things.</s></desc>"],
+                ["KNIFE", "", "beach-house", "TRUE", "Puzzle: CHEST", "1", "", "<desc><s>You examine the knife.</s> <s>It appears to be a very sharp kitchen knife.</s> <s>It's small enough that you could hide it, but large enough that you could do some real damage with it.</s></desc>"],
+                ["SLINGSHOT", "", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>"],
+                ["TOOL BOX", "TOOL BOX", "beach-house", "TRUE", "Object: CLOSET", "0", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>a SMALL BAG</item>, <item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"],
+                ["SCREWDRIVER", "", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
+                ["HAMMER", "", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["WRENCH", "", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["SMALL BAG", "SMALL BAG 2", "beach-house", "TRUE", "Item: TOOL BOX/TOOL BOX", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
+                ["WRENCH", "", "beach-house", "TRUE", "Item: SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["SCREWDRIVER", "", "beach-house", "TRUE", "Item: SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"]
             ];
-            sheets.getData("Items!A1:G", function (response) {
+            sheets.getData("Items!A1:H", function (response) {
                 const sheet = response.data.values;
                 for (let i = 1; i < sheet.length && i < itemData.length; i++) {
                     if (!arraysEqual(itemData[i - 1], sheet[i]))
@@ -566,48 +564,48 @@ function test_push_queue_0() {
             });
 
             const inventoryData = [
-                ["Nero", "NULL", "HAT"],
-                ["Nero", "NEROS GLASSES", "GLASSES", "", "1", "", "<desc><s>It's a pair of glasses with a black frame only on the top of the lenses and the bridge.</s> <s>The lenses themselves are rounded at the bottom.</s></desc>"],
-                ["Nero", "NULL", "FACE"],
-                ["Nero", "NULL", "NECK"],
-                ["Nero", "NULL", "BAG"],
-                ["Nero", "NEROS SHIRT", "SHIRT", "", "1", "", "<desc><s>It's a long-sleeved, white dress shirt with a slight purple tinge.</s> <s>The collar is rather large.</s> <s>The buttons are on the right side of the shirt, from the wearer's perspective.</s></desc>"],
-                ["Nero", "NEROS BLAZER", "JACKET", "", "1", "", "<desc><s>It's a long-sleeved, purple blazer with two gold buttons on the right side, from the wearer's perspective.</s> <s>The lapels have white borders.</s> <s>It has three pockets: a breast pocket on the left side, and two pockets lower down on the left and right.</s> <s>In the breast pocket, you find <il name=\"BREAST POCKET\"></il>.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s></desc>"],
-                ["Nero", "NULL", "RIGHT HAND"],
-                ["Nero", "NULL", "LEFT HAND"],
-                ["Nero", "NEROS PANTS", "PANTS", "", "1", "", "<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s> <s>In the left back pocket, you find <il name=\"LEFT BACK POCKET\"></il>.</s> <s>In the right back pocket, you find <il name=\"RIGHT BACK POCKET\"></il>.</s></desc>"],
-                ["Nero", "NEROS UNDERWEAR", "UNDERWEAR", "", "1", "", "<desc><s>It's a pair of black, plaid boxers.</s></desc>"],
-                ["Nero", "NEROS SOCKS", "SOCKS", "", "1", "", "<desc><s>It's a pair of plain, black ankle socks.</s></desc>"],
-                ["Nero", "NEROS SHOES", "SHOES", "", "1", "", "<desc><s>It's a large pair of black tennis shoes with white laces and soles.</s></desc>"],
-                ["Vivian", "NULL", "HAT"],
-                ["Vivian", "VIVIANS GLASSES", "GLASSES", "", "1", "", "<desc><s>It's a pair of black glasses with squarish frames.</s></desc>"],
-                ["Vivian", "NULL", "FACE"],
-                ["Vivian", "NULL", "NECK"],
-                ["Vivian", "NULL", "BAG"],
-                ["Vivian", "VIVIANS SHIRT", "SHIRT", "", "1", "", "<desc><s>It's a short-sleeved, white dress shirt.</s> <s>The buttons are on the left side of the shirt, from the wearer's perspective.</s></desc>"],
-                ["Vivian", "VIVIANS SWEATER", "JACKET", "", "1", "", "<desc><s>It's a salmon-colored pullover sweater.</s> <s>It looks quite warm.</s></desc>"],
-                ["Vivian", "TOOL BOX", "RIGHT HAND", "", "1", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"],
-                ["Vivian", "SMALL BAG 2", "LEFT HAND", "", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
-                ["Vivian", "VIVIANS SKIRT", "PANTS", "", "1", "", "<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"><item>a GUN</item></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"><item>a SLINGSHOT</item></il>.</s></desc>"],
-                ["Vivian", "VIVIANS UNDERWEAR", "UNDERWEAR", "", "1", "", "<desc><s>It's a pair of plain, pink panties.</s></desc>"],
-                ["Vivian", "VIVIANS SOCKS", "SOCKS", "", "1", "", "<desc><s>It's a pair of black thigh high socks.</s></desc>"],
-                ["Vivian", "VIVIANS SHOES", "SHOES", "", "1", "", "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>"],
-                ["Vivian", "GUN", "PANTS", "VIVIANS SKIRT/LEFT POCKET", "1", "", "<desc><s>You examine the gun.</s> <s>It appears to be just a simple handgun.</s> <s>It seems there are no bullets inside, but you could still dry fire if you wanted to make a loud noise.</s> <s>Perhaps you'll find bullets somewhere else?</s></desc>"],
-                ["Vivian", "SLINGSHOT", "PANTS", "VIVIANS SKIRT/RIGHT POCKET", "1", "", "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>"],
-                ["Vivian", "SCREWDRIVER", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
-                ["Vivian", "HAMMER", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
-                ["Vivian", "WRENCH", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
-                ["Vivian", "SMALL BAG 2", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
-                ["Vivian", "SCREWDRIVER", "RIGHT HAND", "TOOL BOX/TOOL BOX", "3", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
-                ["Vivian", "HAMMER", "RIGHT HAND", "TOOL BOX/TOOL BOX", "3", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
-                ["Vivian", "WRENCH", "RIGHT HAND", "TOOL BOX/TOOL BOX", "2", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
-                ["Vivian", "SMALL BAG 2", "RIGHT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
-                ["Vivian", "WRENCH", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
-                ["Vivian", "SCREWDRIVER", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
-                ["Vivian", "WRENCH", "LEFT HAND", "SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
-                ["Vivian", "SCREWDRIVER", "LEFT HAND", "SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"]
+                ["Nero", "NULL", "", "HAT"],
+                ["Nero", "NEROS GLASSES", "", "GLASSES", "", "1", "", "<desc><s>It's a pair of glasses with a black frame only on the top of the lenses and the bridge.</s> <s>The lenses themselves are rounded at the bottom.</s></desc>"],
+                ["Nero", "NULL", "", "FACE"],
+                ["Nero", "NULL", "", "NECK"],
+                ["Nero", "NULL", "", "BAG"],
+                ["Nero", "NEROS SHIRT", "", "SHIRT", "", "1", "", "<desc><s>It's a long-sleeved, white dress shirt with a slight purple tinge.</s> <s>The collar is rather large.</s> <s>The buttons are on the right side of the shirt, from the wearer's perspective.</s></desc>"],
+                ["Nero", "NEROS BLAZER", "NEROS BLAZER", "JACKET", "", "1", "", "<desc><s>It's a long-sleeved, purple blazer with two gold buttons on the right side, from the wearer's perspective.</s> <s>The lapels have white borders.</s> <s>It has three pockets: a breast pocket on the left side, and two pockets lower down on the left and right.</s> <s>In the breast pocket, you find <il name=\"BREAST POCKET\"></il>.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s></desc>"],
+                ["Nero", "NULL", "", "RIGHT HAND"],
+                ["Nero", "NULL", "", "LEFT HAND"],
+                ["Nero", "NEROS PANTS", "NEROS PANTS", "PANTS", "", "1", "", "<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s> <s>In the left back pocket, you find <il name=\"LEFT BACK POCKET\"></il>.</s> <s>In the right back pocket, you find <il name=\"RIGHT BACK POCKET\"></il>.</s></desc>"],
+                ["Nero", "NEROS UNDERWEAR", "", "UNDERWEAR", "", "1", "", "<desc><s>It's a pair of black, plaid boxers.</s></desc>"],
+                ["Nero", "NEROS SOCKS", "", "SOCKS", "", "1", "", "<desc><s>It's a pair of plain, black ankle socks.</s></desc>"],
+                ["Nero", "NEROS SHOES", "", "SHOES", "", "1", "", "<desc><s>It's a large pair of black tennis shoes with white laces and soles.</s></desc>"],
+                ["Vivian", "NULL", "", "HAT"],
+                ["Vivian", "VIVIANS GLASSES", "", "GLASSES", "", "1", "", "<desc><s>It's a pair of black glasses with squarish frames.</s></desc>"],
+                ["Vivian", "NULL", "", "FACE"],
+                ["Vivian", "NULL", "", "NECK"],
+                ["Vivian", "NULL", "", "BAG"],
+                ["Vivian", "VIVIANS SHIRT", "", "SHIRT", "", "1", "", "<desc><s>It's a short-sleeved, white dress shirt.</s> <s>The buttons are on the left side of the shirt, from the wearer's perspective.</s></desc>"],
+                ["Vivian", "VIVIANS SWEATER", "", "JACKET", "", "1", "", "<desc><s>It's a salmon-colored pullover sweater.</s> <s>It looks quite warm.</s></desc>"],
+                ["Vivian", "TOOL BOX", "TOOL BOX", "RIGHT HAND", "", "1", "", "<desc><s>You open the tool box and look inside.</s> <s>Various tools are inside: <il><item>3 SCREWDRIVERS</item>, <item>3 HAMMERS</item>, and <item>2 WRENCHES</item></il>.</s></desc>"],
+                ["Vivian", "SMALL BAG", "SMALL BAG 2", "LEFT HAND", "", "1", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
+                ["Vivian", "VIVIANS SKIRT", "VIVIANS SKIRT", "PANTS", "", "1", "", "<desc><s>It's a plaid, blue, double-layered, ruffled skirt.</s> <s>Surprisingly, it has two pockets.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"><item>a GUN</item></il>.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"><item>a SLINGSHOT</item></il>.</s></desc>"],
+                ["Vivian", "VIVIANS UNDERWEAR", "", "UNDERWEAR", "", "1", "", "<desc><s>It's a pair of plain, pink panties.</s></desc>"],
+                ["Vivian", "VIVIANS SOCKS", "", "SOCKS", "", "1", "", "<desc><s>It's a pair of black thigh high socks.</s></desc>"],
+                ["Vivian", "VIVIANS SHOES", "", "SHOES", "", "1", "", "<desc><s>It's a small pair of white tennis shoes with pink laces and soles.</s></desc>"],
+                ["Vivian", "GUN", "", "PANTS", "VIVIANS SKIRT/LEFT POCKET", "1", "", "<desc><s>You examine the gun.</s> <s>It appears to be just a simple handgun.</s> <s>It seems there are no bullets inside, but you could still dry fire if you wanted to make a loud noise.</s> <s>Perhaps you'll find bullets somewhere else?</s></desc>"],
+                ["Vivian", "SLINGSHOT", "", "PANTS", "VIVIANS SKIRT/RIGHT POCKET", "1", "", "<desc><s>You examine the slingshot.</s> <s>It's relatively small.</s> <s>You could probably shoot just about any small, round object with this thing.</s> <s>With good aim, there's no telling what you could do.</s></desc>"],
+                ["Vivian", "SCREWDRIVER", "", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
+                ["Vivian", "HAMMER", "", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["Vivian", "WRENCH", "", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["Vivian", "SMALL BAG", "SMALL BAG 2", "LEFT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
+                ["Vivian", "SCREWDRIVER", "", "RIGHT HAND", "TOOL BOX/TOOL BOX", "3", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
+                ["Vivian", "HAMMER", "", "RIGHT HAND", "TOOL BOX/TOOL BOX", "3", "", "<desc><s>You examine the hammer.</s> <s>It looks to be a fairly standard hammer for pounding in nails.</s></desc>"],
+                ["Vivian", "WRENCH", "", "RIGHT HAND", "TOOL BOX/TOOL BOX", "2", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["Vivian", "SMALL BAG", "SMALL BAG 2", "RIGHT HAND", "TOOL BOX/TOOL BOX", "0", "", "<desc><s>It's a small bag.</s> <s>Inside, you find <il><item>a SCREWDRIVER</item> and <item>a WRENCH</item></il>.</s></desc>"],
+                ["Vivian", "WRENCH", "", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["Vivian", "SCREWDRIVER", "", "RIGHT HAND", "SMALL BAG 2/SMALL BAG", "0", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"],
+                ["Vivian", "WRENCH", "", "LEFT HAND", "SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the wrench.</s> <s>It looks to be a fairly standard wrench for turning nuts and bolts.</s></desc>"],
+                ["Vivian", "SCREWDRIVER", "", "LEFT HAND", "SMALL BAG 2/SMALL BAG", "1", "", "<desc><s>You examine the screwdriver.</s> <s>It looks to be a fairly standard Phillips screwdriver that you could use on most screws.</s></desc>"]
             ];
-            sheets.getData("Inventory Items!A1:G", function (response) {
+            sheets.getData("Inventory Items!A1:H", function (response) {
                 const sheet = response.data.values;
                 for (let i = 1; i < sheet.length && i < inventoryData.length; i++) {
                     if (!arraysEqual(inventoryData[i - 1], sheet[i]))

@@ -186,6 +186,48 @@ testparse = async (file, player) => {
         await appendText(file, text);
     }
 
+    // Get recipes next.
+    {
+        await appendText(file, "RECIPES:");
+        let text = "";
+        for (let i = 0; i < game.recipes.length; i++) {
+            text += "   ";
+            text += "ROW " + game.recipes[i].row + os.EOL;
+
+            const taggedObject = game.objects.find(object => object.recipeTag === game.recipes[i].objectTag);
+            // First, do the initiated text.
+            if (game.recipes[i].initiatedDescription !== "") {
+                text += "      MESSAGE WHEN INITIATED:" + os.EOL;
+
+                const parsedDescription = parser.parseDescription(game.recipes[i].initiatedDescription, taggedObject ? taggedObject : game.recipes[i], player, true);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].initiatedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].initiatedCell(), errors: parsedDescription.errors });
+
+                text += "         ";
+                text += game.recipes[i].initiatedDescription + os.EOL;
+
+                text += "         ";
+                text += parsedDescription.text + os.EOL;
+            }
+
+            // Finally, do the completed text.
+            if (game.recipes[i].completedDescription !== "") {
+                text += "      MESSAGE WHEN COMPLETED:" + os.EOL;
+
+                const parsedDescription = parser.parseDescription(game.recipes[i].completedDescription, taggedObject ? taggedObject : game.recipes[i], player, true);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].completedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].completedCell(), errors: parsedDescription.errors });
+
+                text += "         ";
+                text += game.recipes[i].completedDescription + os.EOL;
+
+                text += "         ";
+                text += parsedDescription.text + os.EOL;
+            }
+        }
+        await appendText(file, text);
+    }
+
     // Get items next.
     {
         await appendText(file, "ITEMS:");
@@ -620,7 +662,7 @@ testremove = async (file, formatted, player) => {
                         && game.items[k].containerName === ""
                         && game.items[k].container === null
                         && game.items[k].accessible
-                        && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
                         items.push(game.items[k]);
                         itemNames.push(game.items[k].name);
                     }
@@ -693,7 +735,7 @@ testremove = async (file, formatted, player) => {
                         && game.items[j].container.row === object.row
                         && game.items[j].accessible
                         && object.preposition !== ""
-                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
@@ -758,7 +800,7 @@ testremove = async (file, formatted, player) => {
                         && game.items[j].container.row === item.row
                         && game.items[j].accessible
                         && item.prefab.preposition !== ""
-                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
@@ -818,7 +860,7 @@ testremove = async (file, formatted, player) => {
                 for (let j = 0; j < game.items.length; j++) {
                     if (game.items[j].location.name === puzzle.location.name
                         && game.items[j].containerName === `Puzzle: ${puzzle.name}`
-                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(game.items[j]);
                         itemNames.push(game.items[j].name);
                     }
@@ -879,7 +921,7 @@ testremove = async (file, formatted, player) => {
                     if (game.inventoryItems[j].player.name === currentPlayer.name
                         && game.inventoryItems[j].prefab !== null
                         && game.inventoryItems[j].container === null
-                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
                         items.push(game.inventoryItems[j]);
                         itemNames.push(game.inventoryItems[j].name);
                     }
@@ -946,7 +988,7 @@ testremove = async (file, formatted, player) => {
                         && game.inventoryItems[j].container !== null
                         && game.inventoryItems[j].container.row === inventoryItem.row
                         && inventoryItem.prefab.preposition !== ""
-                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
+                        && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
                         items.push(game.inventoryItems[j]);
                         itemNames.push(game.inventoryItems[j].name);
                     }

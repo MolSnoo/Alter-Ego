@@ -615,9 +615,19 @@ class Player {
         if (!isNaN(item.uses)) {
             item.uses--;
 
-            if (item.uses === 0 && item.prefab.nextStage !== null) itemManager.replaceInventoryItem(item, item.prefab.nextStage);
-            else if (item.uses === 0) itemManager.destroyInventoryItem(item);
-            else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
+            if (item.uses === 0) {
+                const nextStage = item.prefab.nextStage ? true : false;
+                if (nextStage && !item.prefab.discreet) {
+                    this.description = parser.removeItem(this.description, item, "hands");
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+                }
+                itemManager.replaceInventoryItem(item, item.prefab.nextStage);
+                if (nextStage && !item.prefab.discreet) {
+                    this.description = parser.addItem(this.description, item, "hands");
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+                }
+            }
+            else game.queue.push(new QueueEntry(Date.now(), "updateCell", item.usesCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.uses));
         }
 
         return;
@@ -627,7 +637,7 @@ class Player {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.location.name}|${item.containerName}`, item.quantity));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.identifier}|${item.location.name}|${item.containerName}`, item.quantity));
         }
 
         if (container instanceof Puzzle) {
@@ -639,9 +649,9 @@ class Player {
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
         }
         else if (container instanceof Item) {
-            container.removeItem(item, slotName);
+            container.removeItem(item, slotName, 1);
             container.description = parser.removeItem(container.description, item, slotName);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         }
         else if (container instanceof Room) {
             container.description = parser.removeItem(container.description, item);
@@ -685,20 +695,21 @@ class Player {
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Items!${oldChildItems[i].name}|${oldChildItems[i].location.name}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Items!${oldChildItems[i].name}|${oldChildItems[i].identifier}|${oldChildItems[i].location.name}|${oldChildItems[i].containerName}`, "0"));
         }
 
         // Add the equipped item to the queue.
         const createdItemData = [
             this.name,
             createdItem.prefab.id,
+            createdItem.identifier,
             createdItem.equipmentSlot,
             createdItem.containerName,
             isNaN(createdItem.quantity) ? "" : createdItem.quantity,
             isNaN(createdItem.uses) ? "" : createdItem.uses,
             createdItem.description
         ];
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
@@ -737,12 +748,12 @@ class Player {
             // Reduce quantity if the quantity is finite.
             if (!isNaN(item.quantity)) {
                 item.quantity--;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${victim.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${victim.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
             }
 
-            container.removeItem(item, container.inventory[slotNo].name);
+            container.removeItem(item, container.inventory[slotNo].name, 1);
             container.description = parser.removeItem(container.description, item, container.inventory[slotNo].name);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${victim.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${victim.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
             // Remove the item from its EquipmentSlot.
             for (let slot = 0; slot < victim.inventory.length; slot++) {
@@ -792,20 +803,21 @@ class Player {
             itemManager.getChildItems(oldChildItems, item);
             for (let i = 0; i < oldChildItems.length; i++) {
                 oldChildItems[i].quantity = 0;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${victim.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${victim.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
             }
 
             // Add the equipped item to the queue.
             const createdItemData = [
                 this.name,
                 createdItem.prefab.id,
+                createdItem.identifier,
                 createdItem.equipmentSlot,
                 createdItem.containerName,
                 isNaN(createdItem.quantity) ? "" : createdItem.quantity,
                 isNaN(createdItem.uses) ? "" : createdItem.uses,
                 createdItem.description
             ];
-            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
             itemManager.insertInventoryItems(game, this, items, slot);
 
@@ -813,25 +825,33 @@ class Player {
             this.carryWeight += createdItem.weight;
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
-                if (container.inventory.length === 1) this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
-                else this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                if (container.inventory.length === 1)
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                else
+                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
             }
             else {
                 if (container.inventory.length === 1) {
                     this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
                     victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
-                    if (!createdItem.prefab.discreet)
-                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
                 }
                 else {
                     this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
                     victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
-                    if (!createdItem.prefab.discreet)
-                        new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}.`).send();
                 }
             }
+            if (!createdItem.prefab.discreet) {
+                if (container.inventory.length === 1)
+                    new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
+                else
+                    new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}.`).send();
 
-            return { itemName: createdItem.name, successful: true };
+                // Add the new item to the player's hands item list.
+                this.description = parser.addItem(this.description, createdItem, "hands");
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+            }
+
+            return { itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id, successful: true };
         }
         // Player failed to steal the item.
         else {
@@ -844,7 +864,7 @@ class Player {
                 victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
             }
 
-            return { itemName: item.name, successful: false };
+            return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
         }
     }
 
@@ -876,7 +896,7 @@ class Player {
         else if (container instanceof Item) {
             container.insertItem(createdItem, slotName);
             container.description = parser.addItem(container.description, item, slotName);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.location.name}|${container.containerName}`, container.description));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
             containerName = container.name;
             preposition = container.prefab ? container.prefab.preposition : "in";
         }
@@ -894,7 +914,7 @@ class Player {
                 for (let i = 0; i < item.inventory[slot].item.length; i++) {
                     deleteChildQuantities(item.inventory[slot].item[i]);
                     item.inventory[slot].item[i].quantity = 0;
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), `Inventory Items!${item.inventory[slot].item[i].prefab.id}|${player.name}|${item.inventory[slot].item[i].equipmentSlot}|${item.inventory[slot].item[i].containerName}`, "0"));
+                    game.queue.push(new QueueEntry(Date.now(), "updateCell", item.inventory[slot].item[i].quantityCell(), `Inventory Items!${item.inventory[slot].item[i].prefab.id}|${item.inventory[slot].item[i].identifier}|${player.name}|${item.inventory[slot].item[i].equipmentSlot}|${item.inventory[slot].item[i].containerName}`, "0"));
                 }
             }
             return;
@@ -902,7 +922,7 @@ class Player {
         deleteChildQuantities(item);
         item.quantity = 0;
         
-        itemManager.insertItems(game, this, items);
+        itemManager.insertItems(game, this.location, items);
 
         this.carryWeight -= item.weight;
         this.member.send(`You discard ${item.singleContainingPhrase}.`);
@@ -913,6 +933,80 @@ class Player {
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
         }
         
+        return;
+    }
+
+    give(game, item, hand, recipient, recipientHand) {
+        // Unequip the item from the player's hand.
+        this.unequip(game, item, hand, null);
+
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < recipient.inventory.length; slot++) {
+            if (recipient.inventory[slot].name === recipientHand) {
+                rowNumber = recipient.inventory[slot].row;
+                break;
+            }
+        }
+
+        var createdItem = itemManager.copyInventoryItem(item, recipient, recipientHand, 1);
+        createdItem.containerName = "";
+        createdItem.container = null;
+        createdItem.row = rowNumber;
+
+        // Equip the item and add it to the recipient's inventory.
+        recipient.inventory[slot].equippedItem = createdItem;
+        recipient.inventory[slot].items.length = 0;
+        recipient.inventory[slot].items.push(createdItem);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === createdItem.row) {
+                game.inventoryItems.splice(i, 1, createdItem);
+                break;
+            }
+        }
+        // Create a list of all the child items.
+        var items = [];
+        itemManager.getChildItems(items, createdItem);
+
+        // Now that the item has been converted, we can update the quantities of child items.
+        var oldChildItems = [];
+        itemManager.getChildItems(oldChildItems, item);
+        for (let i = 0; i < oldChildItems.length; i++) {
+            oldChildItems[i].quantity = 0;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+        }
+
+        // Add the equipped item to the queue.
+        const createdItemData = [
+            recipient.name,
+            createdItem.prefab.id,
+            createdItem.identifier,
+            createdItem.equipmentSlot,
+            createdItem.containerName,
+            isNaN(createdItem.quantity) ? "" : createdItem.quantity,
+            isNaN(createdItem.uses) ? "" : createdItem.uses,
+            createdItem.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${recipient.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+
+        itemManager.insertInventoryItems(game, recipient, items, slot);
+
+        this.carryWeight -= createdItem.weight;
+        recipient.carryWeight += createdItem.weight;
+
+        this.member.send(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
+        recipient.member.send(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
+        if (!createdItem.prefab.discreet) {
+            new Narration(game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
+            // Remove the item from the player's hands item list.
+            this.description = parser.removeItem(this.description, createdItem, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+            // Add the item to the recipient's hands item list.
+            recipient.description = parser.addItem(recipient.description, createdItem, "hands");
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", recipient.descriptionCell(), `Players!${recipient.name}|Description`, recipient.description));
+        }
+
         return;
     }
 
@@ -927,14 +1021,14 @@ class Player {
         }
 
         var createdItem = itemManager.copyInventoryItem(item, this, this.inventory[slot].name, 1);
-        createdItem.containerName = container.prefab.id + '/' + slotName;
+        createdItem.containerName = container.identifier + '/' + slotName;
         createdItem.container = container;
         createdItem.slot = slotName;
 
         // Update container.
         container.insertItem(createdItem, slotName);
         container.description = parser.addItem(container.description, createdItem, slotName);
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
         // Create a list of all the child items.
         var items = [];
@@ -943,11 +1037,10 @@ class Player {
 
         // Now that the item has been converted, we can update the quantities of child items.
         var oldChildItems = [];
-        oldChildItems.push(item);
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
         }
 
         itemManager.insertInventoryItems(game, this, items, slot);
@@ -968,12 +1061,12 @@ class Player {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity)) {
             item.quantity--;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${this.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
         }
 
-        container.removeItem(item, slotName);
+        container.removeItem(item, slotName, 1);
         container.description = parser.removeItem(container.description, item, slotName);
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${this.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
 
         // Remove the item from its EquipmentSlot.
         for (let slot = 0; slot < this.inventory.length; slot++) {
@@ -1023,20 +1116,21 @@ class Player {
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
         }
 
         // Add the equipped item to the queue.
         const createdItemData = [
             this.name,
             createdItem.prefab.id,
+            createdItem.identifier,
             createdItem.equipmentSlot,
             createdItem.containerName,
             isNaN(createdItem.quantity) ? "" : createdItem.quantity,
             isNaN(createdItem.uses) ? "" : createdItem.uses,
             createdItem.description
         ];
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
         itemManager.insertInventoryItems(game, this, items, slot);
         
@@ -1087,7 +1181,7 @@ class Player {
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++) {
             oldChildItems[i].quantity = 0;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
         }
         item.quantity = 0;
 
@@ -1095,13 +1189,14 @@ class Player {
         const createdItemData = [
             this.name,
             createdItem.prefab.id,
+            createdItem.identifier,
             createdItem.equipmentSlot,
             createdItem.containerName,
             isNaN(createdItem.quantity) ? "" : createdItem.quantity,
             isNaN(createdItem.uses) ? "" : createdItem.uses,
             createdItem.description
         ];
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
@@ -1160,6 +1255,105 @@ class Player {
         return;
     }
 
+    async fastEquip(game, item, slotName, bot) {
+        // Get the row number of the EquipmentSlot that the item will go into.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === slotName) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
+        }
+        item.row = rowNumber;
+
+        // Equip the item to the player's equipment slot.
+        this.inventory[slot].equippedItem = item;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(item);
+        // Replace the null entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === item.row) {
+                game.inventoryItems.splice(i, 1, item);
+                break;
+            }
+        }
+
+        // Add the equipped item to the queue.
+        const itemData = [
+            this.name,
+            item.prefab.id,
+            item.identifier,
+            item.equipmentSlot,
+            item.containerName,
+            isNaN(item.quantity) ? "" : item.quantity,
+            isNaN(item.uses) ? "" : item.uses,
+            item.description
+        ];
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!||${this.name}|${item.equipmentSlot}|${item.containerName}`, itemData));
+
+        if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
+            this.member.send(`You take ${item.singleContainingPhrase}.`);
+            if (!item.prefab.discreet) {
+                new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
+                // Add the new item to the player's hands item list.
+                this.description = parser.addItem(this.description, item, "hands");
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+            }
+        }
+        else {
+            this.member.send(`You equip the ${item.name}.`);
+            new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            // Remove mention of any equipped items that this item covers.
+            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
+                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
+                for (let j = 0; j < this.inventory.length; j++) {
+                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                        // Preserve quantity.
+                        const quantity = this.inventory[j].equippedItem.quantity;
+                        this.inventory[j].equippedItem.quantity = 0;
+                        this.description = parser.removeItem(this.description, this.inventory[j].equippedItem, "equipment");
+                        this.inventory[j].equippedItem.quantity = quantity;
+                        break;
+                    }
+                }
+            }
+
+            // Check to make sure that this item isn't covered by something else the player has equipped.
+            var isCovered = false;
+            for (let i = 0; i < this.inventory.length; i++) {
+                if (this.inventory[i].equippedItem !== null) {
+                    for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
+                        if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === item.equipmentSlot) {
+                            isCovered = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            // If it's not covered, add mention of this item to the player's equipment item list.
+            if (!isCovered) {
+                this.description = parser.addItem(this.description, item, "equipment");
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+            }
+
+            // Run equip commands.
+            for (let i = 0; i < item.prefab.equipCommands.length; i++) {
+                const command = item.prefab.equipCommands[i];
+                if (command.startsWith("wait")) {
+                    let args = command.split(" ");
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(command, bot, game, null, this, item);
+                }
+            }
+        }
+        return;
+    }
+
     async unequip(game, item, slotName, hand, bot) {
         // Get the row number of the EquipmentSlot that the item is being unequipped from.
         var rowNumber = 0;
@@ -1174,6 +1368,7 @@ class Player {
         const nullItem = new InventoryItem(
             this,
             null,
+            "",
             slotName,
             "",
             null,
@@ -1191,7 +1386,7 @@ class Player {
                 break;
             }
         }
-        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!|${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", nullItem.equipmentSlot, "", "", "", "", ""]));
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!||${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", "", nullItem.equipmentSlot, "", "", "", "", ""]));
 
         // If the item is going to be put in the player's hand, move it.
         if (hand !== null) {
@@ -1227,7 +1422,7 @@ class Player {
             itemManager.getChildItems(oldChildItems, item);
             for (let i = 0; i < oldChildItems.length; i++) {
                 oldChildItems[i].quantity = 0;
-                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", oldChildItems[i].quantityCell(), `Inventory Items!${oldChildItems[i].prefab.id}|${oldChildItems[i].identifier}|${this.name}|${oldChildItems[i].equipmentSlot}|${oldChildItems[i].containerName}`, "0"));
             }
             item.quantity = 0;
 
@@ -1235,13 +1430,14 @@ class Player {
             const createdItemData = [
                 this.name,
                 createdItem.prefab.id,
+                createdItem.identifier,
                 createdItem.equipmentSlot,
                 createdItem.containerName,
                 isNaN(createdItem.quantity) ? "" : createdItem.quantity,
                 isNaN(createdItem.uses) ? "" : createdItem.uses,
                 createdItem.description
             ];
-            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!|${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
+            game.queue.push(new QueueEntry(Date.now(), "updateRow", createdItem.itemCells(), `Inventory Items!||${this.name}|${createdItem.equipmentSlot}|${createdItem.containerName}`, createdItemData));
 
             itemManager.insertInventoryItems(game, this, items, slot);
 
@@ -1292,15 +1488,99 @@ class Player {
         return;
     }
 
-    viewInventory(game, possessive) {
+    async fastUnequip(game, item, bot) {
+        // Get the row number of the EquipmentSlot that the item is being unequipped from.
+        var rowNumber = 0;
+        for (var slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === item.equipmentSlot) {
+                rowNumber = this.inventory[slot].row;
+                break;
+            }
+        }
+
+        // Replace this inventory slot with a null item.
+        const nullItem = new InventoryItem(
+            this,
+            null,
+            "",
+            item.equipmentSlot,
+            "",
+            null,
+            null,
+            "",
+            rowNumber
+        );
+        this.inventory[slot].equippedItem = null;
+        this.inventory[slot].items.length = 0;
+        this.inventory[slot].items.push(nullItem);
+        this.carryWeight -= item.weight * item.quantity;
+        // Replace the equipped item's entry in the inventoryItems list.
+        for (let i = 0; i < game.inventoryItems.length; i++) {
+            if (game.inventoryItems[i].row === item.row) {
+                game.inventoryItems.splice(i, 1, nullItem);
+                break;
+            }
+        }
+        game.queue.push(new QueueEntry(Date.now(), "updateRow", nullItem.itemCells(), `Inventory Items!||${this.name}|${nullItem.equipmentSlot}|${nullItem.containerName}`, [this.name, "NULL", "", nullItem.equipmentSlot, "", "", "", "", ""]));
+
+        if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
+            // Remove the item from the player's hands item list.
+            if (!item.prefab.discreet)
+                this.description = parser.removeItem(this.description, item, "hands");
+        }
+        else {
+            this.member.send(`You unequip the ${item.name}.`);
+            new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
+            // Remove mention of this item from the player's equipment item list.
+            this.description = parser.removeItem(this.description, item, "equipment");
+            // Find any items that were covered by this item and add them to the equipment item list.
+            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
+                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
+                for (let j = 0; j < this.inventory.length; j++) {
+                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                        // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
+                        const coveringItems = game.inventoryItems.filter(item =>
+                            item.player.id === this.id &&
+                            item.prefab !== null &&
+                            item.equipmentSlot !== "RIGHT HAND" &&
+                            item.equipmentSlot !== "LEFT HAND" &&
+                            item.containerName === "" &&
+                            item.container === null &&
+                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].name)
+                        );
+                        if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
+                        break;
+                    }
+                }
+            }
+
+            // Run unequip commands.
+            for (let i = 0; i < item.prefab.unequipCommands.length; i++) {
+                const command = item.prefab.unequipCommands[i];
+                if (command.startsWith("wait")) {
+                    let args = command.split(" ");
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(command, bot, game, null, this, item);
+                }
+            }
+        }
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+        return;
+    }
+
+    viewInventory(possessive, useID) {
         var itemString = `__${possessive} inventory:__\n`;
         for (let slot = 0; slot < this.inventory.length; slot++) {
-            //itemString += `${equippedItems[i].equipmentSlot}: [${equippedItems[i].prefab.name}]\n `;
             itemString += `${this.inventory[slot].name}: `;
             const equippedItem = this.inventory[slot].equippedItem;
             if (equippedItem === null) itemString += `[ ]\n`;
             else {
-                itemString += `[${equippedItem.prefab.name}]\n`;
+                itemString += `[${useID ? equippedItem.identifier ? equippedItem.identifier : equippedItem.prefab.id : equippedItem.name}]\n`;
                 let listChildItems = function (itemString, item) {
                     // If item is capable of holding other items, show what items it has inside.
                     if (item.inventory.length > 0) {
@@ -1310,12 +1590,14 @@ class Player {
                             if (item.inventory[i].item.length === 0) itemString += `[ ]`;
                             else {
                                 for (let j = 0; j < item.inventory[i].item.length; j++) {
-                                    if (item.inventory[i].item[j].quantity === 1) itemString += `[${item.inventory[i].item[j].name}] `;
+                                    const childItem = item.inventory[i].item[j];
+                                    if (childItem.quantity === 1) itemString += `[${useID ? childItem.identifier ? childItem.identifier : childItem.prefab.id : childItem.name}] `;
+                                    else if (useID) itemString += `[${childItem.quantity} ${childItem.identifier ? childItem.identifier : childItem.prefab.id}] `;
                                     else {
-                                        if (item.inventory[i].item[j].pluralName) itemString += `[${item.inventory[i].item[j].quantity} ${item.inventory[i].item[j].pluralName}] `;
-                                        else itemString += `[${item.inventory[i].item[j].quantity} ${item.inventory[i].item[j].name}] `;
+                                        if (childItem.pluralName) itemString += `[${childItem.quantity} ${childItem.pluralName}] `;
+                                        else itemString += `[${childItem.quantity} ${childItem.name}] `;
                                     }
-                                    if (item.inventory[i].item[j].inventory.length !== 0) parentItemIndexes.push(j);
+                                    if (childItem.inventory.length !== 0) parentItemIndexes.push(j);
                                 }
                                 for (let j = 0; j < parentItemIndexes.length; j++) {
                                     itemString += `\n`;
@@ -1331,7 +1613,38 @@ class Player {
             }
         }
 
-        return itemString;
+        return itemString.replace(/\n{2,}/g, '\n');
+    }
+
+    craft(game, item1, item2, recipe) {
+        if (!item1.prefab.discreet) this.description = parser.removeItem(this.description, item1, "hands");
+        if (!item2.prefab.discreet) this.description = parser.removeItem(this.description, item2, "hands");
+        itemManager.replaceInventoryItem(item1, recipe.products[0]);
+        itemManager.replaceInventoryItem(item2, recipe.products[1]);
+
+        this.sendDescription(recipe.completedDescription, recipe);
+        // Decide if this should be narrated or not.
+        if (recipe.products[0] && !recipe.products[0].discreet || recipe.products[1] && !recipe.products[1].discreet) {
+            let productPhrase = "";
+            let product1Phrase = "";
+            let product2Phrase = "";
+            if (recipe.products[0] && !recipe.products[0].discreet) {
+                product1Phrase = recipe.products[0].singleContainingPhrase;
+                this.description = parser.addItem(this.description, item1, "hands");
+            }
+            if (recipe.products[1] && !recipe.products[1].discreet) {
+                product2Phrase = recipe.products[1].singleContainingPhrase;
+                this.description = parser.addItem(this.description, item2, "hands");
+            }
+            if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
+            else if (product1Phrase !== "") productPhrase = product1Phrase;
+            else if (product2Phrase !== "") productPhrase = product2Phrase;
+
+            if (productPhrase !== "") new Narration(game, this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
+        }
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
+
+        return;
     }
 
     attemptPuzzle(bot, game, puzzle, item, password, command, misc) {

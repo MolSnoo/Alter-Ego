@@ -5,14 +5,14 @@ module.exports.config = {
     description: "Uses an item in your inventory or an object in a room.",
     details: "Uses an item from your inventory. Not all items have programmed uses. Those that do will inflict you "
         + "with or cure you of a status effect of some kind. Status effects can be good, bad, or neutral, but it "
-        + "should be fairly obvious what kind of effect a particular item will have on you. For example, "
-        + "sleep medicine will make you fall asleep, a first aid kit will heal injuries, etc.\n\n"
-        + "Some items can be used on objects in the room you're in. For example, using a key on a locker "
+        + "should be fairly obvious what kind of effect a particular item will have on you.\n\n"
+        + "Some items can be used on objects. For example, using a key on a locker "
         + "will unlock the locker, using a crowbar on a crate will open the crate, etc.\n\n"
-        + "You can even use objects in the room without using an item. Not all objects are usable. Anything after the name of the object "
-        + "will be treated as a password or combination. Passwords and combinations are case-sensitive. "
-        + "If you aren't prompted to enter a password or combination, just the name of the object will work. "
-        + "If the object is a lock, you can relock it using the lock command. "
+        + "Some objects are capable of turning items into other items. For example, an oven can turn frozen food "
+        + "into cooked food. In order to use objects like this, drop the items in the object and use it.\n\n"
+        + "You can even use objects in the room without using an item at all. Not all objects are usable. "
+        + "Anything after the name of the object will be treated as a password or combination. "
+        + "Passwords and combinations are case-sensitive. If the object is a lock of some kind, you can relock it using the lock command. "
         + "Other objects may require a puzzle to be solved before they do anything special.",
     usage: `${settings.commandPrefix}use first aid kit\n`
         + `${settings.commandPrefix}eat food\n`
@@ -22,7 +22,8 @@ module.exports.config = {
         + `${settings.commandPrefix}type keypad YAMA NI NOBORU\n`
         + `${settings.commandPrefix}unlock locker 1 12-22-11\n`
         + `${settings.commandPrefix}press button\n`
-        + `${settings.commandPrefix}flip lever`,
+        + `${settings.commandPrefix}flip lever\n`
+        + `${settings.commandPrefix}use blender`,
     usableBy: "Player",
     aliases: ["use", "unlock", "lock", "type", "activate", "flip", "push", "press", "ingest", "consume", "swallow", "eat", "drink"]
 };
@@ -74,19 +75,49 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (puzzles[i].parentObject !== null &&
                 (parsedInput.startsWith(puzzles[i].parentObject.name + ' ') || parsedInput === puzzles[i].parentObject.name)) {
                 puzzle = puzzles[i];
-                parsedInput = parsedInput.substring(puzzle.parentObject.name.length).trim();
+                //parsedInput = parsedInput.substring(puzzle.parentObject.name.length).trim();
                 input = input.substring(puzzle.parentObject.name.length).trim();
                 break;
             }
             else if (parsedInput.startsWith(puzzles[i].name + ' ') || parsedInput === puzzles[i].name) {
                 puzzle = puzzles[i];
-                parsedInput = parsedInput.substring(puzzle.name.length).trim();
+                //parsedInput = parsedInput.substring(puzzle.name.length).trim();
                 input = input.substring(puzzle.name.length).trim();
                 break;
             }
         }
-        if (puzzle === null) return message.reply(`couldn't find "${input}" to ${command}. Try using a different command?`);
-        password = input;
+        if (puzzle !== null) {
+            password = input;
+            if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
+        }
+    }
+
+    // Check if the player specified an object.
+    var object = null;
+    if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
+        var objects = game.objects.filter(object => object.location.name === player.location.name);
+        for (let i = 0; i < objects.length; i++) {
+            if (objects[i].name === parsedInput) {
+                object = objects[i];
+                break;
+            }
+        }
+    }
+
+    // If there is an object, do the required behavior.
+    if (object !== null && object.recipeTag !== "" && object.activatable) {
+        const narrate = puzzle === null ? true : false;
+        const time = new Date().toLocaleTimeString();
+        if (object.activated) {
+            object.deactivate(game, player, narrate);
+            // Post log message.
+            game.logChannel.send(`${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
+        }
+        else {
+            object.activate(game, player, narrate);
+            // Post log message.
+            game.logChannel.send(`${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
+        }
     }
 
     // If there is a puzzle, do the required behavior.
@@ -102,14 +133,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
+        const itemName = item.identifier ? item.identifier : item.prefab.id;
         const response = player.use(game, item);
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} used ${item.name} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            game.logChannel.send(`${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
         else return message.reply(response);
     }
-    else return message.reply(`couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (object === null) return message.reply(`couldn't find "${input}" to ${command}. Try using a different command?`);
 };

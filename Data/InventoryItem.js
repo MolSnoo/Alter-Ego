@@ -1,9 +1,10 @@
 ﻿const settings = include('settings.json');
 
 class InventoryItem {
-    constructor(player, prefab, equipmentSlot, containerName, quantity, uses, description, row) {
+    constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row) {
         this.player = player;
         this.prefab = prefab;
+        this.identifier = identifier;
         this.name = prefab ? prefab.name : "";
         this.pluralName = prefab ? prefab.pluralName : "";
         this.singleContainingPhrase = prefab ? prefab.singleContainingPhrase : "";
@@ -28,6 +29,7 @@ class InventoryItem {
                     let matchedItem = this.inventory[i].item.find(inventoryItem =>
                         inventoryItem.prefab !== null && item.prefab !== null &&
                         inventoryItem.prefab.id === item.prefab.id &&
+                        inventoryItem.identifier === item.identifier &&
                         inventoryItem.containerName === item.containerName &&
                         inventoryItem.slot === item.slot &&
                         (inventoryItem.uses === item.uses || isNaN(inventoryItem.uses) && isNaN(item.uses)) &&
@@ -44,15 +46,15 @@ class InventoryItem {
         }
     }
 
-    removeItem(item, slot) {
+    removeItem(item, slot, removedQuantity) {
         for (let i = 0; i < this.inventory.length; i++) {
             if (this.inventory[i].name === slot) {
                 for (let j = 0; j < this.inventory[i].item.length; j++) {
                     if (this.inventory[i].item[j].name === item.name && this.inventory[i].item[j].description === item.description) {
                         if (item.quantity === 0) this.inventory[i].item.splice(j, 1);
-                        this.inventory[i].weight -= item.weight;
-                        this.inventory[i].takenSpace -= item.prefab.size;
-                        this.weight -= item.weight;
+                        this.inventory[i].weight -= item.weight * removedQuantity;
+                        this.inventory[i].takenSpace -= item.prefab.size * removedQuantity;
+                        this.weight -= item.weight * removedQuantity;
                         break;
                     }
                 }

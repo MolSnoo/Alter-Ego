@@ -32,33 +32,45 @@ module.exports.run = async (bot, game, message, command, args) => {
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    // First find the item in the player's inventory, if applicable.
+    // First, find the item in the player's inventory.
     var item = null;
+    // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
+    var rightHand = null;
+    var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
-            item = player.inventory[slot].equippedItem;
-            break;
-        }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
-            item = player.inventory[slot].equippedItem;
-            break;
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
+        if (player.inventory[slot].name === "RIGHT HAND")
+            rightHand = player.inventory[slot];
         else if (player.inventory[slot].name === "LEFT HAND")
-            break;
+            leftHand = player.inventory[slot];
     }
+    // Check for the identifier first.
+    if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === parsedInput)
+        item = rightHand.equippedItem;
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" && leftHand.equippedItem.identifier === parsedInput)
+        item = leftHand.equippedItem;
+    // Check for the prefab ID next.
+    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.prefab.id === parsedInput)
+        item = rightHand.equippedItem;
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.prefab.id === parsedInput)
+        item = leftHand.equippedItem;
+    // Check for the name last.
+    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.name === parsedInput)
+        item = rightHand.equippedItem;
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === parsedInput)
+        item = leftHand.equippedItem;
     if (item === null) return message.reply(`couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
 
     // Use the player's item.
+    const itemName = item.identifier ? item.identifier : item.prefab.id;
     const response = player.use(game, item);
     if (response === "" || !response) {
-        message.channel.send(`Successfully used ${item.name} for ${player.name}.`);
+        message.channel.send(`Successfully used ${itemName} for ${player.name}.`);
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${player.name} forcefully used ${item.name} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} forcefully used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
         return;
     }
     else if (response.startsWith("that item has no programmed use")) return message.reply("that item has no programmed use.");
-    else if (response.startsWith("you attempt to use the")) return message.reply(`${item.name} currently has no effect on ${player.name}.`);
+    else if (response.startsWith("you attempt to use the")) return message.reply(`${itemName} currently has no effect on ${player.name}.`);
     else return message.reply(response);
 };

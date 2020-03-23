@@ -17,6 +17,8 @@ module.exports.config = {
         + `${settings.commandPrefix}load all\n`
         + `${settings.commandPrefix}load rooms\n`
         + `${settings.commandPrefix}load objects\n`
+        + `${settings.commandPrefix}load prefabs\n`
+        + `${settings.commandPrefix}load recipes\n`
         + `${settings.commandPrefix}load items\n`
         + `${settings.commandPrefix}load puzzles\n`
         + `${settings.commandPrefix}load status effects\n`
@@ -41,6 +43,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         await loader.loadRooms(game, false);
         await loader.loadObjects(game, false);
         await loader.loadPrefabs(game, false);
+        await loader.loadRecipes(game, false);
         await loader.loadItems(game, false);
         await loader.loadPuzzles(game, false);
         await loader.loadStatusEffects(game, false);
@@ -60,8 +63,12 @@ module.exports.run = async (bot, game, message, command, args) => {
             let error = loader.checkPrefab(game.prefabs[i], game);
             if (error instanceof Error) errors.push(error);
         }
+        for (let i = 0; i < game.recipes.length; i++) {
+            let error = loader.checkRecipe(game.recipes[i]);
+            if (error instanceof Error) errors.push(error);
+        }
         for (let i = 0; i < game.items.length; i++) {
-            let error = loader.checkItem(game.items[i]);
+            let error = loader.checkItem(game.items[i], game);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.puzzles.length; i++) {
@@ -77,7 +84,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.inventoryItems.length; i++) {
-            let error = loader.checkInventoryItem(game.inventoryItems[i]);
+            let error = loader.checkInventoryItem(game.inventoryItems[i], game);
             if (error instanceof Error) errors.push(error);
         }
         if (errors.length > 0) {
@@ -92,6 +99,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 printData(game.rooms);
                 printData(game.objects);
                 printData(game.prefabs);
+                printData(game.recipes);
                 printData(game.items);
                 printData(game.puzzles);
                 printData(game.statusEffects);
@@ -103,6 +111,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.rooms.length + " rooms, " +
                 game.objects.length + " objects, " +
                 game.prefabs.length + " prefabs, " +
+                game.recipes.length + " recipes, " +
                 game.items.length + " items, " +
                 game.puzzles.length + " puzzles, " +
                 game.statusEffects.length + " status effects, " +
@@ -151,6 +160,16 @@ module.exports.run = async (bot, game, message, command, args) => {
             await loader.loadPrefabs(game, true);
             if (settings.debug) printData(game.prefabs);
             message.channel.send(game.prefabs.length + " prefabs retrieved.");
+        }
+        catch (err) {
+            message.channel.send(err);
+        }
+    }
+    else if (args[0] === "recipes") {
+        try {
+            await loader.loadRecipes(game, true);
+            if (settings.debug) printData(game.recipes);
+            message.channel.send(game.recipes.length + " recipes retrieved.");
         }
         catch (err) {
             message.channel.send(err);

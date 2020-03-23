@@ -136,18 +136,28 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         container = defaultDropOpject;
     }
 
+    let topContainer = container;
+    while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+        topContainer = topContainer.container;
+
+    if (topContainer !== null) {
+        const topContainerPreposition = topContainer.preposition ? topContainer.preposition : "in";
+        if (topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+            return message.reply(`you cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
+    }
+
     player.drop(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
     if (container.hasOwnProperty("isHidingSpot"))
-        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.preposition} ${container.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.preposition} ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved"))
-        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
     // Container is an Item.
     else if (container.hasOwnProperty("inventory"))
-        game.logChannel.send(`${time} - ${player.name} dropped ${item.name} ${container.prefab.preposition} ${slotName} of ${container.name} in ${player.location.channel}`);
+        game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slotName} of ${container.identifier} in ${player.location.channel}`);
     
     return;
 };

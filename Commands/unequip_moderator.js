@@ -51,34 +51,45 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = parsedInput.split(" FROM ");
-    var itemName = newArgs[0].trim();
-    var slotName = newArgs[1] ? newArgs[1] : "";
 
     var item = null;
+    var slotName = "";
     for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName !== "" && slotName !== "RIGHT HAND" && slotName !== "LEFT HAND" && player.inventory[i].name === slotName) {
-            if (player.inventory[i].equippedItem !== null && player.inventory[i].equippedItem.name === itemName) {
+        if (parsedInput.endsWith(` FROM ${player.inventory[i].name}`)) {
+            slotName = player.inventory[i].name;
+            let itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
+            if (player.inventory[i].equippedItem === null) return message.reply(`nothing is equipped to ${slotName}.`);
+            if (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === itemName ||
+                player.inventory[i].equippedItem.prefab.id === itemName ||
+                player.inventory[i].equippedItem.name === itemName) {
                 item = player.inventory[i].equippedItem;
                 break;
             }
             else return message.reply(`couldn't find "${itemName}" equipped to ${slotName}.`);
         }
-        else if (slotName === "" && player.inventory[i].equippedItem !== null && player.inventory[i].equippedItem.name === itemName) {
+        else if (player.inventory[i].equippedItem !== null &&
+            (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === parsedInput ||
+            player.inventory[i].equippedItem.prefab.id === parsedInput ||
+            player.inventory[i].equippedItem.name === parsedInput)) {
             item = player.inventory[i].equippedItem;
             slotName = player.inventory[i].name;
             break;
         }
     }
-    if (slotName !== "" && item === null) return message.reply(`couldn't find equipment slot "${slotName}".`);
-    if (item === null) return message.reply(`couldn't find equipped item "${itemName}".`);
+    if (slotName === "RIGHT HAND" || slotName === "LEFT HAND")
+        return message.reply(`cannot unequip items from either of your hands. To get rid of this item, use the drop command.`);
+    if (parsedInput.includes(" FROM ") && slotName === "") {
+        slotName = parsedInput.substring(parsedInput.lastIndexOf(" FROM ") + " FROM ".length).trim();
+        return message.reply(`couldn't find equipment slot "${slotName}".`);
+    }
+    if (item === null) return message.reply(`couldn't find equipped item "${parsedInput}".`);
 
     player.unequip(game, item, slotName, hand, bot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} forcefully unequipped ${item.name} from ${slotName} in ${player.location.channel}`);
+    game.logChannel.send(`${time} - ${player.name} forcefully unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} in ${player.location.channel}`);
 
-    message.channel.send(`Successfully unequipped ${item.name} from ${player.name}'s ${slotName}.`);
+    message.channel.send(`Successfully unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${player.name}'s ${slotName}.`);
 
     return;
 };

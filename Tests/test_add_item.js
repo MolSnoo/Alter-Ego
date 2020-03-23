@@ -34,6 +34,7 @@ exports.run = function () {
     test_addItem_12();
     test_addItem_13();
     test_addItem_14();
+    test_addItem_15();
     return;
 };
 
@@ -271,5 +272,17 @@ function test_addItem_14() {
     assert.ok(
         actual4 === result4,
         actual4
+    );
+}
+
+function test_addItem_15() {
+    const text = `<desc><s>This looks like a run of the mill blender.</s> <s>You could use this to blend fruit or possibly other things.</s> <s>In it are <il><item>an APPLE BANANA SMOOTHIE</item></il>.</s></desc>`;
+    const item = new Item("APPLE", 1, "an APPLE");
+
+    const result = `<desc><s>This looks like a run of the mill blender.</s> <s>You could use this to blend fruit or possibly other things.</s> <s>In it are <il><item>an APPLE</item> and <item>an APPLE BANANA SMOOTHIE</item></il>.</s></desc>`;
+    const actual = parser.addItem(text, item);
+    assert.ok(
+        actual === result,
+        actual
     );
 }

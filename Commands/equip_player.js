@@ -72,7 +72,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     player.equip(game, item, slotName, hand, bot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} equipped ${item.name} to ${slotName} in ${player.location.channel}`);
+    game.logChannel.send(`${time} - ${player.name} equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
 
     return;
 };

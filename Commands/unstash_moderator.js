@@ -52,63 +52,87 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = parsedInput.split(" FROM ");
-    var itemName = newArgs[0].trim();
-    newArgs = newArgs[1] ? newArgs[1].split(" OF ") : [];
-    var containerName = newArgs[1] ? newArgs[1] : newArgs[0];
-    var slotName = newArgs[1] ? newArgs[0] : "";
 
-    // Gather all items in the player's inventory with a matching name.
-    var items = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null && item.prefab.name === itemName && (item.quantity > 0 || isNaN(item.quantity)));
-    if (items.length > 0) {
-        // Look for the container.
-        var matches = [];
-        var container = null;
-        var item = null;
-        // Container name was specified.
-        if (containerName !== "" && containerName !== null && containerName !== undefined) {
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].container !== null && items[i].container.name === containerName)
-                    matches.push({ container: items[i].container, slot: items[i].slot, item: items[i] });
-            }
-            if (matches.length === 0) return message.reply(`couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
+    var item = null;
+    var container = null;
+    var slotName = "";
+    const playerItems = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
+    for (let i = 0; i < playerItems.length; i++) {
+        // If parsedInput is only the item's name, we've found the item.
+        if (playerItems[i].identifier !== "" && playerItems[i].identifier === parsedInput ||
+            playerItems[i].prefab.id === parsedInput ||
+            playerItems[i].name === parsedInput) {
+            item = playerItems[i];
+            container = playerItems[i].container;
+            slotName = playerItems[i].slot;
+            if (playerItems[i].container === null) continue;
+            break;
+        }
+        // A container was specified.
+        if (playerItems[i].identifier !== "" && parsedInput.startsWith(`${playerItems[i].identifier} FROM `) ||
+            parsedInput.startsWith(`${playerItems[i].prefab.id} FROM `) ||
+            parsedInput.startsWith(`${playerItems[i].name} FROM `)) {
+            let containerName;
+            if (playerItems[i].identifier !== "" && parsedInput.startsWith(`${playerItems[i].identifier} FROM `))
+                containerName = parsedInput.substring(`${playerItems[i].identifier} FROM `.length).trim();
+            else if (parsedInput.startsWith(`${playerItems[i].prefab.id} FROM `))
+                containerName = parsedInput.substring(`${playerItems[i].prefab.id} FROM `.length).trim();
+            else if (parsedInput.startsWith(`${playerItems[i].name} FROM `))
+                containerName = parsedInput.substring(`${playerItems[i].name} FROM `.length).trim();
 
-            // Slot name was specified.
-            if (slotName !== "" && slotName !== null && slotName !== undefined) {
-                for (let i = 0; i < matches.length; i++) {
-                    for (let slot = 0; slot < matches[i].container.inventory.length; slot++) {
-                        if (matches[i].container.inventory[slot].name === slotName && matches[i].slot === slotName) {
-                            container = matches[i].container;
-                            item = matches[i].item;
-                            break;
+            if (playerItems[i].container !== null) {
+                // Slot name was specified.
+                if (playerItems[i].container.identifier !== "" && containerName.endsWith(` OF ${playerItems[i].container.identifier}`) ||
+                    containerName.endsWith(` OF ${playerItems[i].container.prefab.id}`) ||
+                    containerName.endsWith(` OF ${playerItems[i].container.name}`)) {
+                    let tempSlotName;
+                    if (playerItems[i].container.identifier !== "" && containerName.endsWith(` OF ${playerItems[i].container.identifier}`))
+                        tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.identifier}`));
+                    else if (containerName.endsWith(` OF ${playerItems[i].container.prefab.id}`))
+                        tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.prefab.id}`));
+                    else if (containerName.endsWith(` OF ${playerItems[i].container.name}`))
+                        tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.name}`));
+
+                    if (playerItems[i].container.hasOwnProperty("inventory")) {
+                        for (let slot = 0; slot < playerItems[i].container.inventory.length; slot++) {
+                            if (playerItems[i].container.inventory[slot].name === tempSlotName && playerItems[i].slot === tempSlotName) {
+                                item = playerItems[i];
+                                container = playerItems[i].container;
+                                slotName = tempSlotName;
+                                break;
+                            }
                         }
                     }
+                    if (item !== null) break;
                 }
-                if (container === null) return message.reply(`couldn't find "${containerName}" in ${player.name}'s inventory with inventory slot "${slotName}".`);
+                // Only a container name was specified.
+                else if (playerItems[i].container.identifier !== "" && playerItems[i].container.identifier === containerName ||
+                    playerItems[i].container.prefab.id === containerName ||
+                    playerItems[i].container.name === containerName) {
+                    item = playerItems[i];
+                    container = playerItems[i].container;
+                    slotName = playerItems[i].slot;
+                    break;
+                }
             }
-            // Slot name wasn't specified. Pick the first container.
-            else {
-                item = matches[0].item;
-                container = item.container;
-                slotName = item.slot;
-            }
-        }
-        // Container name wasn't specified. Select the first item in the player's inventory with a matching name.
-        else {
-            item = items[0];
-            container = item ? item.container : null;
-            slotName = item ? item.slot : null;
         }
     }
-    if (items.length === 0 || item === null || item === undefined) return message.reply(`couldn't find item "${itemName}" in ${player.name}'s inventory.`);
-    if (item !== null && item !== undefined && container === null) return message.reply(`${item.name} is not contained in another item and cannot be unstashed.`);
+    if (item === null) {
+        if (parsedInput.includes(" FROM ")) {
+            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            return message.reply(`couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
+        }
+        else return message.reply(`couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
+    }
+    if (item !== null && container === null) return message.reply(`${item.identifier ? item.identifier : item.prefab.id} is not contained in another item and cannot be unstashed.`);
 
     player.unstash(game, item, hand, container, slotName);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} forcefully unstashed ${item.name} from ${slotName} of ${container.name} in ${player.location.channel}`);
+    game.logChannel.send(`${time} - ${player.name} forcefully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
-    message.channel.send(`Successfully unstashed ${item.name} from ${slotName} of ${container.name} for ${player.name}.`);
+    message.channel.send(`Successfully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} for ${player.name}.`);
 
     return;
 };

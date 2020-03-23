@@ -5,6 +5,7 @@ const Exit = include(`${settings.dataDir}/Exit.js`);
 const Room = include(`${settings.dataDir}/Room.js`);
 const Object = include(`${settings.dataDir}/Object.js`);
 const Prefab = include(`${settings.dataDir}/Prefab.js`);
+const Recipe = include(`${settings.dataDir}/Recipe.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
@@ -128,6 +129,12 @@ module.exports.checkRoom = function (room) {
 
 module.exports.loadObjects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
+        // Clear all recipe intervals so they don't continue after these objects are unloaded.
+        for (let i = 0; i < game.objects.length; i++) {
+            clearInterval(game.objects[i].recipeInterval);
+            clearInterval(game.objects[i].process.timer);
+        }
+
         sheets.getDataFormulas(settings.objectSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
@@ -135,9 +142,13 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             const columnLocation = 1;
             const columnAccessibility = 2;
             const columnChildPuzzle = 3;
-            const columnHidingSpot = 4;
-            const columnPreposition = 5;
-            const columnDescription = 6;
+            const columnRecipeTag = 4;
+            const columnActivatable = 5;
+            const columnActivated = 6;
+            const columnAutoDeactivate = 7;
+            const columnHidingSpot = 8;
+            const columnPreposition = 9;
+            const columnDescription = 10;
 
             game.objects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -147,6 +158,10 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                         sheet[i][columnLocation],
                         sheet[i][columnAccessibility] === true,
                         sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle] : "",
+                        sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag] : "",
+                        sheet[i][columnActivatable] === true,
+                        sheet[i][columnActivated] === true,
+                        sheet[i][columnAutoDeactivate] === true,
                         sheet[i][columnHidingSpot] === true,
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
@@ -238,10 +253,6 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
-                // Create a list of all prefabs this prefab will turn into when destroyed.
-                var nextStages = sheet[i][columnNextStage] ? sheet[i][columnNextStage].split(',') : [];
-                for (let j = 0; j < nextStages.length; j++)
-                    nextStages[j] = nextStages[j].trim();
                 // Create a list of equipment slots this prefab can be equipped to.
                 var equipmentSlots = sheet[i][columnSlots] ? sheet[i][columnSlots].split(',') : [];
                 for (let j = 0; j < equipmentSlots.length; j++)
@@ -355,18 +366,111 @@ module.exports.checkPrefab = function (prefab, game) {
     return;
 };
 
+module.exports.loadRecipes = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        sheets.getDataFormulas(settings.recipeSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnIngredients = 0;
+            const columnObjectTag = 1;
+            const columnDuration = 2;
+            const columnProducts = 3;
+            const columnInitiatedDescription = 4;
+            const columnCompletedDescription = 5;
+
+            game.recipes.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                // Separate the ingredients and sort them in alphabetical order.
+                var ingredients = sheet[i][columnIngredients] ? sheet[i][columnIngredients].split(',') : [];
+                ingredients.sort(function (a, b) {
+                    let trimmedA = a.trim();
+                    let trimmedB = b.trim();
+                    if (trimmedA < trimmedB) return -1;
+                    if (trimmedA > trimmedB) return 1;
+                    return 0;
+                });
+                // For each ingredient, find its Prefab.
+                for (let j = 0; j < ingredients.length; j++) {
+                    ingredients[j] = ingredients[j].trim();
+                    let prefab = game.prefabs.find(prefab => prefab.id === ingredients[j] && prefab.id !== "");
+                    if (prefab) ingredients[j] = prefab;
+                }
+                // Separate the products.
+                var products = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
+                // For each product, find its Prefab.
+                for (let j = 0; j < products.length; j++) {
+                    products[j] = products[j].trim();
+                    let prefab = game.prefabs.find(prefab => prefab.id === products[j] && prefab.id !== "");
+                    if (prefab) products[j] = prefab;
+                }
+
+                game.recipes.push(
+                    new Recipe(
+                        ingredients,
+                        sheet[i][columnObjectTag] ? sheet[i][columnObjectTag] : "",
+                        sheet[i][columnDuration] ? sheet[i][columnDuration].toLowerCase() : "0s",
+                        products,
+                        sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription] : "",
+                        sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription] : "",
+                        i + 1
+                    )
+                );
+            }
+            var errors = [];
+            for (let i = 0; i < game.recipes.length; i++) {
+                if (doErrorChecking) {
+                    let error = exports.checkRecipe(game.recipes[i]);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkRecipe = function (recipe) {
+    if (recipe.ingredients.length === 0)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
+    for (let i = 0; i < recipe.ingredients.length; i++) {
+        if (!(recipe.ingredients[i] instanceof Prefab))
+            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.ingredients[i]}" in ingredients is not a prefab.`);
+    }
+    if (recipe.ingredients.length > 2 && recipe.objectTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require an object tag.`);
+    if (recipe.products.length > 2 && recipe.objectTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require an object tag.`);
+    const timeInt = recipe.duration.substring(0, recipe.duration.length - 1);
+    if (recipe.duration !== "" && (isNaN(timeInt) || !recipe.duration.endsWith('s') && !recipe.duration.endsWith('m') && !recipe.duration.endsWith('h')))
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Duration format is incorrect. Must be a number followed by 's', 'm', or 'h'.`);
+    if (recipe.objectTag === "" && recipe.duration !== "0s")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without an object tag cannot have a duration.`);
+    for (let i = 0; i < recipe.products.length; i++) {
+        if (!(recipe.products[i] instanceof Prefab))
+            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.products[i]}" in products is not a prefab.`);
+    }
+};
+
 module.exports.loadItems = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getDataFormulas(settings.itemSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
-            const columnLocation = 1;
-            const columnAccessibility = 2;
-            const columnContainer = 3;
-            const columnQuantity = 4;
-            const columnUses = 5;
-            const columnDescription = 6;
+            const columnIdentifier = 1;
+            const columnLocation = 2;
+            const columnAccessibility = 3;
+            const columnContainer = 4;
+            const columnQuantity = 5;
+            const columnUses = 6;
+            const columnDescription = 7;
 
             game.items.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -376,6 +480,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 game.items.push(
                     new Item(
                         prefab ? prefab : sheet[i][columnPrefab],
+                        sheet[i][columnIdentifier] ? sheet[i][columnIdentifier] : "",
                         sheet[i][columnLocation],
                         sheet[i][columnAccessibility] === true,
                         sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
@@ -412,9 +517,9 @@ module.exports.loadItems = function (game, doErrorChecking) {
             for (let index = 0; index < childItemIndexes.length; index++) {
                 const i = childItemIndexes[index];
                 const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
-                const prefabName = containerName[0] ? containerName[0].trim() : "";
+                const identifier = containerName[0] ? containerName[0].trim() : "";
                 const slotName = containerName[1] ? containerName[1].trim() : "";
-                let possibleContainers = game.items.filter(item => item.prefab.id === prefabName && item.location.name === game.items[i].location.name);
+                let possibleContainers = game.items.filter(item => item.identifier === identifier && item.location.name === game.items[i].location.name);
                 let container = null;
                 for (let i = 0; i < possibleContainers.length; i++) {
                     if (possibleContainers[i].quantity > 0) {
@@ -439,6 +544,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
             let insertInventory = function (item) {
                 var createdItem = new Item(
                     item.prefab,
+                    item.identifier,
                     item.location,
                     item.accessible,
                     item.containerName,
@@ -501,7 +607,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 else game.items[i] = insertInventory(game.items[i]);
 
                 if (doErrorChecking) {
-                    let error = exports.checkItem(game.items[i]);
+                    let error = exports.checkItem(game.items[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
             }
@@ -518,9 +624,17 @@ module.exports.loadItems = function (game, doErrorChecking) {
     }); 
 };
 
-module.exports.checkItem = function (item) {
+module.exports.checkItem = function (item, game) {
     if (!(item.prefab instanceof Prefab))
         return new Error(`Couldn't load item on row ${item.row}. The prefab given is not a prefab.`);
+    if (item.inventory.length > 0 && item.identifier === "")
+        return new Error(`Couldn't load item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
+    if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+        return new Error(`Couldn't load item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
+    if (item.identifier !== "" && item.quantity !== 0 &&
+        game.items.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length
+        + game.inventoryItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length > 0)
+        return new Error(`Couldn't load item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
     if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
@@ -913,7 +1027,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
 
                     let playerInventory = game.inventoryItems.filter(item => item.player.id === game.players[i].id);
                     for (let j = 0; j < playerInventory.length; j++) {
-                        error = exports.checkInventoryItem(playerInventory[j]);
+                        error = exports.checkInventoryItem(playerInventory[j], game);
                         if (error instanceof Error) errors.push(error);
                     }
                 }
@@ -974,11 +1088,12 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;
             const columnPrefab = 1;
-            const columnEquipmentSlot = 2;
-            const columnContainer = 3;
-            const columnQuantity = 4;
-            const columnUses = 5;
-            const columnDescription = 6;
+            const columnIdentifier = 2;
+            const columnEquipmentSlot = 3;
+            const columnContainer = 4;
+            const columnQuantity = 5;
+            const columnUses = 6;
+            const columnDescription = 7;
 
             game.inventoryItems.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -991,6 +1106,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         new InventoryItem(
                             player ? player : sheet[i][columnPlayer],
                             prefab ? prefab : sheet[i][columnPrefab],
+                            sheet[i][columnIdentifier] ? sheet[i][columnIdentifier] : "",
                             sheet[i][columnEquipmentSlot],
                             sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
                             parseInt(sheet[i][columnQuantity]),
@@ -1005,6 +1121,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         new InventoryItem(
                             player ? player : sheet[i][columnPlayer],
                             null,
+                            "",
                             sheet[i][columnEquipmentSlot],
                             "",
                             null,
@@ -1049,11 +1166,11 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                             }
                             else {
                                 const splitContainer = game.inventoryItems[i].containerName.split('/');
-                                const containerItemName = splitContainer[0] ? splitContainer[0].trim() : "";
+                                const containerItemIdentifier = splitContainer[0] ? splitContainer[0].trim() : "";
                                 const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
                                 game.inventoryItems[i].slot = containerItemSlot;
                                 for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                                    if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].prefab.id === containerItemName) {
+                                    if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].identifier === containerItemIdentifier) {
                                         game.inventoryItems[i].container = player.inventory[slot].items[j];
                                         for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
                                             if (game.inventoryItems[i].container.inventory[k].name === containerItemSlot)
@@ -1071,6 +1188,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                 var createdItem = new InventoryItem(
                     item.player,
                     item.prefab,
+                    item.identifier,
                     item.equipmentSlot,
                     item.containerName,
                     item.quantity,
@@ -1118,6 +1236,23 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             // Run through inventoryItems one more time to properly insert their inventories and assign them to players.
             for (let i = 0; i < game.inventoryItems.length; i++) {
                 if (game.inventoryItems[i].prefab instanceof Prefab) {
+                    if (game.inventoryItems[i].quantity !== 0 && game.inventoryItems[i].containerName !== "" && game.inventoryItems[i].container === null) {
+                        const splitContainer = game.inventoryItems[i].containerName.split('/');
+                        const containerItemIdentifier = splitContainer[0] ? splitContainer[0].trim() : "";
+                        const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
+                        let container = game.inventoryItems.find(item =>
+                            item.player.id === game.inventoryItems[i].player.id &&
+                            item.identifier === containerItemIdentifier &&
+                            item.quantity !== 0
+                        );
+                        if (container) {
+                            game.inventoryItems[i].container = container;
+                            for (let j = 0; j < game.inventoryItems[i].container.inventory.length; j++) {
+                                if (game.inventoryItems[i].container.inventory[j].name === containerItemSlot)
+                                    game.inventoryItems[i].container.inventory[j].item.push(game.inventoryItems[i]);
+                            }
+                        }
+                    }
                     let container = game.inventoryItems[i].container;
                     if (game.inventoryItems[i].container instanceof InventoryItem) {
                         for (let slot = 0; slot < container.inventory.length; slot++) {
@@ -1151,7 +1286,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                 }
 
                 if (doErrorChecking) {
-                    let error = exports.checkInventoryItem(game.inventoryItems[i]);
+                    let error = exports.checkInventoryItem(game.inventoryItems[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
             }
@@ -1169,12 +1304,20 @@ module.exports.loadInventories = function (game, doErrorChecking) {
     });
 };
 
-module.exports.checkInventoryItem = function (item) {
+module.exports.checkInventoryItem = function (item, game) {
     if (!(item.player instanceof Player))
         return new Error(`Couldn't load inventory item on row ${item.row}. The player name given is not a player.`);
     if (item.prefab !== null) {
         if (!(item.prefab instanceof Prefab))
             return new Error(`Couldn't load inventory item on row ${item.row}. The prefab given is not a prefab.`);
+        if (item.inventory.length > 0 && item.identifier === "")
+            return new Error(`Couldn't load inventory item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
+        if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+            return new Error(`Couldn't load inventory item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
+        if (item.identifier !== "" && item.quantity !== 0 &&
+            game.items.filter(other => other.identifier === item.identifier && other.quantity !== 0).length
+            + game.inventoryItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length > 0)
+            return new Error(`Couldn't load inventory item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
         if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
             return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
         if (!item.foundEquipmentSlot)
