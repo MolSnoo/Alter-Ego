@@ -43,7 +43,7 @@ function init_0() {
     game.queue.length = 0;
 
     // Initialize room.
-    var roomBeachHouse = new Room("beach-house", null, [], "", 2);
+    var roomBeachHouse = new Room("beach-house", null, [], [], "", 2);
     game.rooms.push(roomBeachHouse);
 
     // Initialize objects;

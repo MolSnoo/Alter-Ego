@@ -2,12 +2,11 @@ const settings = include('settings.json');
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
-//var game = include('game.json');
-
 class Room {
-    constructor(name, channel, exit, description, row) {
+    constructor(name, channel, tags, exit, description, row) {
         this.name = name;
         this.channel = channel;
+        this.tags = tags;
         this.exit = exit;
         this.description = description;
         this.row = row;

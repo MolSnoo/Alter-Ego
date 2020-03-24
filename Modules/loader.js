@@ -24,15 +24,16 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
-            const columnNumberExits = 1;
-            const columnExits = 2;
-            const columnPosX = 3;
-            const columnPosY = 4;
-            const columnPosZ = 5;
-            const columnUnlocked = 6;
-            const columnLeadsTo = 7;
-            const columnFrom = 8;
-            const columnDescription = 9;
+            const columnTags = 1;
+            const columnNumberExits = 2;
+            const columnExits = 3;
+            const columnPosX = 4;
+            const columnPosY = 5;
+            const columnPosZ = 6;
+            const columnUnlocked = 7;
+            const columnLeadsTo = 8;
+            const columnFrom = 9;
+            const columnDescription = 10;
 
             game.rooms.length = 0;
             for (let i = 1, j = 0; i < sheet.length; i = i + j) {
@@ -55,10 +56,14 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         ));
                 }
                 const channel = game.guild.channels.find(channel => channel.name === sheet[i][columnRoomName]);
+                var tags = sheet[i][columnTags] ? sheet[i][columnTags].split(',') : [];
+                for (let j = 0; j < tags.length; j++)
+                    tags[j] = tags[j].trim();
                 game.rooms.push(
                     new Room(
                         sheet[i][columnRoomName],
                         channel,
+                        tags,
                         exits,
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1

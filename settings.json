@@ -84,9 +84,9 @@
   "playerSheetID": 680018352,
   "inventoryItemSheetID": 115011186,
 
-  "roomSheetAllCells": "Rooms!A1:J",
-  "roomSheetUnlockedColumn": "Rooms!G",
-  "roomSheetDescriptionColumn": "Rooms!J",
+  "roomSheetAllCells": "Rooms!A1:K",
+  "roomSheetUnlockedColumn": "Rooms!H",
+  "roomSheetDescriptionColumn": "Rooms!K",
   "objectSheetAllCells": "Objects!A1:K",
   "objectSheetAccessibleColumn": "Objects!C",
   "objectSheetActivatedColumn": "Objects!G",

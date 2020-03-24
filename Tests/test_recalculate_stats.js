@@ -40,7 +40,7 @@ function init() {
     game.queue.length = 0;
 
     // Initialize room.
-    var beachHouse = new Room("beach-house", game.guild.channels.find(channel => channel.name === "beach-house"), [], "", 2);
+    var beachHouse = new Room("beach-house", game.guild.channels.find(channel => channel.name === "beach-house"), [], [], "", 2);
     game.rooms.push(beachHouse);
 
     // Initialize status effects.
