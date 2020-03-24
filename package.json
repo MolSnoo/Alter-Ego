@@ -22,6 +22,8 @@
     "googleapis": "^39.2.0",
     "lodash": "^4.17.15",
     "minimist": "^1.2.5",
+    "moment": "^2.24.0",
+    "moment-timer": "^1.3.0",
     "nodemon": "^1.19.0",
     "xmldom": "^0.1.27"
   }

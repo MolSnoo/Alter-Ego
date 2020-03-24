@@ -21,6 +21,7 @@ module.exports.config = {
         + `${settings.commandPrefix}load recipes\n`
         + `${settings.commandPrefix}load items\n`
         + `${settings.commandPrefix}load puzzles\n`
+        + `${settings.commandPrefix}load events\n`
         + `${settings.commandPrefix}load status effects\n`
         + `${settings.commandPrefix}load players\n`
         + `${settings.commandPrefix}load inventories`,
@@ -46,6 +47,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         await loader.loadRecipes(game, false);
         await loader.loadItems(game, false);
         await loader.loadPuzzles(game, false);
+        await loader.loadEvents(game, false);
         await loader.loadStatusEffects(game, false);
         await loader.loadPlayers(game, false);
         await loader.loadInventories(game, false);
@@ -75,6 +77,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             let error = loader.checkPuzzle(game.puzzles[i]);
             if (error instanceof Error) errors.push(error);
         }
+        for (let i = 0; i < game.events.length; i++) {
+            let error = loader.checkEvent(game.events[i], game);
+            if (error instanceof Error) errors.push(error);
+        }
         for (let i = 0; i < game.statusEffects.length; i++) {
             let error = loader.checkStatusEffect(game.statusEffects[i]);
             if (error instanceof Error) errors.push(error);
@@ -102,6 +108,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 printData(game.recipes);
                 printData(game.items);
                 printData(game.puzzles);
+                printData(game.events);
                 printData(game.statusEffects);
                 printData(game.players);
                 printData(game.inventoryItems);
@@ -114,6 +121,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.recipes.length + " recipes, " +
                 game.items.length + " items, " +
                 game.puzzles.length + " puzzles, " +
+                game.events.length + " events, " +
                 game.statusEffects.length + " status effects, " +
                 game.players.length + " players, and " +
                 game.inventoryItems.length + " inventory items retrieved."
@@ -190,6 +198,16 @@ module.exports.run = async (bot, game, message, command, args) => {
             await loader.loadPuzzles(game, true);
             if (settings.debug) printData(game.puzzles);
             message.channel.send(game.puzzles.length + " puzzles retrieved.");
+        }
+        catch (err) {
+            message.channel.send(err);
+        }
+    }
+    else if (args[0] === "events") {
+        try {
+            await loader.loadEvents(game, true);
+            if (settings.debug) printData(game.events);
+            message.channel.send(game.events.length + " events retrieved.");
         }
         catch (err) {
             message.channel.send(err);

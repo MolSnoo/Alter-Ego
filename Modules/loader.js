@@ -8,11 +8,15 @@ const Prefab = include(`${settings.dataDir}/Prefab.js`);
 const Recipe = include(`${settings.dataDir}/Recipe.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
+const Event = include(`${settings.dataDir}/Event.js`);
 const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
+
+var moment = require('moment');
+moment().format();
 
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
@@ -769,6 +773,114 @@ module.exports.checkPuzzle = function (puzzle) {
     return;
 };
 
+module.exports.loadEvents = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        sheets.getData(settings.eventSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnName = 0;
+            const columnOngoing = 1;
+            const columnDuration = 2;
+            const columnTimeRemaining = 3;
+            const columnTriggersAt = 4;
+            const columnRoomTag = 5;
+            const columnCommands = 6;
+            const columnStatusEffects = 7;
+            const columnTriggeredNarration = 8;
+            const columnEndedNarration = 9;
+
+            game.events.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+                let durationUnit = durationString.charAt(durationString.length - 1);
+                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
+                if (!"yMwdhms".includes(durationUnit)) {
+                    durationInt = NaN;
+                    durationUnit = NaN;
+                }
+                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
+                var timeRemaining = sheet[i][columnTimeRemaining] ? moment.duration(sheet[i][columnTimeRemaining]) : null;
+                var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
+                for (let j = 0; j < triggerTimes.length; j++)
+                    triggerTimes[j] = moment(triggerTimes[j].trim(), ["LT", "LTS", "HH:mm", "hh:mm a"]);
+                const commands = sheet[i][columnCommands] ? sheet[i][columnCommands].split('/') : ["", ""];
+                var triggeredCommands = commands[0] ? commands[0].split(',') : [];
+                for (let j = 0; j < triggeredCommands.length; j++)
+                    triggeredCommands[j] = triggeredCommands[j].trim();
+                var endedCommands = commands[1] ? commands[1].split(',') : [];
+                for (let j = 0; j < endedCommands.length; j++)
+                    endedCommands[j] = endedCommands[j].trim();
+                var effects = sheet[i][columnStatusEffects] ? sheet[i][columnStatusEffects].split(',') : [];
+                for (let j = 0; j < effects.length; j++)
+                    effects[j] = effects[j].trim();
+                game.events.push(
+                    new Event(
+                        sheet[i][columnName],
+                        sheet[i][columnOngoing] === "TRUE",
+                        duration,
+                        timeRemaining,
+                        triggerTimes,
+                        sheet[i][columnRoomTag] ? sheet[i][columnRoomTag] : "",
+                        triggeredCommands,
+                        endedCommands,
+                        effects,
+                        sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration] : "",
+                        sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration] : "",
+                        i + 1
+                    )
+                );
+            }
+            var errors = [];
+            for (let i = 0; i < game.events.length; i++) {
+                for (let j = 0; j < game.events[i].effects.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effects[j]);
+                    if (status) game.events[i].effects[j] = status;
+                }
+                if (doErrorChecking) {
+                    let error = exports.checkEvent(game.events[i], game);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkEvent = function (event, game) {
+    if (event.name === "" || event.name === null || event.name === undefined)
+        return new Error(`Couldn't load event on row ${event.row}. No event name was given.`);
+    if (game.events.filter(other => other.name === event.name && other.row < event.row).length > 0)
+        return new Error(`Couldn't load event on row ${event.row}. Another event with this name already exists.`);
+    if (event.duration !== null && !event.duration.isValid())
+        return new Error(`Couldn't load event on row ${event.row}. An invalid duration was given.`);
+    if (event.remaining !== null && !event.remaining.isValid())
+        return new Error(`Couldn't load event on row ${event.row}. An invalid time remaining was given.`);
+    if (!event.ongoing && event.remaining !== null)
+        return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
+    if (event.ongoing && event.duration !== null && event.remaining === null)
+        return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
+    for (let i = 0; i < event.triggerTimes.length; i++) {
+        if (!event.triggerTimes[i].isValid()) {
+            let timeString = event.triggerTimes[i].inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
+            return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
+        }
+    }
+    for (let i = 0; i < event.effects.length; i++) {
+        if (!(event.effects[i] instanceof Status))
+            return new Error(`Couldn't load event on row ${event.row}. "${event.effects[i]}" in refreshing status effects is not a status effect.`);
+    }
+    return;
+};
+
 module.exports.loadStatusEffects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getDataFormulas(settings.statusSheetAllCells, function (response) {
@@ -878,6 +990,12 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                 for (let j = 0; j < game.prefabs[i].curesStrings.length; j++) {
                     let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].curesStrings[j]);
                     if (status) game.prefabs[i].cures[j] = status;
+                }
+            }
+            for (let i = 0; i < game.events.length; i++) {
+                for (let j = 0; j < game.events[i].effectsStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effectsStrings[j]);
+                    if (status) game.events[i].effects[j] = status;
                 }
             }
             if (errors.length > 0) {
