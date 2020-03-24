@@ -20,7 +20,7 @@ moment().format();
 
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.roomSheetAllCells, function (response) {
+        sheets.getData(settings.roomSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
@@ -47,7 +47,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         new Exit(
                             sheet[i + j][columnExits],
                             pos,
-                            sheet[i + j][columnUnlocked] === true,
+                            sheet[i + j][columnUnlocked] === "TRUE",
                             sheet[i + j][columnLeadsTo],
                             sheet[i + j][columnFrom],
                             sheet[i + j][columnDescription] ? sheet[i + j][columnDescription] : "",
@@ -139,7 +139,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             clearInterval(game.objects[i].process.timer);
         }
 
-        sheets.getDataFormulas(settings.objectSheetAllCells, function (response) {
+        sheets.getData(settings.objectSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -160,13 +160,13 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                     new Object(
                         sheet[i][columnName],
                         sheet[i][columnLocation],
-                        sheet[i][columnAccessibility] === true,
+                        sheet[i][columnAccessibility] === "TRUE",
                         sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle] : "",
                         sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag] : "",
-                        sheet[i][columnActivatable] === true,
-                        sheet[i][columnActivated] === true,
-                        sheet[i][columnAutoDeactivate] === true,
-                        sheet[i][columnHidingSpot] === true,
+                        sheet[i][columnActivatable] === "TRUE",
+                        sheet[i][columnActivated] === "TRUE",
+                        sheet[i][columnAutoDeactivate] === "TRUE",
+                        sheet[i][columnHidingSpot] === "TRUE",
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
@@ -220,7 +220,7 @@ module.exports.checkObject = function (object) {
 
 module.exports.loadPrefabs = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.prefabSheetAllCells, function (response) {
+        sheets.getData(settings.prefabSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -287,16 +287,16 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                         name[1] ? name[1].trim() : "",
                         containingPhrase[0] ? containingPhrase[0].trim() : "",
                         containingPhrase[1] ? containingPhrase[1].trim() : "",
-                        sheet[i][columnDiscreet] === true,
+                        sheet[i][columnDiscreet] === "TRUE",
                         parseInt(sheet[i][columnSize]),
                         parseInt(sheet[i][columnWeight]),
-                        sheet[i][columnUsable] === true,
+                        sheet[i][columnUsable] === "TRUE",
                         sheet[i][columnUseVerb] ? sheet[i][columnUseVerb] : "",
                         parseInt(sheet[i][columnUses]),
                         effects,
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
-                        sheet[i][columnEquippable] === true,
+                        sheet[i][columnEquippable] === "TRUE",
                         equipmentSlots,
                         coveredEquipmentSlots,
                         equipCommands,
@@ -372,7 +372,7 @@ module.exports.checkPrefab = function (prefab, game) {
 
 module.exports.loadRecipes = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.recipeSheetAllCells, function (response) {
+        sheets.getData(settings.recipeSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
@@ -464,7 +464,7 @@ module.exports.checkRecipe = function (recipe) {
 
 module.exports.loadItems = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.itemSheetAllCells, function (response) {
+        sheets.getData(settings.itemSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
@@ -486,7 +486,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                         prefab ? prefab : sheet[i][columnPrefab],
                         sheet[i][columnIdentifier] ? sheet[i][columnIdentifier] : "",
                         sheet[i][columnLocation],
-                        sheet[i][columnAccessibility] === true,
+                        sheet[i][columnAccessibility] === "TRUE",
                         sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
                         parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
@@ -670,7 +670,7 @@ module.exports.checkItem = function (item, game) {
 
 module.exports.loadPuzzles = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.puzzleSheetAllCells, function (response) {
+        sheets.getData(settings.puzzleSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -702,12 +702,12 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 game.puzzles.push(
                     new Puzzle(
                         sheet[i][columnName],
-                        sheet[i][columnSolved] === true,
-                        sheet[i][columnRequiresMod] === true,
+                        sheet[i][columnSolved] === "TRUE",
+                        sheet[i][columnRequiresMod] === "TRUE",
                         sheet[i][columnLocation],
                         sheet[i][columnParentObject] ? sheet[i][columnParentObject] : "",
                         sheet[i][columnType],
-                        sheet[i][columnAccessible] === true,
+                        sheet[i][columnAccessible] === "TRUE",
                         sheet[i][columnRequires] ? sheet[i][columnRequires] : null,
                         sheet[i][columnSolution] ? sheet[i][columnSolution].toString() : "",
                         parseInt(sheet[i][columnAttempts]),
@@ -883,7 +883,7 @@ module.exports.checkEvent = function (event, game) {
 
 module.exports.loadStatusEffects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.statusSheetAllCells, function (response) {
+        sheets.getData(settings.statusSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -944,8 +944,8 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     new Status(
                         sheet[i][columnName],
                         sheet[i][columnDuration].toLowerCase(),
-                        sheet[i][columnFatal] === true,
-                        sheet[i][columnVisible] === true,
+                        sheet[i][columnFatal] === "TRUE",
+                        sheet[i][columnVisible] === "TRUE",
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage] : null,
                         sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus] : null,
@@ -1057,7 +1057,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getDataFormulas(settings.playerSheetAllCells, async function (response) {
+        sheets.getData(settings.playerSheetAllCells, async function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -1096,7 +1096,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnTalent],
                         sheet[i][columnPronouns] ? sheet[i][columnPronouns].toLowerCase() : "",
                         stats,
-                        sheet[i][columnAlive] === true,
+                        sheet[i][columnAlive] === "TRUE",
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],
                         new Array(),
@@ -1201,7 +1201,7 @@ module.exports.checkPlayer = function (player) {
 
 module.exports.loadInventories = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.inventorySheetAllCells, function (response) {
+        sheets.getData(settings.inventorySheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;
