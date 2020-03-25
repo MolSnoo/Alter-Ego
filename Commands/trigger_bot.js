@@ -31,9 +31,6 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (event.ongoing) return;
 
     await event.trigger(bot, game, false);
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${event.name} was triggered.`);
 
     return;
 };

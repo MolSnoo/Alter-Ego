@@ -32,10 +32,6 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (event.ongoing) return message.reply(`${event.name} is already ongoing.`);
 
     await event.trigger(bot, game, true);
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${event.name} was triggered.`);
-
     message.channel.send(`Successfully triggered ${event.name}.`);
 
     return;

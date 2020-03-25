@@ -32,10 +32,6 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (!event.ongoing) return message.reply(`${event.name} is not currently ongoing.`);
 
     await event.end(bot, game, true);
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${event.name} was ended.`);
-
     message.channel.send(`Successfully ended ${event.name}.`);
 
     return;

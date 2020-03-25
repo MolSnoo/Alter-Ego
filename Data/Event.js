@@ -59,6 +59,10 @@ class Event {
         if (this.duration)
             this.startTimer(bot, game);
 
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - ${this.name} was triggered.`);
+
         return;
     }
 
@@ -96,6 +100,10 @@ class Event {
                 }
             }
         }
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.logChannel.send(`${time} - ${this.name} was ended.`);
 
         return;
     }
