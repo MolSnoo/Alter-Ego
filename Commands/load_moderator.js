@@ -141,6 +141,12 @@ module.exports.run = async (bot, game, message, command, args) => {
                 if (!settings.debug)
                     bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
             }
+
+            // Start event timers.
+            for (let i = 0; i < game.events.length; i++) {
+                if (game.events[i].ongoing && game.events[i].duration !== null)
+                    game.events[i].startTimer(bot, game);
+            }
         }
     }
     else if (args[0] === "rooms") {
@@ -208,6 +214,12 @@ module.exports.run = async (bot, game, message, command, args) => {
             await loader.loadEvents(game, true);
             if (settings.debug) printData(game.events);
             message.channel.send(game.events.length + " events retrieved.");
+
+            // Start event timers.
+            for (let i = 0; i < game.events.length; i++) {
+                if (game.events[i].ongoing && game.events[i].duration !== null)
+                    game.events[i].startTimer(bot, game);
+            }
         }
         catch (err) {
             message.channel.send(err);

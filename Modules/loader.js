@@ -780,6 +780,12 @@ module.exports.checkPuzzle = function (puzzle) {
 
 module.exports.loadEvents = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
+        // Clear timers for all events first.
+        for (let i = 0; i < game.events.length; i++) {
+            if (game.events[i].timer !== null)
+                game.events[i].timer.stop();
+        }
+
         sheets.getData(settings.eventSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.

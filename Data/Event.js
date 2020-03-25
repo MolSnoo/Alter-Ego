@@ -1,4 +1,13 @@
 const settings = include('settings.json');
+const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
+const parser = include(`${settings.modulesDir}/parser.js`);
+
+const Narration = include(`${settings.dataDir}/Narration.js`);
+const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
+
+var moment = require('moment');
+var timer = require('moment-timer');
+moment().format();
 
 class Event {
     constructor(name, ongoing, duration, remaining, triggerTimes, roomTag, triggeredCommands, endedCommands, effectsStrings, triggeredNarration, endedNarration, row) {
@@ -19,6 +28,80 @@ class Event {
         this.timer = null;
     }
 
+    async trigger(bot, game, doTriggeredCommands) {
+        // Mark it as ongoing.
+        this.ongoing = true;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.ongoingCell(), `Events!${this.name}`, "TRUE"));
+
+        // Send the triggered narration to all rooms with occupants.
+        for (let i = 0; i < game.rooms.length; i++) {
+            if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
+                new Narration(game, null, game.rooms[i], parser.parseDescription(this.triggeredNarration, this, null, false)).send();
+        }
+
+        if (doTriggeredCommands) {
+            // Run any needed commands.
+            for (let i = 0; i < this.triggeredCommands.length; i++) {
+                if (this.triggeredCommands[i].startsWith("wait")) {
+                    let args = this.triggeredCommands[i].split(" ");
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(this.triggeredCommands[i], bot, game, null, null, this);
+                }
+            }
+        }
+
+        // Begin the timer, if applicable.
+        if (this.duration)
+            this.startTimer(game);
+
+        return;
+    }
+
+    async end(bot, game, doEndedCommands) {
+        return;
+    }
+
+    async startTimer(bot, game) {
+        if (this.remaining === null)
+            this.remaining = this.duration.clone();
+        let event = this;
+        this.timer = new moment.duration(1000).timer({ start: true, loop: true }, async function () {
+            event.remaining.subtract(1000, 'ms');
+
+            const days = Math.floor(event.remaining.asDays());
+            const hours = event.remaining.hours();
+            const minutes = event.remaining.minutes();
+            const seconds = event.remaining.seconds();
+
+            var displayString = "";
+            if (days !== 0) displayString += `${days} `;
+            if (hours >= 0 && hours < 10) displayString += '0';
+            displayString += `${hours}:`;
+            if (minutes >= 0 && minutes < 10) displayString += '0';
+            displayString += `${minutes}:`;
+            if (seconds >= 0 && seconds < 10) displayString += '0';
+            displayString += `${seconds}`;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", event.timeRemainingCell(), `Events!${event.name}`, displayString));
+            console.log(displayString);
+
+            if (event.remaining.asMilliseconds() <= 0)
+                await event.end(bot, game, true);
+        });
+    }
+
+    ongoingCell() {
+        return settings.eventSheetOngoingColumn + this.row;
+    }
+
+    timeRemainingCell() {
+        return settings.eventSheetTimeRemainingColumn + this.row;
+    }
+
     triggeredCell() {
         return settings.eventSheetTriggeredColumn + this.row;
     }
@@ -28,3 +111,7 @@ class Event {
 }
 
 module.exports = Event;
+
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}
