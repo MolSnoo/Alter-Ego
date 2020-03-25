@@ -65,7 +65,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         message.channel.send(response);
     }
     else if (command === "view") {
-        const response = player.viewStatus_moderator();
+        const response = `${player.name}'s status:\n${player.generate_statusList(true, true)}`;
         message.channel.send(response);
     }
 

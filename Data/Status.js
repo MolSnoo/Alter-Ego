@@ -4,6 +4,7 @@ class Status {
     constructor(name, duration, fatal, visible, cures, nextStage, duplicatedStatus, curedCondition, statModifiers, attributes, inflictedDescription, curedDescription, row) {
         this.name = name;
         this.duration = duration;
+        this.remaining = null;
         this.fatal = fatal;
         this.visible = visible;
         this.cures = cures;

@@ -912,6 +912,15 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+                let durationUnit = durationString.charAt(durationString.length - 1);
+                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
+                if (!"yMwdhms".includes(durationUnit)) {
+                    durationInt = NaN;
+                    durationUnit = NaN;
+                }
+                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
@@ -954,7 +963,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                 game.statusEffects.push(
                     new Status(
                         sheet[i][columnName],
-                        sheet[i][columnDuration].toLowerCase(),
+                        duration,
                         sheet[i][columnFatal] === "TRUE",
                         sheet[i][columnVisible] === "TRUE",
                         cures,
@@ -1025,9 +1034,8 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
 module.exports.checkStatusEffect = function (status) {
     if (status.name === "" || status.name === null || status.name === undefined)
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect name was given.`);
-    const timeInt = status.duration.substring(0, status.duration.length - 1);
-    if (status.duration !== "" && (isNaN(timeInt) || !status.duration.endsWith('m') && !status.duration.endsWith('h')))
-        return new Error(`Couldn't load status effect on row ${status.row}. Duration format is incorrect. Must be a number followed by 'm' or 'h'.`);
+    if (status.duration !== null && !status.duration.isValid())
+        return new Error(`Couldn't load status effect on row ${status.row}. An invalid duration was given.`);
     for (let i = 0; i < status.statModifiers.length; i++) {
         if (status.statModifiers[i].stat === null)
             return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
@@ -1057,7 +1065,8 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         // Clear all player status effects and movement timers first.
         for (let i = 0; i < game.players.length; i++) {
             for (let j = 0; j < game.players[i].status.length; j++) {
-                clearInterval(game.players[i].status[j].timer);
+                if (game.players[i].status[j].timer !== null)
+                    game.players[i].status[j].timer.stop();
             }
             game.players[i].isMoving = false;
             clearInterval(game.players[i].moveTimer);
@@ -1098,6 +1107,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     speed: parseInt(sheet[i][columnSpeed]),
                     stamina: parseInt(sheet[i][columnStamina])
                 };
+                var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
+                for (let j = 0; j < statusList.length; j++)
+                    statusList[j] = statusList[j].trim();
                 const player =
                     new Player(
                         sheet[i][columnID],
@@ -1110,9 +1122,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnAlive] === "TRUE",
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],
-                        new Array(),
+                        [],
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
-                        new Array(),
+                        [],
                         i + 1
                     );
                 player.setPronouns(player.originalPronouns, player.pronounString);
@@ -1124,12 +1136,13 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
 
                     // Parse statuses and inflict the player with them.
                     const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                    const statuses = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : "";
                     for (let j = 0; j < game.statusEffects.length; j++) {
-                        for (let k = 0; k < statuses.length; k++) {
-                            if (game.statusEffects[j].name === statuses[k].trim()) {
-                                currentPlayer.inflict(game, game.statusEffects[j].name, false, false, false);
-                                break;
+                        for (let k = 0; k < statusList.length; k++) {
+                            const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
+                            if (game.statusEffects[j].name === statusName) {
+                                const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
+                                const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
                             }
                         }
                     }

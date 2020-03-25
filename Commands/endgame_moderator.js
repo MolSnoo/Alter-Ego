@@ -19,8 +19,10 @@ module.exports.run = async (bot, game, message, command, args) => {
         player.removeFromWhispers(game);
         player.member.removeRole(settings.playerRole).catch();
 
-        for (let j = 0; j < player.status.length; j++)
-            clearInterval(player.status[j].timer);
+        for (let j = 0; j < player.status.length; j++) {
+            if (player.status[j].timer !== null)
+                player.status[j].timer.stop();
+        }
     }
 
     for (let i = 0; i < game.players_dead.length; i++) {

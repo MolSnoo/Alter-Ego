@@ -13,6 +13,10 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const Die = include(`${settings.dataDir}/Die.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
+var moment = require('moment');
+var timer = require('moment-timer');
+moment().format();
+
 class Player {
     constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, row) {
         this.id = id;
@@ -266,7 +270,7 @@ class Player {
         return appendString;
     }
 
-    inflict(game, statusName, notify, doCures, narrate, item) {
+    inflict(game, statusName, notify, doCures, narrate, item, duration) {
         var status = null;
         if (statusName instanceof Status) status = statusName;
         else {
@@ -291,6 +295,7 @@ class Player {
         if (notify === null || notify === undefined) notify = true;
         if (doCures === null || doCures === undefined) doCures = true;
         if (narrate === null || narrate === undefined) narrate = true;
+        if (duration === undefined) duration = null;
 
         if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
@@ -312,7 +317,7 @@ class Player {
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
             this.setPronouns(this.pronouns, "neutral");
         }
-        if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
+        if (status.attributes.includes("disable all") || status.attributes.includes("disable move") || status.attributes.includes("disable run")) {
             // Clear the player's movement timer.
             this.isMoving = false;
             clearInterval(this.moveTimer);
@@ -328,31 +333,23 @@ class Player {
 
         // Apply the duration, if applicable.
         if (status.duration) {
-            const timeInt = status.duration.substring(0, status.duration.length - 1);
-            if (isNaN(timeInt) || (!status.duration.endsWith('m') && !status.duration.endsWith('h')))
-                return "Failed to add status. Duration format is incorrect. Must be a number followed by 'm' or 'h'.";
-
-            let time;
-            if (status.duration.endsWith('m'))
-                // Set the time in minutes.
-                time = timeInt * 60000;
-            else if (status.duration.endsWith('h'))
-                // Set the time in hours.
-                time = timeInt * 3600000;
-            status.duration = time;
+            if (duration !== null) status.remaining = duration;
+            else status.remaining = status.duration.clone();
 
             let player = this;
-            status.timer = setInterval(function () {
-                status.duration -= 1000;
+            status.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                status.remaining.subtract(1000, 'ms');
+                player.statusString = player.generate_statusList(true, true);
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", player.statusCell(), `Players!${player.name}|Status`, player.statusString));
 
-                if (status.duration <= 0) {
+                if (status.remaining.asMilliseconds() <= 0) {
                     if (status.nextStage) {
                         player.cure(game, status.name, false, false, true);
                         player.inflict(game, status.nextStage.name, true, false, true);
                     }
                     else {
                         if (status.fatal) {
-                            clearInterval(status.timer);
+                            status.timer.stop();
                             player.die(game);
                         }
                         else {
@@ -360,22 +357,7 @@ class Player {
                         }
                     }
                 }
-                /*const timeLeft = status.duration / 1000;  // Gets the total time in seconds.
-                const seconds = Math.floor(timeLeft % 60);
-                const minutes = Math.floor((timeLeft / 60) % 60);
-                const hours = Math.floor(timeLeft / 3600);
-
-                var statusMessage = " (";
-                if (hours >= 0 && hours < 10) statusMessage += "0";
-                statusMessage += hours + ":";
-                if (minutes >= 0 && minutes < 10) statusMessage += "0";
-                statusMessage += minutes + ":";
-                if (seconds >= 0 && seconds < 10) statusMessage += "0";
-                statusMessage += seconds + " remaining)";
-
-                var curtime = new Date();
-                console.log(curtime.toLocaleTimeString() + " timer running on " + status.name + statusMessage);*/
-            }, 1000);
+            });
         }
 
         this.status.push(status);
@@ -385,7 +367,7 @@ class Player {
         if (notify)
             this.sendDescription(status.inflictedDescription, status);
 
-        this.statusString = this.generate_statusList();
+        this.statusString = this.generate_statusList(true, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         // Post log message.
@@ -447,47 +429,44 @@ class Player {
         const time = new Date().toLocaleTimeString();
         game.logChannel.send(`${time} - ${this.name} has been cured of ${status.name} in ${this.location.channel}`);
 
-        clearInterval(status.timer);
+        // Stop the timer.
+        if (status.timer !== null)
+            status.timer.stop();
         this.status.splice(statusIndex, 1);
         this.recalculateStats();
 
-        this.statusString = this.generate_statusList();
+        this.statusString = this.generate_statusList(true, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         return returnMessage;
     }
     
-    generate_statusList(includeHidden) {
-        if (includeHidden === null || includeHidden === undefined) includeHidden = true;
+    generate_statusList(includeHidden, includeDurations) {
         var statusList = "";
-        var visibleStatuses = [...this.status];
-        if (!includeHidden) visibleStatuses = visibleStatuses.filter(status => status.visible === true);
-        statusList = visibleStatuses.map(status => status.name).join(", ");
-        return statusList;
-    }
-
-    viewStatus_moderator() {
-        var statusMessage = this.name + "'s status: ";
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].duration === "") {
-                statusMessage += `[${this.status[i].name}] `;
-            }
-            else {
-                const time = this.status[i].duration / 1000;  // Gets the total time in seconds.
-                const seconds = Math.floor(time % 60);
-                const minutes = Math.floor((time / 60) % 60);
-                const hours = Math.floor(time / 3600);
+            if (this.status[i].visible || includeHidden) {
+                statusList += this.status[i].name;
+                if (includeDurations && this.status[i].remaining !== null) {
+                    const days = Math.floor(this.status[i].remaining.asDays());
+                    const hours = this.status[i].remaining.hours();
+                    const minutes = this.status[i].remaining.minutes();
+                    const seconds = this.status[i].remaining.seconds();
 
-                statusMessage += `[${this.status[i].name} (`;
-                if (hours >= 0 && hours < 10) statusMessage += '0';
-                statusMessage += `${hours}:`;
-                if (minutes >= 0 && minutes < 10) statusMessage += '0';
-                statusMessage += `${minutes}:`;
-                if (seconds >= 0 && seconds < 10) statusMessage += '0';
-                statusMessage += `${seconds} remaining)] `;
+                    let timeString = "";
+                    if (days !== 0) timeString += `${days} `;
+                    if (hours >= 0 && hours < 10) timeString += '0';
+                    timeString += `${hours}:`;
+                    if (minutes >= 0 && minutes < 10) timeString += '0';
+                    timeString += `${minutes}:`;
+                    if (seconds >= 0 && seconds < 10) timeString += '0';
+                    timeString += `${seconds}`;
+
+                    statusList += ` (${timeString})`;
+                }
+                statusList += ", ";
             }
         }
-        return statusMessage;
+        return statusList.substring(0, statusList.lastIndexOf(", "));
     }
 
     hasAttribute(attribute) {
@@ -1744,6 +1723,8 @@ class Player {
     die(game) {
         // Remove player from their current channel.
         this.location.leaveChannel(this);
+        this.location.occupants.splice(this.location.occupants.indexOf(this), 1);
+        this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         this.removeFromWhispers(game, `${this.displayName} dies.`);
         if (!this.hasAttribute("hidden")) {
             new Narration(game, this, this.location, `${this.displayName} dies.`).send();
@@ -1757,8 +1738,13 @@ class Player {
         this.alive = false;
         this.location = null;
         this.hidingSpot = "";
-        for (let i = 0; i < this.status.length; i++)
-            clearInterval(this.status[i].timer);
+        this.isMoving = false;
+        clearInterval(this.moveTimer);
+        this.remainingTime = 0;
+        for (let i = 0; i < this.status.length; i++) {
+            if (this.status[i].timer !== null)
+                this.status[i].timer.stop();
+        }
         this.status.length = 0;
         // Update that data on the sheet, as well.
         game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, this.pronounString, this.defaultStrength, this.defaultIntelligence, this.defaultDexterity, this.defaultSpeed, this.defaultStamina, this.alive, "", "", "", "")));
