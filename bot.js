@@ -10,6 +10,8 @@ const queuer = include(`${settings.modulesDir}/queuer.js`);
 const discord = require('discord.js');
 const bot = new discord.Client();
 const fs = require('fs');
+var moment = require('moment');
+moment().format();
 
 var game = include(`game.json`);
 
@@ -76,10 +78,26 @@ bot.on('ready', async () => {
         queuer.pushQueue();
     }, settings.queueInterval * 1000);
 
-    // Run online players check periodically
+    // Run online players check periodically.
     setInterval(() => {
         updateStatus();
     }, settings.onlinePlayersStatusInterval * 1000);
+
+    // Check for any events that are supposed to trigger at this time of day.
+    setInterval(() => {
+        const now = moment();
+        for (let i = 0; i < game.events.length; i++) {
+            if (!game.events[i].ongoing) {
+                for (let j = 0; j < game.events[i].triggerTimes.length; j++) {
+                    const time = game.events[i].triggerTimes[j];
+                    if (now.hour() === time.hour() && now.minute() === time.minute()) {
+                        game.events[i].trigger(bot, game, true);
+                        break;
+                    }
+                }
+            }
+        }
+    }, 60000);
 });
 
 bot.on('message', async message => {
