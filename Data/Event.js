@@ -57,12 +57,46 @@ class Event {
 
         // Begin the timer, if applicable.
         if (this.duration)
-            this.startTimer(game);
+            this.startTimer(bot, game);
 
         return;
     }
 
     async end(bot, game, doEndedCommands) {
+        // Unmark it as ongoing.
+        this.ongoing = false;
+        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.ongoingCell(), `Events!${this.name}`, "FALSE"));
+
+        // Stop the timer.
+        if (this.timer !== null) {
+            this.timer.stop();
+            this.timer = null;
+            this.remaining = null;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.timeRemainingCell(), `Events!${this.name}`, ""));
+        }
+
+        // Send the ended narration to all rooms with occupants.
+        for (let i = 0; i < game.rooms.length; i++) {
+            if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
+                new Narration(game, null, game.rooms[i], parser.parseDescription(this.endedNarration, this, null, false)).send();
+        }
+
+        if (doEndedCommands) {
+            // Run any needed commands.
+            for (let i = 0; i < this.endedCommands.length; i++) {
+                if (this.endedCommands[i].startsWith("wait")) {
+                    let args = this.endedCommands[i].split(" ");
+                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
+                    const seconds = parseInt(args[1]);
+                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
+                    await sleep(seconds);
+                }
+                else {
+                    commandHandler.execute(this.endedCommands[i], bot, game, null, null, this);
+                }
+            }
+        }
+
         return;
     }
 
@@ -87,7 +121,6 @@ class Event {
             if (seconds >= 0 && seconds < 10) displayString += '0';
             displayString += `${seconds}`;
             game.queue.push(new QueueEntry(Date.now(), "updateCell", event.timeRemainingCell(), `Events!${event.name}`, displayString));
-            console.log(displayString);
 
             if (event.remaining.asMilliseconds() <= 0)
                 await event.end(bot, game, true);

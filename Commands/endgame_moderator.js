@@ -7,7 +7,7 @@ module.exports.config = {
         + 'The Player and Dead roles will be removed from all players.',
     usage: `${settings.commandPrefix}endgame`,
     usableBy: "Moderator",
-    aliases: ["endgame", "end"],
+    aliases: ["endgame"],
     requiresGame: true
 };
 
