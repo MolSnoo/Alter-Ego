@@ -795,6 +795,8 @@ module.exports.loadEvents = function (game, doErrorChecking) {
         for (let i = 0; i < game.events.length; i++) {
             if (game.events[i].timer !== null)
                 game.events[i].timer.stop();
+            if (game.events[i].effectsTimer !== null)
+                game.events[i].effectsTimer.stop();
         }
 
         sheets.getData(settings.eventSheetAllCells, function (response) {

@@ -26,6 +26,7 @@ class Event {
         this.row = row;
 
         this.timer = null;
+        this.effectsTimer = null;
     }
 
     async trigger(bot, game, doTriggeredCommands) {
@@ -58,6 +59,8 @@ class Event {
         // Begin the timer, if applicable.
         if (this.duration)
             this.startTimer(bot, game);
+        if (this.effects.length > 0)
+            this.startEffectsTimer(game);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -77,6 +80,10 @@ class Event {
             this.timer = null;
             this.remaining = null;
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.timeRemainingCell(), `Events!${this.name}`, ""));
+        }
+        if (this.effectsTimer !== null) {
+            this.effectsTimer.stop();
+            this.effectsTimer = null;
         }
 
         // Send the ended narration to all rooms with occupants.
@@ -132,6 +139,30 @@ class Event {
 
             if (event.remaining.asMilliseconds() <= 0)
                 await event.end(bot, game, true);
+        });
+    }
+
+    startEffectsTimer(game) {
+        let event = this;
+        this.effectsTimer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+            for (let i = 0; i < game.rooms.length; i++) {
+                if (game.rooms[i].tags.includes(event.roomTag)) {
+                    for (let j = 0; j < game.rooms[i].occupants.length; j++) {
+                        const occupant = game.rooms[i].occupants[j];
+                        for (let k = 0; k < event.effects.length; k++) {
+                            let status = null;
+                            for (let l = 0; l < occupant.status.length; l++) {
+                                if (occupant.status[l].name === event.effects[k].name) {
+                                    status = occupant.status[l];
+                                    break;
+                                }
+                            }
+                            if (status === null) occupant.inflict(game, event.effects[k], true, true, true);
+                            else if (status.remaining !== null) status.remaining = event.effects[k].duration.clone();
+                        }
+                    }
+                }
+            }
         });
     }
 
