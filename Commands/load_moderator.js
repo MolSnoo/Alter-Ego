@@ -9,9 +9,7 @@ module.exports.config = {
         + '"all start" must be used at the beginning of the game after the startgame timer is over, as it will '
         + 'gather all the data and send the room description of the room they start in to each player. '
         + 'If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. '
-        + 'Any data you edit manually, including descriptions, will require use of this command. Note that when updating players, '
-        + 'all of the timers associated with player status effects will be reset, so try to avoid manually '
-        + 'editing the player sheet. If you just need to refresh player inventories, use the "inventories" argument.',
+        + 'Any data you edit manually, including descriptions, will require use of this command.',
     usage: `${settings.commandPrefix}load all start\n`
         + `${settings.commandPrefix}load all resume\n`
         + `${settings.commandPrefix}load all\n`
