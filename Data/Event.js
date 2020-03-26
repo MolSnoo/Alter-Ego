@@ -10,7 +10,7 @@ var timer = require('moment-timer');
 moment().format();
 
 class Event {
-    constructor(name, ongoing, duration, remaining, triggerTimes, roomTag, triggeredCommands, endedCommands, effectsStrings, triggeredNarration, endedNarration, row) {
+    constructor(name, ongoing, duration, remaining, triggerTimes, roomTag, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
         this.name = name;
         this.ongoing = ongoing;
         this.duration = duration;
@@ -21,6 +21,8 @@ class Event {
         this.endedCommands = endedCommands;
         this.effectsStrings = effectsStrings;
         this.effects = [...effectsStrings];
+        this.refreshesStrings = refreshStrings;
+        this.refreshes = [...refreshStrings];
         this.triggeredNarration = triggeredNarration;
         this.endedNarration = endedNarration;
         this.row = row;
@@ -35,9 +37,11 @@ class Event {
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.ongoingCell(), `Events!${this.name}`, "TRUE"));
 
         // Send the triggered narration to all rooms with occupants.
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                new Narration(game, null, game.rooms[i], parser.parseDescription(this.triggeredNarration, this, null, false)).send();
+        if (this.triggeredNarration !== "") {
+            for (let i = 0; i < game.rooms.length; i++) {
+                if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
+                    new Narration(game, null, game.rooms[i], parser.parseDescription(this.triggeredNarration, this, null, false)).send();
+            }
         }
 
         if (doTriggeredCommands) {
@@ -59,7 +63,7 @@ class Event {
         // Begin the timer, if applicable.
         if (this.duration)
             this.startTimer(bot, game);
-        if (this.effects.length > 0)
+        if (this.effects.length > 0 || this.refreshes.length > 0)
             this.startEffectsTimer(game);
 
         // Post log message.
@@ -87,9 +91,11 @@ class Event {
         }
 
         // Send the ended narration to all rooms with occupants.
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                new Narration(game, null, game.rooms[i], parser.parseDescription(this.endedNarration, this, null, false)).send();
+        if (this.endedNarration !== "") {
+            for (let i = 0; i < game.rooms.length; i++) {
+                if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
+                    new Narration(game, null, game.rooms[i], parser.parseDescription(this.endedNarration, this, null, false)).send();
+            }
         }
 
         if (doEndedCommands) {
@@ -150,15 +156,19 @@ class Event {
                     for (let j = 0; j < game.rooms[i].occupants.length; j++) {
                         const occupant = game.rooms[i].occupants[j];
                         for (let k = 0; k < event.effects.length; k++) {
+                            if (!occupant.statusString.includes(event.effects[k].name))
+                                occupant.inflict(game, event.effects[k], true, true, true);
+                        }
+                        for (let k = 0; k < event.refreshes.length; k++) {
                             let status = null;
                             for (let l = 0; l < occupant.status.length; l++) {
-                                if (occupant.status[l].name === event.effects[k].name) {
+                                if (occupant.status[l].name === event.refreshes[k].name) {
                                     status = occupant.status[l];
                                     break;
                                 }
                             }
-                            if (status === null) occupant.inflict(game, event.effects[k], true, true, true);
-                            else if (status.remaining !== null) status.remaining = event.effects[k].duration.clone();
+                            if (status !== null && status.remaining !== null)
+                                status.remaining = event.effects[k].duration.clone();
                         }
                     }
                 }

@@ -810,8 +810,9 @@ module.exports.loadEvents = function (game, doErrorChecking) {
             const columnRoomTag = 5;
             const columnCommands = 6;
             const columnStatusEffects = 7;
-            const columnTriggeredNarration = 8;
-            const columnEndedNarration = 9;
+            const columnRefreshedEffects = 8;
+            const columnTriggeredNarration = 9;
+            const columnEndedNarration = 10;
 
             game.events.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -838,6 +839,9 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var effects = sheet[i][columnStatusEffects] ? sheet[i][columnStatusEffects].split(',') : [];
                 for (let j = 0; j < effects.length; j++)
                     effects[j] = effects[j].trim();
+                var refreshes = sheet[i][columnRefreshedEffects] ? sheet[i][columnRefreshedEffects].split(',') : [];
+                for (let j = 0; j < refreshes.length; j++)
+                    refreshes[j] = refreshes[j].trim();
                 game.events.push(
                     new Event(
                         sheet[i][columnName],
@@ -849,6 +853,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                         triggeredCommands,
                         endedCommands,
                         effects,
+                        refreshes,
                         sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration] : "",
                         sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration] : "",
                         i + 1
@@ -860,6 +865,10 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 for (let j = 0; j < game.events[i].effects.length; j++) {
                     let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effects[j]);
                     if (status) game.events[i].effects[j] = status;
+                }
+                for (let j = 0; j < game.events[i].refreshes.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].refreshes[j]);
+                    if (status) game.events[i].refreshes[j] = status;
                 }
                 if (doErrorChecking) {
                     let error = exports.checkEvent(game.events[i], game);
@@ -900,7 +909,11 @@ module.exports.checkEvent = function (event, game) {
     }
     for (let i = 0; i < event.effects.length; i++) {
         if (!(event.effects[i] instanceof Status))
-            return new Error(`Couldn't load event on row ${event.row}. "${event.effects[i]}" in refreshing status effects is not a status effect.`);
+            return new Error(`Couldn't load event on row ${event.row}. "${event.effects[i]}" in inflicted status effects is not a status effect.`);
+    }
+    for (let i = 0; i < event.refreshes.length; i++) {
+        if (!(event.refreshes[i] instanceof Status))
+            return new Error(`Couldn't load event on row ${event.row}. "${event.refreshes[i]}" in refreshing status effects is not a status effect.`);
     }
     return;
 };
@@ -1038,6 +1051,10 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                 for (let j = 0; j < game.events[i].effectsStrings.length; j++) {
                     let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effectsStrings[j]);
                     if (status) game.events[i].effects[j] = status;
+                }
+                for (let j = 0; j < game.events[i].refreshesStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].refreshesStrings[j]);
+                    if (status) game.events[i].refreshes[j] = status;
                 }
             }
             if (errors.length > 0) {

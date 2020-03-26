@@ -144,7 +144,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             for (let i = 0; i < game.events.length; i++) {
                 if (game.events[i].ongoing && game.events[i].duration !== null)
                     game.events[i].startTimer(bot, game);
-                if (game.events[i].ongoing && game.events[i].effects.length > 0)
+                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
                     game.events[i].startEffectsTimer(game);
             }
         }
@@ -219,7 +219,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             for (let i = 0; i < game.events.length; i++) {
                 if (game.events[i].ongoing && game.events[i].duration !== null)
                     game.events[i].startTimer(bot, game);
-                if (game.events[i].ongoing && game.events[i].effects.length > 0)
+                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
                     game.events[i].startEffectsTimer(game);
             }
         }

@@ -283,9 +283,16 @@ class Player {
             if (status === null) return `Couldn't find status effect "${statusName}".`;
         }
 
-        for (let i = 0; i < status.overriders.length; i++) {
-            if (this.statusString.includes(status.overriders[i].name))
-                return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
+        if (notify === null || notify === undefined) notify = true;
+        if (doCures === null || doCures === undefined) doCures = true;
+        if (narrate === null || narrate === undefined) narrate = true;
+        if (duration === undefined) duration = null;
+
+        if (doCures) {
+            for (let i = 0; i < status.overriders.length; i++) {
+                if (this.statusString.includes(status.overriders[i].name))
+                    return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
+            }
         }
 
         if (this.statusString.includes(statusName)) {
@@ -296,11 +303,6 @@ class Player {
             }
             else return "Specified player already has that status effect.";
         }
-
-        if (notify === null || notify === undefined) notify = true;
-        if (doCures === null || doCures === undefined) doCures = true;
-        if (narrate === null || narrate === undefined) narrate = true;
-        if (duration === undefined) duration = null;
 
         if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
@@ -331,8 +333,8 @@ class Player {
 
         // Announce when a player falls asleep or unconscious.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
-        else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
+        else if (status.attributes.includes("unconscious") && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
         status = new Status(status.name, status.duration, status.fatal, status.visible, status.overriders, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
 
@@ -413,8 +415,8 @@ class Player {
 
         // Announce when a player awakens.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
+        else if (status.attributes.includes("unconscious") && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
