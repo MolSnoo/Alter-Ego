@@ -140,8 +140,10 @@ module.exports.loadObjects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear all recipe intervals so they don't continue after these objects are unloaded.
         for (let i = 0; i < game.objects.length; i++) {
-            clearInterval(game.objects[i].recipeInterval);
-            clearInterval(game.objects[i].process.timer);
+            if (game.objects[i].recipeInterval !== null)
+                game.objects[i].recipeInterval.stop();
+            if (game.objects[i].process.timer !== null)
+                game.objects[i].process.timer.stop();
         }
 
         sheets.getData(settings.objectSheetAllCells, function (response) {
@@ -404,6 +406,16 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                     let prefab = game.prefabs.find(prefab => prefab.id === ingredients[j] && prefab.id !== "");
                     if (prefab) ingredients[j] = prefab;
                 }
+                // Parse the duration.
+                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+                let durationUnit = durationString.charAt(durationString.length - 1);
+                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
+                if (!"yMwdhms".includes(durationUnit)) {
+                    durationInt = NaN;
+                    durationUnit = NaN;
+                }
+                var duration = durationString ? moment.duration(durationInt, durationUnit) : moment.duration(0);
                 // Separate the products.
                 var products = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
                 // For each product, find its Prefab.
@@ -417,7 +429,7 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                     new Recipe(
                         ingredients,
                         sheet[i][columnObjectTag] ? sheet[i][columnObjectTag] : "",
-                        sheet[i][columnDuration] ? sheet[i][columnDuration].toLowerCase() : "0s",
+                        duration,
                         products,
                         sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription] : "",
                         sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription] : "",
@@ -456,10 +468,9 @@ module.exports.checkRecipe = function (recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require an object tag.`);
     if (recipe.products.length > 2 && recipe.objectTag === "")
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require an object tag.`);
-    const timeInt = recipe.duration.substring(0, recipe.duration.length - 1);
-    if (recipe.duration !== "" && (isNaN(timeInt) || !recipe.duration.endsWith('s') && !recipe.duration.endsWith('m') && !recipe.duration.endsWith('h')))
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Duration format is incorrect. Must be a number followed by 's', 'm', or 'h'.`);
-    if (recipe.objectTag === "" && recipe.duration !== "0s")
+    if (recipe.duration !== null && !recipe.duration.isValid())
+        return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
+    if (recipe.objectTag === "" && recipe.duration.asMilliseconds() !== 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without an object tag cannot have a duration.`);
     for (let i = 0; i < recipe.products.length; i++) {
         if (!(recipe.products[i] instanceof Prefab))

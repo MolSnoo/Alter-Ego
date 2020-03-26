@@ -3,6 +3,10 @@ const settings = include('settings.json');
 const Narration = include(`${settings.dataDir}/Narration.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
+var moment = require('moment');
+var timer = require('moment-timer');
+moment().format();
+
 class Object {
     constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, isHidingSpot, preposition, description, row) {
         this.name = name;
@@ -19,10 +23,9 @@ class Object {
         this.description = description;
         this.row = row;
 
-        this.duration = 0;
-        this.process = { recipe: null, ingredients: [], duration: 0, timer: null };
+        this.process = { recipe: null, ingredients: [], duration: null, timer: null };
         let object = this;
-        this.recipeInterval = setInterval(function () { object.processRecipes(object); }, 1000);
+        this.recipeInterval = this.recipeTag ? new moment.duration(1000).timer({ start: true, loop: true }, function () { object.processRecipes(object); }) : null;
     }
 
     setAccessible(game) {
@@ -47,14 +50,13 @@ class Object {
         if (result.recipe === null) {
             // If this is supposed to deactivate automatically and no recipe was found, turn it off after 1 minute.
             if (this.autoDeactivate) {
-                this.process.duration = 60000;
+                this.process.duration = new moment.duration(1, 'm');
                 let object = this;
-                this.process.timer = setInterval(function () {
-                    object.process.duration -= 1000;
-                    if (object.process.duration <= 0) {
+                this.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                    object.process.duration.subtract(1000, 'ms');
+                    if (object.process.duration.asMilliseconds() <= 0)
                         object.deactivate(game, null, true);
-                    }
-                }, 1000);
+                });
             }
             return;
         }
@@ -62,22 +64,13 @@ class Object {
         this.process.recipe = result.recipe;
         this.process.ingredients = result.ingredients;
         if (player) player.sendDescription(this.process.recipe.initiatedDescription, this);
-
-        const timeInt = this.process.recipe.duration.substring(0, this.process.recipe.duration.length - 1);
-        let time;
-        if (this.process.recipe.duration.endsWith('s'))
-            time = timeInt * 1000;
-        else if (this.process.recipe.duration.endsWith('m'))
-            time = timeInt * 60000;
-        else if (this.process.recipe.duration.endsWith('h'))
-            time = timeInt * 3600000;
-        this.process.duration = time;
+        this.process.duration = this.process.recipe.duration.clone();
 
         let object = this;
-        object.process.timer = setInterval(function () {
-            object.process.duration -= 1000;
+        object.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+            object.process.duration.subtract(1000, 'ms');
 
-            if (object.process.duration <= 0) {
+            if (object.process.duration.asMilliseconds() <= 0) {
                 // Make sure all the ingredients are still there.
                 let stillThere = true;
                 for (let i = 0; i < object.process.ingredients.length; i++) {
@@ -100,13 +93,13 @@ class Object {
                 if (object.autoDeactivate)
                     object.deactivate(game, null, true);
                 else {
-                    clearInterval(object.process.timer);
-                    object.process.duration = 0;
+                    object.process.timer.stop();
+                    object.process.duration = null;
                     object.process.recipe = null;
                     object.process.ingredients.length = 0;
                 }
             }
-        }, 1000);
+        });
 
         return;
     }
@@ -121,8 +114,9 @@ class Object {
 
         this.process.recipe = null;
         this.process.ingredients.length = 0;
-        clearInterval(this.process.timer);
-        this.process.duration = 0;
+        if (this.process.timer !== null)
+            this.process.timer.stop();
+        this.process.duration = null;
 
         return;
     }
@@ -131,14 +125,13 @@ class Object {
         if (object.activated) {
             var game = include('game.json');
             const result = object.findRecipe(game);
-            if (object.process.recipe === null && object.process.duration === 0 && result.recipe === null && object.autoDeactivate) {
-                object.process.duration = 60000;
-                object.process.timer = setInterval(function () {
-                    object.process.duration -= 1000;
-                    if (object.process.duration <= 0) {
+            if (object.process.recipe === null && object.process.duration === null && result.recipe === null && object.autoDeactivate) {
+                object.process.duration = new moment.duration(1, 'm');
+                object.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                    object.process.duration.subtract(1000, 'ms');
+                    if (object.process.duration.asMilliseconds() <= 0)
                         object.deactivate(game, null, true);
-                    }
-                }, 1000);
+                });
                 return;
             }
             // If the current recipe being processed is no longer the one it found, cancel it.
@@ -146,28 +139,20 @@ class Object {
                 || object.process.recipe !== null && result.recipe === null) {
                 object.process.recipe = null;
                 object.process.ingredients.length = 0;
-                clearInterval(object.process.timer);
-                object.process.duration = 0;
+                if (object.process.timer !== null)
+                    object.process.timer.stop();
+                object.process.duration = null;
             }
             // Start a new process.
             if (object.process.recipe === null && result.recipe !== null) {
                 object.process.recipe = result.recipe;
                 object.process.ingredients = result.ingredients;
+                object.process.duration = object.process.recipe.duration.clone();
 
-                const timeInt = object.process.recipe.duration.substring(0, object.process.recipe.duration.length - 1);
-                let time;
-                if (object.process.recipe.duration.endsWith('s'))
-                    time = timeInt * 1000;
-                else if (object.process.recipe.duration.endsWith('m'))
-                    time = timeInt * 60000;
-                else if (object.process.recipe.duration.endsWith('h'))
-                    time = timeInt * 3600000;
-                object.process.duration = time;
+                this.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                    object.process.duration.subtract(1000, 'ms');
 
-                this.process.timer = setInterval(function () {
-                    object.process.duration -= 1000;
-
-                    if (object.process.duration <= 0) {
+                    if (object.process.duration.asMilliseconds() <= 0) {
                         // Make sure all the ingredients are still there.
                         let stillThere = true;
                         for (let i = 0; i < object.process.ingredients.length; i++) {
@@ -189,13 +174,13 @@ class Object {
                         if (object.autoDeactivate)
                             object.deactivate(game, null, true);
                         else {
-                            clearInterval(object.process.timer);
-                            object.process.duration = 0;
+                            object.process.timer.stop();
+                            object.process.duration = null;
                             object.process.recipe = null;
                             object.process.ingredients.length = 0;
                         }
                     }
-                }, 1000);
+                });
             }
         }
 
