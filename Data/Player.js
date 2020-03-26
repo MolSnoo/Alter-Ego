@@ -283,6 +283,11 @@ class Player {
             if (status === null) return `Couldn't find status effect "${statusName}".`;
         }
 
+        for (let i = 0; i < status.overriders.length; i++) {
+            if (this.statusString.includes(status.overriders[i].name))
+                return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
+        }
+
         if (this.statusString.includes(statusName)) {
             if (status.duplicatedStatus !== null) {
                 this.cure(game, statusName, false, false, false);
@@ -329,7 +334,7 @@ class Player {
         else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.visible, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.visible, status.overriders, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {

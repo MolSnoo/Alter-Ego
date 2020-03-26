@@ -914,14 +914,15 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnDuration = 1;
             const columnFatal = 2;
             const columnVisible = 3;
-            const columnCures = 4;
-            const columnNextStage = 5;
-            const columnDuplicatedStatus = 6;
-            const columnCuredCondition = 7;
-            const columnStatModifier = 8;
-            const columnAttributes = 9;
-            const columnInflictedDescription = 11;
-            const columnCuredDescription = 12;
+            const columnOverriders = 4;
+            const columnCures = 5;
+            const columnNextStage = 6;
+            const columnDuplicatedStatus = 7;
+            const columnCuredCondition = 8;
+            const columnStatModifier = 9;
+            const columnAttributes = 10;
+            const columnInflictedDescription = 12;
+            const columnCuredDescription = 13;
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
@@ -934,6 +935,9 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     durationUnit = NaN;
                 }
                 var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
+                var overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
+                for (let j = 0; j < overriders.length; j++)
+                    overriders[j] = overriders[j].trim();
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
@@ -979,6 +983,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                         duration,
                         sheet[i][columnFatal] === "TRUE",
                         sheet[i][columnVisible] === "TRUE",
+                        overriders,
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage] : null,
                         sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus] : null,
@@ -994,6 +999,10 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             // Now go through and make the nextStage and curedCondition an actual Status object.
             var errors = [];
             for (let i = 0; i < game.statusEffects.length; i++) {
+                for (let j = 0; j < game.statusEffects[i].overriders.length; j++) {
+                    let overrider = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].overriders[j]);
+                    if (overrider) game.statusEffects[i].overriders[j] = overrider;
+                }
                 for (let j = 0; j < game.statusEffects[i].cures.length; j++) {
                     let cure = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].cures[j]);
                     if (cure) game.statusEffects[i].cures[j] = cure;
@@ -1058,6 +1067,11 @@ module.exports.checkStatusEffect = function (status) {
             return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
         if (isNaN(status.statModifiers[i].value))
             return new Error(`Couldn't load status effect on row ${status.row}. The value given in stat modifier ${i + 1} is not an integer.`);
+    }
+    if (status.overriders.length > 0) {
+        for (let i = 0; i < status.overriders.length; i++)
+            if (!(status.overriders[i] instanceof Status))
+                return new Error(`Couldn't load status effect on row ${status.row}. "${status.overriders[i]}" in "don't inflict if" is not a status effect.`);
     }
     if (status.cures.length > 0) {
         for (let i = 0; i < status.cures.length; i++)
