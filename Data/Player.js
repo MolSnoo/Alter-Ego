@@ -288,11 +288,9 @@ class Player {
         if (narrate === null || narrate === undefined) narrate = true;
         if (duration === undefined) duration = null;
 
-        if (doCures) {
-            for (let i = 0; i < status.overriders.length; i++) {
-                if (this.statusString.includes(status.overriders[i].name))
-                    return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
-            }
+        for (let i = 0; i < status.overriders.length; i++) {
+            if (this.statusString.includes(status.overriders[i].name))
+                return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
         }
 
         if (this.statusString.includes(statusName)) {
@@ -352,7 +350,9 @@ class Player {
                 if (status.remaining.asMilliseconds() <= 0) {
                     if (status.nextStage) {
                         player.cure(game, status.name, false, false, true);
-                        player.inflict(game, status.nextStage.name, true, false, true);
+                        const response = player.inflict(game, status.nextStage.name, true, false, true);
+                        if (response.startsWith(`Couldn't inflict status effect`))
+                            player.sendDescription(status.curedDescription, status);
                     }
                     else {
                         if (status.fatal) {
