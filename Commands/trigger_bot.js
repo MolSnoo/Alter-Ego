@@ -3,7 +3,9 @@ const settings = include('settings.json');
 module.exports.config = {
     name: "trigger_bot",
     description: "Triggers an event.",
-    details: "Triggers the specified event. The event must not already be ongoing. If it is, nothing will happen. If the event has any triggered commands, they will **not** be run.",
+    details: "Triggers the specified event. The event must not already be ongoing. If it is, nothing will happen. "
+        + "If the event has any triggered commands, they will not be run if they were passed by another event."
+        + "They will be run if they were passed by anything else, however.",
     usage: `${settings.commandPrefix}trigger rain\n`
         + `${settings.commandPrefix}trigger explosion`,
     usableBy: "Bot",
@@ -30,7 +32,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (event === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
     if (event.ongoing) return;
 
-    await event.trigger(bot, game, false);
+    var doTriggeredCommands = false;
+    if (data && !data.hasOwnProperty("ongoing")) doTriggeredCommands = true;
+
+    await event.trigger(bot, game, doTriggeredCommands);
 
     return;
 };

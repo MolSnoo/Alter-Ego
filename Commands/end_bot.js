@@ -3,7 +3,9 @@ const settings = include('settings.json');
 module.exports.config = {
     name: "end_bot",
     description: "Ends an event.",
-    details: "Ends the specified event.The event must be ongoing. If it isn't, nothing will happen. If the event has any ended commands, they will **not** be run.",
+    details: "Ends the specified event.The event must be ongoing. If it isn't, nothing will happen. "
+        + "If the event has any ended commands, they will not be run if they were passed by another event."
+        + "They will be run if they were passed by anything else, however.",
     usage: `${settings.commandPrefix}end rain\n`
         + `${settings.commandPrefix}end explosion`,
     usableBy: "Bot",
@@ -30,7 +32,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (event === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
     if (!event.ongoing) return;
 
-    await event.end(bot, game, false);
+    var doEndedCommands = false;
+    if (data && !data.hasOwnProperty("ongoing")) doEndedCommands = true;
+
+    await event.end(bot, game, doEndedCommands);
 
     return;
 };
