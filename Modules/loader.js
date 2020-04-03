@@ -8,27 +8,32 @@ const Prefab = include(`${settings.dataDir}/Prefab.js`);
 const Recipe = include(`${settings.dataDir}/Recipe.js`);
 const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
+const Event = include(`${settings.dataDir}/Event.js`);
 const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
+var moment = require('moment');
+moment().format();
+
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.roomSheetAllCells, function (response) {
+        sheets.getData(settings.roomSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
-            const columnNumberExits = 1;
-            const columnExits = 2;
-            const columnPosX = 3;
-            const columnPosY = 4;
-            const columnPosZ = 5;
-            const columnUnlocked = 6;
-            const columnLeadsTo = 7;
-            const columnFrom = 8;
-            const columnDescription = 9;
+            const columnTags = 1;
+            const columnNumberExits = 2;
+            const columnExits = 3;
+            const columnPosX = 4;
+            const columnPosY = 5;
+            const columnPosZ = 6;
+            const columnUnlocked = 7;
+            const columnLeadsTo = 8;
+            const columnFrom = 9;
+            const columnDescription = 10;
 
             game.rooms.length = 0;
             for (let i = 1, j = 0; i < sheet.length; i = i + j) {
@@ -43,7 +48,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         new Exit(
                             sheet[i + j][columnExits],
                             pos,
-                            sheet[i + j][columnUnlocked] === true,
+                            sheet[i + j][columnUnlocked] === "TRUE",
                             sheet[i + j][columnLeadsTo],
                             sheet[i + j][columnFrom],
                             sheet[i + j][columnDescription] ? sheet[i + j][columnDescription] : "",
@@ -51,10 +56,14 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         ));
                 }
                 const channel = game.guild.channels.find(channel => channel.name === sheet[i][columnRoomName]);
+                var tags = sheet[i][columnTags] ? sheet[i][columnTags].split(',') : [];
+                for (let j = 0; j < tags.length; j++)
+                    tags[j] = tags[j].trim();
                 game.rooms.push(
                     new Room(
                         sheet[i][columnRoomName],
                         channel,
+                        tags,
                         exits,
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
@@ -131,11 +140,13 @@ module.exports.loadObjects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear all recipe intervals so they don't continue after these objects are unloaded.
         for (let i = 0; i < game.objects.length; i++) {
-            clearInterval(game.objects[i].recipeInterval);
-            clearInterval(game.objects[i].process.timer);
+            if (game.objects[i].recipeInterval !== null)
+                game.objects[i].recipeInterval.stop();
+            if (game.objects[i].process.timer !== null)
+                game.objects[i].process.timer.stop();
         }
 
-        sheets.getDataFormulas(settings.objectSheetAllCells, function (response) {
+        sheets.getData(settings.objectSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -156,13 +167,13 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                     new Object(
                         sheet[i][columnName],
                         sheet[i][columnLocation],
-                        sheet[i][columnAccessibility] === true,
+                        sheet[i][columnAccessibility] === "TRUE",
                         sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle] : "",
                         sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag] : "",
-                        sheet[i][columnActivatable] === true,
-                        sheet[i][columnActivated] === true,
-                        sheet[i][columnAutoDeactivate] === true,
-                        sheet[i][columnHidingSpot] === true,
+                        sheet[i][columnActivatable] === "TRUE",
+                        sheet[i][columnActivated] === "TRUE",
+                        sheet[i][columnAutoDeactivate] === "TRUE",
+                        sheet[i][columnHidingSpot] === "TRUE",
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition] : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         i + 1
@@ -216,7 +227,7 @@ module.exports.checkObject = function (object) {
 
 module.exports.loadPrefabs = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.prefabSheetAllCells, function (response) {
+        sheets.getData(settings.prefabSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -283,16 +294,16 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                         name[1] ? name[1].trim() : "",
                         containingPhrase[0] ? containingPhrase[0].trim() : "",
                         containingPhrase[1] ? containingPhrase[1].trim() : "",
-                        sheet[i][columnDiscreet] === true,
+                        sheet[i][columnDiscreet] === "TRUE",
                         parseInt(sheet[i][columnSize]),
                         parseInt(sheet[i][columnWeight]),
-                        sheet[i][columnUsable] === true,
+                        sheet[i][columnUsable] === "TRUE",
                         sheet[i][columnUseVerb] ? sheet[i][columnUseVerb] : "",
                         parseInt(sheet[i][columnUses]),
                         effects,
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
-                        sheet[i][columnEquippable] === true,
+                        sheet[i][columnEquippable] === "TRUE",
                         equipmentSlots,
                         coveredEquipmentSlots,
                         equipCommands,
@@ -368,7 +379,7 @@ module.exports.checkPrefab = function (prefab, game) {
 
 module.exports.loadRecipes = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.recipeSheetAllCells, function (response) {
+        sheets.getData(settings.recipeSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
@@ -395,6 +406,16 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                     let prefab = game.prefabs.find(prefab => prefab.id === ingredients[j] && prefab.id !== "");
                     if (prefab) ingredients[j] = prefab;
                 }
+                // Parse the duration.
+                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+                let durationUnit = durationString.charAt(durationString.length - 1);
+                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
+                if (!"yMwdhms".includes(durationUnit)) {
+                    durationInt = NaN;
+                    durationUnit = NaN;
+                }
+                var duration = durationString ? moment.duration(durationInt, durationUnit) : moment.duration(0);
                 // Separate the products.
                 var products = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
                 // For each product, find its Prefab.
@@ -408,7 +429,7 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                     new Recipe(
                         ingredients,
                         sheet[i][columnObjectTag] ? sheet[i][columnObjectTag] : "",
-                        sheet[i][columnDuration] ? sheet[i][columnDuration].toLowerCase() : "0s",
+                        duration,
                         products,
                         sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription] : "",
                         sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription] : "",
@@ -447,10 +468,9 @@ module.exports.checkRecipe = function (recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require an object tag.`);
     if (recipe.products.length > 2 && recipe.objectTag === "")
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require an object tag.`);
-    const timeInt = recipe.duration.substring(0, recipe.duration.length - 1);
-    if (recipe.duration !== "" && (isNaN(timeInt) || !recipe.duration.endsWith('s') && !recipe.duration.endsWith('m') && !recipe.duration.endsWith('h')))
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Duration format is incorrect. Must be a number followed by 's', 'm', or 'h'.`);
-    if (recipe.objectTag === "" && recipe.duration !== "0s")
+    if (recipe.duration !== null && !recipe.duration.isValid())
+        return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
+    if (recipe.objectTag === "" && recipe.duration.asMilliseconds() !== 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without an object tag cannot have a duration.`);
     for (let i = 0; i < recipe.products.length; i++) {
         if (!(recipe.products[i] instanceof Prefab))
@@ -460,7 +480,7 @@ module.exports.checkRecipe = function (recipe) {
 
 module.exports.loadItems = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.itemSheetAllCells, function (response) {
+        sheets.getData(settings.itemSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
@@ -482,7 +502,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                         prefab ? prefab : sheet[i][columnPrefab],
                         sheet[i][columnIdentifier] ? sheet[i][columnIdentifier] : "",
                         sheet[i][columnLocation],
-                        sheet[i][columnAccessibility] === true,
+                        sheet[i][columnAccessibility] === "TRUE",
                         sheet[i][columnContainer] ? sheet[i][columnContainer] : "",
                         parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
@@ -666,7 +686,7 @@ module.exports.checkItem = function (item, game) {
 
 module.exports.loadPuzzles = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.puzzleSheetAllCells, function (response) {
+        sheets.getData(settings.puzzleSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -698,12 +718,12 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 game.puzzles.push(
                     new Puzzle(
                         sheet[i][columnName],
-                        sheet[i][columnSolved] === true,
-                        sheet[i][columnRequiresMod] === true,
+                        sheet[i][columnSolved] === "TRUE",
+                        sheet[i][columnRequiresMod] === "TRUE",
                         sheet[i][columnLocation],
                         sheet[i][columnParentObject] ? sheet[i][columnParentObject] : "",
                         sheet[i][columnType],
-                        sheet[i][columnAccessible] === true,
+                        sheet[i][columnAccessible] === "TRUE",
                         sheet[i][columnRequires] ? sheet[i][columnRequires] : null,
                         sheet[i][columnSolution] ? sheet[i][columnSolution].toString() : "",
                         parseInt(sheet[i][columnAttempts]),
@@ -769,26 +789,168 @@ module.exports.checkPuzzle = function (puzzle) {
     return;
 };
 
+module.exports.loadEvents = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        // Clear timers for all events first.
+        for (let i = 0; i < game.events.length; i++) {
+            if (game.events[i].timer !== null)
+                game.events[i].timer.stop();
+            if (game.events[i].effectsTimer !== null)
+                game.events[i].effectsTimer.stop();
+        }
+
+        sheets.getData(settings.eventSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnName = 0;
+            const columnOngoing = 1;
+            const columnDuration = 2;
+            const columnTimeRemaining = 3;
+            const columnTriggersAt = 4;
+            const columnRoomTag = 5;
+            const columnCommands = 6;
+            const columnStatusEffects = 7;
+            const columnRefreshedEffects = 8;
+            const columnTriggeredNarration = 9;
+            const columnEndedNarration = 10;
+
+            game.events.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+                let durationUnit = durationString.charAt(durationString.length - 1);
+                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
+                if (!"yMwdhms".includes(durationUnit)) {
+                    durationInt = NaN;
+                    durationUnit = NaN;
+                }
+                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
+                var timeRemaining = sheet[i][columnTimeRemaining] ? moment.duration(sheet[i][columnTimeRemaining]) : null;
+                var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
+                for (let j = 0; j < triggerTimes.length; j++)
+                    triggerTimes[j] = moment(triggerTimes[j].trim(), ["LT", "LTS", "HH:mm", "hh:mm a"]);
+                const commands = sheet[i][columnCommands] ? sheet[i][columnCommands].split('/') : ["", ""];
+                var triggeredCommands = commands[0] ? commands[0].split(',') : [];
+                for (let j = 0; j < triggeredCommands.length; j++)
+                    triggeredCommands[j] = triggeredCommands[j].trim();
+                var endedCommands = commands[1] ? commands[1].split(',') : [];
+                for (let j = 0; j < endedCommands.length; j++)
+                    endedCommands[j] = endedCommands[j].trim();
+                var effects = sheet[i][columnStatusEffects] ? sheet[i][columnStatusEffects].split(',') : [];
+                for (let j = 0; j < effects.length; j++)
+                    effects[j] = effects[j].trim();
+                var refreshes = sheet[i][columnRefreshedEffects] ? sheet[i][columnRefreshedEffects].split(',') : [];
+                for (let j = 0; j < refreshes.length; j++)
+                    refreshes[j] = refreshes[j].trim();
+                game.events.push(
+                    new Event(
+                        sheet[i][columnName],
+                        sheet[i][columnOngoing] === "TRUE",
+                        duration,
+                        timeRemaining,
+                        triggerTimes,
+                        sheet[i][columnRoomTag] ? sheet[i][columnRoomTag] : "",
+                        triggeredCommands,
+                        endedCommands,
+                        effects,
+                        refreshes,
+                        sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration] : "",
+                        sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration] : "",
+                        i + 1
+                    )
+                );
+            }
+            var errors = [];
+            for (let i = 0; i < game.events.length; i++) {
+                for (let j = 0; j < game.events[i].effects.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effects[j]);
+                    if (status) game.events[i].effects[j] = status;
+                }
+                for (let j = 0; j < game.events[i].refreshes.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].refreshes[j]);
+                    if (status) game.events[i].refreshes[j] = status;
+                }
+                if (doErrorChecking) {
+                    let error = exports.checkEvent(game.events[i], game);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkEvent = function (event, game) {
+    if (event.name === "" || event.name === null || event.name === undefined)
+        return new Error(`Couldn't load event on row ${event.row}. No event name was given.`);
+    if (game.events.filter(other => other.name === event.name && other.row < event.row).length > 0)
+        return new Error(`Couldn't load event on row ${event.row}. Another event with this name already exists.`);
+    if (event.duration !== null && !event.duration.isValid())
+        return new Error(`Couldn't load event on row ${event.row}. An invalid duration was given.`);
+    if (event.remaining !== null && !event.remaining.isValid())
+        return new Error(`Couldn't load event on row ${event.row}. An invalid time remaining was given.`);
+    if (!event.ongoing && event.remaining !== null)
+        return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
+    if (event.ongoing && event.duration !== null && event.remaining === null)
+        return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
+    for (let i = 0; i < event.triggerTimes.length; i++) {
+        if (!event.triggerTimes[i].isValid()) {
+            let timeString = event.triggerTimes[i].inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
+            return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
+        }
+    }
+    for (let i = 0; i < event.effects.length; i++) {
+        if (!(event.effects[i] instanceof Status))
+            return new Error(`Couldn't load event on row ${event.row}. "${event.effects[i]}" in inflicted status effects is not a status effect.`);
+    }
+    for (let i = 0; i < event.refreshes.length; i++) {
+        if (!(event.refreshes[i] instanceof Status))
+            return new Error(`Couldn't load event on row ${event.row}. "${event.refreshes[i]}" in refreshing status effects is not a status effect.`);
+    }
+    return;
+};
+
 module.exports.loadStatusEffects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.statusSheetAllCells, function (response) {
+        sheets.getData(settings.statusSheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
             const columnDuration = 1;
             const columnFatal = 2;
             const columnVisible = 3;
-            const columnCures = 4;
-            const columnNextStage = 5;
-            const columnDuplicatedStatus = 6;
-            const columnCuredCondition = 7;
-            const columnStatModifier = 8;
-            const columnAttributes = 9;
-            const columnInflictedDescription = 11;
-            const columnCuredDescription = 12;
+            const columnOverriders = 4;
+            const columnCures = 5;
+            const columnNextStage = 6;
+            const columnDuplicatedStatus = 7;
+            const columnCuredCondition = 8;
+            const columnStatModifier = 9;
+            const columnAttributes = 10;
+            const columnInflictedDescription = 12;
+            const columnCuredDescription = 13;
 
             game.statusEffects.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+                let durationUnit = durationString.charAt(durationString.length - 1);
+                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
+                if (!"yMwdhms".includes(durationUnit)) {
+                    durationInt = NaN;
+                    durationUnit = NaN;
+                }
+                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
+                var overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
+                for (let j = 0; j < overriders.length; j++)
+                    overriders[j] = overriders[j].trim();
                 var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
                 for (let j = 0; j < cures.length; j++)
                     cures[j] = cures[j].trim();
@@ -831,9 +993,10 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                 game.statusEffects.push(
                     new Status(
                         sheet[i][columnName],
-                        sheet[i][columnDuration].toLowerCase(),
-                        sheet[i][columnFatal] === true,
-                        sheet[i][columnVisible] === true,
+                        duration,
+                        sheet[i][columnFatal] === "TRUE",
+                        sheet[i][columnVisible] === "TRUE",
+                        overriders,
                         cures,
                         sheet[i][columnNextStage] ? sheet[i][columnNextStage] : null,
                         sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus] : null,
@@ -849,6 +1012,10 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             // Now go through and make the nextStage and curedCondition an actual Status object.
             var errors = [];
             for (let i = 0; i < game.statusEffects.length; i++) {
+                for (let j = 0; j < game.statusEffects[i].overriders.length; j++) {
+                    let overrider = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].overriders[j]);
+                    if (overrider) game.statusEffects[i].overriders[j] = overrider;
+                }
                 for (let j = 0; j < game.statusEffects[i].cures.length; j++) {
                     let cure = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].cures[j]);
                     if (cure) game.statusEffects[i].cures[j] = cure;
@@ -880,6 +1047,16 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     if (status) game.prefabs[i].cures[j] = status;
                 }
             }
+            for (let i = 0; i < game.events.length; i++) {
+                for (let j = 0; j < game.events[i].effectsStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effectsStrings[j]);
+                    if (status) game.events[i].effects[j] = status;
+                }
+                for (let j = 0; j < game.events[i].refreshesStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].refreshesStrings[j]);
+                    if (status) game.events[i].refreshes[j] = status;
+                }
+            }
             if (errors.length > 0) {
                 if (errors.length > 5) {
                     errors = errors.slice(0, 5);
@@ -896,9 +1073,8 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
 module.exports.checkStatusEffect = function (status) {
     if (status.name === "" || status.name === null || status.name === undefined)
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect name was given.`);
-    const timeInt = status.duration.substring(0, status.duration.length - 1);
-    if (status.duration !== "" && (isNaN(timeInt) || !status.duration.endsWith('m') && !status.duration.endsWith('h')))
-        return new Error(`Couldn't load status effect on row ${status.row}. Duration format is incorrect. Must be a number followed by 'm' or 'h'.`);
+    if (status.duration !== null && !status.duration.isValid())
+        return new Error(`Couldn't load status effect on row ${status.row}. An invalid duration was given.`);
     for (let i = 0; i < status.statModifiers.length; i++) {
         if (status.statModifiers[i].stat === null)
             return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
@@ -908,6 +1084,11 @@ module.exports.checkStatusEffect = function (status) {
             return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
         if (isNaN(status.statModifiers[i].value))
             return new Error(`Couldn't load status effect on row ${status.row}. The value given in stat modifier ${i + 1} is not an integer.`);
+    }
+    if (status.overriders.length > 0) {
+        for (let i = 0; i < status.overriders.length; i++)
+            if (!(status.overriders[i] instanceof Status))
+                return new Error(`Couldn't load status effect on row ${status.row}. "${status.overriders[i]}" in "don't inflict if" is not a status effect.`);
     }
     if (status.cures.length > 0) {
         for (let i = 0; i < status.cures.length; i++)
@@ -928,7 +1109,8 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         // Clear all player status effects and movement timers first.
         for (let i = 0; i < game.players.length; i++) {
             for (let j = 0; j < game.players[i].status.length; j++) {
-                clearInterval(game.players[i].status[j].timer);
+                if (game.players[i].status[j].timer !== null)
+                    game.players[i].status[j].timer.stop();
             }
             game.players[i].isMoving = false;
             clearInterval(game.players[i].moveTimer);
@@ -939,7 +1121,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getDataFormulas(settings.playerSheetAllCells, async function (response) {
+        sheets.getData(settings.playerSheetAllCells, async function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -969,6 +1151,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     speed: parseInt(sheet[i][columnSpeed]),
                     stamina: parseInt(sheet[i][columnStamina])
                 };
+                var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
+                for (let j = 0; j < statusList.length; j++)
+                    statusList[j] = statusList[j].trim();
                 const player =
                     new Player(
                         sheet[i][columnID],
@@ -978,12 +1163,12 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnTalent],
                         sheet[i][columnPronouns] ? sheet[i][columnPronouns].toLowerCase() : "",
                         stats,
-                        sheet[i][columnAlive] === true,
+                        sheet[i][columnAlive] === "TRUE",
                         game.rooms.find(room => room.name === sheet[i][columnLocation]),
                         sheet[i][columnHidingSpot],
-                        new Array(),
+                        [],
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
-                        new Array(),
+                        [],
                         i + 1
                     );
                 player.setPronouns(player.originalPronouns, player.pronounString);
@@ -995,12 +1180,13 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
 
                     // Parse statuses and inflict the player with them.
                     const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                    const statuses = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : "";
                     for (let j = 0; j < game.statusEffects.length; j++) {
-                        for (let k = 0; k < statuses.length; k++) {
-                            if (game.statusEffects[j].name === statuses[k].trim()) {
-                                currentPlayer.inflict(game, game.statusEffects[j].name, false, false, false);
-                                break;
+                        for (let k = 0; k < statusList.length; k++) {
+                            const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
+                            if (game.statusEffects[j].name === statusName) {
+                                const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
+                                const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
                             }
                         }
                     }
@@ -1083,7 +1269,7 @@ module.exports.checkPlayer = function (player) {
 
 module.exports.loadInventories = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getDataFormulas(settings.inventorySheetAllCells, function (response) {
+        sheets.getData(settings.inventorySheetAllCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;

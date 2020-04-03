@@ -67,11 +67,17 @@ module.exports.createRequests = function () {
             case "Prefabs":
                 sheetId = settings.prefabSheetID;
                 break;
+            case "Recipes":
+                sheetId = settings.recipeSheetID;
+                break;
             case "Items":
                 sheetId = settings.itemSheetID;
                 break;
             case "Puzzles":
                 sheetId = settings.puzzleSheetID;
+                break;
+            case "Events":
+                sheetId = settings.eventSheetID;
                 break;
             case "Status Effects":
                 sheetId = settings.statusEffectSheetID;

@@ -1,3 +1,6 @@
+const settings = include('settings.json');
+const finder = include(`${settings.modulesDir}/finder.js`);
+
 const DOMParser = require('xmldom').DOMParser;
 const XMLSerializer = require('xmldom').XMLSerializer;
 
@@ -714,4 +717,39 @@ function removeClause(sentence, i) {
     // If all else fails, just remove the item clause.
     clause[i].delete();
     return 21;
+}
+
+// The functions below are included to provide shorthand for using the finder module in descriptions.
+function findRoom(name) {
+    return finder.findRoom(name);
+}
+function findObject(name, location) {
+    return finder.findObject(name, location);
+}
+function findPrefab(id) {
+    return finder.findPrefab(id);
+}
+function findItem(identifier, location, containerName) {
+    return finder.findItem(identifier, location, containerName);
+}
+function findPuzzle(name, location) {
+    return finder.findPuzzle(name, location);
+}
+function findEvent(name) {
+    return finder.findEvent(name);
+}
+function findStatusEffect(name) {
+    return finder.findStatusEffect(name);
+}
+function findPlayer(name) {
+    return finder.findPlayer(name);
+}
+function findLivingPlayer(name) {
+    return finder.findLivingPlayer(name);
+}
+function findDeadPlayer(name) {
+    return finder.findDeadPlayer(name);
+}
+function findInventoryItem(identifier, player, containerName, equipmentSlot) {
+    return finder.findInventoryItem(identifier, player, containerName, equipmentSlot);
 }

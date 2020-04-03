@@ -13,6 +13,10 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const Die = include(`${settings.dataDir}/Die.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
+var moment = require('moment');
+var timer = require('moment-timer');
+moment().format();
+
 class Player {
     constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, row) {
         this.id = id;
@@ -266,7 +270,7 @@ class Player {
         return appendString;
     }
 
-    inflict(game, statusName, notify, doCures, narrate, item) {
+    inflict(game, statusName, notify, doCures, narrate, item, duration) {
         var status = null;
         if (statusName instanceof Status) status = statusName;
         else {
@@ -279,6 +283,16 @@ class Player {
             if (status === null) return `Couldn't find status effect "${statusName}".`;
         }
 
+        if (notify === null || notify === undefined) notify = true;
+        if (doCures === null || doCures === undefined) doCures = true;
+        if (narrate === null || narrate === undefined) narrate = true;
+        if (duration === undefined) duration = null;
+
+        for (let i = 0; i < status.overriders.length; i++) {
+            if (this.statusString.includes(status.overriders[i].name))
+                return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
+        }
+
         if (this.statusString.includes(statusName)) {
             if (status.duplicatedStatus !== null) {
                 this.cure(game, statusName, false, false, false);
@@ -287,10 +301,6 @@ class Player {
             }
             else return "Specified player already has that status effect.";
         }
-
-        if (notify === null || notify === undefined) notify = true;
-        if (doCures === null || doCures === undefined) doCures = true;
-        if (narrate === null || narrate === undefined) narrate = true;
 
         if (status.cures !== "" && doCures) {
             for (let i = 0; i < status.cures.length; i++)
@@ -312,7 +322,7 @@ class Player {
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
             this.setPronouns(this.pronouns, "neutral");
         }
-        if (status.attributes.includes("disable all") || status.attributes.includes("disable move")) {
+        if (status.attributes.includes("disable all") || status.attributes.includes("disable move") || status.attributes.includes("disable run")) {
             // Clear the player's movement timer.
             this.isMoving = false;
             clearInterval(this.moveTimer);
@@ -321,38 +331,32 @@ class Player {
 
         // Announce when a player falls asleep or unconscious.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
-        else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
+        else if (status.attributes.includes("unconscious") && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.visible, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
+        status = new Status(status.name, status.duration, status.fatal, status.visible, status.overriders, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
 
         // Apply the duration, if applicable.
         if (status.duration) {
-            const timeInt = status.duration.substring(0, status.duration.length - 1);
-            if (isNaN(timeInt) || (!status.duration.endsWith('m') && !status.duration.endsWith('h')))
-                return "Failed to add status. Duration format is incorrect. Must be a number followed by 'm' or 'h'.";
-
-            let time;
-            if (status.duration.endsWith('m'))
-                // Set the time in minutes.
-                time = timeInt * 60000;
-            else if (status.duration.endsWith('h'))
-                // Set the time in hours.
-                time = timeInt * 3600000;
-            status.duration = time;
+            if (duration !== null) status.remaining = duration;
+            else status.remaining = status.duration.clone();
 
             let player = this;
-            status.timer = setInterval(function () {
-                status.duration -= 1000;
+            status.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                status.remaining.subtract(1000, 'ms');
+                player.statusString = player.generate_statusList(true, true);
+                game.queue.push(new QueueEntry(Date.now(), "updateCell", player.statusCell(), `Players!${player.name}|Status`, player.statusString));
 
-                if (status.duration <= 0) {
+                if (status.remaining.asMilliseconds() <= 0) {
                     if (status.nextStage) {
                         player.cure(game, status.name, false, false, true);
-                        player.inflict(game, status.nextStage.name, true, false, true);
+                        const response = player.inflict(game, status.nextStage.name, true, false, true);
+                        if (response.startsWith(`Couldn't inflict status effect`))
+                            player.sendDescription(status.curedDescription, status);
                     }
                     else {
                         if (status.fatal) {
-                            clearInterval(status.timer);
+                            status.timer.stop();
                             player.die(game);
                         }
                         else {
@@ -360,22 +364,7 @@ class Player {
                         }
                     }
                 }
-                /*const timeLeft = status.duration / 1000;  // Gets the total time in seconds.
-                const seconds = Math.floor(timeLeft % 60);
-                const minutes = Math.floor((timeLeft / 60) % 60);
-                const hours = Math.floor(timeLeft / 3600);
-
-                var statusMessage = " (";
-                if (hours >= 0 && hours < 10) statusMessage += "0";
-                statusMessage += hours + ":";
-                if (minutes >= 0 && minutes < 10) statusMessage += "0";
-                statusMessage += minutes + ":";
-                if (seconds >= 0 && seconds < 10) statusMessage += "0";
-                statusMessage += seconds + " remaining)";
-
-                var curtime = new Date();
-                console.log(curtime.toLocaleTimeString() + " timer running on " + status.name + statusMessage);*/
-            }, 1000);
+            });
         }
 
         this.status.push(status);
@@ -385,7 +374,7 @@ class Player {
         if (notify)
             this.sendDescription(status.inflictedDescription, status);
 
-        this.statusString = this.generate_statusList();
+        this.statusString = this.generate_statusList(true, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         // Post log message.
@@ -426,8 +415,8 @@ class Player {
 
         // Announce when a player awakens.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.name === "unconscious" && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
+        else if (status.attributes.includes("unconscious") && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
 
         var returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
@@ -447,47 +436,44 @@ class Player {
         const time = new Date().toLocaleTimeString();
         game.logChannel.send(`${time} - ${this.name} has been cured of ${status.name} in ${this.location.channel}`);
 
-        clearInterval(status.timer);
+        // Stop the timer.
+        if (status.timer !== null)
+            status.timer.stop();
         this.status.splice(statusIndex, 1);
         this.recalculateStats();
 
-        this.statusString = this.generate_statusList();
+        this.statusString = this.generate_statusList(true, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         return returnMessage;
     }
     
-    generate_statusList(includeHidden) {
-        if (includeHidden === null || includeHidden === undefined) includeHidden = true;
+    generate_statusList(includeHidden, includeDurations) {
         var statusList = "";
-        var visibleStatuses = [...this.status];
-        if (!includeHidden) visibleStatuses = visibleStatuses.filter(status => status.visible === true);
-        statusList = visibleStatuses.map(status => status.name).join(", ");
-        return statusList;
-    }
-
-    viewStatus_moderator() {
-        var statusMessage = this.name + "'s status: ";
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].duration === "") {
-                statusMessage += `[${this.status[i].name}] `;
-            }
-            else {
-                const time = this.status[i].duration / 1000;  // Gets the total time in seconds.
-                const seconds = Math.floor(time % 60);
-                const minutes = Math.floor((time / 60) % 60);
-                const hours = Math.floor(time / 3600);
+            if (this.status[i].visible || includeHidden) {
+                statusList += this.status[i].name;
+                if (includeDurations && this.status[i].remaining !== null) {
+                    const days = Math.floor(this.status[i].remaining.asDays());
+                    const hours = this.status[i].remaining.hours();
+                    const minutes = this.status[i].remaining.minutes();
+                    const seconds = this.status[i].remaining.seconds();
 
-                statusMessage += `[${this.status[i].name} (`;
-                if (hours >= 0 && hours < 10) statusMessage += '0';
-                statusMessage += `${hours}:`;
-                if (minutes >= 0 && minutes < 10) statusMessage += '0';
-                statusMessage += `${minutes}:`;
-                if (seconds >= 0 && seconds < 10) statusMessage += '0';
-                statusMessage += `${seconds} remaining)] `;
+                    let timeString = "";
+                    if (days !== 0) timeString += `${days} `;
+                    if (hours >= 0 && hours < 10) timeString += '0';
+                    timeString += `${hours}:`;
+                    if (minutes >= 0 && minutes < 10) timeString += '0';
+                    timeString += `${minutes}:`;
+                    if (seconds >= 0 && seconds < 10) timeString += '0';
+                    timeString += `${seconds}`;
+
+                    statusList += ` (${timeString})`;
+                }
+                statusList += ", ";
             }
         }
-        return statusMessage;
+        return statusList.substring(0, statusList.lastIndexOf(", "));
     }
 
     hasAttribute(attribute) {
@@ -1617,23 +1603,55 @@ class Player {
     }
 
     craft(game, item1, item2, recipe) {
+        var product1 = recipe.products[0];
+        var product2 = recipe.products[1];
+        // First, check if either of the ingredients are also products.
+        // If they are, simply decrease their uses.
+        // If their uses would become 0, change the product to its next stage, if it has one.
+        var item1Uses = null;
+        var item2Uses = null;
+        if (product1 && item1.prefab.id === product1.id) {
+            if (item1.uses - 1 === 0) product1 = product1.nextStage;
+            else if (!isNaN(item1.uses)) item1Uses = item1.uses - 1;
+        }
+        else if (product2 && item1.prefab.id === product2.id) {
+            if (item1.uses - 1 === 0) product2 = product2.nextStage;
+            else if (!isNaN(item1.uses)) item2Uses = item1.uses - 1;
+        }
+        if (product1 && item2.prefab.id === product1.id) {
+            if (item2.uses - 1 === 0) product1 = product1.nextStage;
+            else if (!isNaN(item2.uses)) item1Uses = item2.uses - 1;
+        }
+        else if (product2 && item2.prefab.id === product2.id) {
+            if (item2.uses - 1 === 0) product2 = product2.nextStage;
+            else if (!isNaN(item2.uses)) item2Uses = item2.uses - 1;
+        }
+
         if (!item1.prefab.discreet) this.description = parser.removeItem(this.description, item1, "hands");
         if (!item2.prefab.discreet) this.description = parser.removeItem(this.description, item2, "hands");
-        itemManager.replaceInventoryItem(item1, recipe.products[0]);
-        itemManager.replaceInventoryItem(item2, recipe.products[1]);
+        itemManager.replaceInventoryItem(item1, product1);
+        itemManager.replaceInventoryItem(item2, product2);
+        if (item1Uses !== null) {
+            item1.uses = item1Uses;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item1.usesCell(), `Inventory Items!${item1.prefab.id}|${item1.identifier}|${this.name}|${item1.equipmentSlot}|${item1.containerName}`, item1.uses));
+        }
+        if (item2Uses !== null) {
+            item2.uses = item2Uses;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item2.usesCell(), `Inventory Items!${item2.prefab.id}|${item2.identifier}|${this.name}|${item2.equipmentSlot}|${item2.containerName}`, item2.uses));
+        }
 
         this.sendDescription(recipe.completedDescription, recipe);
         // Decide if this should be narrated or not.
-        if (recipe.products[0] && !recipe.products[0].discreet || recipe.products[1] && !recipe.products[1].discreet) {
+        if (product1 && !product1.discreet || product2 && !product2.discreet) {
             let productPhrase = "";
             let product1Phrase = "";
             let product2Phrase = "";
-            if (recipe.products[0] && !recipe.products[0].discreet) {
-                product1Phrase = recipe.products[0].singleContainingPhrase;
+            if (product1 && !product1.discreet) {
+                product1Phrase = product1.singleContainingPhrase;
                 this.description = parser.addItem(this.description, item1, "hands");
             }
-            if (recipe.products[1] && !recipe.products[1].discreet) {
-                product2Phrase = recipe.products[1].singleContainingPhrase;
+            if (product2 && !product2.discreet) {
+                product2Phrase = product2.singleContainingPhrase;
                 this.description = parser.addItem(this.description, item2, "hands");
             }
             if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
@@ -1644,7 +1662,7 @@ class Player {
         }
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
 
-        return;
+        return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
 
     attemptPuzzle(bot, game, puzzle, item, password, command, misc) {
@@ -1744,6 +1762,8 @@ class Player {
     die(game) {
         // Remove player from their current channel.
         this.location.leaveChannel(this);
+        this.location.occupants.splice(this.location.occupants.indexOf(this), 1);
+        this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         this.removeFromWhispers(game, `${this.displayName} dies.`);
         if (!this.hasAttribute("hidden")) {
             new Narration(game, this, this.location, `${this.displayName} dies.`).send();
@@ -1757,8 +1777,13 @@ class Player {
         this.alive = false;
         this.location = null;
         this.hidingSpot = "";
-        for (let i = 0; i < this.status.length; i++)
-            clearInterval(this.status[i].timer);
+        this.isMoving = false;
+        clearInterval(this.moveTimer);
+        this.remainingTime = 0;
+        for (let i = 0; i < this.status.length; i++) {
+            if (this.status[i].timer !== null)
+                this.status[i].timer.stop();
+        }
         this.status.length = 0;
         // Update that data on the sheet, as well.
         game.queue.push(new QueueEntry(Date.now(), "updateRow", this.playerCells(), `Players!|${this.name}`, new Array(this.id, this.name, this.talent, this.pronounString, this.defaultStrength, this.defaultIntelligence, this.defaultDexterity, this.defaultSpeed, this.defaultStamina, this.alive, "", "", "", "")));

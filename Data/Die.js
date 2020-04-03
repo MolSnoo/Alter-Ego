@@ -68,7 +68,7 @@ class Die {
                         const statModifier = defender.status[i].statModifiers[j];
                         // Get defender's modifiers that affect the attacker's roll.
                         if (!statModifier.modifiesSelf) {
-                            const tempStatus = new Status(`${defender.name} ${defender.status[i].name}`, "", false, false, [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], "", "", "", -1);
+                            const tempStatus = new Status(`${defender.name} ${defender.status[i].name}`, "", false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], "", "", "", -1);
                             tempStatuses.push(tempStatus);
                             attacker.inflict(game, tempStatus, false, false, false);
                         }

@@ -338,6 +338,50 @@ testparse = async (file, player) => {
         await appendText(file, text);
     }
 
+    // Get events next.
+    {
+        await appendText(file, "EVENTS:");
+        let text = "";
+        for (let i = 0; i < game.events.length; i++) {
+            text += "   ";
+            text += game.events[i].name + os.EOL;
+
+            const event = game.events[i];
+            // First, do the triggered text.
+            if (event.triggeredNarration !== "") {
+                text += "      MESSAGE WHEN TRIGGERED:" + os.EOL;
+
+                const parsedDescription = parser.parseDescription(event.triggeredNarration, event, null, true);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: event.triggeredCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: event.triggeredCell(), errors: parsedDescription.errors });
+
+                text += "         ";
+                text += event.triggeredNarration + os.EOL;
+
+                text += "         ";
+                text += parsedDescription.text + os.EOL;
+            }
+
+            // Finally, do the ended text.
+            if (event.endedNarration !== "") {
+                text += "      MESSAGE WHEN ENDED:" + os.EOL;
+
+                const parsedDescription = parser.parseDescription(event.endedNarration, event, null, true);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: event.endedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: event.endedCell(), errors: parsedDescription.errors });
+
+                text += "         ";
+                text += event.endedNarration + os.EOL;
+
+                text += "         ";
+                text += parsedDescription.text + os.EOL;
+            }
+
+            text += os.EOL;
+        }
+        await appendText(file, text);
+    }
+
     // Get status effects next.
     {
         await appendText(file, "STATUS EFFECTS:");

@@ -40,20 +40,20 @@ function init() {
     game.queue.length = 0;
 
     // Initialize room.
-    var beachHouse = new Room("beach-house", game.guild.channels.find(channel => channel.name === "beach-house"), [], "", 2);
+    var beachHouse = new Room("beach-house", game.guild.channels.find(channel => channel.name === "beach-house"), [], [], "", 2);
     game.rooms.push(beachHouse);
 
     // Initialize status effects.
-    var injured = new Status("injured", "24h", false, true, [], "", "", "", ["str-1", "dex-1", "spd-1", "sta-1"], "", "", "", 2);
-    var mortallyWounded = new Status("mortally wounded", "20m", true, true, [injured], "", "", injured, ["str-2", "dex-2", "spd-2", "sta-2"], "", "", "", 3);
-    var asleep = new Status("asleep", "", false, true, [], "", "", "", ["dex=1"], "disable all, unconscious, enable help, enable status", "", "", 4);
-    var unconscious = new Status("unconscious", "2h", false, true, [], "", "", "", ["dex=0"], "disable all, unconscious, enable help, enable status", "", "", 5);
-    var defensive = new Status("defensive", "24h", false, true, [], "", "", "", ["@str-2", "dex+2"], "", "", "", 6);
-    var intelligent = new Status("intelligent", "", false, true, [], "", "", "", ["int+2"], "", "", "", 7);
-    var safe = new Status("safe", "", false, true, [], "", "", "", ["@str=0", "dex+9"], "", "", "", 8);
-    var energized = new Status("energized", "", false, true, [], "", "", "", ["dex+1", "spd+1", "sta+1"], "", "", "", 9);
-    var starving = new Status("starving", "168h", true, true, [], "", "", "", ["str-5", "int-3", "dex-5", "spd-5", "sta-5"], "", "", "", 10);
-    var delirious = new Status("delirious", "24h", false, true, [], asleep, "", "", ["int-5", "dex-5", "spd-4", "sta-5"], "disable whisper, no speech", "", "", 11);
+    var injured = new Status("injured", "24h", false, true, [], [], "", "", "", ["str-1", "dex-1", "spd-1", "sta-1"], "", "", "", 2);
+    var mortallyWounded = new Status("mortally wounded", "20m", true, true, [], [injured], "", "", injured, ["str-2", "dex-2", "spd-2", "sta-2"], "", "", "", 3);
+    var asleep = new Status("asleep", "", false, true, [], [], "", "", "", ["dex=1"], "disable all, unconscious, enable help, enable status", "", "", 4);
+    var unconscious = new Status("unconscious", "2h", false, true, [], [], "", "", "", ["dex=0"], "disable all, unconscious, enable help, enable status", "", "", 5);
+    var defensive = new Status("defensive", "24h", false, true, [], [], "", "", "", ["@str-2", "dex+2"], "", "", "", 6);
+    var intelligent = new Status("intelligent", "", false, true, [], [], "", "", "", ["int+2"], "", "", "", 7);
+    var safe = new Status("safe", "", false, true, [], [], "", "", "", ["@str=0", "dex+9"], "", "", "", 8);
+    var energized = new Status("energized", "", false, true, [], [], "", "", "", ["dex+1", "spd+1", "sta+1"], "", "", "", 9);
+    var starving = new Status("starving", "168h", true, true, [], [], "", "", "", ["str-5", "int-3", "dex-5", "spd-5", "sta-5"], "", "", "", 10);
+    var delirious = new Status("delirious", "24h", false, true, [], [], asleep, "", "", ["int-5", "dex-5", "spd-4", "sta-5"], "disable whisper, no speech", "", "", 11);
 
     game.statusEffects.push(injured);
     game.statusEffects.push(mortallyWounded);
