@@ -1603,23 +1603,55 @@ class Player {
     }
 
     craft(game, item1, item2, recipe) {
+        var product1 = recipe.products[0];
+        var product2 = recipe.products[1];
+        // First, check if either of the ingredients are also products.
+        // If they are, simply decrease their uses.
+        // If their uses would become 0, change the product to its next stage, if it has one.
+        var item1Uses = null;
+        var item2Uses = null;
+        if (product1 && item1.prefab.id === product1.id) {
+            if (item1.uses - 1 === 0) product1 = product1.nextStage;
+            else if (!isNaN(item1.uses)) item1Uses = item1.uses - 1;
+        }
+        else if (product2 && item1.prefab.id === product2.id) {
+            if (item1.uses - 1 === 0) product2 = product2.nextStage;
+            else if (!isNaN(item1.uses)) item2Uses = item1.uses - 1;
+        }
+        if (product1 && item2.prefab.id === product1.id) {
+            if (item2.uses - 1 === 0) product1 = product1.nextStage;
+            else if (!isNaN(item2.uses)) item1Uses = item2.uses - 1;
+        }
+        else if (product2 && item2.prefab.id === product2.id) {
+            if (item2.uses - 1 === 0) product2 = product2.nextStage;
+            else if (!isNaN(item2.uses)) item2Uses = item2.uses - 1;
+        }
+
         if (!item1.prefab.discreet) this.description = parser.removeItem(this.description, item1, "hands");
         if (!item2.prefab.discreet) this.description = parser.removeItem(this.description, item2, "hands");
-        itemManager.replaceInventoryItem(item1, recipe.products[0]);
-        itemManager.replaceInventoryItem(item2, recipe.products[1]);
+        itemManager.replaceInventoryItem(item1, product1);
+        itemManager.replaceInventoryItem(item2, product2);
+        if (item1Uses !== null) {
+            item1.uses = item1Uses;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item1.usesCell(), `Inventory Items!${item1.prefab.id}|${item1.identifier}|${this.name}|${item1.equipmentSlot}|${item1.containerName}`, item1.uses));
+        }
+        if (item2Uses !== null) {
+            item2.uses = item2Uses;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item2.usesCell(), `Inventory Items!${item2.prefab.id}|${item2.identifier}|${this.name}|${item2.equipmentSlot}|${item2.containerName}`, item2.uses));
+        }
 
         this.sendDescription(recipe.completedDescription, recipe);
         // Decide if this should be narrated or not.
-        if (recipe.products[0] && !recipe.products[0].discreet || recipe.products[1] && !recipe.products[1].discreet) {
+        if (product1 && !product1.discreet || product2 && !product2.discreet) {
             let productPhrase = "";
             let product1Phrase = "";
             let product2Phrase = "";
-            if (recipe.products[0] && !recipe.products[0].discreet) {
-                product1Phrase = recipe.products[0].singleContainingPhrase;
+            if (product1 && !product1.discreet) {
+                product1Phrase = product1.singleContainingPhrase;
                 this.description = parser.addItem(this.description, item1, "hands");
             }
-            if (recipe.products[1] && !recipe.products[1].discreet) {
-                product2Phrase = recipe.products[1].singleContainingPhrase;
+            if (product2 && !product2.discreet) {
+                product2Phrase = product2.singleContainingPhrase;
                 this.description = parser.addItem(this.description, item2, "hands");
             }
             if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
@@ -1630,7 +1662,7 @@ class Player {
         }
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
 
-        return;
+        return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
 
     attemptPuzzle(bot, game, puzzle, item, password, command, misc) {
