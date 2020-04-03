@@ -87,7 +87,7 @@ class Item {
     }
 
     usesCell() {
-        return settings.playerSheetItemUsesColumn + this.row;
+        return settings.itemSheetUsesColumn + this.row;
     }
 
     descriptionCell() {
