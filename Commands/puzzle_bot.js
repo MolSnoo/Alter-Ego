@@ -3,8 +3,9 @@
 module.exports.config = {
     name: "puzzle_bot",
     description: "Solves or unsolves a puzzle.",
-    details: 'Solves or unsolves a puzzle. You may specify a player to solve the puzzle. If you do, '
-        + 'players in the room will be notified, so you should generally give a string for the bot to use, '
+    details: 'Solves or unsolves a puzzle. You may specify an outcome, if the puzzle has more than one solution. '
+        + 'You may specify a player to solve the puzzle. If you do, players in the room '
+        + 'will be notified, so you should generally give a string for the bot to use, '
         + 'otherwise the bot will say "[player] uses the [puzzle]." which may not sound right. '
         + "If you specify a player, only puzzles in the room that player is in can be solved/unsolved. "
         + 'If you use "player" in place of the player, then the player who triggered the command will be '
@@ -16,6 +17,8 @@ module.exports.config = {
         + `${settings.commandPrefix}puzzle unsolve keypad\n`
         + `${settings.commandPrefix}solve binder taylor\n`
         + `${settings.commandPrefix}unsolve lever colin\n`
+        + `${settings.commandPrefix}solve computer PASSWORD1\n`
+        + `${settings.commandPrefix}solve computer PASSWORD2\n`
         + `${settings.commandPrefix}puzzle solve keypad tool shed\n`
         + `${settings.commandPrefix}puzzle unsolve lock men's locker room\n`
         + `${settings.commandPrefix}solve paintings player "player removes the PAINTINGS from the wall."\n`
@@ -106,19 +109,26 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
     if (puzzle === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
 
+    // If anything is left in the input, make that the outcome.
+    var outcome = input;
+    var validOutcome = false;
+    for (let i = 0; i < puzzle.solutions.length; i++) {
+        if (puzzle.solutions[i].toLowerCase() === outcome.toLowerCase()) {
+            validOutcome = true;
+            break;
+        }
+    }
+
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     var doCommands = false;
     if (data && !data.hasOwnProperty("solved")) doCommands = true;
 
     if (command === "solve") {
-        if (player === null && puzzle.solvedCommands.toString().includes("player"))
-            return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". That puzzle will trigger a command on the player who solves it, so you need to specify one.`);
-        puzzle.solve(bot, game, player, announcement, doCommands);
+        if (puzzle.solutions.length > 1 && outcome !== "" && !validOutcome) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". "${outcome}" is not a valid solution.`);
+        puzzle.solve(bot, game, player, announcement, outcome, doCommands);
     }
     else if (command === "unsolve") {
-        if (player === null && puzzle.unsolvedCommands.toString().includes("player"))
-            return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". That puzzle will trigger a command on the player who unsolves it, so you need to specify one.`);
         puzzle.unsolve(bot, game, player, announcement, null, doCommands);
     }
 
