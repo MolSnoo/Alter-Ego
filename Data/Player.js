@@ -1665,12 +1665,45 @@ class Player {
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
 
+    hasItem(game, id) {
+        const playerItems = game.inventoryItems.filter(item => item.player.id === this.id && item.prefab !== null && item.quantity > 0);
+        for (let i = 0; i < playerItems.length; i++) {
+            if (playerItems[i].prefab.id === id) return true;
+        }
+        return false;
+    }
+
     attemptPuzzle(bot, game, puzzle, item, password, command, misc) {
+        const puzzleName = puzzle.parentObject ? puzzle.parentObject.name : puzzle.name;
+        // Make sure all the requirements are solved.
+        var allRequirementsSolved = true;
+        for (let i = 0; i < puzzle.requirements.length; i++) {
+            if (puzzle.requirements[i] instanceof Puzzle && !puzzle.requirements[i].solved) {
+                allRequirementsSolved = false;
+                break;
+            }
+            else if (puzzle.requirements[i].hasOwnProperty("id")) {
+                if (item !== null && item.prefab.id !== puzzle.requirements[i].id) {
+                    allRequirementsSolved = false;
+                    break;
+                }
+                else if (item === null) {
+                    if (!this.hasItem(game, puzzle.requirements[i].id)) {
+                        allRequirementsSolved = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if (allRequirementsSolved && !puzzle.accessible)
+            puzzle.setAccessible(game);
+        else if (!allRequirementsSolved && puzzle.accessible)
+            puzzle.setInaccessible(game);
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
                 this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
-                new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
+                new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
 
                 return;
             }
@@ -1689,13 +1722,10 @@ class Player {
                         }
                         else if (item === null) {
                             const requiredItem = puzzle.solutions[i].substring("Item: ".length);
-                            const playerItems = game.inventoryItems.filter(item => item.player.id === this.id && item.prefab !== null && item.quantity > 0);
-                            for (let j = 0; j < playerItems.length; j++) {
-                                if (playerItems[j].prefab.id === requiredItem) {
-                                    hasRequiredItem = true;
-                                    requiredItemName = puzzle.solutions[i];
-                                    break;
-                                }
+                            if (this.hasItem(game, requiredItem)) {
+                                hasRequiredItem = true;
+                                requiredItemName = puzzle.solutions[i];
+                                break;
                             }
                         }
                         if (hasRequiredItem) break;
@@ -1709,70 +1739,81 @@ class Player {
             // Puzzle is solvable.
             if (requirementsMet) {
                 if (puzzle.type === "password") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         if (password === "") return "you need to enter a password.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, password, true);
-                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, password, true);
+                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
                 }
                 else if (puzzle.type === "interact") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
-                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, requiredItemName, true);
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
                 }
                 else if (puzzle.type === "toggle") {
                     if (puzzle.solved && hasRequiredItem) {
                         let message = null;
                         if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
-                        puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, message, true);
+                        puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, message, true);
                     }
-                    else if (puzzle.solved) puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`);
-                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, requiredItemName, true);
+                    else if (puzzle.solved) puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
                 }
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
-                        if (command !== "lock" && (password === "" || password === puzzle.solution))
-                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
+                        if (command === "unlock") return `${puzzleName} is already unlocked.`;
+                        if (command !== "lock" && (password === "" || puzzle.solutions.includes(password)))
+                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzleName}.`);
                         // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
+                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
+                        if (command === "lock") return `${puzzleName} is already locked.`;
                         if (password === "") return "you need to enter a combination. The format is #-#-#.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, password, true);
-                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject.name}.`);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, password, true);
+                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzleName}.`);
                     }
                 }
                 else if (puzzle.type === "key lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
-                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
-                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts and fails to lock the ${puzzle.parentObject.name}.`);
-                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
+                        if (command === "unlock") return `${puzzleName} is already unlocked.`;
+                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
+                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts and fails to lock the ${puzzleName}.`);
+                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzleName}.`);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
-                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, requiredItemName, true);
+                        if (command === "lock") return `${puzzleName} is already locked.`;
+                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, requiredItemName, true);
                     }
                 }
                 else if (puzzle.type === "probability") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         const outcome = puzzle.solutions[Math.floor(Math.random() * puzzle.solutions.length)];
-                        puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, outcome, true);
+                        puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true);
+                    }
+                }
+                else if (puzzle.type === "channels") {
+                    if (puzzle.solved) {
+                        if (password === "") puzzle.unsolve(bot, game, this, `${this.displayName} turns off the ${puzzleName}.`, `You turn off the ${puzzleName}.`, true);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} changes the channel on the ${puzzleName}.`, password, true);
+                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to change the channel on the ${puzzleName}.`);
+                    }
+                    else {
+                        if (!puzzle.solutions.includes(password)) password = puzzle.outcome ? puzzle.outcome : "";
+                        puzzle.solve(bot, game, this, `${this.displayName} turns on the ${puzzleName}.`, password, true);
                     }
                 }
             }
             // The player is missing an item needed to solve the puzzle.
-            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`, misc);
+            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
         }
         // The puzzle isn't accessible.
-        else return puzzle.requirementsNotMet(game, this, `${this.displayName} uses the ${puzzle.name}.`, misc);
+        else return puzzle.requirementsNotMet(game, this, `${this.displayName} uses the ${puzzleName}.`, misc);
 
         return;
     }

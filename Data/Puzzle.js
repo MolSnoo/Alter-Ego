@@ -5,7 +5,7 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Puzzle {
-    constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requires, solutions, remainingAttempts, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
+    constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
         this.name = name;
         this.solved = solved;
         this.outcome = outcome;
@@ -15,7 +15,8 @@ class Puzzle {
         this.parentObject = null;
         this.type = type;
         this.accessible = accessible;
-        this.requires = requires;
+        this.requirementsStrings = requirementsStrings;
+        this.requirements = [...requirementsStrings];
         this.solutions = solutions;
         this.remainingAttempts = remainingAttempts;
         this.commandSets = commandSets;
@@ -140,7 +141,7 @@ class Puzzle {
         }
 
         // Clear the outcome.
-        if (this.solutions.length > 1) {
+        if (this.solutions.length > 1 && this.type !== "channels") {
             this.outcome = "";
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.outcomeCell(), `Puzzles!${this.name}|${this.location.name}`, this.outcome));
         }

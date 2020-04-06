@@ -332,6 +332,14 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                     if (error instanceof Error) errors.push(error);
                 }
             }
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
+                        let requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
+                }
+            }
             if (errors.length > 0) {
                 if (errors.length > 5) {
                     errors = errors.slice(0, 5);
@@ -709,6 +717,9 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
 
             game.puzzles.length = 0;
             for (let i = 1; i < sheet.length; i++) {
+                let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
+                for (let j = 0; j < requirements.length; j++)
+                    requirements[j] = requirements[j].trim();
                 const regex = new RegExp(/(\[((.*?): (.*?))\],?)/);
                 let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "";
                 let commandSets = [];
@@ -750,7 +761,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         sheet[i][columnParentObject] ? sheet[i][columnParentObject] : "",
                         sheet[i][columnType],
                         sheet[i][columnAccessible] === "TRUE",
-                        sheet[i][columnRequires] ? sheet[i][columnRequires] : null,
+                        requirements,
                         solutions,
                         parseInt(sheet[i][columnAttempts]),
                         commandSets,
@@ -768,8 +779,16 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 game.puzzles[i].location = game.rooms.find(room => room.name === game.puzzles[i].location && room.name !== "");
                 let parentObject = game.objects.find(object => object.name === game.puzzles[i].parentObjectName && object.location === game.puzzles[i].location);
                 if (parentObject) game.puzzles[i].parentObject = parentObject;
-                let requires = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requires);
-                if (requires) game.puzzles[i].requires = requires;
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    let requirement = null;
+                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
+                        requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
+                    else
+                        requirement = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requirementsStrings[j] || game.puzzles[i].requirementsStrings[j] === `Puzzle: ${puzzle.name}`);
+                    if (requirement) game.puzzles[i].requirements[j] = requirement;
+                }
                 if (doErrorChecking) {
                     let error = exports.checkPuzzle(game.puzzles[i]);
                     if (error instanceof Error) errors.push(error);
@@ -807,7 +826,7 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
     if (puzzle.parentObject !== null && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle.name !== puzzle.name)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
-    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability")
+    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels")
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if (puzzle.type === "probability" && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
@@ -817,8 +836,12 @@ module.exports.checkPuzzle = function (puzzle) {
                 return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.commandSets[i].outcomes[j]}" in command sets is not an outcome in the puzzle's solutions.`);
         }
     }
-    if (puzzle.requires !== null && !(puzzle.requires instanceof Puzzle))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The requirement given is not a puzzle.`);
+    for (let i = 0; i < puzzle.requirements.length; i++) {
+        if ((puzzle.requirementsStrings[i].startsWith("Item:") || puzzle.requirementsStrings[i].startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a prefab.`);
+        else if (!puzzle.requirementsStrings[i].startsWith("Item:") && !puzzle.requirementsStrings[i].startsWith("Prefab:") && !(puzzle.requirements[i] instanceof Puzzle))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a puzzle.`);
+    }
     return;
 };
 
