@@ -71,22 +71,61 @@ class Object {
             object.process.duration.subtract(1000, 'ms');
 
             if (object.process.duration.asMilliseconds() <= 0) {
+                var remainingIngredients = [];
                 // Make sure all the ingredients are still there.
                 let stillThere = true;
                 for (let i = 0; i < object.process.ingredients.length; i++) {
-                    if (object.process.ingredients[i].quantity === 0) {
+                    const ingredient = object.process.ingredients[i];
+                    if (ingredient.quantity === 0) {
                         stillThere = false;
                         break;
+                    }
+                    for (let j = 0; j < object.process.recipe.products.length; j++) {
+                        const product = object.process.recipe.products[j];
+                        if (product.id === ingredient.prefab.id) {
+                            let decreaseUses = false;
+                            let nextStage = false;
+                            if (ingredient.uses - 1 === 0 && ingredient.prefab.nextStage !== null)
+                                nextStage = true;
+                            else if (!isNaN(ingredient.uses))
+                                decreaseUses = true;
+                            remainingIngredients.push({ ingredientIndex: i, productIndex: j, decreaseUses: decreaseUses, nextStage: nextStage });
+                            break;
+                        }
                     }
                 }
                 if (stillThere) {
                     const itemManager = include(`${settings.modulesDir}/itemManager.js`);
                     // Destroy the ingredients.
-                    for (let i = 0; i < object.process.ingredients.length; i++)
-                        itemManager.destroyItem(object.process.ingredients[i], true);
+                    for (let i = 0; i < object.process.ingredients.length; i++) {
+                        let destroy = true;
+                        for (let j = 0; j < remainingIngredients.length; j++) {
+                            if (remainingIngredients[j].ingredientIndex === i && !remainingIngredients[j].nextStage) {
+                                destroy = false;
+                                break;
+                            }
+                        }
+                        if (destroy) itemManager.destroyItem(object.process.ingredients[i], true);
+                    }
                     // Instantiate the products.
-                    for (let i = 0; i < object.process.recipe.products.length; i++)
-                        itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);
+                    for (let i = 0; i < object.process.recipe.products.length; i++) {
+                        let instantiate = true;
+                        let product = object.process.recipe.products[i];
+                        for (let j = 0; j < remainingIngredients.length; j++) {
+                            const ingredient = object.process.ingredients[remainingIngredients[j].ingredientIndex];
+                            if (remainingIngredients[j].productIndex === i && remainingIngredients[j].decreaseUses) {
+                                instantiate = false;
+                                ingredient.uses--;
+                                game.queue.push(new QueueEntry(Date.now(), "updateCell", ingredient.usesCell(), `Items!${ingredient.prefab.id}|${ingredient.identifier}|${ingredient.location.name}|${ingredient.containerName}`, ingredient.uses));
+                                break;
+                            }
+                            else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
+                                product = ingredient.prefab.nextStage;
+                                break;
+                            }
+                        }
+                        if (instantiate) itemManager.instantiateItem(product, object.location, object, "", 1);
+                    }
                     if (player && player.location.name === object.location.name) player.sendDescription(object.process.recipe.completedDescription, object);
                 }
 
@@ -153,22 +192,61 @@ class Object {
                     object.process.duration.subtract(1000, 'ms');
 
                     if (object.process.duration.asMilliseconds() <= 0) {
+                        var remainingIngredients = [];
                         // Make sure all the ingredients are still there.
                         let stillThere = true;
                         for (let i = 0; i < object.process.ingredients.length; i++) {
-                            if (object.process.ingredients[i].quantity === 0) {
+                            const ingredient = object.process.ingredients[i];
+                            if (ingredient.quantity === 0) {
                                 stillThere = false;
                                 break;
+                            }
+                            for (let j = 0; j < object.process.recipe.products.length; j++) {
+                                const product = object.process.recipe.products[j];
+                                if (product.id === ingredient.prefab.id) {
+                                    let decreaseUses = false;
+                                    let nextStage = false;
+                                    if (ingredient.uses - 1 === 0 && ingredient.prefab.nextStage !== null)
+                                        nextStage = true;
+                                    else if (!isNaN(ingredient.uses))
+                                        decreaseUses = true;
+                                    remainingIngredients.push({ ingredientIndex: i, productIndex: j, decreaseUses: decreaseUses, nextStage: nextStage });
+                                    break;
+                                }
                             }
                         }
                         if (stillThere) {
                             const itemManager = include(`${settings.modulesDir}/itemManager.js`);
                             // Destroy the ingredients.
-                            for (let i = 0; i < object.process.ingredients.length; i++)
-                                itemManager.destroyItem(object.process.ingredients[i], true);
+                            for (let i = 0; i < object.process.ingredients.length; i++) {
+                                let destroy = true;
+                                for (let j = 0; j < remainingIngredients.length; j++) {
+                                    if (remainingIngredients[j].ingredientIndex === i && !remainingIngredients[j].nextStage) {
+                                        destroy = false;
+                                        break;
+                                    }
+                                }
+                                if (destroy) itemManager.destroyItem(object.process.ingredients[i], true);
+                            }
                             // Instantiate the products.
-                            for (let i = 0; i < object.process.recipe.products.length; i++)
-                                itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);
+                            for (let i = 0; i < object.process.recipe.products.length; i++) {
+                                let instantiate = true;
+                                let product = object.process.recipe.products[i];
+                                for (let j = 0; j < remainingIngredients.length; j++) {
+                                    const ingredient = object.process.ingredients[remainingIngredients[j].ingredientIndex];
+                                    if (remainingIngredients[j].productIndex === i && remainingIngredients[j].decreaseUses) {
+                                        instantiate = false;
+                                        ingredient.uses--;
+                                        game.queue.push(new QueueEntry(Date.now(), "updateCell", ingredient.usesCell(), `Items!${ingredient.prefab.id}|${ingredient.identifier}|${ingredient.location.name}|${ingredient.containerName}`, ingredient.uses));
+                                        break;
+                                    }
+                                    else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
+                                        product = ingredient.prefab.nextStage;
+                                        break;
+                                    }
+                                }
+                                if (instantiate) itemManager.instantiateItem(product, object.location, object, "", 1);
+                            }
                         }
 
                         if (object.autoDeactivate)
