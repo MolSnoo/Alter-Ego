@@ -8,6 +8,7 @@ module.exports.config = {
         + 'will be notified, so you should generally give a string for the bot to use, '
         + 'otherwise the bot will say "[player] uses the [puzzle]." which may not sound right. '
         + "If you specify a player, only puzzles in the room that player is in can be solved/unsolved. "
+        + 'Additionally, if you specify a player, you can make them attempt to solve a puzzle. '
         + 'If you use "player" in place of the player, then the player who triggered the command will be '
         + 'the one to solve/unsolve the puzzle. It will also do the same in the string, if one is specified. '
         + 'You can also use a room name instead of a player name. In that case, only puzzles in the room '
@@ -22,9 +23,10 @@ module.exports.config = {
         + `${settings.commandPrefix}puzzle solve keypad tool shed\n`
         + `${settings.commandPrefix}puzzle unsolve lock men's locker room\n`
         + `${settings.commandPrefix}solve paintings player "player removes the PAINTINGS from the wall."\n`
-        + `${settings.commandPrefix}unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"`,
+        + `${settings.commandPrefix}unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"\n`
+        + `${settings.commandPrefix}puzzle attempt cyptex lock 05-25-99 player`,
     usableBy: "Bot",
-    aliases: ["puzzle", "solve", "unsolve"]
+    aliases: ["puzzle", "solve", "unsolve", "attempt"]
 };
 
 module.exports.run = async (bot, game, command, args, player, data) => {
@@ -33,6 +35,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (command === "puzzle") {
         if (args[0] === "solve") command = "solve";
         else if (args[0] === "unsolve") command = "unsolve";
+        else if (args[0] === "attempt") command = "attempt";
         input = input.substring(input.indexOf(args[1]));
         args = input.split(" ");
     }
@@ -130,6 +133,14 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
     else if (command === "unsolve") {
         puzzle.unsolve(bot, game, player, announcement, null, doCommands);
+    }
+    else if (command === "attempt") {
+        if (player === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
+        const misc = {
+            command: command,
+            input: input
+        };
+        player.attemptPuzzle(bot, game, puzzle, null, outcome, command, misc);
     }
 
     return;

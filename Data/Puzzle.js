@@ -182,12 +182,12 @@ class Puzzle {
 
     requirementsNotMet(game, player, message, misc) {
         // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
-        if (this.requirementsNotMetDescription === "")
+        if (this.requirementsNotMetDescription === "" && misc.message)
             misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
         // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
         else {
             player.sendDescription(this.requirementsNotMetDescription, this);
-            new Narration(game, player, player.location, message).send();
+            if (misc.message) new Narration(game, player, player.location, message).send();
         }
         return;
     }
