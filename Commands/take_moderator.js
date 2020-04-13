@@ -159,8 +159,19 @@ module.exports.run = async (bot, game, message, command, args) => {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
-    if (container !== null && (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved")))
+    if (container !== null && (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved"))) {
         game.logChannel.send(`${time} - ${player.name} forcefully took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
+        // Container is a weight puzzle.
+        if (container.hasOwnProperty("solved") && container.type === "weight") {
+            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+            const misc = {
+                command: "take",
+                input: input
+            };
+            player.attemptPuzzle(bot, game, container, item, weight.toString(), "take", misc);
+        }
+    }
     // Container is an Item.
     else if (container !== null && container.hasOwnProperty("inventory"))
         game.logChannel.send(`${time} - ${player.name} forcefully took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);

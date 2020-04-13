@@ -1695,7 +1695,7 @@ class Player {
                 }
             }
         }
-        if (allRequirementsSolved && !puzzle.accessible)
+        if (allRequirementsSolved && !puzzle.accessible && puzzle.requirements.length !== 0)
             puzzle.setAccessible(game);
         else if (!allRequirementsSolved && puzzle.accessible)
             puzzle.setInaccessible(game);
@@ -1806,6 +1806,15 @@ class Player {
                     else {
                         if (!puzzle.solutions.includes(password)) password = puzzle.outcome ? puzzle.outcome : "";
                         puzzle.solve(bot, game, this, `${this.displayName} turns on the ${puzzleName}.`, password, true);
+                    }
+                }
+                else if (puzzle.type === "weight") {
+                    if (puzzle.solved) {
+                        if (!puzzle.solutions.includes(password)) puzzle.unsolve(bot, game, this, "", null, true);
+                    }
+                    else {
+                        if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, "", password, true);
+                        else puzzle.fail(game, this, "");
                     }
                 }
             }

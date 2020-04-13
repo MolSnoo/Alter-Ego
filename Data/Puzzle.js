@@ -164,7 +164,8 @@ class Puzzle {
         }
         else
             player.sendDescription(this.incorrectDescription, this);
-        new Narration(game, player, player.location, message).send();
+        if (message)
+            new Narration(game, player, player.location, message).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
