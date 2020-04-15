@@ -29,7 +29,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         message.member = player.member;
         message.content = input;
 
-        dialogHandler.execute(game, message, false);
+        dialogHandler.execute(bot, game, message, false);
     }
     
     return;

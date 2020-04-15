@@ -1,6 +1,6 @@
 ﻿const settings = include('settings.json');
 
-module.exports.execute = async (game, message, deletable) => {
+module.exports.execute = async (bot, game, message, deletable) => {
     // Determine if the speaker is a moderator first.
     var isModerator = false;
     if (message.member.roles.find(role => role.id === settings.moderatorRole))
@@ -91,6 +91,16 @@ module.exports.execute = async (game, message, deletable) => {
             }
             else if (!deletable)
                 room.channel.send(`${player.displayName} says "${message.content}".`);
+
+            for (let i = 0; i < game.puzzles.length; i++) {
+                if (game.puzzles[i].location.name === room.name && game.puzzles[i].type === "voice") {
+                    const cleanContent = message.content.replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
+                    for (let j = 0; j < game.puzzles[i].solutions.length; j++) {
+                        if (cleanContent.includes(game.puzzles[i].solutions[j]))
+                            game.puzzles[i].solve(bot, game, player, "", game.puzzles[i].solutions[j], true);
+                    }
+                }
+            }
 
             for (let i = 0; i < room.occupants.length; i++) {
                 let occupant = room.occupants[i];

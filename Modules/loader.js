@@ -749,8 +749,12 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                     commandSets.push({ outcomes: [], solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
                 }
                 let solutions = sheet[i][columnSolution] ? sheet[i][columnSolution].toString().split(',') : [];
-                for (let j = 0; j < solutions.length; j++)
-                    solutions[j] = solutions[j].trim();
+                for (let j = 0; j < solutions.length; j++) {
+                    if (sheet[i][columnType] === "voice")
+                        solutions[j] = solutions[j].replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
+                    else
+                        solutions[j] = solutions[j].trim();
+                }
                 game.puzzles.push(
                     new Puzzle(
                         sheet[i][columnName],
@@ -826,7 +830,7 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
     if (puzzle.parentObject !== null && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle.name !== puzzle.name)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
-    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels" && puzzle.type !== "weight")
+    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "voice")
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if (puzzle.type === "probability" && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
