@@ -18,7 +18,7 @@ var timer = require('moment-timer');
 moment().format();
 
 class Player {
-    constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, row) {
+    constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, spectateId, inventory, row) {
         this.id = id;
         this.member = member;
         this.name = name;
@@ -61,6 +61,7 @@ class Player {
         this.status = status;
         this.statusString = "";
         this.description = description;
+        this.spectateId = spectateId;
         this.inventory = inventory;
         this.maxCarryWeight = this.getMaxCarryWeight();
         this.carryWeight = 0;

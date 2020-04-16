@@ -41,6 +41,7 @@
   "defaultDropObject": "FLOOR",
   "autoDeleteWhisperChannels": true,
   "queueInterval": 30,
+  "messageQueueInterval": 1,
   "offlineStatusInterval": 15,
   "onlinePlayersStatusInterval": 30,
 
@@ -58,6 +59,15 @@
     "url": "https://www.twitch.tv/molsno"
   },
 
+  "priority": {
+    "modChannel": 4,
+    "tellPlayer": 3,
+    "tellRoom": 3,
+    "invalidMessage": 2,
+    "logMessage": 1,
+    "spectatorMessage": 0
+  },
+
   "testerRole": "585226322859655175",
   "eligibleRole": "581612389993152532",
   "playerRole": "581612815194783795",
@@ -68,6 +78,7 @@
 
   "roomCategories": "581619843573350406 585976373433335827 585980568311693336 585980972877742092 585981129945776247",
   "whisperCategory": "581620946973098012",
+  "spectateCategory": "700177222819905667",
   "testingChannel": "581623959259447296",
   "generalChannel": "581616831928729600",
   "announcementChannel": "581577596035268612",
@@ -119,7 +130,7 @@
   "eventSheetTimeRemainingColumn": "Events!D",
   "eventSheetTriggeredColumn": "Events!J",
   "eventSheetEndedColumn": "Events!K",
-  "statusSheetAllCells": "Status Effects!A1:N",
+  "statusSheetAllCells": "Status Effects!A1:O",
   "statusSheetInflictedColumn": "Status Effects!M",
   "statusSheetCuredColumn": "Status Effects!N",
   "playerSheetInitCells": "Players!A3:N",
@@ -129,6 +140,7 @@
   "playerSheetHidingSpotColumn": "Players!L",
   "playerSheetStatusColumn": "Players!M",
   "playerSheetDescriptionColumn": "Players!N",
+  "playerSheetSpectateLogColumn": "Players!O",
   "inventorySheetInitCells": "Inventory Items!A2:H",
   "inventorySheetAllCells": "Inventory Items!A1:H",
   "inventorySheetPrefabColumn": "Inventory Items!A",
