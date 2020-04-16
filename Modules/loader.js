@@ -1138,7 +1138,6 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             const columnHidingSpot = 11;
             const columnStatus = 12;
             const columnDescription = 13;
-            const columnSpectateLog = 14;
 
             game.players.length = 0;
             game.players_alive.length = 0;
@@ -1155,10 +1154,12 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
                 for (let j = 0; j < statusList.length; j++)
                     statusList[j] = statusList[j].trim();
+                var member = game.guild.members.find(member => member.id === sheet[i][columnID]);
+                var spectateChannel = game.guild.channels.find(channel => channel.parent == settings.spectateCategory && channel.name == member.displayName.toLowerCase());
                 const player =
                     new Player(
                         sheet[i][columnID],
-                        game.guild.members.find(member => member.id === sheet[i][columnID]),
+                        member,
                         sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
@@ -1169,15 +1170,13 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnHidingSpot],
                         [],
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
-                        sheet[i][columnSpectateLog],
+                        spectateChannel,
                         [],
                         i + 1
                     );
                 player.setPronouns(player.originalPronouns, player.pronounString);
                 player.setPronouns(player.pronouns, player.pronounString);
                 game.players.push(player);
-                // Keep track of the spectate channel for this player when sending messages
-                game.messageHandler.setSpectateChannel(player);
 
                 if (player.alive) {
                     game.players_alive.push(player);
@@ -1268,8 +1267,8 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
-    if (player.spectateId === "" || player.spectateId === null || player.spectateId === undefined)
-        return new Error(`Couldn't load player on row ${player.row}. No spectate channel ID was given.`);
+    if (player.spectateChannel === null || player.spectateChannel === undefined)
+        return new Error(`Couldn't load player on row ${player.row}. No spectate channel was given.`);
     return;
 };
 

@@ -37,7 +37,7 @@ module.exports.run = async (bot, game, message, args) => {
         "",
         settings.defaultStatusEffects,
         settings.defaultDescription,
-        spectateChannel.id,
+        spectateChannel,
         new Array(),
         null
     );

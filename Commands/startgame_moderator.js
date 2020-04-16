@@ -79,8 +79,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 player.location,
                 player.hidingSpot,
                 player.status,
-                player.description,
-                player.spectateId
+                player.description
             ];
             playerCells.push(playerData);
 

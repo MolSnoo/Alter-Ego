@@ -1,29 +1,18 @@
 const settings = include('settings.json');
 const QueuedMessage = include(`${settings.dataDir}/QueuedMessage.js`);
-const discord = require('discord.js');
 
 module.exports.queue = [];
-module.exports.spectateChannels = new discord.Collection();
 
-module.exports.setSpectateChannel = async (player) => {
-    spectateChannels.set(player.id, player.spectateId);
-};
-
-module.exports.addBotMessage = async (channel, messageText, priority, addSpectate) => {
+module.exports.addBotMessage = async (room, messageText, priority, addSpectate) => {
     // Add the message to the queue
-    let sendAction = () => channel.send(messageText);
+    let sendAction = () => room.channel.send(messageText);
     let queuedMessage = new QueuedMessage(sendAction, priority);
     addToQueue(queuedMessage);
 
     if (addSpectate) {
-        // Get members of the channel (i.e. can see the channel) who are also players
-        let listeningPlayers = channel.members.array().filter(member => 
-            member.roles.find(role => role.id === settings.playerRole)
-        );
-        // Create a queued message for each of these players' spectate channels
-        listeningPlayers.forEach(player => {
-            let spectateChannel = spectateChannels.get(player.id);
-            let sendAction = () => spectateChannel.send(messageText);
+        // Create a queued message for each of the occupants' spectate channels
+        room.occupants.forEach(player => {
+            let sendAction = () => player.spectateChannel.send(messageText);
             let queuedMessage = new QueuedMessage(sendAction, settings.priority.spectatorMessage);
             addToQueue(queuedMessage);
         });
@@ -36,12 +25,7 @@ module.exports.addBotReply = async (message, messageText, priority) => {
     addToQueue(queuedMessage);
 };
 
-module.exports.addSpectatedPlayerMessage = async (message) => {
-    // Get members of the channel (i.e. can see the channel) who are also players
-    let listeningPlayers = channel.members.array().filter(member =>
-        member.roles.find(role => role.id === settings.playerRole)
-    );
-
+module.exports.addSpectatedPlayerMessage = async (room, message) => {
     // Decide how to display the player's message depending on if it's whispered
     let messageSaysText;
     if (settings.roomCategories.includes(message.channel.parentID)) {
@@ -49,7 +33,7 @@ module.exports.addSpectatedPlayerMessage = async (message) => {
     }
     else if (message.channel.parentID === settings.whisperCategory) {
         messageSaysText = "whispers to";
-        let otherPlayers = listeningPlayers.filter(player => player.id != message.member.id);
+        let otherPlayers = room.occupants.filter(player => player.id != message.member.id);
         if (otherPlayers.length == 1)
             messageSaysText = otherPlayers[0].displayName;
         else {
@@ -64,19 +48,18 @@ module.exports.addSpectatedPlayerMessage = async (message) => {
         messageSaysText = "says";
     }
 
-    // Create a queued message for each of these players' spectate channels
-    listeningPlayers.forEach(player => {
-        let spectateChannel = spectateChannels.get(player.id);
-
-        let messageText = `**${member.displayName} ${messageSaysText}:** ${message.content}`;
+    // Create a queued message for each of the occupants' spectate channels
+    room.occupants.forEach(player => {
+        let messageText = `**${player.displayName} ${messageSaysText}:** ${message.content}`;
         
-        let sendAction = () => spectateChannel.send(messageText);
+        let sendAction = () => player.spectateChannel.send(messageText);
         let queuedMessage = new QueuedMessage(sendAction, settings.priority.spectatorMessage);
         addToQueue(queuedMessage);
     });
 };
 
 module.exports.sendQueuedMessages = async () => {
+    let queue = module.exports.queue;
     // Send the first message and remove it, until there are no messages left
     while (queue.length > 0) {
         queue[0].sendAction();
@@ -86,6 +69,7 @@ module.exports.sendQueuedMessages = async () => {
 
 
 function addToQueue(queuedMessage) {
+    let queue = module.exports.queue;
     let i = 0;
     while (i < queue.length - 1 && queue[i].priority >= queuedMessage.priority) {
         i++;
