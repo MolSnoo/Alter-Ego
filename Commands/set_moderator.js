@@ -58,35 +58,19 @@ module.exports.run = async (bot, game, message, command, args) => {
         args = input.split(" ");
     }
 
-    if (isObject) {
-        // Find the prospective list of objects.
-        var objects = game.objects.filter(object => input.toUpperCase().startsWith(object.name));
-        if (objects.length > 0) {
-            input = input.substring(objects[0].name.length).trim();
-            args = input.split(" ");
-        }
-    }
-    else if (isPuzzle) {
-        // Find the prospective list of puzzles.
-        var puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name));
-        if (puzzles.length > 0) {
-            input = input.substring(puzzles[0].name.length).trim();
-            args = input.split(" ");
-        }
-    }
-
     // Check if a room name was specified.
     var room = null;
     const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
     for (let i = 0; i < game.rooms.length; i++) {
         if (parsedInput.endsWith(game.rooms[i].name)) {
             room = game.rooms[i];
-            input = input.substring(0, parsedInput.indexOf(room.name) - 1);
+            input = input.substring(0, parsedInput.lastIndexOf(room.name) - 1);
             break;
         }
     }
 
     if (isObject) {
+        const objects = game.objects.filter(object => object.name === input.toUpperCase().replace(/\'/g, ""));
         // Finally, find the object.
         var object = null;
         for (let i = 0; i < objects.length; i++) {
@@ -99,6 +83,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (object === null) return message.reply(`couldn't find object "${input}".`);
     }
     else if (isPuzzle) {
+        const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
         // Finally, find the puzzle.
         var puzzle = null;
         for (let i = 0; i < puzzles.length; i++) {

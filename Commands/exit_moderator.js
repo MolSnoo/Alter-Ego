@@ -37,12 +37,13 @@ module.exports.run = async (bot, game, message, command, args) => {
     // First, find the room.
     var room = null;
     for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name)) {
+        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
             room = game.rooms[i];
             parsedInput = parsedInput.substring(room.name.length).replace(/-/g, " ").toUpperCase().trim();
             input = input.substring(input.toUpperCase().indexOf(parsedInput));
             break;
         }
+        else if (parsedInput === game.rooms[i].name) return message.reply(`you need to specify an exit to ${command}.`);
     }
     if (room === null) return message.reply(`couldn't find room "${input}".`);
 

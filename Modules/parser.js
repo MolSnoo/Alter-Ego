@@ -1,3 +1,6 @@
+const settings = include('settings.json');
+const finder = include(`${settings.modulesDir}/finder.js`);
+
 const DOMParser = require('xmldom').DOMParser;
 const XMLSerializer = require('xmldom').XMLSerializer;
 
@@ -59,65 +62,77 @@ module.exports.parseDescription = function (description, container, player, doEr
     // Now we just need the document.
     document = document.document;
 
-    // Include game data for variable functionality.
-    var game = include('game.json');
-    // Find any conditionals.
-    var conditionals = document.getElementsByTagName('if');
-    let conditionalsToRemove = [];
-    for (let i = 0; i < conditionals.length; i++) {
-        let conditional = conditionals[i].getAttribute('cond');
-        if (conditional !== null && conditional !== undefined) {
-            conditional = conditional.replace(/this/g, "container");
-            if (eval(conditional) === false)
-                conditionalsToRemove.push(conditionals[i]);
-        }
-    }
-    for (let i = 0; i < conditionalsToRemove.length; i++) {
-        if (conditionalsToRemove[i].childNodes[0].tagName === 'item') {
-            let itemElement = conditionalsToRemove[i].childNodes[0].childNodes[0];
-            let item = new Item("", 0, itemElement.data, itemElement.data);
-            document = this.removeItem(description, item, "", true, document);
-        }
-        else if (conditionalsToRemove[i].parentNode) conditionalsToRemove[i].parentNode.removeChild(conditionalsToRemove[i]);
-        else document.removeChild(conditionalsToRemove[i]);
-    }
-
-    // Check if there's an item list in the document.
-    var itemListSentences = getItemListSentences(document);
-    if (itemListSentences.length > 0) {
-        for (let i = 0; i < itemListSentences.length; i++) {
-            const sentence = itemListSentences[i];
-            var itemList = sentence.getElementsByTagName('il').item(0);
-            // If the item list is empty, remove the sentence from the document.
-            if (itemList.childNodes.length === 0 || itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null') {
-                if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
-                else document.removeChild(sentence);
+    if (document) {
+        // Include game data for variable functionality.
+        var game = include('game.json');
+        // Find any conditionals.
+        var conditionals = document.getElementsByTagName('if');
+        let conditionalsToRemove = [];
+        for (let i = 0; i < conditionals.length; i++) {
+            let conditional = conditionals[i].getAttribute('cond');
+            if (conditional !== null && conditional !== undefined) {
+                conditional = conditional.replace(/this/g, "container");
+                if (eval(conditional) === false)
+                    conditionalsToRemove.push(conditionals[i]);
             }
         }
-    }
+        for (let i = 0; i < conditionalsToRemove.length; i++) {
+            if (conditionalsToRemove[i].childNodes[0].tagName === 'item') {
+                let itemElement = conditionalsToRemove[i].childNodes[0].childNodes[0];
+                let item = new Item("", 0, itemElement.data, itemElement.data);
+                document = this.removeItem(description, item, "", true, document);
+            }
+            else if (conditionalsToRemove[i].parentNode) conditionalsToRemove[i].parentNode.removeChild(conditionalsToRemove[i]);
+            else document.removeChild(conditionalsToRemove[i]);
+        }
 
-    // Replace any var tags.
-    var variables = document.getElementsByTagName('var');
-    var variableStrings = [];
-    for (let i = 0; i < variables.length; i++) {
-        let varAttribute = variables[i].getAttribute('v');
-        if (varAttribute !== null && varAttribute !== undefined) {
-            varAttribute = varAttribute.replace(/this/g, "container");
-            try {
-                let variableText = eval(varAttribute);
-                if (variableText === undefined || variableText === "undefined")
-                    errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
-                variableStrings.push({ element: variables[i], attribute: variableText });
-            } catch (err) {
+        // Check if there's an item list in the document.
+        var itemListSentences = getItemListSentences(document);
+        if (itemListSentences.length > 0) {
+            for (let i = 0; i < itemListSentences.length; i++) {
+                const sentence = itemListSentences[i];
+                var itemList = sentence.getElementsByTagName('il').item(0);
+                // If the item list is empty, remove the sentence from the document.
+                if (itemList.childNodes.length === 0 || itemList.childNodes.length === 1 && itemList.childNodes.item(0).tagName && itemList.childNodes.item(0).tagName === 'null') {
+                    if (sentence.parentNode) sentence.parentNode.removeChild(sentence);
+                    else document.removeChild(sentence);
+                }
+            }
+        }
+
+        // Replace any var tags.
+        var variables = document.getElementsByTagName('var');
+        var variableStrings = [];
+        for (let i = 0; i < variables.length; i++) {
+            let varAttribute = variables[i].getAttribute('v');
+            if (varAttribute !== null && varAttribute !== undefined) {
+                varAttribute = varAttribute.replace(/this/g, "container");
+                try {
+                    let variableText = eval(varAttribute);
+                    if (variableText === undefined || variableText === "undefined")
+                        errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
+                    variableStrings.push({ element: variables[i], attribute: variableText });
+                } catch (err) {
                     errors.push(err);
+                }
+                if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
+                    variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
             }
-            if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
-                variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
         }
-    }
-    for (let i = 0; i < variableStrings.length; i++) {
-        let newNode = document.createTextNode(variableStrings[i].attribute);
-        variableStrings[i].element.parentNode.replaceChild(newNode, variableStrings[i].element);
+        for (let i = 0; i < variableStrings.length; i++) {
+            let newNode = document.createTextNode(variableStrings[i].attribute);
+            variableStrings[i].element.parentNode.replaceChild(newNode, variableStrings[i].element);
+        }
+
+        // Replace any br tags.
+        const breakTags = document.getElementsByTagName('br');
+        var breaks = [];
+        for (let i = 0; i < breakTags.length; i++)
+            breaks.push(breakTags[i]);
+        for (let i = 0; i < breaks.length; i++) {
+            let newNode = document.createTextNode('\n');
+            breaks[i].parentNode.replaceChild(newNode, breaks[i]);
+        }
     }
 
     // Convert the document to a string.
@@ -139,69 +154,71 @@ module.exports.addItem = function (description, item, slot, addedQuantity) {
     // First, split the description into a DOMParser document.
     var document = createDocument(description).document;
 
-    // Parse all of the sentences.
-    var sentenceElements = document.getElementsByTagName('s');
-    var sentences = new Array();
-    for (let i = 0; i < sentenceElements.length; i++)
-        sentences.push(createSentence(sentenceElements[i]));
+    if (document) {
+        // Parse all of the sentences.
+        var sentenceElements = document.getElementsByTagName('s');
+        var sentences = new Array();
+        for (let i = 0; i < sentenceElements.length; i++)
+            sentences.push(createSentence(sentenceElements[i]));
 
-    var itemAlreadyExists = false;
-    for (let j = 0; j < sentences.length; j++) {
-        var sentence = sentences[j];
-        // Determine if the item is already mentioned in the sentence.
-        var i;
-        for (i = 0; i < sentence.clause.length; i++) {
-            var text = sentence.clause[i].node.data.toLowerCase();
-            if ((sentence.itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1) &&
-                (text === item.singleContainingPhrase.toLowerCase() ||
-                item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase()))) {
-                itemAlreadyExists = true;
-                break;
-            }
-        }
-        if (itemAlreadyExists) break;
-    }
-
-    // This item already exists within the description.
-    if (itemAlreadyExists && sentence.clause[i].isItem) {
-        // If there's only 1 of this item, we need only use the plural containing phrase.
-        if (sentence.clause[i].itemQuantity === 1) {
-            if ("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz".includes(sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)))
-                sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase}`);
-            else
-                sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase + sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)}`);
-        }
-        else {
-            let start = sentence.clause[i].text.search(/\d/);
-            if (start !== -1) {
-                let end;
-                for (end = start; end < text.length; end++) {
-                    if (isNaN(text.charAt(end + 1)))
-                        break;
+        var itemAlreadyExists = false;
+        for (let j = 0; j < sentences.length; j++) {
+            var sentence = sentences[j];
+            // Determine if the item is already mentioned in the sentence.
+            var i;
+            for (i = 0; i < sentence.clause.length; i++) {
+                var text = sentence.clause[i].node.data.toLowerCase();
+                if ((sentence.itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1) &&
+                    (text === item.singleContainingPhrase.toLowerCase() ||
+                        item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase()))) {
+                    itemAlreadyExists = true;
+                    break;
                 }
-                const quantity = parseInt(text.substring(start, end));
-                sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity + addedQuantity));
             }
-        }
-    }
-    // The sentence doesn't already contain this item.
-    else if (!itemAlreadyExists) {
-        if (slot === null || slot === undefined) slot = "";
-        // We need to find the location of the beginning of the item list.
-        var containsItemList = false;
-        for (i = 0; i < sentences.length; i++) {
-            if (sentences[i].itemList !== null && 
-                (sentences[i].itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1)) {
-                containsItemList = true;
-                break;
-            }
+            if (itemAlreadyExists) break;
         }
 
-        // Add the clause to the sentence.
-        if (containsItemList) {
-            const phrase = addedQuantity === 1 ? item.singleContainingPhrase : `${addedQuantity} ${item.pluralContainingPhrase}`;
-            let result = addClause(sentences[i], phrase);
-            //console.log(result);
+        // This item already exists within the description.
+        if (itemAlreadyExists && sentence.clause[i].isItem) {
+            // If there's only 1 of this item, we need only use the plural containing phrase.
+            if (sentence.clause[i].itemQuantity === 1) {
+                if ("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz".includes(sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)))
+                    sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase}`);
+                else
+                    sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase + sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)}`);
+            }
+            else {
+                let start = sentence.clause[i].text.search(/\d/);
+                if (start !== -1) {
+                    let end;
+                    for (end = start; end < text.length; end++) {
+                        if (isNaN(text.charAt(end + 1)))
+                            break;
+                    }
+                    const quantity = parseInt(text.substring(start, end));
+                    sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity + addedQuantity));
+                }
+            }
+        }
+        // The sentence doesn't already contain this item.
+        else if (!itemAlreadyExists) {
+            if (slot === null || slot === undefined) slot = "";
+            // We need to find the location of the beginning of the item list.
+            var containsItemList = false;
+            for (i = 0; i < sentences.length; i++) {
+                if (sentences[i].itemList !== null &&
+                    (sentences[i].itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1)) {
+                    containsItemList = true;
+                    break;
+                }
+            }
+
+            // Add the clause to the sentence.
+            if (containsItemList) {
+                const phrase = addedQuantity === 1 ? item.singleContainingPhrase : `${addedQuantity} ${item.pluralContainingPhrase}`;
+                let result = addClause(sentences[i], phrase);
+                //console.log(result);
+            }
         }
     }
 
@@ -218,57 +235,59 @@ module.exports.removeItem = function (description, item, slot, force, document) 
         document = createDocument(description).document;
     }
 
-    // Parse all of the sentences.
-    var sentenceElements = document.getElementsByTagName('s');
-    var sentences = new Array();
-    for (let i = 0; i < sentenceElements.length; i++)
-        sentences.push(createSentence(sentenceElements[i]));
+    if (document) {
+        // Parse all of the sentences.
+        var sentenceElements = document.getElementsByTagName('s');
+        var sentences = new Array();
+        for (let i = 0; i < sentenceElements.length; i++)
+            sentences.push(createSentence(sentenceElements[i]));
 
-    var removeItem = false;
-    for (let j = 0; j < sentences.length; j++) {
-        var sentence = sentences[j];
-        if ((slot === null || slot === undefined || slot === "") && sentence.itemListName === ""
-            || slot !== null && slot !== undefined && slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 < 2
-            || sentence.itemListName === slot) {
-            // Determine if an item needs to be removed from the sentence.
-            var i;
-            for (i = 0; i < sentence.clause.length; i++) {
-                if (sentence.clause[i].isItem) {
-                    var text = sentence.clause[i].node.data.toLowerCase();
-                    if (text === item.singleContainingPhrase.toLowerCase()
-                        || item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase())) {
-                        removeItem = true;
-                        break;
+        var removeItem = false;
+        for (let j = 0; j < sentences.length; j++) {
+            var sentence = sentences[j];
+            if ((slot === null || slot === undefined || slot === "") && sentence.itemListName === ""
+                || slot !== null && slot !== undefined && slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 < 2
+                || sentence.itemListName === slot) {
+                // Determine if an item needs to be removed from the sentence.
+                var i;
+                for (i = 0; i < sentence.clause.length; i++) {
+                    if (sentence.clause[i].isItem) {
+                        var text = sentence.clause[i].node.data.toLowerCase();
+                        if (text === item.singleContainingPhrase.toLowerCase()
+                            || item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase())) {
+                            removeItem = true;
+                            break;
+                        }
                     }
                 }
+                if (removeItem) break;
             }
-            if (removeItem) break;
         }
-    }
 
-    if (removeItem) {
-        // If force argument is true, remove the item clause regardless of its quantity.
-        if (!force) removeItem = false;
-
-        // First make sure there aren't multiple of that item.
-        let start = text.search(/\d/);
-        if (start !== -1) {
-            let end;
-            for (end = start; end < text.length; end++) {
-                if (isNaN(text.charAt(end + 1)))
-                    break;
-            }
-            const quantity = parseInt(text.substring(start, end));
-            if (quantity - 1 === 1) sentence.clause[i].set(item.singleContainingPhrase);
-            else if (quantity > 1) sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - 1));
-            else removeItem = true;
-        }
-        else removeItem = true;
-
-        // Remove the item from the sentence.
         if (removeItem) {
-            let result = removeClause(sentence, i);
-            //console.log(result);
+            // If force argument is true, remove the item clause regardless of its quantity.
+            if (!force) removeItem = false;
+
+            // First make sure there aren't multiple of that item.
+            let start = text.search(/\d/);
+            if (start !== -1) {
+                let end;
+                for (end = start; end < text.length; end++) {
+                    if (isNaN(text.charAt(end + 1)))
+                        break;
+                }
+                const quantity = parseInt(text.substring(start, end));
+                if (quantity - 1 === 1) sentence.clause[i].set(item.singleContainingPhrase);
+                else if (quantity > 1) sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - 1));
+                else removeItem = true;
+            }
+            else removeItem = true;
+
+            // Remove the item from the sentence.
+            if (removeItem) {
+                let result = removeClause(sentence, i);
+                //console.log(result);
+            }
         }
     }
 
@@ -714,4 +733,39 @@ function removeClause(sentence, i) {
     // If all else fails, just remove the item clause.
     clause[i].delete();
     return 21;
+}
+
+// The functions below are included to provide shorthand for using the finder module in descriptions.
+function findRoom(name) {
+    return finder.findRoom(name);
+}
+function findObject(name, location) {
+    return finder.findObject(name, location);
+}
+function findPrefab(id) {
+    return finder.findPrefab(id);
+}
+function findItem(identifier, location, containerName) {
+    return finder.findItem(identifier, location, containerName);
+}
+function findPuzzle(name, location) {
+    return finder.findPuzzle(name, location);
+}
+function findEvent(name) {
+    return finder.findEvent(name);
+}
+function findStatusEffect(name) {
+    return finder.findStatusEffect(name);
+}
+function findPlayer(name) {
+    return finder.findPlayer(name);
+}
+function findLivingPlayer(name) {
+    return finder.findLivingPlayer(name);
+}
+function findDeadPlayer(name) {
+    return finder.findDeadPlayer(name);
+}
+function findInventoryItem(identifier, player, containerName, equipmentSlot) {
+    return finder.findInventoryItem(identifier, player, containerName, equipmentSlot);
 }

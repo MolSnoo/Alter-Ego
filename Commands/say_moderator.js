@@ -46,7 +46,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     channel.send(string).then(message => {
         if (player !== null)
-            dialogHandler.execute(game, message);
+            dialogHandler.execute(bot, game, message);
     });
 
     return;

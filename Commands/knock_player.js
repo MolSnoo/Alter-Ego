@@ -43,6 +43,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     new Narration(game, player, player.location, roomNarration).send();
 
     var room = exit.dest;
+    if (room.name === player.location.name) return;
+
     var hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.
     for (let i = 0; i < room.occupants.length; i++) {
@@ -61,7 +63,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         new Narration(game, player, room, destNarration).send();
     else {
         for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].member.send(destNarration);
+            hearingPlayers[i].notify(destNarration);
     }
 
     return;

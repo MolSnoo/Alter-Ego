@@ -3,10 +3,12 @@
 module.exports.config = {
     name: "puzzle_moderator",
     description: "Solves or unsolves a puzzle.",
-    details: 'Solves or unsolves a puzzle. You may specify a player to solve the puzzle. If you do, '
-        + 'players in the room will be notified, so you should generally give a string for the bot to use, '
+    details: 'Solves or unsolves a puzzle. You may specify an outcome, if the puzzle has more than one solution. '
+        + 'You may specify a player to solve the puzzle. If you do, players in the room '
+        + 'will be notified, so you should generally give a string for the bot to use, '
         + 'otherwise the bot will say "[player] uses the [puzzle]." which may not sound right. '
         + "If you specify a player, only puzzles in the room that player is in can be solved/unsolved. "
+        + 'Additionally, if you specify a player, you can make them attempt to solve a puzzle. '
         + 'You can also use a room name instead of a player name. In that case, only puzzles in the room '
         + 'you specify can be solved/unsolved. This is useful if you have multiple puzzles with the same name '
         + 'spread across the map. This should generally only be used for puzzles which require moderator intervention.',
@@ -14,12 +16,15 @@ module.exports.config = {
         + `${settings.commandPrefix}puzzle unsolve keypad\n`
         + `${settings.commandPrefix}solve binder taylor\n`
         + `${settings.commandPrefix}unsolve lever colin\n`
+        + `${settings.commandPrefix}solve computer PASSWORD1\n`
+        + `${settings.commandPrefix}solve computer PASSWORD2\n`
         + `${settings.commandPrefix}puzzle solve keypad tool shed\n`
         + `${settings.commandPrefix}puzzle unsolve lock men's locker room\n`
         + `${settings.commandPrefix}solve paintings emily "Emily removes the PAINTINGS from the wall."\n`
-        + `${settings.commandPrefix}unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"`,
+        + `${settings.commandPrefix}unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"\n`
+        + `${settings.commandPrefix}puzzle attempt cyptex lock 05-25-99 scarlet`,
     usableBy: "Moderator",
-    aliases: ["puzzle", "solve", "unsolve"],
+    aliases: ["puzzle", "solve", "unsolve", "attempt"],
     requiresGame: true
 };
 
@@ -28,6 +33,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (command === "puzzle") {
         if (args[0] === "solve") command = "solve";
         else if (args[0] === "unsolve") command = "unsolve";
+        else if (args[0] === "attempt") command = "attempt";
         input = input.substring(input.indexOf(args[1]));
         args = input.split(" ");
     }
@@ -98,19 +104,36 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
     else if (puzzle === null) return message.reply(`couldn't find puzzle "${input}".`);
 
+    // If anything is left in the input, make that the outcome.
+    var outcome = input;
+    var validOutcome = false;
+    for (let i = 0; i < puzzle.solutions.length; i++) {
+        if (puzzle.solutions[i].toLowerCase() === outcome.toLowerCase()) {
+            validOutcome = true;
+            break;
+        }
+    }
+
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     if (command === "solve") {
-        if (player === null && puzzle.solvedCommands.toString().includes("player"))
-            return message.reply("that puzzle will trigger a command on the player who solves it, so you need to specify one.");
-        puzzle.solve(bot, game, player, announcement, true);
+        if (puzzle.solutions.length > 1 && outcome !== "" && !validOutcome) return message.reply(`"${outcome}" is not a valid solution.`);
+        puzzle.solve(bot, game, player, announcement, outcome, true);
         message.channel.send(`Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
-        if (player === null && puzzle.unsolvedCommands.toString().includes("player"))
-            return message.reply("that puzzle will trigger a command on the player who unsolves it, so you need to specify one.");
         puzzle.unsolve(bot, game, player, announcement, null, true);
         message.channel.send(`Successfully unsolved ${puzzle.name}.`);
+    }
+    else if (command === "attempt") {
+        if (player === null) return message.reply(`cannot attempt a puzzle without a player.`);
+        const misc = {
+            command: command,
+            input: input,
+            message: message
+        };
+        player.attemptPuzzle(bot, game, puzzle, null, outcome, command, misc);
+        message.channel.send(`Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 
     return;

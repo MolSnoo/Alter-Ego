@@ -182,7 +182,7 @@ class Player {
             // Be sure to check player.reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.reachedHalfStamina) {
                 player.reachedHalfStamina = true;
-                player.member.send(`You're starting to get tired! You might want to stop moving and rest soon.`);
+                player.notify(`You're starting to get tired! You might want to stop moving and rest soon.`);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
@@ -289,11 +289,9 @@ class Player {
         if (narrate === null || narrate === undefined) narrate = true;
         if (duration === undefined) duration = null;
 
-        if (doCures) {
-            for (let i = 0; i < status.overriders.length; i++) {
-                if (this.statusString.includes(status.overriders[i].name))
-                    return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
-            }
+        for (let i = 0; i < status.overriders.length; i++) {
+            if (this.statusString.includes(status.overriders[i].name))
+                return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
         }
 
         if (this.statusString.includes(statusName)) {
@@ -353,7 +351,9 @@ class Player {
                 if (status.remaining.asMilliseconds() <= 0) {
                     if (status.nextStage) {
                         player.cure(game, status.name, false, false, true);
-                        player.inflict(game, status.nextStage.name, true, false, true);
+                        const response = player.inflict(game, status.nextStage.name, true, false, true);
+                        if (response.startsWith(`Couldn't inflict status effect`))
+                            player.sendDescription(status.curedDescription, status);
                     }
                     else {
                         if (status.fatal) {
@@ -701,7 +701,7 @@ class Player {
         itemManager.insertInventoryItems(game, this, items, slot);
 
         this.carryWeight += createdItem.weight;
-        this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
+        this.notify(`You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
             // Add the new item to the player's hands item list.
@@ -813,18 +813,18 @@ class Player {
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
                 if (container.inventory.length === 1)
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
                 else
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
             }
             else {
                 if (container.inventory.length === 1) {
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
                 }
                 else {
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
                 }
             }
             if (!createdItem.prefab.discreet) {
@@ -843,12 +843,12 @@ class Player {
         // Player failed to steal the item.
         else {
             if (container.inventory.length === 1) {
-                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
+                this.notify(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
             }
             else {
-                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
+                this.notify(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
             }
 
             return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
@@ -912,7 +912,7 @@ class Player {
         itemManager.insertItems(game, this.location, items);
 
         this.carryWeight -= item.weight;
-        this.member.send(`You discard ${item.singleContainingPhrase}.`);
+        this.notify(`You discard ${item.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
             // Remove the item from the player's hands item list.
@@ -982,8 +982,8 @@ class Player {
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
-        this.member.send(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
-        recipient.member.send(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
+        this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
+        recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
@@ -1032,7 +1032,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
-        this.member.send(`You stash ${createdItem.singleContainingPhrase}.`);
+        this.notify(`You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             var preposition = container.prefab ? container.prefab.preposition : "in";
             new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
@@ -1121,7 +1121,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
         
-        this.member.send(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
+        this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
@@ -1187,7 +1187,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
-        this.member.send(`You equip the ${createdItem.name}.`);
+        this.notify(`You equip the ${createdItem.name}.`);
         new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
         // Remove mention of any equipped items that this item covers.
         for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
@@ -1279,7 +1279,7 @@ class Player {
         game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!||${this.name}|${item.equipmentSlot}|${item.containerName}`, itemData));
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            this.member.send(`You take ${item.singleContainingPhrase}.`);
+            this.notify(`You take ${item.singleContainingPhrase}.`);
             if (!item.prefab.discreet) {
                 new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
@@ -1288,7 +1288,7 @@ class Player {
             }
         }
         else {
-            this.member.send(`You equip the ${item.name}.`);
+            this.notify(`You equip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
@@ -1428,7 +1428,7 @@ class Player {
 
             itemManager.insertInventoryItems(game, this, items, slot);
 
-            this.member.send(`You unequip the ${createdItem.name}.`);
+            this.notify(`You unequip the ${createdItem.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
@@ -1516,7 +1516,7 @@ class Player {
                 this.description = parser.removeItem(this.description, item, "hands");
         }
         else {
-            this.member.send(`You unequip the ${item.name}.`);
+            this.notify(`You unequip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
@@ -1604,23 +1604,55 @@ class Player {
     }
 
     craft(game, item1, item2, recipe) {
+        var product1 = recipe.products[0];
+        var product2 = recipe.products[1];
+        // First, check if either of the ingredients are also products.
+        // If they are, simply decrease their uses.
+        // If their uses would become 0, change the product to its next stage, if it has one.
+        var item1Uses = null;
+        var item2Uses = null;
+        if (product1 && item1.prefab.id === product1.id) {
+            if (item1.uses - 1 === 0) product1 = product1.nextStage;
+            else if (!isNaN(item1.uses)) item1Uses = item1.uses - 1;
+        }
+        else if (product2 && item1.prefab.id === product2.id) {
+            if (item1.uses - 1 === 0) product2 = product2.nextStage;
+            else if (!isNaN(item1.uses)) item2Uses = item1.uses - 1;
+        }
+        if (product1 && item2.prefab.id === product1.id) {
+            if (item2.uses - 1 === 0) product1 = product1.nextStage;
+            else if (!isNaN(item2.uses)) item1Uses = item2.uses - 1;
+        }
+        else if (product2 && item2.prefab.id === product2.id) {
+            if (item2.uses - 1 === 0) product2 = product2.nextStage;
+            else if (!isNaN(item2.uses)) item2Uses = item2.uses - 1;
+        }
+
         if (!item1.prefab.discreet) this.description = parser.removeItem(this.description, item1, "hands");
         if (!item2.prefab.discreet) this.description = parser.removeItem(this.description, item2, "hands");
-        itemManager.replaceInventoryItem(item1, recipe.products[0]);
-        itemManager.replaceInventoryItem(item2, recipe.products[1]);
+        itemManager.replaceInventoryItem(item1, product1);
+        itemManager.replaceInventoryItem(item2, product2);
+        if (item1Uses !== null) {
+            item1.uses = item1Uses;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item1.usesCell(), `Inventory Items!${item1.prefab.id}|${item1.identifier}|${this.name}|${item1.equipmentSlot}|${item1.containerName}`, item1.uses));
+        }
+        if (item2Uses !== null) {
+            item2.uses = item2Uses;
+            game.queue.push(new QueueEntry(Date.now(), "updateCell", item2.usesCell(), `Inventory Items!${item2.prefab.id}|${item2.identifier}|${this.name}|${item2.equipmentSlot}|${item2.containerName}`, item2.uses));
+        }
 
         this.sendDescription(recipe.completedDescription, recipe);
         // Decide if this should be narrated or not.
-        if (recipe.products[0] && !recipe.products[0].discreet || recipe.products[1] && !recipe.products[1].discreet) {
+        if (product1 && !product1.discreet || product2 && !product2.discreet) {
             let productPhrase = "";
             let product1Phrase = "";
             let product2Phrase = "";
-            if (recipe.products[0] && !recipe.products[0].discreet) {
-                product1Phrase = recipe.products[0].singleContainingPhrase;
+            if (product1 && !product1.discreet) {
+                product1Phrase = product1.singleContainingPhrase;
                 this.description = parser.addItem(this.description, item1, "hands");
             }
-            if (recipe.products[1] && !recipe.products[1].discreet) {
-                product2Phrase = recipe.products[1].singleContainingPhrase;
+            if (product2 && !product2.discreet) {
+                product2Phrase = product2.singleContainingPhrase;
                 this.description = parser.addItem(this.description, item2, "hands");
             }
             if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
@@ -1631,33 +1663,73 @@ class Player {
         }
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.descriptionCell(), `Players!${this.name}|Description`, this.description));
 
-        return;
+        return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
+    }
+
+    hasItem(game, id) {
+        const playerItems = game.inventoryItems.filter(item => item.player.id === this.id && item.prefab !== null && item.quantity > 0);
+        for (let i = 0; i < playerItems.length; i++) {
+            if (playerItems[i].prefab.id === id) return true;
+        }
+        return false;
     }
 
     attemptPuzzle(bot, game, puzzle, item, password, command, misc) {
+        const puzzleName = puzzle.parentObject ? puzzle.parentObject.name : puzzle.name;
+        // Make sure all the requirements are solved.
+        var allRequirementsSolved = true;
+        for (let i = 0; i < puzzle.requirements.length; i++) {
+            if (puzzle.requirements[i] instanceof Puzzle && !puzzle.requirements[i].solved) {
+                allRequirementsSolved = false;
+                break;
+            }
+            else if (puzzle.requirements[i].hasOwnProperty("id")) {
+                if (item !== null && item.prefab.id !== puzzle.requirements[i].id) {
+                    allRequirementsSolved = false;
+                    break;
+                }
+                else if (item === null) {
+                    if (!this.hasItem(game, puzzle.requirements[i].id)) {
+                        allRequirementsSolved = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if (allRequirementsSolved && !puzzle.accessible && puzzle.requirements.length !== 0)
+            puzzle.setAccessible(game);
+        else if (!allRequirementsSolved && puzzle.accessible)
+            puzzle.setInaccessible(game);
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
                 this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
-                new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzle.name}.`).send();
+                new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
 
                 return;
             }
 
             // Make sure all of the requirements are met before proceeding.
             var hasRequiredItem = false;
+            var requiredItemName = "";
             var requirementsMet = false;
-            if (puzzle.solution.startsWith("Item: ")) {
-                if (item !== null && item.prefab.id === puzzle.solution.substring("Item: ".length))
-                    hasRequiredItem = true;
-                else if (item === null) {
-                    const requiredItem = puzzle.solution.substring("Item: ".length);
-                    const playerItems = game.inventoryItems.filter(item => item.player.id === this.id && item.prefab !== null && item.quantity > 0);
-                    for (let i = 0; i < playerItems.length; i++) {
-                        if (playerItems[i].prefab.id === requiredItem) {
+            if (puzzle.solutions.join(',').includes("Item: ")) {
+                for (let i = 0; i < puzzle.solutions.length; i++) {
+                    if (puzzle.solutions[i].startsWith("Item: ")) {
+                        if (item !== null && item.prefab.id === puzzle.solutions[i].substring("Item: ".length)) {
                             hasRequiredItem = true;
+                            requiredItemName = puzzle.solutions[i];
                             break;
                         }
+                        else if (item === null) {
+                            const requiredItem = puzzle.solutions[i].substring("Item: ".length);
+                            if (this.hasItem(game, requiredItem)) {
+                                hasRequiredItem = true;
+                                requiredItemName = puzzle.solutions[i];
+                                break;
+                            }
+                        }
+                        if (hasRequiredItem) break;
                     }
                 }
             }
@@ -1668,62 +1740,90 @@ class Player {
             // Puzzle is solvable.
             if (requirementsMet) {
                 if (puzzle.type === "password") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         if (password === "") return "you need to enter a password.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
-                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzle.name}.`);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, password, true);
+                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
                 }
                 else if (puzzle.type === "interact") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzle.name}.`);
-                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
                 }
                 else if (puzzle.type === "toggle") {
-                    if (puzzle.solved) {
+                    if (puzzle.solved && hasRequiredItem) {
                         let message = null;
                         if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
-                        puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, message, true);
+                        puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, message, true);
                     }
-                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzle.name}.`, true);
+                    else if (puzzle.solved) puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
+                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
                 }
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
-                        if (command !== "lock" && (password === "" || password === puzzle.solution))
-                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
+                        if (command === "unlock") return `${puzzleName} is already unlocked.`;
+                        if (command !== "lock" && (password === "" || puzzle.solutions.includes(password)))
+                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzleName}.`);
                         // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
+                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
+                        if (command === "lock") return `${puzzleName} is already locked.`;
                         if (password === "") return "you need to enter a combination. The format is #-#-#.";
-                        else if (password === puzzle.solution) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, true);
-                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzle.parentObject.name}.`);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, password, true);
+                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzleName}.`);
                     }
                 }
                 else if (puzzle.type === "key lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzle.parentObject.name} is already unlocked.`;
-                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzle.parentObject.name}.`, `You lock the ${puzzle.parentObject.name}.`, true);
-                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts and fails to lock the ${puzzle.parentObject.name}.`);
-                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzle.parentObject.name}.`);
+                        if (command === "unlock") return `${puzzleName} is already unlocked.`;
+                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
+                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts and fails to lock the ${puzzleName}.`);
+                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzleName}.`);
                     }
                     // The lock is locked.
                     else {
-                        if (command === "lock") return `${puzzle.parentObject.name} is already locked.`;
-                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzle.parentObject.name}.`, true);
+                        if (command === "lock") return `${puzzleName} is already locked.`;
+                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, requiredItemName, true);
+                    }
+                }
+                else if (puzzle.type === "probability") {
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    else {
+                        const outcome = puzzle.solutions[Math.floor(Math.random() * puzzle.solutions.length)];
+                        puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true);
+                    }
+                }
+                else if (puzzle.type === "channels") {
+                    if (puzzle.solved) {
+                        if (password === "") puzzle.unsolve(bot, game, this, `${this.displayName} turns off the ${puzzleName}.`, `You turn off the ${puzzleName}.`, true);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} changes the channel on the ${puzzleName}.`, password, true);
+                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to change the channel on the ${puzzleName}.`);
+                    }
+                    else {
+                        if (!puzzle.solutions.includes(password)) password = puzzle.outcome ? puzzle.outcome : "";
+                        puzzle.solve(bot, game, this, `${this.displayName} turns on the ${puzzleName}.`, password, true);
+                    }
+                }
+                else if (puzzle.type === "weight") {
+                    if (puzzle.solved) {
+                        if (!puzzle.solutions.includes(password)) puzzle.unsolve(bot, game, this, "", null, true);
+                    }
+                    else {
+                        if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, "", password, true);
+                        else puzzle.fail(game, this, "");
                     }
                 }
             }
             // The player is missing an item needed to solve the puzzle.
-            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzle.name}, but struggles.`, misc);
+            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
         }
         // The puzzle isn't accessible.
-        else return puzzle.requirementsNotMet(game, this, `${this.displayName} uses the ${puzzle.name}.`, misc);
+        else return puzzle.requirementsNotMet(game, this, `${this.displayName} uses the ${puzzleName}.`, misc);
 
         return;
     }
@@ -1796,8 +1896,14 @@ class Player {
     }
 
     sendDescription(description, container) {
-        if (description)
+        if (description && (!this.hasAttribute("unconscious") || container && container instanceof Status))
             this.member.send(parser.parseDescription(description, container, this));
+        return;
+    }
+
+    notify(message) {
+        if (!this.hasAttribute("unconscious"))
+            this.member.send(message);
         return;
     }
 

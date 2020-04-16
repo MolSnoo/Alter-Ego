@@ -81,7 +81,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (item === null) return message.reply(`couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
 
     if (item.weight > recipient.maxCarryWeight) {
-        player.member.send(`You try to give ${recipient.displayName} ${item.singleContainingPhrase}, but it is too heavy for ${recipient.pronouns.obj}.`);
+        player.notify(`You try to give ${recipient.displayName} ${item.singleContainingPhrase}, but it is too heavy for ${recipient.pronouns.obj}.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to give ${item.singleContainingPhrase} to ${recipient.displayName}, but it is too heavy for ${recipient.pronouns.obj} to lift.`).send();
         return;
     }

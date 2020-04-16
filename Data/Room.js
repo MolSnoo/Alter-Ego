@@ -44,7 +44,7 @@ class Room {
 
         if (sendDescription) {
             if (player.hasAttribute("no sight"))
-                player.member.send("Fumbling against the wall, you make your way to the next room over.");
+                player.notify("Fumbling against the wall, you make your way to the next room over.");
             else {
                 let description;
                 if (entrance) description = entrance.description;
@@ -55,14 +55,14 @@ class Room {
         }
         if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {
             if (this.occupantsString !== "")
-                player.member.send(`You see ${this.occupantsString} in this room.`);
+                player.notify(`You see ${this.occupantsString} in this room.`);
         }
         else if (!player.hasAttribute("no sight") && this.occupants.length > 0) {
             // Come up with lists of concealed and sleeping players.
             let concealedPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("concealed") && !occupant.hasAttribute("hidden")));
-            if (concealedPlayersString !== "") player.member.send(`You see ${concealedPlayersString} in this room.`);
+            if (concealedPlayersString !== "") player.notify(`You see ${concealedPlayersString} in this room.`);
             let sleepingPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
-            if (sleepingPlayersString !== "") player.member.send(`You see ${sleepingPlayersString} sleeping in this room.`);
+            if (sleepingPlayersString !== "") player.notify(`You see ${sleepingPlayersString} sleeping in this room.`);
         }
 
         // Update the player's location on the spreadsheet.

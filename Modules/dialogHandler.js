@@ -1,6 +1,6 @@
 ﻿const settings = include('settings.json');
 
-module.exports.execute = async (game, message, deletable) => {
+module.exports.execute = async (bot, game, message, deletable) => {
     // Determine if the speaker is a moderator first.
     var isModerator = false;
     if (message.member.roles.find(role => role.id === settings.moderatorRole))
@@ -58,58 +58,105 @@ module.exports.execute = async (game, message, deletable) => {
             for (let i = 0; i < room.occupants.length; i++) {
                 // Players with the acute hearing attribute should overhear other whispers.
                 if (room.occupants[i].hasAttribute("acute hearing") && !whisper.players.includes(room.occupants[i]) && !message.content.startsWith('('))
-                    room.occupants[i].member.send(`You overhear ${player.displayName} whisper "${message.content}".`);
+                    room.occupants[i].notify(`You overhear ${player.displayName} whisper "${message.content}".`);
             }
         }
         else {
-            var deafPlayerInRoom = false;
-            // Handle room messages in the same room as the player.
-            for (let i = 0; i < room.occupants.length; i++) {
-                let occupant = room.occupants[i];
-                // If a player in the room has the no hearing attribute, delete the message and redirect it to anyone who can hear.
-                if (occupant.hasAttribute("no hearing")) {
-                    deafPlayerInRoom = true;
-                }
-                // Players with the hear room attribute should hear all messages sent to the room.
-                else if (occupant.hasAttribute("hear room") && !occupant.hasAttribute("no sight") && occupant.id !== player.id && !message.content.startsWith('('))
-                    occupant.member.send(`${player.displayName} says "${message.content}".`);
-		else if (occupant.hasAttribute("hear room") && occupant.id !== player.id && !message.content.startsWith('('))
-		    occupant.member.send(`You hear a voice in the room say "${message.content}".`);
+            var isShouting = false;
+            var verb = "say";
+            // If the message includes at least one letter and all letters in the message are uppercase, then the player is shouting.
+            if (RegExp("[a-zA-Z]", 'g').test(message.content) && message.content === message.content.toUpperCase()) {
+                isShouting = true;
+                verb = "shout";
             }
+            var deafPlayerInRoom = false;
+            // Check if there are any deaf players in the room. Count non-deaf players.
+            for (let i = 0; i < room.occupants.length; i++) {
+                // If a player in the room has the no hearing attribute, delete the message and redirect it to anyone who can hear.
+                if (room.occupants[i].hasAttribute("no hearing")) {
+                    deafPlayerInRoom = true;
+                    break;
+                }
+            }
+            if (room.occupants.length === 1 && room.occupants[0].hasAttribute("unconscious"))
+                deafPlayerInRoom = true;
             // Handle messages in adjacent rooms.
-            for (let i = 0; i < room.exit.length; i++) {
-                let nextdoor = room.exit[i].dest;
-                for (let j = 0; j < nextdoor.occupants.length; j++) {
-                    let occupant = nextdoor.occupants[j];
-                    // Players with the acute hearing attribute should hear messages from adjacent rooms.
-                    if (occupant.hasAttribute("acute hearing") && !message.content.startsWith('('))
-                        occupant.member.send(`You hear a voice from a nearby room say "${message.content}".`);
+            if (!room.tags.includes("soundproof") && !message.content.startsWith('(')) {
+                for (let i = 0; i < room.exit.length; i++) {
+                    let nextdoor = room.exit[i].dest;
+                    if (!nextdoor.tags.includes("soundproof") && nextdoor.occupants.length > 0 && nextdoor.name !== room.name) {
+                        let deafPlayerInNextdoor = false;
+                        // Check if there are any deaf players in the next room.
+                        for (let j = 0; j < nextdoor.occupants.length; j++) {
+                            if (nextdoor.occupants[j].hasAttribute("no hearing"))
+                                deafPlayerInNextdoor = true;
+                        }
+                        if (nextdoor.occupants.length === 1 && nextdoor.occupants[0].hasAttribute("unconscious"))
+                            deafPlayerInNextdoor = true;
+
+                        if (isShouting && !deafPlayerInNextdoor)
+                            nextdoor.channel.send(`Someone in a nearby room shouts "${message.content}".`);
+                        for (let j = 0; j < nextdoor.occupants.length; j++) {
+                            let occupant = nextdoor.occupants[j];
+                            if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
+                            //if (isShouting && (deafPlayerInNextdoor || occupant.hasAttribute("hear room"))) {
+                            if (isShouting) {
+                                if (occupant.hasAttribute(`knows ${player.name}`))
+                                    occupant.notify(`You hear ${player.name} ${verb} "${message.content}" in a nearby room.`);
+                                else if (deafPlayerInNextdoor || occupant.hasAttribute("hear room"))
+                                    occupant.notify(`You hear a voice from a nearby room ${verb} "${message.content}".`);
+                            }
+                            // Players with the acute hearing attribute should hear messages from adjacent rooms.
+                            else if (occupant.hasAttribute("acute hearing") && occupant.hasAttribute(`knows ${player.name}`))
+                                occupant.notify(`You hear ${player.name} ${verb} "${message.content}" in a nearby room.`);
+                            else if (!isShouting && occupant.hasAttribute("acute hearing"))
+                                occupant.notify(`You hear a voice from a nearby room say "${message.content}".`);
+                        }
+                    }
                 }
             }
 
-            if (deafPlayerInRoom) {
-                var hearingPlayersCount = 0;
-                for (let i = 0; i < room.occupants.length; i++) {
-                    let occupant = room.occupants[i];
-                    if (!occupant.hasAttribute("no hearing") && !occupant.hasAttribute("hear room") && occupant.id !== player.id && !message.content.startsWith('(')) {
-                        hearingPlayersCount += 1;
-                        occupant.member.send(`${player.displayName} says "${message.content}".`);
+            if (deafPlayerInRoom && deletable)
+                message.delete().catch();
+            else if (!deletable)
+                room.channel.send(`${player.displayName} ${verb}s "${message.content}".`);
+
+            for (let i = 0; i < game.puzzles.length; i++) {
+                if (game.puzzles[i].location.name === room.name && game.puzzles[i].type === "voice") {
+                    const cleanContent = message.content.replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
+                    for (let j = 0; j < game.puzzles[i].solutions.length; j++) {
+                        if (cleanContent.includes(game.puzzles[i].solutions[j]))
+                            game.puzzles[i].solve(bot, game, player, "", game.puzzles[i].solutions[j], true);
                     }
                 }
-                if (hearingPlayersCount === 0) player.member.send("You try to speak, but no one can hear you.");
-                if (deletable) message.delete().catch();
             }
-            else if (!deletable)
-                room.channel.send(`${player.displayName} says "${message.content}".`);
+
+            for (let i = 0; i < room.occupants.length; i++) {
+                let occupant = room.occupants[i];
+                if (occupant.id !== player.id && !message.content.startsWith('(')) {
+                    if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
+                    if (occupant.hasAttribute(`knows ${player.name}`) && !occupant.hasAttribute("no sight")) {
+                        if (player.displayName !== player.name) occupant.notify(`${player.displayName}, whose voice you recognize to be ${player.name}'s, ${verb}s "${message.content}".`);
+                        else if (occupant.hasAttribute("hear room")) occupant.notify(`${player.name} ${verb}s "${message.content}".`);
+                    }
+                    else if (occupant.hasAttribute("hear room") || deafPlayerInRoom) {
+                        if (occupant.hasAttribute(`knows ${player.name}`))
+                            occupant.notify(`${player.name} ${verb}s "${message.content}".`);
+                        else if (!occupant.hasAttribute("no sight"))
+                            occupant.notify(`${player.displayName} ${verb}s "${message.content}".`);
+                        else
+                            occupant.notify(`You hear a voice in the room ${verb} "${message.content}".`);
+                    }
+                }
+            }
         }
     }
     else if (isModerator) {
         for (let i = 0; i < room.occupants.length; i++) {
             let occupant = room.occupants[i];
             // Players with the see room attribute should receive narrations from moderators.
-            if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('(')) {
-                occupant.member.send(message.content);
-            }
+            if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('('))
+                occupant.notify(message.content);
         }
     }
 

@@ -68,7 +68,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 object = objects[i];
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
                 // Check if the object has a puzzle attached to it.
-                if (object.childPuzzle !== null && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
+                if (object.childPuzzle !== null && object.childPuzzle.type !== "weight" && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
                     return message.reply(`you cannot put items ${object.preposition} ${object.name} right now.`);
                 newArgs = parsedInput.split(' ');
                 newArgs.splice(newArgs.length - 1, 1);
@@ -118,7 +118,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var slotName = "";
     if (object !== null && object.childPuzzle === null && containerItem === null)
         container = object;
-    else if (object !== null && object.childPuzzle !== null && object.childPuzzle.accessible && object.childPuzzle.solved && containerItem === null)
+    else if (object !== null && object.childPuzzle !== null && (object.childPuzzle.type === "weight" || object.childPuzzle.accessible && object.childPuzzle.solved) && containerItem === null)
         container = object.childPuzzle;
     else if (containerItem !== null) {
         container = containerItem;
@@ -153,8 +153,19 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (container.hasOwnProperty("isHidingSpot"))
         game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.preposition} ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
-    else if (container.hasOwnProperty("solved"))
+    else if (container.hasOwnProperty("solved")) {
         game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
+        // Container is a weight puzzle.
+        if (container.type === "weight") {
+            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+            const misc = {
+                command: "drop",
+                input: input
+            };
+            player.attemptPuzzle(bot, game, container, item, weight.toString(), "drop", misc);
+        }
+    }
     // Container is an Item.
     else if (container.hasOwnProperty("inventory"))
         game.logChannel.send(`${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slotName} of ${container.identifier} in ${player.location.channel}`);

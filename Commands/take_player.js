@@ -123,7 +123,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (topContainer !== null && topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
         return message.reply(`you cannot take items from ${topContainer.name} while it is turned on.`);
     if (item.weight > player.maxCarryWeight) {
-        player.member.send(`You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
+        player.notify(`You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();
         return;
     }
@@ -133,8 +133,19 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
-    if (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved"))
+    if (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved")) {
         game.logChannel.send(`${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
+        // Container is a weight puzzle.
+        if (container.hasOwnProperty("solved") && container.type === "weight") {
+            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+            const misc = {
+                command: "take",
+                input: input
+            };
+            player.attemptPuzzle(bot, game, container, item, weight.toString(), "take", misc);
+        }
+    }
     // Container is an Item.
     else if (container.hasOwnProperty("inventory"))
         game.logChannel.send(`${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);

@@ -70,9 +70,9 @@ module.exports.run = async (bot, game, message, command, args) => {
 
         // It is already taken.
         if (hiddenPlayer !== null) {
-            player.member.send(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayer.displayName} is already there!`);
+            player.notify(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayer.displayName} is already there!`);
             hiddenPlayer.cure(game, "hidden", false, false, true);
-            hiddenPlayer.member.send(`You've been found by ${player.displayName}. You are no longer hidden.`);
+            hiddenPlayer.notify(`You've been found by ${player.displayName}. You are no longer hidden.`);
         }
         // It's free real estate!
         else {

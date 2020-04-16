@@ -94,14 +94,22 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     item1Name = ingredients[0].identifier ? ingredients[0].identifier : ingredients[0].prefab.id;
     item2Name = ingredients[1].identifier ? ingredients[1].identifier : ingredients[1].prefab.id;
-    const productString = recipe.products.length === 2 ? `${recipe.products[0].id} and ${recipe.products[1].id}` :
-        recipe.products.length === 1 ? `${recipe.products[0].id}` : "nothing";
 
-    player.craft(game, ingredients[0], ingredients[1], recipe);
+    const products = player.craft(game, ingredients[0], ingredients[1], recipe);
+
+    let productPhrase = "";
+    let product1Phrase = "";
+    let product2Phrase = "";
+    if (products.product1) product1Phrase = products.product1.identifier ? products.product1.identifier : products.product1.prefab.id;
+    if (products.product2) product2Phrase = products.product2.identifier ? products.product2.identifier : products.product2.prefab.id;
+    if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
+    else if (product1Phrase !== "") productPhrase = product1Phrase;
+    else if (product2Phrase !== "") productPhrase = product2Phrase;
+    else productPhrase = "nothing";
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} crafted ${productString} from ${item1Name} and ${item2Name} in ${player.location.channel}`);
+    game.logChannel.send(`${time} - ${player.name} crafted ${productPhrase} from ${item1Name} and ${item2Name} in ${player.location.channel}`);
 
     return;
 };

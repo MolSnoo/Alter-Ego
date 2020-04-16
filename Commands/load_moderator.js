@@ -125,6 +125,16 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.inventoryItems.length + " inventory items retrieved."
             );
 
+            const privatePlayers = [];
+            for (let i = 0; i < game.players_alive.length; i++) {
+                const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
+                if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
+            }
+            if (privatePlayers.length > 0) {
+                const privatePlayerList = privatePlayers.join(", ");
+                message.channel.send(`Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
+            }
+
             if (args[1] && args[1] === "start") {
                 game.game = true;
                 game.canJoin = false;
@@ -246,6 +256,16 @@ module.exports.run = async (bot, game, message, command, args) => {
         catch (err) {
             message.channel.send(err);
         }
+
+        const privatePlayers = [];
+        for (let i = 0; i < game.players_alive.length; i++) {
+            const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
+            if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
+        }
+        if (privatePlayers.length > 0) {
+            const privatePlayerList = privatePlayers.join(", ");
+            message.channel.send(`Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
+        }
     }
     else if (args[0] === "inventories") {
         try {
@@ -263,4 +283,14 @@ function printData(data) {
     for (var i = 0; i < data.length; i++) {
         console.log(data[i]);
     }
+}
+
+function checkCanDmPlayer(player) {
+    return new Promise(resolve => {
+        player.member.send('').catch(error => {
+            if (error.hasOwnProperty("code") && error.code === 50007)
+                resolve(false);
+            else resolve(true);
+        });
+    });
 }

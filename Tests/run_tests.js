@@ -9,6 +9,7 @@ const test_queuer = include(`${settings.testsDir}/test_queuer.js`);
 const test_take_drop = include(`${settings.testsDir}/test_take_drop.js`);
 const test_stash_unstash = include(`${settings.testsDir}/test_stash_unstash.js`);
 const test_recalculate_stats = include(`${settings.testsDir}/test_recalculate_stats.js`);
+const test_finder = include(`${settings.testsDir}/test_finder.js`);
 
 exports.runTests = async function (bot) {
     //test_cell_responses.run();
@@ -19,6 +20,7 @@ exports.runTests = async function (bot) {
     //test_queuer.run();
     //test_take_drop.run();
     //test_stash_unstash.run();
-    test_recalculate_stats.run(bot);
+    //test_recalculate_stats.run(bot);
+    //await test_finder.run(bot);
     console.log("All tests passed.");
 };

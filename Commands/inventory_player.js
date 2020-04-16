@@ -14,7 +14,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
 
     const inventoryString = player.viewInventory("Your", false);
-    player.member.send(inventoryString);
+    player.notify(inventoryString);
 
     return;
 };

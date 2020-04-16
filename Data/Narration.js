@@ -15,7 +15,7 @@ class Narration {
                 // Players with the see room attribute should receive all narrations besides their own via DM.
                 if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !occupant.hasAttribute("hidden")) {
                     if (!this.player || occupant.id !== this.player.id)
-                        occupant.member.send(this.message);
+                        occupant.notify(this.message);
                 }
             }
             this.location.channel.send(this.message);
