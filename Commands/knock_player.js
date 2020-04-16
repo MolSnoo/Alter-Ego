@@ -63,7 +63,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         new Narration(game, player, room, destNarration).send();
     else {
         for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].member.send(destNarration);
+            hearingPlayers[i].notify(destNarration);
     }
 
     return;

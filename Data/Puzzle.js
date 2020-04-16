@@ -99,7 +99,7 @@ class Puzzle {
 
     async unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
         // There's no message when unsolved cell, so let the player know what they did.
-        if (player !== null && directMessage !== null) player.member.send(directMessage);
+        if (player !== null && directMessage !== null) player.notify(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();

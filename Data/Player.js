@@ -181,7 +181,7 @@ class Player {
             // Be sure to check player.reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.reachedHalfStamina) {
                 player.reachedHalfStamina = true;
-                player.member.send(`You're starting to get tired! You might want to stop moving and rest soon.`);
+                player.notify(`You're starting to get tired! You might want to stop moving and rest soon.`);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
@@ -700,7 +700,7 @@ class Player {
         itemManager.insertInventoryItems(game, this, items, slot);
 
         this.carryWeight += createdItem.weight;
-        this.member.send(`You take ${createdItem.singleContainingPhrase}.`);
+        this.notify(`You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
             // Add the new item to the player's hands item list.
@@ -812,18 +812,18 @@ class Player {
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
                 if (container.inventory.length === 1)
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
                 else
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
             }
             else {
                 if (container.inventory.length === 1) {
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
                 }
                 else {
-                    this.member.send(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.member.send(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
                 }
             }
             if (!createdItem.prefab.discreet) {
@@ -842,12 +842,12 @@ class Player {
         // Player failed to steal the item.
         else {
             if (container.inventory.length === 1) {
-                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
+                this.notify(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
             }
             else {
-                this.member.send(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.member.send(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
+                this.notify(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
             }
 
             return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
@@ -911,7 +911,7 @@ class Player {
         itemManager.insertItems(game, this.location, items);
 
         this.carryWeight -= item.weight;
-        this.member.send(`You discard ${item.singleContainingPhrase}.`);
+        this.notify(`You discard ${item.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
             // Remove the item from the player's hands item list.
@@ -981,8 +981,8 @@ class Player {
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
-        this.member.send(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
-        recipient.member.send(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
+        this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
+        recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
@@ -1031,7 +1031,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
-        this.member.send(`You stash ${createdItem.singleContainingPhrase}.`);
+        this.notify(`You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             var preposition = container.prefab ? container.prefab.preposition : "in";
             new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
@@ -1120,7 +1120,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
         
-        this.member.send(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
+        this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
@@ -1186,7 +1186,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
-        this.member.send(`You equip the ${createdItem.name}.`);
+        this.notify(`You equip the ${createdItem.name}.`);
         new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
         // Remove mention of any equipped items that this item covers.
         for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
@@ -1278,7 +1278,7 @@ class Player {
         game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!||${this.name}|${item.equipmentSlot}|${item.containerName}`, itemData));
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            this.member.send(`You take ${item.singleContainingPhrase}.`);
+            this.notify(`You take ${item.singleContainingPhrase}.`);
             if (!item.prefab.discreet) {
                 new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
@@ -1287,7 +1287,7 @@ class Player {
             }
         }
         else {
-            this.member.send(`You equip the ${item.name}.`);
+            this.notify(`You equip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
@@ -1427,7 +1427,7 @@ class Player {
 
             itemManager.insertInventoryItems(game, this, items, slot);
 
-            this.member.send(`You unequip the ${createdItem.name}.`);
+            this.notify(`You unequip the ${createdItem.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
@@ -1515,7 +1515,7 @@ class Player {
                 this.description = parser.removeItem(this.description, item, "hands");
         }
         else {
-            this.member.send(`You unequip the ${item.name}.`);
+            this.notify(`You unequip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
@@ -1895,8 +1895,14 @@ class Player {
     }
 
     sendDescription(description, container) {
-        if (description)
+        if (description && (!this.hasAttribute("unconscious") || container && container instanceof Status))
             this.member.send(parser.parseDescription(description, container, this));
+        return;
+    }
+
+    notify(message) {
+        if (!this.hasAttribute("unconscious"))
+            this.member.send(message);
         return;
     }
 
