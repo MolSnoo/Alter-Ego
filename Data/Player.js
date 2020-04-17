@@ -149,7 +149,9 @@ class Player {
 
         let player = this;
         this.moveTimer = setInterval(function () {
-            player.remainingTime -= 100;
+            let subtractedTime = 100;
+            if (game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
+            player.remainingTime -= subtractedTime;
             // Get the current coordinates based on what percentage of the duration has passed.
             const elapsedTime = time - player.remainingTime;
             const timeRatio = elapsedTime / time;
@@ -308,6 +310,8 @@ class Player {
         }
 
         // Apply the effects of any attributes that require immediate action.
+        if (status.name === "heated")
+            game.heated = true;
         if (status.attributes.includes("no channel")) {
             this.location.leaveChannel(this);
             this.removeFromWhispers(game, `${this.name} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.name}.`);
@@ -343,7 +347,9 @@ class Player {
 
             let player = this;
             status.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
-                status.remaining.subtract(1000, 'ms');
+                let subtractedTime = 1000;
+                if (game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
+                status.remaining.subtract(subtractedTime, 'ms');
                 player.statusString = player.generate_statusList(true, true);
                 game.queue.push(new QueueEntry(Date.now(), "updateCell", player.statusCell(), `Players!${player.name}|Status`, player.statusString));
 
@@ -444,6 +450,17 @@ class Player {
 
         this.statusString = this.generate_statusList(true, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
+
+        if (status.name === "heated") {
+            let noMoreHeated = true;
+            for (let i = 0; i < game.players_alive.length; i++) {
+                if (game.players_alive[i].statusString.includes("heated")) {
+                    noMoreHeated = false;
+                    break;
+                }
+            }
+            if (noMoreHeated) game.heated = false;
+        }
 
         return returnMessage;
     }
