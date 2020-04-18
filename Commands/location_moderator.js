@@ -12,8 +12,8 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) {
-        message.reply("you need to specify a player. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify a player. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
@@ -24,9 +24,9 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return message.reply(`player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
 
-    message.channel.send(`${player.name} is currently in ${player.location.channel}.`);
+    game.messageHandler.addGameMechanicMessage(message.channel, `${player.name} is currently in ${player.location.channel}.`);
 
     return;
 };

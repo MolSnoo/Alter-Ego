@@ -4,3 +4,5 @@ class QueuedMessage {
         this.priority = priority;
     }
 }
+
+module.exports = QueuedMessage;

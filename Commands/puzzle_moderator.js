@@ -40,8 +40,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     else input = args.join(" ");
 
     if (args.length === 0) {
-        message.reply("you need to input all required arguments. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to input all required arguments. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
@@ -102,7 +102,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    else if (puzzle === null) return message.reply(`couldn't find puzzle "${input}".`);
+    else if (puzzle === null) return game.messageHandler.addReply(message, `couldn't find puzzle "${input}".`);
 
     // If anything is left in the input, make that the outcome.
     var outcome = input;
@@ -117,23 +117,23 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && outcome !== "" && !validOutcome) return message.reply(`"${outcome}" is not a valid solution.`);
+        if (puzzle.solutions.length > 1 && outcome !== "" && !validOutcome) return game.messageHandler.addReply(message, `"${outcome}" is not a valid solution.`);
         puzzle.solve(bot, game, player, announcement, outcome, true);
-        message.channel.send(`Successfully solved ${puzzle.name}.`);
+        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
         puzzle.unsolve(bot, game, player, announcement, null, true);
-        message.channel.send(`Successfully unsolved ${puzzle.name}.`);
+        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully unsolved ${puzzle.name}.`);
     }
     else if (command === "attempt") {
-        if (player === null) return message.reply(`cannot attempt a puzzle without a player.`);
+        if (player === null) return game.messageHandler.addReply(message, `cannot attempt a puzzle without a player.`);
         const misc = {
             command: command,
             input: input,
             message: message
         };
         player.attemptPuzzle(bot, game, puzzle, null, outcome, command, misc);
-        message.channel.send(`Successfully attempted ${puzzle.name} for ${player.name}.`);
+        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 
     return;

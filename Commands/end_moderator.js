@@ -13,8 +13,8 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) {
-        message.reply("you need to specify an event. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify an event. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
@@ -28,11 +28,11 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (event === null) return message.reply(`couldn't find event "${input}".`);
-    if (!event.ongoing) return message.reply(`${event.name} is not currently ongoing.`);
+    if (event === null) return game.messageHandler.addReply(message, `couldn't find event "${input}".`);
+    if (!event.ongoing) return game.messageHandler.addReply(message, `${event.name} is not currently ongoing.`);
 
     await event.end(bot, game, true);
-    message.channel.send(`Successfully ended ${event.name}.`);
+    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully ended ${event.name}.`);
 
     return;
 };

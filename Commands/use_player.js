@@ -30,13 +30,13 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0) {
-        message.reply("you need to specify an object. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify an object. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
     const status = player.getAttributeStatusEffects("disable use");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase();
@@ -111,12 +111,12 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (object.activated) {
             object.deactivate(game, player, narrate);
             // Post log message.
-            game.logChannel.send(`${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
         }
         else {
             object.activate(game, player, narrate);
             // Post log message.
-            game.logChannel.send(`${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
         }
     }
 
@@ -129,7 +129,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         };
         const response = player.attemptPuzzle(bot, game, puzzle, item, password, command, misc);
         if (response === "" || !response) return;
-        else return message.reply(response);
+        else return game.messageHandler.addReply(message, response);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
@@ -138,10 +138,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
-        else return message.reply(response);
+        else return game.messageHandler.addReply(message, response);
     }
-    else if (object === null) return message.reply(`couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (object === null) return game.messageHandler.addReply(message, `couldn't find "${input}" to ${command}. Try using a different command?`);
 };

@@ -18,8 +18,8 @@ module.exports.config = {
 
 module.exports.run = async(bot, game, message, command, args) => {
     if (args.length === 0) {
-        message.reply("you need to specify at least one player and a room. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify at least one player and a room. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
@@ -63,7 +63,7 @@ module.exports.run = async(bot, game, message, command, args) => {
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
         for (let i = 1; i < players.length; i++) {
-            if (players[i].location !== currentRoom) return message.reply("all listed players must be in the same room to use an exit name.");
+            if (players[i].location !== currentRoom) return game.messageHandler.addReply(message, "all listed players must be in the same room to use an exit name.");
         }
         input = args.join(" ").toUpperCase();
         for (let i = 0; i < currentRoom.exit.length; i++) {
@@ -94,14 +94,14 @@ module.exports.run = async(bot, game, message, command, args) => {
     if (args.length > 0) {
         if (desiredRoom === null && exit === null) {
             const roomName = args.join(" ");
-            return message.reply(`couldn't find room or exit "${roomName}".`);
+            return game.messageHandler.addReply(message, `couldn't find room or exit "${roomName}".`);
         }
         else {
             const missingPlayers = args.join(", ");
-            return message.reply(`couldn't find player(s): ${missingPlayers}.`);
+            return game.messageHandler.addReply(message, `couldn't find player(s): ${missingPlayers}.`);
         }
     }
-    if (players.length === 0) return message.reply("you need to specify at least one player.");
+    if (players.length === 0) return game.messageHandler.addReply(message, "you need to specify at least one player.");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -143,7 +143,7 @@ module.exports.run = async(bot, game, message, command, args) => {
         }
     }
 
-    message.channel.send(`The listed players have been moved to ${desiredRoom.channel}.`);
+    game.messageHandler.addGameMechanicMessage(message.channel, `The listed players have been moved to ${desiredRoom.channel}.`);
 
     // Create a list of players moved for the log message.
     var playerList = players[0].name;
@@ -157,7 +157,7 @@ module.exports.run = async(bot, game, message, command, args) => {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${playerList} forcefully moved to ${desiredRoom.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${playerList} forcefully moved to ${desiredRoom.channel}`);
 
     return;
 };

@@ -40,7 +40,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
 
     if (args.length === 0) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -64,7 +64,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 break;
             }
         }
-        if (player === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
 
@@ -83,16 +83,16 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 break;
             }
         }
-        if (status === null) game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusName}".`);
+        if (status === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusName}".`);
 
         const announcementChannel = game.guild.channels.find(channel => channel.id === settings.announcementChannel);
         if (command === "inflict") {
             if (status.inflictedDescription !== "")
-                announcementChannel.send(parser.parseDescription(status.inflictedDescription, status));
+                game.messageHandler.addGameMechanicMessage(announcementChannel, parser.parseDescription(status.inflictedDescription, status));
         }
         else if (command === "cure") {
             if (status.curedDescription !== "")
-                announcementChannel.send(parser.parseDescription(status.curedDescription, status));
+                game.messageHandler.addGameMechanicMessage(announcementChannel, parser.parseDescription(status.curedDescription, status));
         }
     }
 

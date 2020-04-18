@@ -37,7 +37,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) {
         message.reply("you need to specify what function to test. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
@@ -73,7 +73,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 warnings = warnings.slice(0, 5);
                 warnings.push("Too many warnings.");
             }
-            message.channel.send(warnings.join('\n'));
+            game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
         }
         let errors = [];
         for (let i = 0; i < result.errors.length; i++) {
@@ -87,7 +87,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 errors = errors.slice(0, 5);
                 errors.push("Too many errors.");
             }
-            message.channel.send(errors.join('\n'));
+            game.messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
         }
     }
     else if (args[0] === "add") {

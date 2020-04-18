@@ -1221,7 +1221,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 for (let j = 0; j < statusList.length; j++)
                     statusList[j] = statusList[j].trim();
                 var member = game.guild.members.find(member => member.id === sheet[i][columnID]);
-                var spectateChannel = game.guild.channels.find(channel => channel.parent == settings.spectateCategory && channel.name == member.displayName.toLowerCase());
+                var spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parent.id == settings.spectateCategory && channel.name == member.displayName.toLowerCase());
                 const player =
                     new Player(
                         sheet[i][columnID],

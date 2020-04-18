@@ -26,7 +26,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) {
         message.reply("you need to specify what to test. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 

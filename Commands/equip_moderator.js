@@ -17,8 +17,8 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2) {
-        message.reply("you need to specify a player and an item. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify a player and an item. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
@@ -30,7 +30,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return message.reply(`player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -77,7 +77,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         item = leftHand.equippedItem;
         hand = "LEFT HAND";
     }
-    if (item === null) return message.reply(`couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
+    if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
@@ -86,17 +86,17 @@ module.exports.run = async (bot, game, message, command, args) => {
     for (let i = 0; i < player.inventory.length; i++) {
         if (slotName && player.inventory[i].name === slotName) {
             foundSlot = true;
-            if (player.inventory[i].equippedItem !== null) return message.reply(`cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.identifier ? player.inventory[i].equippedItem.identifier : player.inventory[i].equippedItem.prefab.id} is already equipped to it.`);
+            if (player.inventory[i].equippedItem !== null) return game.messageHandler.addReply(message, `cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.identifier ? player.inventory[i].equippedItem.identifier : player.inventory[i].equippedItem.prefab.id} is already equipped to it.`);
         }
     }
-    if (!foundSlot) return message.reply(`couldn't find equipment slot "${slotName}".`);
+    if (!foundSlot) return game.messageHandler.addReply(message, `couldn't find equipment slot "${slotName}".`);
 
     player.equip(game, item, slotName, hand, bot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} forcefully equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
 
-    message.channel.send(`Successfully equipped ${item.identifier ? item.identifier : item.prefab.id} to ${player.name}'s ${slotName}.`);
+    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully equipped ${item.identifier ? item.identifier : item.prefab.id} to ${player.name}'s ${slotName}.`);
 
     return;
 };

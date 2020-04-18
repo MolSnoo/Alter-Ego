@@ -18,13 +18,13 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0) {
-        message.reply("you need to specify two items. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify two items. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
     const status = player.getAttributeStatusEffects("disable stash");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -50,7 +50,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         break;
                     }
                 }
-                if (containerItemSlot === null) return message.reply(`couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
+                if (containerItemSlot === null) return game.messageHandler.addReply(message, `couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
             }
             newArgs = parsedInput.split(' ');
             var itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
@@ -59,13 +59,13 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             break;
         }
         else if (parsedInput === items[i].name) {
-            message.reply(`you need to specify two items. Usage:`);
-            message.channel.send(exports.config.usage);
+            game.messageHandler.addReply(message, `you need to specify two items. Usage:`);
+            game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
             return;
         }
     }
-    if (containerItem === null) return message.reply(`couldn't find container item "${newArgs[newArgs.length - 1]}".`);
-    else if (containerItem.inventory.length === 0) return message.reply(`${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+    if (containerItem === null) return game.messageHandler.addReply(message, `couldn't find container item "${newArgs[newArgs.length - 1]}".`);
+    else if (containerItem.inventory.length === 0) return game.messageHandler.addReply(message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
     var item = null;
@@ -85,20 +85,20 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (item === null) return message.reply(`couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
+    if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
     // Make sure item and containerItem aren't the same item.
-    if (item.row === containerItem.row) return message.reply(`can't stash ${item.name} ${itemPreposition} itself.`);
+    if (item.row === containerItem.row) return game.messageHandler.addReply(message, `can't stash ${item.name} ${itemPreposition} itself.`);
 
     if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${containerItem.name} because it is too large.`);
-    else if (item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${containerItem.name} because it is too large.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return message.reply(`${item.name} will not fit in ${containerItemSlot.name} of ${containerItem.name} because there isn't enough space left.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return message.reply(`${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
+    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return game.messageHandler.addReply(message, `${item.name} will not fit in ${containerItemSlot.name} of ${containerItem.name} because it is too large.`);
+    else if (item.prefab.size > containerItemSlot.capacity) return game.messageHandler.addReply(message, `${item.name} will not fit in ${containerItem.name} because it is too large.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return game.messageHandler.addReply(message, `${item.name} will not fit in ${containerItemSlot.name} of ${containerItem.name} because there isn't enough space left.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return game.messageHandler.addReply(message, `${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
 
     player.stash(game, item, hand, containerItem, containerItemSlot.name);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.name} of ${containerItem.identifier} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.name} of ${containerItem.identifier} in ${player.location.channel}`);
 
     return;
 };

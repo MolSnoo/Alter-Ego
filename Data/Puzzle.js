@@ -52,7 +52,7 @@ class Puzzle {
 
         // Let the player and anyone else in the room know that the puzzle was solved.
         if (player !== null)
-            player.sendDescription(this.correctDescription, this);
+            player.sendDescription(game, this.correctDescription, this);
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
@@ -77,9 +77,9 @@ class Puzzle {
             for (let i = 0; i < commandSet.length; i++) {
                 if (commandSet[i].startsWith("wait")) {
                     let args = commandSet[i].split(" ");
-                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -91,7 +91,7 @@ class Puzzle {
         if (player !== null) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
         }
 
         return;
@@ -99,7 +99,7 @@ class Puzzle {
 
     async unsolve(bot, game, player, message, directMessage, doUnsolvedCommands) {        
         // There's no message when unsolved cell, so let the player know what they did.
-        if (player !== null && directMessage !== null) player.notify(directMessage);
+        if (player !== null && directMessage !== null) player.notify(game, directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
@@ -129,9 +129,9 @@ class Puzzle {
             for (let i = 0; i < commandSet.length; i++) {
                 if (commandSet[i].startsWith("wait")) {
                     let args = commandSet[i].split(" ");
-                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -149,7 +149,7 @@ class Puzzle {
         if (player !== null) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
         }
 
         return;
@@ -159,23 +159,23 @@ class Puzzle {
         // Decrease the number of remaining attempts, if applicable.
         if (!isNaN(this.remainingAttempts)) {
             this.remainingAttempts--;
-            player.sendDescription(this.incorrectDescription, this);
+            player.sendDescription(game, this.incorrectDescription, this);
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.attemptsCell(), `Puzzles!${this.name}|${this.location.name}`, this.remainingAttempts));
         }
         else
-            player.sendDescription(this.incorrectDescription, this);
+            player.sendDescription(game, this.incorrectDescription, this);
         if (message)
             new Narration(game, player, player.location, message).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
 
         return;
     }
 
     alreadySolved(game, player, message) {
-        player.sendDescription(this.alreadySolvedDescription, this);
+        player.sendDescription(game, this.alreadySolvedDescription, this);
         new Narration(game, player, player.location, message).send();
 
         return;
@@ -184,10 +184,10 @@ class Puzzle {
     requirementsNotMet(game, player, message, misc) {
         // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
         if (this.requirementsNotMetDescription === "" && misc.message)
-            misc.message.reply(`couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
+            misc.game.messageHandler.addReply(message, `couldn't find "${misc.input}" to ${misc.command}. Try using a different command?`);
         // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
         else {
-            player.sendDescription(this.requirementsNotMetDescription, this);
+            player.sendDescription(game, this.requirementsNotMetDescription, this);
             if (misc.message) new Narration(game, player, player.location, message).send();
         }
         return;

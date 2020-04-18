@@ -15,13 +15,13 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2) {
-        message.reply("You need to specify a channel and something to say. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "You need to specify a channel and something to say. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
     if (message.mentions.channels.size === 0) {
-        message.reply("You need to specify a channel to send the message to. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "You need to specify a channel to send the message to. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 

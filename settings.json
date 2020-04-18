@@ -63,7 +63,7 @@
     "modChannel": 4,
     "tellPlayer": 3,
     "tellRoom": 3,
-    "invalidMessage": 2,
+    "gameMechanicMessage": 2,
     "logMessage": 1,
     "spectatorMessage": 0
   },

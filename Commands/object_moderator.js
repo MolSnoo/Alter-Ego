@@ -36,10 +36,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return message.reply('invalid command given. Use "activate" or "deactivate".');
+    if (command !== "activate" && command !== "deactivate") return game.messageHandler.addReply(message, 'invalid command given. Use "activate" or "deactivate".');
     if (args.length === 0) {
-        message.reply("you need to input all required arguments. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to input all required arguments. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
@@ -100,8 +100,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (object === null && player === null && room === null && objects.length > 0) object = objects[0];
-    else if (object === null) return message.reply(`couldn't find object "${input}".`);
-    if (object.recipeTag === "") return message.reply(`${object.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (object === null) return game.messageHandler.addReply(message, `couldn't find object "${input}".`);
+    if (object.recipeTag === "") return game.messageHandler.addReply(message, `${object.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
@@ -110,15 +110,15 @@ module.exports.run = async (bot, game, message, command, args) => {
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {
         object.activate(game, player, narrate);
-        message.channel.send(`Successfully activated ${object.name}.`);
+        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully activated ${object.name}.`);
         // Post log message.
-        if (player) game.logChannel.send(`${time} - ${player.name} forcefully activated ${object.name} in ${player.location.channel}`);
+        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully activated ${object.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
         object.deactivate(game, player, narrate);
-        message.channel.send(`Successfully deactivated ${object.name}.`);
+        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully deactivated ${object.name}.`);
         // Post log message.
-        if (player) game.logChannel.send(`${time} - ${player.name} forcefully deactivated ${object.name} in ${player.location.channel}`);
+        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully deactivated ${object.name} in ${player.location.channel}`);
     }
 
     return;

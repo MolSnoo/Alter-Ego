@@ -14,9 +14,9 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable stop");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
-    if (!player.isMoving) return message.reply(`You cannot do that because you are not moving.`);
+    if (!player.isMoving) return game.messageHandler.addReply(message, `You cannot do that because you are not moving.`);
 
     // Stop the player's movement.
     clearInterval(player.moveTimer);

@@ -12,19 +12,12 @@ class Whisper {
         this.channelName = this.makeChannelName();
         this.channel = await this.createChannel(game, this.channelName, this.players);
 
-        let playerListString = this.players[0].displayName;
-        if (this.players.length === 2)
-            playerListString += ` and ${this.players[1].displayName}`;
-        else {
-            for (let i = 1; i < this.players.length - 1; i++)
-                playerListString += `, ${this.players[i].displayName}`;
-            playerListString += `, and ${this.players[this.players.length - 1].displayName}`;
-        }
+        let playerListString = this.makePlayersSentenceGroup();
         new Narration(game, this.players[0], this.location, `${playerListString} begin whispering.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${playerListString} began whispering in ${this.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${playerListString} began whispering in ${this.location.channel}`);
     }
 
     makeChannelName() {
@@ -33,6 +26,18 @@ class Whisper {
             playerList.push(this.players[i].name.toLowerCase());
         playerList = playerList.sort().join('-');
         return `${this.location.name}-${playerList}`;
+    }
+
+    makePlayersSentenceGroup() {
+        let playerListString = this.players[0].displayName;
+        if (this.players.length === 2)
+            playerListString += ` and ${this.players[1].displayName}`;
+        else {
+            for (let i = 1; i < this.players.length - 1; i++)
+                playerListString += `, ${this.players[i].displayName}`;
+            playerListString += `, and ${this.players[this.players.length - 1].displayName}`;
+        }
+        return playerListString;
     }
 
     createChannel(game, name, players) {
@@ -74,7 +79,7 @@ class Whisper {
         if (!deleteWhisper) {
             this.channelName = newName;
             this.channel.edit({ name: newName });
-            if (message) this.channel.send(message);
+            if (message) game.messageHandler.addNarrationToWhisper(this, message);
         }
         return deleteWhisper;
     }

@@ -16,15 +16,15 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0) {
-        message.reply("you need to specify a room. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify a room. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
     const status = player.getAttributeStatusEffects("disable run");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
-    if (player.isMoving) return message.reply(`You cannot do that because you are already moving.`);
+    if (player.isMoving) return game.messageHandler.addReply(message, `You cannot do that because you are already moving.`);
 
     var input = args.join(" ");
 
@@ -39,7 +39,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     for (let i = 0; i < currentRoom.exit.length; i++) {
         if (currentRoom.exit[i].dest.name === input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
             || currentRoom.exit[i].name === input.toUpperCase()) {
-            if (!currentRoom.exit[i].unlocked) return message.reply("that exit is locked.");
+            if (!currentRoom.exit[i].unlocked) return game.messageHandler.addReply(message, "that exit is locked.");
             adjacent = true;
             exit = currentRoom.exit[i];
             exitMessage = `${player.displayName} exits into ${exit.name}${appendString}`;
@@ -56,14 +56,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             break;
         }
     }
-    if (!adjacent) return message.reply("you can't move to that room.");
+    if (!adjacent) return game.messageHandler.addReply(message, "you can't move to that room.");
 
     if (desiredRoom && exit) await player.move(game, true, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
-    else return message.reply(`couldn't find "${input}"`);
+    else return game.messageHandler.addReply(message, `couldn't find "${input}"`);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} ran to ${desiredRoom.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} ran to ${desiredRoom.channel}`);
 
     return;
 };

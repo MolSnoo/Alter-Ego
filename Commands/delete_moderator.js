@@ -19,16 +19,16 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) {
-        message.reply("you need to specify an amount of messages to delete. Usage:");
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, "you need to specify an amount of messages to delete. Usage:");
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
 
     const user = message.mentions.users.first();
     const amount = parseInt(args[args.length - 1]);
-    if (isNaN(amount)) return message.reply(`invalid amount specified.`);
-    if (amount < 1) return message.reply(`at least one message must be deleted.`);
-    if (amount > 100) return message.reply(`only 100 messages can be deleted at a time.`);
+    if (isNaN(amount)) return game.messageHandler.addReply(message, `invalid amount specified.`);
+    if (amount < 1) return game.messageHandler.addReply(message, `at least one message must be deleted.`);
+    if (amount > 100) return game.messageHandler.addReply(message, `only 100 messages can be deleted at a time.`);
 
     message.channel.fetchMessages({
         limit: amount
@@ -40,7 +40,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             size = messages.length;
         }
         message.channel.bulkDelete(messages, true).then(() => {
-            message.channel.send(`Deleted ${size} messages.`).then(message => message.delete(3000));
+            game.messageHandler.addGameMechanicMessage(message.channel, `Deleted ${size} messages.`).then(message => message.delete(3000));
         }).catch(error => console.log(error.stack));
     });
 
