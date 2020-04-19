@@ -13,6 +13,7 @@ const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
+const Gesture = include(`${settings.dataDir}/Gesture.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 var moment = require('moment');
@@ -1123,6 +1124,12 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     if (status) game.events[i].refreshes[j] = status;
                 }
             }
+            for (let i = 0; i < game.gestures.length; i++) {
+                for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.gestures[i].disabledStatusesStrings[j]);
+                    if (status) game.gestures[i].disabledStatuses[j] = status;
+                }
+            }
             if (errors.length > 0) {
                 if (errors.length > 5) {
                     errors = errors.slice(0, 5);
@@ -1591,5 +1598,79 @@ module.exports.checkInventoryItem = function (item, game) {
             if (!foundSlot) return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
         }
     }
+    return;
+};
+
+module.exports.loadGestures = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        sheets.getData(settings.gestureSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnName = 0;
+            const columnRequires = 1;
+            const columnDontAllowIf = 2;
+            const columnDescription = 3;
+            const columnNarration = 4;
+
+            game.gestures.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                var requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
+                for (let j = 0; j < requires.length; j++)
+                    requires[j] = requires[j].trim();
+                var disabledStatuses = sheet[i][columnDontAllowIf] ? sheet[i][columnDontAllowIf].split(',') : [];
+                for (let j = 0; j < disabledStatuses.length; j++)
+                    disabledStatuses[j] = disabledStatuses[j].trim();
+                game.gestures.push(
+                    new Gesture(
+                        sheet[i][columnName],
+                        requires,
+                        disabledStatuses,
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
+                        sheet[i][columnNarration] ? sheet[i][columnNarration] : "",
+                        i + 1
+                    )
+                );
+            }
+            // Now go through and make the disabledStatuses actual Status objects.
+            var errors = [];
+            for (let i = 0; i < game.gestures.length; i++) {
+                for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
+                    let disabledStatus = game.statusEffects.find(statusEffect => statusEffect.name === game.gestures[i].disabledStatusesStrings[j]);
+                    if (disabledStatus) game.gestures[i].disabledStatuses[j] = disabledStatus;
+                }
+                if (doErrorChecking) {
+                    let error = exports.checkGesture(game.gestures[i]);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkGesture = function (gesture) {
+    if (gesture.name === "" || gesture.name === null || gesture.name === undefined)
+        return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture name was given.`);
+    for (let i = 0; i < gesture.requires.length; i++) {
+        if (gesture.requires[i] !== "Exit" && gesture.requires[i] !== "Object" && gesture.requires[i] !== "Item" && gesture.requires[i] !== "Player" && gesture.requires[i] !== "Inventory Item")
+            return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.requires[i]}" is not a valid requirement.`);
+    }
+    if (gesture.disabledStatuses.length > 0) {
+        for (let i = 0; i < gesture.disabledStatuses.length; i++)
+            if (!(gesture.disabledStatuses[i] instanceof Status))
+                return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.disabledStatuses[i]}" in "don't allow if" is not a status effect.`);
+    }
+    if (gesture.description === "")
+        return new Error(`Couldn't load gesture on row ${gesture.row}. No description was given.`);
+    if (gesture.narration === "")
+        return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
     return;
 };

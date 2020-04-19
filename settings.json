@@ -86,6 +86,7 @@
   "statusEffectSheetID": 1040343283,
   "playerSheetID": 680018352,
   "inventoryItemSheetID": 115011186,
+  "gestureSheetID": 1967772069,
 
   "roomSheetAllCells": "Rooms!A1:K",
   "roomSheetUnlockedColumn": "Rooms!H",
@@ -136,5 +137,6 @@
   "inventorySheetPrefabColumn": "Inventory Items!A",
   "inventorySheetQuantityColumn": "Inventory Items!F",
   "inventorySheetUsesColumn": "Inventory Items!G",
-  "inventorySheetDescriptionColumn": "Inventory Items!H"
+  "inventorySheetDescriptionColumn": "Inventory Items!H",
+  "gestureSheetAllCells": "Gestures!A1:E"
 }

@@ -22,7 +22,8 @@ module.exports.config = {
         + `${settings.commandPrefix}load events\n`
         + `${settings.commandPrefix}load status effects\n`
         + `${settings.commandPrefix}load players\n`
-        + `${settings.commandPrefix}load inventories`,
+        + `${settings.commandPrefix}load inventories\n`
+        + `${settings.commandPrefix}load gestures`,
     usableBy: "Moderator",
     aliases: ["load", "reload", "gethousedata"],
     requiresGame: false
@@ -49,6 +50,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         await loader.loadStatusEffects(game, false);
         await loader.loadPlayers(game, false);
         await loader.loadInventories(game, false);
+        await loader.loadGestures(game, false);
 
         var errors = [];
         for (let i = 0; i < game.rooms.length; i++) {
@@ -91,6 +93,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             let error = loader.checkInventoryItem(game.inventoryItems[i], game);
             if (error instanceof Error) errors.push(error);
         }
+        for (let i = 0; i < game.gestures.length; i++) {
+            let error = loader.checkGesture(game.gestures[i]);
+            if (error instanceof Error) errors.push(error);
+        }
         if (errors.length > 0) {
             if (errors.length > 5) {
                 errors = errors.slice(0, 5);
@@ -110,6 +116,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 printData(game.statusEffects);
                 printData(game.players);
                 printData(game.inventoryItems);
+                printData(game.gestures);
             }
 
             message.channel.send(
@@ -121,8 +128,9 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.puzzles.length + " puzzles, " +
                 game.events.length + " events, " +
                 game.statusEffects.length + " status effects, " +
-                game.players.length + " players, and " +
-                game.inventoryItems.length + " inventory items retrieved."
+                game.players.length + " players, " +
+                game.inventoryItems.length + " inventory items, and " +
+                game.gestures.length + " gestures retrieved."
             );
 
             const privatePlayers = [];
@@ -272,6 +280,16 @@ module.exports.run = async (bot, game, message, command, args) => {
             await loader.loadInventories(game, true);
             if (settings.debug) printData(game.inventoryItems);
             message.channel.send(game.inventoryItems.length + " inventory items retrieved.");
+        }
+        catch (err) {
+            message.channel.send(err);
+        }
+    }
+    else if (args[0] === "gestures") {
+        try {
+            await loader.loadGestures(game, true);
+            if (settings.debug) printData(game.gestures);
+            message.channel.send(game.gestures.length + " gestures retrieved.");
         }
         catch (err) {
             message.channel.send(err);

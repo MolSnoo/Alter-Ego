@@ -9,6 +9,7 @@ const Item = include(`${settings.dataDir}/Item.js`);
 const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
+const Gesture = include(`${settings.dataDir}/Gesture.js`);
 const Narration = include(`${settings.dataDir}/Narration.js`);
 const Die = include(`${settings.dataDir}/Die.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
@@ -1840,6 +1841,15 @@ class Player {
         }
         // The puzzle isn't accessible.
         else return puzzle.requirementsNotMet(game, this, `${this.displayName} uses the ${puzzleName}.`, misc);
+
+        return;
+    }
+
+    gesture(game, gesture, targetType, target) {
+        var newGesture = new Gesture(gesture.name, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row);
+        newGesture.targetType = targetType;
+        newGesture.target = target;
+        new Narration(game, this, this.location, parser.parseDescription(newGesture.narration, newGesture, this, false)).send();
 
         return;
     }
