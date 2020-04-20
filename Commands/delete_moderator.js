@@ -37,7 +37,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             size = messages.length;
         }
         message.channel.bulkDelete(messages, true).then(() => {
-            game.messageHandler.addGameMechanicMessage(message.channel, `Deleted ${size} messages.`).then(message => message.delete(3000));
+            message.channel.send(`Deleted ${size} messages.`).then(message => message.delete(3000));
         }).catch(error => console.log(error.stack));
     });
 
