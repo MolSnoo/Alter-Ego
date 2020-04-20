@@ -37,11 +37,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     else input = args.join(" ");
 
     if (command !== "activate" && command !== "deactivate") return game.messageHandler.addReply(message, 'invalid command given. Use "activate" or "deactivate".');
-    if (args.length === 0) {
-        game.messageHandler.addReply(message, "you need to input all required arguments. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";

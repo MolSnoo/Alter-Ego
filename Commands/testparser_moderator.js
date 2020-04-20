@@ -35,11 +35,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0) {
-        message.reply("you need to specify what function to test. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify what function to test. Usage:\n${exports.config.usage}`);
 
     const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
@@ -56,7 +53,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
         }
-        if (!found) return message.reply(`couldn't find player "${args[1]}".`);
+        if (!found) return game.messageHandler.addReply(message, `couldn't find player "${args[1]}".`);
     }
 
     if (args[0] === "parse") {
@@ -100,7 +97,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (args[1] && args[1] === "formatted") formatted = true;
         await testremove(file, formatted, player);
     }
-    else return message.reply('Function not found. You need to use "parse", "add", or "remove".');
+    else return game.messageHandler.addReply(message, 'Function not found. You need to use "parse", "add", or "remove".');
 
     message.channel.send("Text parsed.", {
         files: [

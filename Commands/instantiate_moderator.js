@@ -26,11 +26,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length < 4) {
-        game.messageHandler.addReply(message, 'not enough arguments given. Usage:');
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length < 4)
+        return game.messageHandler.addReply(message, `not enough arguments given. Usage:\n${exports.config.usage}`);
 
     var quantity = 1;
     if (!isNaN(args[0])) {

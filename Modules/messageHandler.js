@@ -25,7 +25,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
             addMessageToQueue(player.spectateChannel, whisperMessageText, settings.priority.spectatorMessage);
         });
     }
-}
+};
 
 // Narrate something directly to a player
 module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
@@ -42,14 +42,14 @@ module.exports.addLogMessage = async (logChannel, messageText) => {
 // Add a game mechanic message that does not add to narration (e.g. incorrect syntax message, or the reason an action was prevented)
 module.exports.addGameMechanicMessage = (channel, messageText) => {
     // Give a higher priority if this is sent in the mod channel
-    let priority = channel.parent !== undefined && channel.id == settings.commandChannel ? settings.priority.modChannel : settings.priority.gameMechanicMessage;
+    let priority = channel.parent !== undefined && channel.id === settings.commandChannel ? settings.priority.modChannel : settings.priority.gameMechanicMessage;
     addMessageToQueue(channel, messageText, priority);
 };
 
 // Add a reply to a message
 module.exports.addReply = async (message, messageText) => {
     // Give a higher priority if this is sent in the mod channel
-    let priority = message.channel.id == settings.commandChannel ? settings.priority.modChannel : settings.priority.gameMechanicMessage;
+    let priority = message.channel.id === settings.commandChannel ? settings.priority.modChannel : settings.priority.gameMechanicMessage;
     addReplyToQueue(message, messageText, priority);
 };
 
@@ -57,12 +57,12 @@ module.exports.addReply = async (message, messageText) => {
 module.exports.addSpectatedPlayerMessage = async (player, message, whisper = null) => {
     // If this is a whisper, specify that the following message comes from the whisper
     if (whisper)
-        addMessageToQueue(player.spectateChannel, `**In a whisper with ${whisper.makePlayersSentenceGroup()}, ${message.author.username} says:**`, settings.priority.spectatorMessage)
+        addMessageToQueue(player.spectateChannel, `**In a whisper with ${whisper.makePlayersSentenceGroup()}, ${message.author.username} says:**`, settings.priority.spectatorMessage);
 
     // Create a webhook for this spectate channel if necessary, or grab the existing one
     let webHooks = await player.spectateChannel.fetchWebhooks();
     let webHook;
-    if (webHooks.size == 0)
+    if (webHooks.size === 0)
         webHook = await player.spectateChannel.createWebhook(message.channel.name);
     else
         webHook = webHooks.first();
@@ -87,13 +87,13 @@ module.exports.sendQueuedMessages = async () => {
 
 module.exports.clearQueue = async () => {
     module.exports.queue = [];
-}
+};
 
 
 function addMessageToQueue(channel, messageText, priority) {
     let sendAction = () => channel.send(messageText);
     addToQueue(sendAction, priority);
-};
+}
 
 function addWebhookMessageToQueue(webHook, messageText, webHookContents, priority) {
     let sendAction = () => webHook.send(messageText, webHookContents);
@@ -103,7 +103,7 @@ function addWebhookMessageToQueue(webHook, messageText, webHookContents, priorit
 function addReplyToQueue(message, messageText, priority) {
     let sendAction = () => message.reply(messageText);
     addToQueue(sendAction, priority);
-};
+}
 
 function addToQueue(sendAction, priority) {
     let queuedMessage = new QueuedMessage(sendAction, priority);

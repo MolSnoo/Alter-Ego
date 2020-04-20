@@ -17,11 +17,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        game.messageHandler.addReply(message, "you need to specify two items. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify two items. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable stash");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -58,11 +55,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             parsedInput = newArgs.join(' ');
             break;
         }
-        else if (parsedInput === items[i].name) {
-            game.messageHandler.addReply(message, `you need to specify two items. Usage:`);
-            game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-            return;
-        }
+        else if (parsedInput === items[i].name)
+            return game.messageHandler.addReply(message, `you need to specify two items. Usage:\n${exports.config.usage}`);
     }
     if (containerItem === null) return game.messageHandler.addReply(message, `couldn't find container item "${newArgs[newArgs.length - 1]}".`);
     else if (containerItem.inventory.length === 0) return game.messageHandler.addReply(message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);

@@ -16,11 +16,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length < 4) {
-        game.messageHandler.addReply(message, 'you need to specify a player and two items separated by "with" or "and". Usage:');
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length < 4)
+        return game.messageHandler.addReply(message, `you need to specify a player and two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -35,11 +32,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND ")) {
-        game.messageHandler.addReply(message, 'you need to specify two items separated by "with" or "and". Usage:');
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
+        return game.messageHandler.addReply(message, `you need to specify two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
 
     var rightHand = null;
     var leftHand = null;

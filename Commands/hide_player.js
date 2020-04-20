@@ -27,11 +27,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         return game.messageHandler.addReply(message, "you are not currently hidden.");
     // Player is currently not hidden and is using the hide command.
     else {
-        if (args.length === 0) {
-            game.messageHandler.addReply(message, "you need to specify an object. Usage:");
-            game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-            return;
-        }
+        if (args.length === 0)
+            return game.messageHandler.addReply(message, `you need to specify an object. Usage:\n${exports.config.usage}`);
 
         var input = args.join(" ");
         var parsedInput = input.toUpperCase().replace(/\'/g, "");

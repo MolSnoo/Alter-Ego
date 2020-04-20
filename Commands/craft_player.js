@@ -15,11 +15,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length < 3) {
-        game.messageHandler.addReply(message, 'you need to specify two items separated by "with" or "and". Usage:');
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length < 3)
+        return game.messageHandler.addReply(message, `you need to specify two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable craft");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -27,11 +24,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND ")) {
-        game.messageHandler.addReply(message, 'you need to specify two items separated by "with" or "and". Usage:');
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
+        return game.messageHandler.addReply(message, `you need to specify two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
 
     var rightHand = null;
     var leftHand = null;

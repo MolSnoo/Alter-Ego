@@ -13,11 +13,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        game.messageHandler.addReply(message, "You need to specify something to say. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `You need to specify something to say. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("enable say");
     if (status.length === 0) return game.messageHandler.addReply(message, `You have no reason to use the say command. Speak in the room channel instead.`);

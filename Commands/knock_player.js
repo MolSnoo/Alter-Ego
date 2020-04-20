@@ -12,11 +12,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        game.messageHandler.addReply(message, "you need to specify an exit. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify an exit. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable knock");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);

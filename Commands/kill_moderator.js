@@ -17,11 +17,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0) {
-        game.messageHandler.addReply(message, "you need to specify at least one player. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify at least one player. Usage:\n${exports.config.usage}`);
 
     // Get all listed players first.
     var players = [];

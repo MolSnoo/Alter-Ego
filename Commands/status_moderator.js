@@ -40,11 +40,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         args = input.substring(input.indexOf(args[1])).split(" ");
     }
 
-    if (args.length === 0) {
-        game.messageHandler.addReply(message, "you need to input all required arguments. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     // Find the specified player.
     var player = null;

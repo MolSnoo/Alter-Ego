@@ -15,11 +15,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length < 3) {
-        game.messageHandler.addReply(message, "you need to specify two players and an item. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length < 3)
+        return game.messageHandler.addReply(message, `you need to specify two players and an item. Usage:\n${exports.config.usage}`);
 
     // First, find the giver.
     var giver = null;

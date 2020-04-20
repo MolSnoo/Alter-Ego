@@ -13,11 +13,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0) {
-        game.messageHandler.addReply(message, "you need to specify a player. Usage:");
-        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify a player. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -37,11 +34,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         return game.messageHandler.addReply(message, `${player.name} is not currently hidden.`);
     // Player is currently not hidden and the hide command is being used.
     else {
-        if (args.length === 0) {
-            game.messageHandler.addReply(message, "you need to specify an object. Usage:");
-            game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
-            return;
-        }
+        if (args.length === 0)
+            return game.messageHandler.addReply(message, `you need to specify an object. Usage:\n${exports.config.usage}`);
 
         var input = args.join(" ");
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
