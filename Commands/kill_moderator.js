@@ -17,11 +17,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0) {
-        message.reply("you need to specify at least one player. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify at least one player. Usage:\n${exports.config.usage}`);
 
     // Get all listed players first.
     var players = [];
@@ -36,13 +33,13 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return message.reply(`couldn't find player(s): ${missingPlayers}.`);
+        return game.messageHandler.addReply(message, `couldn't find player(s): ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++)
         players[i].die(game);
 
-    message.channel.send("Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
+    game.messageHandler.addGameMechanicMessage(message.channel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
 
     return;
 };

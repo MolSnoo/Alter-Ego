@@ -35,6 +35,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.game = false;
     game.canJoin = false;
+    game.messageHandler.clearQueue();
     if (!settings.debug) {
         bot.user.setActivity("Future Foundation HQ", { type: 'LISTENING' });
         bot.user.setStatus("online");

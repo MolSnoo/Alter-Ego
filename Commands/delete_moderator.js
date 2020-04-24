@@ -18,17 +18,14 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0) {
-        message.reply("you need to specify an amount of messages to delete. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify an amount of messages to delete. Usage:\n${exports.config.usage}`);
 
     const user = message.mentions.users.first();
     const amount = parseInt(args[args.length - 1]);
-    if (isNaN(amount)) return message.reply(`invalid amount specified.`);
-    if (amount < 1) return message.reply(`at least one message must be deleted.`);
-    if (amount > 100) return message.reply(`only 100 messages can be deleted at a time.`);
+    if (isNaN(amount)) return game.messageHandler.addReply(message, `invalid amount specified.`);
+    if (amount < 1) return game.messageHandler.addReply(message, `at least one message must be deleted.`);
+    if (amount > 100) return game.messageHandler.addReply(message, `only 100 messages can be deleted at a time.`);
 
     message.channel.fetchMessages({
         limit: amount

@@ -54,13 +54,13 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
                 }
             }
             if (player === null) {
-                message.reply("You are not on the list of living players.");
+                game.messageHandler.addReply(message, "You are not on the list of living players.");
                 return false;
             }
             const status = player.getAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
-                if (player.statusString.includes("heated")) message.reply("the situation is **heated**. Moderator intervention is required.");
-                else message.reply(`You cannot do that because you are **${status[0].name}**.`);
+                if (player.statusString.includes("heated")) game.messageHandler.addReply(message, "the situation is **heated**. Moderator intervention is required.");
+                else game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
                 return false;
             }
 

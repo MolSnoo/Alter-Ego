@@ -49,9 +49,9 @@ class Event {
             for (let i = 0; i < this.triggeredCommands.length; i++) {
                 if (this.triggeredCommands[i].startsWith("wait")) {
                     let args = this.triggeredCommands[i].split(" ");
-                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -68,7 +68,7 @@ class Event {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${this.name} was triggered.`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} was triggered.`);
 
         return;
     }
@@ -103,9 +103,9 @@ class Event {
             for (let i = 0; i < this.endedCommands.length; i++) {
                 if (this.endedCommands[i].startsWith("wait")) {
                     let args = this.endedCommands[i].split(" ");
-                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -116,7 +116,7 @@ class Event {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${this.name} was ended.`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} was ended.`);
 
         return;
     }

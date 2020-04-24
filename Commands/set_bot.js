@@ -24,7 +24,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
 
     if (args.length < 2) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -32,7 +32,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (args[0] === "accessible") command = "accessible";
     else if (args[0] === "inaccessible") command = "inaccessible";
     else {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". The first argument must be "accessible" or "inaccessible".`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The first argument must be "accessible" or "inaccessible".`);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -43,7 +43,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (args[0] === "object") isObject = true;
     else if (args[0] === "puzzle") isPuzzle = true;
     else {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". The second argument must be "object" or "puzzle".`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The second argument must be "object" or "puzzle".`);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -78,7 +78,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             }
         }
         if (object === null && room === null && objects.length > 0) object = objects[0];
-        else if (object === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
+        else if (object === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
     }
     else if (isPuzzle) {
         const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
@@ -91,7 +91,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             }
         }
         if (puzzle === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-        else if (puzzle === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
+        else if (puzzle === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
     }
 
     if (command === "accessible") {

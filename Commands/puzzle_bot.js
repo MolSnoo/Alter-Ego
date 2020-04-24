@@ -42,7 +42,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     else input = args.join(" ");
 
     if (args.length === 0) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -110,7 +110,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    if (puzzle === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
+    if (puzzle === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
 
     // If anything is left in the input, make that the outcome.
     var outcome = input;
@@ -128,14 +128,14 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (data && !data.hasOwnProperty("solved")) doCommands = true;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && outcome !== "" && !validOutcome) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". "${outcome}" is not a valid solution.`);
+        if (puzzle.solutions.length > 1 && outcome !== "" && !validOutcome) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". "${outcome}" is not a valid solution.`);
         puzzle.solve(bot, game, player, announcement, outcome, doCommands);
     }
     else if (command === "unsolve") {
         puzzle.unsolve(bot, game, player, announcement, null, doCommands);
     }
     else if (command === "attempt") {
-        if (player === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
+        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
         const misc = {
             command: command,
             input: input

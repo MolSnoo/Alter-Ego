@@ -24,7 +24,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
 
     if (args.length === 0) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -40,9 +40,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             input = input.substring(input.toUpperCase().indexOf(parsedInput));
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". No exit was given.`);
+        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
     }
-    if (room === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (room === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
     var exitIndex = -1;
@@ -63,8 +63,8 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             break;
         }
     }
-    if (exit === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.name}.`);
-    if (entrance === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Found exit ${exit.name} in ${room.name}, but it doesn't have a corresponding entrance in ${exit.dest.name}.`);
+    if (exit === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.name}.`);
+    if (entrance === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Found exit ${exit.name} in ${room.name}, but it doesn't have a corresponding entrance in ${exit.dest.name}.`);
     if (command === "unlock" && exit.unlocked && entrance.unlocked) return;
     if (command === "lock" && !exit.unlocked && !entrance.unlocked) return;
 

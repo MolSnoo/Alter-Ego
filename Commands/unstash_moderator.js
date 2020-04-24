@@ -17,11 +17,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length < 2) {
-        message.reply("you need to specify a player and an item. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length < 2)
+        return game.messageHandler.addReply(message, `you need to specify a player and an item. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -31,7 +28,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return message.reply(`player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -48,7 +45,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return message.reply(`${player.name} does not have a free hand to retrieve an item.`);
+    if (hand === "") return game.messageHandler.addReply(message, `${player.name} does not have a free hand to retrieve an item.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -121,18 +118,18 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return message.reply(`couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
+            return game.messageHandler.addReply(message, `couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
         }
-        else return message.reply(`couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
+        else return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
     }
-    if (item !== null && container === null) return message.reply(`${item.identifier ? item.identifier : item.prefab.id} is not contained in another item and cannot be unstashed.`);
+    if (item !== null && container === null) return game.messageHandler.addReply(message, `${item.identifier ? item.identifier : item.prefab.id} is not contained in another item and cannot be unstashed.`);
 
     player.unstash(game, item, hand, container, slotName);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} forcefully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
-    message.channel.send(`Successfully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} for ${player.name}.`);
+    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} for ${player.name}.`);
 
     return;
 };

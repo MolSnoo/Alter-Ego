@@ -64,7 +64,7 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${location.channel}`);
 
     return;
 };
@@ -114,7 +114,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
         const preposition = container.prefab ? container.prefab.preposition : "in";
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
     }
     // Item is being equipped.
     else {
@@ -122,7 +122,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlot} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlot} in ${player.location.channel}`);
     }
 
     return;
@@ -214,7 +214,7 @@ module.exports.destroyItem = function (item, getChildren) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.location.channel}`);
 
     return;
 };
@@ -233,7 +233,7 @@ module.exports.destroyInventoryItem = function (item, bot, getChildren) {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
     else {
         const removedQuantity = item.quantity;
@@ -249,7 +249,7 @@ module.exports.destroyInventoryItem = function (item, bot, getChildren) {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
 
     return;

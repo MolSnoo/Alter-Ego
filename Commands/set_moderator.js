@@ -22,18 +22,15 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length < 2) {
-        message.reply("you need to input all required arguments. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length < 2)
+        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     var input = args.join(" ");
     if (args[0] === "accessible") command = "accessible";
     else if (args[0] === "inaccessible") command = "inaccessible";
     else {
-        message.reply('the first argument must be "accessible" or "inaccessible". Usage:');
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, 'the first argument must be "accessible" or "inaccessible". Usage:');
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -44,8 +41,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args[0] === "object") isObject = true;
     else if (args[0] === "puzzle") isPuzzle = true;
     else {
-        message.reply('the second argument must be "object" or "puzzle". Usage:');
-        message.channel.send(exports.config.usage);
+        game.messageHandler.addReply(message, 'the second argument must be "object" or "puzzle". Usage:');
+        game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -80,7 +77,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
         }
         if (object === null && room === null && objects.length > 0) object = objects[0];
-        else if (object === null) return message.reply(`couldn't find object "${input}".`);
+        else if (object === null) return game.messageHandler.addReply(message, `couldn't find object "${input}".`);
     }
     else if (isPuzzle) {
         const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
@@ -93,7 +90,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
         }
         if (puzzle === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-        else if (puzzle === null) return message.reply(`couldn't find puzzle "${input}".`);
+        else if (puzzle === null) return game.messageHandler.addReply(message, `couldn't find puzzle "${input}".`);
     }
 
     if (command === "accessible") {
@@ -108,11 +105,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setAccessible(game);
-                message.channel.send(`Successfully made ${items.length} items in ${object.name} accessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${object.name} accessible.`);
             }
             else {
                 object.setAccessible(game);
-                message.channel.send(`Successfully made ${object.name} accessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${object.name} accessible.`);
             }
         }
         else if (isPuzzle) {
@@ -126,11 +123,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setAccessible(game);
-                message.channel.send(`Successfully made ${items.length} items in ${puzzle.name} accessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${puzzle.name} accessible.`);
             }
             else {
                 puzzle.setAccessible(game);
-                message.channel.send(`Successfully made ${puzzle.name} accessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${puzzle.name} accessible.`);
             }
         }
     }
@@ -146,11 +143,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setInaccessible(game);
-                message.channel.send(`Successfully made ${items.length} items in ${object.name} inaccessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${object.name} inaccessible.`);
             }
             else {
                 object.setInaccessible(game);
-                message.channel.send(`Successfully made ${object.name} inaccessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${object.name} inaccessible.`);
             }
         }
         else if (isPuzzle) {
@@ -164,11 +161,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setInaccessible(game);
-                message.channel.send(`Successfully made ${items.length} items in ${puzzle.name} inaccessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${puzzle.name} inaccessible.`);
             }
             else {
                 puzzle.setInaccessible(game);
-                message.channel.send(`Successfully made ${puzzle.name} inaccessible.`);
+                game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${puzzle.name} inaccessible.`);
             }
         }
     }

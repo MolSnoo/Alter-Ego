@@ -24,11 +24,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0) {
-        message.reply("you need to specify what to test. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify what to test. Usage:\n${exports.config.usage}`);
 
     const file = "./speeds.txt";
     fs.writeFile(file, "", function (err) {
@@ -39,7 +36,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         await testplayers(file);
     else if (args[0] === "stats")
         await testspeeds(file);
-    else return message.reply('Function not found. You need to use "players" or "stats".');
+    else return game.messageHandler.addReply(message, 'Function not found. You need to use "players" or "stats".');
 
     message.channel.send("Speeds calculated.", {
         files: [
@@ -108,7 +105,7 @@ testspeeds = async (file) => {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 1; l <= 10; l++) {
-                        let player = new Player("", null, "", "", "", "neutral", { speed: l }, true, room, null, [], "", [], 1);
+                        let player = new Player("", null, "", "", "", "neutral", { speed: l }, true, room, null, [], "", [], null, 1);
                         player.pos.x = exit1.pos.x;
                         player.pos.y = exit1.pos.y;
                         player.pos.z = exit1.pos.z;
