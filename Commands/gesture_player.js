@@ -18,14 +18,11 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        message.reply("you need to specify a gesture. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify a gesture. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable gesture");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
@@ -81,7 +78,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         for (let i = 0; i < game.gestures.length; i++) {
             if (game.gestures[i].name.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
-                    return message.reply(`you need to specify a target for that gesture.`);
+                    return game.messageHandler.addReply(message, `you need to specify a target for that gesture.`);
                 gesture = game.gestures[i];
                 break;
             }
@@ -125,7 +122,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                                 let occupant = player.location.occupants[k];
                                 if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && !occupant.hasAttribute("hidden")) {
                                     // Player cannot gesture toward themselves.
-                                    if (occupant.id === player.id) return message.reply("you can't gesture toward yourself.");
+                                    if (occupant.id === player.id) return game.messageHandler.addReply(message, "you can't gesture toward yourself.");
                                     targetType = "Player";
                                     target = occupant;
                                     break;
@@ -149,26 +146,26 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 }
             }
         }
-        if (gesture === null) return message.reply(`couldn't find gesture "${input}". For a list of gestures, send \`${settings.commandPrefix}gesture list\`.`);
+        if (gesture === null) return game.messageHandler.addReply(message, `couldn't find gesture "${input}". For a list of gestures, send \`${settings.commandPrefix}gesture list\`.`);
         input = input.substring(gesture.name.toLowerCase().replace(/\'/g, "").length).trim();
         if (input !== "" && gesture.requires.length === 0)
-            return message.reply(`that gesture doesn't take a target.`);
+            return game.messageHandler.addReply(message, `that gesture doesn't take a target.`);
         if (target === null && gesture.requires.length > 0)
-            return message.reply(`couldn't find target "${input}" in the room with you.`);
+            return game.messageHandler.addReply(message, `couldn't find target "${input}" in the room with you.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
             if (player.statusString.includes(gesture.disabledStatuses[i].name))
-                return message.reply(`You cannot do that gesture because you are **${gesture.disabledStatuses[i].name}**.`);
+                return game.messageHandler.addReply(message, `You cannot do that gesture because you are **${gesture.disabledStatuses[i].name}**.`);
         }
 
         player.gesture(game, gesture, targetType, target);
         // Post log message. Message should vary based on target type.
         const time = new Date().toLocaleTimeString();
         if (targetType === "")
-            game.logChannel.send(`${time} - ${player.name} did gesture ${gesture.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} did gesture ${gesture.name} in ${player.location.channel}`);
         else if (targetType === "Exit" || targetType === "Object" || targetType === "Player")
-            game.logChannel.send(`${time} - ${player.name} did gesture ${gesture.name} to ${target.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} did gesture ${gesture.name} to ${target.name} in ${player.location.channel}`);
         else if (targetType === "Item" || targetType === "Inventory Item")
-            game.logChannel.send(`${time} - ${player.name} did gesture ${gesture.name} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} did gesture ${gesture.name} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
     }
 
     return;

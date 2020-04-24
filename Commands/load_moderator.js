@@ -286,10 +286,10 @@ module.exports.run = async (bot, game, message, command, args) => {
         try {
             await loader.loadGestures(game, true);
             if (settings.debug) printData(game.gestures);
-            message.channel.send(game.gestures.length + " gestures retrieved.");
+            game.messageHandler.addGameMechanicMessage(message.channel, game.gestures.length + " gestures retrieved.");
         }
         catch (err) {
-            message.channel.send(err);
+            game.messageHandler.addGameMechanicMessage(message.channel, err);
         }
     }
 };
