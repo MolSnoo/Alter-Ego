@@ -43,7 +43,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (err) return console.log(err);
     });
 
-    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", "", [], null, 2);
     if (args[1] && args[1] !== "formatted") {
         let found = false;
         for (let i = 0; i < game.players_alive.length; i++) {

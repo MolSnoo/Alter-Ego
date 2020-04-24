@@ -41,7 +41,7 @@
   "defaultDropObject": "FLOOR",
   "autoDeleteWhisperChannels": true,
   "queueInterval": 30,
-  "messageQueueInterval": 1,
+  "messageQueueInterval": 0.25,
   "offlineStatusInterval": 15,
   "onlinePlayersStatusInterval": 30,
 

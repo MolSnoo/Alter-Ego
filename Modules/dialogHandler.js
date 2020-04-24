@@ -56,8 +56,9 @@ module.exports.execute = async (bot, game, message, deletable) => {
                 return;
             }
 
-            for (let i = 0; i < whisper.players.length; i++) {
-                game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], message, whisper);
+            if (!message.content.startsWith('(')) {
+                for (let i = 0; i < whisper.players.length; i++)
+                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], player.displayName, message, whisper);
             }
 
             for (let i = 0; i < room.occupants.length; i++) {
@@ -100,11 +101,10 @@ module.exports.execute = async (bot, game, message, deletable) => {
                             deafPlayerInNextdoor = true;
 
                         if (isShouting && !deafPlayerInNextdoor)
-                            game.messageHandler.addNarration(nextdoor, `Someone in a nearby room shouts "${message.content}".`);
+                            game.messageHandler.addNarration(nextdoor, `Someone in a nearby room shouts "${message.content}".`, true, player);
                         for (let j = 0; j < nextdoor.occupants.length; j++) {
                             let occupant = nextdoor.occupants[j];
                             if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
-                            //if (isShouting && (deafPlayerInNextdoor || occupant.hasAttribute("hear room"))) {
                             if (isShouting) {
                                 if (occupant.hasAttribute(`knows ${player.name}`))
                                     occupant.notify(game, `You hear ${player.name} ${verb} "${message.content}" in a nearby room.`);
@@ -124,7 +124,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
             if (deafPlayerInRoom && deletable)
                 message.delete().catch();
             else if (!deletable)
-                game.messageHandler.addNarration(room, `${player.displayName} ${verb}s "${message.content}".`);
+                game.messageHandler.addNarration(room, `${player.displayName} ${verb}s "${message.content}".`, true, player);
 
             for (let i = 0; i < game.puzzles.length; i++) {
                 if (game.puzzles[i].location.name === room.name && game.puzzles[i].type === "voice") {
@@ -140,7 +140,6 @@ module.exports.execute = async (bot, game, message, deletable) => {
                 let occupant = room.occupants[i];
                 if (occupant.id !== player.id && !message.content.startsWith('(')) {
                     if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
-                    else game.messageHandler.addSpectatedPlayerMessage(occupant, message);
 
                     if (occupant.hasAttribute(`knows ${player.name}`) && !occupant.hasAttribute("no sight")) {
                         if (player.displayName !== player.name) occupant.notify(game, `${player.displayName}, whose voice you recognize to be ${player.name}'s, ${verb}s "${message.content}".`);
@@ -154,9 +153,14 @@ module.exports.execute = async (bot, game, message, deletable) => {
                         else
                             occupant.notify(game, `You hear a voice in the room ${verb} "${message.content}".`);
                     }
+                    else if (!player.hasAttribute("concealed"))
+                        game.messageHandler.addSpectatedPlayerMessage(occupant, player.displayName, message);
                 }
                 else if (occupant.id === player.id && !message.content.startsWith('(')) {
-                    game.messageHandler.addSpectatedPlayerMessage(occupant, message);
+                    if (player.displayName !== player.name)
+                        game.messageHandler.addSpectatedPlayerMessage(occupant, `${player.displayName} (${player.name})`, message);
+                    else
+                        game.messageHandler.addSpectatedPlayerMessage(occupant, `${player.displayName}`, message);
                 }
             }
         }
@@ -167,6 +171,8 @@ module.exports.execute = async (bot, game, message, deletable) => {
             // Players with the see room attribute should receive narrations from moderators.
             if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('('))
                 occupant.notify(game, message.content);
+            else if (!occupant.hasAttribute("no sight") && !message.content.startsWith('('))
+                game.messageHandler.addSpectatedPlayerMessage(occupant, message.member.displayName, message);
         }
     }
 

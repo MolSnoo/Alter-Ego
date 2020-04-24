@@ -105,7 +105,7 @@ testspeeds = async (file) => {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 1; l <= 10; l++) {
-                        let player = new Player("", null, "", "", "", "neutral", { speed: l }, true, room, null, [], "", [], 1);
+                        let player = new Player("", null, "", "", "", "neutral", { speed: l }, true, room, null, [], "", [], null, 1);
                         player.pos.x = exit1.pos.x;
                         player.pos.y = exit1.pos.y;
                         player.pos.z = exit1.pos.z;

@@ -19,11 +19,6 @@ module.exports.run = async (bot, game, message, args) => {
     if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
 
     const member = game.guild.members.find(member => member.id === message.author.id);
-    const spectateCategory = game.guild.channels.find(channel => channel.id === settings.spectateCategory);
-    const spectateChannel = await game.guild.createChannel(member.displayName, {
-        type: 'text',
-        parent: spectateCategory
-    });
 
     var player = new Player(
         message.author.id,
@@ -38,7 +33,6 @@ module.exports.run = async (bot, game, message, args) => {
         "",
         settings.defaultStatusEffects,
         settings.defaultDescription,
-        spectateChannel,
         new Array(),
         null
     );

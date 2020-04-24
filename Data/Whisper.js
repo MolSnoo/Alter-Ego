@@ -40,6 +40,19 @@ class Whisper {
         return playerListString;
     }
 
+    makePlayersSentenceGroupExcluding(player) {
+        const players = this.players.filter(participant => participant.id !== player.id);
+        let playerListString = players[0].displayName;
+        if (players.length === 2)
+            playerListString += ` and ${players[1].displayName}`;
+        else if (players.length > 2) {
+            for (let i = 1; i < players.length - 1; i++)
+                playerListString += `, ${players[i].displayName}`;
+            playerListString += `, and ${players[players.length - 1].displayName}`;
+        }
+        return playerListString;
+    }
+
     createChannel(game, name, players) {
         return new Promise((resolve) => {
             game.guild.createChannel(name, {
