@@ -22,7 +22,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". No players were specified.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". No players were specified.`);
         return;
     }
 
@@ -52,7 +52,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         }
         if (args.length > 0) {
             const missingPlayers = args.join(", ");
-            return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find player(s): ${missingPlayers}.`);
+            return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player(s): ${missingPlayers}.`);
         }
     }
 

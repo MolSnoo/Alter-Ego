@@ -40,11 +40,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         args = input.substring(input.indexOf(args[1])).split(" ");
     }
 
-    if (args.length === 0) {
-        message.reply("you need to input all required arguments. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     // Find the specified player.
     var player = null;
@@ -54,19 +51,19 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return message.reply(`couldn't find player "${args[0]}".`);
+    if (player === null) return game.messageHandler.addReply(message, `couldn't find player "${args[0]}".`);
 
     if (command === "inflict") {
         const response = player.inflict(game, input.substring(input.indexOf(args[1])).toLowerCase(), true, true, true);
-        message.channel.send(response);
+        game.messageHandler.addGameMechanicMessage(message.channel, response);
     }
     else if (command === "cure") {
         const response = player.cure(game, input.substring(input.indexOf(args[1])).toLowerCase(), true, true, true);
-        message.channel.send(response);
+        game.messageHandler.addGameMechanicMessage(message.channel, response);
     }
     else if (command === "view") {
         const response = `${player.name}'s status:\n${player.generate_statusList(true, true)}`;
-        message.channel.send(response);
+        game.messageHandler.addGameMechanicMessage(message.channel, response);
     }
 
     return;

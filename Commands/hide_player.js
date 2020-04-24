@@ -17,21 +17,18 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable hide");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     if (player.statusString.includes("hidden") && command === "unhide")
         player.cure(game, "hidden", true, false, true);
     else if (player.statusString.includes("hidden"))
-        return message.reply(`you are already **hidden**. If you wish to stop hiding, use "${settings.commandPrefix}unhide".`);
+        return game.messageHandler.addReply(message, `you are already **hidden**. If you wish to stop hiding, use "${settings.commandPrefix}unhide".`);
     else if (command === "unhide")
-        return message.reply("you are not currently hidden.");
+        return game.messageHandler.addReply(message, "you are not currently hidden.");
     // Player is currently not hidden and is using the hide command.
     else {
-        if (args.length === 0) {
-            message.reply("you need to specify an object. Usage:");
-            message.channel.send(exports.config.usage);
-            return;
-        }
+        if (args.length === 0)
+            return game.messageHandler.addReply(message, `you need to specify an object. Usage:\n${exports.config.usage}`);
 
         var input = args.join(" ");
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -45,9 +42,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 break;
             }
             else if (objects[i].name === parsedInput)
-                return message.reply(`${objects[i].name} is not a hiding spot.`);
+                return game.messageHandler.addReply(message, `${objects[i].name} is not a hiding spot.`);
         }
-        if (object === null) return message.reply(`couldn't find object "${input}".`);
+        if (object === null) return game.messageHandler.addReply(message, `couldn't find object "${input}".`);
 
         // Check to see if the hiding spot is already taken.
         var hiddenPlayer = null;
@@ -60,9 +57,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         // It is already taken.
         if (hiddenPlayer !== null) {
-            player.notify(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayer.displayName} is already there!`);
+            player.notify(game, `You attempt to hide in the ${object.name}, but you find ${hiddenPlayer.displayName} is already there!`);
             hiddenPlayer.cure(game, "hidden", false, false, true);
-            hiddenPlayer.notify(`You've been found by ${player.displayName}. You are no longer hidden.`);
+            hiddenPlayer.notify(game, `You've been found by ${player.displayName}. You are no longer hidden.`);
         }
         // It's free real estate!
         else {

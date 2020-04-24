@@ -21,14 +21,11 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        message.reply("you need to specify an item. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify an item. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable take");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -45,7 +42,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return message.reply("you do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === "") return game.messageHandler.addReply(message, "you do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -102,15 +99,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput)
-                return message.reply(`the ${objects[i].name} is not an item.`);
+                return game.messageHandler.addReply(message, `the ${objects[i].name} is not an item.`);
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return message.reply(`couldn't find "${containerName}" containing "${itemName}".`);
+            return game.messageHandler.addReply(message, `couldn't find "${containerName}" containing "${itemName}".`);
         }
-        else return message.reply(`couldn't find item "${parsedInput}" in the room.`);
+        else return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in the room.`);
     }
     // If no container was found, make the container the Room.
     if (item !== null && item.container === null)
@@ -121,20 +118,20 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         topContainer = topContainer.container;
 
     if (topContainer !== null && topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
-        return message.reply(`you cannot take items from ${topContainer.name} while it is turned on.`);
+        return game.messageHandler.addReply(message, `you cannot take items from ${topContainer.name} while it is turned on.`);
     if (item.weight > player.maxCarryWeight) {
-        player.notify(`You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
+        player.notify(game, `You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();
         return;
     }
-    else if (player.carryWeight + item.weight > player.maxCarryWeight) return message.reply(`you try to take ${item.singleContainingPhrase}, but you're carrying too much weight.`);
+    else if (player.carryWeight + item.weight > player.maxCarryWeight) return game.messageHandler.addReply(message, `you try to take ${item.singleContainingPhrase}, but you're carrying too much weight.`);
 
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
     if (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved")) {
-        game.logChannel.send(`${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.hasOwnProperty("solved") && container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
@@ -148,10 +145,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     // Container is an Item.
     else if (container.hasOwnProperty("inventory"))
-        game.logChannel.send(`${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
     // Container is a Room.
     else
-        game.logChannel.send(`${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
         
     return;
 };

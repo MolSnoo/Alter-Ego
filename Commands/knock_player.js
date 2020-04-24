@@ -12,14 +12,11 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        message.reply("you need to specify an exit. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify an exit. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable knock");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -31,7 +28,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return message.reply(`couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return game.messageHandler.addReply(message, `couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";
@@ -63,7 +60,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         new Narration(game, player, room, destNarration).send();
     else {
         for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].notify(destNarration);
+            hearingPlayers[i].notify(game, destNarration);
     }
 
     return;

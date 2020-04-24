@@ -35,18 +35,15 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0) {
-        message.reply("you need to specify what function to test. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify what function to test. Usage:\n${exports.config.usage}`);
 
     const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
         if (err) return console.log(err);
     });
 
-    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", null, 2);
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", settings.defaultStats, true, "", "", "satisfied, well rested", "", [], null, 2);
     if (args[1] && args[1] !== "formatted") {
         let found = false;
         for (let i = 0; i < game.players_alive.length; i++) {
@@ -56,7 +53,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
         }
-        if (!found) return message.reply(`couldn't find player "${args[1]}".`);
+        if (!found) return game.messageHandler.addReply(message, `couldn't find player "${args[1]}".`);
     }
 
     if (args[0] === "parse") {
@@ -73,7 +70,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 warnings = warnings.slice(0, 5);
                 warnings.push("Too many warnings.");
             }
-            message.channel.send(warnings.join('\n'));
+            game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
         }
         let errors = [];
         for (let i = 0; i < result.errors.length; i++) {
@@ -87,7 +84,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 errors = errors.slice(0, 5);
                 errors.push("Too many errors.");
             }
-            message.channel.send(errors.join('\n'));
+            game.messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
         }
     }
     else if (args[0] === "add") {
@@ -100,7 +97,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (args[1] && args[1] === "formatted") formatted = true;
         await testremove(file, formatted, player);
     }
-    else return message.reply('Function not found. You need to use "parse", "add", or "remove".');
+    else return game.messageHandler.addReply(message, 'Function not found. You need to use "parse", "add", or "remove".');
 
     message.channel.send("Text parsed.", {
         files: [

@@ -15,7 +15,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". No event was given.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". No event was given.`);
         return;
     }
 
@@ -29,7 +29,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             break;
         }
     }
-    if (event === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
+    if (event === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
     if (!event.ongoing) return;
 
     var doEndedCommands = false;

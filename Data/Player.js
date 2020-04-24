@@ -18,7 +18,7 @@ var timer = require('moment-timer');
 moment().format();
 
 class Player {
-    constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, row) {
+    constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row) {
         this.id = id;
         this.member = member;
         this.name = name;
@@ -62,6 +62,7 @@ class Player {
         this.statusString = "";
         this.description = description;
         this.inventory = inventory;
+        this.spectateChannel = spectateChannel;
         this.maxCarryWeight = this.getMaxCarryWeight();
         this.carryWeight = 0;
         this.row = row;
@@ -181,7 +182,7 @@ class Player {
             // Be sure to check player.reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.reachedHalfStamina) {
                 player.reachedHalfStamina = true;
-                player.notify(`You're starting to get tired! You might want to stop moving and rest soon.`);
+                player.notify(game, `You're starting to get tired! You might want to stop moving and rest soon.`);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
@@ -352,7 +353,7 @@ class Player {
                         player.cure(game, status.name, false, false, true);
                         const response = player.inflict(game, status.nextStage.name, true, false, true);
                         if (response.startsWith(`Couldn't inflict status effect`))
-                            player.sendDescription(status.curedDescription, status);
+                            player.sendDescription(game, status.curedDescription, status);
                     }
                     else {
                         if (status.fatal) {
@@ -372,14 +373,14 @@ class Player {
 
         // Inform player what happened.
         if (notify)
-            this.sendDescription(status.inflictedDescription, status);
+            this.sendDescription(game, status.inflictedDescription, status);
 
         this.statusString = this.generate_statusList(true, true);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", this.statusCell(), `Players!${this.name}|Status`, this.statusString));
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${this.name} became ${status.name} in ${this.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} became ${status.name} in ${this.location.channel}`);
 
         return "Status successfully added.";
     }
@@ -426,15 +427,15 @@ class Player {
 
         // Inform player what happened.
         if (notify) {
-            this.sendDescription(status.curedDescription, status);
+            this.sendDescription(game, status.curedDescription, status);
             // If the player is waking up, send them the description of the room they wake up in.
             if (status.name === "asleep")
-                this.sendDescription(this.location.description, this.location);
+                this.sendDescription(game, this.location.description, this.location);
         }
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${this.name} has been cured of ${status.name} in ${this.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} has been cured of ${status.name} in ${this.location.channel}`);
 
         // Stop the timer.
         if (status.timer !== null)
@@ -700,7 +701,7 @@ class Player {
         itemManager.insertInventoryItems(game, this, items, slot);
 
         this.carryWeight += createdItem.weight;
-        this.notify(`You take ${createdItem.singleContainingPhrase}.`);
+        this.notify(game, `You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
             // Add the new item to the player's hands item list.
@@ -812,18 +813,18 @@ class Player {
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
                 if (container.inventory.length === 1)
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
                 else
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
             }
             else {
                 if (container.inventory.length === 1) {
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
+                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(game, `${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
                 }
                 else {
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
+                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(game, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
                 }
             }
             if (!createdItem.prefab.discreet) {
@@ -842,12 +843,12 @@ class Player {
         // Player failed to steal the item.
         else {
             if (container.inventory.length === 1) {
-                this.notify(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
+                this.notify(game, `You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(game, `${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
             }
             else {
-                this.notify(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
+                this.notify(game, `You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(game, `${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
             }
 
             return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
@@ -911,7 +912,7 @@ class Player {
         itemManager.insertItems(game, this.location, items);
 
         this.carryWeight -= item.weight;
-        this.notify(`You discard ${item.singleContainingPhrase}.`);
+        this.notify(game, `You discard ${item.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
             // Remove the item from the player's hands item list.
@@ -981,8 +982,8 @@ class Player {
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
-        this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
-        recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
+        this.notify(game, `You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
+        recipient.notify(game, `${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
@@ -1031,7 +1032,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
-        this.notify(`You stash ${createdItem.singleContainingPhrase}.`);
+        this.notify(game, `You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             var preposition = container.prefab ? container.prefab.preposition : "in";
             new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
@@ -1120,7 +1121,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
         
-        this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
+        this.notify(game, `You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
@@ -1186,7 +1187,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
-        this.notify(`You equip the ${createdItem.name}.`);
+        this.notify(game, `You equip the ${createdItem.name}.`);
         new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
         // Remove mention of any equipped items that this item covers.
         for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
@@ -1229,9 +1230,9 @@ class Player {
             const command = createdItem.prefab.equipCommands[i];
             if (command.startsWith("wait")) {
                 let args = command.split(" ");
-                if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                 const seconds = parseInt(args[1]);
-                if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                 await sleep(seconds);
             }
             else {
@@ -1278,7 +1279,7 @@ class Player {
         game.queue.push(new QueueEntry(Date.now(), "updateRow", item.itemCells(), `Inventory Items!||${this.name}|${item.equipmentSlot}|${item.containerName}`, itemData));
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            this.notify(`You take ${item.singleContainingPhrase}.`);
+            this.notify(game, `You take ${item.singleContainingPhrase}.`);
             if (!item.prefab.discreet) {
                 new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
@@ -1287,7 +1288,7 @@ class Player {
             }
         }
         else {
-            this.notify(`You equip the ${item.name}.`);
+            this.notify(game, `You equip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
@@ -1327,9 +1328,9 @@ class Player {
                 const command = item.prefab.equipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -1427,7 +1428,7 @@ class Player {
 
             itemManager.insertInventoryItems(game, this, items, slot);
 
-            this.notify(`You unequip the ${createdItem.name}.`);
+            this.notify(game, `You unequip the ${createdItem.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
@@ -1461,9 +1462,9 @@ class Player {
                 const command = createdItem.prefab.unequipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -1515,7 +1516,7 @@ class Player {
                 this.description = parser.removeItem(this.description, item, "hands");
         }
         else {
-            this.notify(`You unequip the ${item.name}.`);
+            this.notify(game, `You unequip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
@@ -1545,9 +1546,9 @@ class Player {
                 const command = item.prefab.unequipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return game.commandChannel.send(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.commandChannel.send(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -1640,7 +1641,7 @@ class Player {
             game.queue.push(new QueueEntry(Date.now(), "updateCell", item2.usesCell(), `Inventory Items!${item2.prefab.id}|${item2.identifier}|${this.name}|${item2.equipmentSlot}|${item2.containerName}`, item2.uses));
         }
 
-        this.sendDescription(recipe.completedDescription, recipe);
+        this.sendDescription(game, recipe.completedDescription, recipe);
         // Decide if this should be narrated or not.
         if (product1 && !product1.discreet || product2 && !product2.discreet) {
             let productPhrase = "";
@@ -1702,7 +1703,7 @@ class Player {
         if (puzzle.accessible) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
-                this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
+                this.sendDescription(game, puzzle.noMoreAttemptsDescription, puzzle);
                 new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
 
                 return;
@@ -1839,7 +1840,7 @@ class Player {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${this.name} died in ${this.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} died in ${this.location.channel}`);
 
         // Update various data.
         this.alive = false;
@@ -1866,7 +1867,7 @@ class Player {
             }
         }
 
-        this.member.send("You have died. When your body is discovered, you will be given the Dead role. Until then, please do not speak on the server or to other players.");
+        game.messageHandler.addGameMechanicMessage(this.member, "You have died. When your body is discovered, you will be given the Dead role. Until then, please do not speak on the server or to other players.");
         
         return;
     }
@@ -1894,15 +1895,15 @@ class Player {
         return;
     }
 
-    sendDescription(description, container) {
+    sendDescription(game, description, container) {
         if (description && (!this.hasAttribute("unconscious") || container && container instanceof Status))
-            this.member.send(parser.parseDescription(description, container, this));
+            game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
         return;
     }
 
-    notify(message) {
+    notify(game, message) {
         if (!this.hasAttribute("unconscious"))
-            this.member.send(message);
+            game.messageHandler.addDirectNarration(this, message);
         return;
     }
 

@@ -63,7 +63,7 @@ class Object {
 
         this.process.recipe = result.recipe;
         this.process.ingredients = result.ingredients;
-        if (player) player.sendDescription(this.process.recipe.initiatedDescription, this);
+        if (player) player.sendDescription(game, this.process.recipe.initiatedDescription, this);
         this.process.duration = this.process.recipe.duration.clone();
 
         let object = this;
@@ -87,7 +87,7 @@ class Object {
                     // Instantiate the products.
                     for (let i = 0; i < object.process.recipe.products.length; i++)
                         itemManager.instantiateItem(object.process.recipe.products[i], object.location, object, "", 1);
-                    if (player && player.location.name === object.location.name) player.sendDescription(object.process.recipe.completedDescription, object);
+                    if (player && player.location.name === object.location.name) player.sendDescription(game, object.process.recipe.completedDescription, object);
                 }
 
                 if (object.autoDeactivate)

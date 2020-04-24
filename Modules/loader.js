@@ -1220,10 +1220,18 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
                 for (let j = 0; j < statusList.length; j++)
                     statusList[j] = statusList[j].trim();
+                var member = game.guild.members.find(member => member.id === sheet[i][columnID]);
+                var spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parent.id === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
+                if (!spectateChannel) {
+                    spectateChannel = await game.guild.createChannel(member.displayName, {
+                        type: 'text',
+                        parent: settings.spectateCategory
+                    });
+                }
                 const player =
                     new Player(
                         sheet[i][columnID],
-                        game.guild.members.find(member => member.id === sheet[i][columnID]),
+                        member,
                         sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
@@ -1235,6 +1243,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         [],
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         [],
+                        spectateChannel,
                         i + 1
                     );
                 player.setPronouns(player.originalPronouns, player.pronounString);
@@ -1330,6 +1339,8 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
+    if (player.spectateChannel === null || player.spectateChannel === undefined)
+        return new Error(`Couldn't load player on row ${player.row}. No spectate channel was given.`);
     return;
 };
 

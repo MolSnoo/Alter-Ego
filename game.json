@@ -19,5 +19,6 @@
   "whispers": [],
   "statusEffects": [],
   "inventoryItems": [],
-  "queue": []
+  "queue": [],
+  "messageHandler": null
 }

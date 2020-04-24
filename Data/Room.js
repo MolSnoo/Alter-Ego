@@ -44,25 +44,25 @@ class Room {
 
         if (sendDescription) {
             if (player.hasAttribute("no sight"))
-                player.notify("Fumbling against the wall, you make your way to the next room over.");
+                player.notify(game, "Fumbling against the wall, you make your way to the next room over.");
             else {
                 let description;
                 if (entrance) description = entrance.description;
                 else description = this.description;
                 // Send the room description of the entrance the player enters from.
-                player.sendDescription(description, this);
+                player.sendDescription(game, description, this);
             }
         }
         if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {
             if (this.occupantsString !== "")
-                player.notify(`You see ${this.occupantsString} in this room.`);
+                player.notify(game, `You see ${this.occupantsString} in this room.`);
         }
         else if (!player.hasAttribute("no sight") && this.occupants.length > 0) {
             // Come up with lists of concealed and sleeping players.
             let concealedPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("concealed") && !occupant.hasAttribute("hidden")));
-            if (concealedPlayersString !== "") player.notify(`You see ${concealedPlayersString} in this room.`);
+            if (concealedPlayersString !== "") player.notify(game, `You see ${concealedPlayersString} in this room.`);
             let sleepingPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
-            if (sleepingPlayersString !== "") player.notify(`You see ${sleepingPlayersString} sleeping in this room.`);
+            if (sleepingPlayersString !== "") player.notify(game, `You see ${sleepingPlayersString} sleeping in this room.`);
         }
 
         // Update the player's location on the spreadsheet.
@@ -114,7 +114,7 @@ class Room {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
     }
 
     lock(game, index) {
@@ -123,7 +123,7 @@ class Room {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
     }
 
     descriptionCell() {
