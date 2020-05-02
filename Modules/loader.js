@@ -1228,9 +1228,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 for (let j = 0; j < statusList.length; j++)
                     statusList[j] = statusList[j].trim();
                 var member = game.guild.members.find(member => member.id === sheet[i][columnID]);
-                var spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parent.id === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
+                var spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parentID === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                 if (!spectateChannel) {
-                    spectateChannel = await game.guild.createChannel(member.displayName, {
+                    spectateChannel = await game.guild.createChannel(sheet[i][columnName].toLowerCase(), {
                         type: 'text',
                         parent: settings.spectateCategory
                     });
