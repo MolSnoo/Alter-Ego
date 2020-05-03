@@ -32,6 +32,8 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         players.push(player);
     else if (args[0].toLowerCase() === "room" && player !== null)
         players = player.location.occupants;
+    else if (args[0].toLowerCase() === "room" && data !== null && data.hasOwnProperty("location"))
+        players = data.location.occupants;
     else if (args[0].toLowerCase() === "all") {
         for (let i = 0; i < game.players_alive.length; i++)
             players.push(game.players_alive[i]);
