@@ -746,6 +746,7 @@ class Player {
         const failMax = Math.floor((settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
         const partialMax = Math.floor(2 * (settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
         var dieRoll = new Die("dex", this, victim);
+        if (this.hasAttribute("thief")) dieRoll.result = settings.diceMax;
         if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
         // Player didn't fail.
