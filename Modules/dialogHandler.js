@@ -26,6 +26,11 @@ module.exports.execute = async (bot, game, message, deletable) => {
             }
         }
     }
+    if (player !== null && message.channel.id === settings.announcementChannel) {
+        for (let i = 0; i < game.players_alive.length; i++)
+            game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player.displayName, message);
+        return;
+    }
     if (room === null) return;
 
     if (player !== null) {

@@ -59,7 +59,6 @@ module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, 
     var messageText = message.content || '';
     // If this is a whisper, specify that the following message comes from the whisper
     if (whisper)
-        //addMessageToQueue(player.spectateChannel, `**In a whisper with ${whisper.makePlayersSentenceGroup()}, ${speakerName} says:**`, settings.priority.spectatorMessage);
         messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(message.author)}):*\n` + messageText;
 
     // Create a webhook for this spectate channel if necessary, or grab the existing one

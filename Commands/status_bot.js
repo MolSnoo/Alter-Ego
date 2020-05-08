@@ -46,13 +46,11 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 
     // Determine which player(s) are being inflicted/cured with a status effect.
     var players = new Array();
-    var notify = true;
     if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
     else if (args[0].toLowerCase() === "room" && player !== null)
         players = player.location.occupants;
     else if (args[0].toLowerCase() === "all") {
-        notify = false;
         for (let i = 0; i < game.players_alive.length; i++)
             players.push(game.players_alive[i]);
     }
@@ -71,29 +69,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     var statusName = input.substring(input.indexOf(args[1])).toLowerCase();
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict")
-            players[i].inflict(game, statusName, notify, true, true, data);
+            players[i].inflict(game, statusName, true, true, true, data);
         else if (command === "cure")
-            players[i].cure(game, statusName, notify, true, true, data);
-    }
-    if (!notify) {
-        var status = null;
-        for (let i = 0; i < game.statusEffects.length; i++) {
-            if (game.statusEffects[i].name.toLowerCase() === statusName) {
-                status = game.statusEffects[i];
-                break;
-            }
-        }
-        if (status === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusName}".`);
-
-        const announcementChannel = game.guild.channels.find(channel => channel.id === settings.announcementChannel);
-        if (command === "inflict") {
-            if (status.inflictedDescription !== "")
-                game.messageHandler.addGameMechanicMessage(announcementChannel, parser.parseDescription(status.inflictedDescription, status));
-        }
-        else if (command === "cure") {
-            if (status.curedDescription !== "")
-                game.messageHandler.addGameMechanicMessage(announcementChannel, parser.parseDescription(status.curedDescription, status));
-        }
+            players[i].cure(game, statusName, true, true, true, data);
     }
 
     return;
