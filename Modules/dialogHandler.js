@@ -33,7 +33,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
 
         if (player.hasAttribute("no speech")) {
             game.messageHandler.addGameMechanicMessage(player.member, "You are mute, so you cannot speak.");
-            if(deletable) message.delete().catch();
+            if (deletable) message.delete().catch();
             return;
         }
         // Handle whisper messages.
@@ -161,6 +161,53 @@ module.exports.execute = async (bot, game, message, deletable) => {
                         game.messageHandler.addSpectatedPlayerMessage(occupant, `${player.displayName} (${player.name})`, message);
                     else
                         game.messageHandler.addSpectatedPlayerMessage(occupant, `${player.displayName}`, message);
+                }
+            }
+
+            // Handle walkie talkie behavior.
+            if (player.hasAttribute("sender") && !message.content.startsWith('(')) {
+                let receiver = null;
+                for (let i = 0; i < game.players_alive.length; i++) {
+                    if (game.players_alive[i].hasAttribute("receiver") && game.players_alive[i].id !== player.id) {
+                        receiver = game.players_alive[i];
+                        break;
+                    }
+                }
+                if (receiver !== null) {
+                    var deafPlayerInReceiverRoom = false;
+                    // Check if there are any deaf players in the room. Count non-deaf players.
+                    for (let i = 0; i < receiver.location.occupants.length; i++) {
+                        // If a player in the room has the no hearing attribute, delete the message and redirect it to anyone who can hear.
+                        if (receiver.location.occupants[i].hasAttribute("no hearing")) {
+                            deafPlayerInReceiverRoom = true;
+                            break;
+                        }
+                    }
+                    if (receiver.location.occupants.length === 1 && receiver.location.occupants[0].hasAttribute("unconscious"))
+                        deafPlayerInReceiverRoom = true;
+
+                    if (!deafPlayerInReceiverRoom)
+                        game.messageHandler.addNarration(receiver.location, `A voice coming from ${receiver.displayName}'s WALKIE TALKIE ${verb}s "${message.content}".`, true, player);
+
+                    for (let j = 0; j < receiver.location.occupants.length; j++) {
+                        let occupant = receiver.location.occupants[j];
+                        if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
+                        const receiverName = occupant.id === receiver.id ? "your" : `${receiver.displayName}'s`;
+                        if (occupant.hasAttribute(`knows ${player.name}`))
+                            occupant.notify(game, `${player.name} ${verb}s "${message.content}" through ${receiverName} WALKIE TALKIE.`);
+                        else if (occupant.hasAttribute("hear room") || deafPlayerInReceiverRoom)
+                            occupant.notify(game, `A voice coming from ${receiverName} WALKIE TALKIE ${verb}s "${message.content}".`);
+                    }
+
+                    for (let i = 0; i < game.puzzles.length; i++) {
+                        if (game.puzzles[i].location.name === receiver.location.name && game.puzzles[i].type === "voice") {
+                            const cleanContent = message.content.replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
+                            for (let j = 0; j < game.puzzles[i].solutions.length; j++) {
+                                if (cleanContent.includes(game.puzzles[i].solutions[j]))
+                                    game.puzzles[i].solve(bot, game, null, "", game.puzzles[i].solutions[j], true);
+                            }
+                        }
+                    }
                 }
             }
         }
