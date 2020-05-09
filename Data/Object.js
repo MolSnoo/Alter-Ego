@@ -126,7 +126,7 @@ class Object {
                         }
                         if (instantiate) itemManager.instantiateItem(product, object.location, object, "", 1);
                     }
-                    if (player && player.location.name === object.location.name) player.sendDescription(object.process.recipe.completedDescription, object);
+                    if (player && player.location.name === object.location.name) player.sendDescription(game, object.process.recipe.completedDescription, object);
                 }
 
                 if (object.autoDeactivate)
