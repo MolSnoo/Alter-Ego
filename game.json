@@ -6,6 +6,7 @@
   "canJoin": false,
   "halfTimer": null,
   "endTimer": null,
+  "heated": false,
   "players": [],
   "players_alive": [],
   "players_dead": [],
@@ -19,5 +20,7 @@
   "whispers": [],
   "statusEffects": [],
   "inventoryItems": [],
-  "queue": []
+  "gestures": [],
+  "queue": [],
+  "messageHandler": null
 }

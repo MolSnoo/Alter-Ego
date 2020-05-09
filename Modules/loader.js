@@ -13,6 +13,7 @@ const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
+const Gesture = include(`${settings.dataDir}/Gesture.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 var moment = require('moment');
@@ -330,6 +331,14 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 if (doErrorChecking) {
                     let error = exports.checkPrefab(game.prefabs[i], game);
                     if (error instanceof Error) errors.push(error);
+                }
+            }
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
+                        let requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
                 }
             }
             if (errors.length > 0) {
@@ -691,44 +700,76 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
             const columnSolved = 1;
-            const columnRequiresMod = 2;
-            const columnLocation = 3;
-            const columnParentObject = 4;
-            const columnType = 5;
-            const columnAccessible = 6;
-            const columnRequires = 7;
-            const columnSolution = 8;
-            const columnAttempts = 9;
-            const columnWhenSolved = 10;
-            const columnCorrectDescription = 11;
-            const columnAlreadySolvedDescription = 12;
-            const columnIncorrectDescription = 13;
-            const columnNoMoreAttemptsDescription = 14;
-            const columnRequirementsNotMetDescription = 15;
+            const columnOutcome = 2;
+            const columnRequiresMod = 3;
+            const columnLocation = 4;
+            const columnParentObject = 5;
+            const columnType = 6;
+            const columnAccessible = 7;
+            const columnRequires = 8;
+            const columnSolution = 9;
+            const columnAttempts = 10;
+            const columnWhenSolved = 11;
+            const columnCorrectDescription = 12;
+            const columnAlreadySolvedDescription = 13;
+            const columnIncorrectDescription = 14;
+            const columnNoMoreAttemptsDescription = 15;
+            const columnRequirementsNotMetDescription = 16;
 
             game.puzzles.length = 0;
             for (let i = 1; i < sheet.length; i++) {
-                const commands = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].split('/') : new Array("", "");
-                var solvedCommands = commands[0] ? commands[0].split(',') : "";
-                for (let j = 0; j < solvedCommands.length; j++)
-                    solvedCommands[j] = solvedCommands[j].trim();
-                var unsolvedCommands = commands[1] ? commands[1].split(',') : "";
-                for (let j = 0; j < unsolvedCommands.length; j++)
-                    unsolvedCommands[j] = unsolvedCommands[j].trim();
+                let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
+                for (let j = 0; j < requirements.length; j++)
+                    requirements[j] = requirements[j].trim();
+                const regex = new RegExp(/(\[((.*?): (.*?))\],?)/);
+                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "";
+                let commandSets = [];
+                let getCommands = function (commandString) {
+                    const commands = commandString.split('/');
+                    let solvedCommands = commands[0] ? commands[0].split(',') : [];
+                    for (let j = 0; j < solvedCommands.length; j++)
+                        solvedCommands[j] = solvedCommands[j].trim();
+                    let unsolvedCommands = commands[1] ? commands[1].split(',') : [];
+                    for (let j = 0; j < unsolvedCommands.length; j++)
+                        unsolvedCommands[j] = unsolvedCommands[j].trim();
+                    return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
+                };
+                if (regex.test(commandString)) {
+                    while (regex.test(commandString)) {
+                        const commandSet = RegExp.$2;
+                        let outcomes = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
+                        for (let j = 0; j < outcomes.length; j++)
+                            outcomes[j] = outcomes[j].trim();
+                        const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
+                        commandSets.push({ outcomes: outcomes, solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
+                        commandString = commandString.replace(RegExp.$1, "").trim();
+                    }
+                }
+                else {
+                    const commands = getCommands(sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "");
+                    commandSets.push({ outcomes: [], solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
+                }
+                let solutions = sheet[i][columnSolution] ? sheet[i][columnSolution].toString().split(',') : [];
+                for (let j = 0; j < solutions.length; j++) {
+                    if (sheet[i][columnType] === "voice")
+                        solutions[j] = solutions[j].replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
+                    else
+                        solutions[j] = solutions[j].trim();
+                }
                 game.puzzles.push(
                     new Puzzle(
                         sheet[i][columnName],
                         sheet[i][columnSolved] === "TRUE",
+                        sheet[i][columnOutcome] ? sheet[i][columnOutcome] : "",
                         sheet[i][columnRequiresMod] === "TRUE",
                         sheet[i][columnLocation],
                         sheet[i][columnParentObject] ? sheet[i][columnParentObject] : "",
                         sheet[i][columnType],
                         sheet[i][columnAccessible] === "TRUE",
-                        sheet[i][columnRequires] ? sheet[i][columnRequires] : null,
-                        sheet[i][columnSolution] ? sheet[i][columnSolution].toString() : "",
+                        requirements,
+                        solutions,
                         parseInt(sheet[i][columnAttempts]),
-                        solvedCommands,
-                        unsolvedCommands,
+                        commandSets,
                         sheet[i][columnCorrectDescription] ? sheet[i][columnCorrectDescription] : "",
                         sheet[i][columnAlreadySolvedDescription] ? sheet[i][columnAlreadySolvedDescription] : "",
                         sheet[i][columnIncorrectDescription] ? sheet[i][columnIncorrectDescription] : "",
@@ -743,8 +784,16 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 game.puzzles[i].location = game.rooms.find(room => room.name === game.puzzles[i].location && room.name !== "");
                 let parentObject = game.objects.find(object => object.name === game.puzzles[i].parentObjectName && object.location === game.puzzles[i].location);
                 if (parentObject) game.puzzles[i].parentObject = parentObject;
-                let requires = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requires);
-                if (requires) game.puzzles[i].requires = requires;
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    let requirement = null;
+                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
+                        requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
+                    else
+                        requirement = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requirementsStrings[j] || game.puzzles[i].requirementsStrings[j] === `Puzzle: ${puzzle.name}`);
+                    if (requirement) game.puzzles[i].requirements[j] = requirement;
+                }
                 if (doErrorChecking) {
                     let error = exports.checkPuzzle(game.puzzles[i]);
                     if (error instanceof Error) errors.push(error);
@@ -782,10 +831,28 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
     if (puzzle.parentObject !== null && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle.name !== puzzle.name)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
-    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock")
+    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "voice")
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
-    if (puzzle.requires !== null && !(puzzle.requires instanceof Puzzle))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The requirement given is not a puzzle.`);
+    if (puzzle.type === "probability" && puzzle.solutions.length < 1)
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
+    if (puzzle.type === "weight") {
+        for (let i = 0; i < puzzle.solutions.length; i++) {
+            if (isNaN(parseInt(puzzle.solutions[i])))
+                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${puzzle.solutions[i]}" is not an integer.`);
+        }
+    }
+    for (let i = 0; i < puzzle.commandSets.length; i++) {
+        for (let j = 0; j < puzzle.commandSets[i].outcomes.length; j++) {
+            if (!puzzle.solutions.includes(puzzle.commandSets[i].outcomes[j]))
+                return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.commandSets[i].outcomes[j]}" in command sets is not an outcome in the puzzle's solutions.`);
+        }
+    }
+    for (let i = 0; i < puzzle.requirements.length; i++) {
+        if ((puzzle.requirementsStrings[i].startsWith("Item:") || puzzle.requirementsStrings[i].startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a prefab.`);
+        else if (!puzzle.requirementsStrings[i].startsWith("Item:") && !puzzle.requirementsStrings[i].startsWith("Prefab:") && !(puzzle.requirements[i] instanceof Puzzle))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a puzzle.`);
+    }
     return;
 };
 
@@ -1057,6 +1124,12 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     if (status) game.events[i].refreshes[j] = status;
                 }
             }
+            for (let i = 0; i < game.gestures.length; i++) {
+                for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
+                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.gestures[i].disabledStatusesStrings[j]);
+                    if (status) game.gestures[i].disabledStatuses[j] = status;
+                }
+            }
             if (errors.length > 0) {
                 if (errors.length > 5) {
                     errors = errors.slice(0, 5);
@@ -1109,7 +1182,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         // Clear all player status effects and movement timers first.
         for (let i = 0; i < game.players.length; i++) {
             for (let j = 0; j < game.players[i].status.length; j++) {
-                if (game.players[i].status[j].timer !== null)
+                if (game.players[i].status[j].hasOwnProperty("timer") && game.players[i].status[j].timer !== null)
                     game.players[i].status[j].timer.stop();
             }
             game.players[i].isMoving = false;
@@ -1154,10 +1227,18 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
                 for (let j = 0; j < statusList.length; j++)
                     statusList[j] = statusList[j].trim();
+                var member = game.guild.members.find(member => member.id === sheet[i][columnID]);
+                var spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parentID === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
+                if (!spectateChannel) {
+                    spectateChannel = await game.guild.createChannel(sheet[i][columnName].toLowerCase(), {
+                        type: 'text',
+                        parent: settings.spectateCategory
+                    });
+                }
                 const player =
                     new Player(
                         sheet[i][columnID],
-                        game.guild.members.find(member => member.id === sheet[i][columnID]),
+                        member,
                         sheet[i][columnName],
                         sheet[i][columnName],
                         sheet[i][columnTalent],
@@ -1169,6 +1250,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         [],
                         sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
                         [],
+                        spectateChannel,
                         i + 1
                     );
                 player.setPronouns(player.originalPronouns, player.pronounString);
@@ -1264,6 +1346,8 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
+    if (player.spectateChannel === null || player.spectateChannel === undefined)
+        return new Error(`Couldn't load player on row ${player.row}. No spectate channel was given.`);
     return;
 };
 
@@ -1525,5 +1609,79 @@ module.exports.checkInventoryItem = function (item, game) {
             if (!foundSlot) return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
         }
     }
+    return;
+};
+
+module.exports.loadGestures = function (game, doErrorChecking) {
+    return new Promise((resolve, reject) => {
+        sheets.getData(settings.gestureSheetAllCells, function (response) {
+            const sheet = response.data.values;
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnName = 0;
+            const columnRequires = 1;
+            const columnDontAllowIf = 2;
+            const columnDescription = 3;
+            const columnNarration = 4;
+
+            game.gestures.length = 0;
+            for (let i = 1; i < sheet.length; i++) {
+                var requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
+                for (let j = 0; j < requires.length; j++)
+                    requires[j] = requires[j].trim();
+                var disabledStatuses = sheet[i][columnDontAllowIf] ? sheet[i][columnDontAllowIf].split(',') : [];
+                for (let j = 0; j < disabledStatuses.length; j++)
+                    disabledStatuses[j] = disabledStatuses[j].trim();
+                game.gestures.push(
+                    new Gesture(
+                        sheet[i][columnName],
+                        requires,
+                        disabledStatuses,
+                        sheet[i][columnDescription] ? sheet[i][columnDescription] : "",
+                        sheet[i][columnNarration] ? sheet[i][columnNarration] : "",
+                        i + 1
+                    )
+                );
+            }
+            // Now go through and make the disabledStatuses actual Status objects.
+            var errors = [];
+            for (let i = 0; i < game.gestures.length; i++) {
+                for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
+                    let disabledStatus = game.statusEffects.find(statusEffect => statusEffect.name === game.gestures[i].disabledStatusesStrings[j]);
+                    if (disabledStatus) game.gestures[i].disabledStatuses[j] = disabledStatus;
+                }
+                if (doErrorChecking) {
+                    let error = exports.checkGesture(game.gestures[i]);
+                    if (error instanceof Error) errors.push(error);
+                }
+            }
+            if (errors.length > 0) {
+                if (errors.length > 5) {
+                    errors = errors.slice(0, 5);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkGesture = function (gesture) {
+    if (gesture.name === "" || gesture.name === null || gesture.name === undefined)
+        return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture name was given.`);
+    for (let i = 0; i < gesture.requires.length; i++) {
+        if (gesture.requires[i] !== "Exit" && gesture.requires[i] !== "Object" && gesture.requires[i] !== "Item" && gesture.requires[i] !== "Player" && gesture.requires[i] !== "Inventory Item")
+            return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.requires[i]}" is not a valid requirement.`);
+    }
+    if (gesture.disabledStatuses.length > 0) {
+        for (let i = 0; i < gesture.disabledStatuses.length; i++)
+            if (!(gesture.disabledStatuses[i] instanceof Status))
+                return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.disabledStatuses[i]}" in "don't allow if" is not a status effect.`);
+    }
+    if (gesture.description === "")
+        return new Error(`Couldn't load gesture on row ${gesture.row}. No description was given.`);
+    if (gesture.narration === "")
+        return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
     return;
 };

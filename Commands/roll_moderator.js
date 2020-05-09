@@ -29,27 +29,27 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 3) {
         statString = args[0].toLowerCase();
         attacker = getPlayer(game, args[1].toLowerCase());
-        if (typeof attacker === "string") return message.reply(`couldn't find player "${args[1]}".`);
+        if (typeof attacker === "string") return game.messageHandler.addReply(message, `couldn't find player "${args[1]}".`);
         defender = getPlayer(game, args[2].toLowerCase());
-        if (typeof defender === "string") return message.reply(`couldn't find player "${args[2]}".`);
+        if (typeof defender === "string") return game.messageHandler.addReply(message, `couldn't find player "${args[2]}".`);
     }
     else if (args.length === 2) {
         const arg0 = getPlayer(game, args[0].toLowerCase());
         if (typeof arg0 !== "string") {
             attacker = arg0;
             defender = getPlayer(game, args[1].toLowerCase());
-            if (typeof defender === "string") return message.reply(`couldn't find player "${args[1]}".`);
+            if (typeof defender === "string") return game.messageHandler.addReply(message, `couldn't find player "${args[1]}".`);
         }
         else {
             statString = arg0;
             attacker = getPlayer(game, args[1].toLowerCase());
-            if (typeof attacker === "string") return message.reply(`couldn't find player "${args[1]}".`);
+            if (typeof attacker === "string") return game.messageHandler.addReply(message, `couldn't find player "${args[1]}".`);
         }
     }
     else if (args.length === 1) {
         const arg0 = getPlayer(game, args[0].toLowerCase());
         if (typeof arg0 !== "string") attacker = arg0;
-        else return message.reply(`cannot roll for a stat without a given player.`);
+        else return game.messageHandler.addReply(message, `cannot roll for a stat without a given player.`);
     }
     if (statString) {
         if (statString === "str" || statString === "strength") stat = "str";
@@ -57,12 +57,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (statString === "dex" || statString === "dexterity") stat = "dex";
         else if (statString === "spd" || statString === "speed") stat = "spd";
         else if (statString === "sta" || statString === "stamina") stat = "sta";
-        else return message.reply(`"${statString}" is not a valid stat.`);
+        else return game.messageHandler.addReply(message, `"${statString}" is not a valid stat.`);
     }
 
     const die = new Die(stat, attacker, defender);
-    if (die.modifier === 0) message.channel.send(`Rolled a **${die.result}** with no modifiers.`);
-    else message.channel.send(`Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
+    if (die.modifier === 0) game.messageHandler.addGameMechanicMessage(message.channel, `Rolled a **${die.result}** with no modifiers.`);
+    else game.messageHandler.addGameMechanicMessage(message.channel, `Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
     
     return;
 };

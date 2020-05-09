@@ -16,11 +16,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length < 2) {
-        message.reply("you need to specify a player and an item. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length < 2)
+        return game.messageHandler.addReply(message, `you need to specify a player and an item. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -30,7 +27,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return message.reply(`player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -47,7 +44,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return message.reply(`${player.name} does not have a free hand to unequip an item.`);
+    if (hand === "") return game.messageHandler.addReply(message, `${player.name} does not have a free hand to unequip an item.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -58,14 +55,14 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (parsedInput.endsWith(` FROM ${player.inventory[i].name}`)) {
             slotName = player.inventory[i].name;
             let itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
-            if (player.inventory[i].equippedItem === null) return message.reply(`nothing is equipped to ${slotName}.`);
+            if (player.inventory[i].equippedItem === null) return game.messageHandler.addReply(message, `nothing is equipped to ${slotName}.`);
             if (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === itemName ||
                 player.inventory[i].equippedItem.prefab.id === itemName ||
                 player.inventory[i].equippedItem.name === itemName) {
                 item = player.inventory[i].equippedItem;
                 break;
             }
-            else return message.reply(`couldn't find "${itemName}" equipped to ${slotName}.`);
+            else return game.messageHandler.addReply(message, `couldn't find "${itemName}" equipped to ${slotName}.`);
         }
         else if (player.inventory[i].equippedItem !== null &&
             (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === parsedInput ||
@@ -77,19 +74,19 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (slotName === "RIGHT HAND" || slotName === "LEFT HAND")
-        return message.reply(`cannot unequip items from either of your hands. To get rid of this item, use the drop command.`);
+        return game.messageHandler.addReply(message, `cannot unequip items from either of your hands. To get rid of this item, use the drop command.`);
     if (parsedInput.includes(" FROM ") && slotName === "") {
         slotName = parsedInput.substring(parsedInput.lastIndexOf(" FROM ") + " FROM ".length).trim();
-        return message.reply(`couldn't find equipment slot "${slotName}".`);
+        return game.messageHandler.addReply(message, `couldn't find equipment slot "${slotName}".`);
     }
-    if (item === null) return message.reply(`couldn't find equipped item "${parsedInput}".`);
+    if (item === null) return game.messageHandler.addReply(message, `couldn't find equipped item "${parsedInput}".`);
 
     player.unequip(game, item, slotName, hand, bot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${player.name} forcefully unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} in ${player.location.channel}`);
 
-    message.channel.send(`Successfully unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${player.name}'s ${slotName}.`);
+    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${player.name}'s ${slotName}.`);
 
     return;
 };

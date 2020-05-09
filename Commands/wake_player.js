@@ -13,9 +13,9 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable wake");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
-    if (!player.statusString.includes("asleep")) return message.reply("You are not currently asleep.");
+    if (!player.statusString.includes("asleep")) return game.messageHandler.addReply(message, "You are not currently asleep.");
     player.cure(game, "asleep", true, true, true);
 
     return;

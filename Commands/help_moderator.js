@@ -75,7 +75,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else {
         let command = roleCommands.find(command => command.aliases.includes(args[0]));
-        if (!command) return message.reply(`couldn't find command "${args[0]}".`);
+        if (!command) return game.messageHandler.addReply(message, `couldn't find command "${args[0]}".`);
 
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
         let embed = new discord.RichEmbed()

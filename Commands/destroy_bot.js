@@ -32,7 +32,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
     if (args.length < 2) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -70,7 +70,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 break;
             }
             if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "") {
-                if (roomItems[i].inventory.length === 0 || roomItems[i].prefab.preposition === "") return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". ${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
+                if (roomItems[i].inventory.length === 0 || roomItems[i].prefab.preposition === "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". ${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
                 containerItem = roomItems[i];
 
                 if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "")
@@ -89,7 +89,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                             break;
                         }
                     }
-                    if (containerItemSlot === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.prefab.id}.`);
+                    if (containerItemSlot === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.prefab.id}.`);
                 }
                 if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -105,7 +105,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         if (containerItem === null && item === null) {
             const objects = game.objects.filter(object => object.location.name === room.name && object.accessible);
             for (let i = 0; i < objects.length; i++) {
-                if (objects[i].name === parsedInput) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". You need to supply an item and a preposition.`);
+                if (objects[i].name === parsedInput) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply an item and a preposition.`);
                 if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(`IN ${objects[i].name}`)) {
                     object = objects[i];
                     if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`))
@@ -157,7 +157,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         }
 
         if (destroyAll) {
-            if (parsedInput !== "") return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" at ${room.name}`);
+            if (parsedInput !== "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" at ${room.name}`);
             for (let i = 0; i < containerItems.length; i++)
                 itemManager.destroyItem(containerItems[i], true);
         }
@@ -209,7 +209,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 if (found) break;
             }
         }
-        if (players.length === 0) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find a room or player in your input.`);
+        if (players.length === 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a room or player in your input.`);
 
         parsedInput = args.join(" ").toUpperCase().replace(/\'/g, "");
 
@@ -228,7 +228,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                     break;
                 }
                 if (parsedInput2.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "" || parsedInput2.endsWith(playerItems[i].prefab.id)) {
-                    if (playerItems[i].inventory.length === 0 || playerItems[i].prefab.preposition === "") return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". ${playerItems[i].identifier ? playerItems[i].identifier : playerItems[i].prefab.id} cannot hold items.`);
+                    if (playerItems[i].inventory.length === 0 || playerItems[i].prefab.preposition === "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". ${playerItems[i].identifier ? playerItems[i].identifier : playerItems[i].prefab.id} cannot hold items.`);
                     containerItem = playerItems[i];
 
                     if (parsedInput2.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "")
@@ -247,7 +247,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                        if (containerItemSlot === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
                     }
                     if (parsedInput2.endsWith(containerItem.prefab.preposition.toUpperCase()))
                         parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -289,7 +289,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                                 break;
                             }
                         }
-                        if (item === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find item "${parsedInput2}" ${preposition} ${containerName}.`);
+                        if (item === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find item "${parsedInput2}" ${preposition} ${containerName}.`);
                     }
                 }
             }
@@ -301,14 +301,14 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                         item = player.inventory[i].equippedItem;
                         equipmentSlotName = player.inventory[i].name;
                         if (item === null) gotoNext = true;
-                        if (destroyAll) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipment slot.`);
+                        if (destroyAll) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipment slot.`);
                         break;
                     }
                     else if (player.inventory[i].equippedItem !== null &&
                         (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === parsedInput2 || player.inventory[i].equippedItem.prefab.id === parsedInput2)) {
                         item = player.inventory[i].equippedItem;
                         equipmentSlotName = player.inventory[i].name;
-                        if (destroyAll) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipped item.`);
+                        if (destroyAll) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipped item.`);
                         break;
                     }
                 }
@@ -320,7 +320,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             if (gotoNext) continue;
 
             if (item !== null) itemManager.destroyInventoryItem(item, bot, true);
-            else return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" in ${player.name}'s inventory.`);
+            else return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" in ${player.name}'s inventory.`);
         }
     }
 

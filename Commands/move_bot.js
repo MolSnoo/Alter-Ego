@@ -19,7 +19,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -44,7 +44,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 break;
             }
         }
-        if (player === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }
@@ -60,7 +60,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             break;
         }
     }
-    if (desiredRoom === null) return game.commandChannel.send(`Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (desiredRoom === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -111,7 +111,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.logChannel.send(`${time} - ${playerList} forcefully moved to ${desiredRoom.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${playerList} forcefully moved to ${desiredRoom.channel}`);
 
     return;
 };

@@ -17,7 +17,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         playerList += game.players_alive[0].name;
     for (let i = 1; i < game.players_alive.length; i++)
         playerList += `, ${game.players_alive[i].name}`;
-    message.channel.send(playerList);
+    game.messageHandler.addGameMechanicMessage(message.channel, playerList);
 
     return;
 };

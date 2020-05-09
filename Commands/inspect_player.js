@@ -28,14 +28,11 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0) {
-        message.reply("you need to specify an object/item. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length === 0)
+        return game.messageHandler.addReply(message, `you need to specify an object/item/player. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable inspect");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -43,7 +40,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
         new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
-        player.sendDescription(player.location.description, player.location);
+        player.sendDescription(game, player.location.description, player.location);
 
         return;
     }
@@ -60,21 +57,21 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (object !== null) {
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
-        player.sendDescription(object.description, object);
+        player.sendDescription(game, object.description, object);
 
         for (let i = 0; i < game.players_alive.length; i++) {
             const hiddenPlayer = game.players_alive[i];
             if (hiddenPlayer.location.name === player.location.name && hiddenPlayer.hidingSpot === object.name) {
-                player.member.send(`While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
+                player.notify(game, `While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
                 hiddenPlayer.cure(game, "hidden", false, false, true);
-                hiddenPlayer.member.send(`You've been found by ${player.displayName}. You are no longer hidden.`);
+                hiddenPlayer.notify(game, `You've been found by ${player.displayName}. You are no longer hidden.`);
                 break;
             }
         }
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.logChannel.send(`${time} - ${player.name} inspected ${object.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${object.name} in ${player.location.channel}`);
 
         return;
     }
@@ -97,10 +94,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         if (item !== null) {
             if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase}.`).send();
-            player.sendDescription(item.description, item);
+            player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} inspected ${item.prefab.id} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${item.prefab.id} in ${player.location.channel}`);
 
             return;
         }
@@ -113,10 +110,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
             const item = inventory[i];
             if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.prefab.singleContainingPhrase} and begins inspecting it.`).send();
-            player.sendDescription(item.description, item);
+            player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} inspected ${item.prefab.id} from their inventory in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${item.prefab.id} from their inventory in ${player.location.channel}`);
 
             return;
         }
@@ -128,17 +125,17 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.id === player.id) return message.reply(`can't inspect yourself.`);
-            player.sendDescription(occupant.description, occupant);
+            if (occupant.id === player.id) return game.messageHandler.addReply(message, `can't inspect yourself.`);
+            player.sendDescription(game, occupant.description, occupant);
 
             const time = new Date().toLocaleTimeString();
-            game.logChannel.send(`${time} - ${player.name} inspected ${occupant.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${occupant.name} in ${player.location.channel}`);
 
             return;
         }
         else if (parsedInput.startsWith(possessive)) {
             // Don't let the player inspect their own items this way.
-            if (occupant.id === player.id) return message.reply(`can't inspect your own items this way. Use "my" instead of your name.`);
+            if (occupant.id === player.id) return game.messageHandler.addReply(message, `can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
             const inventory = game.inventoryItems.filter(item => item.player.id === occupant.id && item.prefab !== null && item.containerName === "" && item.container === null);
@@ -153,10 +150,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     if (coveringItems.length === 0) {
                         // Clear out any il tags in the description.
                         let description = inventory[j].description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
-                        player.sendDescription(description, inventory[j]);
+                        player.sendDescription(game, description, inventory[j]);
 
                         const time = new Date().toLocaleTimeString();
-                        game.logChannel.send(`${time} - ${player.name} inspected ${inventory[j].prefab.id} from ${occupant.name}'s inventory in ${player.location.channel}`);
+                        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${inventory[j].prefab.id} from ${occupant.name}'s inventory in ${player.location.channel}`);
 
                         return;
                     }
@@ -165,5 +162,5 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
     }
 
-    return message.reply(`couldn't find "${input}".`);
+    return game.messageHandler.addReply(message, `couldn't find "${input}".`);
 };

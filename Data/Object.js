@@ -63,7 +63,7 @@ class Object {
 
         this.process.recipe = result.recipe;
         this.process.ingredients = result.ingredients;
-        if (player) player.sendDescription(this.process.recipe.initiatedDescription, this);
+        if (player) player.sendDescription(game, this.process.recipe.initiatedDescription, this);
         this.process.duration = this.process.recipe.duration.clone();
 
         let object = this;

@@ -11,10 +11,10 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable status");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     const statusMessage = `You are currently:\n${player.generate_statusList(false, false)}`;
-    player.member.send(statusMessage);
+    game.messageHandler.addGameMechanicMessage(player.member, statusMessage);
 
     return;
 };

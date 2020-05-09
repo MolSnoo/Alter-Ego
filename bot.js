@@ -3,6 +3,7 @@ global.include = require('app-root-path').require;
 
 const settings = include('settings.json');
 const credentials = include('credentials.json');
+const messageHandler = include(`${settings.modulesDir}/messageHandler.js`);
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
 const queuer = include(`${settings.modulesDir}/queuer.js`);
@@ -14,6 +15,7 @@ var moment = require('moment');
 moment().format();
 
 var game = include(`game.json`);
+game.messageHandler = messageHandler;
 
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
@@ -78,6 +80,11 @@ bot.on('ready', async () => {
         queuer.pushQueue();
     }, settings.queueInterval * 1000);
 
+    // Send messages in message queue periodically.
+    setInterval(() => {
+        game.messageHandler.sendQueuedMessages();
+    }, settings.messageQueueInterval * 1000);
+
     // Run online players check periodically.
     setInterval(() => {
         updateStatus();
@@ -115,8 +122,8 @@ bot.on('message', async message => {
         const command = message.content.substring(settings.commandPrefix.length);
         var isCommand = await commandHandler.execute(command, bot, game, message);
     }
-    if (message && !isCommand && game.game && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory)) {
-        await dialogHandler.execute(game, message, true);
+    if (message && !isCommand && game.game && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory || message.channel.id === settings.announcementChannel)) {
+        await dialogHandler.execute(bot, game, message, true);
     }
 });
 

@@ -22,14 +22,11 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length < 2) {
-        message.reply("you need to specify a player and one of their equipped items. Usage:");
-        message.channel.send(exports.config.usage);
-        return;
-    }
+    if (args.length < 2)
+        return game.messageHandler.addReply(message, `you need to specify a player and one of their equipped items. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable steal");
-    if (status.length > 0) return message.reply(`You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -46,7 +43,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return message.reply("you do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === "") return game.messageHandler.addReply(message, "you do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     if (args[0].toUpperCase() === "FROM") args.splice(0, 1);
     var input = args.join(' ');
@@ -59,14 +56,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(possessive) && !occupant.hasAttribute("hidden")) {
             // Player cannot steal from themselves.
-            if (occupant.id === player.id) return message.reply("you can't steal from yourself.");
+            if (occupant.id === player.id) return game.messageHandler.addReply(message, "you can't steal from yourself.");
 
             victim = occupant;
             parsedInput = parsedInput.substring(possessive.length).trim();
             break;
         }
     }
-    if (victim === null) return message.reply(`couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
+    if (victim === null) return game.messageHandler.addReply(message, `couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // parsedInput should be the equipped item and possibly a slot name. Get the names of those.
     var newArgs = parsedInput.split(" OF ");
@@ -87,8 +84,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (coveringItems.length === 0) container = inventory[i];
         }
     }
-    if (container === null) return message.reply(`couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
-    if (container.inventory.length === 0) return message.reply(`${victim.displayName}'s ${container.name} cannot hold items.`);
+    if (container === null) return game.messageHandler.addReply(message, `couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
+    if (container.inventory.length === 0) return game.messageHandler.addReply(message, `${victim.displayName}'s ${container.name} cannot hold items.`);
 
     // If no slot name was specified, pick one.
     var slotNo = -1;
@@ -101,12 +98,12 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 break;
             }
         }
-        if (slotNo === -1) return message.reply(`couldn't find "${slotName}" of ${container.name}.`);
+        if (slotNo === -1) return game.messageHandler.addReply(message, `couldn't find "${slotName}" of ${container.name}.`);
     }
     // If there are no items in that slot, tell the player.
     if (container.inventory[slotNo].item.length === 0) {
-        if (container.inventory.length === 1) return player.member.send(`You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
-        else return player.member.send(`You try to steal from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but it's empty.`);
+        if (container.inventory.length === 1) return player.notify(game, `You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
+        else return player.notify(game, `You try to steal from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but it's empty.`);
     }
 
     const result = player.steal(game, hand, victim, container, slotNo);
@@ -114,9 +111,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Post log message.
     const time = new Date().toLocaleTimeString();
     if (result.successful)
-        game.logChannel.send(`${time} - ${player.name} stole ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} stole ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
     else
-        game.logChannel.send(`${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
 
     return;
 };
