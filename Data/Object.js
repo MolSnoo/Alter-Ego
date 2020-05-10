@@ -96,6 +96,8 @@ class Object {
                 }
                 if (stillThere) {
                     const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+                    // If there is only one ingredient in this, remember its quantity.
+                    const quantity = object.process.ingredients.length === 1 ? object.process.ingredients[0].quantity : 1;
                     // Destroy the ingredients.
                     for (let i = 0; i < object.process.ingredients.length; i++) {
                         let destroy = true;
@@ -105,7 +107,7 @@ class Object {
                                 break;
                             }
                         }
-                        if (destroy) itemManager.destroyItem(object.process.ingredients[i], true);
+                        if (destroy) itemManager.destroyItem(object.process.ingredients[i], quantity, true);
                     }
                     // Instantiate the products.
                     for (let i = 0; i < object.process.recipe.products.length; i++) {
@@ -124,7 +126,7 @@ class Object {
                                 break;
                             }
                         }
-                        if (instantiate) itemManager.instantiateItem(product, object.location, object, "", 1);
+                        if (instantiate) itemManager.instantiateItem(product, object.location, object, "", quantity);
                     }
                     if (player && player.location.name === object.location.name) player.sendDescription(game, object.process.recipe.completedDescription, object);
                 }
@@ -217,6 +219,8 @@ class Object {
                         }
                         if (stillThere) {
                             const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+                            // If there is only one ingredient in this, remember its quantity.
+                            const quantity = object.process.ingredients.length === 1 ? object.process.ingredients[0].quantity : 1;
                             // Destroy the ingredients.
                             for (let i = 0; i < object.process.ingredients.length; i++) {
                                 let destroy = true;
@@ -226,7 +230,7 @@ class Object {
                                         break;
                                     }
                                 }
-                                if (destroy) itemManager.destroyItem(object.process.ingredients[i], true);
+                                if (destroy) itemManager.destroyItem(object.process.ingredients[i], quantity, true);
                             }
                             // Instantiate the products.
                             for (let i = 0; i < object.process.recipe.products.length; i++) {
@@ -245,7 +249,7 @@ class Object {
                                         break;
                                     }
                                 }
-                                if (instantiate) itemManager.instantiateItem(product, object.location, object, "", 1);
+                                if (instantiate) itemManager.instantiateItem(product, object.location, object, "", quantity);
                             }
                         }
 
@@ -292,6 +296,7 @@ class Object {
         if (recipe === null) {
             let matches = [];
             for (let i = 0; i < recipes.length; i++) {
+                ingredients.length = 0;
                 // Find all the items that match the ingredients in this recipe.
                 for (let j = 0; j < recipes[i].ingredients.length; j++) {
                     const ingredient = recipes[i].ingredients[j];
@@ -305,7 +310,6 @@ class Object {
                 }
                 if (recipes[i].ingredients.length === ingredients.length)
                     matches.push({ recipe: recipes[i], ingredients: [...ingredients] });
-                else ingredients.length = 0;
             }
             if (matches.length > 0) {
                 // Sort matches by number of matched ingredients in decreasing order.

@@ -170,7 +170,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (destroyAll) {
             if (parsedInput !== "") return game.messageHandler.addReply(message, `couldn't find "${parsedInput}" at ${room.name}`);
             for (let i = 0; i < containerItems.length; i++)
-                itemManager.destroyItem(containerItems[i], true);
+                itemManager.destroyItem(containerItems[i], containerItems[i].quantity, true);
             game.messageHandler.addGameMechanicMessage(message.channel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
         }
         else {
@@ -185,7 +185,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
             if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" ${preposition} ${containerName}.`);
 
-            itemManager.destroyItem(item, true);
+            itemManager.destroyItem(item, item.quantity, true);
             game.messageHandler.addGameMechanicMessage(message.channel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName}.`);
         }
     }
@@ -257,7 +257,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
             if (destroyAll) {
                 for (let i = 0; i < containerItems.length; i++)
-                    itemManager.destroyInventoryItem(containerItems[i], bot, true);
+                    itemManager.destroyInventoryItem(containerItems[i], containerItems[i].quantity, bot, true);
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
                 return;
             }
@@ -294,7 +294,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 }
             }
             if (item !== null && equipmentSlotName !== "") {
-                itemManager.destroyInventoryItem(item, bot, true);
+                itemManager.destroyInventoryItem(item, item.quantity, bot, true);
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${player.name}'s ${equipmentSlotName}.`);
                 return;
             }
@@ -304,7 +304,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (containerName === "") containerName = `${item.slot} of ${item.container.identifier} in ${player.name}'s inventory`;
             if (item.container.prefab.preposition) preposition = item.container.prefab.preposition;
 
-            itemManager.destroyInventoryItem(item, bot, true);
+            itemManager.destroyInventoryItem(item, item.quantity, bot, true);
             game.messageHandler.addGameMechanicMessage(message.channel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName}.`);
         }
         else return game.messageHandler.addReply(message, `couldn't find "${parsedInput}" in ${player.name}'s inventory.`);

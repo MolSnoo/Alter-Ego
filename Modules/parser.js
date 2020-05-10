@@ -80,7 +80,7 @@ module.exports.parseDescription = function (description, container, player, doEr
             if (conditionalsToRemove[i].childNodes[0].tagName === 'item') {
                 let itemElement = conditionalsToRemove[i].childNodes[0].childNodes[0];
                 let item = new Item("", 0, itemElement.data, itemElement.data);
-                document = this.removeItem(description, item, "", true, document);
+                document = this.removeItem(description, item, "", NaN, document);
             }
             else if (conditionalsToRemove[i].parentNode) conditionalsToRemove[i].parentNode.removeChild(conditionalsToRemove[i]);
             else document.removeChild(conditionalsToRemove[i]);
@@ -225,8 +225,8 @@ module.exports.addItem = function (description, item, slot, addedQuantity) {
     return stringify(document).replace(/&amp;/g, '&');
 };
 
-module.exports.removeItem = function (description, item, slot, force, document) {
-    if (!force) force = false;
+module.exports.removeItem = function (description, item, slot, removedQuantity, document) {
+    if (removedQuantity === null || removedQuantity === undefined) removedQuantity = 1;
     var returnDocument = false;
     if (document)
         returnDocument = true;
@@ -265,8 +265,8 @@ module.exports.removeItem = function (description, item, slot, force, document) 
         }
 
         if (removeItem) {
-            // If force argument is true, remove the item clause regardless of its quantity.
-            if (!force) removeItem = false;
+            // If removedQuantity argument is NaN, remove the item clause regardless of its quantity.
+            if (!isNaN(removedQuantity)) removeItem = false;
 
             // First make sure there aren't multiple of that item.
             let start = text.search(/\d/);
@@ -277,8 +277,8 @@ module.exports.removeItem = function (description, item, slot, force, document) 
                         break;
                 }
                 const quantity = parseInt(text.substring(start, end));
-                if (quantity - 1 === 1) sentence.clause[i].set(item.singleContainingPhrase);
-                else if (quantity > 1) sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - 1));
+                if (quantity - removedQuantity === 1) sentence.clause[i].set(item.singleContainingPhrase);
+                else if (quantity - removedQuantity > 1) sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - removedQuantity));
                 else removeItem = true;
             }
             else removeItem = true;

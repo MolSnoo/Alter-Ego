@@ -130,7 +130,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
 
 module.exports.replaceInventoryItem = function (item, newPrefab) {
     if (newPrefab === null || newPrefab === undefined) {
-        this.destroyInventoryItem(item, true);
+        this.destroyInventoryItem(item, item.quantity, null, true);
         return;
     }
     item.player.carryWeight -= item.weight * item.quantity;
@@ -148,7 +148,7 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     let childItems = [];
     this.getChildItems(childItems, item);
     for (let i = 0; i < childItems.length; i++)
-        this.destroyInventoryItem(childItems[i], null, false);
+        this.destroyInventoryItem(childItems[i], childItems[i].quantity, null, false);
 
     item.inventory.length = 0;
     for (let i = 0; i < newPrefab.inventory.length; i++) {
@@ -169,37 +169,36 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     return;
 };
 
-module.exports.destroyItem = function (item, getChildren) {
-    const removedQuantity = item.quantity;
-    item.quantity = 0;
+module.exports.destroyItem = function (item, quantity, getChildren) {
+    item.quantity -= quantity;
     game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Items!${item.prefab.id}|${item.identifier}|${item.location.name}|${item.containerName}`, item.quantity));
 
     var containerName = "";
     var preposition = "in";
     const container = item.container;
     if (container instanceof Puzzle) {
-        container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item, null, true);
+        container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item, null, quantity);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.alreadySolvedCell(), `Puzzles!${container.name}|${container.location.name}`, container.alreadySolvedDescription));
         containerName = container.parentObject ? container.parentObject.name : container.name;
         preposition = container.parentObject ? container.parentObject.preposition : "in";
     }
     else if (container instanceof Object) {
-        container.description = parser.removeItem(container.description, item, null, true);
+        container.description = parser.removeItem(container.description, item, null, quantity);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Objects!${container.name}|${container.location.name}`, container.description));
         containerName = container.name;
         preposition = container.preposition ? container.preposition : "in";
     }
     else if (container instanceof Item) {
-        container.removeItem(item, item.slot, removedQuantity);
-        container.description = parser.removeItem(container.description, item, item.slot, true);
+        container.removeItem(item, item.slot, quantity);
+        container.description = parser.removeItem(container.description, item, item.slot, quantity);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Items!${container.prefab.id}|${container.identifier}|${container.location.name}|${container.containerName}`, container.description));
         containerName = `${item.slot} of ${container.identifier}`;
         preposition = container.prefab ? container.prefab.preposition : "in";
     }
     else if (container === null) {
-        container.description = parser.removeItem(container.description, item, null, true);
+        container.description = parser.removeItem(container.description, item, null, quantity);
         for (let i = 0; i < container.exit.length; i++) {
-            container.exit[i].description = parser.removeItem(container.exit[i].description, item, null, true);
+            container.exit[i].description = parser.removeItem(container.exit[i].description, item, null, quantity);
             game.queue.push(new QueueEntry(Date.now(), "updateCell", container.exit[i].descriptionCell(), `Rooms!${container.name}|${container.exit[i].name}`, container.exit[i].description));
         }
         preposition = "in";
@@ -209,7 +208,7 @@ module.exports.destroyItem = function (item, getChildren) {
         let childItems = [];
         this.getChildItems(childItems, item);
         for (let i = 0; i < childItems.length; i++)
-            this.destroyItem(childItems[i], false);
+            this.destroyItem(childItems[i], childItems[i].quantity, false);
     }
 
     // Post log message.
@@ -219,12 +218,12 @@ module.exports.destroyItem = function (item, getChildren) {
     return;
 };
 
-module.exports.destroyInventoryItem = function (item, bot, getChildren) {
+module.exports.destroyInventoryItem = function (item, quantity, bot, getChildren) {
     if (getChildren) {
         let childItems = [];
         this.getChildItems(childItems, item);
         for (let i = 0; i < childItems.length; i++)
-            this.destroyInventoryItem(childItems[i], bot, false);
+            this.destroyInventoryItem(childItems[i], childItems[i].quantity, bot, false);
     }
 
     // If the item is equipped, simply unequip it. The fastEquip method will destroy it.
@@ -236,13 +235,12 @@ module.exports.destroyInventoryItem = function (item, bot, getChildren) {
         game.messageHandler.addLogMessage(game.logChannel, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
     else {
-        const removedQuantity = item.quantity;
-        item.quantity = 0;
+        item.quantity -= quantity;
         game.queue.push(new QueueEntry(Date.now(), "updateCell", item.quantityCell(), `Inventory Items!${item.prefab.id}|${item.identifier}|${item.player.name}|${item.equipmentSlot}|${item.containerName}`, item.quantity));
 
         const container = item.container;
-        container.removeItem(item, item.slot, removedQuantity);
-        container.description = parser.removeItem(container.description, item, item.slot, true);
+        container.removeItem(item, item.slot, quantity);
+        container.description = parser.removeItem(container.description, item, item.slot, quantity);
         game.queue.push(new QueueEntry(Date.now(), "updateCell", container.descriptionCell(), `Inventory Items!${container.prefab.id}|${container.identifier}|${container.player.name}|${container.equipmentSlot}|${container.containerName}`, container.description));
         const containerName = `${item.slot} of ${container.identifier}`;
         const preposition = container.prefab ? container.prefab.preposition : "in";
