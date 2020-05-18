@@ -828,7 +828,7 @@ testremove = async (file, formatted, player) => {
             const item = game.items[i];
             if (item.description.includes('<item>') && item.description.includes('</item>')) {
                 text += "   ";
-                text += item.name + os.EOL;
+                text += item.identifier + os.EOL;
 
                 text += "      ";
                 text += (formatted ? item.description : parser.parseDescription(item.description, item, player)) + os.EOL;
@@ -837,7 +837,7 @@ testremove = async (file, formatted, player) => {
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
                     if (game.items[j].location.name === item.location.name
-                        && game.items[j].containerName.startsWith(`Item: ${item.prefab.id}/`)
+                        && game.items[j].containerName.startsWith(`Item: ${item.identifier}/`)
                         && game.items[j].container.row === item.row
                         && game.items[j].accessible
                         && item.prefab.preposition !== ""
@@ -1015,7 +1015,7 @@ testremove = async (file, formatted, player) => {
             const inventoryItem = game.inventoryItems[i];
             if (inventoryItem.prefab !== null && inventoryItem.description.includes('<item>') && inventoryItem.description.includes('</item>')) {
                 text += "   ";
-                text += inventoryItem.name + os.EOL;
+                text += inventoryItem.identifier + os.EOL;
 
                 text += "      ";
                 text += (formatted ? inventoryItem.description : parser.parseDescription(inventoryItem.description, inventoryItem, player)) + os.EOL;
@@ -1025,7 +1025,7 @@ testremove = async (file, formatted, player) => {
                 for (let j = 0; j < game.inventoryItems.length; j++) {
                     if (game.inventoryItems[j].player.name === inventoryItem.player.name
                         && game.inventoryItems[j].prefab !== null
-                        && game.inventoryItems[j].containerName.startsWith(`${inventoryItem.prefab.id}/`)
+                        && game.inventoryItems[j].containerName.startsWith(`${inventoryItem.identifier}/`)
                         && game.inventoryItems[j].container !== null
                         && game.inventoryItems[j].container.row === inventoryItem.row
                         && inventoryItem.prefab.preposition !== ""
