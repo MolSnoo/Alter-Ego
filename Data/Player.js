@@ -1895,7 +1895,7 @@ class Player {
             }
         }
 
-        game.messageHandler.addGameMechanicMessage(this.member, "You have died. When your body is discovered, you will be given the Dead role. Until then, please do not speak on the server or to other players.");
+        game.messageHandler.addDirectNarration(this, "You have died. When your body is discovered, you will be given the Dead role. Until then, please do not speak on the server or to other players.");
         
         return;
     }

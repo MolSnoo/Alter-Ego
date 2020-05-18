@@ -223,7 +223,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
             // Players with the see room attribute should receive narrations from moderators.
             if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('('))
                 occupant.notify(game, message.content);
-            else if (!occupant.hasAttribute("no sight") && !message.content.startsWith('('))
+            else if (!occupant.hasAttribute("no sight") && !occupant.hasAttribute("unconscious") && !message.content.startsWith('('))
                 game.messageHandler.addSpectatedPlayerMessage(occupant, message.member.displayName, message);
         }
     }
