@@ -1837,6 +1837,11 @@ class Player {
                         else puzzle.fail(game, this, "");
                     }
                 }
+                else if (puzzle.type === "switch") {
+                    if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}, but nothing happens.`);
+                    else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
+                    else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
+                }
             }
             // The player is missing an item needed to solve the puzzle.
             else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);

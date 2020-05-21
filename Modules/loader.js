@@ -831,7 +831,7 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
     if (puzzle.parentObject !== null && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle.name !== puzzle.name)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
-    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "voice")
+    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "voice" && puzzle.type !== "switch")
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if (puzzle.type === "probability" && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
@@ -841,6 +841,12 @@ module.exports.checkPuzzle = function (puzzle) {
                 return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${puzzle.solutions[i]}" is not an integer.`);
         }
     }
+    if (puzzle.type === "switch" && puzzle.solved === false)
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but it not solved.`);
+    if (puzzle.type === "switch" && puzzle.outcome === "")
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but no outcome was given.`);
+    if (puzzle.type === "switch" && !puzzle.solutions.includes(puzzle.outcome))
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but its outcome is not among the list of its solutions.`);
     for (let i = 0; i < puzzle.commandSets.length; i++) {
         for (let j = 0; j < puzzle.commandSets[i].outcomes.length; j++) {
             if (!puzzle.solutions.includes(puzzle.commandSets[i].outcomes[j]))
