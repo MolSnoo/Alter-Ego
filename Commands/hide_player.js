@@ -19,8 +19,18 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable hide");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
-    if (player.statusString.includes("hidden") && command === "unhide")
-        player.cure(game, "hidden", true, false, true);
+    if (player.statusString.includes("hidden") && command === "unhide") {
+        let object = null;
+        for (let i = 0; i < game.objects.length; i++) {
+            if (game.objects[i].location.name === player.location.name && game.objects[i].name === player.hidingSpot) {
+                object = game.objects[i];
+                break;
+            }
+        }
+        if (object !== null && (!object.accessible || object.childPuzzle !== null && object.childPuzzle.type.endsWith("lock") && !object.childPuzzle.solved))
+            return game.messageHandler.addReply(message, `you cannot come out of hiding right now.`);
+        else player.cure(game, "hidden", true, false, true);
+    }
     else if (player.statusString.includes("hidden"))
         return game.messageHandler.addReply(message, `you are already **hidden**. If you wish to stop hiding, use "${settings.commandPrefix}unhide".`);
     else if (command === "unhide")
@@ -45,6 +55,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 return game.messageHandler.addReply(message, `${objects[i].name} is not a hiding spot.`);
         }
         if (object === null) return game.messageHandler.addReply(message, `couldn't find object "${input}".`);
+
+        // Make sure the object isn't locked.
+        if (object.childPuzzle !== null && object.childPuzzle.type.endsWith("lock") && !object.childPuzzle.solved)
+            return game.messageHandler.addReply(message, `you cannot hide in ${object.name} right now.`);
 
         // Check to see if the hiding spot is already taken.
         var hiddenPlayer = null;

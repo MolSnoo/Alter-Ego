@@ -59,13 +59,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
         player.sendDescription(game, object.description, object);
 
-        for (let i = 0; i < game.players_alive.length; i++) {
-            const hiddenPlayer = game.players_alive[i];
-            if (hiddenPlayer.location.name === player.location.name && hiddenPlayer.hidingSpot === object.name) {
-                player.notify(game, `While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
-                hiddenPlayer.cure(game, "hidden", false, false, true);
-                hiddenPlayer.notify(game, `You've been found by ${player.displayName}. You are no longer hidden.`);
-                break;
+        // Make sure the object isn't locked.
+        if (object.childPuzzle === null || !object.childPuzzle.type.endsWith("lock") || object.childPuzzle.solved) {
+            for (let i = 0; i < game.players_alive.length; i++) {
+                const hiddenPlayer = game.players_alive[i];
+                if (hiddenPlayer.location.name === player.location.name && hiddenPlayer.hidingSpot === object.name) {
+                    player.notify(game, `While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
+                    hiddenPlayer.cure(game, "hidden", false, false, true);
+                    hiddenPlayer.notify(game, `You've been found by ${player.displayName}. You are no longer hidden.`);
+                    break;
+                }
             }
         }
 
