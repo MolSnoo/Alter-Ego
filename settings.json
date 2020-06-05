@@ -101,6 +101,8 @@
 
   "roomSheetAllCells": "Rooms!A1:K",
   "roomSheetUnlockedColumn": "Rooms!H",
+  "roomSheetLeadsToColumn": "Rooms!I",
+  "roomSheetFromColumn": "Rooms!J",
   "roomSheetDescriptionColumn": "Rooms!K",
   "objectSheetAllCells": "Objects!A1:K",
   "objectSheetAccessibleColumn": "Objects!C",
