@@ -10,7 +10,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels
         room.occupants.forEach(player => {
-            if (speaker === null || speaker.id !== player.id)
+            if ((speaker === null || speaker.id !== player.id) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")))
                 addMessageToQueue(player.spectateChannel, messageText, settings.priority.spectatorMessage);
         });
     }
