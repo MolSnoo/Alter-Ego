@@ -721,7 +721,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requirements.length; j++)
                     requirements[j] = requirements[j].trim();
-                const regex = new RegExp(/(\[((.*?): (.*?))\],?)/);
+                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
                 let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "";
                 let commandSets = [];
                 let getCommands = function (commandString) {
@@ -831,7 +831,7 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
     if (puzzle.parentObject !== null && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle.name !== puzzle.name)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
-    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "voice" && puzzle.type !== "switch")
+    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && puzzle.type !== "probability" && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "voice" && puzzle.type !== "switch" && puzzle.type !== "media")
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if (puzzle.type === "probability" && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
@@ -847,6 +847,16 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but no outcome was given.`);
     if (puzzle.type === "switch" && !puzzle.solutions.includes(puzzle.outcome))
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but its outcome is not among the list of its solutions.`);
+    if (puzzle.type === "media") {
+        for (let i = 0; i < puzzle.solutions.length; i++) {
+            if (!puzzle.solutions[i].startsWith("Item: "))
+                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${puzzle.solutions[i]}" does not have the "Item: " prefix.`);
+        }
+        if (puzzle.solved === true && puzzle.outcome === "")
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but it was solved without an outcome.`);
+        if (puzzle.outcome !== "" && !puzzle.solutions.includes(puzzle.outcome))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but its outcome is not among the list of its solutions.`);
+    }
     for (let i = 0; i < puzzle.commandSets.length; i++) {
         for (let j = 0; j < puzzle.commandSets[i].outcomes.length; j++) {
             if (!puzzle.solutions.includes(puzzle.commandSets[i].outcomes[j]))

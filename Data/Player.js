@@ -1756,7 +1756,7 @@ class Player {
             }
             else hasRequiredItem = true;
 
-            if (puzzle.solved || hasRequiredItem) requirementsMet = true;
+            if (puzzle.solved || hasRequiredItem || puzzle.type === "media") requirementsMet = true;
 
             // Puzzle is solvable.
             if (requirementsMet) {
@@ -1793,7 +1793,7 @@ class Player {
                     // The lock is locked.
                     else {
                         if (command === "lock") return `${puzzleName} is already locked.`;
-                        if (password === "") return "you need to enter a combination. The format is #-#-#.";
+                        if (password === "") return "you need to enter a combination.";
                         else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, password, true);
                         else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzleName}.`);
                     }
@@ -1843,6 +1843,29 @@ class Player {
                     if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}, but nothing happens.`);
                     else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
                     else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
+                }
+                else if (puzzle.type === "media") {
+                    if (puzzle.solved && item === null) {
+                        let message = null;
+                        if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
+                        puzzle.unsolve(bot, game,this, `${this.displayName} presses eject on the ${puzzleName}.`, message, true);
+                    }
+                    else if (puzzle.solved && item !== null)
+                        return `you cannot insert ${item.singleContainingPhrase} into the ${puzzleName} as something is already inside it. Eject it first by sending \`.use ${puzzleName}\`.`;
+                    else if (!puzzle.solved && item !== null) {
+                        hasRequiredItem = false;
+                        let solution = "";
+                        for (let i = 0; i < puzzle.solutions.length; i++) {
+                            if (puzzle.solutions[i] === `Item: ${item.prefab.id}`) {
+                                hasRequiredItem = true;
+                                solution = puzzle.solutions[i];
+                                break;
+                            }
+                        }
+                        if (hasRequiredItem) puzzle.solve(bot, game, this, `${this.displayName} inserts ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}.`, solution, true);
+                        else puzzle.fail(game, this, `${this.displayName} attempts to insert ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}, but it doesn't fit.`);
+                    }
+                    else puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
                 }
             }
             // The player is missing an item needed to solve the puzzle.
