@@ -1721,7 +1721,7 @@ class Player {
             puzzle.setAccessible(game);
         else if (!allRequirementsSolved && puzzle.accessible)
             puzzle.setInaccessible(game);
-        if (puzzle.accessible) {
+        if (puzzle.accessible || puzzle.type === "weight" && (misc.command === "take" || misc.command === "drop")) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
                 this.sendDescription(game, puzzle.noMoreAttemptsDescription, puzzle);
@@ -1756,7 +1756,7 @@ class Player {
             }
             else hasRequiredItem = true;
 
-            if (puzzle.solved || hasRequiredItem || puzzle.type === "media") requirementsMet = true;
+            if (puzzle.solved || hasRequiredItem || puzzle.type === "media" || puzzle.type === "weight" && (misc.command === "take" || misc.command === "drop")) requirementsMet = true;
 
             // Puzzle is solvable.
             if (requirementsMet) {
