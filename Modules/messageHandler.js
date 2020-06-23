@@ -35,6 +35,38 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
         addMessageToQueue(player.spectateChannel, messageText, settings.priority.spectatorMessage);
 };
 
+// Narrate a room description to a player
+module.exports.addRoomDescription = async (player, game, location, descriptionText, addSpectate = true) => {
+    // Create the list of occupants
+    let otherOccupantsString = location.generate_occupantsString(location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.id !== player.id));
+    // Create the list of dropped items
+    let itemsString = "You see ";
+    let items = game.items.filter(item => item.location.name === location.name && item.accessible && item.containerName == "Object: FLOOR");
+    if (items.length === 0) itemsString = "There are no discarded items on the floor.";
+    else if (items.length === 1) itemsString += `${items[0].name} on the floor.`;
+    else if (items.length === 2) itemsString += `${items[0].name} and ${items[1].name} on the floor.`;
+    else if (items.length >= 3) {
+        for (let i = 0; i < items.length - 1; i++)
+            itemsString += `${items[i].name}, `;
+        itemsString += `and ${items[items.length - 1].name} on the floor.`;
+    }
+
+    let embed = {
+        "thumbnail": { "url": "https://avatars2.githubusercontent.com/u/44875872?s=400&u=1d9e5021ee09ebe537ec6caac6b18a8557eb0a05&v=4" },
+        "title": location.name,
+        "description": descriptionText,
+        "color": 15158332, // red
+        "fields": [
+            { "name": "Occupants", "value": otherOccupantsString === "" ? "You don't see anyone here." : `You see ${otherOccupantsString}.` },
+            { "name": "Floor", "value": itemsString }
+        ]
+    };
+
+    addEmbedToQueue(player.member, embed, settings.priority.tellPlayer);
+    if (addSpectate)
+        addEmbedToQueue(player.spectateChannel, embed, settings.priority.spectatorMessage);
+};
+
 // Add a log message
 module.exports.addLogMessage = async (logChannel, messageText) => {
     addMessageToQueue(logChannel, messageText, settings.priority.logMessage);
@@ -107,6 +139,11 @@ function addWebhookMessageToQueue(webHook, messageText, webHookContents, priorit
 
 function addReplyToQueue(message, messageText, priority) {
     let sendAction = () => message.reply(messageText);
+    addToQueue(sendAction, priority);
+}
+
+function addEmbedToQueue(channel, embed, priority) {
+    let sendAction = () => channel.send({ embed: embed });
     addToQueue(sendAction, priority);
 }
 

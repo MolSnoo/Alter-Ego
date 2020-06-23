@@ -1954,8 +1954,11 @@ class Player {
     }
 
     sendDescription(game, description, container) {
-        if (description && (!this.hasAttribute("unconscious") || container && container instanceof Status))
-            game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
+        if (description)
+            if (!this.hasAttribute("unconscious") && (container && container instanceof Room))
+                game.messageHandler.addRoomDescription(this, game, container, parser.parseDescription(description, container, this));
+            else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
+                game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
         return;
     }
 
