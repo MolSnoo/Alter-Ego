@@ -53,17 +53,6 @@ class Room {
                 player.sendDescription(game, description, this);
             }
         }
-        if (player.hasAttribute("see occupants") && !player.hasAttribute("no sight") && this.occupants.length > 0) {
-            if (this.occupantsString !== "")
-                player.notify(game, `You see ${this.occupantsString} in this room.`);
-        }
-        else if (!player.hasAttribute("no sight") && this.occupants.length > 0) {
-            // Come up with lists of concealed and sleeping players.
-            let concealedPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("concealed") && !occupant.hasAttribute("hidden")));
-            if (concealedPlayersString !== "") player.notify(game, `You see ${concealedPlayersString} in this room.`);
-            let sleepingPlayersString = this.generate_occupantsString(this.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
-            if (sleepingPlayersString !== "") player.notify(game, `You see ${sleepingPlayersString} sleeping in this room.`);
-        }
 
         // Update the player's location on the spreadsheet.
         game.queue.push(new QueueEntry(Date.now(), "updateCell", player.locationCell(), `Players!|${player.name}|Location`, this.name));

@@ -36,31 +36,21 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
 };
 
 // Narrate a room description to a player
-module.exports.addRoomDescription = async (player, game, location, descriptionText, addSpectate = true) => {
+module.exports.addRoomDescription = async (player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
     // Create the list of occupants
-    let otherOccupantsString = location.generate_occupantsString(location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.id !== player.id));
-    // Create the list of dropped items
-    let itemsString = "You see ";
-    let items = game.items.filter(item => item.location.name === location.name && item.accessible && item.containerName == "Object: FLOOR");
-    if (items.length === 0) itemsString = "There are no discarded items on the floor.";
-    else if (items.length === 1) itemsString += `${items[0].name} on the floor.`;
-    else if (items.length === 2) itemsString += `${items[0].name} and ${items[1].name} on the floor.`;
-    else if (items.length >= 3) {
-        for (let i = 0; i < items.length - 1; i++)
-            itemsString += `${items[i].name}, `;
-        itemsString += `and ${items[items.length - 1].name} on the floor.`;
+    let occupantsString = `You see ${location.occupantsString} in this room.`;
+    let sleepingPlayersString = location.generate_occupantsString(location.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
+    if (sleepingPlayersString !== "") {
+        occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
     }
 
-    let embed = {
-        "thumbnail": { "url": "https://avatars2.githubusercontent.com/u/44875872?s=400&u=1d9e5021ee09ebe537ec6caac6b18a8557eb0a05&v=4" },
-        "title": location.name,
-        "description": descriptionText,
-        "color": 15158332, // red
-        "fields": [
-            { "name": "Occupants", "value": otherOccupantsString === "" ? "You don't see anyone here." : `You see ${otherOccupantsString}.` },
-            { "name": "Floor", "value": itemsString }
-        ]
-    };
+    let embed = new discord.RichEmbed()
+        .setThumbnail('https://cdn.discordapp.com/attachments/697623260736651335/725961187824631868/logo.png')  // TEMPORARY
+        .setTitle(location.name)
+        .setColor('1F8B4C')
+        .setDescription(descriptionText)
+        .addField("Occupants", location.occupantsString === "" ? "You don't see anyone here." : occupantsString)
+        .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
 
     addEmbedToQueue(player.member, embed, settings.priority.tellPlayer);
     if (addSpectate)
