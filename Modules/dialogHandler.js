@@ -28,7 +28,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
     }
     if (player !== null && message.channel.id === settings.announcementChannel) {
         for (let i = 0; i < game.players_alive.length; i++)
-            game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player.displayName, message);
+            if (!game.players_alive[i].hasAttribute("unconscious")) game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player.displayName, message);
         return;
     }
     if (room === null) return;
@@ -149,6 +149,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
                     if (occupant.hasAttribute(`knows ${player.name}`) && !occupant.hasAttribute("no sight")) {
                         if (player.displayName !== player.name) occupant.notify(game, `${player.displayName}, whose voice you recognize to be ${player.name}'s, ${verb}s "${message.content}".`);
                         else if (occupant.hasAttribute("hear room")) occupant.notify(game, `${player.name} ${verb}s "${message.content}".`);
+                        else game.messageHandler.addSpectatedPlayerMessage(occupant, player.displayName, message);
                     }
                     else if (occupant.hasAttribute("hear room") || deafPlayerInRoom) {
                         if (occupant.hasAttribute(`knows ${player.name}`))
