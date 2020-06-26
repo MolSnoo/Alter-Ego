@@ -35,6 +35,28 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
         addMessageToQueue(player.spectateChannel, messageText, settings.priority.spectatorMessage);
 };
 
+// Narrate a room description to a player
+module.exports.addRoomDescription = async (player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
+    // Create the list of occupants
+    let occupantsString = `You see ${location.occupantsString} in this room.`;
+    let sleepingPlayersString = location.generate_occupantsString(location.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
+    if (sleepingPlayersString !== "") {
+        occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
+    }
+
+    let embed = new discord.RichEmbed()
+        .setThumbnail('https://cdn.discordapp.com/attachments/697623260736651335/725961187824631868/logo.png')  // TEMPORARY
+        .setTitle(location.name)
+        .setColor('1F8B4C')
+        .setDescription(descriptionText)
+        .addField("Occupants", location.occupantsString === "" ? "You don't see anyone here." : occupantsString)
+        .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
+
+    addEmbedToQueue(player.member, embed, settings.priority.tellPlayer);
+    if (addSpectate)
+        addEmbedToQueue(player.spectateChannel, embed, settings.priority.spectatorMessage);
+};
+
 // Add a log message
 module.exports.addLogMessage = async (logChannel, messageText) => {
     addMessageToQueue(logChannel, messageText, settings.priority.logMessage);
@@ -107,6 +129,11 @@ function addWebhookMessageToQueue(webHook, messageText, webHookContents, priorit
 
 function addReplyToQueue(message, messageText, priority) {
     let sendAction = () => message.reply(messageText);
+    addToQueue(sendAction, priority);
+}
+
+function addEmbedToQueue(channel, embed, priority) {
+    let sendAction = () => channel.send({ embed: embed });
     addToQueue(sendAction, priority);
 }
 

@@ -1954,8 +1954,16 @@ class Player {
     }
 
     sendDescription(game, description, container) {
-        if (description && (!this.hasAttribute("unconscious") || container && container instanceof Status))
-            game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
+        if (description)
+            if (!this.hasAttribute("unconscious") && (container && container instanceof Room)) {
+                var defaultDropObjectString = "";
+                var defaultDropObject = game.objects.find(object => object.name === settings.defaultDropObject && object.location.name === container.name);
+                if (defaultDropObject)
+                    defaultDropObjectString = parser.parseDescription(defaultDropObject.description, defaultDropObject, this);
+                game.messageHandler.addRoomDescription(this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
+            }
+            else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
+                game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
         return;
     }
 
