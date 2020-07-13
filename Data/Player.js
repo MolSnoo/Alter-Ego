@@ -180,7 +180,7 @@ class Player {
             player.pos.x = x;
             player.pos.y = y;
             player.pos.z = z;
-            player.stamina = player.stamina + lostStamina;
+            if (!player.hasAttribute('no stamina decrease')) player.stamina = player.stamina + lostStamina;
             // If player reaches half of their stamina, give them a warning.
             // Be sure to check player.reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.reachedHalfStamina) {
