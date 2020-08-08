@@ -75,8 +75,8 @@ module.exports.execute = async (bot, game, message, deletable) => {
         else {
             var isShouting = false;
             var verb = "say";
-            // If the message includes at least one letter and all letters in the message are uppercase, then the player is shouting.
-            if (RegExp("[a-zA-Z]", 'g').test(message.content) && message.content === message.content.toUpperCase()) {
+            // If the message includes at least two letters and all letters in the message are uppercase, then the player is shouting.
+            if (RegExp("[a-zA-Z](?=(.*)[a-zA-Z])", 'g').test(message.content) && message.content === message.content.toUpperCase()) {
                 isShouting = true;
                 verb = "shout";
             }
