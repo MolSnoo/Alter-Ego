@@ -169,8 +169,8 @@ module.exports.addItem = function (description, item, slot, addedQuantity) {
             for (i = 0; i < sentence.clause.length; i++) {
                 var text = sentence.clause[i].node.data.toLowerCase();
                 if ((sentence.itemListName === slot || slot !== "" && sentence.itemListName === "" && description.split("<il").length - 1 === 1) &&
-                    (text === item.singleContainingPhrase.toLowerCase() ||
-                        item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase()))) {
+                    sentence.itemList !== null &&
+                    (text === item.singleContainingPhrase.toLowerCase() || item.pluralContainingPhrase && text.includes(item.pluralContainingPhrase.toLowerCase()))) {
                     itemAlreadyExists = true;
                     break;
                 }
@@ -181,12 +181,8 @@ module.exports.addItem = function (description, item, slot, addedQuantity) {
         // This item already exists within the description.
         if (itemAlreadyExists && sentence.clause[i].isItem) {
             // If there's only 1 of this item, we need only use the plural containing phrase.
-            if (sentence.clause[i].itemQuantity === 1) {
-                if ("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz".includes(sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)))
-                    sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase}`);
-                else
-                    sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase + sentence.clause[i].text.charAt(sentence.clause[i].text.length - 1)}`);
-            }
+            if (sentence.clause[i].itemQuantity === 1)
+                sentence.clause[i].set(`${1 + addedQuantity} ${item.pluralContainingPhrase}`);
             else {
                 let start = sentence.clause[i].text.search(/\d/);
                 if (start !== -1) {
@@ -273,12 +269,14 @@ module.exports.removeItem = function (description, item, slot, removedQuantity, 
             if (start !== -1) {
                 let end;
                 for (end = start; end < text.length; end++) {
-                    if (isNaN(text.charAt(end + 1)))
+                    if (isNaN(text.charAt(end + 1)) || text.charAt(end) === ' ')
                         break;
                 }
+                const regex = new RegExp(text.substring(start, end) + "([^$]*)" + item.pluralContainingPhrase, 'i');
+                const hasQuantity = regex.test(text) && item.pluralContainingPhrase !== "";
                 const quantity = parseInt(text.substring(start, end));
-                if (quantity - removedQuantity === 1) sentence.clause[i].set(item.singleContainingPhrase);
-                else if (quantity - removedQuantity > 1) sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - removedQuantity));
+                if (hasQuantity && quantity - removedQuantity === 1) sentence.clause[i].set(item.singleContainingPhrase);
+                else if (hasQuantity && quantity - removedQuantity > 1) sentence.clause[i].set(sentence.clause[i].text.replace(quantity, quantity - removedQuantity));
                 else removeItem = true;
             }
             else removeItem = true;
@@ -324,7 +322,7 @@ function createSentence(sentenceNode) {
             // Get item quantity.
             let text = clauses[i].node.data;
             let start = text.search(/\d/);
-            if (start !== -1) {
+            if (start === 0) {
                 let end;
                 for (end = start; end < text.length; end++) {
                     if (isNaN(text.charAt(end + 1)))
