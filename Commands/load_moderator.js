@@ -34,7 +34,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         return game.messageHandler.addReply(message, `you need to specify what data to get. Usage:\n${exports.config.usage}`);
 
     // Push the queue before loading anything.
-    await queuer.pushQueue();
+    try {
+        await queuer.pushQueue();
+    }
+    catch (err) {
+        return game.messageHandler.addGameMechanicMessage(message.channel, "There was an error pushing updates to the spreadsheet. Error:\n```" + err + "```");
+    }
 
     if (args[0] === "all") {
         await loader.loadRooms(game, false);

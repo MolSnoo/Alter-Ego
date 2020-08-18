@@ -7,9 +7,21 @@ var game = include('game.json');
 const queue = game.queue;
 
 module.exports.pushQueue = async function (spreadsheetId, dataOperation) {
-    this.cleanQueue();
-    var requests = this.createRequests();
-    if (requests.length > 0) await sendQueue(requests, spreadsheetId, dataOperation);
+    const queuer = this;
+    return new Promise(async (resolve, reject) => {
+        queuer.cleanQueue();
+        var requests = queuer.createRequests();
+        if (requests.length > 0) {
+            try {
+                await sendQueue(requests, spreadsheetId, dataOperation);
+                resolve();
+            }
+            catch (err) {
+                reject(err);
+            }
+        }
+        resolve();
+    });
 };
 
 module.exports.cleanQueue = function () {
@@ -87,6 +99,9 @@ module.exports.createRequests = function () {
                 break;
             case "Inventory Items":
                 sheetId = settings.inventoryItemSheetID;
+                break;
+            case "Gestures":
+                sheetid = settings.gestureSheetID;
                 break;
             default:
                 sheetId = 0;
@@ -180,6 +195,14 @@ module.exports.createRequests = function () {
 };
 
 function sendQueue(requests, spreadsheetId, dataOperation) {
-    sheets.batchUpdate(requests, dataOperation, spreadsheetId);
-    queue.length = 0;
+    return new Promise(async (resolve, reject) => {
+        try {
+            await sheets.batchUpdate(requests, dataOperation, spreadsheetId);
+            queue.length = 0;
+            resolve();
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
 }

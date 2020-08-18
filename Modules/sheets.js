@@ -7,11 +7,14 @@ const spreadsheetID = settings.spreadsheetID;
 const roomSheetID = settings.roomSheetID;
 const objectSheetID = settings.objectSheetID;
 const prefabSheetID = settings.prefabSheetID;
+const recipeSheetID = settings.recipeSheetID;
 const itemSheetID = settings.itemSheetID;
 const puzzleSheetID = settings.puzzleSheetID;
+const eventSheetID = settings.eventSheetID;
 const statusEffectSheetID = settings.statusEffectSheetID;
 const playerSheetID = settings.playerSheetID;
 const inventoryItemSheetID = settings.inventoryItemSheetID;
+const gestureSheetID = settings.gestureSheetID;
 
 module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
     authorize(function (authClient) {
@@ -149,31 +152,34 @@ module.exports.updateCell = function (sheetrange, data, dataOperation) {
 };
 
 module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
-    authorize(function (authClient) {
-        if (!spreadsheetId) spreadsheetId = spreadsheetID;
-        var request = {
-            // The ID of the spreadsheet to update.
-            spreadsheetId: spreadsheetId,
+    return new Promise((resolve, reject) => {
+        authorize(function (authClient) {
+            if (!spreadsheetId) spreadsheetId = spreadsheetID;
+            var request = {
+                // The ID of the spreadsheet to update.
+                spreadsheetId: spreadsheetId,
 
-            resource: {
-                // A list of updates to apply to the spreadsheet.
-                // Requests will be applied in the order they are specified.
-                // If any request is not valid, no requests will be applied.
-                requests: requests
-            },
+                resource: {
+                    // A list of updates to apply to the spreadsheet.
+                    // Requests will be applied in the order they are specified.
+                    // If any request is not valid, no requests will be applied.
+                    requests: requests
+                },
 
-            auth: authClient
-        };
+                auth: authClient
+            };
 
-        sheets.spreadsheets.batchUpdate(request, function (err, response) {
-            if (err) {
-                console.error(err);
-                return;
-            }
+            sheets.spreadsheets.batchUpdate(request, function (err, response) {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                }
 
-            if (dataOperation) {
-                dataOperation(response);
-            }
+                if (dataOperation) {
+                    dataOperation(response);
+                }
+                resolve();
+            });
         });
     });
 };
@@ -226,17 +232,32 @@ module.exports.insertRow = function (sheetrange, data, dataOperation) {
         case "Objects":
             sheetId = objectSheetID;
             break;
+        case "Prefabs":
+            sheetId = prefabSheetID;
+            break;
+        case "Recipes":
+            sheetId = recipeSheetID;
+            break;
         case "Items":
             sheetId = itemSheetID;
             break;
         case "Puzzles":
             sheetId = puzzleSheetID;
             break;
+        case "Events":
+            sheetId = eventSheetID;
+            break;
         case "Status Effects":
             sheetId = statusEffectSheetID;
             break;
         case "Players":
             sheetId = playerSheetID;
+            break;
+        case "Inventory Items":
+            sheetId = inventoryItemSheetID;
+            break;
+        case "Gestures":
+            sheetId = gestureSheetID;
             break;
     }
     var rowNumber;
