@@ -131,7 +131,7 @@ class Object {
                             }
                             if (instantiate) itemManager.instantiateItem(product, object.location, object, "", quantity);
                         }
-                        if (player && player.location.name === object.location.name) player.sendDescription(game, object.process.recipe.completedDescription, object);
+                        if (player && player.alive && player.location.name === object.location.name) player.sendDescription(game, object.process.recipe.completedDescription, object);
                     }
 
                     if (object.autoDeactivate)
@@ -279,7 +279,7 @@ class Object {
 
     findRecipe(game) {
         // Get all the items contained within this object.
-        var items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container.row === this.row && item.quantity > 0);
+        var items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Object && item.container.row === this.row && item.quantity > 0);
         const itemManager = include(`${settings.modulesDir}/itemManager.js`);
         for (let i = 0; i < items.length; i++)
             itemManager.getChildItems(items, items[i]);
