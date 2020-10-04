@@ -36,7 +36,7 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
 };
 
 // Narrate a room description to a player
-module.exports.addRoomDescription = async (player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
+module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
     // Create the list of occupants
     let occupantsString = `You see ${location.occupantsString} in this room.`;
     let sleepingPlayersString = location.generate_occupantsString(location.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
@@ -44,8 +44,9 @@ module.exports.addRoomDescription = async (player, location, descriptionText, de
         occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
     }
 
+    const thumbnail = settings.defaultRoomIconURL !== "" ? settings.defaultRoomIconURL : game.guild.iconURL;
     let embed = new discord.RichEmbed()
-        .setThumbnail('https://cdn.discordapp.com/attachments/697623260736651335/725961187824631868/logo.png')  // TEMPORARY
+        .setThumbnail(thumbnail)
         .setTitle(location.name)
         .setColor('1F8B4C')
         .setDescription(descriptionText)

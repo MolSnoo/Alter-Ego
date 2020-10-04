@@ -1960,7 +1960,7 @@ class Player {
                 var defaultDropObject = game.objects.find(object => object.name === settings.defaultDropObject && object.location.name === container.name);
                 if (defaultDropObject)
                     defaultDropObjectString = parser.parseDescription(defaultDropObject.description, defaultDropObject, this);
-                game.messageHandler.addRoomDescription(this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
+                game.messageHandler.addRoomDescription(game, this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
             }
             else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
                 game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));

@@ -42,6 +42,7 @@
   "diceMin": 1,
   "diceMax": 6,
   "defaultDropObject": "FLOOR",
+  "defaultRoomIconURL": "",
   "autoDeleteWhisperChannels": true,
   "queueInterval": 30,
   "messageQueueInterval": 0.25,
