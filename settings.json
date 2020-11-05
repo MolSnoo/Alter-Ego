@@ -1,6 +1,6 @@
 ﻿{
   "commandPrefix": ".",
-  "debug": false,
+  "debug": true,
   "testing": false,
 
   "commandsDir": "Commands",
@@ -15,7 +15,7 @@
     "speed": 5,
     "stamina": 5
   },
-  "defaultLocation": "park",
+  "defaultLocation": "lobby",
   "defaultStatusEffects": "satisfied, well rested, clean",
   "defaultInventory": [
     [ "NULL", "", "RIGHT HAND", "", "", "", "" ],
@@ -36,7 +36,7 @@
   ],
   "defaultDescription": "<desc><s>You examine <var v=\"this.displayName\" />.</s> <if cond=\"this.hasAttribute('concealed')\"><s><var v=\"this.pronouns.Sbj\" /> <if cond=\"this.pronouns.plural\">are</if><if cond=\"!this.pronouns.plural\">is</if> [HEIGHT], but <var v=\"this.pronouns.dpos\" /> face is concealed.</s></if><if cond=\"!this.hasAttribute('concealed')\"><s><var v=\"this.pronouns.Sbj\" /><if cond=\"this.pronouns.plural\">'re</if><if cond=\"!this.pronouns.plural\">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if> <s><var v=\"this.pronouns.Sbj\" /> wear<if cond=\"!this.pronouns.plural\">s</if> <il name=\"equipment\"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s> <s>You see <var v=\"this.pronouns.obj\" /> carrying <il name=\"hands\"></il>.</s></desc>",
 
-  "metersPerPixel": 0.25,
+  "metersPerPixel": 0.04,
   "staminaUseRate": -0.01,
   "heatedSlowdownRate": 0.5,
   "diceMin": 1,
@@ -80,7 +80,7 @@
   "deadRole": "581612036514119680",
   "spectatorRole": "581611800794103809",
 
-  "roomCategories": "581619843573350406 585976373433335827 585980568311693336 585980972877742092 585981129945776247",
+  "roomCategories": "773796574332452875 749500885033418891 773796964247666709 773798102641410128 773798373455167489 773799036230565949 773799872109215744 773800539443822592 773800860596568084",
   "whisperCategory": "581620946973098012",
   "spectateCategory": "700404851968049313",
   "testingChannel": "581623959259447296",
@@ -89,18 +89,18 @@
   "commandChannel": "581620608450822163",
   "logChannel": "581620193172652042",
 
-  "spreadsheetID": "1l97PXTDbOnqteophmnIrIYp5T-YpEiXXqwl1rhTuVE0",
+  "spreadsheetID": "1f0U51aH2yuRtqiTxdjUjn2XAXIfFEU8lopSOohoLHC4",
   "roomSheetID": 0,
   "objectSheetID": 1923975664,
   "prefabSheetID": 1950777859,
-  "recipeSheetID": 2072911115,
+  "recipeSheetID": 1954352263,
   "itemSheetID": 388122416,
   "puzzleSheetID": 1961307123,
-  "eventSheetID": 1014828802,
+  "eventSheetID": 1341599172,
   "statusEffectSheetID": 1040343283,
-  "playerSheetID": 680018352,
-  "inventoryItemSheetID": 115011186,
-  "gestureSheetID": 1967772069,
+  "playerSheetID": 1888014354,
+  "inventoryItemSheetID": 995475655,
+  "gestureSheetID": 2014531582,
 
   "roomSheetAllCells": "Rooms!A1:K",
   "roomSheetUnlockedColumn": "Rooms!H",
