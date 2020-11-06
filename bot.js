@@ -6,7 +6,7 @@ const credentials = include('credentials.json');
 const messageHandler = include(`${settings.modulesDir}/messageHandler.js`);
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
-const queuer = include(`${settings.modulesDir}/queuer.js`);
+const saver = include(`${settings.modulesDir}/saver.js`);
 
 const discord = require('discord.js');
 const bot = new discord.Client();
@@ -75,10 +75,10 @@ bot.on('ready', async () => {
         return process.exit(2);
     }
 
-    // Run queuer periodically.
+    // Save data periodically.
     setInterval(() => {
-        queuer.pushQueue();
-    }, settings.queueInterval * 1000);
+        if (game.game) saver.saveGame();
+    }, settings.autoSaveInterval * 1000);
 
     // Send messages in message queue periodically.
     setInterval(() => {
@@ -92,14 +92,16 @@ bot.on('ready', async () => {
 
     // Check for any events that are supposed to trigger at this time of day.
     setInterval(() => {
-        const now = moment();
-        for (let i = 0; i < game.events.length; i++) {
-            if (!game.events[i].ongoing) {
-                for (let j = 0; j < game.events[i].triggerTimes.length; j++) {
-                    const time = game.events[i].triggerTimes[j];
-                    if (now.hour() === time.hour() && now.minute() === time.minute()) {
-                        game.events[i].trigger(bot, game, true);
-                        break;
+        if (game.game) {
+            const now = moment();
+            for (let i = 0; i < game.events.length; i++) {
+                if (!game.events[i].ongoing) {
+                    for (let j = 0; j < game.events[i].triggerTimes.length; j++) {
+                        const time = game.events[i].triggerTimes[j];
+                        if (now.hour() === time.hour() && now.minute() === time.minute()) {
+                            game.events[i].trigger(bot, game, true);
+                            break;
+                        }
                     }
                 }
             }

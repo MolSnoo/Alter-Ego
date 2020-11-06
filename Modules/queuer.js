@@ -197,7 +197,7 @@ module.exports.createRequests = function () {
 function sendQueue(requests, spreadsheetId, dataOperation) {
     return new Promise(async (resolve, reject) => {
         try {
-            await sheets.batchUpdate(requests, dataOperation, spreadsheetId);
+            //await sheets.batchUpdate(requests, dataOperation, spreadsheetId);
             queue.length = 0;
             resolve();
         }

@@ -1904,6 +1904,7 @@ class Player {
         this.alive = false;
         this.location = null;
         this.hidingSpot = "";
+        this.statusString = "";
         this.isMoving = false;
         clearInterval(this.moveTimer);
         this.remainingTime = 0;

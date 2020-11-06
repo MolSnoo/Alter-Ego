@@ -10,13 +10,17 @@ var timer = require('moment-timer');
 moment().format();
 
 class Event {
-    constructor(name, ongoing, duration, remaining, triggerTimes, roomTag, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
+    constructor(name, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
         this.name = name;
         this.ongoing = ongoing;
+        this.durationString = durationString;
         this.duration = duration;
+        this.remainingString = remainingString;
         this.remaining = remaining;
+        this.triggerTimesString = triggerTimesString;
         this.triggerTimes = triggerTimes;
         this.roomTag = roomTag;
+        this.commandsString = commandsString;
         this.triggeredCommands = triggeredCommands;
         this.endedCommands = endedCommands;
         this.effectsStrings = effectsStrings;
@@ -83,6 +87,7 @@ class Event {
             this.timer.stop();
             this.timer = null;
             this.remaining = null;
+            this.remainingString = "";
             game.queue.push(new QueueEntry(Date.now(), "updateCell", this.timeRemainingCell(), `Events!${this.name}`, ""));
         }
         if (this.effectsTimer !== null) {
@@ -141,6 +146,7 @@ class Event {
             displayString += `${minutes}:`;
             if (seconds >= 0 && seconds < 10) displayString += '0';
             displayString += `${seconds}`;
+            event.remainingString = displayString;
             game.queue.push(new QueueEntry(Date.now(), "updateCell", event.timeRemainingCell(), `Events!${event.name}`, displayString));
 
             if (event.remaining.asMilliseconds() <= 0)

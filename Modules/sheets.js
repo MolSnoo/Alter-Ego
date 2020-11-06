@@ -118,6 +118,38 @@ module.exports.updateData = function (sheetrange, data, dataOperation) {
     });
 };
 
+module.exports.batchUpdateData = function (data, dataOperation) {
+    return new Promise((resolve, reject) => {
+        authorize(function (authClient) {
+            var request = {
+                // The ID of the spreadsheet to update.
+                spreadsheetId: spreadsheetID,
+
+                resource: {
+                    // How the input data should be interpreted.
+                    valueInputOption: 'USER_ENTERED',
+
+                    data: data
+                },
+
+                auth: authClient
+            };
+
+            sheets.spreadsheets.values.batchUpdate(request, function (err, response) {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                }
+
+                if (dataOperation) {
+                    dataOperation(response);
+                }
+                resolve();
+            });
+        });
+    });
+};
+
 module.exports.updateCell = function (sheetrange, data, dataOperation) {
     authorize(function (authClient) {
         var request = {

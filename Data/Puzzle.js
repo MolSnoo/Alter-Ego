@@ -5,7 +5,7 @@ const Narration = include(`${settings.dataDir}/Narration.js`);
 const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Puzzle {
-    constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
+    constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
         this.name = name;
         this.solved = solved;
         this.outcome = outcome;
@@ -19,6 +19,7 @@ class Puzzle {
         this.requirements = [...requirementsStrings];
         this.solutions = solutions;
         this.remainingAttempts = remainingAttempts;
+        this.commandSetsString = commandSetsString;
         this.commandSets = commandSets;
         this.correctDescription = correctDescription;
         this.alreadySolvedDescription = alreadySolvedDescription;
