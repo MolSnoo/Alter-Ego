@@ -1,6 +1,5 @@
 var settings = include('settings.json');
 var game = include('game.json');
-const queuer = include(`${settings.modulesDir}/queuer.js`);
 const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 var assert = require('assert');
@@ -13,7 +12,6 @@ const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 exports.run = async function () {
     init_0();
@@ -36,7 +34,6 @@ function init_0() {
     game.players_dead.length = 0;
     game.inventoryItems.length = 0;
     game.whispers.length = 0;
-    game.queue.length = 0;
 
     // Initialize room.
     var roomBeachHouse = new Room("beach-house", null, [], [], "", 2);
@@ -518,7 +515,7 @@ function test_unstash_item_0() {
 
 function test_push_queue_0() {
     return new Promise((resolve) => {
-        queuer.pushQueue("1oZxppuByy64QTb9pOJ-G1m2PEoVCO-egL0gycKVDjFU", function (response) {
+        /*queuer.pushQueue("1oZxppuByy64QTb9pOJ-G1m2PEoVCO-egL0gycKVDjFU", function (response) {
             var errors = [];
 
             const objectData = [
@@ -616,7 +613,7 @@ function test_push_queue_0() {
             });
 
             resolve();
-        });
+        });*/
     });
 }
 

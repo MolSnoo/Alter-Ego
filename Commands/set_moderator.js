@@ -104,11 +104,11 @@ module.exports.run = async (bot, game, message, command, args) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setAccessible(game);
+                    items[i].setAccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${object.name} accessible.`);
             }
             else {
-                object.setAccessible(game);
+                object.setAccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${object.name} accessible.`);
             }
         }
@@ -122,11 +122,11 @@ module.exports.run = async (bot, game, message, command, args) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setAccessible(game);
+                    items[i].setAccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${puzzle.name} accessible.`);
             }
             else {
-                puzzle.setAccessible(game);
+                puzzle.setAccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${puzzle.name} accessible.`);
             }
         }
@@ -142,11 +142,11 @@ module.exports.run = async (bot, game, message, command, args) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setInaccessible(game);
+                    items[i].setInaccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${object.name} inaccessible.`);
             }
             else {
-                object.setInaccessible(game);
+                object.setInaccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${object.name} inaccessible.`);
             }
         }
@@ -160,11 +160,11 @@ module.exports.run = async (bot, game, message, command, args) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setInaccessible(game);
+                    items[i].setInaccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${items.length} items in ${puzzle.name} inaccessible.`);
             }
             else {
-                puzzle.setInaccessible(game);
+                puzzle.setInaccessible();
                 game.messageHandler.addGameMechanicMessage(message.channel, `Successfully made ${puzzle.name} inaccessible.`);
             }
         }

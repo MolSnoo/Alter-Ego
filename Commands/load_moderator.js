@@ -1,6 +1,5 @@
 ﻿const settings = include('settings.json');
 const loader = include(`${settings.modulesDir}/loader.js`);
-const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 module.exports.config = {
     name: "load_moderator",
@@ -32,14 +31,6 @@ module.exports.config = {
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
         return game.messageHandler.addReply(message, `you need to specify what data to get. Usage:\n${exports.config.usage}`);
-
-    // Push the queue before loading anything.
-    try {
-        await queuer.pushQueue();
-    }
-    catch (err) {
-        return game.messageHandler.addGameMechanicMessage(message.channel, "There was an error pushing updates to the spreadsheet. Error:\n```" + err + "```");
-    }
 
     if (args[0] === "all") {
         await loader.loadRooms(game, false);

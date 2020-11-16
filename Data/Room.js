@@ -1,5 +1,4 @@
 const settings = include('settings.json');
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Room {
@@ -53,9 +52,6 @@ class Room {
                 player.sendDescription(game, description, this);
             }
         }
-
-        // Update the player's location on the spreadsheet.
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", player.locationCell(), `Players!|${player.name}|Location`, this.name));
 
         this.occupants.push(player);
         this.occupants.sort(function (a, b) {

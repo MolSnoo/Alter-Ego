@@ -3,7 +3,6 @@ const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 var moment = require('moment');
 var timer = require('moment-timer');
@@ -38,7 +37,6 @@ class Event {
     async trigger(bot, game, doTriggeredCommands) {
         // Mark it as ongoing.
         this.ongoing = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.ongoingCell(), `Events!${this.name}`, "TRUE"));
 
         // Send the triggered narration to all rooms with occupants.
         if (this.triggeredNarration !== "") {
@@ -80,7 +78,6 @@ class Event {
     async end(bot, game, doEndedCommands) {
         // Unmark it as ongoing.
         this.ongoing = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.ongoingCell(), `Events!${this.name}`, "FALSE"));
 
         // Stop the timer.
         if (this.timer !== null) {
@@ -88,7 +85,6 @@ class Event {
             this.timer = null;
             this.remaining = null;
             this.remainingString = "";
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.timeRemainingCell(), `Events!${this.name}`, ""));
         }
         if (this.effectsTimer !== null) {
             this.effectsTimer.stop();
@@ -147,7 +143,6 @@ class Event {
             if (seconds >= 0 && seconds < 10) displayString += '0';
             displayString += `${seconds}`;
             event.remainingString = displayString;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", event.timeRemainingCell(), `Events!${event.name}`, displayString));
 
             if (event.remaining.asMilliseconds() <= 0)
                 await event.end(bot, game, true);

@@ -105,9 +105,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setAccessible(game);
+                    items[i].setAccessible();
             }
-            else object.setAccessible(game);
+            else object.setAccessible();
         }
         else if (isPuzzle) {
             if (doItems) {
@@ -119,9 +119,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setAccessible(game);
+                    items[i].setAccessible();
             }
-            else puzzle.setAccessible(game);
+            else puzzle.setAccessible();
         }
     }
     else if (command === "inaccessible") {
@@ -135,9 +135,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setInaccessible(game);
+                    items[i].setInaccessible();
             }
-            else object.setInaccessible(game);
+            else object.setInaccessible();
         }
         else if (isPuzzle) {
             if (doItems) {
@@ -149,9 +149,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
-                    items[i].setInaccessible(game);
+                    items[i].setInaccessible();
             }
-            else puzzle.setInaccessible(game);
+            else puzzle.setInaccessible();
         }
     }
 

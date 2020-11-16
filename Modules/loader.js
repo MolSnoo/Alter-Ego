@@ -14,7 +14,6 @@ const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 const Gesture = include(`${settings.dataDir}/Gesture.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 var moment = require('moment');
 moment().format();
@@ -1307,7 +1306,6 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                             }
                         }
                     }
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), `Players!${currentPlayer.name}|Status`, currentPlayer.statusString));
 
                     if (currentPlayer.location instanceof Room) {
                         for (let k = 0; k < game.rooms.length; k++) {

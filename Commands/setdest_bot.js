@@ -1,5 +1,4 @@
 const settings = include('settings.json');
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 module.exports.config = {
     name: "setdest_bot",
@@ -93,12 +92,6 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     exit.link = destExit.name;
     destExit.dest = room;
     destExit.link = exit.name;
-
-    const time = Date.now();
-    game.queue.push(new QueueEntry(time, "updateCell", exit.destinationCell(), `Rooms!|${exit.name}`, destRoom.name));
-    game.queue.push(new QueueEntry(time, "updateCell", exit.fromCell(), `Rooms!|${exit.name}`, destExit.name));
-    game.queue.push(new QueueEntry(time, "updateCell", destExit.destinationCell(), `Rooms!|${destExit.name}`, room.name));
-    game.queue.push(new QueueEntry(time, "updateCell", destExit.fromCell(), `Rooms!|${destExit.name}`, exit.name));
 
     return;
 };

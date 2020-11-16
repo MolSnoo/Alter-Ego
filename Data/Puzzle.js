@@ -2,7 +2,6 @@
 const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 class Puzzle {
     constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
@@ -29,26 +28,22 @@ class Puzzle {
         this.row = row;
     }
 
-    setAccessible(game) {
+    setAccessible() {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Puzzles!${this.name}|${this.location.name}`, "TRUE"));
     }
 
-    setInaccessible(game) {
+    setInaccessible() {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Puzzles!${this.name}|${this.location.name}`, "FALSE"));
     }
 
     async solve(bot, game, player, message, outcome, doSolvedCommands) {
         // Mark it as solved.
         this.solved = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), `Puzzles!${this.name}|${this.location.name}`, "TRUE"));
         // Set the outcome.
         if (this.solutions.length > 1) {
             if (outcome)
                 this.outcome = outcome;
             else this.outcome = this.solutions[0];
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.outcomeCell(), `Puzzles!${this.name}|${this.location.name}`, this.outcome));
         }
 
         // Let the player and anyone else in the room know that the puzzle was solved.
@@ -107,7 +102,6 @@ class Puzzle {
 
         // Now mark it as unsolved.
         this.solved = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.solvedCell(), `Puzzles!${this.name}|${this.location.name}`, "FALSE"));
 
         if (doUnsolvedCommands === true) {
             // Find commandSet.
@@ -142,10 +136,8 @@ class Puzzle {
         }
 
         // Clear the outcome.
-        if (this.solutions.length > 1 && this.type !== "channels") {
+        if (this.solutions.length > 1 && this.type !== "channels")
             this.outcome = "";
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.outcomeCell(), `Puzzles!${this.name}|${this.location.name}`, this.outcome));
-        }
 
         if (player !== null) {
             // Post log message.
@@ -161,7 +153,6 @@ class Puzzle {
         if (!isNaN(this.remainingAttempts)) {
             this.remainingAttempts--;
             player.sendDescription(game, this.incorrectDescription, this);
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.attemptsCell(), `Puzzles!${this.name}|${this.location.name}`, this.remainingAttempts));
         }
         else
             player.sendDescription(game, this.incorrectDescription, this);
