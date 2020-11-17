@@ -137,7 +137,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
 
             if (args[1] && args[1] === "start") {
-                game.game = true;
+                game.inProgress = true;
                 game.canJoin = false;
                 if (!settings.debug)
                     bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
@@ -145,7 +145,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                     game.players_alive[i].sendDescription(game, game.players_alive[i].location.description, game.players_alive[i].location);
             }
             else if (args[1] && args[1] === "resume") {
-                game.game = true;
+                game.inProgress = true;
                 game.canJoin = false;
                 if (!settings.debug)
                     bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });

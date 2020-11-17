@@ -33,7 +33,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         return true;
     }
     else if (isModerator) {
-        if (commandConfig.requiresGame && !game.game) {
+        if (commandConfig.requiresGame && !game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
@@ -41,7 +41,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         return true;
     }
     else if (isPlayer) {
-        if (!game.game) {
+        if (!game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
@@ -72,7 +72,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         return false;
     }
     else if (isEligible) {
-        if (!game.game) {
+        if (!game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }

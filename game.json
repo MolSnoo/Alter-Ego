@@ -2,7 +2,7 @@
   "guild": null,
   "commandChannel": null,
   "logChannel": null,
-  "game": false,
+  "inProgress": false,
   "canJoin": false,
   "halfTimer": null,
   "endTimer": null,

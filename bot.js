@@ -52,7 +52,7 @@ function updateStatus() {
         bot.user.setStatus("dnd");
     }
     else {
-        if (game.game && !game.canJoin)
+        if (game.inProgress && !game.canJoin)
             bot.user.setActivity(settings.gameInProgressActivity.string + onlineString, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
         else
             bot.user.setActivity(settings.onlineActivity.string, { type: settings.onlineActivity.type });
@@ -77,7 +77,7 @@ bot.on('ready', async () => {
 
     // Save data periodically.
     setInterval(() => {
-        if (game.game) saver.saveGame();
+        if (game.inProgress) saver.saveGame();
     }, settings.autoSaveInterval * 1000);
 
     // Send messages in message queue periodically.
@@ -92,7 +92,7 @@ bot.on('ready', async () => {
 
     // Check for any events that are supposed to trigger at this time of day.
     setInterval(() => {
-        if (game.game) {
+        if (game.inProgress) {
             const now = moment();
             for (let i = 0; i < game.events.length; i++) {
                 if (!game.events[i].ongoing) {
@@ -124,7 +124,7 @@ bot.on('message', async message => {
         const command = message.content.substring(settings.commandPrefix.length);
         var isCommand = await commandHandler.execute(command, bot, game, message);
     }
-    if (message && !isCommand && game.game && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory || message.channel.id === settings.announcementChannel)) {
+    if (message && !isCommand && game.inProgress && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory || message.channel.id === settings.announcementChannel)) {
         await dialogHandler.execute(bot, game, message, true);
     }
 });
