@@ -405,17 +405,6 @@ module.exports.insertItems = function (game, location, items) {
         }
         // The player is putting this item somewhere else or it's been modified somehow.
         else {
-            let data = [[
-                items[i].prefab.id,
-                items[i].identifier,
-                items[i].location.name,
-                items[i].accessible,
-                items[i].containerName,
-                items[i].quantity.toString(),
-                !isNaN(items[i].uses) ? items[i].uses.toString() : "",
-                items[i].description
-            ]];
-
             // We want to insert this item near items in the same container, so get all of the items in that container.
             const containerItems = roomItems.filter(item => item.containerName === items[i].containerName);
 

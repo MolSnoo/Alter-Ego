@@ -1831,19 +1831,6 @@ class Player {
         this.onlineInterval && clearTimeout(this.onlineInterval);
     }
 
-    playerCells() {
-        const statusColumn = settings.playerSheetStatusColumn.split('!');
-        return settings.playerSheetIDColumn + this.row + ":" + statusColumn[1] + this.row;
-    }
-    locationCell() {
-        return settings.playerSheetLocationColumn + this.row;
-    }
-    hidingSpotCell() {
-        return settings.playerSheetHidingSpotColumn + this.row;
-    }
-    statusCell() {
-        return settings.playerSheetStatusColumn + this.row;
-    }
     descriptionCell() {
         return settings.playerSheetDescriptionColumn + this.row;
     }

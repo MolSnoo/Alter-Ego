@@ -19,18 +19,6 @@ class Exit {
         this.unlocked = false;
     }
 
-    unlockedCell() {
-        return settings.roomSheetUnlockedColumn + this.row;
-    }
-
-    destinationCell() {
-        return settings.roomSheetLeadsToColumn + this.row;
-    }
-
-    fromCell() {
-        return settings.roomSheetFromColumn + this.row;
-    }
-
     descriptionCell() {
         return settings.roomSheetDescriptionColumn + this.row;
     }

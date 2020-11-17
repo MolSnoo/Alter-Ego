@@ -260,8 +260,8 @@ testparse = async (file, player) => {
                 text += "      CORRECT ANSWER:" + os.EOL;
 
                 const parsedDescription = parser.parseDescription(puzzle.correctDescription, puzzle, player, true);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.solvedCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.solvedCell(), errors: parsedDescription.errors });
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.correctCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.correctCell(), errors: parsedDescription.errors });
 
                 text += "         ";
                 text += puzzle.correctDescription + os.EOL;

@@ -4,35 +4,44 @@ const QueuedMessage = include(`${settings.dataDir}/QueuedMessage.js`);
 
 module.exports.queue = [];
 
+const messagePriority = {
+    modChannel: 4,
+    tellPlayer: 3,
+    tellRoom: 3,
+    gameMechanicMessage: 2,
+    logMessage: 1,
+    spectatorMessage: 0
+};
+
 // Narrate something to a room
 module.exports.addNarration = async (room, messageText, addSpectate = true, speaker = null) => {
-    addMessageToQueue(room.channel, messageText, settings.priority.tellRoom);
+    addMessageToQueue(room.channel, messageText, messagePriority.tellRoom);
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels
         room.occupants.forEach(player => {
             if ((speaker === null || speaker.id !== player.id) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")))
-                addMessageToQueue(player.spectateChannel, messageText, settings.priority.spectatorMessage);
+                addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
         });
     }
 };
 
 // Narrate something in a whisper
 module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate = true) => {
-    addMessageToQueue(whisper.channel, messageText, settings.priority.tellRoom);
+    addMessageToQueue(whisper.channel, messageText, messagePriority.tellRoom);
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels, and specify it's in a whisper channel
         let whisperMessageText = `**In a whisper with ${whisper.makePlayersSentenceGroup()}:** ${messageText}`;
         whisper.location.occupants.forEach(player => {
-            addMessageToQueue(player.spectateChannel, whisperMessageText, settings.priority.spectatorMessage);
+            addMessageToQueue(player.spectateChannel, whisperMessageText, messagePriority.spectatorMessage);
         });
     }
 };
 
 // Narrate something directly to a player
 module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
-    addMessageToQueue(player.member, messageText, settings.priority.tellPlayer);
+    addMessageToQueue(player.member, messageText, messagePriority.tellPlayer);
     if (addSpectate)
-        addMessageToQueue(player.spectateChannel, messageText, settings.priority.spectatorMessage);
+        addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
 };
 
 // Narrate a room description to a player
@@ -53,27 +62,27 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         .addField("Occupants", location.occupantsString === "" ? "You don't see anyone here." : occupantsString)
         .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
 
-    addEmbedToQueue(player.member, embed, settings.priority.tellPlayer);
+    addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
     if (addSpectate)
-        addEmbedToQueue(player.spectateChannel, embed, settings.priority.spectatorMessage);
+        addEmbedToQueue(player.spectateChannel, embed, messagePriority.spectatorMessage);
 };
 
 // Add a log message
 module.exports.addLogMessage = async (logChannel, messageText) => {
-    addMessageToQueue(logChannel, messageText, settings.priority.logMessage);
+    addMessageToQueue(logChannel, messageText, messagePriority.logMessage);
 };
 
 // Add a game mechanic message that does not add to narration (e.g. incorrect syntax message, or the reason an action was prevented)
 module.exports.addGameMechanicMessage = (channel, messageText) => {
     // Give a higher priority if this is sent in the mod channel
-    let priority = channel.parent !== undefined && channel.id === settings.commandChannel ? settings.priority.modChannel : settings.priority.gameMechanicMessage;
+    let priority = channel.parent !== undefined && channel.id === settings.commandChannel ? messagePriority.modChannel : messagePriority.gameMechanicMessage;
     addMessageToQueue(channel, messageText, priority);
 };
 
 // Add a reply to a message
 module.exports.addReply = async (message, messageText) => {
     // Give a higher priority if this is sent in the mod channel
-    let priority = message.channel.id === settings.commandChannel ? settings.priority.modChannel : settings.priority.gameMechanicMessage;
+    let priority = message.channel.id === settings.commandChannel ? messagePriority.modChannel : messagePriority.gameMechanicMessage;
     addReplyToQueue(message, messageText, priority);
 };
 
@@ -101,7 +110,7 @@ module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, 
             avatarURL: message.author.avatarURL || message.author.defaultAvatarURL,
             embeds: message.embeds,
             files: files },
-        settings.priority.spectatorMessage);
+        messagePriority.spectatorMessage);
 };
 
 module.exports.sendQueuedMessages = async () => {

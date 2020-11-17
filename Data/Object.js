@@ -325,14 +325,6 @@ class Object {
 
         return { recipe: recipe, ingredients: ingredients };
     }
-    
-    accessibleCell() {
-        return settings.objectSheetAccessibleColumn + this.row;
-    }
-
-    activatedCell() {
-        return settings.objectSheetActivatedColumn + this.row;
-    }
 
     descriptionCell() {
         return settings.objectSheetDescriptionColumn + this.row;

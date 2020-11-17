@@ -177,14 +177,6 @@ class Event {
         });
     }
 
-    ongoingCell() {
-        return settings.eventSheetOngoingColumn + this.row;
-    }
-
-    timeRemainingCell() {
-        return settings.eventSheetTimeRemainingColumn + this.row;
-    }
-
     triggeredCell() {
         return settings.eventSheetTriggeredColumn + this.row;
     }

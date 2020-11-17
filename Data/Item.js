@@ -69,23 +69,6 @@ class Item {
         this.accessible = false;
     }
 
-    itemCells() {
-        const descriptionColumn = settings.itemSheetDescriptionColumn.split('!');
-        return settings.itemSheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
-    }
-
-    accessibleCell() {
-        return settings.itemSheetAccessibleColumn + this.row;
-    }
-
-    quantityCell() {
-        return settings.itemSheetQuantityColumn + this.row;
-    }
-
-    usesCell() {
-        return settings.itemSheetUsesColumn + this.row;
-    }
-
     descriptionCell() {
         return settings.itemSheetDescriptionColumn + this.row;
     }

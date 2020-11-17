@@ -185,22 +185,6 @@ class Puzzle {
         return;
     }
 
-    solvedCell() {
-        return settings.puzzleSheetSolvedColumn + this.row;
-    }
-
-    outcomeCell() {
-        return settings.puzzleSheetOutcomeColumn + this.row;
-    }
-
-    accessibleCell() {
-        return settings.puzzleSheetAccessibleColumn + this.row;
-    }
-
-    attemptsCell() {
-        return settings.puzzleSheetAttemptsColumn + this.row;
-    }
-
     correctCell() {
         return settings.puzzleSheetCorrectColumn + this.row;
     }
