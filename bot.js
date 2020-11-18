@@ -77,7 +77,7 @@ bot.on('ready', async () => {
 
     // Save data periodically.
     setInterval(() => {
-        if (game.inProgress) saver.saveGame();
+        if (game.inProgress && !game.editMode) saver.saveGame();
     }, settings.autoSaveInterval * 1000);
 
     // Send messages in message queue periodically.

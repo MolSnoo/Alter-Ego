@@ -59,8 +59,12 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             }
             const status = player.getAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
-                if (player.statusString.includes("heated")) game.messageHandler.addReply(message, "the situation is **heated**. Moderator intervention is required.");
+                if (player.statusString.includes("heated")) game.messageHandler.addReply(message, "The situation is **heated**. Moderator intervention is required.");
                 else game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+                return false;
+            }
+            if (game.editMode && commandName !== "say") {
+                game.messageHandler.addReply(message, "You cannot do that because edit mode is currently enabled.");
                 return false;
             }
 
