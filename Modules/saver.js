@@ -128,8 +128,8 @@ module.exports.saveGame = async function () {
                 game.inventoryItems[i].identifier,
                 game.inventoryItems[i].equipmentSlot,
                 game.inventoryItems[i].containerName,
-                !isNaN(game.inventoryItems[i].quantity) ? game.inventoryItems[i].quantity : "",
-                !isNaN(game.inventoryItems[i].uses) ? game.inventoryItems[i].uses : "",
+                !isNaN(game.inventoryItems[i].quantity) && game.inventoryItems[i].quantity !== null ? game.inventoryItems[i].quantity : "",
+                !isNaN(game.inventoryItems[i].uses) && game.inventoryItems[i].uses !== null ? game.inventoryItems[i].uses : "",
                 game.inventoryItems[i].description
             ]);
         }
