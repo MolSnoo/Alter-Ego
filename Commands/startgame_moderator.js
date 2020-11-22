@@ -18,7 +18,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0) return message.reply("remember to specify how long players have to join!");
-    if (game.game) return message.reply("there is already a game running.");
+    if (game.inProgress) return message.reply("there is already a game running.");
     
     const timeInt = args[0].substring(0, args[0].length - 1);
     if (isNaN(timeInt) || (!args[0].endsWith('m') && !args[0].endsWith('h')))
@@ -98,7 +98,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         sheets.updateData(settings.inventorySheetInitCells, inventoryCells);
     }, time);
 
-    game.game = true;
+    game.inProgress = true;
     game.canJoin = true;
     let announcement = `${message.member.displayName} has started a game. You have ${timeInt} ${interval} to join the game with ${settings.commandPrefix}play.`;
     channel.send(announcement);

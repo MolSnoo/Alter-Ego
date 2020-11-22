@@ -62,19 +62,6 @@ class InventoryItem {
         }
     }
 
-    itemCells() {
-        const descriptionColumn = settings.inventorySheetDescriptionColumn.split('!');
-        return settings.inventorySheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
-    }
-
-    quantityCell() {
-        return settings.inventorySheetQuantityColumn + this.row;
-    }
-
-    usesCell() {
-        return settings.inventorySheetUsesColumn + this.row;
-    }
-
     descriptionCell() {
         return settings.inventorySheetDescriptionColumn + this.row;
     }

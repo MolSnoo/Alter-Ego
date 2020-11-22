@@ -33,7 +33,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         return true;
     }
     else if (isModerator) {
-        if (commandConfig.requiresGame && !game.game) {
+        if (commandConfig.requiresGame && !game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
@@ -41,7 +41,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         return true;
     }
     else if (isPlayer) {
-        if (!game.game) {
+        if (!game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
@@ -59,8 +59,12 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             }
             const status = player.getAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
-                if (player.statusString.includes("heated")) game.messageHandler.addReply(message, "the situation is **heated**. Moderator intervention is required.");
+                if (player.statusString.includes("heated")) game.messageHandler.addReply(message, "The situation is **heated**. Moderator intervention is required.");
                 else game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+                return false;
+            }
+            if (game.editMode && commandName !== "say") {
+                game.messageHandler.addReply(message, "You cannot do that because edit mode is currently enabled.");
                 return false;
             }
 
@@ -72,7 +76,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         return false;
     }
     else if (isEligible) {
-        if (!game.game) {
+        if (!game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }

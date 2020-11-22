@@ -1,6 +1,5 @@
 ﻿const settings = include('settings.json');
 const loader = include(`${settings.modulesDir}/loader.js`);
-const queuer = include(`${settings.modulesDir}/queuer.js`);
 
 module.exports.config = {
     name: "load_moderator",
@@ -32,14 +31,6 @@ module.exports.config = {
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
         return game.messageHandler.addReply(message, `you need to specify what data to get. Usage:\n${exports.config.usage}`);
-
-    // Push the queue before loading anything.
-    try {
-        await queuer.pushQueue();
-    }
-    catch (err) {
-        return game.messageHandler.addGameMechanicMessage(message.channel, "There was an error pushing updates to the spreadsheet. Error:\n```" + err + "```");
-    }
 
     if (args[0] === "all") {
         await loader.loadRooms(game, false);
@@ -146,7 +137,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
 
             if (args[1] && args[1] === "start") {
-                game.game = true;
+                game.inProgress = true;
                 game.canJoin = false;
                 if (!settings.debug)
                     bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
@@ -154,7 +145,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                     game.players_alive[i].sendDescription(game, game.players_alive[i].location.description, game.players_alive[i].location);
             }
             else if (args[1] && args[1] === "resume") {
-                game.game = true;
+                game.inProgress = true;
                 game.canJoin = false;
                 if (!settings.debug)
                     bot.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });

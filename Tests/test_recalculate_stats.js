@@ -20,7 +20,6 @@ exports.run = async function (bot) {
     test_cure_2();
     test_inflict_3();
     test_cure_3();
-    game.queue.length = 0;
     return;
 };
 
@@ -37,7 +36,6 @@ function init() {
     game.players_dead.length = 0;
     game.inventoryItems.length = 0;
     game.whispers.length = 0;
-    game.queue.length = 0;
 
     // Initialize room.
     var beachHouse = new Room("beach-house", game.guild.channels.find(channel => channel.name === "beach-house"), [], [], "", 2);

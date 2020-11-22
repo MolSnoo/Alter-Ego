@@ -1,7 +1,6 @@
 const settings = include('settings.json');
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 var moment = require('moment');
 var timer = require('moment-timer');
@@ -28,19 +27,16 @@ class Object {
         this.recipeInterval = this.recipeTag ? new moment.duration(1000).timer({ start: true, loop: true }, function () { object.processRecipes(object); }) : null;
     }
 
-    setAccessible(game) {
+    setAccessible() {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Objects!${this.name}|${this.location.name}`, "TRUE"));
     }
 
-    setInaccessible(game) {
+    setInaccessible() {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Objects!${this.name}|${this.location.name}`, "FALSE"));
     }
 
     activate(game, player, narrate) {
         this.activated = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.activatedCell(), `Objects!${this.name}|${this.location.name}`, "TRUE"));
         if (narrate) {
             if (player) new Narration(game, player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
             else new Narration(game, null, this.location, `${this.name} turns on.`).send();
@@ -121,7 +117,6 @@ class Object {
                                 if (remainingIngredients[j].productIndex === i && remainingIngredients[j].decreaseUses) {
                                     instantiate = false;
                                     ingredient.uses--;
-                                    game.queue.push(new QueueEntry(Date.now(), "updateCell", ingredient.usesCell(), `Items!${ingredient.prefab.id}|${ingredient.identifier}|${ingredient.location.name}|${ingredient.containerName}`, ingredient.uses));
                                     break;
                                 }
                                 else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
@@ -151,7 +146,6 @@ class Object {
 
     deactivate(game, player, narrate) {
         this.activated = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.activatedCell(), `Objects!${this.name}|${this.location.name}`, "FALSE"));
         if (narrate) {
             if (player) new Narration(game, player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
             else new Narration(game, null, this.location, `${this.name} turns off.`).send();
@@ -248,7 +242,6 @@ class Object {
                                         if (remainingIngredients[j].productIndex === i && remainingIngredients[j].decreaseUses) {
                                             instantiate = false;
                                             ingredient.uses--;
-                                            game.queue.push(new QueueEntry(Date.now(), "updateCell", ingredient.usesCell(), `Items!${ingredient.prefab.id}|${ingredient.identifier}|${ingredient.location.name}|${ingredient.containerName}`, ingredient.uses));
                                             break;
                                         }
                                         else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
@@ -331,14 +324,6 @@ class Object {
         }
 
         return { recipe: recipe, ingredients: ingredients };
-    }
-    
-    accessibleCell() {
-        return settings.objectSheetAccessibleColumn + this.row;
-    }
-
-    activatedCell() {
-        return settings.objectSheetActivatedColumn + this.row;
     }
 
     descriptionCell() {

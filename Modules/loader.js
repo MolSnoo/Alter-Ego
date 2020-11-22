@@ -14,7 +14,6 @@ const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
 const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 const Gesture = include(`${settings.dataDir}/Gesture.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 var moment = require('moment');
 moment().format();
@@ -779,6 +778,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         requirements,
                         solutions,
                         parseInt(sheet[i][columnAttempts]),
+                        sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "",
                         commandSets,
                         sheet[i][columnCorrectDescription] ? sheet[i][columnCorrectDescription].trim() : "",
                         sheet[i][columnAlreadySolvedDescription] ? sheet[i][columnAlreadySolvedDescription].trim() : "",
@@ -939,10 +939,14 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                     new Event(
                         sheet[i][columnName] ? sheet[i][columnName].trim() : "",
                         sheet[i][columnOngoing] ? sheet[i][columnOngoing].trim() === "TRUE" : false,
+                        durationString,
                         duration,
+                        sheet[i][columnTimeRemaining] ? sheet[i][columnTimeRemaining] : "",
                         timeRemaining,
+                        sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt] : "",
                         triggerTimes,
                         sheet[i][columnRoomTag] ? sheet[i][columnRoomTag].trim() : "",
+                        sheet[i][columnCommands] ? sheet[i][columnCommands] : "",
                         triggeredCommands,
                         endedCommands,
                         effects,
@@ -1302,7 +1306,6 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                             }
                         }
                     }
-                    game.queue.push(new QueueEntry(Date.now(), "updateCell", currentPlayer.statusCell(), `Players!${currentPlayer.name}|Status`, currentPlayer.statusString));
 
                     if (currentPlayer.location instanceof Room) {
                         for (let k = 0; k < game.rooms.length; k++) {

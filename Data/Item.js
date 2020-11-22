@@ -1,7 +1,5 @@
 const settings = include('settings.json');
 
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
-
 class Item {
     constructor(prefab, identifier, location, accessible, containerName, quantity, uses, description, row) {
         this.prefab = prefab;
@@ -63,31 +61,12 @@ class Item {
         }
     }
 
-    setAccessible(game) {
+    setAccessible() {
         this.accessible = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.identifier}|${this.location.name}|${this.containerName}`, "TRUE"));
     }
 
-    setInaccessible(game) {
+    setInaccessible() {
         this.accessible = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.accessibleCell(), `Items!${this.prefab.id}|${this.identifier}|${this.location.name}|${this.containerName}`, "FALSE"));
-    }
-
-    itemCells() {
-        const descriptionColumn = settings.itemSheetDescriptionColumn.split('!');
-        return settings.itemSheetPrefabColumn + this.row + ":" + descriptionColumn[1] + this.row;
-    }
-
-    accessibleCell() {
-        return settings.itemSheetAccessibleColumn + this.row;
-    }
-
-    quantityCell() {
-        return settings.itemSheetQuantityColumn + this.row;
-    }
-
-    usesCell() {
-        return settings.itemSheetUsesColumn + this.row;
     }
 
     descriptionCell() {

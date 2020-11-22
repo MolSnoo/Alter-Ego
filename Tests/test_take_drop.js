@@ -1,7 +1,5 @@
 ﻿var settings = include('settings.json');
 var game = include('game.json');
-const queuer = include(`${settings.modulesDir}/queuer.js`);
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 var assert = require('assert');
 
@@ -13,7 +11,6 @@ const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
 const EquipmentSlot = include(`${settings.dataDir}/EquipmentSlot.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 exports.run = async function () {
     init_0();
@@ -40,7 +37,6 @@ function init_0() {
     game.players_dead.length = 0;
     game.inventoryItems.length = 0;
     game.whispers.length = 0;
-    game.queue.length = 0;
 
     // Initialize room.
     var roomBeachHouse = new Room("beach-house", null, [], [], "", 2);
@@ -346,12 +342,6 @@ function init_0() {
     assert.ok(itemToolBox.inventory[0].takenSpace === 14, itemToolBox.inventory[0].takenSpace);
     assert.ok(inventoryViviansSmallBag.weight === 3, inventoryViviansSmallBag.weight);
     assert.ok(inventoryViviansSmallBag.inventory[0].takenSpace === 1, inventoryViviansSmallBag.inventory[0].takenSpace);
-
-    // Add some entries to the queue.
-    const timestamp = Date.now();
-    game.queue.push(new QueueEntry(timestamp, "updateRow", "Inventory Items!A26:H26", "Inventory Items!VIVIANS SOCKS||Vivian|SOCKS|", ["Vivian", "VIVIANS SOCKS", "", "SOCKS", "", 1, "", "<desc><s>It's a pair of gray thigh high socks.</s></desc>"]));
-    game.queue.push(new QueueEntry(timestamp, "updateCell", "Inventory Items!F27", "Inventory Items!VIVIANS SHOES||Vivian|SHOES|", 2)); // Set quantity of Vivian's shoes to 2.
-    game.queue.push(new QueueEntry(timestamp, "updateRow", "Inventory Items!A15:H15", "Inventory Items!NULL||Vivian|HAT|", ["Vivian", "NULL", "", "HAT", "", "", "", ""]));
 
     return;
 }
@@ -661,7 +651,7 @@ function test_drop_item_0() {
 
 function test_push_queue_0() {
     return new Promise((resolve) => {
-        queuer.pushQueue("1oZxppuByy64QTb9pOJ-G1m2PEoVCO-egL0gycKVDjFU", function (response) {
+        /*queuer.pushQueue("1oZxppuByy64QTb9pOJ-G1m2PEoVCO-egL0gycKVDjFU", function (response) {
             var errors = [];
 
             const objectData = [
@@ -763,7 +753,7 @@ function test_push_queue_0() {
             });
 
             resolve();
-        });
+        });*/
     });
 }
 
@@ -771,7 +761,6 @@ function init_1() {
     // Clear game data.
     game.items.length = 0;
     game.inventoryItems.length = 0;
-    game.queue.length = 0;
 
     // Initialize room.
     var roomBeachHouse = game.rooms[0];
@@ -1663,7 +1652,7 @@ function test_take_drop_item_0() {
 
 function test_push_queue_1() {
     return new Promise((resolve) => {
-        queuer.pushQueue("1oZxppuByy64QTb9pOJ-G1m2PEoVCO-egL0gycKVDjFU", function (response) {
+        /*queuer.pushQueue("1oZxppuByy64QTb9pOJ-G1m2PEoVCO-egL0gycKVDjFU", function (response) {
             var errors = [];
 
             const objectData = [
@@ -1757,7 +1746,7 @@ function test_push_queue_1() {
             });
 
             resolve();
-        });
+        });*/
     });
 }
 

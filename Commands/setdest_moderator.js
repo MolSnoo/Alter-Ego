@@ -1,5 +1,4 @@
 const settings = include('settings.json');
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 module.exports.config = {
     name: "setdest_moderator",
@@ -92,12 +91,6 @@ module.exports.run = async (bot, game, message, command, args) => {
     exit.link = destExit.name;
     destExit.dest = room;
     destExit.link = exit.name;
-
-    const time = Date.now();
-    game.queue.push(new QueueEntry(time, "updateCell", exit.destinationCell(), `Rooms!|${exit.name}`, destRoom.name));
-    game.queue.push(new QueueEntry(time, "updateCell", exit.fromCell(), `Rooms!|${exit.name}`, destExit.name));
-    game.queue.push(new QueueEntry(time, "updateCell", destExit.destinationCell(), `Rooms!|${destExit.name}`, room.name));
-    game.queue.push(new QueueEntry(time, "updateCell", destExit.fromCell(), `Rooms!|${destExit.name}`, exit.name));
 
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated destination of ${exit.name} in ${room.name}.`);
 

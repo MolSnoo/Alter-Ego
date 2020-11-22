@@ -5,7 +5,6 @@ const test_parse_description = include(`${settings.testsDir}/test_parse_descript
 const test_remove_item = include(`${settings.testsDir}/test_remove_item.js`);
 const test_add_item = include(`${settings.testsDir}/test_add_item.js`);
 const test_calculate_move_time = include(`${settings.testsDir}/test_calculate_move_time.js`);
-const test_queuer = include(`${settings.testsDir}/test_queuer.js`);
 const test_take_drop = include(`${settings.testsDir}/test_take_drop.js`);
 const test_stash_unstash = include(`${settings.testsDir}/test_stash_unstash.js`);
 const test_recalculate_stats = include(`${settings.testsDir}/test_recalculate_stats.js`);
@@ -17,7 +16,6 @@ exports.runTests = async function (bot) {
     //test_remove_item.run();
     //test_add_item.run();
     //test_calculate_move_time.run();
-    //test_queuer.run();
     //test_take_drop.run();
     //test_stash_unstash.run();
     //test_recalculate_stats.run(bot);

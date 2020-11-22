@@ -3,20 +3,23 @@ const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const parser = include(`${settings.modulesDir}/parser.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
-const QueueEntry = include(`${settings.dataDir}/QueueEntry.js`);
 
 var moment = require('moment');
 var timer = require('moment-timer');
 moment().format();
 
 class Event {
-    constructor(name, ongoing, duration, remaining, triggerTimes, roomTag, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
+    constructor(name, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
         this.name = name;
         this.ongoing = ongoing;
+        this.durationString = durationString;
         this.duration = duration;
+        this.remainingString = remainingString;
         this.remaining = remaining;
+        this.triggerTimesString = triggerTimesString;
         this.triggerTimes = triggerTimes;
         this.roomTag = roomTag;
+        this.commandsString = commandsString;
         this.triggeredCommands = triggeredCommands;
         this.endedCommands = endedCommands;
         this.effectsStrings = effectsStrings;
@@ -34,7 +37,6 @@ class Event {
     async trigger(bot, game, doTriggeredCommands) {
         // Mark it as ongoing.
         this.ongoing = true;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.ongoingCell(), `Events!${this.name}`, "TRUE"));
 
         // Send the triggered narration to all rooms with occupants.
         if (this.triggeredNarration !== "") {
@@ -76,14 +78,13 @@ class Event {
     async end(bot, game, doEndedCommands) {
         // Unmark it as ongoing.
         this.ongoing = false;
-        game.queue.push(new QueueEntry(Date.now(), "updateCell", this.ongoingCell(), `Events!${this.name}`, "FALSE"));
 
         // Stop the timer.
         if (this.timer !== null) {
             this.timer.stop();
             this.timer = null;
             this.remaining = null;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", this.timeRemainingCell(), `Events!${this.name}`, ""));
+            this.remainingString = "";
         }
         if (this.effectsTimer !== null) {
             this.effectsTimer.stop();
@@ -141,7 +142,7 @@ class Event {
             displayString += `${minutes}:`;
             if (seconds >= 0 && seconds < 10) displayString += '0';
             displayString += `${seconds}`;
-            game.queue.push(new QueueEntry(Date.now(), "updateCell", event.timeRemainingCell(), `Events!${event.name}`, displayString));
+            event.remainingString = displayString;
 
             if (event.remaining.asMilliseconds() <= 0)
                 await event.end(bot, game, true);
@@ -174,14 +175,6 @@ class Event {
                 }
             }
         });
-    }
-
-    ongoingCell() {
-        return settings.eventSheetOngoingColumn + this.row;
-    }
-
-    timeRemainingCell() {
-        return settings.eventSheetTimeRemainingColumn + this.row;
     }
 
     triggeredCell() {

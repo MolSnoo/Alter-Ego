@@ -2,11 +2,12 @@
   "guild": null,
   "commandChannel": null,
   "logChannel": null,
-  "game": false,
+  "inProgress": false,
   "canJoin": false,
   "halfTimer": null,
   "endTimer": null,
   "heated": false,
+  "editMode": false,
   "players": [],
   "players_alive": [],
   "players_dead": [],
@@ -21,6 +22,5 @@
   "statusEffects": [],
   "inventoryItems": [],
   "gestures": [],
-  "queue": [],
   "messageHandler": null
 }

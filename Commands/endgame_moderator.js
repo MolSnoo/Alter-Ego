@@ -33,7 +33,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     clearTimeout(game.halfTimer);
     clearTimeout(game.endTimer);
 
-    game.game = false;
+    game.inProgress = false;
     game.canJoin = false;
     game.messageHandler.clearQueue();
     if (!settings.debug) {
