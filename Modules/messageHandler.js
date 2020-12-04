@@ -44,6 +44,16 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
         addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
 };
 
+// Narrate something directly to a player with attachments
+module.exports.addDirectNarrationWithAttachments = async (player, messageText, attachments, addSpectate = true) => {
+    var files = [];
+    attachments.array().forEach(attachment => files.push(attachment.url));
+
+    addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
+    if (addSpectate)
+        addMessageWithAttachmentsToQueue(player.spectateChannel, messageText, { files: files }, messagePriority.spectatorMessage);
+};
+
 // Narrate a room description to a player
 module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
     // Create the list of occupants
@@ -129,6 +139,11 @@ module.exports.clearQueue = async () => {
 
 function addMessageToQueue(channel, messageText, priority) {
     let sendAction = () => channel.send(messageText);
+    addToQueue(sendAction, priority);
+}
+
+function addMessageWithAttachmentsToQueue(channel, messageText, attachments, priority) {
+    let sendAction = () => channel.send(messageText, attachments);
     addToQueue(sendAction, priority);
 }
 
