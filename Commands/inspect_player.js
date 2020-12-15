@@ -109,7 +109,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Check if the input is an item in the player's inventory.
     const inventory = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null);
     for (let i = 0; i < inventory.length; i++) {
-        parsedInput = parsedInput.replace("MY ", "").replace(`${player.name.toUpperCase()}S `, "");
+        parsedInput = parsedInput.replace("MY ", "");
         if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
             const item = inventory[i];
             if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.prefab.singleContainingPhrase} and begins inspecting it.`).send();
