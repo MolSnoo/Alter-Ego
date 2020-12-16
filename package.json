@@ -1,6 +1,6 @@
 {
   "name": "alter-ego",
-  "version": "0.9.9",
+  "version": "0.9.9.1",
   "description": "An in-depth Danganronpa role play bot for Discord",
   "main": "bot.js",
   "scripts": {

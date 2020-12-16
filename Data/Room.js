@@ -2,10 +2,11 @@ const settings = include('settings.json');
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
 class Room {
-    constructor(name, channel, tags, exit, description, row) {
+    constructor(name, channel, tags, iconURL, exit, description, row) {
         this.name = name;
         this.channel = channel;
         this.tags = tags;
+        this.iconURL = iconURL;
         this.exit = exit;
         this.description = description;
         this.row = row;

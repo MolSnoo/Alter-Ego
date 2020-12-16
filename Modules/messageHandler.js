@@ -63,7 +63,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
     }
 
-    const thumbnail = settings.defaultRoomIconURL !== "" ? settings.defaultRoomIconURL : game.guild.iconURL;
+    const thumbnail = location.iconURL !== "" ? location.iconURL : settings.defaultRoomIconURL !== "" ? settings.defaultRoomIconURL : game.guild.iconURL;
     let embed = new discord.RichEmbed()
         .setThumbnail(thumbnail)
         .setTitle(location.name)

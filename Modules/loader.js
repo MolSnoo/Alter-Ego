@@ -25,7 +25,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
             const columnTags = 1;
-            const columnNumberExits = 2;
+            const columnRoomIcon = 2;
             const columnExits = 3;
             const columnPosX = 4;
             const columnPosY = 5;
@@ -64,6 +64,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         sheet[i][columnRoomName] ? sheet[i][columnRoomName].trim() : "",
                         channel,
                         tags,
+                        sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
                         exits,
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
                         i + 1
@@ -112,6 +113,9 @@ module.exports.checkRoom = function (room) {
         return new Error(`Couldn't load room on row ${room.row}. The room name exceeds 100 characters in length.`);
     if (room.channel === null || room.channel === undefined)
         return new Error(`Couldn't load room "${room.name}". There is no corresponding channel on the server.`);
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png|gif))$');
+    if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
+        return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .png, or .gif extension.`);
     for (let i = 0; i < room.exit.length; i++) {
         let exit = room.exit[i];
         if (exit.name === "" || exit.name === null || exit.name === undefined)
