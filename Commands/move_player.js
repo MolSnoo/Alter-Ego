@@ -50,7 +50,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         for (let i = 0; i < currentRoom.exit.length; i++) {
             if (currentRoom.exit[i].dest.name === input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
                 || currentRoom.exit[i].name === input.toUpperCase()) {
-                if (!currentRoom.exit[i].unlocked) return game.messageHandler.addReply(message, "that exit is locked.");
+                //if (!currentRoom.exit[i].unlocked) return game.messageHandler.addReply(message, "that exit is locked.");
                 adjacent = true;
                 exit = currentRoom.exit[i];
                 exitMessage = `${player.displayName} exits into ${exit.name}${appendString}`;
@@ -77,13 +77,13 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else {
             currentRoom.removePlayer(game, player, exit, exitMessage);
             desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+
+            // Post log message.
+            const time = new Date().toLocaleTimeString();
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} moved to ${desiredRoom.channel}`);
         }
     }
     else return game.messageHandler.addReply(message, `couldn't find "${input}"`);
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} moved to ${desiredRoom.channel}`);
 
     return;
 };

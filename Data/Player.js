@@ -194,9 +194,19 @@ class Player {
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
-                currentRoom.removePlayer(game, player, exit, exitMessage);
-                desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
                 player.isMoving = false;
+                if (exit.unlocked) {
+                    currentRoom.removePlayer(game, player, exit, exitMessage);
+                    desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+
+                    // Post log message.
+                    const time = new Date().toLocaleTimeString();
+                    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} moved to ${desiredRoom.channel}`);
+                }
+                else {
+                    new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
+                    player.notify(game, `${exit.name} is locked.`);
+                }
             }
         }, 100);
     }
