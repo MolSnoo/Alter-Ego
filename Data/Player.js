@@ -152,7 +152,7 @@ class Player {
         this.moveTimer = setInterval(function () {
             let subtractedTime = 100;
             if (game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
-            player.remainingTime -= subtractedTime;
+            if (time >= subtractedTime) player.remainingTime -= subtractedTime;
             // Get the current coordinates based on what percentage of the duration has passed.
             const elapsedTime = time - player.remainingTime;
             const timeRatio = elapsedTime / time;
@@ -205,6 +205,9 @@ class Player {
                 }
                 else {
                     new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
+                    player.pos.x = exit.pos.x;
+                    player.pos.y = exit.pos.y;
+                    player.pos.z = exit.pos.z;
                     player.notify(game, `${exit.name} is locked.`);
                 }
             }
@@ -243,6 +246,7 @@ class Player {
         else {
             const slope = rise / distance;
             rate = !isNaN(slope) ? rate - slope * rate : rate;
+            if (distance < rate) distance = 0;
             time = distance / rate * 1000;
         }
         if (time < 0) time = 0;
