@@ -1385,8 +1385,6 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
-    if (player.spectateChannel === null || player.spectateChannel === undefined)
-        return new Error(`Couldn't load player on row ${player.row}. No spectate channel was given.`);
     return;
 };
 

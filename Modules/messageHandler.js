@@ -19,7 +19,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels
         room.occupants.forEach(player => {
-            if ((speaker === null || speaker.id !== player.id) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")))
+            if ((speaker === null || speaker.id !== player.id) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && player.spectateChannel !== null)
                 addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
         });
     }
@@ -32,6 +32,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
         // Create a queued message for each of the occupants' spectate channels, and specify it's in a whisper channel
         let whisperMessageText = `**In a whisper with ${whisper.makePlayersSentenceGroup()}:** ${messageText}`;
         whisper.location.occupants.forEach(player => {
+            if (player.spectateChannel !== null)
             addMessageToQueue(player.spectateChannel, whisperMessageText, messagePriority.spectatorMessage);
         });
     }
@@ -40,7 +41,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
 // Narrate something directly to a player
 module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
     addMessageToQueue(player.member, messageText, messagePriority.tellPlayer);
-    if (addSpectate)
+    if (addSpectate && player.spectateChannel !== null)
         addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
 };
 
@@ -50,7 +51,7 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
     attachments.array().forEach(attachment => files.push(attachment.url));
 
     addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
-    if (addSpectate)
+    if (addSpectate && player.spectateChannel !== null)
         addMessageWithAttachmentsToQueue(player.spectateChannel, messageText, { files: files }, messagePriority.spectatorMessage);
 };
 
@@ -73,7 +74,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
 
     addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
-    if (addSpectate)
+    if (addSpectate && player.spectateChannel !== null)
         addEmbedToQueue(player.spectateChannel, embed, messagePriority.spectatorMessage);
 };
 
@@ -98,29 +99,33 @@ module.exports.addReply = async (message, messageText) => {
 
 // Take a message sent in a room/whisper by a player and add it to the spectate channels of other players in the room
 module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, whisper = null) => {
-    var messageText = message.content || '';
-    // If this is a whisper, specify that the following message comes from the whisper
-    if (whisper)
-        messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(message.author)}):*\n` + messageText;
+    if (player.spectateChannel !== null) {
+        var messageText = message.content || '';
+        // If this is a whisper, specify that the following message comes from the whisper
+        if (whisper)
+            messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(message.author)}):*\n` + messageText;
 
-    // Create a webhook for this spectate channel if necessary, or grab the existing one
-    let webHooks = await player.spectateChannel.fetchWebhooks();
-    let webHook;
-    if (webHooks.size === 0)
-        webHook = await player.spectateChannel.createWebhook(player.spectateChannel.name);
-    else
-        webHook = webHooks.first();
+        // Create a webhook for this spectate channel if necessary, or grab the existing one
+        let webHooks = await player.spectateChannel.fetchWebhooks();
+        let webHook;
+        if (webHooks.size === 0)
+            webHook = await player.spectateChannel.createWebhook(player.spectateChannel.name);
+        else
+            webHook = webHooks.first();
 
-    var files = [];
-    message.attachments.array().forEach(attachment => files.push(attachment.url));
+        var files = [];
+        message.attachments.array().forEach(attachment => files.push(attachment.url));
 
-    // Send through the webhook with the original author's username and avatar, and the original message's contents
-    addWebhookMessageToQueue(webHook, messageText,
-        { username: speakerName,
-            avatarURL: message.author.avatarURL || message.author.defaultAvatarURL,
-            embeds: message.embeds,
-            files: files },
-        messagePriority.spectatorMessage);
+        // Send through the webhook with the original author's username and avatar, and the original message's contents
+        addWebhookMessageToQueue(webHook, messageText,
+            {
+                username: speakerName,
+                avatarURL: message.author.avatarURL || message.author.defaultAvatarURL,
+                embeds: message.embeds,
+                files: files
+            },
+            messagePriority.spectatorMessage);
+    }
 };
 
 module.exports.sendQueuedMessages = async () => {
