@@ -33,14 +33,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     var input = args.join(" ");
     if (input === "" && message.attachments.size === 0) return game.messageHandler.addReply(message, `Text message cannot be empty. Please send a message and/or an attachment.`);
-    if (input.length > 1800)
-        input = input.substring(0, 1797) + "...";
+    if (input.length > 1900)
+        input = input.substring(0, 1897) + "...";
 
-    var senderText = `You send the following text message to ${recipient.name}:\n`;
-    var receiverText = `You receive a text message from ${player.name}:\n`;
+    var senderText = `\`[ ${player.name} -> ${recipient.name} ]\` `;
+    var receiverText = `\`[ ${player.name} ]\` `;
     if (input !== "") {
-        senderText += "```" + input + "```";
-        receiverText += "```" + input + "```";
+        senderText += input;
+        receiverText += input;
     }
     
     messageHandler.addDirectNarrationWithAttachments(player, senderText, message.attachments);
