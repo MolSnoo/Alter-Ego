@@ -835,7 +835,7 @@ class Player {
         }
     }
 
-    drop(game, item, hand, container, slotName) {
+    drop(game, item, hand, container, slotName, notify = true) {
         // Unequip the item from the player's hand.
         this.unequip(game, item, hand, null);
 
@@ -887,7 +887,7 @@ class Player {
         itemManager.insertItems(game, this.location, items);
 
         this.carryWeight -= item.weight;
-        this.notify(game, `You discard ${item.singleContainingPhrase}.`);
+        if (notify) this.notify(game, `You discard ${item.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
             // Remove the item from the player's hands item list.
@@ -1242,7 +1242,7 @@ class Player {
         return;
     }
 
-    async unequip(game, item, slotName, hand, bot) {
+    async unequip(game, item, slotName, hand, bot, notify = true) {
         // Get the row number of the EquipmentSlot that the item is being unequipped from.
         var rowNumber = 0;
         for (var slot = 0; slot < this.inventory.length; slot++) {
@@ -1313,7 +1313,7 @@ class Player {
 
             itemManager.insertInventoryItems(game, this, items, slot);
 
-            this.notify(game, `You unequip the ${createdItem.name}.`);
+            if (notify) this.notify(game, `You unequip the ${createdItem.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
