@@ -26,18 +26,15 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    var input = command + " " + args.join(" ");
     if (command === "status") {
         if (args[0] === "add" || args[0] === "inflict") command = "inflict";
         else if (args[0] === "remove" || args[0] === "cure") command = "cure";
         else if (args[0] === "view") {
             command = "view";
-            if (!args[1]) {
-                args[1] = null;
-                input += " null";
-            }
+            if (!args[1])
+                return game.messageHandler.addReply(message, `you need to input a player. Usage:\n${exports.config.usage}`);
         }
-        args = input.substring(input.indexOf(args[1])).split(" ");
+        args.splice(0, 1);
     }
 
     if (args.length === 0)
@@ -52,13 +49,15 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (player === null) return game.messageHandler.addReply(message, `couldn't find player "${args[0]}".`);
+    args.splice(0, 1);
+    var input = args.join(" ");
 
     if (command === "inflict") {
-        const response = player.inflict(game, input.substring(input.indexOf(args[1])).toLowerCase(), true, true, true);
+        const response = player.inflict(game, input.toLowerCase(), true, true, true);
         game.messageHandler.addGameMechanicMessage(message.channel, response);
     }
     else if (command === "cure") {
-        const response = player.cure(game, input.substring(input.indexOf(args[1])).toLowerCase(), true, true, true);
+        const response = player.cure(game, input.toLowerCase(), true, true, true);
         game.messageHandler.addGameMechanicMessage(message.channel, response);
     }
     else if (command === "view") {

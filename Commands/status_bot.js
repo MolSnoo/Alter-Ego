@@ -32,11 +32,10 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, command, args, player, data) => {
     const cmdString = command + " " + args.join(" ");
-    var input = cmdString;
     if (command === "status") {
         if (args[0] === "add" || args[0] === "inflict") command = "inflict";
         else if (args[0] === "remove" || args[0] === "cure") command = "cure";
-        args = input.substring(input.indexOf(args[1])).split(" ");
+        args.splice(0, 1);
     }
 
     if (args.length === 0) {
@@ -65,8 +64,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
+    args.splice(0, 1);
 
-    var statusName = input.substring(input.indexOf(args[1])).toLowerCase();
+    var statusName = args.join(" ").toLowerCase();
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict")
             players[i].inflict(game, statusName, true, true, true, data);
