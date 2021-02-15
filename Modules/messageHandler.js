@@ -58,7 +58,7 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
 // Narrate a room description to a player
 module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
     // Create the list of occupants
-    let occupantsString = `You see ${location.occupantsString} in this room.`;
+    let occupantsString = location.occupantsString <= 1000 ? `You see ${location.occupantsString} in this room.` : `Too many players in this room.`;
     let sleepingPlayersString = location.generate_occupantsString(location.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
     if (sleepingPlayersString !== "") {
         occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
