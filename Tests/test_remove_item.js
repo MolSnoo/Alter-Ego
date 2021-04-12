@@ -44,6 +44,7 @@ exports.run = function () {
     test_removeItem_23();
     test_removeItem_24();
     test_removeItem_25();
+    test_removeItem_26();
 
     return;
 };
@@ -313,6 +314,18 @@ function test_removeItem_18() {
 }
 
 function test_removeItem_19() {
+    const text = "<desc><s>In and around the bushes, you find <il><item>an EASTER EGG</item>, RED BERRIES, PURPLE BERRIES, and MUSHROOMS</il>.</s></desc>";
+    const item = new Item("EASTER EGG", 0, "an EASTER EGG", "EASTER EGGS");
+
+    const result = "<desc><s>In and around the bushes, you find <il>RED BERRIES, PURPLE BERRIES, and MUSHROOMS</il>.</s></desc>";
+    const actual = parser.removeItem(text, item);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_removeItem_20() {
     const text = "<desc><s>There are <il><item>CLARINETS</item>, a PIANO, and some SNARE DRUMS</il>.</s></desc>";
     const item = new Item("CLARINET", 0, "a CLARINET", "CLARINETS");
 
@@ -324,7 +337,7 @@ function test_removeItem_19() {
     );
 }
 
-function test_removeItem_20() {
+function test_removeItem_21() {
     const text = "<desc><s>There is <il><item>a rather large TARP</item></il> on the FLOOR.</s></desc>";
     const item = new Item("TARP", 0, "a rather large TARP");
 
@@ -336,7 +349,7 @@ function test_removeItem_20() {
     );
 }
 
-function test_removeItem_21() {
+function test_removeItem_22() {
     const text = "<desc><s>You find various cooking tools on them, including <il><item>3 POTS</item>, <item>2 PANS</item>, <item>a CUTTING BOARD</item>, and various other things</il>.</s></desc>";
     const item = new Item("CUTTING BOARD", 0, "a CUTTING BOARD", "CUTTING BOARDS");
 
@@ -348,7 +361,7 @@ function test_removeItem_21() {
     );
 }
 
-function test_removeItem_22() {
+function test_removeItem_23() {
     const text = `<desc><s>You examine the pool table.</s> <s>It seems to have everything you need to play a game of pool: <il><item>2 POOL STICKS</item>, <if cond="player.talent === 'Ultimate Tabletop Player'"><item>CHALK</item>,</if> <item>a TRIANGLE</item>, and <item>BALLS</item></il>.</s></desc>`;
     const item = new Item("CHALK", 0, "CHALK");
 
@@ -360,7 +373,7 @@ function test_removeItem_22() {
     );
 }
 
-function test_removeItem_23() {
+function test_removeItem_24() {
     const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a GUN</item></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s></desc>`;
     const item = new Item("GUN", 0, "a GUN");
 
@@ -372,7 +385,7 @@ function test_removeItem_23() {
     );
 }
 
-function test_removeItem_24() {
+function test_removeItem_25() {
     const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>a GUN</item></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"><item>a GUN</item></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"><item>a GUN</item></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"><item>a GUN</item></il>.</s></desc>`;
     const item = new Item("GUN", 0, "a GUN");
 
@@ -384,7 +397,7 @@ function test_removeItem_24() {
     );
 }
 
-function test_removeItem_25() {
+function test_removeItem_26() {
     const text = `<desc><s>This looks like a run of the mill blender.</s> <s>You could use this to blend fruit or possibly other things.</s> <s>In it are <il><item>an APPLE BANANA SMOOTHIE</item> and <item>an APPLE</item></il>.</s></desc>`;
     const item = new Item("APPLE", 0, "an APPLE");
 

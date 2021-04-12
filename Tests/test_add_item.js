@@ -35,6 +35,7 @@ exports.run = function () {
     test_addItem_13();
     test_addItem_14();
     test_addItem_15();
+    test_addItem_16();
     return;
 };
 
@@ -281,6 +282,18 @@ function test_addItem_15() {
 
     const result = `<desc><s>This looks like a run of the mill blender.</s> <s>You could use this to blend fruit or possibly other things.</s> <s>In it are <il><item>an APPLE</item> and <item>an APPLE BANANA SMOOTHIE</item></il>.</s></desc>`;
     const actual = parser.addItem(text, item);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_addItem_16() {
+    const text = `<desc><s>It's a pair of regular black slacks.</s> <s>They have two pockets on each side.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il></s></desc>`;
+    const item = new Item("APPLE", 1, "an APPLE");
+
+    const result = `<desc><s>It's a pair of regular black slacks.</s> <s>They have two pockets on each side.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>an APPLE</item></il></s></desc>`;
+    const actual = parser.addItem(text, item, "LEFT POCKET");
     assert.ok(
         actual === result,
         actual

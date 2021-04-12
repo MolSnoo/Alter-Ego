@@ -138,7 +138,7 @@ module.exports.parseDescription = function (description, container, player, doEr
     // Convert the document to a string.
     var newDescription = stringify(document);
     // Strip XML tags from the string, as well as all duplicate spaces.
-    newDescription = newDescription.replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '').replace(/&amp;/g, '&').trim();
+    newDescription = newDescription.replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
 
     if (doErrorChecking === null || doErrorChecking === undefined)
         doErrorChecking = false;
@@ -218,7 +218,7 @@ module.exports.addItem = function (description, item, slot, addedQuantity) {
         }
     }
 
-    return stringify(document).replace(/&amp;/g, '&');
+    return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 };
 
 module.exports.removeItem = function (description, item, slot, removedQuantity, document) {
@@ -290,7 +290,7 @@ module.exports.removeItem = function (description, item, slot, removedQuantity, 
     }
 
     if (returnDocument) return document;
-    else return stringify(document).replace(/&amp;/g, '&');
+    else return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 };
 
 function createDocument(description) {
@@ -378,13 +378,20 @@ function stringify(document) {
 function initializeNewClause(sentence, phrase) {
     var document = sentence.itemList.ownerDocument;
     let firstChild = sentence.itemList.firstChild;
-    if (firstChild === null || firstChild === undefined)
-        firstChild = sentence.itemList.nextSibling;
+    if (firstChild === null || firstChild === undefined) {
+        if (sentence.itemList.nextSibling !== null && sentence.itemList.nextSibling !== undefined)
+            firstChild = sentence.itemList.nextSibling;
+        else {
+            var tempNode = document.createTextNode("");
+            sentence.itemList.appendChild(tempNode);
+            firstChild = sentence.itemList.firstChild;
+        }
+    }
     else if (firstChild.tagName === 'null') {
         firstChild.parentNode.removeChild(firstChild);
         firstChild = sentence.itemList.nextSibling;
     }
-    while (!firstChild.data)
+    while (!firstChild.hasOwnProperty("data"))
         firstChild = firstChild.firstChild;
     var i;
     for (i = 0; i < sentence.clause.length; i++) {
@@ -405,6 +412,9 @@ function initializeNewClause(sentence, phrase) {
 
     const separatorClause = new Clause(separatorNode);
     sentence.clause.splice(i + 1, 0, separatorClause);
+
+    if (tempNode !== undefined)
+        tempNode.parentNode.removeChild(tempNode);
 
     return i;
 }
@@ -493,14 +503,14 @@ function addClause(sentence, phrase) {
         // BEFORE: "<desc><s>There are <il>BASKETBALLS, SOCCER BALLS, and BASEBALLS</il>.</s></desc>"
         // INSERT: "TENNIS BALL"
         // AFTER:  "<desc><s>There are <il><item>a TENNIS BALL</item>, BASKETBALLS, SOCCER BALLS, and BASEBALLS</il>.</s></desc>"
-        if (clause[i + 2].text.includes(", and ") && clause[i + 2].node === sentence.itemList.lastChild) {
+        if (clause[i + 2] && clause[i + 2].text.includes(", and ") && clause[i + 2].node === sentence.itemList.lastChild) {
             clause[i + 1].set(", ");
             return 8;
         }
         // BEFORE: "<desc><s>There are <il>SOCCER BALLS and BASEBALLS</il>.</s></desc>"
         // INSERT: "TENNIS BALL"
         // AFTER:  "<desc><s>There are <il><item>a TENNIS BALL</item>, SOCCER BALLS, and BASEBALLS</il>.</s></desc>"
-        else if (clause[i + 2].text.includes(" and ") && clause[i + 2].node === sentence.itemList.lastChild) {
+        else if (clause[i + 2] && clause[i + 2].text.includes(" and ") && clause[i + 2].node === sentence.itemList.lastChild) {
             clause[i + 1].set(", ");
             clause[i + 2].set(clause[i + 2].text.replace(" and ", ", and "));
             return 9;
@@ -508,7 +518,7 @@ function addClause(sentence, phrase) {
         // BEFORE: "<desc><s>However, you do find <il>a wooden ruler</il>.</s></desc>"
         // INSERT: "KEYBOARD"
         // AFTER:  "<desc><s>However, you do find <il><item>a KEYBOARD</item> and a wooden ruler</il>.</s></desc>"
-        else if (!clause[i + 2].isItem && clause[i + 2].node === sentence.itemList.lastChild) {
+        else if (clause[i + 2] && !clause[i + 2].isItem && clause[i + 2].node === sentence.itemList.lastChild) {
             clause[i + 1].set(" and ");
             return 10;
         }
@@ -713,24 +723,31 @@ function removeClause(sentence, i) {
         clause[i + 1].set(clause[i + 1].text.replace(" and ", ""));
         return 18;
     }
+    // BEFORE: "<desc><s>In and around the bushes, you find <il><item>an EASTER EGG</item>, RED BERRIES, PURPLE BERRIES, and MUSHROOMS</il>.</s></desc>"
+    // REMOVE: "EASTER EGG"
+    // AFTER:  "<desc><s>In and around the bushes, you find <il>RED BERRIES, PURPLE BERRIES, and MUSHROOMS</il>.</s></desc>"
+    else if (clause[i + 1] && clause[i + 1].text.includes(", and ") && clause[i + 1].text.split(',').length - 1 > 2) {
+        clause[i].delete();
+        clause[i + 1].set(clause[i + 1].text.replace(", ", ""));
+        return 19;
+    }
     // BEFORE: "<desc><s>There are <il><item>CLARINETS</item>, a PIANO, and some SNARE DRUMS</il>.</s></desc>"
     // REMOVE: "CLARINETS"
     // AFTER:  "<desc><s>There are <il>a PIANO and some SNARE DRUMS</il>.</s></desc>"
     else if (clause[i + 1] && clause[i + 1].text.includes(", and ") && clause[i + 1].text.split(',').length - 1 === 2) {
         clause[i].delete();
         clause[i + 1].set(clause[i + 1].text.replace(", ", "").replace(", and ", " and "));
-        return 19;
+        return 20;
     }
-
     else if (!clause[i - 1] && clause[i + 1] && clause[i + 1].text === ".") {
         clause[i].delete();
         clause[i + 1].delete();
-        return 20;
+        return 21;
     }
 
     // If all else fails, just remove the item clause.
     clause[i].delete();
-    return 21;
+    return 22;
 }
 
 // The functions below are included to provide shorthand for using the finder module in descriptions.

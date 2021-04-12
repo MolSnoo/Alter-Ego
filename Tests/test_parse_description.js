@@ -42,6 +42,8 @@ exports.run = function () {
     test_parseDescription_25();
     test_parseDescription_26();
     test_parseDescription_27();
+    test_parseDescription_28();
+    test_parseDescription_29();
     return;
 };
 
@@ -379,6 +381,28 @@ function test_parseDescription_27() {
     const text = `<desc><s>It's a pair of long, purple pants with a checker pattern.</s> <s>There are four pockets altogether.</s> <s>In the left pocket, you find <il name="LEFT POCKET"><item>a GUN</item></il>.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"><item>3 pairs of DICE</item></il>.</s></desc>`;
 
     const result = `It's a pair of long, purple pants with a checker pattern. There are four pockets altogether. In the left pocket, you find a GUN. In the right back pocket, you find 3 pairs of DICE.`;
+    const actual = parser.parseDescription(text, null, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_28() {
+    const text = `<desc><s>It's a graph of an algebraic expression.</s> <s>In the corner, "x > -2 && x < 3" is written.</s></desc>`;
+
+    const result = `It's a graph of an algebraic expression. In the corner, "x > -2 && x < 3" is written.`;
+    const actual = parser.parseDescription(text, null, player);
+    assert.ok(
+        actual === result,
+        actual
+    );
+}
+
+function test_parseDescription_29() {
+    const text = `<desc><s>It's a graph of an algebraic expression.</s> <s>In the corner, "x < 3 && x > -2" is written.</s></desc>`;
+
+    const result = `It's a graph of an algebraic expression. In the corner, "x < 3 && x > -2" is written.`;
     const actual = parser.parseDescription(text, null, player);
     assert.ok(
         actual === result,
