@@ -174,7 +174,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 function createEmbed(game, page, pages) {
     let embed = new discord.RichEmbed()
         .setColor('1F8B4C')
-        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL)
+        .setAuthor(`Gestures List`, game.guild.iconURL)
         .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)
         .setFooter(`Page ${page + 1}/${pages.length}`);
 
