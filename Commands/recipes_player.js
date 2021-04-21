@@ -100,7 +100,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
         pages[pageNo].push(craftingFields[i]);
     }
-    if (pages[pageNo].length > 0) pageNo++;
+    if (pages[pageNo] && pages[pageNo].length > 0) pageNo++;
     for (let i = 0; i < objectFields.length; i++) {
         // Divide the menu into groups of 10.
         if (i % 10 === 0) {
