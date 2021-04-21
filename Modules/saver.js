@@ -43,18 +43,38 @@ module.exports.saveGame = async function () {
         data.push({ range: "Objects!A2:K", values: objectValues });
 
         var itemValues = [];
+        let deletedRows = 0;
         for (let i = 0; i < game.items.length; i++) {
-            itemValues.push([
-                game.items[i].prefab.id,
-                game.items[i].identifier,
-                game.items[i].location.name,
-                game.items[i].accessible ? "TRUE" : "FALSE",
-                game.items[i].containerName,
-                !isNaN(game.items[i].quantity) ? game.items[i].quantity : "",
-                !isNaN(game.items[i].uses) ? game.items[i].uses : "",
-                game.items[i].description
-            ]);
+            if (settings.autoClean && game.items[i].quantity === 0) {
+                game.items.splice(i, 1);
+                i--;
+                deletedRows++;
+            }
+            else {
+                itemValues.push([
+                    game.items[i].prefab.id,
+                    game.items[i].identifier,
+                    game.items[i].location.name,
+                    game.items[i].accessible ? "TRUE" : "FALSE",
+                    game.items[i].containerName,
+                    !isNaN(game.items[i].quantity) ? game.items[i].quantity : "",
+                    !isNaN(game.items[i].uses) ? game.items[i].uses : "",
+                    game.items[i].description
+                ]);
+                if (settings.autoClean && i > 0) game.items[i].row = game.items[i - 1].row + 1;
+            }
         }
+        for (let i = 0; i < deletedRows; i++)
+            itemValues.push([
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]);
         data.push({ range: "Items!A2:H", values: itemValues });
 
         var puzzleValues = [];
@@ -121,18 +141,38 @@ module.exports.saveGame = async function () {
         data.push({ range: "Players!A3:N", values: playerValues });
 
         var inventoryValues = [];
+        deletedRows = 0;
         for (let i = 0; i < game.inventoryItems.length; i++) {
-            inventoryValues.push([
-                game.inventoryItems[i].player.name,
-                game.inventoryItems[i].prefab ? game.inventoryItems[i].prefab.id : "NULL",
-                game.inventoryItems[i].identifier,
-                game.inventoryItems[i].equipmentSlot,
-                game.inventoryItems[i].containerName,
-                !isNaN(game.inventoryItems[i].quantity) && game.inventoryItems[i].quantity !== null ? game.inventoryItems[i].quantity : "",
-                !isNaN(game.inventoryItems[i].uses) && game.inventoryItems[i].uses !== null ? game.inventoryItems[i].uses : "",
-                game.inventoryItems[i].description
-            ]);
+            if (settings.autoClean && game.inventoryItems[i].quantity === 0) {
+                game.inventoryItems.splice(i, 1);
+                i--;
+                deletedRows++;
+            }
+            else {
+                inventoryValues.push([
+                    game.inventoryItems[i].player.name,
+                    game.inventoryItems[i].prefab ? game.inventoryItems[i].prefab.id : "NULL",
+                    game.inventoryItems[i].identifier,
+                    game.inventoryItems[i].equipmentSlot,
+                    game.inventoryItems[i].containerName,
+                    !isNaN(game.inventoryItems[i].quantity) && game.inventoryItems[i].quantity !== null ? game.inventoryItems[i].quantity : "",
+                    !isNaN(game.inventoryItems[i].uses) && game.inventoryItems[i].uses !== null ? game.inventoryItems[i].uses : "",
+                    game.inventoryItems[i].description
+                ]);
+                if (settings.autoClean && i > 0) game.inventoryItems[i].row = game.inventoryItems[i - 1].row + 1;
+            }
         }
+        for (let i = 0; i < deletedRows; i++)
+            inventoryValues.push([
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]);
         data.push({ range: "Inventory Items!A2:H", values: inventoryValues });
 
         try {

@@ -44,6 +44,7 @@
   "defaultDropObject": "FLOOR",
   "defaultRoomIconURL": "",
   "autoDeleteWhisperChannels": true,
+  "autoClean": false,
   "autoSaveInterval": 30,
   "messageQueueInterval": 0.25,
   "offlineStatusInterval": 15,
