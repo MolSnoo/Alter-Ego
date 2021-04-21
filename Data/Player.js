@@ -306,11 +306,11 @@ class Player {
         if (duration === undefined) duration = null;
 
         for (let i = 0; i < status.overriders.length; i++) {
-            if (this.statusString.includes(status.overriders[i].name))
+            if (this.status.map(statusEffect => statusEffect.name).includes(status.overriders[i].name))
                 return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
         }
 
-        if (this.statusString.includes(statusName)) {
+        if (this.status.map(statusEffect => statusEffect.name).includes(statusName)) {
             if (status.duplicatedStatus !== null) {
                 this.cure(game, statusName, false, false, false);
                 this.inflict(game, status.duplicatedStatus.name, true, false, true);
