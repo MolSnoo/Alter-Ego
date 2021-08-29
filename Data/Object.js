@@ -38,8 +38,8 @@ class Object {
     activate(game, player, narrate) {
         this.activated = true;
         if (narrate) {
-            if (player) new Narration(game, player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
-            else new Narration(game, null, this.location, `${this.name} turns on.`).send();
+            if (player) new Narration(game, player, game.rooms.find(room => room.name === this.location.name), `${player.displayName} turns on the ${this.name}.`).send();
+            else new Narration(game, null, game.rooms.find(room => room.name === this.location.name), `${this.name} turns on.`).send();
         }
 
         const result = this.findRecipe(game);
@@ -80,8 +80,8 @@ class Object {
     deactivate(game, player, narrate) {
         this.activated = false;
         if (narrate) {
-            if (player) new Narration(game, player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
-            else new Narration(game, null, this.location, `${this.name} turns off.`).send();
+            if (player) new Narration(game, player, game.rooms.find(room => room.name === this.location.name), `${player.displayName} turns off the ${this.name}.`).send();
+            else new Narration(game, null, game.rooms.find(room => room.name === this.location.name), `${this.name} turns off.`).send();
         }
 
         this.process.recipe = null;

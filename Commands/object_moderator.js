@@ -102,7 +102,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
-    else if (announcement !== "") new Narration(game, player, object.location, announcement).send();
+    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.name === object.location.name), announcement).send();
 
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {
