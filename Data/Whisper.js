@@ -23,7 +23,7 @@ class Whisper {
     makeChannelName() {
         var playerList = new Array();
         for (var i = 0; i < this.players.length; i++)
-            playerList.push(this.players[i].name.toLowerCase());
+            playerList.push(this.players[i].displayName.toLowerCase());
         playerList = playerList.sort().join('-');
         return `${this.location.name}-${playerList}`;
     }
@@ -32,7 +32,7 @@ class Whisper {
         let playerListString = this.players[0].displayName;
         if (this.players.length === 2)
             playerListString += ` and ${this.players[1].displayName}`;
-        else {
+        else if (this.players.length !== 1) {
             for (let i = 1; i < this.players.length - 1; i++)
                 playerListString += `, ${this.players[i].displayName}`;
             playerListString += `, and ${this.players[this.players.length - 1].displayName}`;

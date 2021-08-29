@@ -38,14 +38,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         for (let j = 0; j < game.players_alive.length; j++) {
             let other = game.players_alive[j];
             // Check if player exists and is in the same room.
-            if (other.name.toLowerCase() === args[i].toLowerCase() && other.location.name === player.location.name) {
+            if (other.displayName.toLowerCase() === args[i].toLowerCase() && other.location.name === player.location.name) {
                 // Check attributes that would prohibit the player from whispering to someone in the room.
-                if (other.hasAttribute("hidden") || other.hasAttribute("concealed"))
-                    return game.messageHandler.addReply(message, `can't whisper to ${other.name} because ${other.originalPronouns.sbj} ` + (other.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
+                if (other.hasAttribute("hidden"))
+                    return game.messageHandler.addReply(message, `can't whisper to ${other.displayName} because ${other.pronouns.sbj} ` + (other.pronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
+                if (other.hasAttribute("concealed"))
+                    return game.messageHandler.addReply(message, `can't whisper to ${other.displayName} because it would reveal their identity.`);
                 if (other.hasAttribute("no hearing"))
-                    return game.messageHandler.addReply(message, `can't whisper to ${other.name} because ${other.originalPronouns.sbj} can't hear you.`);
+                    return game.messageHandler.addReply(message, `can't whisper to ${other.displayName} because ${other.pronouns.sbj} can't hear you.`);
                 if (other.hasAttribute("unconscious"))
-                    return game.messageHandler.addReply(message, `can't whisper to ${other.name} because ${other.originalPronouns.sbj} ` + (other.originalPronouns.plural ? `are` : `is`) + ` not awake.`);
+                    return game.messageHandler.addReply(message, `can't whisper to ${other.displayName} because ${other.pronouns.sbj} ` + (other.pronouns.plural ? `are` : `is`) + ` not awake.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;
                 recipients.push(other);

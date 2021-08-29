@@ -31,7 +31,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels, and specify it's in a whisper channel
         let whisperMessageText = `**In a whisper with ${whisper.makePlayersSentenceGroup()}:** ${messageText}`;
-        whisper.location.occupants.forEach(player => {
+        whisper.players.forEach(player => {
             if (player.spectateChannel !== null)
             addMessageToQueue(player.spectateChannel, whisperMessageText, messagePriority.spectatorMessage);
         });
