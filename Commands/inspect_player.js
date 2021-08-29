@@ -126,6 +126,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     for (let i = 0; i < player.location.occupants.length; i++) {
         let occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden"))
+            return game.messageHandler.addReply(message, `couldn't find "${input}".`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
             if (occupant.id === player.id) return game.messageHandler.addReply(message, `can't inspect yourself.`);
