@@ -3,6 +3,7 @@ const discord = require('discord.js');
 const QueuedMessage = include(`${settings.dataDir}/QueuedMessage.js`);
 
 module.exports.queue = [];
+module.exports.clientID = null;
 
 const messagePriority = {
     modChannel: 4,
@@ -107,11 +108,9 @@ module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, 
 
         // Create a webhook for this spectate channel if necessary, or grab the existing one
         let webHooks = await player.spectateChannel.fetchWebhooks();
-        let webHook;
-        if (webHooks.size === 0)
+        let webHook = webHooks.find(webhook => webhook.owner.id === this.clientID);
+        if (webHook === null || webHook === undefined)
             webHook = await player.spectateChannel.createWebhook(player.spectateChannel.name);
-        else
-            webHook = webHooks.first();
 
         var files = [];
         message.attachments.array().forEach(attachment => files.push(attachment.url));

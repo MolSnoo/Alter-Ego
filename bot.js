@@ -62,6 +62,10 @@ function updateStatus() {
 
 bot.on('ready', async () => {
     if (bot.guilds.size === 1) {
+        messageHandler.clientID = bot.user.id;
+        game.guild = bot.guilds.first();
+        game.commandChannel = game.guild.channels.find(channel => channel.id === settings.commandChannel);
+        game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
         if (settings.testing) {
@@ -113,10 +117,6 @@ bot.on('message', async message => {
     // Prevent bot from responding to its own messages.
     if (message.author === bot.user) return;
     if (settings.debug && message.channel.type === 'dm') console.log(message.author.username + ': "' + message.content + '"');
-
-    game.guild = bot.guilds.first();
-    game.commandChannel = game.guild.channels.find(channel => channel.id === settings.commandChannel);
-    game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
 
     // If the message begins with the command prefix, attempt to run a command.
     // If the command is run successfully, the message will be deleted.
