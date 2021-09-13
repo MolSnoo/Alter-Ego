@@ -31,7 +31,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (a.prefab.id > b.prefab.id) return 1;
         return 0;
     });
-    var roomItems = game.items.filter(item => item.location.name === player.location.name && item.quantity > 0);
+    var roomItems = game.items.filter(item => item.location.name === player.location.name && (item.quantity > 0 || isNaN(item.quantity)));
     roomItems.sort(function (a, b) {
         if (a.prefab.id < b.prefab.id) return -1;
         if (a.prefab.id > b.prefab.id) return 1;
