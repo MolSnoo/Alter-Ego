@@ -90,8 +90,8 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -209,8 +209,8 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                     game.puzzles[i].parentObject = game.objects.find(object => object.name === game.puzzles[i].parentObjectName && object.location instanceof Room && game.puzzles[i].location instanceof Room && object.location.name === game.puzzles[i].location.name);
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -353,8 +353,8 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -467,8 +467,8 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -654,8 +654,8 @@ module.exports.loadItems = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -822,8 +822,8 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                     game.items[i].container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location instanceof Room && game.items[i].location instanceof Room && puzzle.location.name === game.items[i].location.name);
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -977,8 +977,8 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -1165,8 +1165,8 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -1340,8 +1340,8 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -1600,8 +1600,8 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             }
 
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');
@@ -1697,8 +1697,8 @@ module.exports.loadGestures = function (game, doErrorChecking) {
                 }
             }
             if (errors.length > 0) {
-                if (errors.length > 5) {
-                    errors = errors.slice(0, 5);
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
                     errors.push(new Error("Too many errors."));
                 }
                 let errorMessage = errors.join('\n');

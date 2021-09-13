@@ -91,7 +91,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (error instanceof Error) errors.push(error);
         }
         if (errors.length > 0) {
-            if (errors.length > 5) {
+            if (errors.length > 15) {
                 errors = errors.slice(0, 5);
                 errors.push(new Error("Too many errors."));
             }
