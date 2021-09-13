@@ -72,12 +72,17 @@ module.exports.parseDescription = function (description, container, player, doEr
             let conditional = conditionals[i].getAttribute('cond');
             if (conditional !== null && conditional !== undefined) {
                 conditional = conditional.replace(/this/g, "container");
-                if (eval(conditional) === false)
-                    conditionalsToRemove.push(conditionals[i]);
+                try {
+                    if (eval(conditional) === false)
+                        conditionalsToRemove.push(conditionals[i]);
+                }
+                catch (err) {
+                    errors.push(err.toString());
+                }
             }
         }
         for (let i = 0; i < conditionalsToRemove.length; i++) {
-            if (conditionalsToRemove[i].childNodes[0].tagName === 'item') {
+            if (conditionalsToRemove[i].childNodes.length > 0 && conditionalsToRemove[i].childNodes[0].tagName === 'item') {
                 let itemElement = conditionalsToRemove[i].childNodes[0].childNodes[0];
                 let item = new Item("", 0, itemElement.data, itemElement.data);
                 document = this.removeItem(description, item, "", NaN, document);
@@ -112,11 +117,11 @@ module.exports.parseDescription = function (description, container, player, doEr
                     if (variableText === undefined || variableText === "undefined")
                         errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
                     variableStrings.push({ element: variables[i], attribute: variableText });
+                    if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
+                        variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
                 } catch (err) {
-                    errors.push(err);
+                    errors.push(err.toString());
                 }
-                if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
-                    variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
             }
         }
         for (let i = 0; i < variableStrings.length; i++) {
