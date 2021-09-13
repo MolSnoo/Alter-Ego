@@ -27,7 +27,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.players_alive[i].isMoving = false;
                 clearInterval(game.players_alive[i].moveTimer);
                 game.players_alive[i].remainingTime = 0;
-                game.messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
+                if (!game.players_alive[i].hasAttribute('unconscious'))
+                    game.messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
             }
             game.messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been enabled.");
         }
@@ -38,8 +39,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else if (args.length === 0 && game.editMode === true || args.length > 0 && args[0].toLowerCase() === "off") {
         game.editMode = false;
-        for (let i = 0; i < game.players_alive.length; i++)
-            game.messageHandler.addDirectNarration(game.players_alive[i], "Edit mode has been disabled. You are free to resume normal gameplay.", false);
+        for (let i = 0; i < game.players_alive.length; i++) {
+            if (!game.players_alive[i].hasAttribute('unconscious'))
+                game.messageHandler.addDirectNarration(game.players_alive[i], "Edit mode has been disabled. You are free to resume normal gameplay.", false);
+        }
         game.messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been disabled.");
     }
     else game.messageHandler.addReply(message, `couldn't understand input "${args[0]}". Usage:\n${exports.config.usage}`);
