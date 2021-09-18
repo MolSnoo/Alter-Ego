@@ -92,7 +92,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
         if (errors.length > 0) {
             if (errors.length > 15) {
-                errors = errors.slice(0, 5);
+                errors = errors.slice(0, 15);
                 errors.push(new Error("Too many errors."));
             }
             game.messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
