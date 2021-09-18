@@ -72,7 +72,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
         if (warnings.length > 0) {
             if (warnings.length > 15) {
-                warnings = warnings.slice(0, 5);
+                warnings = warnings.slice(0, 15);
                 warnings.push("Too many warnings.");
             }
             game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
@@ -80,14 +80,13 @@ module.exports.run = async (bot, game, message, command, args) => {
         let errors = [];
         for (let i = 0; i < result.errors.length; i++) {
             for (let j = 0; j < result.errors[i].errors.length; j++) {
-                console.log(result.errors[i]);
                 result.errors[i].errors[j] = result.errors[i].errors[j].replace(/\t/g, " ").replace(/\n/g, " ");
                 errors.push(`Error on ${result.errors[i].cell}: ${result.errors[i].errors[j]}`);
             }
         }
         if (errors.length > 0) {
             if (errors.length > 15) {
-                errors = errors.slice(0, 5);
+                errors = errors.slice(0, 15);
                 errors.push("Too many errors.");
             }
             game.messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
@@ -107,7 +106,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             warnings.push(`Warning on ${result[i].cell}: ${result[i].text}`);
         if (warnings.length > 0) {
             if (warnings.length > 15) {
-                warnings = warnings.slice(0, 5);
+                warnings = warnings.slice(0, 15);
                 warnings.push("Too many warnings.");
             }
             game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
