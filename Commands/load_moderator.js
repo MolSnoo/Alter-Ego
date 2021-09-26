@@ -128,8 +128,10 @@ module.exports.run = async (bot, game, message, command, args) => {
 
             const privatePlayers = [];
             for (let i = 0; i < game.players_alive.length; i++) {
-                const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-                if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
+                if (game.players_alive[i].talent !== "NPC") {
+                    const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
+                    if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
+                }
             }
             if (privatePlayers.length > 0) {
                 const privatePlayerList = privatePlayers.join(", ");
@@ -260,8 +262,10 @@ module.exports.run = async (bot, game, message, command, args) => {
 
         const privatePlayers = [];
         for (let i = 0; i < game.players_alive.length; i++) {
-            const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-            if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
+            if (game.players_alive[i].talent !== "NPC") {
+                const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
+                if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
+            }
         }
         if (privatePlayers.length > 0) {
             const privatePlayerList = privatePlayers.join(", ");

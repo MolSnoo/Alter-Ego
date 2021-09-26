@@ -1825,7 +1825,7 @@ class Player {
     }
 
     notify(game, message, addSpectate = true) {
-        if (!this.hasAttribute("unconscious"))
+        if (!this.hasAttribute("unconscious") && this.talent !== "NPC")
             game.messageHandler.addDirectNarration(this, message, addSpectate);
         return;
     }

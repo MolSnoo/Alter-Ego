@@ -15,19 +15,21 @@ module.exports.run = async (bot, game, message, command, args) => {
     // Remove all living players from whatever room channel they're in.
     for (let i = 0; i < game.players_alive.length; i++) {
         const player = game.players_alive[i];
-        if (player.location.channel) player.location.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
-        player.removeFromWhispers(game);
-        player.member.removeRole(settings.playerRole).catch();
+        if (player.talent !== "NPC") {
+            if (player.location.channel) player.location.channel.overwritePermissions(player.member, { VIEW_CHANNEL: null });
+            player.removeFromWhispers(game);
+            player.member.removeRole(settings.playerRole).catch();
 
-        for (let j = 0; j < player.status.length; j++) {
-            if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
-                player.status[j].timer.stop();
+            for (let j = 0; j < player.status.length; j++) {
+                if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
+                    player.status[j].timer.stop();
+            }
         }
     }
 
     for (let i = 0; i < game.players_dead.length; i++) {
         const player = game.players_dead[i];
-        player.member.removeRole(settings.deadRole).catch();
+        if (player.talent !== "NPC") player.member.removeRole(settings.deadRole).catch();
     }
 
     clearTimeout(game.halfTimer);

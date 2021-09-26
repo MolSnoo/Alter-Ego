@@ -1263,7 +1263,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     statusList[j] = statusList[j].trim();
                 var member = sheet[i][columnID] ? game.guild.members.find(member => member.id === sheet[i][columnID].trim()) : null;
                 var spectateChannel = null;
-                if (sheet[i][columnName]) {
+                if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
                     spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parentID === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.filter(channel => channel.parent && channel.parentID === settings.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
@@ -1353,9 +1353,12 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
 };
 
 module.exports.checkPlayer = function (player) {
-    if (player.id === "" || player.id === null || player.id === undefined)
+    if (player.talent !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
-    if (player.member === null || player.member === undefined)
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png))$');
+    if (player.talent === "NPC" && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
+        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg or .png extension.`);
+    if (player.talent !== "NPC" && (player.member === null || player.member === undefined))
         return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
     if (player.name === "" || player.name === null || player.name === undefined)
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);

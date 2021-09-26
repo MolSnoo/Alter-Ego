@@ -33,8 +33,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     for (let i = 0; i < players.length; i++) {
-        players[i].member.removeRole(settings.playerRole);
-        players[i].member.addRole(settings.deadRole);
+        if (players[i].talent !== "NPC") {
+            players[i].member.removeRole(settings.playerRole);
+            players[i].member.addRole(settings.deadRole);
+        }
     }
 
     game.messageHandler.addGameMechanicMessage(message.channel, "Listed players have been given the Dead role.");

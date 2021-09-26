@@ -41,7 +41,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
 
 // Narrate something directly to a player
 module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
-    addMessageToQueue(player.member, messageText, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addMessageToQueue(player.member, messageText, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
         addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
 };
@@ -51,7 +51,7 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
     var files = [];
     attachments.array().forEach(attachment => files.push(attachment.url));
 
-    addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
         addMessageWithAttachmentsToQueue(player.spectateChannel, messageText, { files: files }, messagePriority.spectatorMessage);
 };
@@ -74,7 +74,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         .addField("Occupants", location.occupantsString === "" ? "You don't see anyone here." : occupantsString)
         .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
 
-    addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
         addEmbedToQueue(player.spectateChannel, embed, messagePriority.spectatorMessage);
 };
