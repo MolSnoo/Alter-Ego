@@ -28,7 +28,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
     }
     if (recipient === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
-    if (recipient.id === player.id) return game.messageHandler.addReply(message, `You cannot send a message to yourself.`);
+    if (recipient.name === player.name) return game.messageHandler.addReply(message, `You cannot send a message to yourself.`);
     args.splice(0, 1);
 
     var input = args.join(" ");

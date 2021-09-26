@@ -220,7 +220,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             // Check if an inventory item was specified.
             let containerItem = null;
             let containerItemSlot = null;
-            const playerItems = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
+            const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
             for (let i = 0; i < playerItems.length; i++) {
                 // If parsedInput2 is only the identifier or the item's name, we've found the item to delete.
                 if (playerItems[i].identifier !== "" && playerItems[i].identifier === parsedInput2 || playerItems[i].prefab.id === parsedInput2) {

@@ -20,7 +20,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels
         room.occupants.forEach(player => {
-            if ((speaker === null || speaker.id !== player.id) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && player.spectateChannel !== null)
+            if ((speaker === null || speaker.name !== player.name) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && player.spectateChannel !== null)
                 addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
         });
     }
@@ -104,7 +104,7 @@ module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, 
         var messageText = message.content || '';
         // If this is a whisper, specify that the following message comes from the whisper
         if (whisper)
-            messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(message.author)}):*\n` + messageText;
+            messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speakerName)}):*\n` + messageText;
 
         // Create a webhook for this spectate channel if necessary, or grab the existing one
         let webHooks = await player.spectateChannel.fetchWebhooks();

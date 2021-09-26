@@ -107,7 +107,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
 
     // Check if the input is an item in the player's inventory.
-    const inventory = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null);
+    const inventory = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
     for (let i = 0; i < inventory.length; i++) {
         parsedInput = parsedInput.replace("MY ", "");
         if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
@@ -130,7 +130,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             return game.messageHandler.addReply(message, `couldn't find "${input}".`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.id === player.id) return game.messageHandler.addReply(message, `can't inspect yourself.`);
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, `can't inspect yourself.`);
             player.sendDescription(game, occupant.description, occupant);
 
             const time = new Date().toLocaleTimeString();
@@ -140,10 +140,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
         else if (parsedInput.startsWith(possessive)) {
             // Don't let the player inspect their own items this way.
-            if (occupant.id === player.id) return game.messageHandler.addReply(message, `can't inspect your own items this way. Use "my" instead of your name.`);
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, `can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
-            const inventory = game.inventoryItems.filter(item => item.player.id === occupant.id && item.prefab !== null && item.containerName === "" && item.container === null);
+            const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
             for (let j = 0; j < inventory.length; j++) {
                 if (inventory[j].prefab.name === parsedInput && (inventory[j].equipmentSlot !== "LEFT HAND" && inventory[j].equipmentSlot !== "RIGHT HAND" || !inventory[j].prefab.discreet)) {
                     // Make sure the item isn't covered by anything first.

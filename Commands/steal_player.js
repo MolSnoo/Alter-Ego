@@ -56,7 +56,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(possessive) && !occupant.hasAttribute("hidden")) {
             // Player cannot steal from themselves.
-            if (occupant.id === player.id) return game.messageHandler.addReply(message, "you can't steal from yourself.");
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, "you can't steal from yourself.");
 
             victim = occupant;
             parsedInput = parsedInput.substring(possessive.length).trim();
@@ -71,7 +71,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var slotName = newArgs[1] ? newArgs[0].trim() : "";
 
     // Find the equipped item to steal from.
-    const inventory = game.inventoryItems.filter(item => item.player.id === victim.id && item.prefab !== null && item.containerName === "" && item.container === null);
+    const inventory = game.inventoryItems.filter(item => item.player.name === victim.name && item.prefab !== null && item.containerName === "" && item.container === null);
     var container = null;
     for (let i = 0; i < inventory.length; i++) {
         if (inventory[i].prefab.name === itemName && (inventory[i].equipmentSlot !== "LEFT HAND" && inventory[i].equipmentSlot !== "RIGHT HAND" || !inventory[i].prefab.discreet)) {

@@ -66,7 +66,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             let matchedUsers = 0;
             for (let j = 0; j < recipients.length; j++) {
                 for (let k = 0; k < game.whispers[i].players.length; k++) {
-                    if (recipients[j].id === game.whispers[i].players[k].id) {
+                    if (recipients[j].name === game.whispers[i].players[k].name) {
                         matchedUsers++;
                         break;
                     }

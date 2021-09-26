@@ -29,7 +29,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const occupant = player.location.occupants[i];
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && !occupant.hasAttribute("hidden")) {
             // Player cannot give to themselves.
-            if (occupant.id === player.id) return game.messageHandler.addReply(message, "you can't give to yourself.");
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, "you can't give to yourself.");
 
             recipient = occupant;
             parsedInput = parsedInput.substring(occupant.displayName.length).trim();

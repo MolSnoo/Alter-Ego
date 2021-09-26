@@ -40,8 +40,8 @@ class Whisper {
         return playerListString;
     }
 
-    makePlayersSentenceGroupExcluding(player) {
-        const players = this.players.filter(participant => participant.id !== player.id);
+    makePlayersSentenceGroupExcluding(playerName) {
+        const players = this.players.filter(participant => participant.displayName !== playerName);
         let playerListString = players[0].displayName;
         if (players.length === 2)
             playerListString += ` and ${players[1].displayName}`;

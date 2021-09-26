@@ -56,8 +56,8 @@ class Room {
 
         this.occupants.push(player);
         this.occupants.sort(function (a, b) {
-            var nameA = a.name.toLowerCase();
-            var nameB = b.name.toLowerCase();
+            var nameA = a.displayName.toLowerCase();
+            var nameB = b.displayName.toLowerCase();
             if (nameA < nameB) return -1;
             if (nameA > nameB) return 1;
             return 0;

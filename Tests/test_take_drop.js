@@ -270,7 +270,7 @@ function init_0() {
     // Create EquipmentSlots for each player.
     for (let i = 0; i < game.players_alive.length; i++) {
         let inventory = [];
-        let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players_alive[i].id && item.equipmentSlot !== "" && item.containerName === "");
+        let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players_alive[i].name && item.equipmentSlot !== "" && item.containerName === "");
         for (let j = 0; j < equipmentItems.length; j++)
             inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
         game.players_alive[i].inventory = inventory;
@@ -481,7 +481,7 @@ function test_take_item_0() {
     // Test that all of the inventoryItems and Player inventory items have the same row numbers.
     for (let i = 0; i < nero.inventory.length; i++) {
         for (let j = 0; j < nero.inventory[i].items.length; j++) {
-            const match = game.inventoryItems.find(item => item.player.id === nero.id && (item.prefab === null && nero.inventory[i].items[j].prefab === null || item.prefab !== null && nero.inventory[i].items[j].prefab !== null && item.prefab.id === nero.inventory[i].items[j].prefab.id) && item.equipmentSlot === nero.inventory[i].items[j].equipmentSlot && item.containerName === nero.inventory[i].items[j].containerName );
+            const match = game.inventoryItems.find(item => item.player.name === nero.name && (item.prefab === null && nero.inventory[i].items[j].prefab === null || item.prefab !== null && nero.inventory[i].items[j].prefab !== null && item.prefab.id === nero.inventory[i].items[j].prefab.id) && item.equipmentSlot === nero.inventory[i].items[j].equipmentSlot && item.containerName === nero.inventory[i].items[j].containerName );
             assert.ok(match !== null && match !== undefined, nero.inventory[i].items[j].row);
             assert.ok(nero.inventory[i].items[j].row === match.row);
         }
@@ -577,7 +577,7 @@ function test_take_item_1() {
     // Test that all of the inventoryItems and Player inventory items have the same row numbers.
     for (let i = 0; i < vivian.inventory.length; i++) {
         for (let j = 0; j < vivian.inventory[i].items.length; j++) {
-            const match = game.inventoryItems.find(item => item.player.id === vivian.id && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
+            const match = game.inventoryItems.find(item => item.player.name === vivian.name && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
             assert.ok(match !== null && match !== undefined, vivian.inventory[i].items[j].row);
             assert.ok(vivian.inventory[i].items[j].row === match.row);
         }
@@ -640,7 +640,7 @@ function test_drop_item_0() {
     // Test that all of the inventoryItems and Player inventory items have the same row numbers.
     for (let i = 0; i < vivian.inventory.length; i++) {
         for (let j = 0; j < vivian.inventory[i].items.length; j++) {
-            const match = game.inventoryItems.find(item => item.player.id === vivian.id && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
+            const match = game.inventoryItems.find(item => item.player.name === vivian.name && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
             assert.ok(match !== null && match !== undefined, vivian.inventory[i].items[j].row);
             assert.ok(vivian.inventory[i].items[j].row === match.row);
         }
@@ -925,7 +925,7 @@ function init_1() {
     // Create EquipmentSlots for each player.
     for (let i = 0; i < game.players_alive.length; i++) {
         let inventory = [];
-        let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players_alive[i].id && item.equipmentSlot !== "" && item.containerName === "");
+        let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players_alive[i].name && item.equipmentSlot !== "" && item.containerName === "");
         for (let j = 0; j < equipmentItems.length; j++)
             inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
         game.players_alive[i].inventory = inventory;
@@ -1643,7 +1643,7 @@ function test_take_drop_item_0() {
     // Test that all of the inventoryItems and Player inventory items have the same row numbers.
     for (let i = 0; i < vivian.inventory.length; i++) {
         for (let j = 0; j < vivian.inventory[i].items.length; j++) {
-            const match = game.inventoryItems.find(item => item.player.id === vivian.id && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
+            const match = game.inventoryItems.find(item => item.player.name === vivian.name && (item.prefab === null && vivian.inventory[i].items[j].prefab === null || item.prefab !== null && vivian.inventory[i].items[j].prefab !== null && item.prefab.id === vivian.inventory[i].items[j].prefab.id) && item.equipmentSlot === vivian.inventory[i].items[j].equipmentSlot && item.containerName === vivian.inventory[i].items[j].containerName);
             assert.ok(match !== null && match !== undefined, vivian.inventory[i].items[j].row);
             assert.ok(vivian.inventory[i].items[j].row === match.row);
         }

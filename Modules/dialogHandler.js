@@ -155,7 +155,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
                         if (occupant.hasAttribute(`knows ${player.name}`))
                             occupant.notify(game, `${player.name} ${verb}s "${message.content}".`);
                         else if (!occupant.hasAttribute("no sight"))
-                            occupant.notify(game, `${player.displayName} ${verb}s "${message.content}".`);
+                            occupant.notify(game, `${player.displayName} ${verb}s "${message.content}".`, deletable);
                         else
                             occupant.notify(game, `You hear a voice in the room ${verb} "${message.content}".`);
                     }

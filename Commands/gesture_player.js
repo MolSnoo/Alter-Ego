@@ -122,7 +122,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                                 let occupant = player.location.occupants[k];
                                 if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && !occupant.hasAttribute("hidden")) {
                                     // Player cannot gesture toward themselves.
-                                    if (occupant.id === player.id) return game.messageHandler.addReply(message, "you can't gesture toward yourself.");
+                                    if (occupant.name === player.name) return game.messageHandler.addReply(message, "you can't gesture toward yourself.");
                                     targetType = "Player";
                                     target = occupant;
                                     break;

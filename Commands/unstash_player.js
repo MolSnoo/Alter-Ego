@@ -45,7 +45,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var item = null;
     var container = null;
     var slotName = "";
-    const playerItems = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
+    const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < playerItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
         if (playerItems[i].name === parsedInput) {

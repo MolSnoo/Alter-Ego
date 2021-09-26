@@ -1332,7 +1332,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     let error = exports.checkPlayer(game.players[i]);
                     if (error instanceof Error) errors.push(error);
 
-                    let playerInventory = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players[i].id);
+                    let playerInventory = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name);
                     for (let j = 0; j < playerInventory.length; j++) {
                         error = exports.checkInventoryItem(playerInventory[j], game);
                         if (error instanceof Error) errors.push(error);
@@ -1443,7 +1443,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             for (let i = 0; i < game.players.length; i++) {
                 let inventory = [];
                 game.players[i].carryWeight = 0;
-                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players[i].id && item.equipmentSlot !== "" && item.containerName === "");
+                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name && item.equipmentSlot !== "" && item.containerName === "");
                 for (let j = 0; j < equipmentItems.length; j++)
                     inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
                 game.players[i].inventory = inventory;
@@ -1549,7 +1549,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
                         let container = game.inventoryItems.find(item =>
                             item.player instanceof Player &&
-                            item.player.id === game.inventoryItems[i].player.id &&
+                            item.player.name === game.inventoryItems[i].player.name &&
                             item.identifier === containerItemIdentifier &&
                             item.quantity !== 0
                         );

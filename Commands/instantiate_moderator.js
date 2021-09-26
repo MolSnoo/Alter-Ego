@@ -183,7 +183,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         // Check if an inventory item was specified.
         let containerItem = null;
         let containerItemSlot = null;
-        const items = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null);
+        const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
         for (let i = 0; i < items.length; i++) {
             if (items[i].identifier === parsedInput || items[i].name === parsedInput) return game.messageHandler.addReply(message, `you need to supply a prefab and a preposition.`);
             if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].name)) {

@@ -206,7 +206,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             // Check if an inventory item was specified.
             let containerItem = null;
             let containerItemSlot = null;
-            const items = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null);
+            const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
             for (let i = 0; i < items.length; i++) {
                 if (items[i].identifier === parsedInput2 || items[i].name === parsedInput2) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
                 if (parsedInput2.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput2.endsWith(items[i].name)) {
