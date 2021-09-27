@@ -1,17 +1,18 @@
 ﻿const settings = include('settings.json');
 
-module.exports.execute = async (bot, game, message, deletable) => {
+module.exports.execute = async (bot, game, message, deletable, player = null) => {
     // Determine if the speaker is a moderator first.
     var isModerator = false;
-    if (message.member.roles.find(role => role.id === settings.moderatorRole))
+    if (message.member && message.member.roles.find(role => role.id === settings.moderatorRole))
         isModerator = true;
 
     // Determine if the speaker is a player.
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].id === message.author.id) {
-            player = game.players_alive[i];
-            break;
+    if (player === null) {
+        for (let i = 0; i < game.players_alive.length; i++) {
+            if (game.players_alive[i].id === message.author.id) {
+                player = game.players_alive[i];
+                break;
+            }
         }
     }
 
@@ -28,16 +29,16 @@ module.exports.execute = async (bot, game, message, deletable) => {
     }
     if (player !== null && message.channel.id === settings.announcementChannel) {
         for (let i = 0; i < game.players_alive.length; i++)
-            if (!game.players_alive[i].hasAttribute("unconscious")) game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player.displayName, message);
+            game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player.displayName, message);
         return;
     }
     if (room === null) return;
 
     if (player !== null) {
-        player.setOnline();
+        if (player.talent !== "NPC") player.setOnline();
 
-        if (player.hasAttribute("no speech") || ["716134432234274906","772627705329745942","805513660948545546","621560673196834816","585830504327151616","693308651640717332","701721767022035046","600938008908136449","223898787981164544","481623932835856385","309807598071185410","132591626366353410","660304615283359744","772632468201144320","747273189947867137","253716652636504065","479128980700790813","749401864881307810","749813541317640215","711990013566386337","750752005143789598","258480539063812096","818916356442292305","122172345505939457","711985273512132751","621562058005151775","701964065534115990","805511135162794076","754888916225491036"].includes(player.member.id)) {
-            game.messageHandler.addGameMechanicMessage(player.member, "You are mute, so you cannot speak.");
+        if (player.hasAttribute("no speech") || ["716134432234274906","772627705329745942","805513660948545546","621560673196834816","585830504327151616","693308651640717332","701721767022035046","600938008908136449","223898787981164544","481623932835856385","309807598071185410","132591626366353410","660304615283359744","772632468201144320","747273189947867137","253716652636504065","479128980700790813","749401864881307810","749813541317640215","711990013566386337","750752005143789598","258480539063812096","818916356442292305","122172345505939457","711985273512132751","621562058005151775","701964065534115990","805511135162794076","754888916225491036"].includes(player.id)) {
+            if (player.talent !== "NPC") game.messageHandler.addGameMechanicMessage(player.member, "You are mute, so you cannot speak.");
             if (deletable) message.delete().catch();
             return;
         }
@@ -143,7 +144,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
 
             for (let i = 0; i < room.occupants.length; i++) {
                 let occupant = room.occupants[i];
-                if (occupant.id !== player.id && !message.content.startsWith('(')) {
+                if (occupant.name !== player.name && !message.content.startsWith('(')) {
                     if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
 
                     if (occupant.hasAttribute(`knows ${player.name}`) && !occupant.hasAttribute("no sight")) {
@@ -162,7 +163,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
                     else if (!player.hasAttribute("concealed"))
                         game.messageHandler.addSpectatedPlayerMessage(occupant, player.displayName, message);
                 }
-                else if (occupant.id === player.id && !message.content.startsWith('(')) {
+                else if (occupant.name === player.name && !message.content.startsWith('(')) {
                     if (player.displayName !== player.name)
                         game.messageHandler.addSpectatedPlayerMessage(occupant, `${player.displayName} (${player.name})`, message);
                     else
@@ -174,7 +175,7 @@ module.exports.execute = async (bot, game, message, deletable) => {
             if (player.hasAttribute("sender") && !message.content.startsWith('(')) {
                 let receiver = null;
                 for (let i = 0; i < game.players_alive.length; i++) {
-                    if (game.players_alive[i].hasAttribute("receiver") && game.players_alive[i].id !== player.id) {
+                    if (game.players_alive[i].hasAttribute("receiver") && game.players_alive[i].name !== player.name) {
                         receiver = game.players_alive[i];
                         break;
                     }
@@ -198,11 +199,11 @@ module.exports.execute = async (bot, game, message, deletable) => {
                     for (let j = 0; j < receiver.location.occupants.length; j++) {
                         let occupant = receiver.location.occupants[j];
                         if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
-                        const receiverName = occupant.id === receiver.id ? "your" : `${receiver.displayName}'s`;
+                        const receiverName = occupant.name === receiver.name ? "your" : `${receiver.displayName}'s`;
                         if (occupant.hasAttribute(`knows ${player.name}`))
                             occupant.notify(game, `${player.name} ${verb}s "${message.content}" through ${receiverName} WALKIE TALKIE.`);
                         else if (occupant.hasAttribute("hear room") || deafPlayerInReceiverRoom)
-                            occupant.notify(game, `A voice coming from ${receiverName} WALKIE TALKIE ${verb}s "${message.content}".`);
+                            occupant.notify(game, `A voice coming from ${receiverName} WALKIE TALKIE ${verb}s "${message.content}".`, false);
                     }
 
                     for (let i = 0; i < game.puzzles.length; i++) {
