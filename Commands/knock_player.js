@@ -63,5 +63,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             hearingPlayers[i].notify(game, destNarration);
     }
 
+    // Post log message.
+    const time = new Date().toLocaleTimeString();
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
+
     return;
 };

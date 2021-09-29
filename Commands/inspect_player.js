@@ -1,5 +1,4 @@
 ﻿const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
@@ -18,13 +17,13 @@ module.exports.config = {
     usage: `${settings.commandPrefix}inspect desk\n`
         + `${settings.commandPrefix}examine knife\n`
         + `${settings.commandPrefix}investigate my knife\n`
-        + `${settings.commandPrefix}look faust\n`
+        + `${settings.commandPrefix}look akari\n`
         + `${settings.commandPrefix}examine an individual wearing a mask\n`
         + `${settings.commandPrefix}look marielle's glasses\n`
-        + `${settings.commandPrefix}investigate an individual wearing a bucket's shirt\n`
+        + `${settings.commandPrefix}x an individual wearing a bucket's shirt\n`
         + `${settings.commandPrefix}inspect room`,
     usableBy: "Player",
-    aliases: ["inspect", "investigate", "examine", "look"]
+    aliases: ["inspect", "investigate", "examine", "look", "x"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
@@ -41,6 +40,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (parsedInput === "ROOM") {
         new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
         player.sendDescription(game, player.location.description, player.location);
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected the room in ${player.location.channel}`);
 
         return;
     }
@@ -100,7 +103,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${item.prefab.id} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
 
             return;
         }
@@ -116,7 +119,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${item.prefab.id} from their inventory in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
 
             return;
         }
@@ -158,7 +161,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         player.sendDescription(game, description, inventory[j]);
 
                         const time = new Date().toLocaleTimeString();
-                        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${inventory[j].prefab.id} from ${occupant.name}'s inventory in ${player.location.channel}`);
+                        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
 
                         return;
                     }
