@@ -6,9 +6,9 @@ module.exports.config = {
     description: "Sends a text message to another player.",
     details: "Sends a text message to the player you specify. If an image is attached, it will be sent as well. This command works best "
         + "when sent via direct message, rather than in a room channel. This command is only available to players with certain status effects.",
-    usage: `${settings.commandPrefix}text Shinobu If you do anything bad to Shiori I WILL make you regret it!\n`
-        + `${settings.commandPrefix}text juneau OMG!! this littol kitten i found on the web reminded me of u!!! ^_^ (attached image)\n`
-        + `${settings.commandPrefix}text odette (attached image)`,
+    usage: `${settings.commandPrefix}text elijah Hello. I am EVA Chan. We are schoolmates.\n`
+        + `${settings.commandPrefix}text astrid i often paint cityscapes, urban scenes, and portraits of people - but today i decided to experiment with something a bit more abstract. (attached image)\n`
+        + `${settings.commandPrefix}text viviana (attached image)`,
     usableBy: "Player",
     aliases: ["text"]
 };
