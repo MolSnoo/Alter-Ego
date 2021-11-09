@@ -1675,6 +1675,25 @@ class Player {
                         puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true);
                     }
                 }
+                else if (puzzle.type.endsWith("probability")) {
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    else {
+                        let stat = "";
+                        if (puzzle.type === "str probability" || puzzle.type === "strength probability") stat = "str";
+                        else if (puzzle.type === "int probability" || puzzle.type === "intelligence probability") stat = "int";
+                        else if (puzzle.type === "dex probability" || puzzle.type === "dexterity probability") stat = "dex";
+                        else if (puzzle.type === "spd probability" || puzzle.type === "speed probability") stat = "spd";
+                        else if (puzzle.type === "sta probability" || puzzle.type === "stamina probability") stat = "sta";
+
+                        const dieRoll = new Die(stat, this);
+                        // Get the ratio of the result as part of the maximum roll, each relative to the minimum roll.
+                        const ratio = (dieRoll.result - dieRoll.min) / (dieRoll.max - dieRoll.min);
+                        // Clamp the result so that it can be used to choose an item in the array of solutions.
+                        const clampedRatio = Math.min(Math.max(ratio, 0), 0.999);
+                        const outcome = puzzle.solutions[Math.floor(clampedRatio * puzzle.solutions.length)];
+                        puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true);
+                    }
+                }
                 else if (puzzle.type === "channels") {
                     if (puzzle.solved) {
                         if (password === "") puzzle.unsolve(bot, game, this, `${this.displayName} turns off the ${puzzleName}.`, `You turn off the ${puzzleName}.`, true);
