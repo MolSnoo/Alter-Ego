@@ -29,7 +29,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
     }
     if (player !== null && message.channel.id === settings.announcementChannel) {
         for (let i = 0; i < game.players_alive.length; i++)
-            game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player.displayName, message);
+            game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player, message);
         return;
     }
     if (room === null) return;
@@ -64,7 +64,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
 
             if (!message.content.startsWith('(')) {
                 for (let i = 0; i < whisper.players.length; i++)
-                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], player.displayName, message, whisper);
+                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], player, message, whisper);
             }
 
             for (let i = 0; i < room.occupants.length; i++) {
@@ -150,7 +150,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
                     if (occupant.hasAttribute(`knows ${player.name}`) && !occupant.hasAttribute("no sight")) {
                         if (player.displayName !== player.name) occupant.notify(game, `${player.displayName}, whose voice you recognize to be ${player.name}'s, ${verb}s "${message.content}".`);
                         else if (occupant.hasAttribute("hear room")) occupant.notify(game, `${player.name} ${verb}s "${message.content}".`);
-                        else game.messageHandler.addSpectatedPlayerMessage(occupant, player.displayName, message);
+                        else game.messageHandler.addSpectatedPlayerMessage(occupant, player, message);
                     }
                     else if (occupant.hasAttribute("hear room") || deafPlayerInRoom) {
                         if (occupant.hasAttribute(`knows ${player.name}`))
@@ -160,14 +160,14 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
                         else
                             occupant.notify(game, `You hear a voice in the room ${verb} "${message.content}".`);
                     }
-                    else if (!player.hasAttribute("concealed"))
-                        game.messageHandler.addSpectatedPlayerMessage(occupant, player.displayName, message);
+                    else if (!player.hasAttribute("concealed") || player.hasAttribute("concealed") && deletable)
+                        game.messageHandler.addSpectatedPlayerMessage(occupant, player, message);
                 }
                 else if (occupant.name === player.name && !message.content.startsWith('(')) {
                     if (player.displayName !== player.name)
                         game.messageHandler.addSpectatedPlayerMessage(occupant, `${player.displayName} (${player.name})`, message);
                     else
-                        game.messageHandler.addSpectatedPlayerMessage(occupant, `${player.displayName}`, message);
+                        game.messageHandler.addSpectatedPlayerMessage(occupant, player, message);
                 }
             }
 
@@ -226,7 +226,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
             if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('('))
                 occupant.notify(game, message.content);
             else if (!occupant.hasAttribute("no sight") && !occupant.hasAttribute("unconscious") && !message.content.startsWith('('))
-                game.messageHandler.addSpectatedPlayerMessage(occupant, message.member.displayName, message);
+                game.messageHandler.addSpectatedPlayerMessage(occupant, message.member, message);
         }
     }
 

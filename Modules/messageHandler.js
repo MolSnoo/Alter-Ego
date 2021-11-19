@@ -100,12 +100,12 @@ module.exports.addReply = async (message, messageText) => {
 };
 
 // Take a message sent in a room/whisper by a player and add it to the spectate channels of other players in the room
-module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, whisper = null) => {
+module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whisper = null) => {
     if (player.spectateChannel !== null) {
         var messageText = message.content || '';
         // If this is a whisper, specify that the following message comes from the whisper
         if (whisper)
-            messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speakerName)}):*\n` + messageText;
+            messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speaker.displayName)}):*\n` + messageText;
 
         // Create a webhook for this spectate channel if necessary, or grab the existing one
         let webHooks = await player.spectateChannel.fetchWebhooks();
@@ -119,8 +119,8 @@ module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, 
         // Send through the webhook with the original author's username and avatar, and the original message's contents
         addWebhookMessageToQueue(webHook, messageText,
             {
-                username: speakerName,
-                avatarURL: message.author.avatarURL || message.author.defaultAvatarURL,
+                username: typeof speaker === "string" ? speaker : speaker.displayName,
+                avatarURL: speaker.displayIcon ? speaker.displayIcon : message.author.avatarURL || message.author.defaultAvatarURL,
                 embeds: message.embeds,
                 files: files
             },

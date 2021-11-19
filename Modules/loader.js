@@ -1291,6 +1291,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         spectateChannel,
                         i + 1
                     );
+                if (player.talent === "NPC") player.displayIcon = player.id;
                 player.setPronouns(player.originalPronouns, player.pronounString);
                 player.setPronouns(player.pronouns, player.pronounString);
                 game.players.push(player);

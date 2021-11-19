@@ -23,6 +23,7 @@ class Player {
         this.member = member;
         this.name = name;
         this.displayName = displayName;
+        this.displayIcon = null;
         this.talent = talent;
         this.pronounString = pronounString;
         this.originalPronouns = {
@@ -339,6 +340,7 @@ class Player {
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
+            this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
             this.setPronouns(this.pronouns, "neutral");
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         }
@@ -428,6 +430,8 @@ class Player {
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
+            if (this.talent === "NPC") this.displayIcon = this.id;
+            else this.displayIcon = null;
             if (item === null || item === undefined) item = { name: "MASK" };
             if (narrate) new Narration(game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
             this.setPronouns(this.pronouns, this.pronounString);
