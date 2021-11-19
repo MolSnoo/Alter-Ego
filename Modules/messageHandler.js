@@ -59,7 +59,8 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
 // Narrate a room description to a player
 module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
     // Create the list of occupants
-    let occupantsString = location.occupantsString.length <= 1000 ? `You see ${location.occupantsString} in this room.` : `Too many players in this room.`;
+    let occupantsString = location.generate_occupantsString(location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.name !== player.name));
+    occupantsString = occupantsString === "" ? "You don't see anyone here." : location.occupantsString.length <= 1000 ? `You see ${occupantsString} in this room.` : `Too many players in this room.`;
     let sleepingPlayersString = location.generate_occupantsString(location.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
     if (sleepingPlayersString !== "") {
         occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
@@ -71,7 +72,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         .setTitle(location.name)
         .setColor('1F8B4C')
         .setDescription(descriptionText)
-        .addField("Occupants", location.occupantsString === "" ? "You don't see anyone here." : occupantsString)
+        .addField("Occupants", occupantsString)
         .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
 
     if (player.talent !== "NPC") addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);

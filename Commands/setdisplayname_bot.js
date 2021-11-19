@@ -40,6 +40,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (input.length > 32) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". A name cannot exceed 32 characters.`);
 
     player.displayName = input;
+    player.location.occupantsString = player.location.generate_occupantsString(player.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
 
     return;
 };

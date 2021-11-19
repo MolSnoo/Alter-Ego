@@ -55,13 +55,6 @@ class Room {
         }
 
         this.occupants.push(player);
-        this.occupants.sort(function (a, b) {
-            var nameA = a.displayName.toLowerCase();
-            var nameB = b.displayName.toLowerCase();
-            if (nameA < nameB) return -1;
-            if (nameA > nameB) return 1;
-            return 0;
-        });
         this.occupantsString = this.generate_occupantsString(this.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
     }
 
@@ -75,6 +68,13 @@ class Room {
 
     // List should be an array of Players.
     generate_occupantsString(list) {
+        list.sort(function (a, b) {
+            var nameA = a.displayName.toLowerCase();
+            var nameB = b.displayName.toLowerCase();
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
+            return 0;
+        });
         var occupantsString = "";
         if (list.length === 1) occupantsString = list[0].displayName;
         else if (list.length === 2) occupantsString = `${list[0].displayName} and ${list[1].displayName}`;
