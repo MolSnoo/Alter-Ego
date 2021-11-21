@@ -21,12 +21,23 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     var input = args.join(" ");
     if (!input.startsWith("(")) {
-        // Trick the dialog handler into thinking this is a real message sent to the room channel.
-        message.channel = player.location.channel;
-        message.member = player.member;
-        message.content = input;
+        // Create a webhook for this channel if necessary, or grab the existing one.
+        let webHooks = await player.location.channel.fetchWebhooks();
+        let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
+        if (webHook === null || webHook === undefined)
+            webHook = await player.location.channel.createWebhook(player.location.channel.name);
 
-        dialogHandler.execute(bot, game, message, false);
+        var files = [];
+        message.attachments.array().forEach(attachment => files.push(attachment.url));
+
+        webHook.send(input, {
+            username: player.displayName,
+            avatarURL: player.displayIcon ? player.displayIcon : message.author.avatarURL || message.author.defaultAvatarURL,
+            embeds: message.embeds,
+            files: files
+        }).then(message => {
+            dialogHandler.execute(bot, game, message, true, player);
+        });
     }
     
     return;

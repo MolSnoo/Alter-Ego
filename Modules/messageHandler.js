@@ -120,7 +120,7 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
         addWebhookMessageToQueue(webHook, messageText,
             {
                 username: typeof speaker === "string" ? speaker : speaker.displayName,
-                avatarURL: speaker.displayIcon ? speaker.displayIcon : message.author.avatarURL || message.author.defaultAvatarURL,
+                avatarURL: speaker.displayIcon ? speaker.displayIcon : speaker.member ? speaker.member.user.avatarURL : message.author.avatarURL || message.author.defaultAvatarURL,
                 embeds: message.embeds,
                 files: files
             },
