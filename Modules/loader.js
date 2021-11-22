@@ -284,8 +284,9 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 var coveredEquipmentSlots = sheet[i][columnCoveredSlots] ? sheet[i][columnCoveredSlots].split(',') : [];
                 for (let j = 0; j < coveredEquipmentSlots.length; j++)
                     coveredEquipmentSlots[j] = coveredEquipmentSlots[j].trim();
-                // Create a list of commands to run when this prefab is equipped/unequipped.
-                const commands = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].split('/') : new Array("", "");
+                // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
+                const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commands = commandString ? commandString.split('/') : new Array("", "");
                 var equipCommands = commands[0] ? commands[0].split(',') : "";
                 for (let j = 0; j < equipCommands.length; j++)
                     equipCommands[j] = equipCommands[j].trim();
@@ -734,8 +735,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requirements.length; j++)
                     requirements[j] = requirements[j].trim();
-                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
-                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "";
+                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
                 let commandSets = [];
                 let getCommands = function (commandString) {
                     const commands = commandString.split('/');
@@ -747,6 +747,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         unsolvedCommands[j] = unsolvedCommands[j].trim();
                     return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
                 };
+                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
                 if (regex.test(commandString)) {
                     while (regex.test(commandString)) {
                         const commandSet = RegExp.$2;
@@ -926,7 +927,8 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
                 for (let j = 0; j < triggerTimes.length; j++)
                     triggerTimes[j] = moment(triggerTimes[j].trim(), ["LT", "LTS", "HH:mm", "hh:mm a"]);
-                const commands = sheet[i][columnCommands] ? sheet[i][columnCommands].split('/') : ["", ""];
+                const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commands = commandString ? commandString.split('/') : ["", ""];
                 var triggeredCommands = commands[0] ? commands[0].split(',') : [];
                 for (let j = 0; j < triggeredCommands.length; j++)
                     triggeredCommands[j] = triggeredCommands[j].trim();
