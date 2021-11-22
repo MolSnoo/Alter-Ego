@@ -20,7 +20,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels
         room.occupants.forEach(player => {
-            if ((speaker === null || speaker.id !== player.id) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && player.spectateChannel !== null)
+            if ((speaker === null || speaker.name !== player.name) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && player.spectateChannel !== null)
                 addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
         });
     }
@@ -41,7 +41,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
 
 // Narrate something directly to a player
 module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
-    addMessageToQueue(player.member, messageText, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addMessageToQueue(player.member, messageText, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
         addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
 };
@@ -51,7 +51,7 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
     var files = [];
     attachments.array().forEach(attachment => files.push(attachment.url));
 
-    addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
         addMessageWithAttachmentsToQueue(player.spectateChannel, messageText, { files: files }, messagePriority.spectatorMessage);
 };
@@ -59,7 +59,8 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
 // Narrate a room description to a player
 module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
     // Create the list of occupants
-    let occupantsString = location.occupantsString.length <= 1000 ? `You see ${location.occupantsString} in this room.` : `Too many players in this room.`;
+    let occupantsString = location.generate_occupantsString(location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.name !== player.name));
+    occupantsString = occupantsString === "" ? "You don't see anyone here." : location.occupantsString.length <= 1000 ? `You see ${occupantsString} in this room.` : `Too many players in this room.`;
     let sleepingPlayersString = location.generate_occupantsString(location.occupants.filter(occupant => occupant.hasAttribute("unconscious") && !occupant.hasAttribute("hidden")));
     if (sleepingPlayersString !== "") {
         occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
@@ -71,10 +72,10 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         .setTitle(location.name)
         .setColor('1F8B4C')
         .setDescription(descriptionText)
-        .addField("Occupants", location.occupantsString === "" ? "You don't see anyone here." : occupantsString)
+        .addField("Occupants", occupantsString)
         .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
 
-    addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
         addEmbedToQueue(player.spectateChannel, embed, messagePriority.spectatorMessage);
 };
@@ -99,12 +100,12 @@ module.exports.addReply = async (message, messageText) => {
 };
 
 // Take a message sent in a room/whisper by a player and add it to the spectate channels of other players in the room
-module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, whisper = null) => {
+module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whisper = null) => {
     if (player.spectateChannel !== null) {
         var messageText = message.content || '';
         // If this is a whisper, specify that the following message comes from the whisper
         if (whisper)
-            messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(message.author)}):*\n` + messageText;
+            messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speaker.displayName)}):*\n` + messageText;
 
         // Create a webhook for this spectate channel if necessary, or grab the existing one
         let webHooks = await player.spectateChannel.fetchWebhooks();
@@ -118,8 +119,8 @@ module.exports.addSpectatedPlayerMessage = async (player, speakerName, message, 
         // Send through the webhook with the original author's username and avatar, and the original message's contents
         addWebhookMessageToQueue(webHook, messageText,
             {
-                username: speakerName,
-                avatarURL: message.author.avatarURL || message.author.defaultAvatarURL,
+                username: typeof speaker === "string" ? speaker : speaker.displayName,
+                avatarURL: speaker.displayIcon ? speaker.displayIcon : speaker.member ? speaker.member.user.avatarURL : message.author.avatarURL || message.author.defaultAvatarURL,
                 embeds: message.embeds,
                 files: files
             },

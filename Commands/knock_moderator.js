@@ -1,22 +1,30 @@
-﻿const settings = include('settings.json');
+const settings = include('settings.json');
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
 module.exports.config = {
-    name: "knock_player",
-    description: "Knocks on a door.",
-    details: "Knocks on a door in the room you're in.",
-    usage: `${settings.commandPrefix}knock door 1`,
-    usableBy: "Player",
-    aliases: ["knock"]
+    name: "knock_moderator",
+    description: "Knocks on a door for a player.",
+    details: "Knocks on a door for the given player",
+    usage: `${settings.commandPrefix}knock kanda door 1`,
+    usableBy: "Moderator",
+    aliases: ["knock"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
-    if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify an exit. Usage:\n${exports.config.usage}`);
+module.exports.run = async (bot, game, message, command, args) => {
+    if (args.length < 2)
+        return game.messageHandler.addReply(message, `you need to specify a player and an exit. Usage:\n${exports.config.usage}`);
 
-    const status = player.getAttributeStatusEffects("disable knock");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    var player = null;
+    for (let i = 0; i < game.players_alive.length; i++) {
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
+            player = game.players_alive[i];
+            args.splice(0, 1);
+            break;
+        }
+    }
+    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -62,10 +70,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         for (let i = 0; i < hearingPlayers.length; i++)
             hearingPlayers[i].notify(game, destNarration);
     }
+    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully knocked on ${exit.name} for ${player.name}.`);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
 };

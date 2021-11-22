@@ -1,5 +1,4 @@
 ﻿const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
@@ -18,13 +17,13 @@ module.exports.config = {
     usage: `${settings.commandPrefix}inspect desk\n`
         + `${settings.commandPrefix}examine knife\n`
         + `${settings.commandPrefix}investigate my knife\n`
-        + `${settings.commandPrefix}look faust\n`
+        + `${settings.commandPrefix}look akari\n`
         + `${settings.commandPrefix}examine an individual wearing a mask\n`
         + `${settings.commandPrefix}look marielle's glasses\n`
-        + `${settings.commandPrefix}investigate an individual wearing a bucket's shirt\n`
+        + `${settings.commandPrefix}x an individual wearing a bucket's shirt\n`
         + `${settings.commandPrefix}inspect room`,
     usableBy: "Player",
-    aliases: ["inspect", "investigate", "examine", "look"]
+    aliases: ["inspect", "investigate", "examine", "look", "x"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
@@ -41,6 +40,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (parsedInput === "ROOM") {
         new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
         player.sendDescription(game, player.location.description, player.location);
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected the room in ${player.location.channel}`);
 
         return;
     }
@@ -100,14 +103,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${item.prefab.id} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
 
             return;
         }
     }
 
     // Check if the input is an item in the player's inventory.
-    const inventory = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null);
+    const inventory = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
     for (let i = 0; i < inventory.length; i++) {
         parsedInput = parsedInput.replace("MY ", "");
         if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
@@ -116,7 +119,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${item.prefab.id} from their inventory in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
 
             return;
         }
@@ -130,7 +133,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             return game.messageHandler.addReply(message, `couldn't find "${input}".`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.id === player.id) return game.messageHandler.addReply(message, `can't inspect yourself.`);
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, `can't inspect yourself.`);
             player.sendDescription(game, occupant.description, occupant);
 
             const time = new Date().toLocaleTimeString();
@@ -140,10 +143,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
         else if (parsedInput.startsWith(possessive)) {
             // Don't let the player inspect their own items this way.
-            if (occupant.id === player.id) return game.messageHandler.addReply(message, `can't inspect your own items this way. Use "my" instead of your name.`);
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, `can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
-            const inventory = game.inventoryItems.filter(item => item.player.id === occupant.id && item.prefab !== null && item.containerName === "" && item.container === null);
+            const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
             for (let j = 0; j < inventory.length; j++) {
                 if (inventory[j].prefab.name === parsedInput && (inventory[j].equipmentSlot !== "LEFT HAND" && inventory[j].equipmentSlot !== "RIGHT HAND" || !inventory[j].prefab.discreet)) {
                     // Make sure the item isn't covered by anything first.
@@ -158,7 +161,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         player.sendDescription(game, description, inventory[j]);
 
                         const time = new Date().toLocaleTimeString();
-                        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${inventory[j].prefab.id} from ${occupant.name}'s inventory in ${player.location.channel}`);
+                        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
 
                         return;
                     }

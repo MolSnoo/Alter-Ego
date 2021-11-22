@@ -28,7 +28,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var newArgs = parsedInput.split(' ');
 
     // Look for the container item.
-    var items = game.inventoryItems.filter(item => item.player.id === player.id);
+    var items = game.inventoryItems.filter(item => item.player.name === player.name);
     var containerItem = null;
     var containerItemSlot = null;
     for (let i = 0; i < items.length; i++) {

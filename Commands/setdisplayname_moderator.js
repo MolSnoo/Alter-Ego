@@ -33,6 +33,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (input.length > 32) return game.messageHandler.addReply(message, `a name cannot exceed 32 characters.`);
 
     player.displayName = input;
+    player.location.occupantsString = player.location.generate_occupantsString(player.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated ${player.name}'s display name.`);
 
     return;

@@ -23,6 +23,7 @@ class Player {
         this.member = member;
         this.name = name;
         this.displayName = displayName;
+        this.displayIcon = null;
         this.talent = talent;
         this.pronounString = pronounString;
         this.originalPronouns = {
@@ -334,12 +335,14 @@ class Player {
         if (status.attributes.includes("no hearing")) this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
-            this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.id !== this.id));
+            this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.name !== this.name));
         }
         if (status.attributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
+            this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
             this.setPronouns(this.pronouns, "neutral");
+            this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         }
         if (status.attributes.includes("disable all") || status.attributes.includes("disable move") || status.attributes.includes("disable run")) {
             // Clear the player's movement timer.
@@ -422,14 +425,17 @@ class Player {
             this.location.joinChannel(this);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
-            this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") || occupant.id === this.id));
+            this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") || occupant.name === this.name));
             this.hidingSpot = "";
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
+            if (this.talent === "NPC") this.displayIcon = this.id;
+            else this.displayIcon = null;
             if (item === null || item === undefined) item = { name: "MASK" };
             if (narrate) new Narration(game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
             this.setPronouns(this.pronouns, this.pronounString);
+            this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         }
 
         // Announce when a player awakens.
@@ -1131,7 +1137,7 @@ class Player {
         for (let i = 0; i < this.inventory.length; i++) {
             if (this.inventory[i].equippedItem !== null) {
                 for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
-                    if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === createdItem.equipmentSlot) {
+                    if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === createdItem.equipmentSlot && this.inventory[i].equippedItem.equipmentSlot !== "RIGHT HAND" && this.inventory[i].equippedItem.equipmentSlot !== "LEFT HAND") {
                         isCovered = true;
                         break;
                     }
@@ -1213,7 +1219,7 @@ class Player {
             for (let i = 0; i < this.inventory.length; i++) {
                 if (this.inventory[i].equippedItem !== null) {
                     for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
-                        if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === item.equipmentSlot) {
+                        if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === item.equipmentSlot && this.inventory[i].equippedItem.equipmentSlot !== "RIGHT HAND" && this.inventory[i].equippedItem.equipmentSlot !== "LEFT HAND") {
                             isCovered = true;
                             break;
                         }
@@ -1327,7 +1333,7 @@ class Player {
                     if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
                         // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
                         const coveringItems = game.inventoryItems.filter(item =>
-                            item.player.id === this.id &&
+                            item.player.name === this.name &&
                             item.prefab !== null &&
                             item.equipmentSlot !== "RIGHT HAND" &&
                             item.equipmentSlot !== "LEFT HAND" &&
@@ -1410,7 +1416,7 @@ class Player {
                     if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
                         // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
                         const coveringItems = game.inventoryItems.filter(item =>
-                            item.player.id === this.id &&
+                            item.player.name === this.name &&
                             item.prefab !== null &&
                             item.equipmentSlot !== "RIGHT HAND" &&
                             item.equipmentSlot !== "LEFT HAND" &&
@@ -1544,7 +1550,7 @@ class Player {
     }
 
     hasItem(game, id) {
-        const playerItems = game.inventoryItems.filter(item => item.player.id === this.id && item.prefab !== null && item.quantity > 0);
+        const playerItems = game.inventoryItems.filter(item => item.player.name === this.name && item.prefab !== null && item.quantity > 0);
         for (let i = 0; i < playerItems.length; i++) {
             if (playerItems[i].prefab.id === id) return true;
         }
@@ -1793,7 +1799,7 @@ class Player {
         game.players_dead.push(this);
         // Then remove them from living list.
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].id === this.id) {
+            if (game.players_alive[i].name === this.name) {
                 game.players_alive.splice(i, 1);
                 break;
             }
@@ -1808,7 +1814,7 @@ class Player {
         var deleteWhisperIndexes = new Array();
         for (let i = 0; i < game.whispers.length; i++) {
             for (let j = 0; j < game.whispers[i].players.length; j++) {
-                if (game.whispers[i].players[j].id === this.id) {
+                if (game.whispers[i].players[j].name === this.name) {
                     // Remove player from the whisper.
                     const deleteWhisper = game.whispers[i].removePlayer(game, j, message);
                     if (deleteWhisper) deleteWhisperIndexes.push(i);
@@ -1841,9 +1847,9 @@ class Player {
         return;
     }
 
-    notify(game, message) {
-        if (!this.hasAttribute("unconscious"))
-            game.messageHandler.addDirectNarration(this, message);
+    notify(game, message, addSpectate = true) {
+        if (!this.hasAttribute("unconscious") && this.talent !== "NPC")
+            game.messageHandler.addDirectNarration(this, message, addSpectate);
         return;
     }
 

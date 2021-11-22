@@ -40,8 +40,8 @@ class Whisper {
         return playerListString;
     }
 
-    makePlayersSentenceGroupExcluding(player) {
-        const players = this.players.filter(participant => participant.id !== player.id);
+    makePlayersSentenceGroupExcluding(playerName) {
+        const players = this.players.filter(participant => participant.displayName !== playerName);
         let playerListString = players[0].displayName;
         if (players.length === 2)
             playerListString += ` and ${players[1].displayName}`;
@@ -60,10 +60,12 @@ class Whisper {
                 parent: settings.whisperCategory
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
-                    channel.overwritePermissions(players[i].id, {
-                        VIEW_CHANNEL: true,
-                        READ_MESSAGE_HISTORY: true
-                    });
+                    if (players[i].talent !== "NPC") {
+                        channel.overwritePermissions(players[i].id, {
+                            VIEW_CHANNEL: true,
+                            READ_MESSAGE_HISTORY: true
+                        });
+                    }
                 }
                 resolve(channel);
             });
@@ -98,10 +100,12 @@ class Whisper {
     }
 
     revokeAccess(player) {
-        this.channel.overwritePermissions(player.id, {
-            VIEW_CHANNEL: null,
-            READ_MESSAGE_HISTORY: null
-        });
+        if (player.talent !== "NPC") {
+            this.channel.overwritePermissions(player.id, {
+                VIEW_CHANNEL: null,
+                READ_MESSAGE_HISTORY: null
+            });
+        }
         return;
     }
 

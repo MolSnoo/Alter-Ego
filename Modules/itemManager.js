@@ -444,7 +444,7 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
         player.inventory[player.inventory.length - 1].items[0];
     for (let i = 0; i < items.length; i++) {
         // Check if this item already exists in the player's inventory.
-        const playerItems = game.inventoryItems.filter(item => item.player.id === player.id);
+        const playerItems = game.inventoryItems.filter(item => item.player.name === player.name);
         let matchedItem = playerItems.find(item =>
             item.prefab !== null &&
             item.prefab.id === items[i].prefab.id &&

@@ -14,8 +14,8 @@ class Narration {
                 let occupant = this.location.occupants[i];
                 // Players with the see room attribute should receive all narrations besides their own via DM.
                 if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !occupant.hasAttribute("hidden")) {
-                    if (!this.player || occupant.id !== this.player.id)
-                        occupant.notify(this.game, this.message);
+                    if (!this.player || occupant.name !== this.player.name)
+                        occupant.notify(this.game, this.message, false);
                 }
             }
             this.game.messageHandler.addNarration(this.location, this.message, true);

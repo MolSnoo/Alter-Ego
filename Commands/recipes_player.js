@@ -25,7 +25,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable recipes");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
-    var inventoryItems = game.inventoryItems.filter(item => item.player.id === player.id && item.prefab !== null && item.quantity > 0);
+    var inventoryItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && item.quantity > 0);
     inventoryItems.sort(function (a, b) {
         if (a.prefab.id < b.prefab.id) return -1;
         if (a.prefab.id > b.prefab.id) return 1;

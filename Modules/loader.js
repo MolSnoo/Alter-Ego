@@ -284,8 +284,9 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 var coveredEquipmentSlots = sheet[i][columnCoveredSlots] ? sheet[i][columnCoveredSlots].split(',') : [];
                 for (let j = 0; j < coveredEquipmentSlots.length; j++)
                     coveredEquipmentSlots[j] = coveredEquipmentSlots[j].trim();
-                // Create a list of commands to run when this prefab is equipped/unequipped.
-                const commands = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].split('/') : new Array("", "");
+                // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
+                const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commands = commandString ? commandString.split('/') : new Array("", "");
                 var equipCommands = commands[0] ? commands[0].split(',') : "";
                 for (let j = 0; j < equipCommands.length; j++)
                     equipCommands[j] = equipCommands[j].trim();
@@ -734,8 +735,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requirements.length; j++)
                     requirements[j] = requirements[j].trim();
-                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
-                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "";
+                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
                 let commandSets = [];
                 let getCommands = function (commandString) {
                     const commands = commandString.split('/');
@@ -747,6 +747,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         unsolvedCommands[j] = unsolvedCommands[j].trim();
                     return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
                 };
+                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
                 if (regex.test(commandString)) {
                     while (regex.test(commandString)) {
                         const commandSet = RegExp.$2;
@@ -934,7 +935,8 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
                 for (let j = 0; j < triggerTimes.length; j++)
                     triggerTimes[j] = moment(triggerTimes[j].trim(), ["LT", "LTS", "HH:mm", "hh:mm a"]);
-                const commands = sheet[i][columnCommands] ? sheet[i][columnCommands].split('/') : ["", ""];
+                const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commands = commandString ? commandString.split('/') : ["", ""];
                 var triggeredCommands = commands[0] ? commands[0].split(',') : [];
                 for (let j = 0; j < triggeredCommands.length; j++)
                     triggeredCommands[j] = triggeredCommands[j].trim();
@@ -1271,7 +1273,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     statusList[j] = statusList[j].trim();
                 var member = sheet[i][columnID] ? game.guild.members.find(member => member.id === sheet[i][columnID].trim()) : null;
                 var spectateChannel = null;
-                if (sheet[i][columnName]) {
+                if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
                     spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parentID === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.filter(channel => channel.parent && channel.parentID === settings.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
@@ -1299,6 +1301,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         spectateChannel,
                         i + 1
                     );
+                if (player.talent === "NPC") player.displayIcon = player.id;
                 player.setPronouns(player.originalPronouns, player.pronounString);
                 player.setPronouns(player.pronouns, player.pronounString);
                 game.players.push(player);
@@ -1340,7 +1343,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     let error = exports.checkPlayer(game.players[i]);
                     if (error instanceof Error) errors.push(error);
 
-                    let playerInventory = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players[i].id);
+                    let playerInventory = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name);
                     for (let j = 0; j < playerInventory.length; j++) {
                         error = exports.checkInventoryItem(playerInventory[j], game);
                         if (error instanceof Error) errors.push(error);
@@ -1361,9 +1364,12 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
 };
 
 module.exports.checkPlayer = function (player) {
-    if (player.id === "" || player.id === null || player.id === undefined)
+    if (player.talent !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
-    if (player.member === null || player.member === undefined)
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png))$');
+    if (player.talent === "NPC" && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
+        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg or .png extension.`);
+    if (player.talent !== "NPC" && (player.member === null || player.member === undefined))
         return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
     if (player.name === "" || player.name === null || player.name === undefined)
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
@@ -1451,7 +1457,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             for (let i = 0; i < game.players.length; i++) {
                 let inventory = [];
                 game.players[i].carryWeight = 0;
-                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.id === game.players[i].id && item.equipmentSlot !== "" && item.containerName === "");
+                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name && item.equipmentSlot !== "" && item.containerName === "");
                 for (let j = 0; j < equipmentItems.length; j++)
                     inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
                 game.players[i].inventory = inventory;
@@ -1557,7 +1563,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                         const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
                         let container = game.inventoryItems.find(item =>
                             item.player instanceof Player &&
-                            item.player.id === game.inventoryItems[i].player.id &&
+                            item.player.name === game.inventoryItems[i].player.name &&
                             item.identifier === containerItemIdentifier &&
                             item.quantity !== 0
                         );

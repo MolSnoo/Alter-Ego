@@ -50,8 +50,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     else if (args[0].toLowerCase() === "room" && player !== null)
         players = player.location.occupants;
     else if (args[0].toLowerCase() === "all") {
-        for (let i = 0; i < game.players_alive.length; i++)
-            players.push(game.players_alive[i]);
+        for (let i = 0; i < game.players_alive.length; i++) {
+            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.find(role => role.id === settings.headmasterRole))
+                players.push(game.players_alive[i]);
+        }
     }
     else {
         player = null;
