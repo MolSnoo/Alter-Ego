@@ -32,7 +32,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         webHook.send(input, {
             username: player.displayName,
-            avatarURL: player.displayIcon ? player.displayIcon : message.author.avatarURL || message.author.defaultAvatarURL,
+            avatarURL: player.displayIcon ? player.displayIcon : message.author.avatarURL() || message.author.defaultAvatarURL,
             embeds: message.embeds,
             files: files
         }).then(message => {

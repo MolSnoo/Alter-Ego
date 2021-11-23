@@ -34,8 +34,8 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     for (let i = 0; i < players.length; i++) {
         if (players[i].talent !== "NPC") {
-            players[i].member.removeRole(settings.playerRole);
-            players[i].member.addRole(settings.deadRole);
+            players[i].member.roles.remove(settings.playerRole);
+            players[i].member.roles.add(settings.deadRole);
         }
     }
 

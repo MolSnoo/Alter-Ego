@@ -27,7 +27,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (amount < 1) return game.messageHandler.addReply(message, `at least one message must be deleted.`);
     if (amount > 100) return game.messageHandler.addReply(message, `only 100 messages can be deleted at a time.`);
 
-    message.channel.fetchMessages({
+    message.channel.messages.fetch({
         limit: amount
     }).then((messages) => {
         var size = messages.size;
@@ -37,7 +37,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             size = messages.length;
         }
         message.channel.bulkDelete(messages, true).then(() => {
-            message.channel.send(`Deleted ${size} messages.`).then(message => message.delete(3000));
+            message.channel.send(`Deleted ${size} messages.`).then(message => message.delete({ timeout: 3000 }));
         }).catch(error => console.log(error.stack));
     });
 

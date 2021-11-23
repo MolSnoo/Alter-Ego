@@ -23,9 +23,9 @@ exports.run = async function (bot) {
 
 function init(bot) {
     return new Promise(async (resolve) => {
-        game.guild = bot.guilds.first();
-        game.commandChannel = game.guild.channels.find(channel => channel.id === settings.commandChannel);
-        game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
+        game.guild = bot.guilds.cache.first();
+        game.commandChannel = game.guild.channels.cache.find(channel => channel.id === settings.commandChannel);
+        game.logChannel = game.guild.channels.cache.find(channel => channel.id === settings.logChannel);
         await loader.loadRooms(game, false);
         await loader.loadObjects(game, false);
         await loader.loadPrefabs(game, false);

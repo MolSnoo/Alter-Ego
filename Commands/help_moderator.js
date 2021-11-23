@@ -54,8 +54,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 const forwards = msg.createReactionCollector(forwardsFilter, { time: 60000 });
 
                 backwards.on("collect", () => {
-                    const reaction = msg.reactions.find(reaction => reaction.emoji.name === '⏪');
-                    if (reaction) reaction.users.forEach(user => { if (user.id !== bot.user.id) reaction.remove(user.id); });
+                    const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏪');
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
                     if (page === 0) return;
                     page--;
                     embed = createEmbed(game, page, pages);
@@ -63,8 +63,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 });
 
                 forwards.on("collect", () => {
-                    const reaction = msg.reactions.find(reaction => reaction.emoji.name === '⏩');
-                    if (reaction) reaction.users.forEach(user => { if (user.id !== bot.user.id) reaction.remove(user.id); });
+                    const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏩');
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
                     if (page === pages.length - 1) return;
                     page++;
                     embed = createEmbed(game, page, pages);
@@ -78,9 +78,9 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (!command) return game.messageHandler.addReply(message, `couldn't find command "${args[0]}".`);
 
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
-        let embed = new discord.RichEmbed()
+        let embed = new discord.MessageEmbed()
             .setColor('1F8B4C')
-            .setAuthor(`${commandName} Command Help`, game.guild.iconURL)
+            .setAuthor(`${commandName} Command Help`, game.guild.iconURL())
             .setDescription(command.description);
 
         let aliasString = "";
@@ -97,11 +97,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 };
 
 function createEmbed(game, page, pages) {
-    const role = game.guild.roles.get(settings.moderatorRole);
+    const role = game.guild.roles.cache.get(settings.moderatorRole);
     const roleName = role ? role.name : "Moderator";
-    let embed = new discord.RichEmbed()
+    let embed = new discord.MessageEmbed()
         .setColor('1F8B4C')
-        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL)
+        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL())
         .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
         .setFooter(`Page ${page + 1}/${pages.length}`);
 

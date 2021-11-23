@@ -8,8 +8,8 @@ const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 
 exports.run = async function (bot) {
-    game.guild = bot.guilds.first();
-    game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
+    game.guild = bot.guilds.cache.first();
+    game.logChannel = game.guild.channels.cache.find(channel => channel.id === settings.logChannel);
 
     init();
     test_inflict_0();
@@ -38,7 +38,7 @@ function init() {
     game.whispers.length = 0;
 
     // Initialize room.
-    var beachHouse = new Room("beach-house", game.guild.channels.find(channel => channel.name === "beach-house"), [], [], "", 2);
+    var beachHouse = new Room("beach-house", game.guild.channels.cache.find(channel => channel.name === "beach-house"), [], [], "", 2);
     game.rooms.push(beachHouse);
 
     // Initialize status effects.

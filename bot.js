@@ -9,7 +9,7 @@ const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
 const saver = include(`${settings.modulesDir}/saver.js`);
 
 const discord = require('discord.js');
-const bot = new discord.Client();
+const bot = new discord.Client({ fetchAllMembers: true, retryLimit: Infinity });
 const fs = require('fs');
 var moment = require('moment');
 moment().format();
@@ -47,25 +47,23 @@ function updateStatus() {
     }, 0);
     var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
 
-    if (settings.debug) {
-        bot.user.setActivity(settings.debugModeActivity.string + onlineString, { type: settings.debugModeActivity.type });
-        bot.user.setStatus("dnd");
-    }
+    if (settings.debug)
+        bot.user.setPresence({ status: "dnd", activity: { name: settings.debugModeActivity.string + onlineString, type: settings.debugModeActivity.type }});
     else {
-        if (game.inProgress && !game.canJoin)
-            bot.user.setActivity(settings.gameInProgressActivity.string + onlineString, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
-        else
-            bot.user.setActivity(settings.onlineActivity.string, { type: settings.onlineActivity.type });
         bot.user.setStatus("online");
+        if (game.inProgress && !game.canJoin)
+            bot.user.setPresence({ status: "online", activity: { name: settings.gameInProgressActivity.string + onlineString, type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url } });
+        else
+            bot.user.setPresence({ status: "online", activity: { name: settings.onlineActivity.string, type: settings.onlineActivity.type } });
     }
 }
 
 bot.on('ready', async () => {
-    if (bot.guilds.size === 1) {
+    if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
-        game.guild = bot.guilds.first();
-        game.commandChannel = game.guild.channels.find(channel => channel.id === settings.commandChannel);
-        game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
+        game.guild = bot.guilds.cache.first();
+        game.commandChannel = game.guild.channels.cache.find(channel => channel.id === settings.commandChannel);
+        game.logChannel = game.guild.channels.cache.find(channel => channel.id === settings.logChannel);
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
         if (settings.testing) {
@@ -127,6 +125,10 @@ bot.on('message', async message => {
     if (message && !isCommand && game.inProgress && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory || message.channel.id === settings.announcementChannel)) {
         await dialogHandler.execute(bot, game, message, true);
     }
+});
+
+process.on('unhandledRejection', error => {
+    console.error('Unhandled promise rejection:', error);
 });
 
 bot.login(credentials.discord.token);

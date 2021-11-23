@@ -54,8 +54,8 @@ module.exports.run = async (bot, game, message, args, player) => {
                 const forwards = msg.createReactionCollector(forwardsFilter, { time: 60000 });
 
                 backwards.on("collect", () => {
-                    const reaction = msg.reactions.find(reaction => reaction.emoji.name === '⏪');
-                    if (reaction) reaction.users.forEach(user => { if (user.id !== bot.user.id) reaction.remove(user.id); });
+                    const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏪');
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
                     if (page === 0) return;
                     page--;
                     embed = createEmbed(game, page, pages);
@@ -63,8 +63,8 @@ module.exports.run = async (bot, game, message, args, player) => {
                 });
 
                 forwards.on("collect", () => {
-                    const reaction = msg.reactions.find(reaction => reaction.emoji.name === '⏩');
-                    if (reaction) reaction.users.forEach(user => { if (user.id !== bot.user.id) reaction.remove(user.id); });
+                    const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏩');
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
                     if (page === pages.length - 1) return;
                     page++;
                     embed = createEmbed(game, page, pages);
@@ -78,9 +78,9 @@ module.exports.run = async (bot, game, message, args, player) => {
         if (!command) return message.reply(`couldn't find command "${args[0]}".`);
 
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
-        let embed = new discord.RichEmbed()
+        let embed = new discord.MessageEmbed()
             .setColor('1F8B4C')
-            .setAuthor(`${commandName} Command Help`, game.guild.iconURL)
+            .setAuthor(`${commandName} Command Help`, game.guild.iconURL())
             .setDescription(command.description);
 
         let aliasString = "";
@@ -98,11 +98,11 @@ module.exports.run = async (bot, game, message, args, player) => {
 
 function createEmbed(game, page, pages) {
     const roleId = settings.debug ? settings.testerRole : settings.eligibleRole;
-    const role = game.guild.roles.get(roleId);
+    const role = game.guild.roles.cache.get(roleId);
     const roleName = role ? role.name : "Eligible";
-    let embed = new discord.RichEmbed()
+    let embed = new discord.MessageEmbed()
         .setColor('1F8B4C')
-        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL)
+        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL())
         .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
         .setFooter(`Page ${page + 1}/${pages.length}`);
 

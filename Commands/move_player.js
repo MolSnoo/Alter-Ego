@@ -34,7 +34,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var entranceMessage = "";
     const appendString = player.createMoveAppendString();
     // If the player has the headmaster role, they can move to any room they please.
-    if (player.member.roles.find(role => role.id === settings.headmasterRole)) {
+    if (player.member.roles.cache.find(role => role.id === settings.headmasterRole)) {
         adjacent = true;
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].name === input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {

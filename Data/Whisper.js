@@ -55,13 +55,13 @@ class Whisper {
 
     createChannel(game, name, players) {
         return new Promise((resolve) => {
-            game.guild.createChannel(name, {
+            game.guild.channels.create(name, {
                 type: 'text',
                 parent: settings.whisperCategory
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
                     if (players[i].talent !== "NPC") {
-                        channel.overwritePermissions(players[i].id, {
+                        channel.createOverwrite(players[i].id, {
                             VIEW_CHANNEL: true,
                             READ_MESSAGE_HISTORY: true
                         });
@@ -101,7 +101,7 @@ class Whisper {
 
     revokeAccess(player) {
         if (player.talent !== "NPC") {
-            this.channel.overwritePermissions(player.id, {
+            this.channel.createOverwrite(player.id, {
                 VIEW_CHANNEL: null,
                 READ_MESSAGE_HISTORY: null
             });

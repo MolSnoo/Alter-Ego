@@ -50,8 +50,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 const forwards = msg.createReactionCollector(forwardsFilter, { time: 300000 });
 
                 backwards.on("collect", () => {
-                    const reaction = msg.reactions.find(reaction => reaction.emoji.name === '⏪');
-                    if (reaction) reaction.users.forEach(user => { if (user.id !== bot.user.id) reaction.remove(user.id); });
+                    const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏪');
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
                     if (page === 0) return;
                     page--;
                     embed = createEmbed(game, page, pages);
@@ -59,8 +59,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 });
 
                 forwards.on("collect", () => {
-                    const reaction = msg.reactions.find(reaction => reaction.emoji.name === '⏩');
-                    if (reaction) reaction.users.forEach(user => { if (user.id !== bot.user.id) reaction.remove(user.id); });
+                    const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏩');
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
                     if (page === pages.length - 1) return;
                     page++;
                     embed = createEmbed(game, page, pages);
@@ -185,9 +185,9 @@ module.exports.run = async (bot, game, message, command, args) => {
 };
 
 function createEmbed(game, page, pages) {
-    let embed = new discord.RichEmbed()
+    let embed = new discord.MessageEmbed()
         .setColor('1F8B4C')
-        .setAuthor(`Gestures List`, game.guild.iconURL)
+        .setAuthor(`Gestures List`, game.guild.iconURL())
         .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)
         .setFooter(`Page ${page + 1}/${pages.length}`);
 

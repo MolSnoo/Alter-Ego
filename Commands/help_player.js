@@ -73,9 +73,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (!command) return game.messageHandler.addReply(message, `couldn't find command "${args[0]}".`);
 
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
-        let embed = new discord.RichEmbed()
+        let embed = new discord.MessageEmbed()
             .setColor('1F8B4C')
-            .setAuthor(`${commandName} Command Help`, game.guild.iconURL)
+            .setAuthor(`${commandName} Command Help`, game.guild.iconURL())
             .setDescription(command.description);
 
         let aliasString = "";
@@ -92,11 +92,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 };
 
 function createEmbed(game, page, pages) {
-    const role = game.guild.roles.get(settings.playerRole);
+    const role = game.guild.roles.cache.get(settings.playerRole);
     const roleName = role ? role.name : "Player";
-    let embed = new discord.RichEmbed()
+    let embed = new discord.MessageEmbed()
         .setColor('1F8B4C')
-        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL)
+        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL())
         .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
         .setFooter(`Page ${page + 1}/${pages.length}`);
 

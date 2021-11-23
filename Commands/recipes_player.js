@@ -153,9 +153,9 @@ function ingredientsMatch(items, ingredients) {
 
 function createEmbed(game, page, pages) {
     let craftingPage = pages[page][0].objects.length === 0 ? true : false;
-    let embed = new discord.RichEmbed()
+    let embed = new discord.MessageEmbed()
         .setColor('1F8B4C')
-        .setAuthor(`Recipes List`, game.guild.iconURL)
+        .setAuthor(`Recipes List`, game.guild.iconURL())
         .setDescription(craftingPage ? craftingRecipesDescription : objectRecipesDescription)
         .setFooter(`Page ${page + 1}/${pages.length}`);
 
