@@ -13,7 +13,7 @@ module.exports.config = {
         + `${settings.commandPrefix}stash antimony's old key in right pocket of pants\n`
         + `${settings.commandPrefix}store cassie water bottle in side pouch of backpack`,
     usableBy: "Moderator",
-    aliases: ["stash", "store"],
+    aliases: ["stash", "store", "s"],
     requiresGame: true
 };
 

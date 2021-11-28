@@ -12,7 +12,7 @@ module.exports.config = {
         + `${settings.commandPrefix}unstash antimony's old key from right pocket of pants\n`
         + `${settings.commandPrefix}retrieve cassie water bottle from side pouch of backpack`,
     usableBy: "Moderator",
-    aliases: ["unstash", "retrieve"],
+    aliases: ["unstash", "retrieve", "r"],
     requiresGame: true
 };
 

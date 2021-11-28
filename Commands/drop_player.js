@@ -15,7 +15,7 @@ module.exports.config = {
         + `${settings.commandPrefix}drop key in right pocket of skirt\n`
         + `${settings.commandPrefix}discard wrench on top rack of tool box`,
     usableBy: "Player",
-    aliases: ["drop", "discard"]
+    aliases: ["drop", "discard", "d"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {

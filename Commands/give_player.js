@@ -10,7 +10,7 @@ module.exports.config = {
         + "(a chainsaw, for example) is given, people in the room with you will see you giving it to the recipient.",
     usage: `${settings.commandPrefix}give keiko moldy bread`,
     usableBy: "Player",
-    aliases: ["give"]
+    aliases: ["give", "g"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {

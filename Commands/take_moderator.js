@@ -13,7 +13,7 @@ module.exports.config = {
         + `${settings.commandPrefix}take aria green key from large purse\n`
         + `${settings.commandPrefix}take veronica game system from main pocket of backpack`,
     usableBy: "Moderator",
-    aliases: ["take"],
+    aliases: ["take", "get", "t"],
     requiresGame: true
 };
 

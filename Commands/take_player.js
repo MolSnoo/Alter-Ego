@@ -17,7 +17,7 @@ module.exports.config = {
         + `${settings.commandPrefix}get key from pants\n`
         + `${settings.commandPrefix}take key from left pocket of pants`,
     usableBy: "Player",
-    aliases: ["take", "get"]
+    aliases: ["take", "get", "t"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {

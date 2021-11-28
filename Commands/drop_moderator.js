@@ -14,7 +14,7 @@ module.exports.config = {
         + `${settings.commandPrefix}drop aria yellow key in large purse\n`
         + `${settings.commandPrefix}drop devyn wrench on top rack of tool box`,
     usableBy: "Moderator",
-    aliases: ["drop"],
+    aliases: ["drop", "discard", "d"],
     requiresGame: true
 };
 

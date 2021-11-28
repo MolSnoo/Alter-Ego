@@ -9,7 +9,7 @@ module.exports.config = {
     usage: `${settings.commandPrefix}unequip sweater\n`
         + `${settings.commandPrefix}unequip glasses from face`,
     usableBy: "Player",
-    aliases: ["unequip"]
+    aliases: ["unequip", "u"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {

@@ -6,7 +6,7 @@ module.exports.config = {
     details: "Lists the given player's inventory.",
     usage: `${settings.commandPrefix}inventory nero`,
     usableBy: "Moderator",
-    aliases: ["inventory"],
+    aliases: ["inventory", "i"],
     requiresGame: true
 };
 

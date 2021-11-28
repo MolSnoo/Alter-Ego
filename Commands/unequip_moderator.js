@@ -11,7 +11,7 @@ module.exports.config = {
         + `${settings.commandPrefix}unequip cara's sweater from shirt\n`
         + `${settings.commandPrefix}unequip aria large purse from glasses`,
     usableBy: "Moderator",
-    aliases: ["unequip"],
+    aliases: ["unequip", "u"],
     requiresGame: true
 };
 

@@ -10,7 +10,7 @@ module.exports.config = {
     usage: `${settings.commandPrefix}give vivian's yellow key to aria\n`
         + `${settings.commandPrefix}give natalie night vision goggles to shiori`,
     usableBy: "Moderator",
-    aliases: ["give"],
+    aliases: ["give", "g"],
     requiresGame: true
 };
 

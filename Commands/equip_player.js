@@ -10,7 +10,7 @@ module.exports.config = {
         + `${settings.commandPrefix}wear coat\n`
         + `${settings.commandPrefix}equip sweater to shirt`,
     usableBy: "Player",
-    aliases: ["equip", "wear"]
+    aliases: ["equip", "wear", "e"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {

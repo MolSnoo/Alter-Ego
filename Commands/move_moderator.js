@@ -12,7 +12,7 @@ module.exports.config = {
         + `${settings.commandPrefix}move living diner\n`
         + `${settings.commandPrefix}move all elevator`,
     usableBy: "Moderator",
-    aliases: ["move"],
+    aliases: ["move", "go", "enter", "walk", "m"],
     requiresGame: true
 };
 

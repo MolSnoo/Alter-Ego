@@ -13,7 +13,7 @@ module.exports.config = {
         + `${settings.commandPrefix}stash old key in right pocket of pants\n`
         + `${settings.commandPrefix}store water bottle in side pouch of backpack`,
     usableBy: "Player",
-    aliases: ["stash", "store"]
+    aliases: ["stash", "store", "s"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {

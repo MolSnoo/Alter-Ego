@@ -11,7 +11,7 @@ module.exports.config = {
         + `${settings.commandPrefix}enter door 1\n`
         + `${settings.commandPrefix}go locker room`,
     usableBy: "Player",
-    aliases: ["move", "go", "exit", "enter", "walk"]
+    aliases: ["move", "go", "exit", "enter", "walk", "m"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
