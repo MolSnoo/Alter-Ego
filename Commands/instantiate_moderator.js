@@ -27,7 +27,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 4)
-        return game.messageHandler.addReply(message, `not enough arguments given. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `Not enough arguments given. Usage:\n${exports.config.usage}`);
 
     var quantity = 1;
     if (!isNaN(args[0])) {
@@ -64,7 +64,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         var object = null;
         const objects = game.objects.filter(object => object.location.name === room.name && object.accessible);
         for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput) return game.messageHandler.addReply(message, `you need to supply a prefab and a preposition.`);
+            if (objects[i].name === parsedInput) return game.messageHandler.addReply(message, `You need to supply a prefab and a preposition.`);
             if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(`IN ${objects[i].name}`)) {
                 if (objects[i].preposition === "") return game.messageHandler.addReply(message, `${objects[i].name} cannot hold items.`);
                 object = objects[i];
@@ -84,7 +84,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             // Check if a container item was specified.
             const items = game.items.filter(item => item.location.name === room.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
             for (let i = 0; i < items.length; i++) {
-                if (items[i].identifier === parsedInput || items[i].name === parsedInput) return game.messageHandler.addReply(message, `you need to supply a prefab and a preposition.`);
+                if (items[i].identifier === parsedInput || items[i].name === parsedInput) return game.messageHandler.addReply(message, `You need to supply a prefab and a preposition.`);
                 if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].name)) {
                     if (items[i].inventory.length === 0 || items[i].prefab.preposition === "") return game.messageHandler.addReply(message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
                     containerItem = items[i];
@@ -105,7 +105,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return game.messageHandler.addReply(message, `couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                        if (containerItemSlot === null) return game.messageHandler.addReply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
                     }
                     if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -143,10 +143,10 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (prefab !== null && container === null) {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
-            return game.messageHandler.addReply(message, `couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
+            return game.messageHandler.addReply(message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
         }
-        else if (prefab === null && container !== null) return game.messageHandler.addReply(message, `couldn't find prefab with id "${parsedInput}".`);
-        else if (prefab === null && container === null) return game.messageHandler.addReply(message, `couldn't find "${parsedInput}".`);
+        else if (prefab === null && container !== null) return game.messageHandler.addReply(message, `Couldn't find prefab with id "${parsedInput}".`);
+        else if (prefab === null && container === null) return game.messageHandler.addReply(message, `Couldn't find "${parsedInput}".`);
 
         if (containerItem !== null) {
             if (prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return game.messageHandler.addReply(message, `${prefab.id} will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
@@ -176,7 +176,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
             if (player !== null) break;
         }
-        if (player === null) return game.messageHandler.addReply(message, `couldn't find a room or player in your input.`);
+        if (player === null) return game.messageHandler.addReply(message, `Couldn't find a room or player in your input.`);
 
         parsedInput = args.join(" ").toUpperCase().replace(/\'/g, "");
 
@@ -185,7 +185,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         let containerItemSlot = null;
         const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
         for (let i = 0; i < items.length; i++) {
-            if (items[i].identifier === parsedInput || items[i].name === parsedInput) return game.messageHandler.addReply(message, `you need to supply a prefab and a preposition.`);
+            if (items[i].identifier === parsedInput || items[i].name === parsedInput) return game.messageHandler.addReply(message, `You need to supply a prefab and a preposition.`);
             if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].name)) {
                 if (items[i].inventory.length === 0 || items[i].prefab.preposition === "") return game.messageHandler.addReply(message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
                 containerItem = items[i];
@@ -206,7 +206,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                             break;
                         }
                     }
-                    if (containerItemSlot === null) return game.messageHandler.addReply(message, `couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                    if (containerItemSlot === null) return game.messageHandler.addReply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
 
                     if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -229,7 +229,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                     let newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
                     parsedInput = newArgs.join(' ');
-                    if (player.inventory[i].equippedItem !== null) return game.messageHandler.addReply(message, `cannot equip items to ${equipmentSlotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
+                    if (player.inventory[i].equippedItem !== null) return game.messageHandler.addReply(message, `Cannot equip items to ${equipmentSlotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
                     break;
                 }
             }
@@ -249,15 +249,15 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (prefab !== null && containerItem === null && equipmentSlotName === "") {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
-            return game.messageHandler.addReply(message, `couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
+            return game.messageHandler.addReply(message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
         }
         else if (prefab === null && (containerItem !== null || equipmentSlotName !== "")) {
             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(' '));
-            return game.messageHandler.addReply(message, `couldn't find prefab with id "${parsedInput}".`);
+            return game.messageHandler.addReply(message, `Couldn't find prefab with id "${parsedInput}".`);
         }
-        else if (prefab === null && containerItem === null && equipmentSlotName === "") return game.messageHandler.addReply(message, `couldn't find "${parsedInput}".`);
+        else if (prefab === null && containerItem === null && equipmentSlotName === "") return game.messageHandler.addReply(message, `Couldn't find "${parsedInput}".`);
 
-        if (equipmentSlotName !== "" && quantity !== 1) return game.messageHandler.addReply(message, `cannot instantiate more than 1 item to a player's equipment slot.`);
+        if (equipmentSlotName !== "" && quantity !== 1) return game.messageHandler.addReply(message, `Cannot instantiate more than 1 item to a player's equipment slot.`);
         if (containerItem !== null) {
             equipmentSlotName = containerItem.equipmentSlot;
             if (prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return game.messageHandler.addReply(message, `${prefab.id} will not fit in ${containerItemSlot.name} of ${player.name}'s ${containerItem.name} because it is too large.`);

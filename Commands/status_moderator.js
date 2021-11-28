@@ -35,13 +35,13 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (args[0] === "view") {
             command = "view";
             if (!args[1])
-                return game.messageHandler.addReply(message, `you need to input a player. Usage:\n${exports.config.usage}`);
+                return game.messageHandler.addReply(message, `You need to input a player. Usage:\n${exports.config.usage}`);
         }
         args.splice(0, 1);
     }
 
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     // Get all listed players first.
     var players = [];
@@ -63,10 +63,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
         }
     }
-    if (players.length === 0) return game.messageHandler.addReply(message, "you need to specify at least one player.");
-    if (players.length > 1 && command === "view") return game.messageHandler.addReply(message, "cannot view status of more than one player at a time.");
+    if (players.length === 0) return game.messageHandler.addReply(message, "You need to specify at least one player.");
+    if (players.length > 1 && command === "view") return game.messageHandler.addReply(message, "Cannot view status of more than one player at a time.");
     const input = args.join(" ");
-    if (input === "" && command !== "view") return game.messageHandler.addReply(message, "you need to specify a status effect.");
+    if (input === "" && command !== "view") return game.messageHandler.addReply(message, "You need to specify a status effect.");
 
     if (command === "inflict") {
         if (players.length > 1) {

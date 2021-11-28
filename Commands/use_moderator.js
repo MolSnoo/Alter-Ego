@@ -14,7 +14,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and an item in their inventory. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and an item in their inventory. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -24,7 +24,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -55,7 +55,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         item = rightHand.equippedItem;
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === parsedInput)
         item = leftHand.equippedItem;
-    if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
 
     // Use the player's item.
     const itemName = item.identifier ? item.identifier : item.prefab.id;
@@ -67,7 +67,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
         return;
     }
-    else if (response.startsWith("that item has no programmed use")) return game.messageHandler.addReply(message, "that item has no programmed use.");
+    else if (response.startsWith("that item has no programmed use")) return game.messageHandler.addReply(message, "That item has no programmed use.");
     else if (response.startsWith("you attempt to use the")) return game.messageHandler.addReply(message, `${itemName} currently has no effect on ${player.name}.`);
     else return game.messageHandler.addReply(message, response);
 };

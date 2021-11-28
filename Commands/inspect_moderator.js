@@ -27,7 +27,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and an object/item/player. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and an object/item/player. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -37,7 +37,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -141,7 +141,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         let occupant = player.location.occupants[i];
         const possessive = occupant.name.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasAttribute("hidden"))
-            return game.messageHandler.addReply(message, `couldn't find "${input}".`);
+            return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
         if (occupant.name.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
             if (occupant.name === player.name) return game.messageHandler.addReply(message, `${player.name} can't inspect ${player.originalPronouns.ref}.`);
@@ -182,5 +182,5 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
 
-    return game.messageHandler.addReply(message, `couldn't find "${input}".`);
+    return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
 };

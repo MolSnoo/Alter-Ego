@@ -31,7 +31,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 4)
-        return game.messageHandler.addReply(message, `you need to specify a room, an exit, another room, and another exit. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a room, an exit, another room, and another exit. Usage:\n${exports.config.usage}`);
 
     var input = args.join(" ");
     var parsedInput = input.replace(/ /g, "-").toLowerCase();
@@ -45,9 +45,9 @@ module.exports.run = async (bot, game, message, command, args) => {
             input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addReply(message, `you need to specify an exit in ${game.rooms[i].name}, another room, and another exit.`);
+        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addReply(message, `You need to specify an exit in ${game.rooms[i].name}, another room, and another exit.`);
     }
-    if (room === null) return game.messageHandler.addReply(message, `couldn't find room "${input}".`);
+    if (room === null) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
 
     // Now that the room has been found, find the exit.
     var exit = null;
@@ -58,9 +58,9 @@ module.exports.run = async (bot, game, message, command, args) => {
             input = input.substring(input.replace(/ /g, "-").toLowerCase().indexOf(parsedInput)).trim();
             break;
         }
-        else if (parsedInput === room.exit[i].name) return game.messageHandler.addReply(message, `you need to specify another room and another exit for ${exit.name} of ${room.name} to lead to.`);
+        else if (parsedInput === room.exit[i].name) return game.messageHandler.addReply(message, `You need to specify another room and another exit for ${exit.name} of ${room.name} to lead to.`);
     }
-    if (exit === null) return game.messageHandler.addReply(message, `couldn't find exit "${input}" in ${room.name}.`);
+    if (exit === null) return game.messageHandler.addReply(message, `Couldn't find exit "${input}" in ${room.name}.`);
 
     // Now find the destination room.
     var destRoom = null;
@@ -71,9 +71,9 @@ module.exports.run = async (bot, game, message, command, args) => {
             input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addReply(message, `you need to specify an exit in ${game.rooms[i].name} for ${exit.name} of ${room.name} to lead to.`);
+        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addReply(message, `You need to specify an exit in ${game.rooms[i].name} for ${exit.name} of ${room.name} to lead to.`);
     }
-    if (destRoom === null) return game.messageHandler.addReply(message, `couldn't find room "${input}".`);
+    if (destRoom === null) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
 
     // Now that the destination room has been found, find the destination exit.
     var destExit = null;
@@ -85,7 +85,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (destExit === null) return game.messageHandler.addReply(message, `couldn't find exit "${input}" in ${destRoom.name}.`);
+    if (destExit === null) return game.messageHandler.addReply(message, `Couldn't find exit "${input}" in ${destRoom.name}.`);
 
     exit.dest = destRoom;
     exit.link = destExit.name;

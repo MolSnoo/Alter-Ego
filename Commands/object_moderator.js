@@ -36,9 +36,9 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return game.messageHandler.addReply(message, 'invalid command given. Use "activate" or "deactivate".');
+    if (command !== "activate" && command !== "deactivate") return game.messageHandler.addReply(message, 'Invalid command given. Use "activate" or "deactivate".');
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";
@@ -97,7 +97,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (object === null && player === null && room === null && objects.length > 0) object = objects[0];
-    else if (object === null) return game.messageHandler.addReply(message, `couldn't find object "${input}".`);
+    else if (object === null) return game.messageHandler.addReply(message, `Couldn't find object "${input}".`);
     if (object.recipeTag === "") return game.messageHandler.addReply(message, `${object.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;

@@ -16,7 +16,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify a room. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a room. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable run");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -53,10 +53,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             break;
         }
     }
-    if (!adjacent) return game.messageHandler.addReply(message, "you can't move to that room.");
+    if (!adjacent) return game.messageHandler.addReply(message, "You can't move to that room.");
 
     if (desiredRoom && exit) await player.move(game, true, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
-    else return game.messageHandler.addReply(message, `couldn't find "${input}"`);
+    else return game.messageHandler.addReply(message, `Couldn't find "${input}"`);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();

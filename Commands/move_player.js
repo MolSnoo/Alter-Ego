@@ -16,7 +16,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify a room. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a room. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable move");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -68,7 +68,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             }
         }
     }
-    if (!adjacent) return game.messageHandler.addReply(message, "you can't move to that room.");
+    if (!adjacent) return game.messageHandler.addReply(message, "You can't move to that room.");
 
     if (desiredRoom) {
         if (exit) {
@@ -83,7 +83,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} moved to ${desiredRoom.channel}`);
         }
     }
-    else return game.messageHandler.addReply(message, `couldn't find "${input}"`);
+    else return game.messageHandler.addReply(message, `Couldn't find "${input}"`);
 
     return;
 };

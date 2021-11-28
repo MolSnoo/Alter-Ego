@@ -19,7 +19,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 3)
-        return game.messageHandler.addReply(message, `you need to specify a player and two items. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and two items. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -29,7 +29,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -64,7 +64,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                         break;
                     }
                 }
-                if (containerItemSlot === null) return game.messageHandler.addReply(message, `couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier}.`);
+                if (containerItemSlot === null) return game.messageHandler.addReply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier}.`);
             }
             newArgs = parsedInput.split(' ');
             var itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
@@ -75,12 +75,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         else if (items[i].identifier !== "" && parsedInput === items[i].identifier ||
             parsedInput === items[i].prefab.id ||
             parsedInput === items[i].name) {
-            game.messageHandler.addReply(message, `you need to specify two items. Usage:`);
+            game.messageHandler.addReply(message, `You need to specify two items. Usage:`);
             game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
             return;
         }
     }
-    if (containerItem === null) return game.messageHandler.addReply(message, `couldn't find container item "${newArgs[newArgs.length - 1]}".`);
+    if (containerItem === null) return game.messageHandler.addReply(message, `Couldn't find container item "${newArgs[newArgs.length - 1]}".`);
     else if (containerItem.inventory.length === 0) return game.messageHandler.addReply(message, `${containerItem.prefab.id} cannot hold items.`);
 
     // Now find the item in the player's inventory.
@@ -128,9 +128,9 @@ module.exports.run = async (bot, game, message, command, args) => {
         hand = "LEFT HAND";
         parsedInput = parsedInput.substring(item.name.length).trim();
     }
-    if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
     // Make sure item and containerItem aren't the same item.
-    if (item.row === containerItem.row) return game.messageHandler.addReply(message, `can't stash ${item.identifier ? item.identifier : item.prefab.id} ${itemPreposition} itself.`);
+    if (item.row === containerItem.row) return game.messageHandler.addReply(message, `Can't stash ${item.identifier ? item.identifier : item.prefab.id} ${itemPreposition} itself.`);
 
     if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
     if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return game.messageHandler.addReply(message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.name} of ${containerItem.identifier} because it is too large.`);

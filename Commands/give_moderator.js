@@ -16,7 +16,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 3)
-        return game.messageHandler.addReply(message, `you need to specify two players and an item. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify two players and an item. Usage:\n${exports.config.usage}`);
 
     // First, find the giver.
     var giver = null;
@@ -27,7 +27,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (giver === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (giver === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     // Next, find the recipient.
     var recipient = null;
@@ -38,7 +38,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (recipient === null) return game.messageHandler.addReply(message, `player "${args[args.length - 1]}" not found.`);
+    if (recipient === null) return game.messageHandler.addReply(message, `Player "${args[args.length - 1]}" not found.`);
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);
 
     if (giver.name === recipient.name) return game.messageHandler.addReply(message, `${giver.name} cannot give an item to ${giver.pronouns.ref}.`);
@@ -103,7 +103,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         item = leftHand.equippedItem;
         giverHand = "LEFT HAND";
     }
-    if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
+    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
 
     giver.give(game, item, giverHand, recipient, recipientHand);
     // Post log message.
