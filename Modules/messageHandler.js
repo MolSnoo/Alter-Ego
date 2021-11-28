@@ -51,9 +51,9 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
     var files = [];
     attachments.array().forEach(attachment => files.push(attachment.url));
 
-    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, { content: messageText, files: files }, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
-        addMessageWithAttachmentsToQueue(player.spectateChannel, messageText, { files: files }, messagePriority.spectatorMessage);
+        addMessageWithAttachmentsToQueue(player.spectateChannel, { content: messageText, files: files }, messagePriority.spectatorMessage);
 };
 
 // Narrate a room description to a player
@@ -114,13 +114,14 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
             webHook = await player.spectateChannel.createWebhook(player.spectateChannel.name);
 
         var files = [];
-        message.attachments.array().forEach(attachment => files.push(attachment.url));
+        [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         // Send through the webhook with the original author's username and avatar, and the original message's contents
-        addWebhookMessageToQueue(webHook, messageText,
+        addWebhookMessageToQueue(webHook,
             {
+                content: messageText,
                 username: displayName ? displayName : speaker.displayName,
-                avatarURL: speaker.displayIcon ? speaker.displayIcon : speaker.member ? speaker.member.user.avatarURL() : message.author.avatarURL() || message.author.defaultAvatarURL,
+                avatarURL: speaker.displayIcon ? speaker.displayIcon : speaker.member ? speaker.member.displayAvatarURL() : message.author.avatarURL() || message.author.defaultAvatarURL,
                 embeds: message.embeds,
                 files: files
             },
@@ -149,13 +150,13 @@ function addMessageToQueue(channel, messageText, priority) {
     }
 }
 
-function addMessageWithAttachmentsToQueue(channel, messageText, attachments, priority) {
-    let sendAction = () => channel.send(messageText, attachments);
+function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
+    let sendAction = () => channel.send(attachments);
     addToQueue(sendAction, priority);
 }
 
-function addWebhookMessageToQueue(webHook, messageText, webHookContents, priority) {
-    let sendAction = () => webHook.send(messageText, webHookContents);
+function addWebhookMessageToQueue(webHook, webHookContents, priority) {
+    let sendAction = () => webHook.send(webHookContents);
     addToQueue(sendAction, priority);
 }
 
@@ -165,7 +166,7 @@ function addReplyToQueue(message, messageText, priority) {
 }
 
 function addEmbedToQueue(channel, embed, priority) {
-    let sendAction = () => channel.send({ embed: embed });
+    let sendAction = () => channel.send({ embeds: [embed] });
     addToQueue(sendAction, priority);
 }
 

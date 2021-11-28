@@ -25,7 +25,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify what to test. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify what to test. Usage:\n${exports.config.usage}`);
 
     const file = "./speeds.txt";
     fs.writeFile(file, "", function (err) {
@@ -38,7 +38,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         await testspeeds(file);
     else return game.messageHandler.addReply(message, 'Function not found. You need to use "players" or "stats".');
 
-    message.channel.send("Speeds calculated.", {
+    message.channel.send({
+        content: "Speeds calculated.",
         files: [
             {
                 attachment: file,

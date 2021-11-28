@@ -19,13 +19,13 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify an amount of messages to delete. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify an amount of messages to delete. Usage:\n${exports.config.usage}`);
 
     const user = message.mentions.users.first();
     const amount = parseInt(args[args.length - 1]);
-    if (isNaN(amount)) return game.messageHandler.addReply(message, `invalid amount specified.`);
-    if (amount < 1) return game.messageHandler.addReply(message, `at least one message must be deleted.`);
-    if (amount > 100) return game.messageHandler.addReply(message, `only 100 messages can be deleted at a time.`);
+    if (isNaN(amount)) return game.messageHandler.addReply(message, `Invalid amount specified.`);
+    if (amount < 1) return game.messageHandler.addReply(message, `At least one message must be deleted.`);
+    if (amount > 100) return game.messageHandler.addReply(message, `Only 100 messages can be deleted at a time.`);
 
     message.channel.messages.fetch({
         limit: amount
@@ -33,11 +33,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         var size = messages.size;
         if (user) {
             const filterBy = user ? user.id : Client.user.id;
-            messages = messages.filter(message => message.author.id === filterBy).array().slice(0, amount);
+            messages = messages.filter(message => message.author.id === filterBy);
+            messages = [...messages.values()].slice(0, amount);
             size = messages.length;
         }
         message.channel.bulkDelete(messages, true).then(() => {
-            message.channel.send(`Deleted ${size} messages.`).then(message => message.delete({ timeout: 3000 }));
+            message.channel.send(`Deleted ${size} messages.`).then(message => { setTimeout(() => message.delete(), 3000); });
         }).catch(error => console.log(error.stack));
     });
 

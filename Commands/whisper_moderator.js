@@ -24,7 +24,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to choose at least two players. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to choose at least two players. Usage:\n${exports.config.usage}`);
 
     // Get all players mentioned.
     var recipients = new Array();
@@ -37,9 +37,9 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (player.name.toLowerCase() === args[i].toLowerCase()) {
                 for (let k = 0; k < recipients.length; k++) {
                     if (recipients[k].name === player.name)
-                        return game.messageHandler.addReply(message, `can't include the same player multiple times.`);
+                        return game.messageHandler.addReply(message, `Can't include the same player multiple times.`);
                     if (recipients[k].location.name !== player.location.name)
-                        return game.messageHandler.addReply(message, `the selected players aren't all in the same room.`);
+                        return game.messageHandler.addReply(message, `The selected players aren't all in the same room.`);
                 }
                 // Check attributes that would prohibit the player from whispering to someone in the room.
                 let status = player.getAttributeStatusEffects("disable whisper");
@@ -60,10 +60,10 @@ module.exports.run = async (bot, game, message, command, args) => {
                 args.splice(0, i);
                 break;
             }
-            else return game.messageHandler.addReply(message, `couldn't find player "${args[i]}". Make sure you spelled it right.`);
+            else return game.messageHandler.addReply(message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
         }
     }
-    if (recipients.length < 2) return game.messageHandler.addReply(message, `can't start a whisper with fewer than 2 players.`);
+    if (recipients.length < 2) return game.messageHandler.addReply(message, `Can't start a whisper with fewer than 2 players.`);
 
     var string = args.join(' ');
 
@@ -85,7 +85,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                     await sendMessage(bot, game, message, string, npc, game.whispers[i]);
                     return;
                 }
-                else return game.messageHandler.addReply(message, "whisper group already exists.");
+                else return game.messageHandler.addReply(message, "Whisper group already exists.");
             }
         }
     }
@@ -109,9 +109,10 @@ async function sendMessage (bot, game, message, string, player, whisper) {
         webHook = await whisper.channel.createWebhook(whisper.channelName);
 
     var files = [];
-    message.attachments.array().forEach(attachment => files.push(attachment.url));
+    [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
-    webHook.send(string, {
+    webHook.send({
+        content: string,
         username: player.displayName,
         avatarURL: player.id,
         embeds: message.embeds,

@@ -43,7 +43,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
             return;
         }
         // Handle whisper messages.
-        if (message.channel.parentID === settings.whisperCategory) {
+        if (message.channel.parentId === settings.whisperCategory) {
             // Find whisper.
             let whisper = null;
             for (let i = 0; i < game.whispers.length; i++) {
@@ -54,7 +54,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
             }
             // If whisper does not exist but player still has access to the channel, remove them.
             if (whisper === null) {
-                message.channel.createOverwrite(player.id, {
+                message.channel.permissionOverwrites.create(player.id, {
                     VIEW_CHANNEL: null,
                     READ_MESSAGE_HISTORY: null
                 });
@@ -234,7 +234,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
             if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('('))
                 occupant.notify(game, message.content);
             else if (!occupant.hasAttribute("no sight") && !occupant.hasAttribute("unconscious") && !message.content.startsWith('('))
-                game.messageHandler.addSpectatedPlayerMessage(occupant, message.member, message);
+                game.messageHandler.addSpectatedPlayerMessage(occupant, message, message, null, message.member.displayName);
         }
     }
 

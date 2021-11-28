@@ -43,15 +43,15 @@ module.exports.run = async (bot, game, message, args, player) => {
         }
 
         let embed = createEmbed(game, page, pages);
-        message.channel.send(embed).then(msg => {
+        message.channel.send({ embeds: [embed] }).then(msg => {
             msg.react('⏪').then(() => {
                 msg.react('⏩');
 
                 const backwardsFilter = (reaction, user) => reaction.emoji.name === '⏪' && user.id === message.author.id;
                 const forwardsFilter = (reaction, user) => reaction.emoji.name === '⏩' && user.id === message.author.id;
 
-                const backwards = msg.createReactionCollector(backwardsFilter, { time: 60000 });
-                const forwards = msg.createReactionCollector(forwardsFilter, { time: 60000 });
+                const backwards = msg.createReactionCollector({ filter: backwardsFilter, time: 60000 });
+                const forwards = msg.createReactionCollector({ filter: forwardsFilter, time: 60000 });
 
                 backwards.on("collect", () => {
                     const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏪');
@@ -59,7 +59,7 @@ module.exports.run = async (bot, game, message, args, player) => {
                     if (page === 0) return;
                     page--;
                     embed = createEmbed(game, page, pages);
-                    msg.edit(embed);
+                    msg.edit({ embeds: [embed] });
                 });
 
                 forwards.on("collect", () => {
@@ -68,7 +68,7 @@ module.exports.run = async (bot, game, message, args, player) => {
                     if (page === pages.length - 1) return;
                     page++;
                     embed = createEmbed(game, page, pages);
-                    msg.edit(embed);
+                    msg.edit({ embeds: [embed] });
                 });
             });
         });
@@ -90,7 +90,7 @@ module.exports.run = async (bot, game, message, args, player) => {
         embed.addField("Examples", command.usage);
         embed.addField("Description", command.details);
 
-        message.channel.send(embed);
+        message.channel.send({ embeds: [embed] });
     }
 
     return;

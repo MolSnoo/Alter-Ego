@@ -61,7 +61,7 @@ class Whisper {
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
                     if (players[i].talent !== "NPC") {
-                        channel.createOverwrite(players[i].id, {
+                        channel.permissionOverwrites.create(players[i].id, {
                             VIEW_CHANNEL: true,
                             READ_MESSAGE_HISTORY: true
                         });
@@ -101,7 +101,7 @@ class Whisper {
 
     revokeAccess(player) {
         if (player.talent !== "NPC") {
-            this.channel.createOverwrite(player.id, {
+            this.channel.permissionOverwrites.create(player.id, {
                 VIEW_CHANNEL: null,
                 READ_MESSAGE_HISTORY: null
             });

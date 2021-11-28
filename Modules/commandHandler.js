@@ -46,7 +46,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             message.reply("There is no game currently running.");
             return false;
         }
-        if (message.channel.type === "dm" || settings.roomCategories.includes(message.channel.parentID)) {
+        if (message.channel.type === "DM" || settings.roomCategories.includes(message.channel.parentId)) {
             player = null;
             for (let i = 0; i < game.players_alive.length; i++) {
                 if (game.players_alive[i].id === message.author.id) {
@@ -71,7 +71,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
 
             player.setOnline();
 
-            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && commandName !== "say" && message.channel.type !== "dm") message.delete().catch(); });
+            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && commandName !== "say" && message.channel.type !== "DM") message.delete().catch(); });
             return true;
         }
         return false;
