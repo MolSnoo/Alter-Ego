@@ -49,7 +49,7 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
 // Narrate something directly to a player with attachments
 module.exports.addDirectNarrationWithAttachments = async (player, messageText, attachments, addSpectate = true) => {
     var files = [];
-    attachments.array().forEach(attachment => files.push(attachment.url));
+    [...attachments.values()].forEach(attachment => files.push(attachment.url));
 
     if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, { content: messageText, files: files }, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
@@ -161,7 +161,7 @@ function addWebhookMessageToQueue(webHook, webHookContents, priority) {
 }
 
 function addReplyToQueue(message, messageText, priority) {
-    let sendAction = () => message.reply(messageText);
+    let sendAction = priority === messagePriority.modChannel ? () => message.reply(messageText) : () => message.author.send(messageText);
     addToQueue(sendAction, priority);
 }
 
