@@ -84,10 +84,6 @@ bot.on('ready', async () => {
         game.logChannel = game.guild.channels.cache.find(channel => channel.id === settings.logChannel);
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
-        if (settings.testing) {
-            const tests = require(`./${settings.testsDir}/run_tests.js`);
-            await tests.runTests(bot);
-        }
         updateStatus();
     }
     else {
