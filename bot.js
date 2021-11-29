@@ -9,6 +9,7 @@ const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
 const saver = include(`${settings.modulesDir}/saver.js`);
 
 const fs = require('fs');
+const fetch = require('node-fetch');
 var moment = require('moment');
 moment().format();
 const discord = require('discord.js');
@@ -76,6 +77,13 @@ function updateStatus() {
     }
 }
 
+async function checkVersion() {
+    const masterPackage = await fetch('https://raw.githubusercontent.com/MolSnoo/Alter-Ego/master/package.json').then(response => response.json()).catch();
+    const localPackage = include('package.json');
+    if (masterPackage.version !== localPackage.version && !localPackage.version.endsWith("d"))
+        game.commandChannel.send(`This version of Alter Ego is out of date. Please download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
+}
+
 bot.on('ready', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
@@ -85,6 +93,7 @@ bot.on('ready', async () => {
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
         updateStatus();
+        checkVersion();
     }
     else {
         console.log("Error: Bot must be on one and only one server.");
