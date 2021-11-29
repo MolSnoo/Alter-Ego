@@ -161,8 +161,8 @@ class Player {
             let y = startingPos.y + Math.round(timeRatio * (exit.pos.y - startingPos.y));
             let z = startingPos.z + Math.round(timeRatio * (exit.pos.z - startingPos.z));
             // Calculate the distance the player has traveled in this time.
-            let distance = Math.sqrt(Math.pow(x - player.pos.x, 2) + Math.pow(z - player.pos.z, 2)) * settings.metersPerPixel;
-            let rise = (y - player.pos.y) * settings.metersPerPixel;
+            let distance = Math.sqrt(Math.pow(x - player.pos.x, 2) + Math.pow(z - player.pos.z, 2)) / settings.pixelsPerMeter;
+            let rise = (y - player.pos.y) / settings.pixelsPerMeter;
             // Calculate the amount of stamina the player has lost traveling this distance.
             const staminaUseMultiplier = isRunning ? 3 : 1;
             var lostStamina;
@@ -217,7 +217,7 @@ class Player {
 
     calculateMoveTime(exit, isRunning) {
         let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
-        distance = distance * settings.metersPerPixel;
+        distance = distance / settings.pixelsPerMeter;
         // The formula to calculate the rate is a quadratic function.
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat multiplied by 2 or 1, depending on if the player is running or not.
         const speedMultiplier = isRunning ? 2 : 1;
@@ -227,7 +227,7 @@ class Player {
         const slowdown = Math.min(Math.max(15.0 / this.carryWeight, 0.25), 1.0);
         rate = rate * slowdown;
         // Slope should affect the rate.
-        const rise = (exit.pos.y - this.pos.y) * settings.metersPerPixel;
+        const rise = (exit.pos.y - this.pos.y) / settings.pixelsPerMeter;
         var time = 0;
         // If distance is 0, we'll treat it like a staircase and just use the rise to calculate the time.
         if (distance === 0 && rise !== 0) {
