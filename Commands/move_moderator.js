@@ -12,19 +12,19 @@ module.exports.config = {
         + `${settings.commandPrefix}move living diner\n`
         + `${settings.commandPrefix}move all elevator`,
     usableBy: "Moderator",
-    aliases: ["move"],
+    aliases: ["move", "go", "enter", "walk", "m"],
     requiresGame: true
 };
 
 module.exports.run = async(bot, game, message, command, args) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify at least one player and a room. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify at least one player and a room. Usage:\n${exports.config.usage}`);
 
     // Get all listed players first.
     var players = [];
     if (args[0] === "all" || args[0] === "living") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.find(role => role.id === settings.headmasterRole))
+            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === settings.headmasterRole))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);
@@ -60,7 +60,7 @@ module.exports.run = async(bot, game, message, command, args) => {
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
         for (let i = 1; i < players.length; i++) {
-            if (players[i].location !== currentRoom) return game.messageHandler.addReply(message, "all listed players must be in the same room to use an exit name.");
+            if (players[i].location !== currentRoom) return game.messageHandler.addReply(message, "All listed players must be in the same room to use an exit name.");
         }
         input = args.join(" ").toUpperCase();
         for (let i = 0; i < currentRoom.exit.length; i++) {
@@ -91,14 +91,14 @@ module.exports.run = async(bot, game, message, command, args) => {
     if (args.length > 0) {
         if (desiredRoom === null && exit === null) {
             const roomName = args.join(" ");
-            return game.messageHandler.addReply(message, `couldn't find room or exit "${roomName}".`);
+            return game.messageHandler.addReply(message, `Couldn't find room or exit "${roomName}".`);
         }
         else {
             const missingPlayers = args.join(", ");
-            return game.messageHandler.addReply(message, `couldn't find player(s): ${missingPlayers}.`);
+            return game.messageHandler.addReply(message, `Couldn't find player(s): ${missingPlayers}.`);
         }
     }
-    if (players.length === 0) return game.messageHandler.addReply(message, "you need to specify at least one player.");
+    if (players.length === 0) return game.messageHandler.addReply(message, "You need to specify at least one player.");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.

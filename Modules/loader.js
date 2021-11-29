@@ -55,7 +55,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                             i + j + 1
                         ));
                 }
-                const channel = game.guild.channels.find(channel => channel.name === sheet[i][columnRoomName]);
+                const channel = game.guild.channels.cache.find(channel => channel.name === sheet[i][columnRoomName]);
                 var tags = sheet[i][columnTags] ? sheet[i][columnTags].trim().split(',') : [];
                 for (let j = 0; j < tags.length; j++)
                     tags[j] = tags[j].trim();
@@ -1271,13 +1271,15 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
                 for (let j = 0; j < statusList.length; j++)
                     statusList[j] = statusList[j].trim();
-                var member = sheet[i][columnID] ? game.guild.members.find(member => member.id === sheet[i][columnID].trim()) : null;
+                //var member = sheet[i][columnID] ? game.guild.members.cache.find(member => member.id === sheet[i][columnID].trim()) : null;
+                var member = null;
                 var spectateChannel = null;
                 if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
-                    spectateChannel = game.guild.channels.find(channel => channel.parent && channel.parentID === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
-                    const noSpectateChannels = game.guild.channels.filter(channel => channel.parent && channel.parentID === settings.spectateCategory).size;
+                    member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
+                    const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === settings.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
-                        spectateChannel = await game.guild.createChannel(sheet[i][columnName].toLowerCase(), {
+                        spectateChannel = await game.guild.channels.create(sheet[i][columnName].toLowerCase(), {
                             type: 'text',
                             parent: settings.spectateCategory
                         });

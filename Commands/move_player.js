@@ -11,12 +11,12 @@ module.exports.config = {
         + `${settings.commandPrefix}enter door 1\n`
         + `${settings.commandPrefix}go locker room`,
     usableBy: "Player",
-    aliases: ["move", "go", "exit", "enter", "walk"]
+    aliases: ["move", "go", "exit", "enter", "walk", "m"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify a room. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a room. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable move");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -34,7 +34,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var entranceMessage = "";
     const appendString = player.createMoveAppendString();
     // If the player has the headmaster role, they can move to any room they please.
-    if (player.member.roles.find(role => role.id === settings.headmasterRole)) {
+    if (player.member.roles.cache.find(role => role.id === settings.headmasterRole)) {
         adjacent = true;
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].name === input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
@@ -68,7 +68,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             }
         }
     }
-    if (!adjacent) return game.messageHandler.addReply(message, "you can't move to that room.");
+    if (!adjacent) return game.messageHandler.addReply(message, "You can't move to that room.");
 
     if (desiredRoom) {
         if (exit) {
@@ -83,7 +83,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} moved to ${desiredRoom.channel}`);
         }
     }
-    else return game.messageHandler.addReply(message, `couldn't find "${input}"`);
+    else return game.messageHandler.addReply(message, `Couldn't find "${input}"`);
 
     return;
 };

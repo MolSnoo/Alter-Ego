@@ -17,7 +17,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and a display name. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and a display name. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -27,10 +27,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
-    if (input.length > 32) return game.messageHandler.addReply(message, `a name cannot exceed 32 characters.`);
+    if (input.length > 32) return game.messageHandler.addReply(message, `A name cannot exceed 32 characters.`);
 
     player.displayName = input;
     player.location.occupantsString = player.location.generate_occupantsString(player.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));

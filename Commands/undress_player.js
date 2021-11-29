@@ -31,7 +31,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
                 // Check if the object has a puzzle attached to it.
                 if (object.childPuzzle !== null && object.childPuzzle.type !== "weight" && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
-                    return game.messageHandler.addReply(message, `you cannot put items ${object.preposition} ${object.name} right now.`);
+                    return game.messageHandler.addReply(message, `You cannot put items ${object.preposition} ${object.name} right now.`);
                 break;
             }
             else if (objects[i].name === parsedInput) return game.messageHandler.addReply(message, `${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
@@ -59,7 +59,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return game.messageHandler.addReply(message, `couldn't find "${parsedInput}" of ${containerItem.name}.`);
+                        if (containerItemSlot === null) return game.messageHandler.addReply(message, `Couldn't find "${parsedInput}" of ${containerItem.name}.`);
                     }
                     break;
                 }
@@ -83,15 +83,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (player.inventory[i].equippedItem !== null)
                 totalSize += player.inventory[i].equippedItem.prefab.size;
         }
-        if (totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return game.messageHandler.addReply(message, `your inventory will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
-        else if (totalSize > containerItemSlot.capacity) return game.messageHandler.addReply(message, `your inventory will not fit in ${container.name} because it is too large.`);
-        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return game.messageHandler.addReply(message, `your inventory will not fit in ${containerItemSlot.name} of ${container.name} because there isn't enough space left.`);
-        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity) return game.messageHandler.addReply(message, `your inventory will not fit in ${container.name} because there isn't enough space left.`);
+        if (totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return game.messageHandler.addReply(message, `Your inventory will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
+        else if (totalSize > containerItemSlot.capacity) return game.messageHandler.addReply(message, `Your inventory will not fit in ${container.name} because it is too large.`);
+        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return game.messageHandler.addReply(message, `Your inventory will not fit in ${containerItemSlot.name} of ${container.name} because there isn't enough space left.`);
+        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity) return game.messageHandler.addReply(message, `Your inventory will not fit in ${container.name} because there isn't enough space left.`);
     }
     else {
-        if (parsedInput !== "") return game.messageHandler.addReply(message, `couldn't find "${parsedInput}" to drop item into.`);
+        if (parsedInput !== "") return game.messageHandler.addReply(message, `Couldn't find "${parsedInput}" to drop item into.`);
         const defaultDropOpject = objects.find(object => object.name === settings.defaultDropObject);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return game.messageHandler.addReply(message, `you cannot drop items in this room.`);
+        if (defaultDropOpject === null || defaultDropOpject === undefined) return game.messageHandler.addReply(message, `You cannot drop items in this room.`);
         container = defaultDropOpject;
     }
 
@@ -102,7 +102,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (topContainer !== null) {
         const topContainerPreposition = topContainer.preposition ? topContainer.preposition : "in";
         if (topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
-            return game.messageHandler.addReply(message, `you cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
+            return game.messageHandler.addReply(message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
     var rightHand = 0;

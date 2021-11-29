@@ -45,7 +45,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
         game.messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been disabled.");
     }
-    else game.messageHandler.addReply(message, `couldn't understand input "${args[0]}". Usage:\n${exports.config.usage}`);
+    else game.messageHandler.addReply(message, `Couldn't understand input "${args[0]}". Usage:\n${exports.config.usage}`);
 
     return;
 };

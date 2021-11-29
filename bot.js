@@ -8,11 +8,30 @@ const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
 const saver = include(`${settings.modulesDir}/saver.js`);
 
-const discord = require('discord.js');
-const bot = new discord.Client();
 const fs = require('fs');
+const fetch = require('node-fetch');
 var moment = require('moment');
 moment().format();
+const discord = require('discord.js');
+const bot = new discord.Client({
+    retryLimit: Infinity,
+    partials: [
+        "USER",
+        "CHANNEL",
+        "GUILD_MEMBER",
+        "MESSAGE",
+        "REACTION"
+    ],
+    intents: [
+        discord.Intents.FLAGS.GUILDS,
+        discord.Intents.FLAGS.GUILD_MEMBERS,
+        discord.Intents.FLAGS.GUILD_WEBHOOKS,
+        discord.Intents.FLAGS.GUILD_MESSAGES,
+        discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+        discord.Intents.FLAGS.DIRECT_MESSAGES,
+        discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+    ]
+});
 
 var game = include(`game.json`);
 game.messageHandler = messageHandler;
@@ -47,32 +66,34 @@ function updateStatus() {
     }, 0);
     var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
 
-    if (settings.debug) {
-        bot.user.setActivity(settings.debugModeActivity.string + onlineString, { type: settings.debugModeActivity.type });
-        bot.user.setStatus("dnd");
-    }
+    if (settings.debug)
+        bot.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: settings.debugModeActivity.type }] });
     else {
-        if (game.inProgress && !game.canJoin)
-            bot.user.setActivity(settings.gameInProgressActivity.string + onlineString, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
-        else
-            bot.user.setActivity(settings.onlineActivity.string, { type: settings.onlineActivity.type });
         bot.user.setStatus("online");
+        if (game.inProgress && !game.canJoin)
+            bot.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url }] });
+        else
+            bot.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: settings.onlineActivity.type }] });
     }
 }
 
+async function checkVersion() {
+    const masterPackage = await fetch('https://raw.githubusercontent.com/MolSnoo/Alter-Ego/master/package.json').then(response => response.json()).catch();
+    const localPackage = include('package.json');
+    if (masterPackage.version !== localPackage.version && !localPackage.version.endsWith("d"))
+        game.commandChannel.send(`This version of Alter Ego is out of date. Please download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
+}
+
 bot.on('ready', async () => {
-    if (bot.guilds.size === 1) {
+    if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
-        game.guild = bot.guilds.first();
-        game.commandChannel = game.guild.channels.find(channel => channel.id === settings.commandChannel);
-        game.logChannel = game.guild.channels.find(channel => channel.id === settings.logChannel);
+        game.guild = bot.guilds.cache.first();
+        game.commandChannel = game.guild.channels.cache.find(channel => channel.id === settings.commandChannel);
+        game.logChannel = game.guild.channels.cache.find(channel => channel.id === settings.logChannel);
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
-        if (settings.testing) {
-            const tests = require(`./${settings.testsDir}/run_tests.js`);
-            await tests.runTests(bot);
-        }
         updateStatus();
+        checkVersion();
     }
     else {
         console.log("Error: Bot must be on one and only one server.");
@@ -113,10 +134,10 @@ bot.on('ready', async () => {
     }, 60000);
 });
 
-bot.on('message', async message => {
+bot.on('messageCreate', async message => {
     // Prevent bot from responding to its own messages.
     if (message.author === bot.user) return;
-    if (settings.debug && message.channel.type === 'dm') console.log(message.author.username + ': "' + message.content + '"');
+    if (settings.debug && message.channel.type === 'DM') console.log(message.author.username + ': "' + message.content + '"');
 
     // If the message begins with the command prefix, attempt to run a command.
     // If the command is run successfully, the message will be deleted.
@@ -124,9 +145,13 @@ bot.on('message', async message => {
         const command = message.content.substring(settings.commandPrefix.length);
         var isCommand = await commandHandler.execute(command, bot, game, message);
     }
-    if (message && !isCommand && game.inProgress && (settings.roomCategories.includes(message.channel.parentID) || message.channel.parentID === settings.whisperCategory || message.channel.id === settings.announcementChannel)) {
+    if (message && !isCommand && game.inProgress && (settings.roomCategories.includes(message.channel.parentId) || message.channel.parentId === settings.whisperCategory || message.channel.id === settings.announcementChannel)) {
         await dialogHandler.execute(bot, game, message, true);
     }
+});
+
+process.on('unhandledRejection', error => {
+    console.error('Unhandled promise rejection:', error);
 });
 
 bot.login(credentials.discord.token);

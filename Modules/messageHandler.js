@@ -49,11 +49,11 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
 // Narrate something directly to a player with attachments
 module.exports.addDirectNarrationWithAttachments = async (player, messageText, attachments, addSpectate = true) => {
     var files = [];
-    attachments.array().forEach(attachment => files.push(attachment.url));
+    [...attachments.values()].forEach(attachment => files.push(attachment.url));
 
-    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, messageText, { files: files }, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, { content: messageText, files: files }, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
-        addMessageWithAttachmentsToQueue(player.spectateChannel, messageText, { files: files }, messagePriority.spectatorMessage);
+        addMessageWithAttachmentsToQueue(player.spectateChannel, { content: messageText, files: files }, messagePriority.spectatorMessage);
 };
 
 // Narrate a room description to a player
@@ -66,8 +66,8 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         occupantsString += `\n${sleepingPlayersString} ` + (sleepingPlayersString.includes(" and ") ? "are" : "is") + " asleep.";
     }
 
-    const thumbnail = location.iconURL !== "" ? location.iconURL : settings.defaultRoomIconURL !== "" ? settings.defaultRoomIconURL : game.guild.iconURL;
-    let embed = new discord.RichEmbed()
+    const thumbnail = location.iconURL !== "" ? location.iconURL : settings.defaultRoomIconURL !== "" ? settings.defaultRoomIconURL : game.guild.iconURL();
+    let embed = new discord.MessageEmbed()
         .setThumbnail(thumbnail)
         .setTitle(location.name)
         .setColor('1F8B4C')
@@ -100,7 +100,7 @@ module.exports.addReply = async (message, messageText) => {
 };
 
 // Take a message sent in a room/whisper by a player and add it to the spectate channels of other players in the room
-module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whisper = null) => {
+module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whisper = null, displayName = null) => {
     if (player.spectateChannel !== null) {
         var messageText = message.content || '';
         // If this is a whisper, specify that the following message comes from the whisper
@@ -114,13 +114,14 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
             webHook = await player.spectateChannel.createWebhook(player.spectateChannel.name);
 
         var files = [];
-        message.attachments.array().forEach(attachment => files.push(attachment.url));
+        [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         // Send through the webhook with the original author's username and avatar, and the original message's contents
-        addWebhookMessageToQueue(webHook, messageText,
+        addWebhookMessageToQueue(webHook,
             {
-                username: typeof speaker === "string" ? speaker : speaker.displayName,
-                avatarURL: speaker.displayIcon ? speaker.displayIcon : speaker.member ? speaker.member.user.avatarURL : message.author.avatarURL || message.author.defaultAvatarURL,
+                content: messageText,
+                username: displayName ? displayName : speaker.displayName,
+                avatarURL: speaker.displayIcon ? speaker.displayIcon : speaker.member ? speaker.member.displayAvatarURL() : message.author.avatarURL() || message.author.defaultAvatarURL,
                 embeds: message.embeds,
                 files: files
             },
@@ -143,27 +144,29 @@ module.exports.clearQueue = async () => {
 
 
 function addMessageToQueue(channel, messageText, priority) {
-    let sendAction = () => channel.send(messageText);
+    if (messageText !== "") {
+        let sendAction = () => channel.send(messageText);
+        addToQueue(sendAction, priority);
+    }
+}
+
+function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
+    let sendAction = () => channel.send(attachments);
     addToQueue(sendAction, priority);
 }
 
-function addMessageWithAttachmentsToQueue(channel, messageText, attachments, priority) {
-    let sendAction = () => channel.send(messageText, attachments);
-    addToQueue(sendAction, priority);
-}
-
-function addWebhookMessageToQueue(webHook, messageText, webHookContents, priority) {
-    let sendAction = () => webHook.send(messageText, webHookContents);
+function addWebhookMessageToQueue(webHook, webHookContents, priority) {
+    let sendAction = () => webHook.send(webHookContents);
     addToQueue(sendAction, priority);
 }
 
 function addReplyToQueue(message, messageText, priority) {
-    let sendAction = () => message.reply(messageText);
+    let sendAction = priority === messagePriority.modChannel ? () => message.reply(messageText) : () => message.author.send(messageText);
     addToQueue(sendAction, priority);
 }
 
 function addEmbedToQueue(channel, embed, priority) {
-    let sendAction = () => channel.send({ embed: embed });
+    let sendAction = () => channel.send({ embeds: [embed] });
     addToQueue(sendAction, priority);
 }
 

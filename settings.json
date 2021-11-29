@@ -1,7 +1,6 @@
 ﻿{
   "commandPrefix": ".",
   "debug": false,
-  "testing": false,
 
   "commandsDir": "Commands",
   "dataDir": "Data",
@@ -36,7 +35,7 @@
   ],
   "defaultDescription": "<desc><s>You examine <var v=\"container.displayName\" />.</s> <if cond=\"container.hasAttribute('concealed')\"><s><var v=\"container.pronouns.Sbj\" /> <if cond=\"container.pronouns.plural\">are</if><if cond=\"!container.pronouns.plural\">is</if> [HEIGHT], but <var v=\"container.pronouns.dpos\" /> face is concealed.</s></if><if cond=\"!container.hasAttribute('concealed')\"><s><var v=\"container.pronouns.Sbj\" /><if cond=\"container.pronouns.plural\">'re</if><if cond=\"!container.pronouns.plural\">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if> <s><var v=\"container.pronouns.Sbj\" /> wear<if cond=\"!container.pronouns.plural\">s</if> <il name=\"equipment\"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s> <s>You see <var v=\"container.pronouns.obj\" /> carrying <il name=\"hands\"></il>.</s></desc>",
 
-  "metersPerPixel": 0.04,
+  "pixelsPerMeter": 25,
   "staminaUseRate": -0.01,
   "heatedSlowdownRate": 0.5,
   "diceMin": 1,

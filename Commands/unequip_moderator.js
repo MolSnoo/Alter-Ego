@@ -11,13 +11,13 @@ module.exports.config = {
         + `${settings.commandPrefix}unequip cara's sweater from shirt\n`
         + `${settings.commandPrefix}unequip aria large purse from glasses`,
     usableBy: "Moderator",
-    aliases: ["unequip"],
+    aliases: ["unequip", "u"],
     requiresGame: true
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and an item. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and an item. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -27,7 +27,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -55,14 +55,14 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (parsedInput.endsWith(` FROM ${player.inventory[i].name}`)) {
             slotName = player.inventory[i].name;
             let itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
-            if (player.inventory[i].equippedItem === null) return game.messageHandler.addReply(message, `nothing is equipped to ${slotName}.`);
+            if (player.inventory[i].equippedItem === null) return game.messageHandler.addReply(message, `Nothing is equipped to ${slotName}.`);
             if (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === itemName ||
                 player.inventory[i].equippedItem.prefab.id === itemName ||
                 player.inventory[i].equippedItem.name === itemName) {
                 item = player.inventory[i].equippedItem;
                 break;
             }
-            else return game.messageHandler.addReply(message, `couldn't find "${itemName}" equipped to ${slotName}.`);
+            else return game.messageHandler.addReply(message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
         }
         else if (player.inventory[i].equippedItem !== null &&
             (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === parsedInput ||
@@ -74,12 +74,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (slotName === "RIGHT HAND" || slotName === "LEFT HAND")
-        return game.messageHandler.addReply(message, `cannot unequip items from either of your hands. To get rid of this item, use the drop command.`);
+        return game.messageHandler.addReply(message, `Cannot unequip items from either of ${player.name}'s hands. To get rid of this item, use the drop command.`);
     if (parsedInput.includes(" FROM ") && slotName === "") {
         slotName = parsedInput.substring(parsedInput.lastIndexOf(" FROM ") + " FROM ".length).trim();
-        return game.messageHandler.addReply(message, `couldn't find equipment slot "${slotName}".`);
+        return game.messageHandler.addReply(message, `Couldn't find equipment slot "${slotName}".`);
     }
-    if (item === null) return game.messageHandler.addReply(message, `couldn't find equipped item "${parsedInput}".`);
+    if (item === null) return game.messageHandler.addReply(message, `Couldn't find equipped item "${parsedInput}".`);
 
     player.unequip(game, item, slotName, hand, bot);
     // Post log message.

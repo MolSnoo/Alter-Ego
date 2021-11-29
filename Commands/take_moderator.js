@@ -13,13 +13,13 @@ module.exports.config = {
         + `${settings.commandPrefix}take aria green key from large purse\n`
         + `${settings.commandPrefix}take veronica game system from main pocket of backpack`,
     usableBy: "Moderator",
-    aliases: ["take"],
+    aliases: ["take", "get", "t"],
     requiresGame: true
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and an item. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and an item. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -29,7 +29,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -131,15 +131,15 @@ module.exports.run = async (bot, game, message, command, args) => {
         const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput)
-                return game.messageHandler.addReply(message, `the ${objects[i].name} is not an item.`);
+                return game.messageHandler.addReply(message, `The ${objects[i].name} is not an item.`);
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return game.messageHandler.addReply(message, `couldn't find "${containerName}" containing "${itemName}".`);
+            return game.messageHandler.addReply(message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
-        else return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in the room.`);
+        else return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in the room.`);
     }
     // If no container was found, make the container the Room.
     if (item !== null && item.container === null)
@@ -150,7 +150,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         topContainer = topContainer.container;
 
     if (topContainer !== null && topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
-        return game.messageHandler.addReply(message, `items cannot be taken from ${topContainer.name} while it is turned on.`);
+        return game.messageHandler.addReply(message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
 
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.

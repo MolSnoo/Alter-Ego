@@ -17,7 +17,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 4)
-        return game.messageHandler.addReply(message, `you need to specify a player and two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -27,13 +27,13 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
-        return game.messageHandler.addReply(message, `you need to specify two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
 
     var rightHand = null;
     var leftHand = null;
@@ -102,18 +102,18 @@ module.exports.run = async (bot, game, message, command, args) => {
     let item2Name = "";
     if (item1 === null && item2 !== null) {
         item1Name = parsedInput.replace(item2Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return game.messageHandler.addReply(message, `couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
+        return game.messageHandler.addReply(message, `Couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 !== null && item2 === null) {
         item2Name = parsedInput.replace(item1Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return game.messageHandler.addReply(message, `couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
+        return game.messageHandler.addReply(message, `Couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 === null && item2 === null) {
         if (parsedInput.includes(" WITH ")) args = parsedInput.split(" WITH ");
         else if (parsedInput.includes(" AND ")) args = parsedInput.split(" AND ");
         item1Name = args[0];
         item2Name = args[1];
-        return game.messageHandler.addReply(message, `couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
+        return game.messageHandler.addReply(message, `Couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
     }
 
     let ingredients = [item1, item2].sort(function (a, b) {
@@ -130,7 +130,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (recipe === null) return game.messageHandler.addReply(message, `couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
+    if (recipe === null) return game.messageHandler.addReply(message, `Couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
 
     item1Name = ingredients[0].identifier ? ingredients[0].identifier : ingredients[0].prefab.id;
     item2Name = ingredients[1].identifier ? ingredients[1].identifier : ingredients[1].prefab.id;

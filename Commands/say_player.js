@@ -28,11 +28,12 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             webHook = await player.location.channel.createWebhook(player.location.channel.name);
 
         var files = [];
-        message.attachments.array().forEach(attachment => files.push(attachment.url));
+        [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
-        webHook.send(input, {
+        webHook.send({
+            content: input,
             username: player.displayName,
-            avatarURL: player.displayIcon ? player.displayIcon : message.author.avatarURL || message.author.defaultAvatarURL,
+            avatarURL: player.displayIcon ? player.displayIcon : player.member.displayAvatarURL() || message.author.defaultAvatarURL,
             embeds: message.embeds,
             files: files
         }).then(message => {

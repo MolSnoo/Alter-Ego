@@ -38,7 +38,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify what function to test. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify what function to test. Usage:\n${exports.config.usage}`);
 
     const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
@@ -58,7 +58,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
         }
-        if (!found) return game.messageHandler.addReply(message, `couldn't find player "${args[1]}".`);
+        if (!found) return game.messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
     }
 
     if (args[0] === "parse") {
@@ -114,7 +114,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else return game.messageHandler.addReply(message, 'Function not found. You need to use "parse", "add", or "remove".');
 
-    message.channel.send("Text parsed.", {
+    message.channel.send({
+        content: "Text parsed.",
         files: [
             {
                 attachment: file,

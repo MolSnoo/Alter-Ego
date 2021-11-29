@@ -14,7 +14,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify at least one player. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify at least one player. Usage:\n${exports.config.usage}`);
 
     // Get all listed players first.
     var players = [];
@@ -29,13 +29,13 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return game.messageHandler.addReply(message, `couldn't find player(s) on dead list: ${missingPlayers}.`);
+        return game.messageHandler.addReply(message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++) {
         if (players[i].talent !== "NPC") {
-            players[i].member.removeRole(settings.playerRole);
-            players[i].member.addRole(settings.deadRole);
+            players[i].member.roles.remove(settings.playerRole);
+            players[i].member.roles.add(settings.deadRole);
         }
     }
 

@@ -19,7 +19,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify a gesture. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a gesture. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable gesture");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -45,28 +45,28 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
 
         let embed = createEmbed(game, page, pages);
-        message.author.send(embed).then(msg => {
+        message.author.send({ embeds: [embed] }).then(msg => {
             msg.react('⏪').then(() => {
                 msg.react('⏩');
 
                 const backwardsFilter = (reaction, user) => reaction.emoji.name === '⏪' && user.id === message.author.id;
                 const forwardsFilter = (reaction, user) => reaction.emoji.name === '⏩' && user.id === message.author.id;
 
-                const backwards = msg.createReactionCollector(backwardsFilter, { time: 300000 });
-                const forwards = msg.createReactionCollector(forwardsFilter, { time: 300000 });
+                const backwards = msg.createReactionCollector({ filter: backwardsFilter, time: 300000 });
+                const forwards = msg.createReactionCollector({ filter: forwardsFilter, time: 300000 });
 
                 backwards.on("collect", () => {
                     if (page === 0) return;
                     page--;
                     embed = createEmbed(game, page, pages);
-                    msg.edit(embed);
+                    msg.edit({ embeds: [embed] });
                 });
 
                 forwards.on("collect", () => {
                     if (page === pages.length - 1) return;
                     page++;
                     embed = createEmbed(game, page, pages);
-                    msg.edit(embed);
+                    msg.edit({ embeds: [embed] });
                 });
             });
         });
@@ -78,7 +78,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         for (let i = 0; i < game.gestures.length; i++) {
             if (game.gestures[i].name.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
-                    return game.messageHandler.addReply(message, `you need to specify a target for that gesture.`);
+                    return game.messageHandler.addReply(message, `You need to specify a target for that gesture.`);
                 gesture = game.gestures[i];
                 break;
             }
@@ -122,7 +122,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                                 let occupant = player.location.occupants[k];
                                 if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && !occupant.hasAttribute("hidden")) {
                                     // Player cannot gesture toward themselves.
-                                    if (occupant.name === player.name) return game.messageHandler.addReply(message, "you can't gesture toward yourself.");
+                                    if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't gesture toward yourself.");
                                     targetType = "Player";
                                     target = occupant;
                                     break;
@@ -146,12 +146,12 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 }
             }
         }
-        if (gesture === null) return game.messageHandler.addReply(message, `couldn't find gesture "${input}". For a list of gestures, send \`${settings.commandPrefix}gesture list\`.`);
+        if (gesture === null) return game.messageHandler.addReply(message, `Couldn't find gesture "${input}". For a list of gestures, send \`${settings.commandPrefix}gesture list\`.`);
         input = input.substring(gesture.name.toLowerCase().replace(/\'/g, "").length).trim();
         if (input !== "" && gesture.requires.length === 0)
-            return game.messageHandler.addReply(message, `that gesture doesn't take a target.`);
+            return game.messageHandler.addReply(message, `That gesture doesn't take a target.`);
         if (target === null && gesture.requires.length > 0)
-            return game.messageHandler.addReply(message, `couldn't find target "${input}" in the room with you.`);
+            return game.messageHandler.addReply(message, `Couldn't find target "${input}" in the room with you.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
             if (player.statusString.includes(gesture.disabledStatuses[i].name))
                 return game.messageHandler.addReply(message, `You cannot do that gesture because you are **${gesture.disabledStatuses[i].name}**.`);
@@ -172,9 +172,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 };
 
 function createEmbed(game, page, pages) {
-    let embed = new discord.RichEmbed()
+    let embed = new discord.MessageEmbed()
         .setColor('1F8B4C')
-        .setAuthor(`Gestures List`, game.guild.iconURL)
+        .setAuthor(`Gestures List`, game.guild.iconURL())
         .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)
         .setFooter(`Page ${page + 1}/${pages.length}`);
 

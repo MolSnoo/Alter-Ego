@@ -13,12 +13,12 @@ module.exports.config = {
         + `${settings.commandPrefix}stash old key in right pocket of pants\n`
         + `${settings.commandPrefix}store water bottle in side pouch of backpack`,
     usableBy: "Player",
-    aliases: ["stash", "store"]
+    aliases: ["stash", "store", "s"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify two items. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify two items. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable stash");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -47,7 +47,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         break;
                     }
                 }
-                if (containerItemSlot === null) return game.messageHandler.addReply(message, `couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
+                if (containerItemSlot === null) return game.messageHandler.addReply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
             }
             newArgs = parsedInput.split(' ');
             var itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
@@ -56,9 +56,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             break;
         }
         else if (parsedInput === items[i].name)
-            return game.messageHandler.addReply(message, `you need to specify two items. Usage:\n${exports.config.usage}`);
+            return game.messageHandler.addReply(message, `You need to specify two items. Usage:\n${exports.config.usage}`);
     }
-    if (containerItem === null) return game.messageHandler.addReply(message, `couldn't find container item "${newArgs[newArgs.length - 1]}".`);
+    if (containerItem === null) return game.messageHandler.addReply(message, `Couldn't find container item "${newArgs[newArgs.length - 1]}".`);
     else if (containerItem.inventory.length === 0) return game.messageHandler.addReply(message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
@@ -79,9 +79,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
+    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
     // Make sure item and containerItem aren't the same item.
-    if (item.row === containerItem.row) return game.messageHandler.addReply(message, `can't stash ${item.name} ${itemPreposition} itself.`);
+    if (item.row === containerItem.row) return game.messageHandler.addReply(message, `You can't stash ${item.name} ${itemPreposition} itself.`);
 
     if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
     if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return game.messageHandler.addReply(message, `${item.name} will not fit in ${containerItemSlot.name} of ${containerItem.name} because it is too large.`);

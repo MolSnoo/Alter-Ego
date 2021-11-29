@@ -10,7 +10,7 @@ prefabs*.js
 speed.js
 speeds.txt
 Commands/example_*
-Tests/test_whispers.js
+Tests/*
 unusedPrefabs*.txt
 
 ## Ignore Visual Studio temporary files, build results, and

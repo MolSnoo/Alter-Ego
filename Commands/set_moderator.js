@@ -23,13 +23,13 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     var input = args.join(" ");
     if (args[0] === "accessible") command = "accessible";
     else if (args[0] === "inaccessible") command = "inaccessible";
     else {
-        game.messageHandler.addReply(message, 'the first argument must be "accessible" or "inaccessible". Usage:');
+        game.messageHandler.addReply(message, 'The first argument must be "accessible" or "inaccessible". Usage:');
         game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
@@ -41,7 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args[0] === "object") isObject = true;
     else if (args[0] === "puzzle") isPuzzle = true;
     else {
-        game.messageHandler.addReply(message, 'the second argument must be "object" or "puzzle". Usage:');
+        game.messageHandler.addReply(message, 'The second argument must be "object" or "puzzle". Usage:');
         game.messageHandler.addGameMechanicMessage(message.channel, exports.config.usage);
         return;
     }
@@ -77,7 +77,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
         }
         if (object === null && room === null && objects.length > 0) object = objects[0];
-        else if (object === null) return game.messageHandler.addReply(message, `couldn't find object "${input}".`);
+        else if (object === null) return game.messageHandler.addReply(message, `Couldn't find object "${input}".`);
     }
     else if (isPuzzle) {
         const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
@@ -90,7 +90,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
         }
         if (puzzle === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-        else if (puzzle === null) return game.messageHandler.addReply(message, `couldn't find puzzle "${input}".`);
+        else if (puzzle === null) return game.messageHandler.addReply(message, `Couldn't find puzzle "${input}".`);
     }
 
     if (command === "accessible") {

@@ -10,12 +10,12 @@ module.exports.config = {
         + "(a chainsaw, for example) is given, people in the room with you will see you giving it to the recipient.",
     usage: `${settings.commandPrefix}give keiko moldy bread`,
     usableBy: "Player",
-    aliases: ["give"]
+    aliases: ["give", "g"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and an item. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and an item. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable give");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -29,14 +29,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const occupant = player.location.occupants[i];
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && !occupant.hasAttribute("hidden")) {
             // Player cannot give to themselves.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, "you can't give to yourself.");
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't give to yourself.");
 
             recipient = occupant;
             parsedInput = parsedInput.substring(occupant.displayName.length).trim();
             break;
         }
     }
-    if (recipient === null) return game.messageHandler.addReply(message, `couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
+    if (recipient === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // Check to make sure that the recipient has a free hand.
     var recipientHand = "";
@@ -75,7 +75,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (item === null) return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
+    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
 
     if (item.weight > recipient.maxCarryWeight) {
         player.notify(game, `You try to give ${recipient.displayName} ${item.singleContainingPhrase}, but it is too heavy for ${recipient.pronouns.obj}.`);

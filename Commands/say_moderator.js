@@ -44,9 +44,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             webHook = await player.location.channel.createWebhook(player.location.channel.name);
 
         var files = [];
-        message.attachments.array().forEach(attachment => files.push(attachment.url));
+        [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
-        webHook.send(string, {
+        webHook.send({
+            content: string,
             username: player.displayName,
             avatarURL: player.displayIcon,
             embeds: message.embeds,
@@ -55,7 +56,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             dialogHandler.execute(bot, game, message, true, player);
         });
     }
-    else if (channel !== undefined && settings.roomCategories.includes(channel.parentID)) {
+    else if (channel !== undefined && settings.roomCategories.includes(channel.parentId)) {
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].name === channel.name) {
                 room = game.rooms[i];

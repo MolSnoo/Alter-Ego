@@ -14,7 +14,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and an exit. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and an exit. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -24,7 +24,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -36,7 +36,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return game.messageHandler.addReply(message, `couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return game.messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";

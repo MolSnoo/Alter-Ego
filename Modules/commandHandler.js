@@ -5,12 +5,12 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
-    else if ((message.channel.id === settings.commandChannel || command.startsWith('delete')) && message.member.roles.find(role => role.id === settings.moderatorRole)) isModerator = true;
+    else if ((message.channel.id === settings.commandChannel || command.startsWith('delete')) && message.member.roles.cache.find(role => role.id === settings.moderatorRole)) isModerator = true;
     else {
-        let member = game.guild.members.find(member => member.id === message.author.id);
-        if (member && member.roles.find(role => role.id === settings.playerRole)) isPlayer = true;
-        else if (member && settings.debug && member.roles.find(role => role.id === settings.testerRole)) isEligible = true;
-        else if (member && !settings.debug && member.roles.find(role => role.id === settings.eligibleRole)) isEligible = true;
+        let member = game.guild.members.cache.find(member => member.id === message.author.id);
+        if (member && member.roles.cache.find(role => role.id === settings.playerRole)) isPlayer = true;
+        else if (member && settings.debug && member.roles.cache.find(role => role.id === settings.testerRole)) isEligible = true;
+        else if (member && !settings.debug && member.roles.cache.find(role => role.id === settings.eligibleRole)) isEligible = true;
     }
 
     const commandSplit = command.split(" ");
@@ -46,7 +46,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             message.reply("There is no game currently running.");
             return false;
         }
-        if (message.channel.type === "dm" || settings.roomCategories.includes(message.channel.parentID)) {
+        if (message.channel.type === "DM" || settings.roomCategories.includes(message.channel.parentId)) {
             player = null;
             for (let i = 0; i < game.players_alive.length; i++) {
                 if (game.players_alive[i].id === message.author.id) {
@@ -71,7 +71,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
 
             player.setOnline();
 
-            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && commandName !== "say" && message.channel.type !== "dm") message.delete().catch(); });
+            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && commandName !== "say" && message.channel.type !== "DM") message.delete().catch(); });
             return true;
         }
         return false;

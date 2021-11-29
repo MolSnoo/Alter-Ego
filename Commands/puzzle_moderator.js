@@ -40,7 +40,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     else input = args.join(" ");
 
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to input all required arguments. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${exports.config.usage}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";
@@ -99,7 +99,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    else if (puzzle === null) return game.messageHandler.addReply(message, `couldn't find puzzle "${input}".`);
+    else if (puzzle === null) return game.messageHandler.addReply(message, `Couldn't find puzzle "${input}".`);
 
     // If anything is left in the input, make that the outcome.
     var outcome = input;
@@ -123,7 +123,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully unsolved ${puzzle.name}.`);
     }
     else if (command === "attempt") {
-        if (player === null) return game.messageHandler.addReply(message, `cannot attempt a puzzle without a player.`);
+        if (player === null) return game.messageHandler.addReply(message, `Cannot attempt a puzzle without a player.`);
         const misc = {
             command: command,
             input: input,

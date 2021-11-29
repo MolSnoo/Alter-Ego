@@ -12,13 +12,13 @@ module.exports.config = {
         + `${settings.commandPrefix}unstash antimony's old key from right pocket of pants\n`
         + `${settings.commandPrefix}retrieve cassie water bottle from side pouch of backpack`,
     usableBy: "Moderator",
-    aliases: ["unstash", "retrieve"],
+    aliases: ["unstash", "retrieve", "r"],
     requiresGame: true
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `you need to specify a player and an item. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify a player and an item. Usage:\n${exports.config.usage}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -28,7 +28,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `player "${args[0]}" not found.`);
+    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -118,9 +118,9 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return game.messageHandler.addReply(message, `couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
+            return game.messageHandler.addReply(message, `Couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
         }
-        else return game.messageHandler.addReply(message, `couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
+        else return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
     }
     if (item !== null && container === null) return game.messageHandler.addReply(message, `${item.identifier ? item.identifier : item.prefab.id} is not contained in another item and cannot be unstashed.`);
 

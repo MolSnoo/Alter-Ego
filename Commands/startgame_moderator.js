@@ -25,8 +25,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
 
     var channel;
-    if (settings.debug) channel = game.guild.channels.get(settings.testingChannel);
-    else channel = game.guild.channels.get(settings.generalChannel);
+    if (settings.debug) channel = game.guild.channels.cache.get(settings.testingChannel);
+    else channel = game.guild.channels.cache.get(settings.generalChannel);
 
     var time;
     var halfTime;
@@ -50,7 +50,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.endTimer = setTimeout(function () {
         game.canJoin = false;
-        const playerRole = game.guild.roles.find(role => role.id === settings.playerRole);
+        const playerRole = game.guild.roles.cache.find(role => role.id === settings.playerRole);
         channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
 
         game.players.sort(function (a, b) {

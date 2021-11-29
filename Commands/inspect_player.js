@@ -28,7 +28,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify an object/item/player. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify an object/item/player. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable inspect");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -130,10 +130,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         let occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden"))
-            return game.messageHandler.addReply(message, `couldn't find "${input}".`);
+            return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, `can't inspect yourself.`);
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, `You can't inspect yourself.`);
             player.sendDescription(game, occupant.description, occupant);
 
             const time = new Date().toLocaleTimeString();
@@ -143,7 +143,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
         else if (parsedInput.startsWith(possessive)) {
             // Don't let the player inspect their own items this way.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, `can't inspect your own items this way. Use "my" instead of your name.`);
+            if (occupant.name === player.name) return game.messageHandler.addReply(message, `You can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
             const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
@@ -170,5 +170,5 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
     }
 
-    return game.messageHandler.addReply(message, `couldn't find "${input}".`);
+    return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
 };

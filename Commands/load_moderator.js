@@ -30,7 +30,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify what data to get. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify what data to get. Usage:\n${exports.config.usage}`);
 
     if (args[0] === "all") {
         await loader.loadRooms(game, false);

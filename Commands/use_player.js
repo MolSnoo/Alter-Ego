@@ -30,7 +30,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args, player) => {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `you need to specify an object. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `You need to specify an object. Usage:\n${exports.config.usage}`);
 
     const status = player.getAttributeStatusEffects("disable use");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
@@ -140,5 +140,5 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
         else return game.messageHandler.addReply(message, response);
     }
-    else if (object === null) return game.messageHandler.addReply(message, `couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (object === null) return game.messageHandler.addReply(message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
 };

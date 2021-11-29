@@ -6,7 +6,7 @@ module.exports.config = {
     details: "Shows you what items you currently have. Your inventory will be sent to you via DMs.",
     usage: `${settings.commandPrefix}inventory`,
     usableBy: "Player",
-    aliases: ["inventory"]
+    aliases: ["inventory", "i"]
 };
 
 module.exports.run = async (bot, game, message, command, args, player) => {

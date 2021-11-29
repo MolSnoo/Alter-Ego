@@ -28,17 +28,17 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             }
         }
         if (object !== null && (!object.accessible || object.childPuzzle !== null && object.childPuzzle.type.endsWith("lock") && !object.childPuzzle.solved))
-            return game.messageHandler.addReply(message, `you cannot come out of hiding right now.`);
+            return game.messageHandler.addReply(message, `You cannot come out of hiding right now.`);
         else player.cure(game, "hidden", true, false, true);
     }
     else if (player.statusString.includes("hidden"))
-        return game.messageHandler.addReply(message, `you are already **hidden**. If you wish to stop hiding, use "${settings.commandPrefix}unhide".`);
+        return game.messageHandler.addReply(message, `You are already **hidden**. If you wish to stop hiding, use "${settings.commandPrefix}unhide".`);
     else if (command === "unhide")
-        return game.messageHandler.addReply(message, "you are not currently hidden.");
+        return game.messageHandler.addReply(message, "You are not currently hidden.");
     // Player is currently not hidden and is using the hide command.
     else {
         if (args.length === 0)
-            return game.messageHandler.addReply(message, `you need to specify an object. Usage:\n${exports.config.usage}`);
+            return game.messageHandler.addReply(message, `You need to specify an object. Usage:\n${exports.config.usage}`);
 
         var input = args.join(" ");
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -54,11 +54,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             else if (objects[i].name === parsedInput)
                 return game.messageHandler.addReply(message, `${objects[i].name} is not a hiding spot.`);
         }
-        if (object === null) return game.messageHandler.addReply(message, `couldn't find object "${input}".`);
+        if (object === null) return game.messageHandler.addReply(message, `Couldn't find object "${input}".`);
 
         // Make sure the object isn't locked.
         if (object.childPuzzle !== null && object.childPuzzle.type.endsWith("lock") && !object.childPuzzle.solved)
-            return game.messageHandler.addReply(message, `you cannot hide in ${object.name} right now.`);
+            return game.messageHandler.addReply(message, `You cannot hide in ${object.name} right now.`);
 
         // Check to see if the hiding spot is already taken.
         var hiddenPlayer = null;
