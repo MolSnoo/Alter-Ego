@@ -71,6 +71,7 @@ class Player {
         this.isMoving = false;
         this.moveTimer = null;
         this.remainingTime = 0;
+        this.moveQueue = [];
 
         this.reachedHalfStamina = false;
         let player = this;
@@ -141,6 +142,73 @@ class Player {
         }
     }
 
+    queueMovement(game, isRunning, destination) {
+        const currentRoom = this.location;
+        var adjacent = false;
+        var exit = null;
+        var exitMessage = "";
+        var desiredRoom = null;
+        var entrance = null;
+        var entranceMessage = "";
+        const appendString = this.createMoveAppendString();
+
+        // If the player has the headmaster role, they can move to any room they please.
+        if (this.member.roles.cache.find(role => role.id === settings.headmasterRole)) {
+            adjacent = true;
+            for (let i = 0; i < game.rooms.length; i++) {
+                if (game.rooms[i].name === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
+                    desiredRoom = game.rooms[i];
+                    exitMessage = `${this.displayName} suddenly disappears${appendString}`;
+                    entranceMessage = `${this.displayName} suddenly appears${appendString}`;
+                    break;
+                }
+            }
+        }
+        // Otherwise, check that the desired room is adjacent to the current room.
+        else {
+            for (let i = 0; i < currentRoom.exit.length; i++) {
+                if (currentRoom.exit[i].dest.name === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
+                    || currentRoom.exit[i].name === destination.toUpperCase()) {
+                    adjacent = true;
+                    exit = currentRoom.exit[i];
+                    exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
+                    desiredRoom = exit.dest;
+
+                    // Find the correct entrance.
+                    for (let j = 0; j < desiredRoom.exit.length; j++) {
+                        if (desiredRoom.exit[j].name === currentRoom.exit[i].link) {
+                            entrance = desiredRoom.exit[j];
+                            entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        if (!adjacent) {
+            this.moveQueue.length = 0;
+            return this.notify(game, `There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
+        }
+
+        if (desiredRoom) {
+            if (exit)
+                this.move(game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
+            else {
+                currentRoom.removePlayer(game, this, exit, exitMessage);
+                desiredRoom.addPlayer(game, this, entrance, entranceMessage, true);
+
+                // Post log message.
+                const time = new Date().toLocaleTimeString();
+                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} moved to ${desiredRoom.channel}`);
+            }
+        }
+        else {
+            this.moveQueue.length = 0;
+            return this.notify(game, `There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
+        }
+    }
+
     move(game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
         const time = this.calculateMoveTime(exit, isRunning);
         this.remainingTime = time;
@@ -202,7 +270,12 @@ class Player {
 
                     // Post log message.
                     const time = new Date().toLocaleTimeString();
-                    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} moved to ${desiredRoom.channel}`);
+                    const verb = isRunning ? "ran" : "moved";
+                    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
+
+                    player.moveQueue.splice(0, 1);
+                    if (player.moveQueue.length > 0)
+                        player.queueMovement(game, isRunning, player.moveQueue[0].trim());
                 }
                 else {
                     new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
@@ -210,6 +283,7 @@ class Player {
                     player.pos.y = exit.pos.y;
                     player.pos.z = exit.pos.z;
                     player.notify(game, `${exit.name} is locked.`);
+                    player.moveQueue.length = 0;
                 }
             }
         }, 100);
@@ -349,6 +423,7 @@ class Player {
             this.isMoving = false;
             clearInterval(this.moveTimer);
             this.remainingTime = 0;
+            this.moveQueue.length = 0;
         }
 
         // Announce when a player falls asleep or unconscious.
@@ -1789,6 +1864,7 @@ class Player {
         this.isMoving = false;
         clearInterval(this.moveTimer);
         this.remainingTime = 0;
+        this.moveQueue.length = 0;
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].timer !== null)
                 this.status[i].timer.stop();

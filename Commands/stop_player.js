@@ -6,7 +6,8 @@ module.exports.config = {
     name: "stop_player",
     description: "Stops your movement.",
     details: "Stops you in your tracks while moving to another room. Your distance to that room will be preserved, "
-        + "so if you decide to move to that room again, it will not take as long.",
+        + "so if you decide to move to that room again, it will not take as long. This command will also cancel any "
+        + "queued movements.",
     usage: `${settings.commandPrefix}stop`,
     usableBy: "Player",
     aliases: ["stop"]
@@ -21,6 +22,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Stop the player's movement.
     clearInterval(player.moveTimer);
     player.isMoving = false;
+    player.moveQueue.length = 0;
     // Narrate that the player stopped.
     new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
 

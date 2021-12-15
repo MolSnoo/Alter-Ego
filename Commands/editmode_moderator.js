@@ -27,6 +27,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.players_alive[i].isMoving = false;
                 clearInterval(game.players_alive[i].moveTimer);
                 game.players_alive[i].remainingTime = 0;
+                game.players_alive[i].moveQueue.length = 0;
                 if (!game.players_alive[i].hasAttribute('unconscious'))
                     game.messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
             }

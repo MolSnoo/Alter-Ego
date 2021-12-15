@@ -93,6 +93,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             players[i].isMoving = false;
             clearInterval(players[i].moveTimer);
             players[i].remainingTime = 0;
+            players[i].moveQueue.length = 0;
             // Move the player.
             currentRoom.removePlayer(game, players[i], exit, exitMessage);
             desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
