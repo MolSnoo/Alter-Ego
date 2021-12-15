@@ -18,7 +18,7 @@ module.exports.run = async (bot, game, message, args) => {
     }
     if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
 
-    const member = game.guild.members.cache.find(member => member.id === message.author.id);
+    const member = await game.guild.members.fetch(message.author.id);
 
     var player = new Player(
         message.author.id,

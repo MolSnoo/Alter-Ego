@@ -1271,7 +1271,6 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
                 for (let j = 0; j < statusList.length; j++)
                     statusList[j] = statusList[j].trim();
-                //var member = sheet[i][columnID] ? game.guild.members.cache.find(member => member.id === sheet[i][columnID].trim()) : null;
                 var member = null;
                 var spectateChannel = null;
                 if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
