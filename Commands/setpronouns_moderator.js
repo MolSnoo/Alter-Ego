@@ -8,7 +8,7 @@ module.exports.config = {
         + "Note that if the player is inflicted with or cured of a status effect with the concealed attribute, their pronouns will be updated, "
         + "thus overwriting the ones that were set manually. However, this command can be used to overwrite their new pronouns afterwards as well. "
         + "Temporary custom pronoun sets can be applied with this method. They must adhere to the following format: "
-        + "`subjective/objective/dependent possessive/independent posessive/reflexive/plural`.",
+        + "`subjective/objective/dependent possessive/independent possessive/reflexive/plural`.",
     usage: `${settings.commandPrefix}setpronouns sadie female\n`
         + `${settings.commandPrefix}setpronouns roma neutral\n`
         + `${settings.commandPrefix}setpronouns platt male\n`
