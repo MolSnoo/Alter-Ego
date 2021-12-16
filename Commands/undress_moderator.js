@@ -7,9 +7,9 @@ module.exports.config = {
         + `dropped on the ${settings.defaultDropObject}. The given container must have a large enough capacity to hold all of the items in the given player's `
         + "inventory. This command will also drop any items in their hands.",
     usage: `${settings.commandPrefix}undress haru\n`
-        + `${settings.commandPrefix}unequip yuko locker 1\n`
-        + `${settings.commandPrefix}unequip aki laundry basket\n`
-        + `${settings.commandPrefix}unequip stella main pocket of backpack`,
+        + `${settings.commandPrefix}undress yuko locker 1\n`
+        + `${settings.commandPrefix}undress aki laundry basket\n`
+        + `${settings.commandPrefix}undress stella main pocket of backpack`,
     usableBy: "Moderator",
     aliases: ["undress"],
     requiresGame: true
