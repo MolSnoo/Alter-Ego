@@ -724,7 +724,7 @@ class Player {
         return;
     }
 
-    take(game, item, hand, container, slotName) {
+    take(game, item, hand, container, slotName, notify = true) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
             item.quantity--;
@@ -781,7 +781,7 @@ class Player {
         itemManager.insertInventoryItems(game, this, items, slot);
 
         this.carryWeight += createdItem.weight;
-        this.notify(game, `You take ${createdItem.singleContainingPhrase}.`);
+        if (notify) this.notify(game, `You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
             // Add the new item to the player's hands item list.
@@ -1147,7 +1147,7 @@ class Player {
         return;
     }
 
-    async equip(game, item, slotName, hand, bot) {
+    async equip(game, item, slotName, hand, bot, notify = true) {
         // Unequip the item from the player's hand.
         this.unequip(game, item, hand, null);
 
@@ -1187,7 +1187,7 @@ class Player {
 
         itemManager.insertInventoryItems(game, this, items, slot);
 
-        this.notify(game, `You equip the ${createdItem.name}.`);
+        if (notify) this.notify(game, `You equip the ${createdItem.name}.`);
         new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
         // Remove mention of any equipped items that this item covers.
         for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
