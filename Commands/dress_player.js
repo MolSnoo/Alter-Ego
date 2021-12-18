@@ -108,15 +108,19 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     for (let i = 0; i < containerItems.length; i++) {
         // Player shouldn't be able to take items that they're not strong enough to carry.
         if (player.carryWeight + containerItems[i].weight > player.maxCarryWeight) continue;
+        let equipped = false;
         // Look for the player's equipment slots that the current item can be equipped to.
         for (let j = 0; j < containerItems[i].prefab.equipmentSlots.length; j++) {
             for (let k = 0; k < player.inventory.length; k++) {
                 if (containerItems[i].prefab.equipmentSlots[j] === player.inventory[k].name) {
+                    // Ensure that this item will only be equipped once if it can be equipped to multiple slots.
+                    if (equipped) continue;
                     // If something is already equipped to this equipment slot, move on.
                     if (player.inventory[k].equippedItem !== null) break;
                     // Take the item and equip it.
                     player.take(game, containerItems[i], hand, container, containerItems[i].slot, false);
                     player.equip(game, player.inventory[handSlot].equippedItem, player.inventory[k].name, hand, bot, false);
+                    equipped = true;
                 }
             }
         }
