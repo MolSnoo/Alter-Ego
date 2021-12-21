@@ -7,6 +7,8 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     if (!message) isBot = true;
     else if ((message.channel.id === settings.commandChannel || command.startsWith('delete')) && message.member.roles.cache.find(role => role.id === settings.moderatorRole)) isModerator = true;
     else {
+        // Don't attempt to find the member who sent this message if it was sent by a webhook.
+        if (message.webhookId !== null) return;
         let member = await game.guild.members.fetch(message.author.id);
         if (member && member.roles.cache.find(role => role.id === settings.playerRole)) isPlayer = true;
         else if (member && settings.debug && member.roles.cache.find(role => role.id === settings.testerRole)) isEligible = true;
