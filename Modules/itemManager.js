@@ -392,7 +392,10 @@ module.exports.insertItems = function (game, location, items) {
                     if (items[i].container.inventory[slot].name === items[i].slot) {
                         const containerSlot = items[i].container.inventory[slot];
                         for (let j = 0; j < containerSlot.item.length; j++) {
-                            if (containerSlot.item[j].prefab.id === items[i].prefab.id) {
+                            if (containerSlot.item[j].prefab.id === items[i].prefab.id &&
+                                containerSlot.item[j].identifier === items[i].identifier &&
+                                (containerSlot.item[j].uses === items[i].uses || isNaN(containerSlot.item[j].uses) && isNaN(items[i].uses)) &&
+                                containerSlot.item[j].description === items[i].description) {
                                 foundItem = true;
                                 containerSlot.item.splice(j, 1, matchedItem);
                                 break;
@@ -470,7 +473,10 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
                     if (items[i].container.inventory[slot].name === items[i].slot) {
                         const containerSlot = items[i].container.inventory[slot];
                         for (let j = 0; j < containerSlot.item.length; j++) {
-                            if (containerSlot.item[j].prefab.id === items[i].prefab.id) {
+                            if (containerSlot.item[j].prefab.id === items[i].prefab.id &&
+                                containerSlot.item[j].identifier === items[i].identifier &&
+                                (containerSlot.item[j].uses === items[i].uses || isNaN(containerSlot.item[j].uses) && isNaN(items[i].uses)) &&
+                                containerSlot.item[j].description === items[i].description) {
                                 foundItem = true;
                                 containerSlot.item.splice(j, 1, matchedItem);
                                 break;
