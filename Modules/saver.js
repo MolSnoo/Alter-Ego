@@ -3,7 +3,7 @@ const sheets = include(`${settings.modulesDir}/sheets.js`);
 
 var game = include('game.json');
 
-module.exports.saveGame = async function () {
+module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventoryItemsCount = 0) {
     return new Promise(async (resolve, reject) => {
         var data = [];
 
@@ -22,7 +22,7 @@ module.exports.saveGame = async function () {
                 ]);
             }
         }
-        data.push({ range: "Rooms!D2:K", values: roomValues });
+        data.push({ range: settings.roomSheetSaveCells, values: roomValues });
 
         var objectValues = [];
         for (let i = 0; i < game.objects.length; i++) {
@@ -40,31 +40,27 @@ module.exports.saveGame = async function () {
                 game.objects[i].description
             ]);
         }
-        data.push({ range: "Objects!A2:K", values: objectValues });
+        data.push({ range: settings.objectSheetDataCells, values: objectValues });
 
         var itemValues = [];
-        let deletedRows = 0;
         for (let i = 0; i < game.items.length; i++) {
-            if (settings.autoClean && game.items[i].quantity === 0) {
-                game.items.splice(i, 1);
-                i--;
-                deletedRows++;
-            }
-            else {
-                itemValues.push([
-                    game.items[i].prefab.id,
-                    game.items[i].identifier,
-                    game.items[i].location.name,
-                    game.items[i].accessible ? "TRUE" : "FALSE",
-                    game.items[i].containerName,
-                    !isNaN(game.items[i].quantity) ? game.items[i].quantity : "",
-                    !isNaN(game.items[i].uses) ? game.items[i].uses : "",
-                    game.items[i].description
-                ]);
-                if (settings.autoClean && i > 0) game.items[i].row = game.items[i - 1].row + 1;
+            itemValues.push([
+                game.items[i].prefab.id,
+                game.items[i].identifier,
+                game.items[i].location.name,
+                game.items[i].accessible ? "TRUE" : "FALSE",
+                game.items[i].containerName,
+                !isNaN(game.items[i].quantity) ? game.items[i].quantity : "",
+                !isNaN(game.items[i].uses) ? game.items[i].uses : "",
+                game.items[i].description
+            ]);
+            // If any items were deleted, row numbers may be incorrect. Fix them now.
+            if (deletedItemsCount > 0) {
+                if (i === 0) game.items[i].row = 2;
+                else game.items[i].row = game.items[i - 1].row + 1;
             }
         }
-        for (let i = 0; i < deletedRows; i++)
+        for (let i = 0; i < deletedItemsCount; i++)
             itemValues.push([
                 "",
                 "",
@@ -75,7 +71,7 @@ module.exports.saveGame = async function () {
                 "",
                 ""
             ]);
-        data.push({ range: "Items!A2:H", values: itemValues });
+        data.push({ range: settings.itemSheetDataCells, values: itemValues });
 
         var puzzleValues = [];
         for (let i = 0; i < game.puzzles.length; i++) {
@@ -99,7 +95,7 @@ module.exports.saveGame = async function () {
                 game.puzzles[i].requirementsNotMetDescription
             ]);
         }
-        data.push({ range: "Puzzles!A2:Q", values: puzzleValues });
+        data.push({ range: settings.puzzleSheetDataCells, values: puzzleValues });
 
         var eventValues = [];
         for (let i = 0; i < game.events.length; i++) {
@@ -117,7 +113,7 @@ module.exports.saveGame = async function () {
                 game.events[i].endedNarration
             ]);
         }
-        data.push({ range: "Events!A2:K", values: eventValues });
+        data.push({ range: settings.eventSheetDataCells, values: eventValues });
 
         var playerValues = [];
         for (let i = 0; i < game.players.length; i++) {
@@ -138,31 +134,27 @@ module.exports.saveGame = async function () {
                 game.players[i].description
             ]);
         }
-        data.push({ range: "Players!A3:N", values: playerValues });
+        data.push({ range: settings.playerSheetDataCells, values: playerValues });
 
         var inventoryValues = [];
-        deletedRows = 0;
         for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (settings.autoClean && game.inventoryItems[i].quantity === 0) {
-                game.inventoryItems.splice(i, 1);
-                i--;
-                deletedRows++;
-            }
-            else {
-                inventoryValues.push([
-                    game.inventoryItems[i].player.name,
-                    game.inventoryItems[i].prefab ? game.inventoryItems[i].prefab.id : "NULL",
-                    game.inventoryItems[i].identifier,
-                    game.inventoryItems[i].equipmentSlot,
-                    game.inventoryItems[i].containerName,
-                    !isNaN(game.inventoryItems[i].quantity) && game.inventoryItems[i].quantity !== null ? game.inventoryItems[i].quantity : "",
-                    !isNaN(game.inventoryItems[i].uses) && game.inventoryItems[i].uses !== null ? game.inventoryItems[i].uses : "",
-                    game.inventoryItems[i].description
-                ]);
-                if (settings.autoClean && i > 0) game.inventoryItems[i].row = game.inventoryItems[i - 1].row + 1;
+            inventoryValues.push([
+                game.inventoryItems[i].player.name,
+                game.inventoryItems[i].prefab ? game.inventoryItems[i].prefab.id : "NULL",
+                game.inventoryItems[i].identifier,
+                game.inventoryItems[i].equipmentSlot,
+                game.inventoryItems[i].containerName,
+                !isNaN(game.inventoryItems[i].quantity) && game.inventoryItems[i].quantity !== null ? game.inventoryItems[i].quantity : "",
+                !isNaN(game.inventoryItems[i].uses) && game.inventoryItems[i].uses !== null ? game.inventoryItems[i].uses : "",
+                game.inventoryItems[i].description
+            ]);
+            // If any inventory items were deleted, row numbers may be incorrect. Fix them now.
+            if (deletedInventoryItemsCount > 0) {
+                if (i === 0) game.inventoryItems[i].row = 2;
+                else game.inventoryItems[i].row = game.inventoryItems[i - 1].row + 1;
             }
         }
-        for (let i = 0; i < deletedRows; i++)
+        for (let i = 0; i < deletedInventoryItemsCount; i++)
             inventoryValues.push([
                 "",
                 "",
@@ -173,7 +165,7 @@ module.exports.saveGame = async function () {
                 "",
                 ""
             ]);
-        data.push({ range: "Inventory Items!A2:H", values: inventoryValues });
+        data.push({ range: settings.inventorySheetDataCells, values: inventoryValues });
 
         try {
             await sheets.batchUpdateData(data);

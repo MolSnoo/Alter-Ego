@@ -20,7 +20,7 @@ moment().format();
 
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.roomSheetAllCells, function (response) {
+        sheets.getData(settings.roomSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
@@ -36,7 +36,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             const columnDescription = 10;
 
             game.rooms.length = 0;
-            for (let i = 1, j = 0; i < sheet.length; i = i + j) {
+            for (let i = 0, j = 0; i < sheet.length; i = i + j) {
                 var exits = [];
                 for (j = 0; i + j < sheet.length && (j === 0 || sheet[i + j][columnRoomName] === ""); j++) {
                     const pos = {
@@ -52,7 +52,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                             sheet[i + j][columnLeadsTo] ? sheet[i + j][columnLeadsTo].trim() : "",
                             sheet[i + j][columnFrom] ? sheet[i + j][columnFrom].trim() : "",
                             sheet[i + j][columnDescription] ? sheet[i + j][columnDescription].trim() : "",
-                            i + j + 1
+                            i + j + 2
                         ));
                 }
                 const channel = game.guild.channels.cache.find(channel => channel.name === sheet[i][columnRoomName]);
@@ -67,7 +67,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
                         exits,
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -156,7 +156,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                 game.objects[i].process.timer.stop();
         }
 
-        sheets.getData(settings.objectSheetAllCells, function (response) {
+        sheets.getData(settings.objectSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -172,7 +172,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             const columnDescription = 10;
 
             game.objects.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 game.objects.push(
                     new Object(
                         sheet[i][columnName] ? sheet[i][columnName].trim() : "",
@@ -186,7 +186,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                         sheet[i][columnHidingSpot] ? sheet[i][columnHidingSpot].trim() === "TRUE" : false,
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -239,7 +239,7 @@ module.exports.checkObject = function (object) {
 
 module.exports.loadPrefabs = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.prefabSheetAllCells, function (response) {
+        sheets.getData(settings.prefabSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -263,7 +263,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             const columnDescription = 18;
 
             game.prefabs.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 // Separate name and plural name.
                 const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
                 // Separate single containing phrase and plural containing phrase.
@@ -324,7 +324,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                         inventorySlots,
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -402,7 +402,7 @@ module.exports.checkPrefab = function (prefab, game) {
 
 module.exports.loadRecipes = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.recipeSheetAllCells, function (response) {
+        sheets.getData(settings.recipeSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
@@ -413,7 +413,7 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
             const columnCompletedDescription = 5;
 
             game.recipes.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 // Separate the ingredients and sort them in alphabetical order.
                 var ingredients = sheet[i][columnIngredients] ? sheet[i][columnIngredients].split(',') : [];
                 ingredients.sort(function (a, b) {
@@ -456,7 +456,7 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                         products,
                         sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription].trim() : "",
                         sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -503,7 +503,7 @@ module.exports.checkRecipe = function (recipe) {
 
 module.exports.loadItems = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.itemSheetAllCells, function (response) {
+        sheets.getData(settings.itemSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
@@ -516,7 +516,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
             const columnDescription = 7;
 
             game.items.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 // Find the prefab first.
                 const prefab = sheet[i][columnPrefab] ? game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab].trim() && prefab.id !== "") : null;
 
@@ -530,7 +530,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                         parseInt(sheet[i][columnQuantity]),
                         parseInt(sheet[i][columnUses]),
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -709,7 +709,7 @@ module.exports.checkItem = function (item, game) {
 
 module.exports.loadPuzzles = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.puzzleSheetAllCells, function (response) {
+        sheets.getData(settings.puzzleSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -731,7 +731,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
             const columnRequirementsNotMetDescription = 16;
 
             game.puzzles.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requirements.length; j++)
                     requirements[j] = requirements[j].trim();
@@ -790,7 +790,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         sheet[i][columnIncorrectDescription] ? sheet[i][columnIncorrectDescription].trim() : "",
                         sheet[i][columnNoMoreAttemptsDescription] ? sheet[i][columnNoMoreAttemptsDescription].trim() : "",
                         sheet[i][columnRequirementsNotMetDescription] ? sheet[i][columnRequirementsNotMetDescription].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -905,7 +905,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 game.events[i].effectsTimer.stop();
         }
 
-        sheets.getData(settings.eventSheetAllCells, function (response) {
+        sheets.getData(settings.eventSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -921,7 +921,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
             const columnEndedNarration = 10;
 
             game.events.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
                 let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
                 let durationUnit = durationString.charAt(durationString.length - 1);
@@ -967,7 +967,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                         refreshes,
                         sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration].trim() : "",
                         sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -1031,7 +1031,7 @@ module.exports.checkEvent = function (event, game) {
 
 module.exports.loadStatusEffects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.statusSheetAllCells, function (response) {
+        sheets.getData(settings.statusSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -1049,7 +1049,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnCuredDescription = 13;
 
             game.statusEffects.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
                 let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
                 let durationUnit = durationString.charAt(durationString.length - 1);
@@ -1116,7 +1116,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                         sheet[i][columnAttributes] ? sheet[i][columnAttributes].trim() : "",
                         sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription].trim() : "",
                         sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }
@@ -1239,7 +1239,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getData(settings.playerSheetAllCells, async function (response) {
+        sheets.getData(settings.playerSheetDataCells, async function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -1261,7 +1261,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             game.players_alive.length = 0;
             game.players_dead.length = 0;
 
-            for (let i = 2; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 const stats = {
                     strength: parseInt(sheet[i][columnStrength]),
                     intelligence: parseInt(sheet[i][columnIntelligence]),
@@ -1301,7 +1301,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
                         [],
                         spectateChannel,
-                        i + 1
+                        i + 3
                     );
                 if (player.talent === "NPC") player.displayIcon = player.id;
                 player.setPronouns(player.originalPronouns, player.pronounString);
@@ -1406,7 +1406,7 @@ module.exports.checkPlayer = function (player) {
 
 module.exports.loadInventories = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.inventorySheetAllCells, function (response) {
+        sheets.getData(settings.inventorySheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;
@@ -1419,7 +1419,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             const columnDescription = 7;
 
             game.inventoryItems.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 const player = sheet[i][columnPlayer] ? game.players.find(player => player.name === sheet[i][columnPlayer].trim() && player.name !== "") : null;
                 if (sheet[i][columnPrefab] && sheet[i][columnPrefab].trim() !== "NULL") {
                     // Find the prefab first.
@@ -1435,7 +1435,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                             parseInt(sheet[i][columnQuantity]),
                             parseInt(sheet[i][columnUses]),
                             sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                            i + 1
+                            i + 2
                         )
                     );
                 }
@@ -1450,7 +1450,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                             null,
                             null,
                             "",
-                            i + 1
+                            i + 2
                         )
                     );
                 }
@@ -1672,7 +1672,7 @@ module.exports.checkInventoryItem = function (item, game) {
 
 module.exports.loadGestures = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(settings.gestureSheetAllCells, function (response) {
+        sheets.getData(settings.gestureSheetDataCells, function (response) {
             const sheet = response.data.values;
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -1682,7 +1682,7 @@ module.exports.loadGestures = function (game, doErrorChecking) {
             const columnNarration = 4;
 
             game.gestures.length = 0;
-            for (let i = 1; i < sheet.length; i++) {
+            for (let i = 0; i < sheet.length; i++) {
                 var requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requires.length; j++)
                     requires[j] = requires[j].trim();
@@ -1696,7 +1696,7 @@ module.exports.loadGestures = function (game, doErrorChecking) {
                         disabledStatuses,
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
                         sheet[i][columnNarration] ? sheet[i][columnNarration].trim() : "",
-                        i + 1
+                        i + 2
                     )
                 );
             }

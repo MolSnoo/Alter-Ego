@@ -94,8 +94,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 inventoryCells.push(row);
             }
         }
-        sheets.updateData(settings.playerSheetInitCells, playerCells);
-        sheets.updateData(settings.inventorySheetInitCells, inventoryCells);
+        sheets.updateData(settings.playerSheetDataCells, playerCells);
+        sheets.updateData(settings.inventorySheetDataCells, inventoryCells);
     }, time);
 
     game.inProgress = true;
