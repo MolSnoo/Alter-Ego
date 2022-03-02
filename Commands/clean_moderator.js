@@ -7,8 +7,8 @@ module.exports.config = {
     details: "Combs through all items and inventory items and deletes any whose quantity is 0. All game data will then "
         + "be saved to the spreadsheet, not just items and inventory items. This process will effectively clean the "
         + "spreadsheet of items and inventory items that no longer exist, reducing the size of both sheets. Note that "
-        + "edit mode must be turned on in order to use this command. There is no need to load items or inventory items "
-        + "after this command finishes executing, unless you wish to make additional changes to either sheet.",
+        + "edit mode must be turned on in order to use this command. The items and inventory items sheets must be loaded "
+        + "after this command finishes executing, otherwise data may be overwritten on the sheet during gameplay.",
     usage: `${settings.commandPrefix}clean\n`
         + `${settings.commandPrefix}autoclean`,
     usableBy: "Moderator",
@@ -39,7 +39,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     try {
         // Pass deletedItemsCount and deletedInventoryItemsCount so the saver knows how many blank rows to append at the end.
         await saver.saveGame(deletedItemsCount, deletedInventoryItemsCount);
-        game.messageHandler.addGameMechanicMessage(message.channel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet.");
+        game.messageHandler.addGameMechanicMessage(message.channel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
     }
     catch (err) {
         console.log(err);
