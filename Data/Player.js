@@ -1658,7 +1658,7 @@ class Player {
             puzzle.setAccessible();
         else if (!allRequirementsSolved && puzzle.accessible)
             puzzle.setInaccessible();
-        if (puzzle.accessible || puzzle.type === "weight" && (misc.command === "take" || misc.command === "drop")) {
+        if (puzzle.accessible || (puzzle.type === "weight" || puzzle.type === "container") && (misc.command === "take" || misc.command === "drop")) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
                 this.sendDescription(game, puzzle.noMoreAttemptsDescription, puzzle);
@@ -1671,7 +1671,7 @@ class Player {
             var hasRequiredItem = false;
             var requiredItemName = "";
             var requirementsMet = false;
-            if (puzzle.solutions.join(',').includes("Item: ")) {
+            if (puzzle.solutions.join(',').includes("Item: ") && puzzle.type !== "container") {
                 for (let i = 0; i < puzzle.solutions.length; i++) {
                     if (puzzle.solutions[i].startsWith("Item: ")) {
                         if (item !== null && item.prefab.id === puzzle.solutions[i].substring("Item: ".length)) {
@@ -1693,7 +1693,7 @@ class Player {
             }
             else hasRequiredItem = true;
 
-            if (puzzle.solved || hasRequiredItem || puzzle.type === "media" || puzzle.type === "weight" && (misc.command === "take" || misc.command === "drop")) requirementsMet = true;
+            if (puzzle.solved || hasRequiredItem || puzzle.type === "media" || (puzzle.type === "weight" || puzzle.type === "container") && (misc.command === "take" || misc.command === "drop")) requirementsMet = true;
 
             // Puzzle is solvable.
             if (requirementsMet) {
@@ -1794,6 +1794,34 @@ class Player {
                         if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, "", password, true);
                         else puzzle.fail(game, this, "");
                     }
+                }
+                else if (puzzle.type === "container") {
+                    if (puzzle.solved) {
+                        puzzle.unsolve(bot, game, this, "", null, true);
+                    }
+                    let itemsMatch = function (solution) {
+                        let requiredItems = solution.split('+');
+                        if (requiredItems.length !== password.length) return false;
+                        for (let i = 0; i < requiredItems.length; i++)
+                            requiredItems[i] = requiredItems[i].substring(requiredItems[i].indexOf(':') + 1).trim();
+                        requiredItems.sort(function (a, b) {
+                            if (a < b) return -1;
+                            if (a > b) return 1;
+                            return 0;
+                        });
+                        for (let i = 0; i < password.length; i++)
+                            if (password[i].prefab.id !== requiredItems[i]) return false;
+                        return true;
+                    };
+                    let outcome = "";
+                    for (let i = 0; i < puzzle.solutions.length; i++) {
+                        if (itemsMatch(puzzle.solutions[i])) {
+                            outcome = puzzle.solutions[i];
+                            break;
+                        }
+                    }
+                    if (outcome !== "") puzzle.solve(bot, game, this, "", outcome, true);
+                    else puzzle.fail(game, this, "");
                 }
                 else if (puzzle.type === "switch") {
                     if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}, but nothing happens.`);

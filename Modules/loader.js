@@ -846,7 +846,7 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
     if (puzzle.parentObject !== null && puzzle.parentObject !== undefined && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle !== undefined && puzzle.parentObject.childPuzzle.name !== puzzle.name)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
-    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && !puzzle.type.endsWith("probability") && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "voice" && puzzle.type !== "switch" && puzzle.type !== "media")
+    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && !puzzle.type.endsWith("probability") && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "container" && puzzle.type !== "voice" && puzzle.type !== "switch" && puzzle.type !== "media")
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if ((puzzle.type === "probability" || puzzle.type.endsWith(" probability")) && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
@@ -862,6 +862,15 @@ module.exports.checkPuzzle = function (puzzle) {
         for (let i = 0; i < puzzle.solutions.length; i++) {
             if (isNaN(parseInt(puzzle.solutions[i])))
                 return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${puzzle.solutions[i]}" is not an integer.`);
+        }
+    }
+    if (puzzle.type === "container") {
+        for (let i = 0; i < puzzle.solutions.length; i++) {
+            let requiredItems = puzzle.solutions[i].split('+');
+            for (let j = 0; j < requiredItems.length; j++) {
+                if (!requiredItems[j].trim().startsWith("Item: "))
+                    return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItems[j]}" does not have the "Item: " prefix.`);
+            }
         }
     }
     if (puzzle.type === "switch" && puzzle.solved === false)
