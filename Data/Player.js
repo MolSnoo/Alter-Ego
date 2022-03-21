@@ -1851,6 +1851,13 @@ class Player {
                     }
                     else puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
                 }
+                else if (puzzle.type === "player") {
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    else {
+                        if (puzzle.solutions.includes(this.name)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, this.name, true);
+                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    }
+                }
             }
             // The player is missing an item needed to solve the puzzle.
             else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
