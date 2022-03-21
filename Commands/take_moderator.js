@@ -168,6 +168,19 @@ module.exports.run = async (bot, game, message, command, args) => {
             };
             player.attemptPuzzle(bot, game, container, item, weight.toString(), "take", misc);
         }
+        // Container is a container puzzle.
+        else if (container.hasOwnProperty("solved") && container.type === "container") {
+            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+                if (a.prefab.id < b.prefab.id) return -1;
+                if (a.prefab.id > b.prefab.id) return 1;
+                return 0;
+            });
+            const misc = {
+                command: "take",
+                input: input
+            };
+            player.attemptPuzzle(bot, game, container, item, containerItems, "take", misc);
+        }
     }
     // Container is an Item.
     else if (container !== null && container.hasOwnProperty("inventory"))
