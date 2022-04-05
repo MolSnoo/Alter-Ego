@@ -181,7 +181,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     if (topContainer !== null) {
         const topContainerPreposition = topContainer.preposition ? topContainer.preposition : "in";
-        if (topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+        if (topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
             return game.messageHandler.addReply(message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
@@ -189,7 +189,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
-    if (container.hasOwnProperty("isHidingSpot"))
+    if (container.hasOwnProperty("hidingSpotCapacity"))
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.preposition} ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved")) {

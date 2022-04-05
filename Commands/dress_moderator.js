@@ -96,13 +96,13 @@ module.exports.run = async (bot, game, message, command, args) => {
         topContainer = topContainer.container;
 
     if (topContainer !== null) {
-        if (topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+        if (topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
             return game.messageHandler.addReply(message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
     }
 
     // Get all items in this container.
     var containerItems = [];
-    if (container.hasOwnProperty("isHidingSpot"))
+    if (container.hasOwnProperty("hidingSpotCapacity"))
         containerItems = items.filter(item => item.containerName === `Object: ${container.name}` && item.prefab.equippable);
     else if (container.hasOwnProperty("solved"))
         containerItems = items.filter(item => item.containerName === `Puzzle: ${container.name}` && item.prefab.equippable);
@@ -138,7 +138,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
-    if (container.hasOwnProperty("isHidingSpot"))
+    if (container.hasOwnProperty("hidingSpotCapacity"))
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully dressed from ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved")) {

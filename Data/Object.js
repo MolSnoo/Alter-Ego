@@ -7,7 +7,7 @@ var timer = require('moment-timer');
 moment().format();
 
 class Object {
-    constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, isHidingSpot, preposition, description, row) {
+    constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row) {
         this.name = name;
         this.location = location;
         this.accessible = accessible;
@@ -17,7 +17,7 @@ class Object {
         this.activatable = activatable;
         this.activated = activated;
         this.autoDeactivate = autoDeactivate;
-        this.isHidingSpot = isHidingSpot;
+        this.hidingSpotCapacity = hidingSpotCapacity;
         this.preposition = preposition;
         this.description = description;
         this.row = row;

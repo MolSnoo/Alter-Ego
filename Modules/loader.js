@@ -173,6 +173,12 @@ module.exports.loadObjects = function (game, doErrorChecking) {
 
             game.objects.length = 0;
             for (let i = 0; i < sheet.length; i++) {
+                // Convert old spreadsheet values.
+                let hidingSpotCapacity = NaN;
+                if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "TRUE")
+                    hidingSpotCapacity = 1;
+                else if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "FALSE" || sheet[i][columnHidingSpot].trim() === "")
+                    hidingSpotCapacity = 0;
                 game.objects.push(
                     new Object(
                         sheet[i][columnName] ? sheet[i][columnName].trim() : "",
@@ -183,7 +189,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                         sheet[i][columnActivatable] ? sheet[i][columnActivatable].trim() === "TRUE" : false,
                         sheet[i][columnActivated] ? sheet[i][columnActivated].trim() === "TRUE" : false,
                         sheet[i][columnAutoDeactivate] ? sheet[i][columnAutoDeactivate].trim() === "TRUE" : false,
-                        sheet[i][columnHidingSpot] ? sheet[i][columnHidingSpot].trim() === "TRUE" : false,
+                        isNaN(hidingSpotCapacity) ? parseInt(sheet[i][columnHidingSpot]) : hidingSpotCapacity,
                         sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
                         sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
                         i + 2
@@ -234,6 +240,8 @@ module.exports.checkObject = function (object) {
     }
     if (object.childPuzzle !== null && object.childPuzzle !== undefined && object.childPuzzle.parentObject !== null && object.childPuzzle.parentObject !== undefined && object.childPuzzle.parentObject.name !== object.name)
         return new Error(`Couldn't load object on row ${object.row}. The child puzzle has a different parent object.`);
+    if (isNaN(object.hidingSpotCapacity))
+        return new Error(`Couldn't load object on row ${object.row}. The hiding spot capacity given is not a number.`);
     return;
 };
 

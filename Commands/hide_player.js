@@ -47,7 +47,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
         var object = null;
         for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput && objects[i].isHidingSpot) {
+            if (objects[i].name === parsedInput && objects[i].hidingSpotCapacity > 0) {
                 object = objects[i];
                 break;
             }
