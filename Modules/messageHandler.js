@@ -104,8 +104,10 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
     if (player.spectateChannel !== null) {
         var messageText = message.content || '';
         // If this is a whisper, specify that the following message comes from the whisper
-        if (whisper)
+        if (whisper && whisper.players.length > 1)
             messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speaker.displayName)}):*\n` + messageText;
+        else if (whisper)
+            messageText = `*(Whispered):*\n` + messageText;
 
         // Create a webhook for this spectate channel if necessary, or grab the existing one
         let webHooks = await player.spectateChannel.fetchWebhooks();

@@ -63,14 +63,24 @@ module.exports.execute = async (bot, game, message, deletable, player = null) =>
             }
 
             if (!message.content.startsWith('(')) {
-                for (let i = 0; i < whisper.players.length; i++)
-                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], player, message, whisper);
+                for (let i = 0; i < whisper.players.length; i++) {
+                    if (whisper.players[i].name === player.name && player.displayName !== player.name)
+                        game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], player, message, whisper, `${player.displayName} (${player.name})`);
+                    else
+                        game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], player, message, whisper);
+                }
             }
 
             for (let i = 0; i < room.occupants.length; i++) {
                 // Players with the acute hearing attribute should overhear other whispers.
-                if (room.occupants[i].hasAttribute("acute hearing") && !whisper.players.includes(room.occupants[i]) && !message.content.startsWith('('))
-                    room.occupants[i].notify(game, `You overhear ${player.displayName} whisper "${message.content}".`);
+                if (room.occupants[i].hasAttribute("acute hearing") && !whisper.players.includes(room.occupants[i]) && !message.content.startsWith('(')) {
+                    if ((player.displayName !== player.name || player.hasAttribute("hidden")) && room.occupants[i].hasAttribute(`knows ${player.name}`))
+                        room.occupants[i].notify(game, `You overhear ${player.name} whisper "${message.content}".`);
+                    else if (player.hasAttribute("hidden"))
+                        room.occupants[i].notify(game, `You overhear someone in the room whisper "${message.content}".`);
+                    else
+                        room.occupants[i].notify(game, `You overhear ${player.displayName} whisper "${message.content}".`);
+                }
             }
         }
         else {
