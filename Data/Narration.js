@@ -20,6 +20,20 @@ class Narration {
             }
             this.game.messageHandler.addNarration(this.location, this.message, true);
         }
+        else if (this.player.hasAttribute("hidden")) {
+            // Find the whisper channel the player is in, if there is one.
+            let whisper = null;
+            for (let i = 0; i < this.game.whispers.length; i++) {
+                for (let j = 0; j < this.game.whispers[i].players.length; j++) {
+                    if (this.game.whispers[i].players[j].name === this.player.name) {
+                        whisper = this.game.whispers[i];
+                        break;
+                    }
+                }
+                if (whisper !== null) break;
+            }
+            if (whisper) this.game.messageHandler.addNarrationToWhisper(whisper, this.message, true);
+        }
         return;
     }
 }
