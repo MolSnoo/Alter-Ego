@@ -96,7 +96,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 i--;
             }
         }
-        if (!player.hasAttribute("no channel")) hiddenPlayers.push(player);
+        if (!player.hasAttribute("no channel") && player.talent !== "NPC") hiddenPlayers.push(player);
         player.hidingSpot = object.name;
         player.inflict(game, "hidden", true, false, true);
 
