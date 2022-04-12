@@ -30,14 +30,27 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
+        const displayName = player.displayName;
+        const displayIcon = player.displayIcon;
+        if (player.hasAttribute("hidden")) {
+            player.displayName = "Someone in the room";
+            player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
+        }
+
         webHook.send({
             content: input,
             username: player.displayName,
             avatarURL: player.displayIcon ? player.displayIcon : player.member.displayAvatarURL() || message.author.defaultAvatarURL,
             embeds: message.embeds,
             files: files
-        }).then(message => {
-            dialogHandler.execute(bot, game, message, true, player);
+        }).then(msg => {
+            dialogHandler.execute(bot, game, msg, true, player, displayName)
+                .then(() => {
+                    player.displayName = displayName;
+                    player.displayIcon = displayIcon;
+                    // The say command isn't deleted by the commandHandler because it has necessary data. Delete it now.
+                    if (message.channel.type !== "DM") message.delete().catch();
+                });
         });
     }
     

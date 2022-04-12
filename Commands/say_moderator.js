@@ -46,6 +46,13 @@ module.exports.run = async (bot, game, message, command, args) => {
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
+        const displayName = player.displayName;
+        const displayIcon = player.displayIcon;
+        if (player.hasAttribute("hidden")) {
+            player.displayName = "Someone in the room";
+            player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
+        }
+
         webHook.send({
             content: string,
             username: player.displayName,
@@ -53,7 +60,11 @@ module.exports.run = async (bot, game, message, command, args) => {
             embeds: message.embeds,
             files: files
         }).then(message => {
-            dialogHandler.execute(bot, game, message, true, player);
+            dialogHandler.execute(bot, game, message, true, player, displayName)
+                .then(() => {
+                    player.displayName = displayName;
+                    player.displayIcon = displayIcon;
+                });
         });
     }
     else if (channel !== undefined && settings.roomCategories.includes(channel.parentId)) {
