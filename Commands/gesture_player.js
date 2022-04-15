@@ -24,6 +24,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable gesture");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
+    // This will be checked multiple times, so get it now.
+    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+
     var input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
     if (input === "list") {
@@ -91,6 +94,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         if (gesture.requires[j] === "Exit") {
                             for (let k = 0; k < player.location.exit.length; k++) {
                                 if (player.location.exit[k].name.toLowerCase() === input2) {
+                                    if (hiddenStatus.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
                                     targetType = "Exit";
                                     target = player.location.exit[k];
                                     break;
@@ -101,6 +105,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                             const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
                             for (let k = 0; k < objects.length; k++) {
                                 if (objects[k].name.toLowerCase() === input2) {
+                                    // Make sure the player can only gesture to the object they're hiding in, if they're hidden.
+                                    if (hiddenStatus.length > 0 && player.hidingSpot !== objects[k].name) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
                                     targetType = "Object";
                                     target = objects[k];
                                     break;
@@ -111,6 +117,17 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                             const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
                             for (let k = 0; k < items.length; k++) {
                                 if (items[k].name.toLowerCase() === input2) {
+                                    // Make sure the player can only gesture to items contained in the object they're hiding in, if they're hidden.
+                                    if (hiddenStatus.length > 0) {
+                                        let topContainer = items[k].container;
+                                        while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+                                            topContainer = topContainer.container;
+                                        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+                                            topContainer = topContainer.parentObject;
+
+                                        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+                                            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+                                    }
                                     targetType = "Item";
                                     target = items[k];
                                     break;
@@ -120,13 +137,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         else if (gesture.requires[j] === "Player") {
                             for (let k = 0; k < player.location.occupants.length; k++) {
                                 let occupant = player.location.occupants[k];
-                                if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && !occupant.hasAttribute("hidden")) {
+                                // Make sure the player can only gesture to players hiding in the same object they're hiding in, if they're hidden.
+                                if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
                                     // Player cannot gesture toward themselves.
                                     if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't gesture toward yourself.");
                                     targetType = "Player";
                                     target = occupant;
                                     break;
                                 }
+                                else if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+                                    return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
                             }
                         }
                         else if (gesture.requires[j] === "Inventory Item") {
