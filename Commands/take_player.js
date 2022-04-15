@@ -119,6 +119,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (topContainer !== null && topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
         return game.messageHandler.addReply(message, `You cannot take items from ${topContainer.name} while it is turned on.`);
+    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    if (hiddenStatus.length > 0) {
+        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+            topContainer = topContainer.parentObject;
+
+        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+    }
     if (item.weight > player.maxCarryWeight) {
         player.notify(game, `You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();

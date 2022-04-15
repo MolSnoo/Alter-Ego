@@ -58,7 +58,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (objects[i].name === parsedInput) {
             container = objects[i];
             // Check if the object has a puzzle attached to it.
-            if (container.childPuzzle !== null && container.childPuzzle.type !== "weight" && (!container.childPuzzle.accessible || !container.childPuzzle.solved))
+            if (container.childPuzzle !== null && container.childPuzzle.type !== "weight" && container.childPuzzle.type !== "container" && (!container.childPuzzle.accessible || !container.childPuzzle.solved) && player.hidingSpot !== container.name)
                 return game.messageHandler.addReply(message, `Items cannot be taken from ${container.name} right now.`);
             else if (container.childPuzzle !== null)
                 container = objects[i].childPuzzle;
@@ -152,6 +152,19 @@ module.exports.run = async (bot, game, message, command, args) => {
                 input: input
             };
             player.attemptPuzzle(bot, game, container, null, weight.toString(), "take", misc);
+        }
+        // Container is a container puzzle.
+        else if (container.hasOwnProperty("solved") && container.type === "container") {
+            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+                if (a.prefab.id < b.prefab.id) return -1;
+                if (a.prefab.id > b.prefab.id) return 1;
+                return 0;
+            });
+            const misc = {
+                command: "take",
+                input: input
+            };
+            player.attemptPuzzle(bot, game, container, item, containerItems, "take", misc);
         }
     }
     // Container is an Item.
