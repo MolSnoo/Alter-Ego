@@ -91,12 +91,12 @@ module.exports.run = async (bot, game, message, command, args) => {
             // Don't add players with the no channel attribute to the whisper since it would reveal their identity.
             // Of course, being hidden means they automatically have it, so make sure the hidden status is the only instance they have.
             const playerNoChannelStatuses = hiddenPlayers[i].getAttributeStatusEffects("no channel");
-            if (playerNoChannelStatuses.length > 1) {
+            if (playerNoChannelStatuses.length > 1 || hiddenPlayers[i].hasAttribute("no hearing")) {
                 hiddenPlayers.splice(i, 1);
                 i--;
             }
         }
-        if (!player.hasAttribute("no channel") && player.talent !== "NPC") hiddenPlayers.push(player);
+        if (!player.hasAttribute("no channel") && !player.hasAttribute("no hearing") && player.talent !== "NPC") hiddenPlayers.push(player);
         player.hidingSpot = object.name;
         player.inflict(game, "hidden", true, false, true);
 
