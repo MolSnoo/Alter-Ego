@@ -100,7 +100,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                     hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
                 }
 
-                player.notify(game, `You find ${hiddenPlayersString} hiding in the ${object.name}!`);
+                if (hiddenPlayersString) player.notify(game, `You find ${hiddenPlayersString} hiding in the ${object.name}!`);
             }
         }
 
