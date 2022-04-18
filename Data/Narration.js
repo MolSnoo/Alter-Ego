@@ -32,7 +32,17 @@ class Narration {
                 }
                 if (whisper !== null) break;
             }
-            if (whisper) this.game.messageHandler.addNarrationToWhisper(whisper, this.message, true);
+            if (whisper) {
+                for (let i = 0; i < whisper.players.length; i++) {
+                    let occupant = whisper.players[i];
+                    // Players who don't have access to the whisper channel should receive all narrations besides their own via DM.
+                    if (!occupant.hasAttribute("no sight") && occupant.talent !== "NPC" && (occupant.hasAttribute("see room") || !occupant.member.permissionsIn(whisper.channel).has("VIEW_CHANNEL"))) {
+                        if (!this.player || occupant.name !== this.player.name)
+                            occupant.notify(this.game, this.message, false);
+                    }
+                }
+                this.game.messageHandler.addNarrationToWhisper(whisper, this.message, true);
+            }
         }
         return;
     }
