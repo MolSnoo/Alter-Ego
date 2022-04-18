@@ -117,8 +117,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
         topContainer = topContainer.container;
 
-    if (topContainer !== null && topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+    if (topContainer !== null && topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
         return game.messageHandler.addReply(message, `You cannot take items from ${topContainer.name} while it is turned on.`);
+    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    if (hiddenStatus.length > 0) {
+        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+            topContainer = topContainer.parentObject;
+
+        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+    }
     if (item.weight > player.maxCarryWeight) {
         player.notify(game, `You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();
@@ -130,7 +138,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
-    if (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved")) {
+    if (container.hasOwnProperty("hidingSpotCapacity") || container.hasOwnProperty("solved")) {
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.hasOwnProperty("solved") && container.type === "weight") {

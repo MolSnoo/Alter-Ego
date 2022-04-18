@@ -149,14 +149,14 @@ module.exports.run = async (bot, game, message, command, args) => {
     while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
         topContainer = topContainer.container;
 
-    if (topContainer !== null && topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+    if (topContainer !== null && topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
         return game.messageHandler.addReply(message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
 
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
-    if (container !== null && (container.hasOwnProperty("isHidingSpot") || container.hasOwnProperty("solved"))) {
+    if (container !== null && (container.hasOwnProperty("hidingSpotCapacity") || container.hasOwnProperty("solved"))) {
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.hasOwnProperty("solved") && container.type === "weight") {

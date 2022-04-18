@@ -140,7 +140,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         if (container === null)
             containerItems = roomItems;
         // Container is an Object.
-        else if (container.hasOwnProperty("isHidingSpot"))
+        else if (container.hasOwnProperty("hidingSpotCapacity"))
             containerItems = roomItems.filter(item => item.containerName === `Object: ${container.name}`);
         // Container is a Puzzle.
         else if (container.hasOwnProperty("solved"))

@@ -70,16 +70,37 @@ module.exports.run = async (bot, game, message, command, args) => {
         player.sendDescription(game, object.description, object);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${object.name} for ${player.name}.`);
 
-        // Make sure the object isn't locked.
-        if (object.childPuzzle === null || !object.childPuzzle.type.endsWith("lock") || object.childPuzzle.solved) {
-            for (let i = 0; i < game.players_alive.length; i++) {
-                const hiddenPlayer = game.players_alive[i];
-                if (hiddenPlayer.location.name === player.location.name && hiddenPlayer.hidingSpot === object.name) {
-                    player.notify(game, `While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
-                    hiddenPlayer.cure(game, "hidden", false, false, true);
-                    hiddenPlayer.notify(game, `You've been found by ${player.displayName}. You are no longer hidden.`);
-                    break;
+        // Don't notify anyone if the player is inspecting the object that they're hiding in.
+        if (!player.hasAttribute("hidden") || player.hidingSpot !== object.name) {
+            // Make sure the object isn't locked.
+            if (object.childPuzzle === null || !object.childPuzzle.type.endsWith("lock") || object.childPuzzle.solved) {
+                let hiddenPlayers = [];
+                for (let i = 0; i < game.players_alive.length; i++) {
+                    if (game.players_alive[i].location.name === player.location.name && game.players_alive[i].hidingSpot === object.name) {
+                        hiddenPlayers.push(game.players_alive[i]);
+                        game.players_alive[i].notify(game, `You've been found by ${player.displayName}!`);
+                    }
                 }
+
+                // Create a list string of players currently hiding in that hiding spot.
+                hiddenPlayers.sort(function (a, b) {
+                    let nameA = a.displayName.toLowerCase();
+                    let nameB = b.displayName.toLowerCase();
+                    if (nameA < nameB) return -1;
+                    if (nameA > nameB) return 1;
+                    return 0;
+                });
+                let hiddenPlayersString = "";
+                if (hiddenPlayers.length === 1) hiddenPlayersString = hiddenPlayers[0].displayName;
+                else if (hiddenPlayers.length === 2)
+                    hiddenPlayersString += `${hiddenPlayers[0].displayName} and ${hiddenPlayers[1].displayName}`;
+                else if (hiddenPlayers.length >= 3) {
+                    for (let i = 0; i < hiddenPlayers.length - 1; i++)
+                        hiddenPlayersString += `${hiddenPlayers[i].displayName}, `;
+                    hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
+                }
+
+                if (hiddenPlayersString) player.notify(game, `You find ${hiddenPlayersString} hiding in the ${object.name}!`);
             }
         }
 

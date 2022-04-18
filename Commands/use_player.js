@@ -35,6 +35,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable use");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
+    // This will be checked multiple times, so get it now.
+    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+
     var input = args.join(" ");
     var parsedInput = input.toUpperCase();
 
@@ -84,6 +87,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             }
         }
         if (puzzle !== null) {
+            // Make sure the player can only solve the puzzle if it's a child puzzle of the object they're hiding in, if they're hidden.
+            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
         }
@@ -103,6 +109,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     // If there is an object, do the required behavior.
     if (object !== null && object.recipeTag !== "" && object.activatable) {
+        // Make sure the player can only activate the object if it's the object they're hiding in, if they're hidden.
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (object.activated) {

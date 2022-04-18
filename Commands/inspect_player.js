@@ -33,6 +33,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable inspect");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
+    // This will be checked multiple times, so get it now.
+    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
@@ -59,19 +62,42 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
 
     if (object !== null) {
+        // Make sure the player can only inspect the object they're hiding in, if they're hidden.
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
         player.sendDescription(game, object.description, object);
 
-        // Make sure the object isn't locked.
-        if (object.childPuzzle === null || !object.childPuzzle.type.endsWith("lock") || object.childPuzzle.solved) {
-            for (let i = 0; i < game.players_alive.length; i++) {
-                const hiddenPlayer = game.players_alive[i];
-                if (hiddenPlayer.location.name === player.location.name && hiddenPlayer.hidingSpot === object.name) {
-                    player.notify(game, `While inspecting the ${object.name}, you find ${hiddenPlayer.displayName} hiding!`);
-                    hiddenPlayer.cure(game, "hidden", false, false, true);
-                    hiddenPlayer.notify(game, `You've been found by ${player.displayName}. You are no longer hidden.`);
-                    break;
+        // Don't notify anyone if the player is inspecting the object that they're hiding in.
+        if (hiddenStatus.length === 0 || player.hidingSpot !== object.name) {
+            // Make sure the object isn't locked.
+            if (object.childPuzzle === null || !object.childPuzzle.type.endsWith("lock") || object.childPuzzle.solved) {
+                let hiddenPlayers = [];
+                for (let i = 0; i < game.players_alive.length; i++) {
+                    if (game.players_alive[i].location.name === player.location.name && game.players_alive[i].hidingSpot === object.name) {
+                        hiddenPlayers.push(game.players_alive[i]);
+                        game.players_alive[i].notify(game, `You've been found by ${player.displayName}!`);
+                    }
                 }
+
+                // Create a list string of players currently hiding in that hiding spot.
+                hiddenPlayers.sort(function (a, b) {
+                    let nameA = a.displayName.toLowerCase();
+                    let nameB = b.displayName.toLowerCase();
+                    if (nameA < nameB) return -1;
+                    if (nameA > nameB) return 1;
+                    return 0;
+                });
+                let hiddenPlayersString = "";
+                if (hiddenPlayers.length === 1) hiddenPlayersString = hiddenPlayers[0].displayName;
+                else if (hiddenPlayers.length === 2)
+                    hiddenPlayersString += `${hiddenPlayers[0].displayName} and ${hiddenPlayers[1].displayName}`;
+                else if (hiddenPlayers.length >= 3) {
+                    for (let i = 0; i < hiddenPlayers.length - 1; i++)
+                        hiddenPlayersString += `${hiddenPlayers[i].displayName}, `;
+                    hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
+                }
+
+                if (hiddenPlayersString) player.notify(game, `You find ${hiddenPlayersString} hiding in the ${object.name}!`);
             }
         }
 
@@ -99,6 +125,17 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
 
         if (item !== null) {
+            // Make sure the player can only inspect items contained in the object they're hiding in, if they're hidden.
+            if (hiddenStatus.length > 0) {
+                let topContainer = item.container;
+                while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+                    topContainer = topContainer.container;
+                if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+                    topContainer = topContainer.parentObject;
+
+                if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+                    return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            }
             if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase}.`).send();
             player.sendDescription(game, item.description, item);
 
@@ -129,8 +166,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     for (let i = 0; i < player.location.occupants.length; i++) {
         let occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
-        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden"))
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
             return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
+        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
             if (occupant.name === player.name) return game.messageHandler.addReply(message, `You can't inspect yourself.`);

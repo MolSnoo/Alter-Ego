@@ -20,7 +20,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels
         room.occupants.forEach(player => {
-            if ((speaker === null || speaker.name !== player.name) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && player.spectateChannel !== null)
+            if ((speaker === null || speaker.name !== player.name) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && !player.hasAttribute("no sight") && !player.hasAttribute("unconscious") && player.spectateChannel !== null)
                 addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
         });
     }
@@ -31,10 +31,10 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
     addMessageToQueue(whisper.channel, messageText, messagePriority.tellRoom);
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels, and specify it's in a whisper channel
-        let whisperMessageText = `**In a whisper with ${whisper.makePlayersSentenceGroup()}:** ${messageText}`;
+        let whisperMessageText = `*(In a whisper with ${whisper.makePlayersSentenceGroup()}):*\n` + messageText;
         whisper.players.forEach(player => {
-            if (player.spectateChannel !== null)
-            addMessageToQueue(player.spectateChannel, whisperMessageText, messagePriority.spectatorMessage);
+            if (!player.hasAttribute("no sight") && !player.hasAttribute("unconscious") && player.spectateChannel !== null)
+                addMessageToQueue(player.spectateChannel, whisperMessageText, messagePriority.spectatorMessage);
         });
     }
 };
@@ -104,8 +104,10 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
     if (player.spectateChannel !== null) {
         var messageText = message.content || '';
         // If this is a whisper, specify that the following message comes from the whisper
-        if (whisper)
+        if (whisper && whisper.players.length > 1)
             messageText = `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speaker.displayName)}):*\n` + messageText;
+        else if (whisper)
+            messageText = `*(Whispered):*\n` + messageText;
 
         // Create a webhook for this spectate channel if necessary, or grab the existing one
         let webHooks = await player.spectateChannel.fetchWebhooks();

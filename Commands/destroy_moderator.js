@@ -149,7 +149,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             preposition = "at";
         }
         // Container is an Object.
-        else if (container.hasOwnProperty("isHidingSpot")) {
+        else if (container.hasOwnProperty("hidingSpotCapacity")) {
             containerItems = roomItems.filter(item => item.containerName === `Object: ${container.name}`);
             containerName = `${container.name} at ${room.name}`;
             preposition = container.preposition ? container.preposition : "in";

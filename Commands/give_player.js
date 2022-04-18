@@ -20,6 +20,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable give");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
+    // This will be checked multiple times, so get it now.
+    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
@@ -27,7 +30,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var recipient = null;
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
-        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && !occupant.hasAttribute("hidden")) {
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot give to themselves.
             if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't give to yourself.");
 
@@ -35,6 +38,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             parsedInput = parsedInput.substring(occupant.displayName.length).trim();
             break;
         }
+        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
     }
     if (recipient === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 

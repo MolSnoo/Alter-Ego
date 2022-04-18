@@ -23,7 +23,7 @@ class Whisper {
     makeChannelName() {
         var playerList = new Array();
         for (var i = 0; i < this.players.length; i++)
-            playerList.push(this.players[i].displayName.toLowerCase());
+            playerList.push(this.players[i].displayName.toLowerCase().replace(/ /g, '-'));
         playerList = playerList.sort().join('-');
         return `${this.location.name}-${playerList}`;
     }
@@ -60,7 +60,12 @@ class Whisper {
                 parent: settings.whisperCategory
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
-                    if (players[i].talent !== "NPC") {
+                    let noChannel = false;
+                    if (players[i].statusString.includes("hidden") && players[i].getAttributeStatusEffects("no channel").length > 1
+                        || !players[i].statusString.includes("hidden") && players[i].hasAttribute("no channel")
+                        || players[i].hasAttribute("no hearing"))
+                        noChannel = true;
+                    if (!noChannel && players[i].talent !== "NPC") {
                         channel.permissionOverwrites.create(players[i].id, {
                             VIEW_CHANNEL: true,
                             READ_MESSAGE_HISTORY: true

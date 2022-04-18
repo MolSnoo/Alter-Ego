@@ -28,6 +28,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("disable steal");
     if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
+    // This will be checked multiple times, so get it now.
+    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+
     // First, check if the player has a free hand.
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
@@ -54,7 +57,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     for (let i = 0; i < player.location.occupants.length; i++) {
         let occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
-        if (parsedInput.startsWith(possessive) && !occupant.hasAttribute("hidden")) {
+        if (parsedInput.startsWith(possessive) && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot steal from themselves.
             if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't steal from yourself.");
 
@@ -62,6 +65,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             parsedInput = parsedInput.substring(possessive.length).trim();
             break;
         }
+        else if (parsedInput.startsWith(possessive) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
     }
     if (victim === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 

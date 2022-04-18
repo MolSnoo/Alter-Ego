@@ -41,7 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 object = objects[i];
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
                 // Check if the object has a puzzle attached to it.
-                if (object.childPuzzle !== null && object.childPuzzle.type !== "weight" && (!object.childPuzzle.accessible || !object.childPuzzle.solved))
+                if (object.childPuzzle !== null && object.childPuzzle.type !== "weight" && object.childPuzzle.type !== "container" && (!object.childPuzzle.accessible || !object.childPuzzle.solved) && player.hidingSpot !== object.name)
                     return game.messageHandler.addReply(message, `You cannot put items ${object.preposition} ${object.name} right now.`);
                 break;
             }
@@ -83,7 +83,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     var slotName = "";
     if (object !== null && object.childPuzzle === null && containerItem === null)
         container = object;
-    else if (object !== null && object.childPuzzle !== null && (object.childPuzzle.type === "weight" || object.childPuzzle.accessible && object.childPuzzle.solved) && containerItem === null)
+    else if (object !== null && object.childPuzzle !== null && (object.childPuzzle.type === "weight" || object.childPuzzle.type === "container" || object.childPuzzle.accessible && object.childPuzzle.solved || player.hidingSpot === object.name) && containerItem === null)
         container = object.childPuzzle;
     else if (containerItem !== null) {
         container = containerItem;
@@ -112,7 +112,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     if (topContainer !== null) {
         const topContainerPreposition = topContainer.preposition ? topContainer.preposition : "in";
-        if (topContainer.hasOwnProperty("isHidingSpot") && topContainer.autoDeactivate && topContainer.activated)
+        if (topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
             return game.messageHandler.addReply(message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
@@ -137,7 +137,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
-    if (container.hasOwnProperty("isHidingSpot"))
+    if (container.hasOwnProperty("hidingSpotCapacity"))
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully undressed into ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved")) {
@@ -151,6 +151,19 @@ module.exports.run = async (bot, game, message, command, args) => {
                 input: input
             };
             player.attemptPuzzle(bot, game, container, null, weight.toString(), "drop", misc);
+        }
+        // Container is a container puzzle.
+        else if (container.type === "container") {
+            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+                if (a.prefab.id < b.prefab.id) return -1;
+                if (a.prefab.id > b.prefab.id) return 1;
+                return 0;
+            });
+            const misc = {
+                command: "drop",
+                input: input
+            };
+            player.attemptPuzzle(bot, game, container, item, containerItems, "drop", misc);
         }
     }
     // Container is an Item.

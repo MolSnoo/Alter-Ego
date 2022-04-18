@@ -1,13 +1,17 @@
 ﻿const settings = include('settings.json');
 
+const Whisper = include(`${settings.dataDir}/Whisper.js`);
+
 module.exports.config = {
     name: "hide_player",
     description: "Hides you in an object.",
-    details: `Allows you to use an object in a room as a hiding spot. When hidden, you will be removed from that room's channel `
-        + `so that when other players enter the room, they won't see you on the user list. `
-        + `When players speak in the room that you're hiding in, you will hear what they say. `
-        + `If someone inspects or tries to hide in the object you're hiding in, you will be revealed and added back to the room channel. `
-        + `If you wish to come out of hiding on your own, use the unhide command.`,
+    details: `Allows you to use an object in a room as a hiding spot. When hidden, you will be removed from that room's channel so that `
+        + `when other players enter the room, they won't see you on the user list. When players speak in the room that you're hiding in, `
+        + `you will hear what they say. Under normal circumstances, a whisper channel will be created for you to speak in. Most players `
+        + `will be unable to hear what you say in this channel. However, if you want to speak so that everyone can hear you (while having `
+        + `your identity remain a secret), use the \`${settings.commandPrefix}say\` command. If someone hides in the same hiding spot as you, ` 
+        + `you will be placed in a whisper channel together. If someone inspects or tries to hide in the object you're hiding in, `
+        + `your position will be revealed. If you wish to come out of hiding on your own, use the unhide command.`,
     usage: `${settings.commandPrefix}hide desk\n`
         + `${settings.commandPrefix}hide cabinet\n`
         + `${settings.commandPrefix}unhide`,
@@ -47,7 +51,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
         var object = null;
         for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput && objects[i].isHidingSpot) {
+            if (objects[i].name === parsedInput && objects[i].hidingSpotCapacity > 0) {
                 object = objects[i];
                 break;
             }
@@ -61,24 +65,51 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             return game.messageHandler.addReply(message, `You cannot hide in ${object.name} right now.`);
 
         // Check to see if the hiding spot is already taken.
-        var hiddenPlayer = null;
+        var hiddenPlayers = [];
         for (let i = 0; i < player.location.occupants.length; i++) {
-            if (player.location.occupants[i].hidingSpot === object.name) {
-                hiddenPlayer = player.location.occupants[i];
-                break;
-            }
+            if (player.location.occupants[i].hidingSpot === object.name)
+                hiddenPlayers.push(player.location.occupants[i]);
         }
 
-        // It is already taken.
-        if (hiddenPlayer !== null) {
-            player.notify(game, `You attempt to hide in the ${object.name}, but you find ${hiddenPlayer.displayName} is already there!`);
-            hiddenPlayer.cure(game, "hidden", false, false, true);
-            hiddenPlayer.notify(game, `You've been found by ${player.displayName}. You are no longer hidden.`);
+        // Create a list string of players currently hiding in that hiding spot.
+        hiddenPlayers.sort(function (a, b) {
+            let nameA = a.displayName.toLowerCase();
+            let nameB = b.displayName.toLowerCase();
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
+            return 0;
+        });
+        let hiddenPlayersString = "";
+        if (hiddenPlayers.length === 1) hiddenPlayersString = hiddenPlayers[0].displayName;
+        else if (hiddenPlayers.length === 2)
+            hiddenPlayersString += `${hiddenPlayers[0].displayName} and ${hiddenPlayers[1].displayName}`;
+        else if (hiddenPlayers.length >= 3) {
+            for (let i = 0; i < hiddenPlayers.length - 1; i++)
+                hiddenPlayersString += `${hiddenPlayers[i].displayName}, `;
+            hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
         }
-        // It's free real estate!
+
+        if (hiddenPlayers.length + 1 > object.hidingSpotCapacity) {
+            player.notify(game, `You attempt to hide in the ${object.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
+            for (let i = 0; i < hiddenPlayers.length; i++)
+                hiddenPlayers[i].notify(game, `You've been found by ${player.displayName}! ${player.pronouns.Sbj} tried to hide with you, but there isn't enough room.`);
+        }
         else {
+            if (hiddenPlayers.length > 0) player.notify(game, `When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+            for (let i = 0; i < hiddenPlayers.length; i++) {
+                hiddenPlayers[i].notify(game, `You've been found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
+                hiddenPlayers[i].removeFromWhispers(game, "");
+            }
+            hiddenPlayers.push(player);
             player.hidingSpot = object.name;
             player.inflict(game, "hidden", true, false, true);
+
+            // Create a whisper.
+            if (hiddenPlayers.length > 0) {
+                var whisper = new Whisper(hiddenPlayers, player.location);
+                await whisper.init(game);
+                game.whispers.push(whisper);
+            }
 
             // Log message is sent when status is inflicted.
         }

@@ -500,6 +500,7 @@ class Player {
             this.location.joinChannel(this);
         if (status.attributes.includes("hidden")) {
             if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
+            this.removeFromWhispers(game, `${this.displayName} comes out of the ${this.hidingSpot}.`);
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") || occupant.name === this.name));
             this.hidingSpot = "";
         }

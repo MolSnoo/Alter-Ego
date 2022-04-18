@@ -35,7 +35,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 game.objects[i].activatable ? "TRUE" : "FALSE",
                 game.objects[i].activated ? "TRUE" : "FALSE",
                 game.objects[i].autoDeactivate ? "TRUE" : "FALSE",
-                game.objects[i].isHidingSpot ? "TRUE" : "FALSE",
+                game.objects[i].hidingSpotCapacity,
                 game.objects[i].preposition,
                 game.objects[i].description
             ]);

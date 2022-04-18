@@ -130,9 +130,10 @@ module.exports.run = async (bot, game, message, command, args) => {
                             }
                         }
                         else if (gesture.requires[j] === "Player") {
+                            const hiddenStatus = player.getAttributeStatusEffects("hidden");
                             for (let k = 0; k < player.location.occupants.length; k++) {
                                 let occupant = player.location.occupants[k];
-                                if (occupant.name.toLowerCase().replace(/\'/g, "") === input2 && !occupant.hasAttribute("hidden")) {
+                                if (occupant.name.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
                                     // Player cannot gesture toward themselves.
                                     if (occupant.name === player.name) return game.messageHandler.addReply(message, `${player.name} can't gesture toward ${player.originalPronouns.ref}.`);
                                     targetType = "Player";
