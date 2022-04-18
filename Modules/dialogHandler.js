@@ -75,10 +75,41 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
 
                 if (!message.content.startsWith('(')) {
                     for (let i = 0; i < whisper.players.length; i++) {
-                        if (player.displayName !== player.name && (whisper.players[i].name === player.name || whisper.players[i].hasAttribute(`knows ${player.name}`)))
-                            game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, `${player.displayName} (${player.name})`);
-                        else
-                            game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
+                        if (whisper.players[i].name !== player.name) {
+                            if (whisper.players[i].hasAttribute("no hearing") || whisper.players[i].hasAttribute("unconscious")) continue;
+
+                            if (whisper.players[i].hasAttribute(`knows ${player.name}`) && !whisper.players[i].hasAttribute("no sight")) {
+                                if (player.displayName !== player.name) {
+                                    whisper.players[i].notify(game, `${player.displayName}, whose voice you recognize to be ${player.name}'s, whispers "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, `${player.displayName} (${player.name})`);
+                                }
+                                else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("VIEW_CHANNEL")) {
+                                    whisper.players[i].notify(game, `${player.name} whispers "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, player.name);
+                                }
+                                else game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
+                            }
+                            else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("VIEW_CHANNEL")) {
+                                if (whisper.players[i].hasAttribute(`knows ${player.name}`)) {
+                                    whisper.players[i].notify(game, `${player.name} whispers "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, player.name);
+                                }
+                                else if (!whisper.players[i].hasAttribute("no sight")) {
+                                    whisper.players[i].notify(game, `${player.displayName} whispers "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
+                                }
+                                else
+                                    whisper.players[i].notify(game, `Someone whispers "${message.content}".`);
+                            }
+                            else
+                                game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
+                        }
+                        else if (whisper.players[i].name === player.name) {
+                            if (player.displayName !== player.name)
+                                game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, `${player.displayName} (${player.name})`);
+                            else
+                                game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
+                        }
                     }
                 }
 
@@ -180,7 +211,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                         else if (occupant.hasAttribute("hear room") || deafPlayerInRoom) {
                             if (occupant.hasAttribute(`knows ${player.name}`)) {
                                 occupant.notify(game, `${player.name} ${verb}s "${message.content}".`, false);
-                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message);
+                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, player.name);
                             }
                             else if (!occupant.hasAttribute("no sight") && player.hasAttribute("hidden") && occupant.hasAttribute("hidden") && player.hidingSpot === occupant.hidingSpot) {
                                 occupant.notify(game, `${originalDisplayName} ${verb}s "${message.content}".`, false);
