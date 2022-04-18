@@ -20,7 +20,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
     if (addSpectate) {
         // Create a queued message for each of the occupants' spectate channels
         room.occupants.forEach(player => {
-            if ((speaker === null || speaker.name !== player.name) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && player.spectateChannel !== null)
+            if ((speaker === null || speaker.name !== player.name) && (!player.hasAttribute("no channel") || player.hasAttribute("see room")) && !player.hasAttribute("no sight") && !player.hasAttribute("unconscious") && player.spectateChannel !== null)
                 addMessageToQueue(player.spectateChannel, messageText, messagePriority.spectatorMessage);
         });
     }
@@ -33,8 +33,8 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
         // Create a queued message for each of the occupants' spectate channels, and specify it's in a whisper channel
         let whisperMessageText = `*(In a whisper with ${whisper.makePlayersSentenceGroup()}):*\n` + messageText;
         whisper.players.forEach(player => {
-            if (player.spectateChannel !== null)
-            addMessageToQueue(player.spectateChannel, whisperMessageText, messagePriority.spectatorMessage);
+            if (!player.hasAttribute("no sight") && !player.hasAttribute("unconscious") && player.spectateChannel !== null)
+                addMessageToQueue(player.spectateChannel, whisperMessageText, messagePriority.spectatorMessage);
         });
     }
 };
