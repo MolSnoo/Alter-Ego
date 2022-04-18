@@ -19,11 +19,18 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
 
         // Get the location of the message.
         var room = null;
+        var whisper = null;
         if (player !== null) room = player.location;
         else {
             for (let i = 0; i < game.rooms.length; i++) {
                 if (game.rooms[i].name === message.channel.name) {
                     room = game.rooms[i];
+                    break;
+                }
+            }
+            for (let i = 0; i < game.whispers.length; i++) {
+                if (game.whispers[i].channelName === message.channel.name) {
+                    whisper = game.whispers[i];
                     break;
                 }
             }
@@ -246,13 +253,14 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
             }
         }
         else if (isModerator) {
-            for (let i = 0; i < room.occupants.length; i++) {
-                let occupant = room.occupants[i];
+            let players = whisper !== null ? whisper.players : room.occupants;
+            for (let i = 0; i < players.length; i++) {
+                let occupant = players[i];
                 // Players with the see room attribute should receive narrations from moderators.
-                if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !message.content.startsWith('('))
+                if (!occupant.hasAttribute("no sight") && occupant.talent !== "NPC" && (occupant.hasAttribute("see room") || !occupant.member.permissionsIn(message.channel).has("VIEW_CHANNEL")) && !message.content.startsWith('('))
                     occupant.notify(game, message.content);
                 else if (!occupant.hasAttribute("no sight") && !occupant.hasAttribute("unconscious") && !message.content.startsWith('('))
-                    game.messageHandler.addSpectatedPlayerMessage(occupant, message, message, null, message.member.displayName);
+                    game.messageHandler.addSpectatedPlayerMessage(occupant, message, message, whisper, message.member.displayName);
             }
         }
 
