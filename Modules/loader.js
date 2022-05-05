@@ -235,7 +235,6 @@ module.exports.checkObject = function (object) {
     if (object.childPuzzleName !== "" && !(object.childPuzzle instanceof Puzzle))
         return new Error(`Couldn't load object on row ${object.row}. The child puzzle given is not a puzzle.`);
     if (object.childPuzzle !== null && object.childPuzzle !== undefined && (object.childPuzzle.parentObject === null || object.childPuzzle.parentObject === undefined)) {
-        console.log(object.childPuzzle);
         return new Error(`Couldn't load object on row ${object.row}. The child puzzle on row ${object.childPuzzle.row} has no parent object.`);
     }
     if (object.childPuzzle !== null && object.childPuzzle !== undefined && object.childPuzzle.parentObject !== null && object.childPuzzle.parentObject !== undefined && object.childPuzzle.parentObject.name !== object.name)
