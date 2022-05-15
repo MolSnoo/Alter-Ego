@@ -142,7 +142,7 @@ class Player {
         }
     }
 
-    queueMovement(game, isRunning, destination) {
+    queueMovement(bot, game, isRunning, destination) {
         const currentRoom = this.location;
         var adjacent = false;
         var exit = null;
@@ -193,7 +193,7 @@ class Player {
 
         if (desiredRoom) {
             if (exit)
-                this.move(game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
+                this.move(bot, game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
             else {
                 currentRoom.removePlayer(game, this, exit, exitMessage);
                 desiredRoom.addPlayer(game, this, entrance, entranceMessage, true);
@@ -209,7 +209,7 @@ class Player {
         }
     }
 
-    move(game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
+    move(bot, game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
         const time = this.calculateMoveTime(exit, isRunning);
         this.remainingTime = time;
         this.isMoving = true;
@@ -264,7 +264,11 @@ class Player {
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
                 player.isMoving = false;
-                if (exit.unlocked) {
+                const exitPuzzle = game.puzzles.find(puzzle => puzzle.location.name === player.location.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
+                const exitPuzzlePassable = exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(player.name);
+                if (exit.unlocked || exitPuzzlePassable) {
+                    if (exitPuzzlePassable)
+                        exitPuzzle.solve(bot, game, player, "", player.name, true);
                     currentRoom.removePlayer(game, player, exit, exitMessage);
                     desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
 
@@ -275,7 +279,7 @@ class Player {
 
                     player.moveQueue.splice(0, 1);
                     if (player.moveQueue.length > 0)
-                        player.queueMovement(game, isRunning, player.moveQueue[0].trim());
+                        player.queueMovement(bot, game, isRunning, player.moveQueue[0].trim());
                 }
                 else {
                     new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();

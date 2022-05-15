@@ -2,14 +2,14 @@
 
 module.exports.config = {
     name: "move_bot",
-    description: "Moves the given player(s) to the specified room or exit.",
-    details: 'Forcefully moves the specified player to the specified room or exit. If you use "all" in place of the player, '
+    description: "Moves the given player(s) to the specified room.",
+    details: 'Forcefully moves the specified player to the specified room. If you use "all" in place of the player, '
         + 'it will move all living players to the specified room (skipping over players who are already in that room as well as players with the Headmaster role). '
         + 'If you use "player" in place of the player, then the player who triggered the command will be moved.'
         + 'All of the same things that happen when a player moves to a room of their own volition apply, however you can move players to non-adjacent rooms this way. '
         + 'The bot will not announce which exit the player leaves through or which entrance they enter from when a player is moved to a non-adjacent room.',
     usage: `${settings.commandPrefix}move susie main-office\n`
-        + `${settings.commandPrefix}move player door 2`
+        + `${settings.commandPrefix}move player general-managers-office`
         + `${settings.commandPrefix}move player cafeteria`
         + `${settings.commandPrefix}move all elevator`,
     usableBy: "Bot",
@@ -68,10 +68,12 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             const currentRoom = players[i].location;
             // Check to see if the given room is adjacent to the current player's room.
             var exit = null;
+            let exitPuzzle = null;
             var entrance = null;
             for (let j = 0; j < currentRoom.exit.length; j++) {
                 if (currentRoom.exit[j].dest === desiredRoom) {
                     exit = currentRoom.exit[j];
+                    exitPuzzle = game.puzzles.find(puzzle => puzzle.location.name === currentRoom.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
                     for (let k = 0; k < desiredRoom.exit.length; k++) {
                         if (desiredRoom.exit[k].name === exit.link) {
                             entrance = desiredRoom.exit[k];
@@ -94,6 +96,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             clearInterval(players[i].moveTimer);
             players[i].remainingTime = 0;
             players[i].moveQueue.length = 0;
+            // Solve the exit puzzle, if applicable.
+            if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
+                exitPuzzle.solve(bot, game, players[i], "", players[i].name, true);
             // Move the player.
             currentRoom.removePlayer(game, players[i], exit, exitMessage);
             desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);

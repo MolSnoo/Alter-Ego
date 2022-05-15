@@ -56,6 +56,7 @@ module.exports.run = async(bot, game, message, command, args) => {
     // All given players must be in the same room for this to work.
     var isExit = false;
     var exit = null;
+    var exitPuzzle = null;
     var entrance = null;
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
@@ -67,6 +68,7 @@ module.exports.run = async(bot, game, message, command, args) => {
             if (input.endsWith(currentRoom.exit[i].name)) {
                 isExit = true;
                 exit = currentRoom.exit[i];
+                exitPuzzle = game.puzzles.find(puzzle => puzzle.location.name === currentRoom.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
                 desiredRoom = exit.dest;
                 for (let j = 0; j < desiredRoom.exit.length; j++) {
                     if (desiredRoom.exit[j].name === exit.link) {
@@ -135,6 +137,9 @@ module.exports.run = async(bot, game, message, command, args) => {
             clearInterval(players[i].moveTimer);
             players[i].remainingTime = 0;
             players[i].moveQueue.length = 0;
+            // Solve the exit puzzle, if applicable.
+            if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
+                exitPuzzle.solve(bot, game, players[i], "", players[i].name, true);
             // Move the player.
             currentRoom.removePlayer(game, players[i], exit, exitMessage);
             desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);

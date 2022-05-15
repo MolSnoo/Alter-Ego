@@ -52,6 +52,12 @@ class Puzzle {
         if (message)
             new Narration(game, player, game.rooms.find(room => room.name === this.location.name), message).send();
 
+        if (player !== null) {
+            // Post log message.
+            const time = new Date().toLocaleTimeString();
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
+        }
+
         if (doSolvedCommands === true) {
             // Find commandSet.
             var commandSet = [];
@@ -84,12 +90,6 @@ class Puzzle {
             }
         }
 
-        if (player !== null) {
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
-        }
-
         return;
     }
 
@@ -102,6 +102,12 @@ class Puzzle {
 
         // Now mark it as unsolved.
         this.solved = false;
+
+        if (player !== null) {
+            // Post log message.
+            const time = new Date().toLocaleTimeString();
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
+        }
 
         if (doUnsolvedCommands === true) {
             // Find commandSet.
@@ -138,12 +144,6 @@ class Puzzle {
         // Clear the outcome.
         if (this.solutions.length > 1 && this.type !== "channels")
             this.outcome = "";
-
-        if (player !== null) {
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
-        }
 
         return;
     }

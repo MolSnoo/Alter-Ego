@@ -28,7 +28,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     if (player.isMoving) return game.messageHandler.addReply(message, `You cannot do that because you are already moving.`);
 
     player.moveQueue = args.join(" ").split(">");
-    player.queueMovement(game, false, player.moveQueue[0].trim());
+    player.queueMovement(bot, game, false, player.moveQueue[0].trim());
 
     return;
 };
