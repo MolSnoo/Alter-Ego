@@ -10,7 +10,7 @@ module.exports.config = {
         + "The name of the inventory slot to destroy the item from can also be specified.\n\n"
         + "To destroy an inventory item, the name of the player must be given followed by \"'s\". A container item can also be specified, "
         + "as well as which slot to delete the item from. The player will not be notified if a container item is specified. "
-        + "An equipment slot can also be specified isntead of a container item. This will destroy whatever item is equipped to it. "
+        + "An equipment slot can also be specified instead of a container item. This will destroy whatever item is equipped to it. "
         + "The player will be notified in this case, and the item's unequipped commands will be run.\n\n"
         + "Note that using the \"all\" argument with a container will destroy all items in that container.",
     usage: `${settings.commandPrefix}destroy volleyball at beach\n`
