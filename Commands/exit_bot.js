@@ -6,10 +6,10 @@ module.exports.config = {
     details: "Locks or unlocks an exit in the specified room. The corresponding entrance in the room the exit leads to "
         + "will also be locked, so that it goes both ways. When an exit is locked, players will be unable to enter the room "
         + "that exit leads to, and will be unable to enter through the exit from another room.",
-    usage: `${settings.commandPrefix}exit lock carousel door\n`
-        + `${settings.commandPrefix}exit unlock headmasters quarters door\n`
-        + `${settings.commandPrefix}lock warehouse door 3\n`
-        + `${settings.commandPrefix}unlock trial grounds elevator`,
+    usage: `exit lock carousel door\n`
+        + `exit unlock headmasters quarters door\n`
+        + `lock warehouse door 3\n`
+        + `unlock trial grounds elevator`,
     usableBy: "Bot",
     aliases: ["exit", "room", "lock", "unlock"]
 };

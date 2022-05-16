@@ -14,17 +14,17 @@ module.exports.config = {
         + 'You can also use a room name instead of a player name. In that case, only puzzles in the room '
         + 'you specify can be solved/unsolved. This is useful if you have multiple puzzles with the same name '
         + 'spread across the map.',
-    usage: `${settings.commandPrefix}puzzle solve button\n`
-        + `${settings.commandPrefix}puzzle unsolve keypad\n`
-        + `${settings.commandPrefix}solve binder taylor\n`
-        + `${settings.commandPrefix}unsolve lever colin\n`
-        + `${settings.commandPrefix}solve computer PASSWORD1\n`
-        + `${settings.commandPrefix}solve computer PASSWORD2\n`
-        + `${settings.commandPrefix}puzzle solve keypad tool shed\n`
-        + `${settings.commandPrefix}puzzle unsolve lock men's locker room\n`
-        + `${settings.commandPrefix}solve paintings player "player removes the PAINTINGS from the wall."\n`
-        + `${settings.commandPrefix}unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"\n`
-        + `${settings.commandPrefix}puzzle attempt cyptex lock 05-25-99 player`,
+    usage: `puzzle solve button\n`
+        + `puzzle unsolve keypad\n`
+        + `solve binder taylor\n`
+        + `unsolve lever colin\n`
+        + `solve computer PASSWORD1\n`
+        + `solve computer PASSWORD2\n`
+        + `puzzle solve keypad tool shed\n`
+        + `puzzle unsolve lock men's locker room\n`
+        + `solve paintings player "player removes the PAINTINGS from the wall."\n`
+        + `unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"\n`
+        + `puzzle attempt cyptex lock 05-25-99 player`,
     usableBy: "Bot",
     aliases: ["puzzle", "solve", "unsolve", "attempt"]
 };

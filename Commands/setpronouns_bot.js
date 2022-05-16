@@ -10,13 +10,13 @@ module.exports.config = {
         + "Temporary custom pronoun sets can be applied with this method. They must adhere to the following format: "
         + "`subjective\objective\dependent possessive\independent possessive\reflexive\plural`. If you use \"player\" in place of a player's name, "
         + "then the player who triggered the command will have their pronouns set.",
-    usage: `${settings.commandPrefix}setpronouns sadie female\n`
-        + `${settings.commandPrefix}setpronouns roma neutral\n`
-        + `${settings.commandPrefix}setpronouns platt male\n`
-        + `${settings.commandPrefix}setpronouns monokuma it\it\its\its\itself\false\n`
-        + `${settings.commandPrefix}setpronouns player she\her\her\hers\herself\false\n`
-        + `${settings.commandPrefix}setpronouns player they\them\their\theirs\themself\true\n`
-        + `${settings.commandPrefix}setpronouns player he\him\his\his\himself\false`,
+    usage: `setpronouns sadie female\n`
+        + `setpronouns roma neutral\n`
+        + `setpronouns platt male\n`
+        + `setpronouns monokuma it\it\its\its\itself\false\n`
+        + `setpronouns player she\her\her\hers\herself\false\n`
+        + `setpronouns player they\them\their\theirs\themself\true\n`
+        + `setpronouns player he\him\his\his\himself\false`,
     usableBy: "Bot",
     aliases: ["setpronouns"]
 };

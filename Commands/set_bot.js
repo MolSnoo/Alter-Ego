@@ -11,11 +11,11 @@ module.exports.config = {
         + 'You can also specify a room name.  If you do, only object/items/puzzles in the room you specify '
         + 'can be set as accessible/ inaccessible. This is useful if you have multiple objects or puzzles '
         + 'with the same name spread across the map.',
-    usage: `${settings.commandPrefix}set accessible puzzle button\n`
-        + `${settings.commandPrefix}set inaccessible object terminal\n`
-        + `${settings.commandPrefix}set accessible object keypad tool shed\n`
-        + `${settings.commandPrefix}set accessible object items medicine cabinet\n`
-        + `${settings.commandPrefix}set inaccessible puzzle items lock men's locker room`,
+    usage: `set accessible puzzle button\n`
+        + `set inaccessible object terminal\n`
+        + `set accessible object keypad tool shed\n`
+        + `set accessible object items medicine cabinet\n`
+        + `set inaccessible puzzle items lock men's locker room`,
     usableBy: "Bot",
     aliases: ["set"]
 };

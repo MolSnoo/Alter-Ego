@@ -3,11 +3,11 @@ const settings = include('settings.json');
 module.exports.config = {
     name: "end_bot",
     description: "Ends an event.",
-    details: "Ends the specified event.The event must be ongoing. If it isn't, nothing will happen. "
-        + "If the event has any ended commands, they will not be run if they were passed by another event."
+    details: "Ends the specified event. The event must be ongoing. If it isn't, nothing will happen. "
+        + "If the event has any ended commands, they will not be run if they were passed by another event. "
         + "They will be run if they were passed by anything else, however.",
-    usage: `${settings.commandPrefix}end rain\n`
-        + `${settings.commandPrefix}end explosion`,
+    usage: `end rain\n`
+        + `end explosion`,
     usableBy: "Bot",
     aliases: ["end"]
 };

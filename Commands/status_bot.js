@@ -9,23 +9,21 @@ module.exports.config = {
         + '-**add**/**inflict**: Inflicts the specified player with the given status effect. '
         + 'If the "player" argument is used in place of a name, then the player who triggered '
         + 'the command will be inflicted. If the "all" argument is used instead, then all living '
-        + 'players will be inflicted, and the "Message when Inflicted" will be sent to announcements '
-        + 'channel instead of directly to players. If the "room" argument is used in place of a name, '
+        + 'players will be inflicted. If the "room" argument is used in place of a name, '
         + 'then all players in the same room as the player who solved it will be inflicted.\n'
         + '-**remove**/**cure**: Cures the specified player of the given status effect. '
         + 'If the "player" argument is used in place of a name, then the player who triggered '
         + 'the command will be cured. If the "all" argument is used instead, then all living '
-        + 'players will be cured, and the "Message when Cured" will be sent to announcements '
-        + 'channel instead of directly to players. If the "room" argument is used in place of a name, '
+        + 'players will be cured. If the "room" argument is used in place of a name, '
         + 'then all players in the same room as the player who solved it will be cured.',
-    usage: `${settings.commandPrefix}status add player heated\n`
-        + `${settings.commandPrefix}status add room safe\n`
-        + `${settings.commandPrefix}inflict all deaf\n`
-        + `${settings.commandPrefix}inflict diego heated\n`
-        + `${settings.commandPrefix}status remove player injured\n`
-        + `${settings.commandPrefix}status remove room restricted\n`
-        + `${settings.commandPrefix}cure antoine injured\n`
-        + `${settings.commandPrefix}cure all deaf`,
+    usage: `status add player heated\n`
+        + `status add room safe\n`
+        + `inflict all deaf\n`
+        + `inflict diego heated\n`
+        + `status remove player injured\n`
+        + `status remove room restricted\n`
+        + `cure antoine injured\n`
+        + `cure all deaf`,
     usableBy: "Bot",
     aliases: ["status", "inflict", "cure"]
 };

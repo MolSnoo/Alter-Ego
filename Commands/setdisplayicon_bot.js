@@ -10,9 +10,9 @@ module.exports.config = {
         + "display icon afterwards as well. Note that this command will not change the player's avatar when they send messages to Room channels normally. "
         + "If you use \"player\" in place of a player's name, then the player who triggered the command will have their display icon changed. "
         + "To reset a player's display icon to their Discord avatar, simply do not specify a new display icon.",
-    usage: `${settings.commandPrefix}setdisplayicon kyra https://cdn.discordapp.com/attachments/697623260736651335/912103115241697301/mm.png\n`
-        + `${settings.commandPrefix}setdisplayicon player https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png\n`
-        + `${settings.commandPrefix}setdisplayicon player`,
+    usage: `setdisplayicon kyra https://cdn.discordapp.com/attachments/697623260736651335/912103115241697301/mm.png\n`
+        + `setdisplayicon player https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png\n`
+        + `setdisplayicon player`,
     usableBy: "Bot",
     aliases: ["setdisplayicon"]
 };

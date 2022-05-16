@@ -11,10 +11,10 @@ module.exports.config = {
         + "and give them the Dead role. If you use \"player\" in place of a list of players, then the player who "
         + "triggered the command will be killed. If the \"room\" argument is used instead, then all players in the "
         + "room will be killed.",
-    usage: `${settings.commandPrefix}kill natalie\n`
-        + `${settings.commandPrefix}die shiori corin terry andrew aria\n`
-        + `${settings.commandPrefix}kill player\n`
-        + `${settings.commandPrefix}die room`,
+    usage: `kill natalie\n`
+        + `die shiori corin terry andrew aria\n`
+        + `kill player\n`
+        + `die room`,
     usableBy: "Bot",
     aliases: ["kill", "die"]
 };

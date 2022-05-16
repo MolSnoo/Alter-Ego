@@ -9,11 +9,11 @@ module.exports.config = {
         + `positions updated. Lastly, if the "all" argument is used, then all players will have their positions updated. `
         + `You can set individual coordinates with the "x", "y", or "z" arguments and the value to set it to. Otherwise, `
         + `a space-separated list of coordinates in the order **x y z** must be given.`,
-    usage: `${settings.commandPrefix}setpos player 200 5 350\n`
-        + `${settings.commandPrefix}setpos room 400 -10 420\n`
-        + `${settings.commandPrefix}setpos vivian x 350\n`
-        + `${settings.commandPrefix}setpos player y 10\n`
-        + `${settings.commandPrefix}setpos all z 250\n`,
+    usage: `setpos player 200 5 350\n`
+        + `setpos room 400 -10 420\n`
+        + `setpos vivian x 350\n`
+        + `setpos player y 10\n`
+        + `setpos all z 250\n`,
     usableBy: "Bot",
     aliases: ["setpos"]
 };

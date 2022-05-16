@@ -9,9 +9,9 @@ module.exports.config = {
         + "However, this command can be used to overwrite their new display name afterwards as well. Note that this command will not change the player's "
         + "nickname in the server. If you use \"player\" in place of a player's name, then the player who triggered the command will have their "
         + "display name changed. To reset a player's display name to their real name, simply do not specify a new display name.",
-    usage: `${settings.commandPrefix}setdisplayname usami Monomi\n`
-        + `${settings.commandPrefix}setdisplayname player An individual wearing a MINOTAUR MASK\n`
-        + `${settings.commandPrefix}setdisplayname player`,
+    usage: `setdisplayname usami Monomi\n`
+        + `setdisplayname player An individual wearing a MINOTAUR MASK\n`
+        + `setdisplayname player`,
     usableBy: "Bot",
     aliases: ["setdisplayname"]
 };

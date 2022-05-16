@@ -21,9 +21,9 @@ module.exports.config = {
         + "room-3   |EXIT D|room-1  | EXIT A```\n"
         + "Note that this will leave room-2's EXIT B and EXIT C without exits that lead back to them, which will result in errors next time rooms are loaded. "
         + "To prevent this, this command should be used sparingly, and all affected exits should have their destinations reassigned.",
-    usage: `${settings.commandPrefix}setdest corolla DOOR wharf VEHICLE\n`
-        + `${settings.commandPrefix}setdest motor boat PORT docks BOAT\n`
-        + `${settings.commandPrefix}setdest wharf MOTOR BOAT wharf MOTOR BOAT`,
+    usage: `setdest corolla DOOR wharf VEHICLE\n`
+        + `setdest motor boat PORT docks BOAT\n`
+        + `setdest wharf MOTOR BOAT wharf MOTOR BOAT`,
     usableBy: "Bot",
     aliases: ["setdest"]
 };

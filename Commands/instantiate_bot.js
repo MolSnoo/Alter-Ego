@@ -11,15 +11,15 @@ module.exports.config = {
         + "To instantiate an inventory item, \"player\", \"room\", \"all\", or the name of a player followed by \"'s\", must be given. A container item can be specified, as well as which slot to "
         + "instantiate the item into. The player will not be notified if a container item is specified. An equipment slot can also be specified instead of a container item. "
         + "The player will be notified of obtaining the item in this case, and the prefab's equipped commands will be run.",
-    usage: `${settings.commandPrefix}instantiate raw fish on floor at beach\n`
-        + `${settings.commandPrefix}create pickaxe in locker 1 at mining hub\n`
-        + `${settings.commandPrefix}generate 3 empty drain cleaner in cupboards at kitchen\n`
-        + `${settings.commandPrefix}instantiate green book in main pocket of large backpack 1 at dorm library\n`
-        + `${settings.commandPrefix}create 4 screwdriver in tool box at beach house\n`
-        + `${settings.commandPrefix}generate katana in player right hand\n`
-        + `${settings.commandPrefix}instantiate monokuma mask on all face\n`
-        + `${settings.commandPrefix}create laptop in vivian's vivians satchel\n`
-        + `${settings.commandPrefix}generate 2 shotput ball in cassie's main pocket of large backpack`,
+    usage: `instantiate raw fish on floor at beach\n`
+        + `create pickaxe in locker 1 at mining hub\n`
+        + `generate 3 empty drain cleaner in cupboards at kitchen\n`
+        + `instantiate green book in main pocket of large backpack 1 at dorm library\n`
+        + `create 4 screwdriver in tool box at beach house\n`
+        + `generate katana in player right hand\n`
+        + `instantiate monokuma mask on all face\n`
+        + `create laptop in vivian's vivians satchel\n`
+        + `generate 2 shotput ball in cassie's main pocket of large backpack`,
     usableBy: "Bot",
     aliases: ["instantiate", "create", "generate"]
 };

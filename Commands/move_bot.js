@@ -5,13 +5,13 @@ module.exports.config = {
     description: "Moves the given player(s) to the specified room.",
     details: 'Forcefully moves the specified player to the specified room. If you use "all" in place of the player, '
         + 'it will move all living players to the specified room (skipping over players who are already in that room as well as players with the Headmaster role). '
-        + 'If you use "player" in place of the player, then the player who triggered the command will be moved.'
+        + 'If you use "player" in place of the player, then the player who triggered the command will be moved. '
         + 'All of the same things that happen when a player moves to a room of their own volition apply, however you can move players to non-adjacent rooms this way. '
         + 'The bot will not announce which exit the player leaves through or which entrance they enter from when a player is moved to a non-adjacent room.',
-    usage: `${settings.commandPrefix}move susie main-office\n`
-        + `${settings.commandPrefix}move player general-managers-office`
-        + `${settings.commandPrefix}move player cafeteria`
-        + `${settings.commandPrefix}move all elevator`,
+    usage: `move susie main-office\n`
+        + `move player general-managers-office\n`
+        + `move player cafeteria\n`
+        + `move all elevator`,
     usableBy: "Bot",
     aliases: ["move"]
 };

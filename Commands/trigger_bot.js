@@ -4,10 +4,10 @@ module.exports.config = {
     name: "trigger_bot",
     description: "Triggers an event.",
     details: "Triggers the specified event. The event must not already be ongoing. If it is, nothing will happen. "
-        + "If the event has any triggered commands, they will not be run if they were passed by another event."
+        + "If the event has any triggered commands, they will not be run if they were passed by another event. "
         + "They will be run if they were passed by anything else, however.",
-    usage: `${settings.commandPrefix}trigger rain\n`
-        + `${settings.commandPrefix}trigger explosion`,
+    usage: `trigger rain\n`
+        + `trigger explosion`,
     usableBy: "Bot",
     aliases: ["trigger"]
 };

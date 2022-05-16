@@ -13,18 +13,18 @@ module.exports.config = {
         + "An equipment slot can also be specified instead of a container item. This will destroy whatever item is equipped to it. "
         + "The player will be notified in this case, and the item's unequipped commands will be run.\n\n"
         + "Note that using the \"all\" argument with a container will destroy all items in that container.",
-    usage: `${settings.commandPrefix}destroy volleyball at beach\n`
-        + `${settings.commandPrefix}destroy gasoline on shelves at warehouse\n`
-        + `${settings.commandPrefix}destroy note in locker 1 at mens locker room\n`
-        + `${settings.commandPrefix}destroy wrench in tool box at beach house\n`
-        + `${settings.commandPrefix}destroy gloves in breast pocket of tuxedo at dressing room\n`
-        + `${settings.commandPrefix}destroy all in trash can at lounge\n`
-        + `${settings.commandPrefix}destroy player keyboard\n`
-        + `${settings.commandPrefix}destroy all face\n`
-        + `${settings.commandPrefix}destroy vivians laptop in vivian's vivians satchel\n`
-        + `${settings.commandPrefix}destroy shotput ball in cassie's main pocket of large backpack\n`
-        + `${settings.commandPrefix}destroy all in hitoshi's trousers\n`
-        + `${settings.commandPrefix}destroy all in charlotte's right pocket of dress`,
+    usage: `destroy volleyball at beach\n`
+        + `destroy gasoline on shelves at warehouse\n`
+        + `destroy note in locker 1 at mens locker room\n`
+        + `destroy wrench in tool box at beach house\n`
+        + `destroy gloves in breast pocket of tuxedo at dressing room\n`
+        + `destroy all in trash can at lounge\n`
+        + `destroy player keyboard\n`
+        + `destroy all face\n`
+        + `destroy vivians laptop in vivian's vivians satchel\n`
+        + `destroy shotput ball in cassie's main pocket of large backpack\n`
+        + `destroy all in hitoshi's trousers\n`
+        + `destroy all in charlotte's right pocket of dress`,
     usableBy: "Bot",
     aliases: ["destroy"]
 };

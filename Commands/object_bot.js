@@ -13,14 +13,14 @@ module.exports.config = {
         + 'you specify can be activated/deactivated. This is useful if you have multiple objects with the same name '
         + 'spread across the map. This command can only be used for objects with a recipe tag. If there is a puzzle with '
         + 'the same name as the object whose state is supposed to be the same as the object, use the puzzle command to update it as well.',
-    usage: `${settings.commandPrefix}object activate blender\n`
-        + `${settings.commandPrefix}object deactivate microwave\n`
-        + `${settings.commandPrefix}activate keurig kyra\n`
-        + `${settings.commandPrefix}deactivate oven noko\n`
-        + `${settings.commandPrefix}object activate fireplace log cabin\n`
-        + `${settings.commandPrefix}object deactivate fountain flower garden\n`
-        + `${settings.commandPrefix}activate freezer zoran "Zoran plugs in the FREEZER."\n`
-        + `${settings.commandPrefix}deactivate washer 1 laundry room "WASHER 1 turns off"`,
+    usage: `object activate blender\n`
+        + `object deactivate microwave\n`
+        + `activate keurig kyra\n`
+        + `deactivate oven noko\n`
+        + `object activate fireplace log cabin\n`
+        + `object deactivate fountain flower garden\n`
+        + `activate freezer zoran "Zoran plugs in the FREEZER."\n`
+        + `deactivate washer 1 laundry room "WASHER 1 turns off"`,
     usableBy: "Bot",
     aliases: ["object", "activate", "deactivate"]
 };
