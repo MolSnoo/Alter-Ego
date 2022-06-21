@@ -84,7 +84,7 @@ module.exports.updateData = function (sheetrange, data, dataOperation) {
             range: sheetrange,
 
             // How the input data should be interpreted.
-            valueInputOption: 'USER_ENTERED',
+            valueInputOption: 'RAW',
 
             resource: {
                 values: data,
@@ -116,7 +116,7 @@ module.exports.batchUpdateData = function (data, dataOperation) {
 
                 resource: {
                     // How the input data should be interpreted.
-                    valueInputOption: 'USER_ENTERED',
+                    valueInputOption: 'RAW',
 
                     data: data
                 },
