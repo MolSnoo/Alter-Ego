@@ -30,12 +30,12 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     var recipient = null;
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
-        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase() + ' ') && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot give to themselves.
             if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't give to yourself.");
 
             recipient = occupant;
-            parsedInput = parsedInput.substring(occupant.displayName.length).trim();
+            parsedInput = parsedInput.substring(occupant.displayName.length + 1).trim();
             break;
         }
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
