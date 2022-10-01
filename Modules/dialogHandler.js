@@ -66,8 +66,8 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                 // If whisper does not exist but player still has access to the channel, remove them.
                 if (whisper === null) {
                     message.channel.permissionOverwrites.create(player.id, {
-                        VIEW_CHANNEL: null,
-                        READ_MESSAGE_HISTORY: null
+                        ViewChannel: null,
+                        ReadMessageHistory: null
                     });
                     if (deletable) message.delete().catch();
                     resolve();
@@ -83,13 +83,13 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                                     whisper.players[i].notify(game, `${player.displayName}, whose voice you recognize to be ${player.name}'s, whispers "${message.content}".`, false);
                                     game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, `${player.displayName} (${player.name})`);
                                 }
-                                else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("VIEW_CHANNEL")) {
+                                else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
                                     whisper.players[i].notify(game, `${player.name} whispers "${message.content}".`, false);
                                     game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, player.name);
                                 }
                                 else game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
                             }
-                            else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("VIEW_CHANNEL")) {
+                            else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
                                 if (whisper.players[i].hasAttribute(`knows ${player.name}`)) {
                                     whisper.players[i].notify(game, `${player.name} whispers "${message.content}".`, false);
                                     game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, player.name);
@@ -288,7 +288,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
             for (let i = 0; i < players.length; i++) {
                 let occupant = players[i];
                 // Players with the see room attribute should receive narrations from moderators.
-                if (!occupant.hasAttribute("no sight") && occupant.talent !== "NPC" && (occupant.hasAttribute("see room") || !occupant.member.permissionsIn(message.channel).has("VIEW_CHANNEL")) && !message.content.startsWith('('))
+                if (!occupant.hasAttribute("no sight") && occupant.talent !== "NPC" && (occupant.hasAttribute("see room") || !occupant.member.permissionsIn(message.channel).has("ViewChannel")) && !message.content.startsWith('('))
                     occupant.notify(game, message.content);
                 else if (!occupant.hasAttribute("no sight") && !occupant.hasAttribute("unconscious") && !message.content.startsWith('('))
                     game.messageHandler.addSpectatedPlayerMessage(occupant, message, message, whisper, message.member.displayName);

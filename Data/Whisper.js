@@ -2,6 +2,8 @@
 
 const Narration = include(`${settings.dataDir}/Narration.js`);
 
+const { ChannelType } = require("../node_modules/discord-api-types/v10");
+
 class Whisper {
     constructor(players, location) {
         this.players = players;
@@ -55,8 +57,9 @@ class Whisper {
 
     createChannel(game, name, players) {
         return new Promise((resolve) => {
-            game.guild.channels.create(name, {
-                type: 'text',
+            game.guild.channels.create({
+                name: name,
+                type: ChannelType.GuildText,
                 parent: settings.whisperCategory
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
@@ -67,8 +70,8 @@ class Whisper {
                         noChannel = true;
                     if (!noChannel && players[i].talent !== "NPC") {
                         channel.permissionOverwrites.create(players[i].id, {
-                            VIEW_CHANNEL: true,
-                            READ_MESSAGE_HISTORY: true
+                            ViewChannel: true,
+                            ReadMessageHistory: true
                         });
                     }
                 }
@@ -107,8 +110,8 @@ class Whisper {
     revokeAccess(player) {
         if (player.talent !== "NPC") {
             this.channel.permissionOverwrites.create(player.id, {
-                VIEW_CHANNEL: null,
-                READ_MESSAGE_HISTORY: null
+                ViewChannel: null,
+                ReadMessageHistory: null
             });
         }
         return;

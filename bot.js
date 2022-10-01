@@ -13,24 +13,26 @@ const fetch = require('node-fetch');
 var moment = require('moment');
 moment().format();
 const discord = require('discord.js');
+const { ActivityType, ChannelType } = require('./node_modules/discord-api-types/v10');
 const bot = new discord.Client({
     retryLimit: Infinity,
     partials: [
-        "USER",
-        "CHANNEL",
-        "GUILD_MEMBER",
-        "MESSAGE",
-        "REACTION"
+        discord.Partials.User,
+        discord.Partials.Channel,
+        discord.Partials.GuildMember,
+        discord.Partials.Message,
+        discord.Partials.Reaction
     ],
     intents: [
-        discord.Intents.FLAGS.GUILDS,
-        discord.Intents.FLAGS.GUILD_MEMBERS,
-        discord.Intents.FLAGS.GUILD_WEBHOOKS,
-        discord.Intents.FLAGS.GUILD_PRESENCES,
-        discord.Intents.FLAGS.GUILD_MESSAGES,
-        discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-        discord.Intents.FLAGS.DIRECT_MESSAGES,
-        discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+        discord.GatewayIntentBits.Guilds,
+        discord.GatewayIntentBits.GuildMembers,
+        discord.GatewayIntentBits.GuildWebhooks,
+        discord.GatewayIntentBits.GuildPresences,
+        discord.GatewayIntentBits.GuildMessages,
+        discord.GatewayIntentBits.GuildMessageReactions,
+        discord.GatewayIntentBits.MessageContent,
+        discord.GatewayIntentBits.DirectMessages,
+        discord.GatewayIntentBits.DirectMessageReactions
     ]
 });
 
@@ -61,6 +63,21 @@ function loadCommands() {
     console.log(`Loaded all commands.`);
 }
 
+function getActivityType(type) {
+    switch (type) {
+        case "PLAYING":
+            return ActivityType.Playing;
+        case "STREAMING":
+            return ActivityType.Streaming;
+        case "LISTENING":
+            return ActivityType.Listening;
+        case "WATCHING":
+            return ActivityType.Watching;
+        case "COMPETING":
+            return ActivityType.Competing;
+    }
+}
+
 function updateStatus() {
     var numPlayersOnline = game.players_alive.reduce(function (total, player) {
         return total + (player.online ? 1 : 0);
@@ -68,13 +85,13 @@ function updateStatus() {
     var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
 
     if (settings.debug)
-        bot.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: settings.debugModeActivity.type }] });
+        bot.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: getActivityType(settings.debugModeActivity.type) }] });
     else {
         bot.user.setStatus("online");
         if (game.inProgress && !game.canJoin)
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url }] });
+            bot.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: getActivityType(settings.gameInProgressActivity.type), url: settings.gameInProgressActivity.url }] });
         else
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: settings.onlineActivity.type }] });
+            bot.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: getActivityType(settings.onlineActivity.type) }] });
     }
 }
 
@@ -138,7 +155,7 @@ bot.on('ready', async () => {
 bot.on('messageCreate', async message => {
     // Prevent bot from responding to its own messages.
     if (message.author === bot.user) return;
-    if (settings.debug && message.channel.type === 'DM') console.log(message.author.username + ': "' + message.content + '"');
+    if (settings.debug && message.channel.type === ChannelType.DM) console.log(message.author.username + ': "' + message.content + '"');
 
     // If the message begins with the command prefix, attempt to run a command.
     // If the command is run successfully, the message will be deleted.

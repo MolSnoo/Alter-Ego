@@ -87,11 +87,11 @@ class Room {
     }
 
     joinChannel(player) {
-        if (player.talent !== "NPC") this.channel.permissionOverwrites.create(player.member, { VIEW_CHANNEL: true });
+        if (player.talent !== "NPC") this.channel.permissionOverwrites.create(player.member, { ViewChannel: true });
     }
 
     leaveChannel(player) {
-        if (player.talent !== "NPC") this.channel.permissionOverwrites.create(player.member, { VIEW_CHANNEL: null });
+        if (player.talent !== "NPC") this.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
     }
 
     unlock(game, index) {

@@ -53,7 +53,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     var hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.
     for (let i = 0; i < room.occupants.length; i++) {
-        if (!room.occupants[i].statusString.includes("no hearing"))
+        if (!room.occupants[i].hasAttribute("no hearing"))
             hearingPlayers.push(room.occupants[i]);
     }
 

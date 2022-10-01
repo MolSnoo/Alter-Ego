@@ -1,6 +1,8 @@
 ﻿const settings = include('settings.json');
 const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
 
+const { ChannelType } = require("../node_modules/discord-api-types/v10");
+
 module.exports.config = {
     name: "say_player",
     description: "Sends your message to the room you're in.",
@@ -25,7 +27,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         let webHooks = await player.location.channel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
         if (webHook === null || webHook === undefined)
-            webHook = await player.location.channel.createWebhook(player.location.channel.name);
+            webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
@@ -49,7 +51,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;
                     // The say command isn't deleted by the commandHandler because it has necessary data. Delete it now.
-                    if (message.channel.type !== "DM") message.delete().catch();
+                    if (message.channel.type !== ChannelType.DM) message.delete().catch();
                 });
         });
     }
