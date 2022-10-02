@@ -67,13 +67,15 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
     }
 
     const thumbnail = location.iconURL !== "" ? location.iconURL : settings.defaultRoomIconURL !== "" ? settings.defaultRoomIconURL : game.guild.iconURL();
-    let embed = new discord.MessageEmbed()
+    let embed = new discord.EmbedBuilder()
         .setThumbnail(thumbnail)
         .setTitle(location.name)
         .setColor('1F8B4C')
         .setDescription(descriptionText)
-        .addField("Occupants", occupantsString)
-        .addField(`${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText);
+        .addFields([
+            { name: "Occupants", value: occupantsString },
+            { name: `${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, value: defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText }
+        ]);
 
     if (player.talent !== "NPC") addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
@@ -113,7 +115,7 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
         let webHooks = await player.spectateChannel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === this.clientID);
         if (webHook === null || webHook === undefined)
-            webHook = await player.spectateChannel.createWebhook(player.spectateChannel.name);
+            webHook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
 
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));

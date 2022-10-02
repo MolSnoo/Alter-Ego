@@ -109,13 +109,13 @@ module.exports.run = async (bot, game, message, command, args) => {
         object.activate(game, player, narrate);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully activated ${object.name}.`);
         // Post log message.
-        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully activated ${object.name} in ${player.location.channel}`);
+        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
         object.deactivate(game, player, narrate);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully deactivated ${object.name}.`);
         // Post log message.
-        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully deactivated ${object.name} in ${player.location.channel}`);
+        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
     }
 
     return;

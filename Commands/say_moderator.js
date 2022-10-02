@@ -41,7 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         let webHooks = await player.location.channel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
         if (webHook === null || webHook === undefined)
-            webHook = await player.location.channel.createWebhook(player.location.channel.name);
+            webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));

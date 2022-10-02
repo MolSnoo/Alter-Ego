@@ -15,6 +15,7 @@ const Status = include(`${settings.dataDir}/Status.js`);
 const Player = include(`${settings.dataDir}/Player.js`);
 const Gesture = include(`${settings.dataDir}/Gesture.js`);
 
+const { ChannelType } = require('../node_modules/discord-api-types/v10');
 var moment = require('moment');
 moment().format();
 
@@ -1295,8 +1296,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                     spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === settings.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === settings.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
-                        spectateChannel = await game.guild.channels.create(sheet[i][columnName].toLowerCase(), {
-                            type: 'text',
+                        spectateChannel = await game.guild.channels.create({
+                            name: sheet[i][columnName].toLowerCase(),
+                            type: ChannelType.GuildText,
                             parent: settings.spectateCategory
                         });
                     }

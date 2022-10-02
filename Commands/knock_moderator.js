@@ -53,7 +53,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     var hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.
     for (let i = 0; i < room.occupants.length; i++) {
-        if (!room.occupants[i].statusString.includes("no hearing"))
+        if (!room.occupants[i].hasAttribute("no hearing"))
             hearingPlayers.push(room.occupants[i]);
     }
 
@@ -74,7 +74,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully knocked on ${exit.name} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
 };

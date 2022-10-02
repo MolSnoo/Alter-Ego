@@ -202,21 +202,23 @@ function ingredientsMatch(items, ingredients) {
 
 function createEmbed(game, page, pages) {
     let craftingPage = pages[page][0].objects.length === 0 ? true : false;
-    let embed = new discord.MessageEmbed()
+    let embed = new discord.EmbedBuilder()
         .setColor('1F8B4C')
-        .setAuthor(`Recipes List`, game.guild.iconURL())
+        .setAuthor({ name: `Recipes List`, iconURL: game.guild.iconURL() })
         .setDescription(craftingPage ? craftingRecipesDescription : objectRecipesDescription)
-        .setFooter(`Page ${page + 1}/${pages.length}`);
+        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 
+    let fields = [];
     // Now add the fields of the first page.
     for (let i = 0; i < pages[page].length; i++)
-        embed.addField(
-            `**Recipe ${i + 1}**`,
-            `**Ingredients:** ${pages[page][i].ingredients}\n` +
+        fields.push({
+            name: `**Recipe ${i + 1}**`,
+            value: `**Ingredients:** ${pages[page][i].ingredients}\n` +
             `**Products:** ${pages[page][i].products}\n` +
             (craftingPage ? '' : `**Using Object(s):** ${pages[page][i].objects}\n`) +
             (craftingPage ? '' : `**Duration:** ${pages[page][i].duration}`)
-        );
+        });
+    embed.addFields(fields);
 
     return embed;
 }

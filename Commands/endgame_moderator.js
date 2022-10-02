@@ -16,7 +16,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     for (let i = 0; i < game.players_alive.length; i++) {
         const player = game.players_alive[i];
         if (player.talent !== "NPC") {
-            if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { VIEW_CHANNEL: null });
+            if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
             player.removeFromWhispers(game);
             player.member.roles.remove(settings.playerRole).catch();
 

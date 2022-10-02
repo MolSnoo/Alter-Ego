@@ -127,7 +127,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     player.unstash(game, item, hand, container, slotName);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} for ${player.name}.`);
 

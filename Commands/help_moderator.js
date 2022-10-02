@@ -78,17 +78,19 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (!command) return game.messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
 
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
-        let embed = new discord.MessageEmbed()
+        let embed = new discord.EmbedBuilder()
             .setColor('1F8B4C')
-            .setAuthor(`${commandName} Command Help`, game.guild.iconURL())
+            .setAuthor({ name: `${commandName} Command Help`, iconURL: game.guild.iconURL() })
             .setDescription(command.description);
 
         let aliasString = "";
         for (let i = 0; i < command.aliases.length; i++)
             aliasString += `\`${settings.commandPrefix}${command.aliases[i]}\` `;
-        embed.addField("Aliases", aliasString);
-        embed.addField("Examples", command.usage);
-        embed.addField("Description", command.details);
+        embed.addFields([
+            { name: "Aliases", value: aliasString },
+            { name: "Examples", value: command.usage },
+            { name: "Description", value: command.details }
+        ]);
 
         message.channel.send({ embeds: [embed] });
     }
@@ -99,15 +101,17 @@ module.exports.run = async (bot, game, message, command, args) => {
 function createEmbed(game, page, pages) {
     const role = game.guild.roles.cache.get(settings.moderatorRole);
     const roleName = role ? role.name : "Moderator";
-    let embed = new discord.MessageEmbed()
+    let embed = new discord.EmbedBuilder()
         .setColor('1F8B4C')
-        .setAuthor(`${game.guild.me.displayName} Help`, game.guild.iconURL())
+        .setAuthor({ name: `${game.guild.members.me.displayName} Help`, iconURL: game.guild.iconURL() })
         .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
-        .setFooter(`Page ${page + 1}/${pages.length}`);
+        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 
+    let fields = [];
     // Now add the fields of the first page.
     for (let i = 0; i < pages[page].length; i++)
-        embed.addField(pages[page][i].command, pages[page][i].description);
+        fields.push({ name: pages[page][i].command, value: pages[page][i].description })
+    embed.addFields(fields);
 
     return embed;
 }

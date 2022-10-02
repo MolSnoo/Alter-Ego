@@ -192,15 +192,17 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 };
 
 function createEmbed(game, page, pages) {
-    let embed = new discord.MessageEmbed()
+    let embed = new discord.EmbedBuilder()
         .setColor('1F8B4C')
-        .setAuthor(`Gestures List`, game.guild.iconURL())
+        .setAuthor({ name: `Gestures List`, iconURL: game.guild.iconURL() })
         .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)
-        .setFooter(`Page ${page + 1}/${pages.length}`);
+        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 
+    let fields = [];
     // Now add the fields of the first page.
     for (let i = 0; i < pages[page].length; i++)
-        embed.addField(pages[page][i].name, pages[page][i].description);
+        fields.push({ name: pages[page][i].name, value: pages[page][i].description })
+    embed.addFields(fields);
 
     return embed;
 }

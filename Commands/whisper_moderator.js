@@ -106,7 +106,7 @@ async function sendMessage (bot, game, message, string, player, whisper) {
     let webHooks = await whisper.channel.fetchWebhooks();
     let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
     if (webHook === null || webHook === undefined)
-        webHook = await whisper.channel.createWebhook(whisper.channelName);
+        webHook = await whisper.channel.createWebhook({ name: whisper.channelName });
 
     var files = [];
     [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
