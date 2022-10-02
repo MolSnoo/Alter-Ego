@@ -3,7 +3,7 @@
 module.exports.config = {
     name: "take_moderator",
     description: "Takes the given item for a player.",
-    details: "Forcefully takes an item for a player. The player must have a free hand to take an item. You can specify "
+    details: "Forcibly takes an item for a player. The player must have a free hand to take an item. You can specify "
         + "which object or item to take the item from, but only items in the same room as the player can be taken. Additionally, if "
         + "the item is contained in another item with multiple inventory slots (such as pockets), you can specify which slot to take it from.",
     usage: `${settings.commandPrefix}take nero food\n`
@@ -157,7 +157,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
     if (container !== null && (container.hasOwnProperty("hidingSpotCapacity") || container.hasOwnProperty("solved"))) {
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.hasOwnProperty("solved") && container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
@@ -184,10 +184,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     // Container is an Item.
     else if (container !== null && container.hasOwnProperty("inventory"))
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
     // Container is a Room.
     else
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
 
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully took ${item.identifier ? item.identifier : item.prefab.id} for ${player.name}.`);
 

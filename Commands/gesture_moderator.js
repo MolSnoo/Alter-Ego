@@ -175,11 +175,11 @@ module.exports.run = async (bot, game, message, command, args) => {
         // Post log message. Message should vary based on target type.
         const time = new Date().toLocaleTimeString();
         if (targetType === "")
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully did gesture ${gesture.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} in ${player.location.channel}`);
         else if (targetType === "Exit" || targetType === "Object" || targetType === "Player")
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully did gesture ${gesture.name} to ${target.name} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.name} in ${player.location.channel}`);
         else if (targetType === "Item" || targetType === "Inventory Item")
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully did gesture ${gesture.name} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
     }
 
     return;

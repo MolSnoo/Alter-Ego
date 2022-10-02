@@ -64,7 +64,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully used ${itemName} for ${player.name}.`);
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
         return;
     }
     else if (response.startsWith("that item has no programmed use")) return game.messageHandler.addReply(message, "That item has no programmed use.");

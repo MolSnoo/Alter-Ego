@@ -74,7 +74,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully knocked on ${exit.name} in ${player.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
 };

@@ -3,7 +3,7 @@
 module.exports.config = {
     name: "move_bot",
     description: "Moves the given player(s) to the specified room.",
-    details: 'Forcefully moves the specified player to the specified room. If you use "all" in place of the player, '
+    details: 'Forcibly moves the specified player to the specified room. If you use "all" in place of the player, '
         + 'it will move all living players to the specified room (skipping over players who are already in that room as well as players with the Headmaster role). '
         + 'If you use "player" in place of the player, then the player who triggered the command will be moved. If you use "room" instead, all players in the room will be moved. '
         + 'All of the same things that happen when a player moves to a room of their own volition apply, however you can move players to non-adjacent rooms this way. '
@@ -131,7 +131,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${playerList} forcefully moved to ${desiredRoom.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
 
     return;
 };

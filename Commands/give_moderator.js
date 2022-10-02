@@ -108,7 +108,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     giver.give(game, item, giverHand, recipient, recipientHand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${giver.name} forcefully gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${giver.location.channel}`);
+    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${giver.name} forcibly gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${giver.location.channel}`);
 
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully gave ${giver.name}'s ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name}.`);
 

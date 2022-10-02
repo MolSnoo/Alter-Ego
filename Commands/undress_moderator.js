@@ -138,10 +138,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
     if (container.hasOwnProperty("hidingSpotCapacity"))
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully undressed into ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly undressed into ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved")) {
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully undressed into ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly undressed into ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
@@ -168,7 +168,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     // Container is an Item.
     else if (container.hasOwnProperty("inventory"))
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully undressed into ${slotName} of ${container.identifier} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly undressed into ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully undressed ${player.name}.`);
 

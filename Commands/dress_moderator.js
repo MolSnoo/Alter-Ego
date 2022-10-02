@@ -139,10 +139,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
     if (container.hasOwnProperty("hidingSpotCapacity"))
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully dressed from ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved")) {
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully dressed from ${container.name} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
             const weightItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
@@ -169,9 +169,9 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     // Container is an Item.
     else if (container.hasOwnProperty("inventory") && slotName !== "")
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully dressed from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly dressed from ${slotName} of ${container.identifier} in ${player.location.channel}`);
     else if (container.hasOwnProperty("inventory") && slotName === "")
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcefully dressed from ${container.identifier} in ${player.location.channel}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly dressed from ${container.identifier} in ${player.location.channel}`);
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully dressed ${player.name}.`);
 
     return;
