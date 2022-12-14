@@ -41,7 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (recipient === null) return game.messageHandler.addReply(message, `Player "${args[args.length - 1]}" not found.`);
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);
 
-    if (giver.name === recipient.name) return game.messageHandler.addReply(message, `${giver.name} cannot give an item to ${giver.pronouns.ref}.`);
+    if (giver.name === recipient.name) return game.messageHandler.addReply(message, `${giver.name} cannot give an item to ${giver.originalPronouns.ref}.`);
     if (giver.location.name !== recipient.location.name) return game.messageHandler.addReply(message, `${giver.name} and ${recipient.name} are not in the same room.`);
 
     // Check to make sure that the recipient has a free hand.
