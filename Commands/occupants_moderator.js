@@ -7,6 +7,8 @@ module.exports.config = {
     description: "Lists all occupants in a room.",
     details: "Lists all occupants currently in the given room. If an occupant is in the process of moving, "
         + "their move queue will be included, along with the time remaining until they reach the next room in their queue. "
+        + "Note that the displayed time remaining will not be adjusted according to the heatedSlowdownRate setting. "
+        + "If a player in the game has the heated status effect, movement times for all players will be displayed as shorter than they actually are. "
         + "Occupants with the `hidden` behavior attributes will also be listed alongside their hiding spots.",
     usage: `${settings.commandPrefix}occupants floor-b1-hall-1\n`
         + `${settings.commandPrefix}o ultimate conference hall`,
