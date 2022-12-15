@@ -3,10 +3,15 @@
 module.exports.config = {
     name: "use_moderator",
     description: "Uses an item in the given player's inventory.",
-    details: "Uses an item in one of the given player's hands. Note that you cannot solve puzzles using this command. "
-        + "To do that, use the puzzle command.",
-    usage: `${settings.commandPrefix}use veronica first aid kit\n`
-        + `${settings.commandPrefix}use colin's food`,
+    details: "Uses an item in one of the given player's hands. You can specify a second player for the first player to use their item on. "
+        + "If you do, players in the room will be notified, so you should generally give a string for the bot to use, "
+        + 'otherwise the bot will say "[player] uses [item single containing phrase] on [target]." which may not sound right. '
+        + "Both players must be in the same room. If no second player is given, the first player will use the item on themself. "
+        + "Note that you cannot solve puzzles using this command. To do that, use the puzzle command.",
+    usage: `${settings.commandPrefix}use princeton first aid kit\n`
+        + `${settings.commandPrefix}use celia's food\n`
+        + `${settings.commandPrefix}use pollux first aid spray ximena "Pollux uncaps and applies a can of FIRST AID SPRAY to Ximena's wounds."\n`
+        + `${settings.commandPrefix}use ayaka's black lipstick on wynne "Ayaka applies a tube of BLACK LIPSTICK to Wynne's lips."`,
     usableBy: "Moderator",
     aliases: ["use"],
     requiresGame: true
@@ -27,6 +32,43 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
+
+    // If an announcement is present, it's the next easiest thing to find.
+    var announcement = "";
+    var index = input.indexOf('"');
+    if (index === -1) index = input.indexOf('“');
+    if (index !== -1) {
+        announcement = input.substring(index + 1);
+        // Remove the announcement from the list of arguments.
+        input = input.substring(0, index - 1);
+        args = input.split(" ");
+        // Now clean up the announcement text.
+        if (announcement.endsWith('"') || announcement.endsWith('”'))
+            announcement = announcement.substring(0, announcement.length - 1);
+        if (!announcement.endsWith('.') && !announcement.endsWith('!'))
+            announcement += '.';
+    }
+
+    var target = null;
+    for (let i = 0; i < game.players_alive.length; i++) {
+        // If "on" precedes the target's name, remove both args.
+        if (args.length > 1 && game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase() && args[args.length - 2].toLowerCase() === "on") {
+            target = game.players_alive[i];
+            args.splice(args.length - 2, 2);
+            break;
+        }
+        if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
+            target = game.players_alive[i];
+            args.splice(args.length - 1, 1);
+            break;
+        }
+    }
+    if (announcement !== "" && target === null) return game.messageHandler.addReply(message, `Player "${args[args.length - 1]}" not found.`);
+    if (target !== null && player.name === target.name) return game.messageHandler.addReply(message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
+    if (target !== null && player.location.name !== target.location.name) return game.messageHandler.addReply(message, `${player.name} and ${target.name} are not in the same room.`);
+
+    // args should now only contain the name of the item.
+    input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // First, find the item in the player's inventory.
@@ -59,15 +101,30 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     // Use the player's item.
     const itemName = item.identifier ? item.identifier : item.prefab.id;
-    const response = player.use(game, item);
-    if (response === "" || !response) {
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully used ${itemName} for ${player.name}.`);
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
-        return;
+    if (target !== null) {
+        const response = player.use(game, item, target, announcement);
+        if (response === "" || !response) {
+            game.messageHandler.addGameMechanicMessage(message.channel, `Successfully used ${itemName} on ${target.name} for ${player.name}.`);
+            // Post log message.
+            const time = new Date().toLocaleTimeString();
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly used ${itemName} from ${player.originalPronouns.dpos} inventory on ${target.name} in ${player.location.channel}`);
+            return;
+        }
+        else if (response.startsWith("That item has no programmed use")) return game.messageHandler.addReply(message, "That item has no programmed use.");
+        else if (response.startsWith("You attempt to use the")) return game.messageHandler.addReply(message, `${itemName} currently has no effect on ${target.name}.`);
+        else return game.messageHandler.addReply(message, response);
     }
-    else if (response.startsWith("that item has no programmed use")) return game.messageHandler.addReply(message, "That item has no programmed use.");
-    else if (response.startsWith("you attempt to use the")) return game.messageHandler.addReply(message, `${itemName} currently has no effect on ${player.name}.`);
-    else return game.messageHandler.addReply(message, response);
+    else {
+        const response = player.use(game, item);
+        if (response === "" || !response) {
+            game.messageHandler.addGameMechanicMessage(message.channel, `Successfully used ${itemName} for ${player.name}.`);
+            // Post log message.
+            const time = new Date().toLocaleTimeString();
+            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            return;
+        }
+        else if (response.startsWith("That item has no programmed use")) return game.messageHandler.addReply(message, "That item has no programmed use.");
+        else if (response.startsWith("You attempt to use the")) return game.messageHandler.addReply(message, `${itemName} currently has no effect on ${player.name}.`);
+        else return game.messageHandler.addReply(message, response);
+    }
 };

@@ -680,38 +680,44 @@ class Player {
         return Math.floor(1.783 * Math.pow(this.strength, 2) - 2 * this.strength + 22);
     }
 
-    use(game, item) {
-        if (item.uses === 0) return "that item has no uses left.";
-        if (!item.prefab.usable) return "that item has no programmed use on its own, but you may be able to use it some other way.";
+    use(game, item, target = this, message = "") {
+        if (item.uses === 0) return "That item has no uses left.";
+        if (!item.prefab.usable) return "That item has no programmed use on its own, but you may be able to use it some other way.";
         let hasEffect = false;
         let hasCure = false;
         if (item.prefab.effects.length !== 0) {
             for (let i = 0; i < item.prefab.effects.length; i++) {
-                if (!this.statusString.includes(item.prefab.effects[i].name) || item.prefab.effects[i].duplicatedStatus !== null)
+                if (!target.statusString.includes(item.prefab.effects[i].name) || item.prefab.effects[i].duplicatedStatus !== null)
                     hasEffect = true;
             }
         }
         if (item.prefab.cures.length !== 0) {
             for (let i = 0; i < item.prefab.cures.length; i++) {
-                if (this.statusString.includes(item.prefab.cures[i].name))
+                if (target.statusString.includes(item.prefab.cures[i].name))
                     hasCure = true;
             }
         }
-        if (!hasEffect && !hasCure) return `you attempt to use the ${item.name}, but it has no effect.`;
+        if (!hasEffect && !hasCure) return `You attempt to use the ${item.name}, but it has no effect.`;
 
         if (item.prefab.effects.length !== 0) {
             for (let i = 0; i < item.prefab.effects.length; i++)
-                this.inflict(game, item.prefab.effects[i].name, true, true, true, item);
+                target.inflict(game, item.prefab.effects[i].name, true, true, true, item);
         }
 
         if (item.prefab.cures.length !== 0) {
             // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
             for (let i = 0; i < item.prefab.cures.length; i++)
-                this.cure(game, item.prefab.cures[i].name, true, true, true, item);
+                target.cure(game, item.prefab.cures[i].name, true, true, true, item);
         }
 
-        const verb = item.prefab.verb ? item.prefab.verb : "uses";
-        new Narration(game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
+        if (message !== "")
+            new Narration(game, this, this.location, message).send();
+        else if (target.name !== this.name && message === "")
+            new Narration(game, this, this.location, `${this.displayName} uses ${item.singleContainingPhrase} on ${target.displayName}.`).send();
+        else {
+            const verb = item.prefab.verb ? item.prefab.verb : "uses";
+            new Narration(game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
+        }
 
         if (!isNaN(item.uses)) {
             item.uses--;
