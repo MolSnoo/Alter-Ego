@@ -103,6 +103,14 @@ module.exports.findInventoryItem = function (identifier, player, containerName, 
             && inventoryItem.containerName === containerName
             && inventoryItem.quantity !== 0
         );
+	else if (player && equipmentSlot)
+        return game.inventoryItems.find(inventoryItem =>
+            inventoryItem.prefab !== null
+            && (inventoryItem.identifier !== "" && inventoryItem.identifier === identifier || inventoryItem.prefab.id === identifier)
+            && inventoryItem.player.name.toLowerCase() === player
+            && inventoryItem.equipmentSlot === equipmentSlot
+            && inventoryItem.quantity !== 0
+        );
     else if (player)
         return game.inventoryItems.find(inventoryItem =>
             inventoryItem.prefab !== null
