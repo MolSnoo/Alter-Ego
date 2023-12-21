@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   publish:
@@ -30,8 +30,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/flufflesamy/alter-ego:${{ env.IMAGE_TAG }}
-            ghcr.io/flufflesamy/alter-ego:latest
+            ghcr.io/${{ secrets.GH_USERNAME }}/alter-ego:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ secrets.GH_USERNAME }}/alter-ego:latest
           file: ./Dockerfile
           build-args: |
               IMAGE_TAG=${{ env.IMAGE_TAG }}
