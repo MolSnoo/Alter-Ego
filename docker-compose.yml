@@ -6,7 +6,7 @@ services:
     container_name: alterego
     volumes:
       # Bind mounts for configuration files
-      - ./credentials.json:/app/Alter-Ego/credentials.json
-      - ./game.json:/app/Alter-Ego/game.json
-      - ./settings.json:/app/Alter-Ego/settings.json
+      - ./credentials.json:/app/credentials.json
+      - ./game.json:/app/game.json
+      - ./settings.json:/app/settings.json
     restart: unless-stopped
