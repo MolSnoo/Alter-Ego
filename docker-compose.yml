@@ -4,6 +4,8 @@ services:
   alterego:
     image: ghcr.io/flufflesamy/alter-ego:latest
     container_name: alterego
+    environment:
+      - TZ="America/Los_Angeles"
     volumes:
       # Bind mounts for configuration files
       - ./credentials.json:/home/node/app/credentials.json

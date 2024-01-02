@@ -6,6 +6,7 @@ WORKDIR /home/node/app
 COPY package*.json ./
 
 RUN chown -R node:node /home/node/app
+RUN apt-get install -y tzdata
 
 USER node
 
