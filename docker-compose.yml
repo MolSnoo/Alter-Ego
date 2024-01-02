@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   alterego:
-    image: ghcr.io/flufflesamy/alter-ego:latest
+    image: ghcr.io/molsnoo/alter-ego:latest
     container_name: alterego
     environment:
       TZ: "America/Los_Angeles"
