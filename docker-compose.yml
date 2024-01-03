@@ -9,6 +9,5 @@ services:
     volumes:
       # Bind mounts for configuration files
       - ./credentials.json:/home/node/app/credentials.json
-      - ./game.json:/home/node/app/game.json
       - ./settings.json:/home/node/app/settings.json
     restart: unless-stopped
