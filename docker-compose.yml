@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  alterego:
+    image: ghcr.io/molsnoo/alter-ego:latest
+    container_name: alterego
+    environment:
+      TZ: "America/Los_Angeles"
+    volumes:
+      # Bind mounts for configuration files
+      - ./credentials.json:/home/node/app/credentials.json
+      - ./settings.json:/home/node/app/settings.json
+    restart: unless-stopped
