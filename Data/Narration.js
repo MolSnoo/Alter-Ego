@@ -19,6 +19,21 @@ class Narration {
                 }
             }
             this.game.messageHandler.addNarration(this.location, this.message, true);
+
+            if (this.location.tags.includes("video surveilled")) {
+                let message = `\`[${this.location.name}] ${this.message}\``;
+                for (let i = 0; i < this.game.rooms.length; i++) {
+                    if (this.game.rooms[i].tags.includes("video monitoring") && this.game.rooms[i].occupants.length > 0) {
+                        for (let j = 0; j < this.game.rooms[i].occupants.length; j++) {
+                            let occupant = this.game.rooms[i].occupants[j];
+                            if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !occupant.hasAttribute("hidden")) {
+                                occupant.notify(this.game, message, false);
+                            }
+                        }
+                        this.game.messageHandler.addNarration(this.game.rooms[i], message, true);
+                    }
+                }
+            }
         }
         else if (this.player.hasAttribute("hidden")) {
             // Find the whisper channel the player is in, if there is one.
