@@ -1,0 +1,44 @@
+name: Publish Branch Image
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - 
+        name: Build image tag
+        run: echo "IMAGE_TAG=$(git log -1 --pretty=%h)" >> $GITHUB_ENV 
+      - 
+        name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+      -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v3 
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GH_USERNAME }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ secrets.GH_USERNAME }}/alter-ego-${{ steps.extract_branch.outputs.branch }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ secrets.GH_USERNAME }}/alter-ego-${{ steps.extract_branch.outputs.branch }}:latest
+          file: ./Dockerfile
+          build-args: |
+              IMAGE_TAG=${{ env.IMAGE_TAG }}
