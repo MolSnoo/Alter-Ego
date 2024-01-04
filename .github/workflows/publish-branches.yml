@@ -12,6 +12,8 @@ jobs:
       - 
         name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - 
         name: Build image tag
         run: echo "IMAGE_TAG=$(git log -1 --pretty=%h)" >> $GITHUB_ENV 
