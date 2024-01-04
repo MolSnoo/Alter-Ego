@@ -1,10 +1,11 @@
+import sys
 import json
 from os import environ
 
 def write():
     # Write Credentials
 
-    with open("/home/node/app/credentials.json", "r") as credentials:
+    with open(sys.path[0] + "/../credentials.json", "r") as credentials:
         credentials = json.load(credentials)
 
     if environ.get("DISCORD_TOKEN") is not None:
@@ -16,12 +17,12 @@ def write():
 
     formatted_credentials = json.dumps(credentials, indent=4)
 
-    with open("/home/node/app/credentials.json", "w") as credentials:
+    with open(sys.path[0] + "/../credentials.json", "w") as credentials:
         credentials.write(formatted_credentials)
 
     # Write Settings
         
-    with open("/home/node/app/settings.json", "r", 'encoding=utf-8-sig') as settings:
+    with open(sys.path[0] + "/../settings.json", "r") as settings:
         settings = json.load(settings)
 
     for key in settings:
@@ -30,5 +31,8 @@ def write():
 
     formatted_settings = json.dumps(settings, indent=4)
 
-    with open("/home/node/app/settings.json", "w") as settings:
+    with open(sys.path[0] + "/../settings.json", "w") as settings:
         settings.write(formatted_settings)
+
+if __debug__:
+    write()
