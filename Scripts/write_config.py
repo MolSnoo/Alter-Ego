@@ -4,33 +4,35 @@ from os import environ
 def write():
     # Write Credentials
 
-    with open('/home/node/app/credentials.json', 'r') as credentials:
+    with open("/home/amy/Documents/devel/Alter-Ego/credentials.json", "r") as credentials:
         credentials = json.load(credentials)
 
-    if environ.get('DISCORD_TOKEN') is not None:
-        credentials['discord']['token'] = environ.get('DISCORD_TOKEN')
+    if environ.get("DISCORD_TOKEN") is not None:
+        credentials["discord"]["token"] = environ.get("DISCORD_TOKEN")
 
-    for key in credentials['google']:
-        if environ.get('G_' + key.upper()) is not None:
-            credentials['google'][key] = environ.get('G_' + key.upper())
+    for key in credentials["google"]:
+        if environ.get("G_" + key.upper()) is not None:
+            credentials["google"][key] = environ.get("G_" + key.upper())
 
     formatted_credentials = json.dumps(credentials, indent=4)
 
-    with open('/home/node/app/credentials.json', 'w') as credentials:
+    with open("/home/amy/Documents/devel/Alter-Ego/credentials.json", 'w') as credentials:
         credentials.write(formatted_credentials)
 
     # Write Settings
         
-    with open('/home/node/app/settings.json', 'r', encoding='utf-8-sig') as settings:
+    with open("/home/amy/Documents/devel/Alter-Ego/settings.json", 'r', encoding='utf-8-sig') as settings:
         settings = json.load(settings)
 
     print(settings['commandPrefix'])
 
     for key in settings:
-        if environ.get('S_' + key.upper()) is not None:
-            settings[key] = environ.get('S_' + key.upper())
+        if environ.get("S_" + key.upper()) is not None:
+            settings[key] = environ.get("S_" + key.upper())
 
     formatted_settings = json.dumps(settings, indent=4)
 
-    with open('/home/node/app/settings.json', 'w') as settings:
+    with open("../settings.json", 'w') as settings:
         settings.write(formatted_settings)
+
+write()
