@@ -8,6 +8,6 @@ services:
       - .env
     volumes:
       # Bind mounts for configuration files
-      - ./credentials.json:/home/node/app/credentials.json
-      - ./settings.json:/home/node/app/settings.json
+      - ./Configs/credentials.json:/home/node/app/Configs/credentials.json
+      - ./Configs/settings.json:/home/node/app/Configs/settings.json
     restart: unless-stopped
