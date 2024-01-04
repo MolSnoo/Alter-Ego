@@ -278,3 +278,6 @@ __pycache__/
 convert.js
 convertedText.txt
 parsedText.xml
+
+# Docker Files
+.env
