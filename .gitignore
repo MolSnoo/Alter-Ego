@@ -280,4 +280,4 @@ convertedText.txt
 parsedText.xml
 
 # Docker Files
-.env
+*.env
