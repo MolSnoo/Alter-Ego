@@ -4,85 +4,138 @@ import os
 from os import environ
 
 def write():
+    """Writes config files from environment variables"""
     # define file paths
 
-    default_credentials_path = get_path("/../credentials1.json")
-    credentials_path = get_path("/../credentials.json")
-    settings_path = sys.path[0] + "/../settings.json"
+    # default
+    default_credentials_path = get_path("/../Configs/Defaults/default_credentials.json")
+    default_settings_path = get_path("/../Configs/Defaults/default_settings.json")
+    default_playerdefaults_path = get_path("/../Configs/Defaults/default_playerdefaults.json")
+    default_serverconfig_path = get_path("/../Configs/Defaults/default_serverconfig.json")
 
-    # load default json files
-    with open(default_credentials_path, "r", encoding="utf-8") as file:
-        default_credentials = json.load(file)
+    # actual
+    credentials_path = get_path("/../Configs/credentials.json")
+    settings_path = get_path("/../Configs/settings.json")
+    serverconfig_path = get_path("/../Configs/serverconfig.json")
+    playerdefaults_path = get_path("/../Configs/playerdefaults.json")
 
     # load json files to be written
 
-    # check if credentials.json exists, if so, load
-    if os.path.isfile(credentials_path) and os.access(credentials_path, os.R_OK):
-        with open(credentials_path, "r") as file:
-            credentials = json.load(file)
-    # if file doesn't exist, create and fill with defaults. then load.
+    if environ.get("APPEND_SETTINGS") is not None:
+        if environ.get("APPEND_SETTINGS") == "true":
+            credentials = load_defaults_json(credentials_path, default_credentials_path)
+            settings = load_defaults_json(settings_path, default_settings_path)
+            serverconfig = load_defaults_json(serverconfig_path, default_serverconfig_path)
+            playerdefaults = load_defaults_json(playerdefaults_path, default_playerdefaults_path)
     else:
-        with open(credentials_path, "w+", encoding="utf-8") as file:
-            file.write(json.dumps(default_credentials, indent=4))
-            credentials = json.load(file)
+        credentials = load_json(default_credentials_path)
+        settings = load_json(default_settings_path)
+        serverconfig = load_json(default_serverconfig_path)
+        playerdefaults = load_json(default_playerdefaults_path)
     
-    # same for settings
-    if os.path.isfile(settings_path) and os.access(settings_path, os.R_OK):
-        with open(settings_path, "r") as file:
-            settings = json.load(file)
-    else:
-        with open(settings_path, "w+") as file:
-            file.write(json.dumps({}))
-            settings = json.load(file) 
-    
-    # write credentials
-    if environ.get("DISCORD_TOKEN") is not None:
-        credentials["discord"]["token"] = environ.get("DISCORD_TOKEN")
+    # set credentials
+    set_key(credentials, "DISCORD_TOKEN", "discord", "token")
+    set_key(credentials, "GOOG_PROJECT_ID", "google", "project_id")
+    set_key(credentials, "GOOG_PRIVATE_KEY_ID", "google", "private_key_id")
+    set_key(credentials, "GOOG_PRIVATE_KEY", "google", "private_key")
+    set_key(credentials, "GOOG_CLIENT_EMAIL", "google", "client_email")
+    set_key(credentials, "GOOG_CLIENT_ID", "google", "client_id")
 
-    for key in credentials["google"]:
-        if environ.get("G_" + key.upper()) is not None:
-            credentials["google"][key] = environ.get("G_" + key.upper())
+    # set settings       
+    set_key(settings, "COMMAND_PREFIX", "commandPrefix")
+    set_key(settings, "DEBUG_MODE", "debug")
+    set_key(settings, "SPREADSHEET_ID", "spreadsheetID")
+    set_key(settings, "PIXELS_PER_M", "pixelsPerMeter")
+    set_key(settings, "STAMINA_USE_RATE", "staminaUseRate")
+    set_key(settings, "HEATED_SLOWDOWN_RATE", "heatedSlowdownRate")
+    set_key(settings, "AUTOSAVE_INTERVAL", "autoSaveInterval")
+    set_key(settings, "DICE_MIN", "diceMin")
+    set_key(settings, "DICE_MAX", "diceMax")
+    set_key(settings, "DEFAULT_DROP_OBJECT", "defaultDropObject")
+    set_key(settings, "DEFAULT_ROOM_ICON_URL", "defaultRoomIconURL")
+    set_key(settings, "AUTODELETE_WHISPER_CHANNELS", "autoDeleteWhisperChannels")
+    set_key(settings, "ONLINE_ACTIVITY_TYPE", "onlineActivity", "type")
+    set_key(settings, "ONLINE_ACTIVITY_STRING", "onlineActivity", "string")
+    set_key(settings, "DEBUG_MODE_TYPE", "debugModeActivity", "type")
+    set_key(settings, "DEBUG_MODE_STRING", "debugModeActivity", "string")
+    set_key(settings, "IN_PROGRESS_TYPE", "gameInProgressActivity", "type")
+    set_key(settings, "IN_PROGRESS_STRING", "gameInProgressActivity", "string")
 
-    formatted_credentials = json.dumps(credentials, indent=4)
+    # set serverconfig
+    set_key(serverconfig, "TESTER_ROLE", "testerRole")
+    set_key(serverconfig, "ELIGIBLE_ROLE", "eligibleRole")
+    set_key(serverconfig, "PLAYER_ROLE", "playerRole")
+    set_key(serverconfig, "HEADMASTER_ROLE", "headmasterRole")
+    set_key(serverconfig, "MODERATOR_ROLE", "moderatorRole")
+    set_key(serverconfig, "DEAD_ROLE", "deadRole")
+    set_key(serverconfig, "SPECTATOR_ROLE", "spectatorRole")
+    set_key(serverconfig, "ROOM_CATEGORIES", "roomCategories")
+    set_key(serverconfig, "WHISPER_CATEGORY", "whisperCategory")
+    set_key(serverconfig, "SPECTATE_CATEGORY", "spectateCategory")
+    set_key(serverconfig, "TESTING_CHANNEL", "testingChannel")
+    set_key(serverconfig, "GENERAL_CHANNEL", "generalChannel")
+    set_key(serverconfig, "ANNOUNCEMENT_CHANNEL", "announcementChannel")
+    set_key(serverconfig, "COMMAND_CHANNEL", "commandChannel")
+    set_key(serverconfig, "LOG_CHANNEL", "logChannel")
 
-    with open(sys.path[0] + "/../credentials.json", "w") as credentials:
-        credentials.write(formatted_credentials)
+    # set playerdefaults
+    set_key(playerdefaults, "DEFAULT_STR", "defaultStats", "strength")
+    set_key(playerdefaults, "DEFAULT_INT", "defaultStats", "intelligence")
+    set_key(playerdefaults, "DEFAULT_DEX", "defaultStats", "dexterity")
+    set_key(playerdefaults, "DEFAULT_SPD", "defaultStats", "speed")
+    set_key(playerdefaults, "DEFAULT_STM", "defaultStats", "stamina")
+    set_key(playerdefaults, "DEFAULT_LOCATION", "defaultLocation")
+    set_key(playerdefaults, "DEFAULT_STATUS_EFFECTS", "defaultStatusEffects")
+    set_key(playerdefaults, "DEFAULT_INVENTORY", "defaultInventory")
+    set_key(playerdefaults, "DEFAULT_DESC", "defaultDescription")
 
-    # Write Settings       
-    for key in settings:
-        if environ.get("S_" + key.upper()) is not None:
-            settings[key] = environ.get("S_" + key.upper())
-
-    formatted_settings = json.dumps(settings, indent=4)
-
-    with open(sys.path[0] + "/../settings.json", "w") as settings:
-        settings.write(formatted_settings)
+    # write files
+    write_json(credentials_path, credentials)
+    write_json(settings_path, settings)
+    write_json(serverconfig_path, serverconfig)
+    write_json(playerdefaults_path, playerdefaults)
 
 def get_path(path):
+    """Gets absolute path from relative path"""
     return sys.path[0] + path
 
-def load_default_json(file_path):
+def load_json(file_path):
+    """Loads json file and returns it"""
     with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
-def load_json(file_path, default_path):
+def load_defaults_json(file_path, default_path):
+    "Loads json file, if file not found, replace with default values"
     # check if file exists, if so, load
     if os.path.isfile(file_path) and os.access(file_path, os.R_OK):
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)
+        load_json(file_path)
     # if file doesn't exist, create and fill with defaults. then load.
     else:
-        with open(file_path, "w+", encoding="utf-8") as file:
-            file.write(json.dumps(default_path, indent=4))
-            return json.load(file)
+        default_data = load_json(default_path)
+        write_json(file_path, default_data)
+        return load_json(file_path)
 
-def set_key(json, name, key1, key2=None): 
+def set_key(config, env, key1, key2=None): 
+    "Sets json key from environment variable"
     if key2 is not None:
-        if environ.get(name) is not None:
-            json[key1][key2] = environ.get(name)
+        if environ.get(env) is not None:
+            config[key1][key2] = environ.get(env)
     else:
-        if environ.get(name) is not None:
-            json[key1] = environ.get(name)
+        if environ.get(env) is not None:
+            config[key1] = environ.get(env)
+
+def set_constant(config, val, key1, key2=None):
+    "Sets json key from supplied value"
+    if key2 is not None:
+        config[key1][key2] = val
+    else:
+        config[key1] = val
+
+def write_json(file_path, config):
+    "Writes json file from dictionary"
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(json.dumps(config, indent=4))
+
 
 if __debug__:
     write()
