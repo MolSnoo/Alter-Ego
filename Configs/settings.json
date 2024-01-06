@@ -1,0 +1,27 @@
+{
+  "commandPrefix": ".",
+  "debug": false,
+  "spreadsheetID": "",
+  "pixelsPerMeter": 25,
+  "staminaUseRate": -0.01,
+  "heatedSlowdownRate": 0.5,
+  "autoSaveInterval": 30,
+  "diceMin": 1,
+  "diceMax": 6,
+  "defaultDropObject": "FLOOR",
+  "defaultRoomIconURL": "",
+  "autoDeleteWhisperChannels": true,
+  "onlineActivity": {
+    "type": "LISTENING",
+    "string": "Future Foundation HQ"
+  },
+  "debugModeActivity": {
+    "type": "PLAYING",
+    "string": "NWP Debugger.exe"
+  },
+  "gameInProgressActivity": {
+    "type": "STREAMING",
+    "string": "Neo World Program",
+    "url": "https://www.twitch.tv/molsno"
+  }
+}
