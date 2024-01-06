@@ -6,8 +6,8 @@ from os import environ
 def write():
     # define file paths
 
-    default_credentials_path = sys.path[0] + "/../credentials1.json"
-    credentials_path = sys.path[0] + "/../credentials.json"
+    default_credentials_path = get_path("/../credentials1.json")
+    credentials_path = get_path("/../credentials.json")
     settings_path = sys.path[0] + "/../settings.json"
 
     # load default json files
@@ -57,6 +57,32 @@ def write():
 
     with open(sys.path[0] + "/../settings.json", "w") as settings:
         settings.write(formatted_settings)
+
+def get_path(path):
+    return sys.path[0] + path
+
+def load_default_json(file_path):
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+def load_json(file_path, default_path):
+    # check if file exists, if so, load
+    if os.path.isfile(file_path) and os.access(file_path, os.R_OK):
+        with open(file_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    # if file doesn't exist, create and fill with defaults. then load.
+    else:
+        with open(file_path, "w+", encoding="utf-8") as file:
+            file.write(json.dumps(default_path, indent=4))
+            return json.load(file)
+
+def set_key(json, name, key1, key2=None): 
+    if key2 is not None:
+        if environ.get(name) is not None:
+            json[key1][key2] = environ.get(name)
+    else:
+        if environ.get(name) is not None:
+            json[key1] = environ.get(name)
 
 if __debug__:
     write()
