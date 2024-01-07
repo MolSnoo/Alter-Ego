@@ -32,7 +32,7 @@ def write():
         settings = load_json(default_settings_path)
         serverconfig = load_json(default_serverconfig_path)
         playerdefaults = load_json(default_playerdefaults_path)
-    
+  
     # set credentials
     set_key(credentials, "s", "DISCORD_TOKEN", "discord", "token")
     set_key(credentials, "s", "G_PROJECT_ID", "google", "project_id")
@@ -109,14 +109,14 @@ def load_defaults_json(file_path, default_path):
     "Loads json file, if file not found, replace with default values"
     # check if file exists, if so, load
     if os.path.isfile(file_path) and os.access(file_path, os.R_OK):
-        load_json(file_path)
+        return load_json(file_path)
     # if file doesn't exist, create and fill with defaults. then load.
     else:
         default_data = load_json(default_path)
         write_json(file_path, default_data)
         return load_json(file_path)
 
-def set_key(config, flag, env, key1, key2=None): 
+def set_key(config, flag, env, key1, key2=None):
     "Sets json key from environment variable"
     env_string = environ.get(env)
 
