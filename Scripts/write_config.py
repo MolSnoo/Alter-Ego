@@ -120,57 +120,41 @@ def set_key(config, flag, env, key1, key2=None):
     "Sets json key from environment variable"
     env_string = environ.get(env)
 
-    if key2 is not None:
-        if env_string is not None:
-            match(flag):
-                case "s":
-                    config[key1][key2] = env_string
-                case "b":
-                    try:
-                        config[key1][key2] = json.loads(env_string.lower())
-                    except ValueError:
-                        print(f"Must supply a valid boolean for {env}!")
-                case "l":
-                    try:
-                        config[key1][key2] = json.loads(env_string)
-                    except ValueError:
-                        print(f"Must supply a valid array for {env}! Have you tried adding single quotes around it?")
-                case "i":
-                    try:
-                        config[key1][key2] = int(env_string)
-                    except ValueError:
-                        print(f"Must supply a valid integer for {env}!")
-                case "f":
-                    try:
-                        config[key1][key2] = float(env_string)
-                    except ValueError:
-                        print(f"Must supply a valid float for {env}!")
-    else:
-        if env_string is not None:
-            match(flag):
-                case "s":
-                    config[key1] = env_string
-                case "b":
-                    try:
-                        config[key1]= json.loads(env_string.lower())
-                    except ValueError:
-                        print(f"Must supply a valid boolean for {env}!")
-                case "l":
-                    try:
-                        config[key1] = json.loads(env_string)
-                    except ValueError:
-                        print(f"Must supply a valid array for {env}! Have you tried adding single quotes around it?")
-                case "i":
-                    try:
-                        config[key1] = int(env_string)
-                    except ValueError:
-                        print(f"Must supply a valid integer for {env}!")
-                case "f":
-                    try:
-                        config[key1] = float(env_string)
-                    except ValueError:
-                        print(f"Must supply a valid float for {env}!")
+    if env_string is not None:
+        config_key = ""
 
+        match(flag):
+            case "s":
+                config_key = env_string
+            case "b":
+                try:
+                    config_key = json.loads(env_string.lower())
+                except ValueError as e:
+                    raise ValueError(f"Must supply a valid boolean for {env}! "
+                                     "Valid values: true, false.") from e
+            case "l":
+                try:
+                    config_key = json.loads(env_string)
+                except ValueError as e:
+                    raise ValueError(f"Must supply a valid JSON array for {env}! "
+                                     "Have you tried adding single quotes around it?") from e
+            case "i":
+                try:
+                    config_key = int(env_string)
+                except ValueError as e:
+                    raise ValueError(f"Must supply a valid integer for {env}!") from e
+            case "f":
+                try:
+                    config_key = float(env_string)
+                except ValueError as e:
+                    raise ValueError(f"Must supply a valid float for {env}!") from e
+            case _:
+                raise ValueError("Must supply a valid type flag!")
+
+        if key2 is not None:
+            config[key1][key2] = config_key
+        else:
+            config[key1] = config_key
 
 def set_constant(config, val, key1, key2=None):
     "Sets json key from supplied value"
