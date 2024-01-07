@@ -34,60 +34,61 @@ def write():
         playerdefaults = load_json(default_playerdefaults_path)
     
     # set credentials
-    set_key(credentials, "DISCORD_TOKEN", "discord", "token")
-    set_key(credentials, "GOOG_PROJECT_ID", "google", "project_id")
-    set_key(credentials, "GOOG_PRIVATE_KEY_ID", "google", "private_key_id")
-    set_key(credentials, "GOOG_PRIVATE_KEY", "google", "private_key")
-    set_key(credentials, "GOOG_CLIENT_EMAIL", "google", "client_email")
-    set_key(credentials, "GOOG_CLIENT_ID", "google", "client_id")
+    set_key(credentials, "s", "DISCORD_TOKEN", "discord", "token")
+    set_key(credentials, "s", "G_PROJECT_ID", "google", "project_id")
+    set_key(credentials, "s", "G_PRIVATE_KEY_ID", "google", "private_key_id")
+    set_key(credentials, "s", "G_PRIVATE_KEY", "google", "private_key")
+    set_key(credentials, "s", "G_CLIENT_EMAIL", "google", "client_email")
+    set_key(credentials, "s", "G_CLIENT_ID", "google", "client_id")
+    set_key(credentials, "s", "G_CLIENT_X509_CERT_URL", "google", "client_x509_cert_url")
 
     # set settings       
-    set_key(settings, "COMMAND_PREFIX", "commandPrefix")
-    set_key(settings, "DEBUG_MODE", "debug")
-    set_key(settings, "SPREADSHEET_ID", "spreadsheetID")
-    set_key(settings, "PIXELS_PER_M", "pixelsPerMeter")
-    set_key(settings, "STAMINA_USE_RATE", "staminaUseRate")
-    set_key(settings, "HEATED_SLOWDOWN_RATE", "heatedSlowdownRate")
-    set_key(settings, "AUTOSAVE_INTERVAL", "autoSaveInterval")
-    set_key(settings, "DICE_MIN", "diceMin")
-    set_key(settings, "DICE_MAX", "diceMax")
-    set_key(settings, "DEFAULT_DROP_OBJECT", "defaultDropObject")
-    set_key(settings, "DEFAULT_ROOM_ICON_URL", "defaultRoomIconURL")
-    set_key(settings, "AUTODELETE_WHISPER_CHANNELS", "autoDeleteWhisperChannels")
-    set_key(settings, "ONLINE_ACTIVITY_TYPE", "onlineActivity", "type")
-    set_key(settings, "ONLINE_ACTIVITY_STRING", "onlineActivity", "string")
-    set_key(settings, "DEBUG_MODE_TYPE", "debugModeActivity", "type")
-    set_key(settings, "DEBUG_MODE_STRING", "debugModeActivity", "string")
-    set_key(settings, "IN_PROGRESS_TYPE", "gameInProgressActivity", "type")
-    set_key(settings, "IN_PROGRESS_STRING", "gameInProgressActivity", "string")
+    set_key(settings, "s", "COMMAND_PREFIX", "commandPrefix")
+    set_key(settings, "b", "DEBUG_MODE", "debug")
+    set_key(settings, "s", "SPREADSHEET_ID", "spreadsheetID")
+    set_key(settings, "i", "PIXELS_PER_M", "pixelsPerMeter")
+    set_key(settings, "f", "STAMINA_USE_RATE", "staminaUseRate")
+    set_key(settings, "f", "HEATED_SLOWDOWN_RATE", "heatedSlowdownRate")
+    set_key(settings, "i", "AUTOSAVE_INTERVAL", "autoSaveInterval")
+    set_key(settings, "i", "DICE_MIN", "diceMin")
+    set_key(settings, "i", "DICE_MAX", "diceMax")
+    set_key(settings, "s", "DEFAULT_DROP_OBJECT", "defaultDropObject")
+    set_key(settings, "s", "DEFAULT_ROOM_ICON_URL", "defaultRoomIconURL")
+    set_key(settings, "b", "AUTODELETE_WHISPER_CHANNELS", "autoDeleteWhisperChannels")
+    set_key(settings, "s", "ONLINE_ACTIVITY_TYPE", "onlineActivity", "type")
+    set_key(settings, "s", "ONLINE_ACTIVITY_STRING", "onlineActivity", "string")
+    set_key(settings, "s", "DEBUG_MODE_TYPE", "debugModeActivity", "type")
+    set_key(settings, "s", "DEBUG_MODE_STRING", "debugModeActivity", "string")
+    set_key(settings, "s", "IN_PROGRESS_TYPE", "gameInProgressActivity", "type")
+    set_key(settings, "s", "IN_PROGRESS_STRING", "gameInProgressActivity", "string")
 
     # set serverconfig
-    set_key(serverconfig, "TESTER_ROLE", "testerRole")
-    set_key(serverconfig, "ELIGIBLE_ROLE", "eligibleRole")
-    set_key(serverconfig, "PLAYER_ROLE", "playerRole")
-    set_key(serverconfig, "HEADMASTER_ROLE", "headmasterRole")
-    set_key(serverconfig, "MODERATOR_ROLE", "moderatorRole")
-    set_key(serverconfig, "DEAD_ROLE", "deadRole")
-    set_key(serverconfig, "SPECTATOR_ROLE", "spectatorRole")
-    set_key(serverconfig, "ROOM_CATEGORIES", "roomCategories")
-    set_key(serverconfig, "WHISPER_CATEGORY", "whisperCategory")
-    set_key(serverconfig, "SPECTATE_CATEGORY", "spectateCategory")
-    set_key(serverconfig, "TESTING_CHANNEL", "testingChannel")
-    set_key(serverconfig, "GENERAL_CHANNEL", "generalChannel")
-    set_key(serverconfig, "ANNOUNCEMENT_CHANNEL", "announcementChannel")
-    set_key(serverconfig, "COMMAND_CHANNEL", "commandChannel")
-    set_key(serverconfig, "LOG_CHANNEL", "logChannel")
+    set_key(serverconfig, "s", "TESTER_ROLE", "testerRole")
+    set_key(serverconfig, "s", "ELIGIBLE_ROLE", "eligibleRole")
+    set_key(serverconfig, "s", "PLAYER_ROLE", "playerRole")
+    set_key(serverconfig, "s", "HEADMASTER_ROLE", "headmasterRole")
+    set_key(serverconfig, "s", "MODERATOR_ROLE", "moderatorRole")
+    set_key(serverconfig, "s", "DEAD_ROLE", "deadRole")
+    set_key(serverconfig, "s", "SPECTATOR_ROLE", "spectatorRole")
+    set_key(serverconfig, "s", "ROOM_CATEGORIES", "roomCategories")
+    set_key(serverconfig, "s", "WHISPER_CATEGORY", "whisperCategory")
+    set_key(serverconfig, "s", "SPECTATE_CATEGORY", "spectateCategory")
+    set_key(serverconfig, "s", "TESTING_CHANNEL", "testingChannel")
+    set_key(serverconfig, "s", "GENERAL_CHANNEL", "generalChannel")
+    set_key(serverconfig, "s", "ANNOUNCEMENT_CHANNEL", "announcementChannel")
+    set_key(serverconfig, "s", "COMMAND_CHANNEL", "commandChannel")
+    set_key(serverconfig, "s", "LOG_CHANNEL", "logChannel")
 
     # set playerdefaults
-    set_key(playerdefaults, "DEFAULT_STR", "defaultStats", "strength")
-    set_key(playerdefaults, "DEFAULT_INT", "defaultStats", "intelligence")
-    set_key(playerdefaults, "DEFAULT_DEX", "defaultStats", "dexterity")
-    set_key(playerdefaults, "DEFAULT_SPD", "defaultStats", "speed")
-    set_key(playerdefaults, "DEFAULT_STM", "defaultStats", "stamina")
-    set_key(playerdefaults, "DEFAULT_LOCATION", "defaultLocation")
-    set_key(playerdefaults, "DEFAULT_STATUS_EFFECTS", "defaultStatusEffects")
-    set_key(playerdefaults, "DEFAULT_INVENTORY", "defaultInventory")
-    set_key(playerdefaults, "DEFAULT_DESC", "defaultDescription")
+    set_key(playerdefaults, "i", "DEFAULT_STR", "defaultStats", "strength")
+    set_key(playerdefaults, "i", "DEFAULT_INT", "defaultStats", "intelligence")
+    set_key(playerdefaults, "i", "DEFAULT_DEX", "defaultStats", "dexterity")
+    set_key(playerdefaults, "i", "DEFAULT_SPD", "defaultStats", "speed")
+    set_key(playerdefaults, "i", "DEFAULT_STM", "defaultStats", "stamina")
+    set_key(playerdefaults, "s", "DEFAULT_LOCATION", "defaultLocation")
+    set_key(playerdefaults, "s", "DEFAULT_STATUS_EFFECTS", "defaultStatusEffects")
+    set_key(playerdefaults, "l", "DEFAULT_INVENTORY", "defaultInventory")
+    set_key(playerdefaults, "s", "DEFAULT_DESC", "defaultDescription")
 
     # write files
     write_json(credentials_path, credentials)
@@ -115,14 +116,61 @@ def load_defaults_json(file_path, default_path):
         write_json(file_path, default_data)
         return load_json(file_path)
 
-def set_key(config, env, key1, key2=None): 
+def set_key(config, flag, env, key1, key2=None): 
     "Sets json key from environment variable"
+    env_string = environ.get(env)
+
     if key2 is not None:
-        if environ.get(env) is not None:
-            config[key1][key2] = environ.get(env)
+        if env_string is not None:
+            match(flag):
+                case "s":
+                    config[key1][key2] = env_string
+                case "b":
+                    try:
+                        config[key1][key2] = json.loads(env_string.lower())
+                    except ValueError:
+                        print(f"Must supply a valid boolean for {env}!")
+                case "l":
+                    try:
+                        config[key1][key2] = json.loads(env_string)
+                    except ValueError:
+                        print(f"Must supply a valid array for {env}! Have you tried adding single quotes around it?")
+                case "i":
+                    try:
+                        config[key1][key2] = int(env_string)
+                    except ValueError:
+                        print(f"Must supply a valid integer for {env}!")
+                case "f":
+                    try:
+                        config[key1][key2] = float(env_string)
+                    except ValueError:
+                        print(f"Must supply a valid float for {env}!")
     else:
-        if environ.get(env) is not None:
-            config[key1] = environ.get(env)
+        if env_string is not None:
+            match(flag):
+                case "s":
+                    config[key1] = env_string
+                case "b":
+                    try:
+                        config[key1]= json.loads(env_string.lower())
+                    except ValueError:
+                        print(f"Must supply a valid boolean for {env}!")
+                case "l":
+                    try:
+                        config[key1] = json.loads(env_string)
+                    except ValueError:
+                        print(f"Must supply a valid array for {env}! Have you tried adding single quotes around it?")
+                case "i":
+                    try:
+                        config[key1] = int(env_string)
+                    except ValueError:
+                        print(f"Must supply a valid integer for {env}!")
+                case "f":
+                    try:
+                        config[key1] = float(env_string)
+                    except ValueError:
+                        print(f"Must supply a valid float for {env}!")
+
 
 def set_constant(config, val, key1, key2=None):
     "Sets json key from supplied value"
