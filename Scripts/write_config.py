@@ -62,22 +62,22 @@ def write():
     set_key(settings, "s", "IN_PROGRESS_TYPE", "gameInProgressActivity", "type")
     set_key(settings, "s", "IN_PROGRESS_STRING", "gameInProgressActivity", "string")
 
-    # set serverconfig
-    set_key(serverconfig, "s", "TESTER_ROLE", "testerRole")
-    set_key(serverconfig, "s", "ELIGIBLE_ROLE", "eligibleRole")
-    set_key(serverconfig, "s", "PLAYER_ROLE", "playerRole")
-    set_key(serverconfig, "s", "HEADMASTER_ROLE", "headmasterRole")
-    set_key(serverconfig, "s", "MODERATOR_ROLE", "moderatorRole")
-    set_key(serverconfig, "s", "DEAD_ROLE", "deadRole")
-    set_key(serverconfig, "s", "SPECTATOR_ROLE", "spectatorRole")
-    set_key(serverconfig, "s", "ROOM_CATEGORIES", "roomCategories")
-    set_key(serverconfig, "s", "WHISPER_CATEGORY", "whisperCategory")
-    set_key(serverconfig, "s", "SPECTATE_CATEGORY", "spectateCategory")
-    set_key(serverconfig, "s", "TESTING_CHANNEL", "testingChannel")
-    set_key(serverconfig, "s", "GENERAL_CHANNEL", "generalChannel")
-    set_key(serverconfig, "s", "ANNOUNCEMENT_CHANNEL", "announcementChannel")
-    set_key(serverconfig, "s", "COMMAND_CHANNEL", "commandChannel")
-    set_key(serverconfig, "s", "LOG_CHANNEL", "logChannel")
+    # set serverconfig (unused)
+    # set_key(serverconfig, "s", "TESTER_ROLE", "testerRole")
+    # set_key(serverconfig, "s", "ELIGIBLE_ROLE", "eligibleRole")
+    # set_key(serverconfig, "s", "PLAYER_ROLE", "playerRole")
+    # set_key(serverconfig, "s", "HEADMASTER_ROLE", "headmasterRole")
+    # set_key(serverconfig, "s", "MODERATOR_ROLE", "moderatorRole")
+    # set_key(serverconfig, "s", "DEAD_ROLE", "deadRole")
+    # set_key(serverconfig, "s", "SPECTATOR_ROLE", "spectatorRole")
+    # set_key(serverconfig, "s", "ROOM_CATEGORIES", "roomCategories")
+    # set_key(serverconfig, "s", "WHISPER_CATEGORY", "whisperCategory")
+    # set_key(serverconfig, "s", "SPECTATE_CATEGORY", "spectateCategory")
+    # set_key(serverconfig, "s", "TESTING_CHANNEL", "testingChannel")
+    # set_key(serverconfig, "s", "GENERAL_CHANNEL", "generalChannel")
+    # set_key(serverconfig, "s", "ANNOUNCEMENT_CHANNEL", "announcementChannel")
+    # set_key(serverconfig, "s", "COMMAND_CHANNEL", "commandChannel")
+    # set_key(serverconfig, "s", "LOG_CHANNEL", "logChannel")
 
     # set playerdefaults
     set_key(playerdefaults, "i", "DEFAULT_STR", "defaultStats", "strength")
@@ -181,7 +181,7 @@ def set_constant(config, val, key1, key2=None):
 
 def write_json(file_path, config):
     "Writes json file from dictionary"
-    with open(file_path, "w", encoding="utf-8") as file:
+    with open(file_path, "w+", encoding="utf-8") as file:
         file.write(json.dumps(config, indent=4))
 
 
