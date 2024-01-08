@@ -1,5 +1,8 @@
 const serverconfig = include('Configs/serverconfig.json');
 
+const fs = require('fs');
+const { ChannelType } = require("../node_modules/discord-api-types/v10");
+
 module.exports.validateServerConfig = async (guild) => {
     var missingSettings = [];
     var save = false;
@@ -60,7 +63,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("spectatorRole");
     }
     if (serverconfig.roomCategories === "") {
-        let roomCategories = guild.channels.cache.find(channel => channel.isText && channel.name === "Rooms");
+        let roomCategories = guild.channels.cache.find(channel => channel.name === "Rooms");
         if (roomCategories) {
             serverconfig.roomCategories = roomCategories.id;
             save = true;
@@ -68,7 +71,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("roomCategories");
     }
     if (serverconfig.whisperCategory === "") {
-        let whisperCategory = guild.channels.cache.find(channel => channel.isText && channel.name === "Whispers");
+        let whisperCategory = guild.channels.cache.find(channel => channel.name === "Whispers");
         if (whisperCategory) {
             serverconfig.whisperCategory = whisperCategory.id;
             save = true;
@@ -76,7 +79,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("whisperCategory");
     }
     if (serverconfig.spectateCategory === "") {
-        let spectateCategory = guild.channels.cache.find(channel => channel.isText && channel.name === "Spectate");
+        let spectateCategory = guild.channels.cache.find(channel => channel.name === "Spectate");
         if (spectateCategory) {
             serverconfig.spectateCategory = spectateCategory.id;
             save = true;
@@ -84,7 +87,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("spectateCategory");
     }
     if (serverconfig.testingChannel === "") {
-        let testingChannel = guild.channels.cache.find(channel => channel.isText && channel.name === "testing");
+        let testingChannel = guild.channels.cache.find(channel => channel.name === "testing");
         if (testingChannel) {
             serverconfig.testingChannel = testingChannel.id;
             save = true;
@@ -92,7 +95,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("testingChannel");
     }
     if (serverconfig.generalChannel === "") {
-        let generalChannel = guild.channels.cache.find(channel => channel.isText && channel.name === "general");
+        let generalChannel = guild.channels.cache.find(channel => channel.name === "general");
         if (generalChannel) {
             serverconfig.generalChannel = generalChannel.id;
             save = true;
@@ -100,7 +103,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("generalChannel");
     }
     if (serverconfig.announcementChannel === "") {
-        let announcementChannel = guild.channels.cache.find(channel => channel.isText && channel.name === "announcements");
+        let announcementChannel = guild.channels.cache.find(channel => channel.name === "announcements");
         if (announcementChannel) {
             serverconfig.announcementChannel = announcementChannel.id;
             save = true;
@@ -108,7 +111,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("announcementChannel");
     }
     if (serverconfig.commandChannel === "") {
-        let commandChannel = guild.channels.cache.find(channel => channel.isText && channel.name === "bot-commands");
+        let commandChannel = guild.channels.cache.find(channel => channel.name === "bot-commands");
         if (commandChannel) {
             serverconfig.commandChannel = commandChannel.id;
             save = true;
@@ -116,7 +119,7 @@ module.exports.validateServerConfig = async (guild) => {
         else missingSettings.push("commandChannel");
     }
     if (serverconfig.logChannel === "") {
-        let logChannel = guild.channels.cache.find(channel => channel.isText && channel.name === "bot-log");
+        let logChannel = guild.channels.cache.find(channel => channel.name === "bot-log");
         if (logChannel) {
             serverconfig.logChannel = logChannel.id;
             save = true;
@@ -125,10 +128,8 @@ module.exports.validateServerConfig = async (guild) => {
     }
     if (save) {
         let json = JSON.stringify(serverconfig);
-        const fs = require('fs');
-        fs.writeFile('Configs/serverconfig.json', json, 'utf8', function () {
-            console.log("Populated serverconfig file.");
-        });
+        await fs.writeFileSync('Configs/serverconfig.json', json, 'utf8');
+        console.log("Populated serverconfig file.");
     }
     if (missingSettings.length > 0) {
         console.log(
@@ -137,4 +138,29 @@ module.exports.validateServerConfig = async (guild) => {
             + missingSettings.join('\n')
         );
     }
+};
+
+module.exports.createCategory = function (guild, name) {
+    return new Promise((resolve, reject) => {
+        guild.channels.create({
+            name: name,
+            type: ChannelType.GuildCategory
+        })
+            .then(channel => resolve(channel))
+            .catch(err => reject(err));
+    });
+};
+
+module.exports.registerRoomCategory = async (category) => {
+    if (!serverconfig.roomCategories.includes(category.id)) {
+        if (serverconfig.roomCategories !== "")
+            serverconfig.roomCategories += ",";
+        serverconfig.roomCategories += category.id;
+
+        let json = JSON.stringify(serverconfig);
+        await fs.writeFileSync('Configs/serverconfig.json', json, 'utf8');
+
+        return `Successfully registered room category "${category.name}".`;
+    }
+    else return `Room category "${category.name}" is already registered.`;
 };

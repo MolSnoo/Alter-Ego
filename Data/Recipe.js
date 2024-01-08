@@ -1,4 +1,4 @@
-const settings = include('settings.json');
+const constants = include('Configs/constants.json');
 
 class Recipe {
     constructor(ingredients, objectTag, duration, products, initiatedDescription, completedDescription, row) {
@@ -12,10 +12,10 @@ class Recipe {
     }
 
     initiatedCell() {
-        return settings.recipeSheetInitiatedColumn + this.row;
+        return constants.recipeSheetInitiatedColumn + this.row;
     }
     completedCell() {
-        return settings.recipeSheetCompletedColumn + this.row;
+        return constants.recipeSheetCompletedColumn + this.row;
     }
 }
 

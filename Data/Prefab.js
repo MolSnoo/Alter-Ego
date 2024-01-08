@@ -1,4 +1,4 @@
-﻿const settings = include('settings.json');
+﻿const constants = include('Configs/constants.json');
 
 class Prefab {
     constructor(id, name, pluralName, singleContainingPhrase, pluralContainingPhrase, discreet, size, weight, usable, verb, uses, effectsStrings, curesStrings, nextStageName, equippable, equipmentSlots, coveredEquipmentSlots, equipCommands, unequipCommands, inventory, preposition, description, row) {
@@ -31,7 +31,7 @@ class Prefab {
     }
 
     descriptionCell() {
-        return settings.prefabSheetDescriptionColumn + this.row;
+        return constants.prefabSheetDescriptionColumn + this.row;
     }
 }
 

@@ -1,5 +1,3 @@
-const settings = include('settings.json');
-
 module.exports.config = {
     name: "setdest_bot",
     description: "Updates an exit's destination.",

@@ -1,8 +1,8 @@
-const settings = include('settings.json');
-const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
-const parser = include(`${settings.modulesDir}/parser.js`);
+const constants = include('Configs/constants.json');
+const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
+const parser = include(`${constants.modulesDir}/parser.js`);
 
-const Narration = include(`${settings.dataDir}/Narration.js`);
+const Narration = include(`${constants.dataDir}/Narration.js`);
 
 var moment = require('moment');
 var timer = require('moment-timer');
@@ -178,10 +178,10 @@ class Event {
     }
 
     triggeredCell() {
-        return settings.eventSheetTriggeredColumn + this.row;
+        return constants.eventSheetTriggeredColumn + this.row;
     }
     endedCell() {
-        return settings.eventSheetEndedColumn + this.row;
+        return constants.eventSheetEndedColumn + this.row;
     }
 }
 

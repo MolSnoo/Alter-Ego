@@ -1,4 +1,5 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const serverconfig = include('Configs/serverconfig.json');
 const discord = require('discord.js');
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
 
@@ -6,14 +7,14 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
-    else if ((message.channel.id === settings.commandChannel || command.startsWith('delete')) && message.member.roles.cache.find(role => role.id === settings.moderatorRole)) isModerator = true;
+    else if ((message.channel.id === serverconfig.commandChannel || command.startsWith('delete')) && message.member.roles.cache.find(role => role.id === serverconfig.moderatorRole)) isModerator = true;
     else {
         // Don't attempt to find the member who sent this message if it was sent by a webhook.
         if (message.webhookId !== null) return;
         let member = await game.guild.members.fetch(message.author.id);
-        if (member && member.roles.cache.find(role => role.id === settings.playerRole)) isPlayer = true;
-        else if (member && settings.debug && member.roles.cache.find(role => role.id === settings.testerRole)) isEligible = true;
-        else if (member && !settings.debug && member.roles.cache.find(role => role.id === settings.eligibleRole)) isEligible = true;
+        if (member && member.roles.cache.find(role => role.id === serverconfig.playerRole)) isPlayer = true;
+        else if (member && settings.debug && member.roles.cache.find(role => role.id === serverconfig.testerRole)) isEligible = true;
+        else if (member && !settings.debug && member.roles.cache.find(role => role.id === serverconfig.eligibleRole)) isEligible = true;
     }
 
     const commandSplit = command.split(" ");
@@ -49,7 +50,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             message.reply("There is no game currently running.");
             return false;
         }
-        if (message.channel.type === ChannelType.DM || settings.roomCategories.includes(message.channel.parentId)) {
+        if (message.channel.type === ChannelType.DM || serverconfig.roomCategories.includes(message.channel.parentId)) {
             player = null;
             for (let i = 0; i < game.players_alive.length; i++) {
                 if (game.players_alive[i].id === message.author.id) {
@@ -84,8 +85,8 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             message.reply("There is no game currently running.");
             return false;
         }
-        if ((settings.debug && message.channel.id === settings.testingChannel)
-            || (!settings.debug && message.channel.id === settings.generalChannel)) {
+        if ((settings.debug && message.channel.id === serverconfig.testingChannel)
+            || (!settings.debug && message.channel.id === serverconfig.generalChannel)) {
             commandFile.run(bot, game, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
             return true;
         }

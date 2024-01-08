@@ -109,7 +109,7 @@ bot.on('ready', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
         game.guild = bot.guilds.cache.first();
-        serverManager.validateServerConfig(game.guild);
+        await serverManager.validateServerConfig(game.guild);
         game.commandChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.commandChannel);
         game.logChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.logChannel);
         console.log(`${bot.user.username} is online on 1 server.`);

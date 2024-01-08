@@ -1,6 +1,4 @@
-﻿const settings = include('settings.json');
-
-module.exports.config = {
+﻿module.exports.config = {
     name: "setpos_bot",
     description: "Sets a player's position.",
     details: `Sets the specified player's position. If the "player" argument is used in place of a name, `

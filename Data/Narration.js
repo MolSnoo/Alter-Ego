@@ -1,6 +1,4 @@
-﻿const settings = include('settings.json');
-
-class Narration {
+﻿class Narration {
     constructor(game, player, location, message) {
         this.game = game;
         this.player = player;

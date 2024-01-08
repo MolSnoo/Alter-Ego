@@ -1,5 +1,5 @@
-const settings = include('settings.json');
-const finder = include(`${settings.modulesDir}/finder.js`);
+const constants = include('Configs/constants.json');
+const finder = include(`${constants.modulesDir}/finder.js`);
 
 const DOMParser = require('xmldom').DOMParser;
 const XMLSerializer = require('xmldom').XMLSerializer;

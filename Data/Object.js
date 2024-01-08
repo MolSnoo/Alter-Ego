@@ -1,6 +1,6 @@
-const settings = include('settings.json');
+const constants = include('Configs/constants.json');
 
-const Narration = include(`${settings.dataDir}/Narration.js`);
+const Narration = include(`${constants.dataDir}/Narration.js`);
 
 var moment = require('moment');
 var timer = require('moment-timer');
@@ -140,7 +140,7 @@ class Object {
     findRecipe(game) {
         // Get all the items contained within this object.
         var items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Object && item.container.row === this.row && item.quantity > 0);
-        const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+        const itemManager = include(`${constants.modulesDir}/itemManager.js`);
         for (let i = 0; i < items.length; i++)
             itemManager.getChildItems(items, items[i]);
         items.sort(function (a, b) {
@@ -194,7 +194,7 @@ class Object {
     }
 
     descriptionCell() {
-        return settings.objectSheetDescriptionColumn + this.row;
+        return constants.objectSheetDescriptionColumn + this.row;
     }
 }
 
@@ -230,7 +230,7 @@ function process(game, object, player) {
         }
     }
     if (stillThere) {
-        const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+        const itemManager = include(`${constants.modulesDir}/itemManager.js`);
         // If there is only one ingredient in this, remember its quantity.
         const quantity = object.process.ingredients.length === 1 ? object.process.ingredients[0].quantity : 1;
         // Destroy the ingredients.

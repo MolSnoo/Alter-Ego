@@ -1,5 +1,6 @@
-const settings = include('settings.json');
-const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const itemManager = include(`${constants.modulesDir}/itemManager.js`);
 
 module.exports.config = {
     name: "destroy_moderator",

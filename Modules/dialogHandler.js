@@ -1,10 +1,10 @@
-﻿const settings = include('settings.json');
+﻿const serverconfig = include('Configs/serverconfig.json');
 
 module.exports.execute = async (bot, game, message, deletable, player = null, originalDisplayName = "") => {
     return new Promise((resolve) => {
         // Determine if the speaker is a moderator first.
         var isModerator = false;
-        if (message.member && message.member.roles.cache.find(role => role.id === settings.moderatorRole))
+        if (message.member && message.member.roles.cache.find(role => role.id === serverconfig.moderatorRole))
             isModerator = true;
 
         // Determine if the speaker is a player.
@@ -35,7 +35,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                 }
             }
         }
-        if (player !== null && message.channel.id === settings.announcementChannel) {
+        if (player !== null && message.channel.id === serverconfig.announcementChannel) {
             for (let i = 0; i < game.players_alive.length; i++)
                 game.messageHandler.addSpectatedPlayerMessage(game.players_alive[i], player, message);
             resolve();
@@ -54,7 +54,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                 resolve();
             }
             // Handle whisper messages.
-            if (message.channel.parentId === settings.whisperCategory) {
+            if (message.channel.parentId === serverconfig.whisperCategory) {
                 // Find whisper.
                 let whisper = null;
                 for (let i = 0; i < game.whispers.length; i++) {

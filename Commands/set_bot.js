@@ -1,5 +1,5 @@
-﻿const settings = include('settings.json');
-const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+﻿const constants = include('Configs/constants.json');
+const itemManager = include(`${constants.modulesDir}/itemManager.js`);
 
 module.exports.config = {
     name: "set_bot",

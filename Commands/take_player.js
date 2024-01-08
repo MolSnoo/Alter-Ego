@@ -1,6 +1,7 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
 
-const Narration = include(`${settings.dataDir}/Narration.js`);
+const Narration = include(`${constants.dataDir}/Narration.js`);
 
 module.exports.config = {
     name: "take_player",

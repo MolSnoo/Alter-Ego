@@ -1,6 +1,8 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const serverconfig = include('Configs/serverconfig.json');
 
-const Narration = include(`${settings.dataDir}/Narration.js`);
+const Narration = include(`${constants.dataDir}/Narration.js`);
 
 const { ChannelType } = require("../node_modules/discord-api-types/v10");
 
@@ -60,7 +62,7 @@ class Whisper {
             game.guild.channels.create({
                 name: name,
                 type: ChannelType.GuildText,
-                parent: settings.whisperCategory
+                parent: serverconfig.whisperCategory
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
                     let noChannel = false;
