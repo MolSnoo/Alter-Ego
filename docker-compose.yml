@@ -6,8 +6,4 @@ services:
     container_name: alterego
     env_file:
       - .env
-    volumes:
-      # Bind mounts for configuration files
-      - ./Configs/credentials.json:/home/node/app/Configs/credentials.json
-      - ./Configs/settings.json:/home/node/app/Configs/settings.json
     restart: unless-stopped
