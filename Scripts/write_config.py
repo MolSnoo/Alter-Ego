@@ -121,6 +121,7 @@ def set_key(config, flag, env, key1, key2=None):
     env_string = environ.get(env)
 
     if env_string is not None:
+        env_string = env_string.replace(r'\n', '\n')
         config_key = ""
 
         match(flag):
