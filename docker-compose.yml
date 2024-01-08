@@ -6,4 +6,9 @@ services:
     container_name: alterego
     env_file:
       - .env
+    volumes:
+      - data:/home/node/app/Configs
     restart: unless-stopped
+
+volumes:
+  data:
