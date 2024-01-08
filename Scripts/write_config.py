@@ -35,7 +35,7 @@ def write():
         serverconfig = load_json(default_serverconfig_path)
         playerdefaults = load_json(default_playerdefaults_path)
         constants = load_json(default_constants_path)
-  
+               
     # set credentials
     set_key(credentials, "s", "DISCORD_TOKEN", "discord", "token")
     set_key(credentials, "s", "G_PROJECT_ID", "google", "project_id")
@@ -174,7 +174,9 @@ def write_json(file_path, config):
         file.write(json.dumps(config, indent=4))
 
 def write_json_ifnoexist(file_path, config):
+    """Writes json if file doens't exist"""
     if not os.path.isfile(file_path) and not os.access(file_path, os.R_OK):
         write_json(file_path, config)
+
 if __debug__:
     write()
