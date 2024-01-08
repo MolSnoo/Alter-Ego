@@ -1,5 +1,3 @@
-const settings = include('settings.json');
-
 class Gesture {
     constructor(name, requires, disabledStatusesStrings, description, narration, row) {
         this.name = name;

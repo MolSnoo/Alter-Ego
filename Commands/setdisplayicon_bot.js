@@ -1,5 +1,3 @@
-const settings = include('settings.json');
-
 module.exports.config = {
     name: "setdisplayicon_bot",
     description: "Sets a player's display icon.",
