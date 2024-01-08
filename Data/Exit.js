@@ -1,4 +1,4 @@
-const settings = include('settings.json');
+const constants = include('Configs/constants.json');
 
 class Exit {
     constructor(name, pos, unlocked, dest, link, description, row) {
@@ -20,7 +20,7 @@ class Exit {
     }
 
     descriptionCell() {
-        return settings.roomSheetDescriptionColumn + this.row;
+        return constants.roomSheetDescriptionColumn + this.row;
     }
 }
 

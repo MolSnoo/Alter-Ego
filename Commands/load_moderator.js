@@ -1,5 +1,6 @@
-﻿const settings = include('settings.json');
-const loader = include(`${settings.modulesDir}/loader.js`);
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const loader = include(`${constants.modulesDir}/loader.js`);
 
 module.exports.config = {
     name: "load_moderator",

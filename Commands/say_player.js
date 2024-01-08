@@ -1,5 +1,6 @@
-﻿const settings = include('settings.json');
-const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
 
 const { ChannelType } = require("../node_modules/discord-api-types/v10");
 

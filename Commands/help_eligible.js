@@ -1,4 +1,5 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const serverconfig = include('Configs/serverconfig.json');
 const discord = require('discord.js');
 
 module.exports.config = {
@@ -99,7 +100,7 @@ module.exports.run = async (bot, game, message, args, player) => {
 };
 
 function createEmbed(game, page, pages) {
-    const roleId = settings.debug ? settings.testerRole : settings.eligibleRole;
+    const roleId = settings.debug ? serverconfig.testerRole : serverconfig.eligibleRole;
     const role = game.guild.roles.cache.get(roleId);
     const roleName = role ? role.name : "Eligible";
     let embed = new discord.EmbedBuilder()

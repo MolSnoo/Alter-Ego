@@ -1,17 +1,19 @@
-const settings = include('settings.json');
-const parser = include(`${settings.modulesDir}/parser.js`);
-const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
-const itemManager = include(`${settings.modulesDir}/itemManager.js`);
+const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const serverconfig = include('Configs/serverconfig.json');
+const parser = include(`${constants.modulesDir}/parser.js`);
+const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
+const itemManager = include(`${constants.modulesDir}/itemManager.js`);
 
-const Room = include(`${settings.dataDir}/Room.js`);
-const Object = include(`${settings.dataDir}/Object.js`);
-const Item = include(`${settings.dataDir}/Item.js`);
-const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
-const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
-const Status = include(`${settings.dataDir}/Status.js`);
-const Gesture = include(`${settings.dataDir}/Gesture.js`);
-const Narration = include(`${settings.dataDir}/Narration.js`);
-const Die = include(`${settings.dataDir}/Die.js`);
+const Room = include(`${constants.dataDir}/Room.js`);
+const Object = include(`${constants.dataDir}/Object.js`);
+const Item = include(`${constants.dataDir}/Item.js`);
+const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
+const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
+const Status = include(`${constants.dataDir}/Status.js`);
+const Gesture = include(`${constants.dataDir}/Gesture.js`);
+const Narration = include(`${constants.dataDir}/Narration.js`);
+const Die = include(`${constants.dataDir}/Die.js`);
 
 var moment = require('moment');
 var timer = require('moment-timer');
@@ -153,7 +155,7 @@ class Player {
         const appendString = this.createMoveAppendString();
 
         // If the player has the headmaster role, they can move to any room they please.
-        if (this.member.roles.cache.find(role => role.id === settings.headmasterRole)) {
+        if (this.member.roles.cache.find(role => role.id === serverconfig.headmasterRole)) {
             adjacent = true;
             for (let i = 0; i < game.rooms.length; i++) {
                 if (game.rooms[i].name === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
@@ -1984,7 +1986,7 @@ class Player {
         let player = this;
         this.onlineInterval = setTimeout(function () {
             player.setOffline();
-        }, 1000 * 60 * settings.offlineStatusInterval);
+        }, 1000 * 60 * constants.offlineStatusInterval);
     }
 
     setOffline() {
@@ -1993,7 +1995,7 @@ class Player {
     }
 
     descriptionCell() {
-        return settings.playerSheetDescriptionColumn + this.row;
+        return constants.playerSheetDescriptionColumn + this.row;
     }
 }
 

@@ -1,6 +1,8 @@
-const settings = include('settings.json');
+const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const serverconfig = include('Configs/serverconfig.json');
 const discord = require('discord.js');
-const QueuedMessage = include(`${settings.dataDir}/QueuedMessage.js`);
+const QueuedMessage = include(`${constants.dataDir}/QueuedMessage.js`);
 
 module.exports.queue = [];
 module.exports.clientID = null;
@@ -90,14 +92,14 @@ module.exports.addLogMessage = async (logChannel, messageText) => {
 // Add a game mechanic message that does not add to narration (e.g. incorrect syntax message, or the reason an action was prevented)
 module.exports.addGameMechanicMessage = (channel, messageText) => {
     // Give a higher priority if this is sent in the mod channel
-    let priority = channel.parent !== undefined && channel.id === settings.commandChannel ? messagePriority.modChannel : messagePriority.gameMechanicMessage;
+    let priority = channel.parent !== undefined && channel.id === serverconfig.commandChannel ? messagePriority.modChannel : messagePriority.gameMechanicMessage;
     addMessageToQueue(channel, messageText, priority);
 };
 
 // Add a reply to a message
 module.exports.addReply = async (message, messageText) => {
     // Give a higher priority if this is sent in the mod channel
-    let priority = message.channel.id === settings.commandChannel ? messagePriority.modChannel : messagePriority.gameMechanicMessage;
+    let priority = message.channel.id === serverconfig.commandChannel ? messagePriority.modChannel : messagePriority.gameMechanicMessage;
     addReplyToQueue(message, messageText, priority);
 };
 

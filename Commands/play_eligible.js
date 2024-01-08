@@ -1,6 +1,9 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const playerdefaults = include('Configs/playerdefaults.json');
+const serverconfig = include('Configs/serverconfig.json');
 
-const Player = include(`${settings.dataDir}/Player.js`);
+const Player = include(`${constants.dataDir}/Player.js`);
 
 module.exports.config = {
     name: "play_eligible",
@@ -27,18 +30,18 @@ module.exports.run = async (bot, game, message, args) => {
         member.displayName,
         "",
         "neutral",
-        settings.defaultStats,
+        playerdefaults.defaultStats,
         true,
-        settings.defaultLocation,
+        playerdefaults.defaultLocation,
         "",
-        settings.defaultStatusEffects,
-        settings.defaultDescription,
+        playerdefaults.defaultStatusEffects,
+        playerdefaults.defaultDescription,
         new Array(),
         null
     );
     game.players.push(player);
     game.players_alive.push(player);
-    member.roles.add(settings.playerRole);
+    member.roles.add(serverconfig.playerRole);
     message.channel.send(`<@${message.author.id}> joined the game!`);
 
     return;

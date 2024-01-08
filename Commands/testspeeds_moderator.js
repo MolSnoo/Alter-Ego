@@ -1,10 +1,11 @@
-const settings = include('settings.json');
-const parser = include(`${settings.modulesDir}/parser.js`);
+const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const parser = include(`${constants.modulesDir}/parser.js`);
 
 const fs = require('fs');
 const os = require('os');
 
-const Player = include(`${settings.dataDir}/Player.js`);
+const Player = include(`${constants.dataDir}/Player.js`);
 
 let game = include('game.json');
 

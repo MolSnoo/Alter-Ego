@@ -1,7 +1,8 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
 var game = include('game.json');
 
-const Status = include(`${settings.dataDir}/Status.js`);
+const Status = include(`${constants.dataDir}/Status.js`);
 
 class Die {
     constructor(stat, attacker, defender) {

@@ -1,11 +1,11 @@
-const settings = include('settings.json');
-const parser = include(`${settings.modulesDir}/parser.js`);
+const constants = include('Configs/constants.json');
+const parser = include(`${constants.modulesDir}/parser.js`);
 var game = include('game.json');
 
-const Object = include(`${settings.dataDir}/Object.js`);
-const Item = include(`${settings.dataDir}/Item.js`);
-const Puzzle = include(`${settings.dataDir}/Puzzle.js`);
-const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
+const Object = include(`${constants.dataDir}/Object.js`);
+const Item = include(`${constants.dataDir}/Item.js`);
+const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
+const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 
 module.exports.instantiateItem = function (prefab, location, container, slotName, quantity) {
     var containerName = "";

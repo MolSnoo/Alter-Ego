@@ -1,8 +1,8 @@
 ﻿const { google } = require('googleapis');
-const credentials = include('credentials.json');
+const credentials = include('Configs/credentials.json');
 var sheets = google.sheets('v4');
 
-const settings = include('settings.json');
+const settings = include('Configs/settings.json');
 const spreadsheetID = settings.spreadsheetID;
 
 module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {

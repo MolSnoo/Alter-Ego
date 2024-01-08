@@ -1,5 +1,6 @@
-const settings = include('settings.json');
-const saver = include(`${settings.modulesDir}/saver.js`);
+const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const saver = include(`${constants.modulesDir}/saver.js`);
 
 module.exports.config = {
     name: "save_moderator",
