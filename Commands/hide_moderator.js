@@ -1,6 +1,7 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
 
-const Whisper = include(`${settings.dataDir}/Whisper.js`);
+const Whisper = include(`${constants.dataDir}/Whisper.js`);
 
 module.exports.config = {
     name: "hide_moderator",

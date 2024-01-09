@@ -1,5 +1,3 @@
-const settings = include('settings.json');
-
 module.exports.config = {
     name: "trigger_bot",
     description: "Triggers an event.",

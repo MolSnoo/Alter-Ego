@@ -1,4 +1,4 @@
-const settings = include('settings.json');
+const constants = include('Configs/constants.json');
 
 class Item {
     constructor(prefab, identifier, location, accessible, containerName, quantity, uses, description, row) {
@@ -70,7 +70,7 @@ class Item {
     }
 
     descriptionCell() {
-        return settings.itemSheetDescriptionColumn + this.row;
+        return constants.itemSheetDescriptionColumn + this.row;
     }
 }
 

@@ -1,6 +1,9 @@
 FROM node:lts-slim
 ENV NODE_ENV production
 
+ARG image_tag
+ENV IMAGE_TAG=image_tag
+
 WORKDIR /home/node/app
 
 COPY package*.json ./

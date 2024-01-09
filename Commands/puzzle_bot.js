@@ -1,6 +1,4 @@
-﻿const settings = include('settings.json');
-
-module.exports.config = {
+﻿module.exports.config = {
     name: "puzzle_bot",
     description: "Solves or unsolves a puzzle.",
     details: 'Solves or unsolves a puzzle. You may specify an outcome, if the puzzle has more than one solution. '

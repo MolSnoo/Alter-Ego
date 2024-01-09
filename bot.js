@@ -1,12 +1,15 @@
 'use strict';
 global.include = require('app-root-path').require;
 
-const settings = include('settings.json');
-const credentials = include('credentials.json');
-const messageHandler = include(`${settings.modulesDir}/messageHandler.js`);
-const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
-const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
-const saver = include(`${settings.modulesDir}/saver.js`);
+const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const credentials = include('Configs/credentials.json');
+const serverconfig = include('Configs/serverconfig.json');
+const serverManager = include(`${constants.modulesDir}/serverManager.js`);
+const messageHandler = include(`${constants.modulesDir}/messageHandler.js`);
+const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
+const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+const saver = include(`${constants.modulesDir}/saver.js`);
 
 const fs = require('fs');
 const fetch = require('node-fetch');
@@ -42,7 +45,7 @@ game.messageHandler = messageHandler;
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
 function loadCommands() {
-    const commandsDir = `./${settings.commandsDir}/`;
+    const commandsDir = `./${constants.commandsDir}/`;
     fs.readdir(commandsDir, (err, files) => {
         if (err) console.log(err);
 
@@ -106,8 +109,9 @@ bot.on('ready', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
         game.guild = bot.guilds.cache.first();
-        game.commandChannel = game.guild.channels.cache.find(channel => channel.id === settings.commandChannel);
-        game.logChannel = game.guild.channels.cache.find(channel => channel.id === settings.logChannel);
+        await serverManager.validateServerConfig(game.guild);
+        game.commandChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.commandChannel);
+        game.logChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.logChannel);
         console.log(`${bot.user.username} is online on 1 server.`);
         loadCommands();
         updateStatus();
@@ -126,12 +130,12 @@ bot.on('ready', async () => {
     // Send messages in message queue periodically.
     setInterval(() => {
         game.messageHandler.sendQueuedMessages();
-    }, settings.messageQueueInterval * 1000);
+    }, constants.messageQueueInterval * 1000);
 
     // Run online players check periodically.
     setInterval(() => {
         updateStatus();
-    }, settings.onlinePlayersStatusInterval * 1000);
+    }, constants.onlinePlayersStatusInterval * 1000);
 
     // Check for any events that are supposed to trigger at this time of day.
     setInterval(() => {
@@ -163,7 +167,7 @@ bot.on('messageCreate', async message => {
         const command = message.content.substring(settings.commandPrefix.length);
         var isCommand = await commandHandler.execute(command, bot, game, message);
     }
-    if (message && !isCommand && game.inProgress && (settings.roomCategories.includes(message.channel.parentId) || message.channel.parentId === settings.whisperCategory || message.channel.id === settings.announcementChannel)) {
+    if (message && !isCommand && game.inProgress && (serverconfig.roomCategories.includes(message.channel.parentId) || message.channel.parentId === serverconfig.whisperCategory || message.channel.id === serverconfig.announcementChannel)) {
         await dialogHandler.execute(bot, game, message, true);
     }
 });

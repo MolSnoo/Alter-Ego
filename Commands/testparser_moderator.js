@@ -1,12 +1,14 @@
-﻿const settings = include('settings.json');
-const parser = include(`${settings.modulesDir}/parser.js`);
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const playerdefaults = include('Configs/playerdefaults.json');
+const parser = include(`${constants.modulesDir}/parser.js`);
 
 const fs = require('fs');
 const os = require('os');
 
-const Item = include(`${settings.dataDir}/Item.js`);
-const InventoryItem = include(`${settings.dataDir}/InventoryItem.js`);
-const Player = include(`${settings.dataDir}/Player.js`);
+const Item = include(`${constants.dataDir}/Item.js`);
+const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
+const Player = include(`${constants.dataDir}/Player.js`);
 
 let game = include('game.json');
 
@@ -45,7 +47,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (err) return console.log(err);
     });
 
-    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", "male", settings.defaultStats, true, "", "", "", "<desc><s>You examine <var v=\"container.displayName\" />.</s> <if cond=\"container.hasAttribute('concealed')\"><s><var v=\"container.pronouns.Sbj\" /> <if cond=\"container.pronouns.plural\">are</if><if cond=\"!container.pronouns.plural\">is</if> [HEIGHT], but <var v =\"container.pronouns.dpos\" /> face is concealed.</s></if><if cond=\"!container.hasAttribute('concealed')\"><s><var v=\"container.pronouns.Sbj\" /><if cond=\"container.pronouns.plural\">'re</if><if cond=\"!container.pronouns.plural\">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if> <s><var v=\"container.pronouns.Sbj\" /> wear<if cond=\"!container.pronouns.plural\">s</if> <il name=\"equipment\"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s> <s>You see <var v=\"container.pronouns.obj\" /> carrying <il name=\"hands\"></il>.</s></desc>", [], null, 3);
+    var player = new Player("", null, "Monokuma", "Monokuma", "Ultimate Despair Headmaster", "male", playerdefaults.defaultStats, true, "", "", "", "<desc><s>You examine <var v=\"container.displayName\" />.</s> <if cond=\"container.hasAttribute('concealed')\"><s><var v=\"container.pronouns.Sbj\" /> <if cond=\"container.pronouns.plural\">are</if><if cond=\"!container.pronouns.plural\">is</if> [HEIGHT], but <var v =\"container.pronouns.dpos\" /> face is concealed.</s></if><if cond=\"!container.hasAttribute('concealed')\"><s><var v=\"container.pronouns.Sbj\" /><if cond=\"container.pronouns.plural\">'re</if><if cond=\"!container.pronouns.plural\">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if> <s><var v=\"container.pronouns.Sbj\" /> wear<if cond=\"!container.pronouns.plural\">s</if> <il name=\"equipment\"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s> <s>You see <var v=\"container.pronouns.obj\" /> carrying <il name=\"hands\"></il>.</s></desc>", [], null, 3);
     player.setPronouns(player.originalPronouns, player.pronounString);
     player.setPronouns(player.pronouns, player.pronounString);
 

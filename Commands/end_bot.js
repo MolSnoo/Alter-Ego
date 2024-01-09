@@ -1,5 +1,3 @@
-const settings = include('settings.json');
-
 module.exports.config = {
     name: "end_bot",
     description: "Ends an event.",

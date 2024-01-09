@@ -1,0 +1,17 @@
+{
+  "testerRole": "",
+  "eligibleRole": "",
+  "playerRole": "",
+  "headmasterRole": "",
+  "moderatorRole": "",
+  "deadRole": "",
+  "spectatorRole": "",
+  "roomCategories": "",
+  "whisperCategory": "",
+  "spectateCategory": "",
+  "testingChannel": "",
+  "generalChannel": "",
+  "announcementChannel": "",
+  "commandChannel": "",
+  "logChannel": ""
+}

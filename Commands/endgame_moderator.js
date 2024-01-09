@@ -1,4 +1,5 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const serverconfig = include('Configs/serverconfig.json');
 
 module.exports.config = {
     name: "endgame_moderator",
@@ -18,7 +19,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (player.talent !== "NPC") {
             if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
             player.removeFromWhispers(game);
-            player.member.roles.remove(settings.playerRole).catch();
+            player.member.roles.remove(serverconfig.playerRole).catch();
 
             for (let j = 0; j < player.status.length; j++) {
                 if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
@@ -29,7 +30,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     for (let i = 0; i < game.players_dead.length; i++) {
         const player = game.players_dead[i];
-        if (player.talent !== "NPC") player.member.roles.remove(settings.deadRole).catch();
+        if (player.talent !== "NPC") player.member.roles.remove(serverconfig.deadRole).catch();
     }
 
     clearTimeout(game.halfTimer);
@@ -47,8 +48,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     game.players_dead = [];
 
     var channel;
-    if (settings.debug) channel = game.guild.channels.cache.get(settings.testingChannel);
-    else channel = game.guild.channels.cache.get(settings.generalChannel);
+    if (settings.debug) channel = game.guild.channels.cache.get(serverconfig.testingChannel);
+    else channel = game.guild.channels.cache.get(serverconfig.generalChannel);
     channel.send(`${message.member.displayName} ended the game!`);
 
     return;
