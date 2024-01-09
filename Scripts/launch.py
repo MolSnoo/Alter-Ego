@@ -1,6 +1,11 @@
 import subprocess
 import sys
+from os import environ
 import write_config
+
+image_tag = environ.get("IMAGE_TAG")
+
+print(f"Welcome to Alter Ego Build: {image_tag}.\n")
 
 print("Writing configuration files...")
 write_config.write()
