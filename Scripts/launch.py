@@ -3,13 +3,13 @@ import sys
 from os import environ
 import write_config
 
+image_commit = environ.get("IMAGE_COMMIT")
 image_tag = environ.get("IMAGE_TAG")
-image_label = environ.get("IMAGE_LABEL")
 
-if image_label is not None:
-    print(f"Alter Ego {image_label} (build {image_tag})\n")
+if image_tag is not None:
+    print(f"Alter Ego {image_tag} (build {image_commit})\n")
 else:
-    print(f"Alter Ego (build {image_tag})\n")
+    print(f"Alter Ego (build {image_commit})\n")
 
 print("Writing configuration files...")
 write_config.write()
