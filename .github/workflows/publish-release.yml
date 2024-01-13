@@ -42,5 +42,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           file: ./Dockerfile
           build-args: |
-            image_tag=${{ env.IMAGE_TAG }}
-            image_label=${{ steps.meta.outputs.labels }}
+            image_commit=${{ env.IMAGE_TAG }}
+            image_tag=${{ steps.meta.outputs.tags }}
