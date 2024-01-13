@@ -7,9 +7,9 @@ image_commit = environ.get("IMAGE_COMMIT").split("}",1)[0]
 image_tag = environ.get("IMAGE_TAG").split("}",1)[0]
 
 if image_tag is not None:
-    print(f"Alter Ego {image_tag.split(':',1)[1]} (build {image_commit})\n")
+    print(f"Alter Ego {image_tag.split(':',1)[1]} (commit {image_commit})\n")
 else:
-    print(f"Alter Ego (build {image_commit})\n")
+    print(f"Alter Ego (commit {image_commit})\n")
 
 print("Writing configuration files...")
 write_config.write()
