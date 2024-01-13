@@ -6,6 +6,8 @@ import write_config
 image_commit = environ.get("IMAGE_COMMIT")
 image_tag = environ.get("IMAGE_TAG")
 
+print(image_commit + ", " + image_tag)
+
 if image_tag is not None:
     print(f"Alter Ego {image_tag.split(':',1)[1]} (build {image_commit})\n")
 else:
