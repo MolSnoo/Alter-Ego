@@ -23,7 +23,7 @@ moment().format();
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.roomSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
             const columnTags = 1;
@@ -159,7 +159,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
         }
 
         sheets.getData(constants.objectSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
             const columnLocation = 1;
@@ -249,7 +249,7 @@ module.exports.checkObject = function (object) {
 module.exports.loadPrefabs = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.prefabSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
             const columnName = 1;
@@ -412,7 +412,7 @@ module.exports.checkPrefab = function (prefab, game) {
 module.exports.loadRecipes = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.recipeSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
             const columnObjectTag = 1;
@@ -513,7 +513,7 @@ module.exports.checkRecipe = function (recipe) {
 module.exports.loadItems = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.itemSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
             const columnIdentifier = 1;
@@ -719,7 +719,7 @@ module.exports.checkItem = function (item, game) {
 module.exports.loadPuzzles = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.puzzleSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
             const columnSolved = 1;
@@ -924,7 +924,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
         }
 
         sheets.getData(constants.eventSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
             const columnOngoing = 1;
@@ -1050,7 +1050,7 @@ module.exports.checkEvent = function (event, game) {
 module.exports.loadStatusEffects = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.statusSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
             const columnDuration = 1;
@@ -1258,7 +1258,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             game.rooms[i].occupants.length = 0;
 
         sheets.getData(constants.playerSheetDataCells, async function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
             const columnName = 1;
@@ -1426,7 +1426,7 @@ module.exports.checkPlayer = function (player) {
 module.exports.loadInventories = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.inventorySheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;
             const columnPrefab = 1;
@@ -1692,7 +1692,7 @@ module.exports.checkInventoryItem = function (item, game) {
 module.exports.loadGestures = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         sheets.getData(constants.gestureSheetDataCells, function (response) {
-            const sheet = response.data.values;
+            const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
             const columnRequires = 1;

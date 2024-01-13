@@ -99,6 +99,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
         sheets.updateData(constants.playerSheetDataCells, playerCells);
         sheets.updateData(constants.inventorySheetDataCells, inventoryCells);
+        game.inProgress = false;
     }, time);
 
     game.inProgress = true;

@@ -6,8 +6,8 @@
     "speed": 5,
     "stamina": 5
   },
-  "defaultLocation": "lobby",
-  "defaultStatusEffects": "satisfied, well rested, clean",
+  "defaultLocation": "living-room",
+  "defaultStatusEffects": "satisfied, well rested",
   "defaultInventory": [
     [ "NULL", "", "RIGHT HAND", "", "", "", "" ],
     [ "NULL", "", "LEFT HAND", "", "", "", "" ],
