@@ -1,9 +1,12 @@
-name: Publish Branch Image
+name: Publish Image on Release
 on:
   workflow_dispatch:
-  push:
-    branches-ignore:
-      - master
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   publish:
@@ -12,17 +15,7 @@ jobs:
       - 
         name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
       - 
-        name: Build image tag
-        run: echo "IMAGE_TAG=$(git log -1 --pretty=%h)" >> $GITHUB_ENV 
-      - 
-        name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        id: extract_branch
-      -
         name: Login to GitHub Container Registry
         uses: docker/login-action@v3 
         with:
@@ -30,15 +23,24 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
+        name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      -
+        name: Build image tag
+        run: echo "IMAGE_TAG=$(git log -1 --pretty=%h)" >> $GITHUB_ENV 
+      -
         name: Build and push
         id: docker_build
         uses: docker/build-push-action@v5
         with:
           platforms: linux/amd64
           push: true
-          tags: |
-            ghcr.io/${{ secrets.GH_USERNAME }}/alter-ego-${{ steps.extract_branch.outputs.branch }}:${{ env.IMAGE_TAG }}
-            ghcr.io/${{ secrets.GH_USERNAME }}/alter-ego-${{ steps.extract_branch.outputs.branch }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           file: ./Dockerfile
           build-args: |
             image_commit=${{ env.IMAGE_TAG }}
+            image_tag=${{ steps.meta.outputs.tags }}

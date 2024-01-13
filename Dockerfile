@@ -1,7 +1,9 @@
 FROM node:lts-slim
 ENV NODE_ENV production
 
+ARG image_commit
 ARG image_tag
+ENV IMAGE_COMMIT ${image_commit}
 ENV IMAGE_TAG ${image_tag}
 ENV PYTHONUNBUFFERED=1
 
