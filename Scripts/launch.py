@@ -3,7 +3,7 @@ import sys
 from os import environ
 import write_config
 
-if environ.get("IMAGE_TAG") is not None:
+if environ.get("IMAGE_TAG") != "":
     image_commit = environ.get("IMAGE_COMMIT").split("}",1)[0]
     image_tag = environ.get("IMAGE_TAG").split("}",1)[0]
     print(f"Alter Ego {image_tag.split(':',1)[1]} (commit {image_commit})\n")

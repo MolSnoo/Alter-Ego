@@ -34,4 +34,4 @@ jobs:
             ghcr.io/${{ secrets.GH_USERNAME }}/alter-ego:latest
           file: ./Dockerfile
           build-args: |
-            image_commit=${{ env.IMAGE_COMMIT }}
+            image_commit=${{ env.IMAGE_TAG }}
