@@ -96,18 +96,7 @@ def write():
     set_key(playerdefaults, "s", "DEFAULT_STATUS_EFFECTS", "defaultStatusEffects")
     set_key(playerdefaults, "a", "DEFAULT_INVENTORY", "defaultInventory")
     set_key(playerdefaults, "s", "DEFAULT_DESC", "defaultDescription")
-
-    # set demodata
-    set_key(demodata, "a", "DEMODATA_ROOMS", "rooms")
-    set_key(demodata, "a", "DEMODATA_OBJECTS", "objects")
-    set_key(demodata, "a", "DEMODATA_PREFABS", "prefabs")
-    set_key(demodata, "a", "DEMODATA_RECIPES", "recipes")
-    set_key(demodata, "a", "DEMODATA_ITEMS", "items")
-    set_key(demodata, "a", "DEMODATA_PUZZLES", "puzzles")
-    set_key(demodata, "a", "DEMODATA_EVENTS", "events")
-    set_key(demodata, "a", "DEMODATA_STATUSEFFECTS", "statusEffects")
-    set_key(demodata, "a", "DEMODATA_GESTURES", "gestures")
-
+    
     # write files
     write_json(credentials_path, credentials)
     write_json(settings_path, settings)
