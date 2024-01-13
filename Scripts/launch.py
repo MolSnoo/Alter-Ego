@@ -9,7 +9,7 @@ image_tag = environ.get("IMAGE_TAG")
 if environ.get("IMAGE_TAG") != "":
     print(f"Alter Ego {image_tag.split(':',1)[1]} (commit {image_commit})\n")
 else:
-    print(f"Alter Ego (commit {image_commit})\n")
+    print(f"Alter Ego Dev (commit {image_commit})\n")
 
 print("Writing configuration files...")
 write_config.write()
