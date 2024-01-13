@@ -13,6 +13,7 @@ def write():
     default_playerdefaults_path = get_path("/../Defaults/default_playerdefaults.json")
     default_serverconfig_path = get_path("/../Defaults/default_serverconfig.json")
     default_constants_path = get_path("/../Defaults/default_constants.json")
+    default_demodata_path = get_path("/../Defaults/default_demodata.json")
 
     # actual
     credentials_path = get_path("/../Configs/credentials.json")
@@ -20,6 +21,7 @@ def write():
     serverconfig_path = get_path("/../Configs/serverconfig.json")
     playerdefaults_path = get_path("/../Configs/playerdefaults.json")
     constants_path = get_path("/../Configs/constants.json")
+    demodata_path = get_path("/../Configs/demodata.json")
 
     # load json files to be written
 
@@ -29,12 +31,14 @@ def write():
             settings = load_defaults_json(settings_path, default_settings_path)
             serverconfig = load_defaults_json(serverconfig_path, default_serverconfig_path)
             playerdefaults = load_defaults_json(playerdefaults_path, default_playerdefaults_path)
+            demodata = load_defaults_json(demodata_path, default_demodata_path)
     else:
         credentials = load_json(default_credentials_path)
         settings = load_json(default_settings_path)
         serverconfig = load_json(default_serverconfig_path)
         playerdefaults = load_json(default_playerdefaults_path)
         constants = load_json(default_constants_path)
+        demodata = load_json(default_demodata_path)
                
     # set credentials
     set_key(credentials, "s", "DISCORD_TOKEN", "discord", "token")
@@ -90,8 +94,19 @@ def write():
     set_key(playerdefaults, "i", "DEFAULT_STM", "defaultStats", "stamina")
     set_key(playerdefaults, "s", "DEFAULT_LOCATION", "defaultLocation")
     set_key(playerdefaults, "s", "DEFAULT_STATUS_EFFECTS", "defaultStatusEffects")
-    set_key(playerdefaults, "l", "DEFAULT_INVENTORY", "defaultInventory")
+    set_key(playerdefaults, "a", "DEFAULT_INVENTORY", "defaultInventory")
     set_key(playerdefaults, "s", "DEFAULT_DESC", "defaultDescription")
+
+    # set demodata
+    set_key(demodata, "a", "DEMODATA_ROOMS", "rooms")
+    set_key(demodata, "a", "DEMODATA_OBJECTS", "objects")
+    set_key(demodata, "a", "DEMODATA_PREFABS", "prefabs")
+    set_key(demodata, "a", "DEMODATA_RECIPES", "recipes")
+    set_key(demodata, "a", "DEMODATA_ITEMS", "items")
+    set_key(demodata, "a", "DEMODATA_PUZZLES", "puzzles")
+    set_key(demodata, "a", "DEMODATA_EVENTS", "events")
+    set_key(demodata, "a", "DEMODATA_STATUSEFFECTS", "statusEffects")
+    set_key(demodata, "a", "DEMODATA_GESTURES", "gestures")
 
     # write files
     write_json(credentials_path, credentials)
@@ -99,6 +114,7 @@ def write():
     write_json_ifnoexist(serverconfig_path, serverconfig)
     write_json(playerdefaults_path, playerdefaults)
     write_json(constants_path, constants)
+    write_json(demodata_path, demodata)
 
 def get_path(path):
     """Gets absolute path from relative path"""
@@ -137,7 +153,7 @@ def set_key(config, flag, env, key1, key2=None):
                 except ValueError as e:
                     raise ValueError(f"Must supply a valid boolean for {env}! "
                                      "Valid values: true, false.") from e
-            case "l":
+            case "a":
                 try:
                     config_key = json.loads(env_string)
                 except ValueError as e:
