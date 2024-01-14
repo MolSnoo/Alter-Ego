@@ -24,21 +24,17 @@ def write():
     demodata_path = get_path("/../Configs/demodata.json")
 
     # load json files to be written
+    credentials = load_json(default_credentials_path)
+    settings = load_json(default_settings_path)
+    playerdefaults = load_json(default_playerdefaults_path)
+    constants = load_json(default_constants_path)
+    demodata = load_json(default_demodata_path)
 
-    if environ.get("APPEND_SETTINGS") is not None:
-        if environ.get("APPEND_SETTINGS") == "true":
-            credentials = load_defaults_json(credentials_path, default_credentials_path)
-            settings = load_defaults_json(settings_path, default_settings_path)
-            serverconfig = load_defaults_json(serverconfig_path, default_serverconfig_path)
-            playerdefaults = load_defaults_json(playerdefaults_path, default_playerdefaults_path)
-            demodata = load_defaults_json(demodata_path, default_demodata_path)
+    # check if serverconfig file exsits, if so load from it. if not, load from defaults
+    if os.path.isfile(serverconfig_path) and os.access(serverconfig_path, os.R_OK):
+        serverconfig = load_json(serverconfig_path)
     else:
-        credentials = load_json(default_credentials_path)
-        settings = load_json(default_settings_path)
         serverconfig = load_json(default_serverconfig_path)
-        playerdefaults = load_json(default_playerdefaults_path)
-        constants = load_json(default_constants_path)
-        demodata = load_json(default_demodata_path)
                
     # set credentials
     set_key(credentials, "s", "DISCORD_TOKEN", "discord", "token")
@@ -100,10 +96,10 @@ def write():
     # write files
     write_json(credentials_path, credentials)
     write_json(settings_path, settings)
-    write_json_ifnoexist(serverconfig_path, serverconfig)
     write_json(playerdefaults_path, playerdefaults)
     write_json(constants_path, constants)
     write_json(demodata_path, demodata)
+    write_json(serverconfig_path, serverconfig)
 
 def get_path(path):
     """Gets absolute path from relative path"""
@@ -113,17 +109,6 @@ def load_json(file_path):
     """Loads json file and returns it"""
     with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
-
-def load_defaults_json(file_path, default_path):
-    """Loads json file, if file not found, replace with default values"""
-    # check if file exists, if so, load
-    if os.path.isfile(file_path) and os.access(file_path, os.R_OK):
-        return load_json(file_path)
-    # if file doesn't exist, create and fill with defaults. then load.
-    else:
-        default_data = load_json(default_path)
-        write_json(file_path, default_data)
-        return load_json(file_path)
 
 def set_key(config, flag, env, key1, key2=None):
     """Sets json key from environment variable"""
@@ -166,22 +151,10 @@ def set_key(config, flag, env, key1, key2=None):
         else:
             config[key1] = config_key
 
-def set_constant(config, val, key1, key2=None):
-    """Sets json key from supplied value"""
-    if key2 is not None:
-        config[key1][key2] = val
-    else:
-        config[key1] = val
-
 def write_json(file_path, config):
     """Writes json file from dictionary"""
     with open(file_path, "w+", encoding="utf-8") as file:
         file.write(json.dumps(config, indent=4))
-
-def write_json_ifnoexist(file_path, config):
-    """Writes json if file doens't exist"""
-    if not os.path.isfile(file_path) and not os.access(file_path, os.R_OK):
-        write_json(file_path, config)
 
 if __debug__:
     write()
