@@ -5,6 +5,7 @@ const { ChannelType } = require("../node_modules/discord-api-types/v10");
 
 module.exports.validateServerConfig = async (guild) => {
     var missingSettings = [];
+    var firstBootMessage = false;
     var save = false;
     if (serverconfig.testerRole === "") {
         let testerRole = guild.roles.cache.find(role => role.name === "Tester");
@@ -130,6 +131,7 @@ module.exports.validateServerConfig = async (guild) => {
         let json = JSON.stringify(serverconfig);
         await fs.writeFileSync('Configs/serverconfig.json', json, 'utf8');
         console.log("Populated serverconfig file.");
+        firstBootMessage = true;
     }
     if (missingSettings.length > 0) {
         console.log(
@@ -137,7 +139,9 @@ module.exports.validateServerConfig = async (guild) => {
             + "The following ID(s) must be manually populated:\n"
             + missingSettings.join('\n')
         );
+        firstBootMessage = false;
     }
+    return firstBootMessage;
 };
 
 module.exports.createCategory = function (guild, name) {

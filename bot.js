@@ -98,6 +98,21 @@ function updateStatus() {
     }
 }
 
+async function sendFirstBootMessage() {
+    let moderatorRole = await game.guild.roles.fetch(serverconfig.moderatorRole);
+    game.commandChannel.send(
+        `Alter Ego is now ready for use. To get started, give yourself the ${moderatorRole.name} role and use the `
+        + `${settings.commandPrefix}help command to learn what you can do. You can issue commands in this channel.\n\n`
+        + `If this is your first time using Alter Ego, use the ${settings.commandPrefix}setupdemo command to generate `
+        + `a demo environment on the spreadsheet you supplied in the settings. Then, you can invite another account to `
+        + `the server and use the ${settings.commandPrefix}startgame command to add them as a Player so that you can `
+        + `get a feel for Neo World Program gameplay.\n\n`
+        + `For documentation and tutorials on how to use Alter Ego, check out the official Wiki:\n`
+        + `https://github.com/MolSnoo/Alter-Ego/wiki\n\n`
+        + `Good luck, and have fun!`
+    );
+}
+
 async function checkVersion() {
     const masterPackage = await fetch('https://raw.githubusercontent.com/MolSnoo/Alter-Ego/master/package.json').then(response => response.json()).catch();
     const localPackage = include('package.json');
@@ -109,10 +124,11 @@ bot.on('ready', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
         game.guild = bot.guilds.cache.first();
-        await serverManager.validateServerConfig(game.guild);
+        let firstBootMessage = await serverManager.validateServerConfig(game.guild);
         game.commandChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.commandChannel);
         game.logChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.logChannel);
         console.log(`${bot.user.username} is online on 1 server.`);
+        if (firstBootMessage && game.commandChannel) sendFirstBootMessage();
         loadCommands();
         updateStatus();
         checkVersion();
