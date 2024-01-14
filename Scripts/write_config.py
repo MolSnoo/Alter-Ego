@@ -87,7 +87,7 @@ def write():
     set_key(playerdefaults, "i", "DEFAULT_INT", "defaultStats", "intelligence")
     set_key(playerdefaults, "i", "DEFAULT_DEX", "defaultStats", "dexterity")
     set_key(playerdefaults, "i", "DEFAULT_SPD", "defaultStats", "speed")
-    set_key(playerdefaults, "i", "DEFAULT_STM", "defaultStats", "stamina")
+    set_key(playerdefaults, "i", "DEFAULT_STA", "defaultStats", "stamina")
     set_key(playerdefaults, "s", "DEFAULT_LOCATION", "defaultLocation")
     set_key(playerdefaults, "s", "DEFAULT_STATUS_EFFECTS", "defaultStatusEffects")
     set_key(playerdefaults, "a", "DEFAULT_INVENTORY", "defaultInventory")
