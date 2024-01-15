@@ -1,4 +1,4 @@
-﻿const settings = include('settings.json');
+﻿const constants = include('Configs/constants.json');
 
 class InventoryItem {
     constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row) {
@@ -63,7 +63,7 @@ class InventoryItem {
     }
 
     descriptionCell() {
-        return settings.inventorySheetDescriptionColumn + this.row;
+        return constants.inventorySheetDescriptionColumn + this.row;
     }
 }
 

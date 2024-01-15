@@ -1,7 +1,9 @@
-﻿const settings = include('settings.json');
-const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const serverconfig = include('Configs/serverconfig.json');
+const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
 
-const Narration = include(`${settings.dataDir}/Narration.js`);
+const Narration = include(`${constants.dataDir}/Narration.js`);
 
 module.exports.config = {
     name: "say_moderator",
@@ -67,7 +69,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 });
         });
     }
-    else if (channel !== undefined && settings.roomCategories.includes(channel.parentId)) {
+    else if (channel !== undefined && serverconfig.roomCategories.includes(channel.parentId)) {
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].name === channel.name) {
                 room = game.rooms[i];

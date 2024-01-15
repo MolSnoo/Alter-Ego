@@ -1,4 +1,5 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const serverconfig = include('Configs/serverconfig.json');
 const discord = require('discord.js');
 
 module.exports.config = {
@@ -94,7 +95,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 };
 
 function createEmbed(game, page, pages) {
-    const role = game.guild.roles.cache.get(settings.playerRole);
+    const role = game.guild.roles.cache.get(serverconfig.playerRole);
     const roleName = role ? role.name : "Player";
     let embed = new discord.EmbedBuilder()
         .setColor('1F8B4C')

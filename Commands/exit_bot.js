@@ -1,6 +1,4 @@
-﻿const settings = include('settings.json');
-
-module.exports.config = {
+﻿module.exports.config = {
     name: "exit_bot",
     description: "Locks or unlocks an exit.",
     details: "Locks or unlocks an exit in the specified room. The corresponding entrance in the room the exit leads to "

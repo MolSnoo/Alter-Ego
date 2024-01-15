@@ -1,5 +1,3 @@
-const settings = include('settings.json');
-
 module.exports.config = {
     name: "kill_bot",
     description: "Makes a player dead.",

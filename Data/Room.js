@@ -1,5 +1,5 @@
-const settings = include('settings.json');
-const Narration = include(`${settings.dataDir}/Narration.js`);
+const constants = include('Configs/constants.json');
+const Narration = include(`${constants.dataDir}/Narration.js`);
 
 class Room {
     constructor(name, channel, tags, iconURL, exit, description, row) {
@@ -113,7 +113,7 @@ class Room {
     }
 
     descriptionCell() {
-        return settings.roomSheetDescriptionColumn + this.row;
+        return constants.roomSheetDescriptionColumn + this.row;
     }
 }
 

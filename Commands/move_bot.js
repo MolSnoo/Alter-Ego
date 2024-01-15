@@ -1,4 +1,4 @@
-﻿const settings = include('settings.json');
+﻿const serverconfig = include('Configs/serverconfig.json');
 
 module.exports.config = {
     name: "move_bot",
@@ -45,7 +45,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
     else if (args[0].toLowerCase() === "all") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === settings.headmasterRole))
+            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === serverconfig.headmasterRole))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);

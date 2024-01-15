@@ -1,5 +1,6 @@
-const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
+const constants = include('Configs/constants.json');
+const demodata = include('Configs/demodata.json');
+const sheets = include(`${constants.modulesDir}/sheets.js`);
 
 var game = include('game.json');
 
@@ -22,7 +23,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 ]);
             }
         }
-        data.push({ range: settings.roomSheetSaveCells, values: roomValues });
+        data.push({ range: constants.roomSheetSaveCells, values: roomValues });
 
         var objectValues = [];
         for (let i = 0; i < game.objects.length; i++) {
@@ -40,7 +41,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 game.objects[i].description
             ]);
         }
-        data.push({ range: settings.objectSheetDataCells, values: objectValues });
+        data.push({ range: constants.objectSheetDataCells, values: objectValues });
 
         var itemValues = [];
         for (let i = 0; i < game.items.length; i++) {
@@ -71,7 +72,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 "",
                 ""
             ]);
-        data.push({ range: settings.itemSheetDataCells, values: itemValues });
+        data.push({ range: constants.itemSheetDataCells, values: itemValues });
 
         var puzzleValues = [];
         for (let i = 0; i < game.puzzles.length; i++) {
@@ -95,7 +96,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 game.puzzles[i].requirementsNotMetDescription
             ]);
         }
-        data.push({ range: settings.puzzleSheetDataCells, values: puzzleValues });
+        data.push({ range: constants.puzzleSheetDataCells, values: puzzleValues });
 
         var eventValues = [];
         for (let i = 0; i < game.events.length; i++) {
@@ -113,7 +114,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 game.events[i].endedNarration
             ]);
         }
-        data.push({ range: settings.eventSheetDataCells, values: eventValues });
+        data.push({ range: constants.eventSheetDataCells, values: eventValues });
 
         var playerValues = [];
         for (let i = 0; i < game.players.length; i++) {
@@ -134,7 +135,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 game.players[i].description
             ]);
         }
-        data.push({ range: settings.playerSheetDataCells, values: playerValues });
+        data.push({ range: constants.playerSheetDataCells, values: playerValues });
 
         var inventoryValues = [];
         for (let i = 0; i < game.inventoryItems.length; i++) {
@@ -165,11 +166,45 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 "",
                 ""
             ]);
-        data.push({ range: settings.inventorySheetDataCells, values: inventoryValues });
+        data.push({ range: constants.inventorySheetDataCells, values: inventoryValues });
 
         try {
             await sheets.batchUpdateData(data);
             resolve();
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
+};
+
+module.exports.setupdemo = async function () {
+    return new Promise (async (resolve, reject) =>  {
+        var data = [];
+
+        var roomValues = demodata.rooms;
+        var objectValues = demodata.objects;
+        var prefabValues = demodata.prefabs;
+        var recipeValues = demodata.recipes;
+        var itemValues = demodata.items;
+        var puzzleValues = demodata.puzzles;
+        var eventValues = demodata.events;
+        var statusValues = demodata.statusEffects;
+        var gestureValues = demodata.gestures;
+
+        data.push({ range: constants.roomSheetDataCells, values: roomValues });
+        data.push({ range: constants.objectSheetDataCells, values: objectValues });
+        data.push({ range: constants.prefabSheetDataCells, values: prefabValues });
+        data.push({ range: constants.recipeSheetDataCells, values: recipeValues });
+        data.push({ range: constants.itemSheetDataCells, values: itemValues });
+        data.push({ range: constants.puzzleSheetDataCells, values: puzzleValues });
+        data.push({ range: constants.eventSheetDataCells, values: eventValues });
+        data.push({ range: constants.statusSheetDataCells, values: statusValues });
+        data.push({ range: constants.gestureSheetDataCells, values: gestureValues });
+
+        try {
+            await sheets.batchUpdateData(data);
+            resolve(roomValues);
         }
         catch (err) {
             reject(err);

@@ -1,5 +1,8 @@
-﻿const settings = include('settings.json');
-const sheets = include(`${settings.modulesDir}/sheets.js`);
+﻿const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const playerdefaults = include('Configs/playerdefaults.json');
+const serverconfig = include('Configs/serverconfig.json');
+const sheets = include(`${constants.modulesDir}/sheets.js`);
 
 module.exports.config = {
     name: "startgame_moderator",
@@ -25,8 +28,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
 
     var channel;
-    if (settings.debug) channel = game.guild.channels.cache.get(settings.testingChannel);
-    else channel = game.guild.channels.cache.get(settings.generalChannel);
+    if (settings.debug) channel = game.guild.channels.cache.get(serverconfig.testingChannel);
+    else channel = game.guild.channels.cache.get(serverconfig.generalChannel);
 
     var time;
     var halfTime;
@@ -50,7 +53,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.endTimer = setTimeout(function () {
         game.canJoin = false;
-        const playerRole = game.guild.roles.cache.find(role => role.id === settings.playerRole);
+        const playerRole = game.guild.roles.cache.find(role => role.id === serverconfig.playerRole);
         channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
 
         game.players.sort(function (a, b) {
@@ -83,10 +86,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             ];
             playerCells.push(playerData);
 
-            for (let j = 0; j < settings.defaultInventory.length; j++) {
+            for (let j = 0; j < playerdefaults.defaultInventory.length; j++) {
                 // Update this so it replaces the number smybol in any cell.
                 var row = [player.name];
-                row = row.concat(settings.defaultInventory[j]);
+                row = row.concat(playerdefaults.defaultInventory[j]);
                 for (let k = 0; k < row.length; k++) {
                     if (row[k].includes('#'))
                         row[k] = row[k].replace(/#/g, i + 1);
@@ -94,8 +97,9 @@ module.exports.run = async (bot, game, message, command, args) => {
                 inventoryCells.push(row);
             }
         }
-        sheets.updateData(settings.playerSheetDataCells, playerCells);
-        sheets.updateData(settings.inventorySheetDataCells, inventoryCells);
+        sheets.updateData(constants.playerSheetDataCells, playerCells);
+        sheets.updateData(constants.inventorySheetDataCells, inventoryCells);
+        game.inProgress = false;
     }, time);
 
     game.inProgress = true;

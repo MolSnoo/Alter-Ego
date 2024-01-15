@@ -1,4 +1,4 @@
-﻿const settings = include('settings.json');
+﻿const constants = include('Configs/constants.json');
 
 class Status {
     constructor(name, duration, fatal, visible, overriders, cures, nextStage, duplicatedStatus, curedCondition, statModifiers, attributes, inflictedDescription, curedDescription, row) {
@@ -22,10 +22,10 @@ class Status {
     }
 
     inflictedCell() {
-        return settings.statusSheetInflictedColumn + this.row;
+        return constants.statusSheetInflictedColumn + this.row;
     }
     curedCell() {
-        return settings.statusSheetCuredColumn + this.row;
+        return constants.statusSheetCuredColumn + this.row;
     }
 }
 

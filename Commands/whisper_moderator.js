@@ -1,7 +1,8 @@
-const settings = include('settings.json');
-const dialogHandler = include(`${settings.modulesDir}/dialogHandler.js`);
+const settings = include('Configs/settings.json');
+const constants = include('Configs/constants.json');
+const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
 
-const Whisper = include(`${settings.dataDir}/Whisper.js`);
+const Whisper = include(`${constants.dataDir}/Whisper.js`);
 
 module.exports.config = {
     name: "whisper_moderator",

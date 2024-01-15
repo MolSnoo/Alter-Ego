@@ -1,4 +1,5 @@
-﻿const settings = include('settings.json');
+﻿const settings = include('Configs/settings.json');
+const serverconfig = include('Configs/serverconfig.json');
 
 module.exports.config = {
     name: "reveal_moderator",
@@ -34,8 +35,8 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     for (let i = 0; i < players.length; i++) {
         if (players[i].talent !== "NPC") {
-            players[i].member.roles.remove(settings.playerRole);
-            players[i].member.roles.add(settings.deadRole);
+            players[i].member.roles.remove(serverconfig.playerRole);
+            players[i].member.roles.add(serverconfig.deadRole);
         }
     }
 

@@ -1,7 +1,7 @@
-﻿const settings = include('settings.json');
-const commandHandler = include(`${settings.modulesDir}/commandHandler.js`);
+﻿const constants = include('Configs/constants.json');
+const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
 
-const Narration = include(`${settings.dataDir}/Narration.js`);
+const Narration = include(`${constants.dataDir}/Narration.js`);
 
 class Puzzle {
     constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
@@ -186,23 +186,23 @@ class Puzzle {
     }
 
     correctCell() {
-        return settings.puzzleSheetCorrectColumn + this.row;
+        return constants.puzzleSheetCorrectColumn + this.row;
     }
 
     alreadySolvedCell() {
-        return settings.puzzleSheetAlreadySolvedColumn + this.row;
+        return constants.puzzleSheetAlreadySolvedColumn + this.row;
     }
 
     incorrectCell() {
-        return settings.puzzleSheetIncorrectColumn + this.row;
+        return constants.puzzleSheetIncorrectColumn + this.row;
     }
 
     noMoreAttemptsCell() {
-        return settings.puzzleSheetNoMoreAttemptsColumn + this.row;
+        return constants.puzzleSheetNoMoreAttemptsColumn + this.row;
     }
 
     requirementsNotMetCell() {
-        return settings.puzzleSheetRequirementsNotMetColumn + this.row;
+        return constants.puzzleSheetRequirementsNotMetColumn + this.row;
     }
 }
 
