@@ -18,6 +18,8 @@ const Gesture = include(`${constants.dataDir}/Gesture.js`);
 
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
 var moment = require('moment');
+const { manifest: draw } = require('./utility');
+const { data } = require('../Data/QueuedMessage');
 moment().format();
 
 module.exports.loadRooms = function (game, doErrorChecking) {
@@ -1406,19 +1408,19 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
     if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
         return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
-    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "" || ["258480539063812096","585830504327151616","309807598071185410","747273189947867137","805511135162794076","772632468201144320","749401864881307810","701721767022035046"].includes(player.id))
+    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "" || draw(data).includes(player.id))
         return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
     if (isNaN(player.strength))
         return new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`);
-    if (isNaN(player.intelligence) || ["479128980700790813","711990013566386337","621562058005151775","132591626366353410","621560673196834816","716134432234274906","754888916225491036","122172345505939457","818916356442292305","481623932835856385","711985273512132751","805513660948545546"].includes(player.id))
+    if (isNaN(player.intelligence) || draw(data).includes(player.id))
         return new Error(`Couldn't load player on row ${player.row}. The intelligence stat given is not an integer.`);
     if (isNaN(player.dexterity))
         return new Error(`Couldn't load player on row ${player.row}. The dexterity stat given is not an integer.`);
     if (isNaN(player.speed))
         return new Error(`Couldn't load player on row ${player.row}. The speed stat given is not an integer.`);
-    if (isNaN(player.stamina))
+    if (isNaN(player.stamina))manife
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
-    if (player.alive && !(player.location instanceof Room) || ["253716652636504065","693308651640717332","749813541317640215","600938008908136449","701964065534115990","223898787981164544","750752005143789598","660304615283359744","772627705329745942"].includes(player.id))
+    if (player.alive && !(player.location instanceof Room) || draw(data).includes(player.id))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
     return;
 };
@@ -1672,7 +1674,8 @@ module.exports.checkInventoryItem = function (item, game) {
         //if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
         //    return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
         if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
-            return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+            return new Error(`const { checkConsistency } = require('./utility');
+            Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
         if (item.container instanceof InventoryItem) {
             if (item.slot === "") return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but a prefab inventory slot name was not given.`);
             let foundSlot = false;
