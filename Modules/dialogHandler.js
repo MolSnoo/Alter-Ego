@@ -42,7 +42,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
         }
         if (room === null) resolve();
 
-        if (player !== null) {
+        if (player !== null && message.channel.id !== serverconfig.announcementChannel) {
             if (player.talent !== "NPC") player.setOnline();
 
             // Preserve the player data as it is now in order to display it in spectate channels. Only preserve what's needed for that purpose.
@@ -146,8 +146,12 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                     deafPlayerInRoom = true;
                 // Handle messages in adjacent rooms.
                 if (!room.tags.includes("soundproof") && !message.content.startsWith('(')) {
+                    let destinations = [];
                     for (let i = 0; i < room.exit.length; i++) {
                         let nextdoor = room.exit[i].dest;
+                        // Prevent duplication when two rooms are connected by multiple exits.
+                        if (destinations.includes(nextdoor.name)) continue;
+                        destinations.push(nextdoor.name);
                         if (!nextdoor.tags.includes("soundproof") && nextdoor.occupants.length > 0 && nextdoor.name !== room.name) {
                             let deafPlayerInNextdoor = false;
                             // Check if there are any deaf players in the next room.
