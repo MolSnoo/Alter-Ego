@@ -12,6 +12,9 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
         for (let i = 0; i < game.rooms.length; i++) {
             for (let j = 0; j < game.rooms[i].exit.length; j++) {
                 roomValues.push([
+                    j === 0 ? game.rooms[i].name : "",
+                    j === 0 ? game.rooms[i].tags.join(", ") : "",
+                    j === 0 ? game.rooms[i].iconURL : "",
                     game.rooms[i].exit[j].name,
                     game.rooms[i].exit[j].pos.x,
                     game.rooms[i].exit[j].pos.y,
@@ -23,7 +26,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 ]);
             }
         }
-        data.push({ range: constants.roomSheetSaveCells, values: roomValues });
+        data.push({ range: constants.roomSheetDataCells, values: roomValues });
 
         var objectValues = [];
         for (let i = 0; i < game.objects.length; i++) {
