@@ -19,7 +19,8 @@
             this.game.messageHandler.addNarration(this.location, this.message, true);
 
             if (this.location.tags.includes("video surveilled")) {
-                let message = `\`[${this.location.name}] ${this.message}\``;
+                let roomDisplayName = this.location.tags.includes("secret") ? "Surveillance feed" : this.location.name;
+                let message = `\`[${roomDisplayName}] ${this.message}\``;
                 for (let i = 0; i < this.game.rooms.length; i++) {
                     if (this.game.rooms[i].tags.includes("video monitoring") && this.game.rooms[i].occupants.length > 0) {
                         for (let j = 0; j < this.game.rooms[i].occupants.length; j++) {
