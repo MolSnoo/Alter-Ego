@@ -75,19 +75,30 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (nameA > nameB) return 1;
             return 0;
         });
-        let hiddenPlayersString = "";
-        if (hiddenPlayers.length === 1) hiddenPlayersString = hiddenPlayers[0].displayName;
-        else if (hiddenPlayers.length === 2)
-            hiddenPlayersString += `${hiddenPlayers[0].displayName} and ${hiddenPlayers[1].displayName}`;
-        else if (hiddenPlayers.length >= 3) {
-            for (let i = 0; i < hiddenPlayers.length - 1; i++)
-                hiddenPlayersString += `${hiddenPlayers[i].displayName}, `;
-            hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
+        if (player.hasAttribute("no sight")) {
+            if (hiddenPlayers.length === 1)
+                player.notify(game, `When you hide in the ${object.name}, you find someone already there!`);
+            else if (hiddenPlayers.length > 1)
+                player.notify(game, `When you hide in the ${object.name}, you find multiple people already there!`);
         }
+        else {
+            let hiddenPlayersString = "";
+            if (hiddenPlayers.length === 1) hiddenPlayersString = hiddenPlayers[0].displayName;
+            else if (hiddenPlayers.length === 2)
+                hiddenPlayersString += `${hiddenPlayers[0].displayName} and ${hiddenPlayers[1].displayName}`;
+            else if (hiddenPlayers.length >= 3) {
+                for (let i = 0; i < hiddenPlayers.length - 1; i++)
+                    hiddenPlayersString += `${hiddenPlayers[i].displayName}, `;
+                hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
+            }
 
-        if (hiddenPlayers.length > 0) player.notify(game, `When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+            if (hiddenPlayers.length > 0) player.notify(game, `When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+        }
         for (let i = 0; i < hiddenPlayers.length; i++) {
-            hiddenPlayers[i].notify(game, `You've been found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
+            if (hiddenPlayers[i].hasAttribute("no sight"))
+                hiddenPlayers[i].notify(game, `Someone finds you! They hide with you.`);
+            else
+                hiddenPlayers[i].notify(game, `You're found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
             hiddenPlayers[i].removeFromWhispers(game, "");
         }
         hiddenPlayers.push(player);
