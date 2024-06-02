@@ -126,6 +126,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
                 game.players[i].name,
                 game.players[i].talent,
                 game.players[i].pronounString,
+                game.players[i].originalVoiceString,
                 game.players[i].defaultStrength,
                 game.players[i].defaultIntelligence,
                 game.players[i].defaultDexterity,

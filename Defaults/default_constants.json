@@ -29,8 +29,8 @@
   "statusSheetDataCells": "Status Effects!A2:N",
   "statusSheetInflictedColumn": "Status Effects!M",
   "statusSheetCuredColumn": "Status Effects!N",
-  "playerSheetDataCells": "Players!A3:N",
-  "playerSheetDescriptionColumn": "Players!N",
+  "playerSheetDataCells": "Players!A3:O",
+  "playerSheetDescriptionColumn": "Players!O",
   "inventorySheetDataCells": "Inventory Items!A2:H",
   "inventorySheetDescriptionColumn": "Inventory Items!H",
   "gestureSheetDataCells": "Gestures!A2:E"
