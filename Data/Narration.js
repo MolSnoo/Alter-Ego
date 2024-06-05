@@ -22,7 +22,7 @@
                 let roomDisplayName = this.location.tags.includes("secret") ? "Surveillance feed" : this.location.name;
                 let message = `\`[${roomDisplayName}] ${this.message}\``;
                 for (let i = 0; i < this.game.rooms.length; i++) {
-                    if (this.game.rooms[i].tags.includes("video monitoring") && this.game.rooms[i].occupants.length > 0) {
+                    if (this.game.rooms[i].tags.includes("video monitoring") && this.game.rooms[i].occupants.length > 0 && this.game.rooms[i].name !== this.location.name) {
                         for (let j = 0; j < this.game.rooms[i].occupants.length; j++) {
                             let occupant = this.game.rooms[i].occupants[j];
                             if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !occupant.hasAttribute("hidden")) {

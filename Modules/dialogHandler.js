@@ -53,6 +53,24 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                 if (deletable) message.delete().catch();
                 resolve();
             }
+
+            // Set variables related to voice changing.
+            let speakerVoiceString = player.voiceString;
+            let speakerRecognitionName = player.name;
+            if (player.voiceString !== player.originalVoiceString) {
+                for (let i = 0; i < game.players.length; i++) {
+                    if (player.voiceString === game.players[i].name) {
+                        speakerVoiceString = game.players[i].originalVoiceString;
+                        speakerRecognitionName = game.players[i].name;
+                        break;
+                    }
+                }
+                // If the player's voice descriptor is different but doesn't match the name of another player,
+                // set their recognition name to unknown so that other players won't recognize their voice.
+                if (speakerRecognitionName === player.name)
+                    speakerRecognitionName = "unknown";
+            }
+
             // Handle whisper messages.
             if (message.channel.parentId === serverconfig.whisperCategory) {
                 // Find whisper.
@@ -78,29 +96,37 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                         if (whisper.players[i].name !== player.name) {
                             if (whisper.players[i].hasAttribute("no hearing") || whisper.players[i].hasAttribute("unconscious")) continue;
 
-                            if (whisper.players[i].hasAttribute(`knows ${player.name}`) && !whisper.players[i].hasAttribute("no sight")) {
-                                if (player.displayName !== player.name) {
-                                    whisper.players[i].notify(game, `${player.displayName}, with ${player.voiceString} you recognize to be ${player.name}'s, whispers "${message.content}".`, false);
-                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, `${player.displayName} (${player.name})`);
+                            if (whisper.players[i].hasAttribute(`knows ${speakerRecognitionName}`) && !whisper.players[i].hasAttribute("no sight")) {
+                                if (player.displayName !== speakerRecognitionName) {
+                                    whisper.players[i].notify(game, `${player.displayName}, with ${speakerVoiceString} you recognize to be ${speakerRecognitionName}'s, whispers "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, `${player.displayName} (${speakerRecognitionName})`);
                                 }
                                 else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
-                                    whisper.players[i].notify(game, `${player.name} whispers "${message.content}".`, false);
-                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, player.name);
+                                    whisper.players[i].notify(game, `${speakerRecognitionName} whispers "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, speakerRecognitionName);
                                 }
                                 else game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
                             }
                             else if (whisper.players[i].talent !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
-                                if (whisper.players[i].hasAttribute(`knows ${player.name}`)) {
-                                    whisper.players[i].notify(game, `${player.name} whispers "${message.content}".`, false);
-                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, player.name);
+                                if (whisper.players[i].hasAttribute(`knows ${speakerRecognitionName}`)) {
+                                    whisper.players[i].notify(game, `${speakerRecognitionName} whispers "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, speakerRecognitionName);
                                 }
                                 else if (!whisper.players[i].hasAttribute("no sight")) {
-                                    whisper.players[i].notify(game, `${player.displayName} whispers "${message.content}".`, false);
-                                    game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
+                                    if (whisper.players[i].name === speakerRecognitionName)
+                                        whisper.players[i].notify(game, `${player.displayName} whispers "${message.content}" in your voice!`);
+                                    else {
+                                        whisper.players[i].notify(game, `${player.displayName} whispers "${message.content}".`, false);
+                                        game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
+                                    }
                                 }
-                                else
-                                    whisper.players[i].notify(game, `Someone with ${player.voiceString} whispers "${message.content}".`);
+                                else {
+                                    let voiceString = whisper.players[i].name === speakerRecognitionName ? "your voice" : speakerVoiceString;
+                                    whisper.players[i].notify(game, `Someone with ${voiceString} whispers "${message.content}".`);
+                                }
                             }
+                            else if (whisper.players[i].name === speakerRecognitionName)
+                                whisper.players[i].notify(game, `${player.displayName} whispers "${message.content}" in your voice!`);
                             else
                                 game.messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
                         }
@@ -116,10 +142,18 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                 for (let i = 0; i < room.occupants.length; i++) {
                     // Players with the acute hearing attribute should overhear other whispers.
                     if (room.occupants[i].hasAttribute("acute hearing") && !whisper.players.includes(room.occupants[i]) && !message.content.startsWith('(')) {
-                        if ((player.displayName !== player.name || player.hasAttribute("hidden") || room.occupants[i].hasAttribute("no sight")) && room.occupants[i].hasAttribute(`knows ${player.name}`))
-                            room.occupants[i].notify(game, `You overhear ${player.name} whisper "${message.content}".`);
-                        else if (player.hasAttribute("hidden") || room.occupants[i].hasAttribute("no sight"))
-                            room.occupants[i].notify(game, `You overhear someone in the room with ${player.voiceString} whisper "${message.content}".`);
+                        if (room.occupants[i].hasAttribute(`knows ${speakerRecognitionName}`)) {
+                            if (player.hasAttribute("hidden") || room.occupants[i].hasAttribute("no sight"))
+                                room.occupants[i].notify(game, `You overhear ${speakerRecognitionName} whisper "${message.content}".`);
+                            else if (player.displayName !== speakerRecognitionName && !room.occupants[i].hasAttribute("no sight"))
+                                room.occupants[i].notify(game, `You overhear ${player.displayName}, with ${speakerVoiceString} you recognize to be ${speakerRecognitionName}'s, whisper "${message.content}".`);
+                        }
+                        else if (room.occupants[i].name === speakerRecognitionName && !room.occupants[i].hasAttribute("no sight") && !player.hasAttribute("hidden"))
+                            room.occupants[i].notify(game, `You overhear ${player.displayName} whisper "${message.content}" in your voice!`);
+                        else if (player.hasAttribute("hidden") || room.occupants[i].hasAttribute("no sight")) {
+                            let voiceString = room.occupants[i].name === speakerRecognitionName ? "your voice" : speakerVoiceString;
+                            room.occupants[i].notify(game, `You overhear someone in the room with ${voiceString} whisper "${message.content}".`);
+                        }
                         else
                             room.occupants[i].notify(game, `You overhear ${player.displayName} whisper "${message.content}".`);
                     }
@@ -163,21 +197,25 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                                 deafPlayerInNextdoor = true;
 
                             if (isShouting && !deafPlayerInNextdoor)
-                                game.messageHandler.addNarration(nextdoor, `Someone in a nearby room with ${player.voiceString} shouts "${message.content}".`, true, player);
+                                game.messageHandler.addNarration(nextdoor, `Someone in a nearby room with ${speakerVoiceString} shouts "${message.content}".`, true, player);
                             for (let j = 0; j < nextdoor.occupants.length; j++) {
                                 let occupant = nextdoor.occupants[j];
                                 if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
                                 if (isShouting) {
-                                    if (occupant.hasAttribute(`knows ${player.name}`))
-                                        occupant.notify(game, `You hear ${player.name} ${verb} "${message.content}" in a nearby room.`);
+                                    if (occupant.hasAttribute(`knows ${speakerRecognitionName}`))
+                                        occupant.notify(game, `You hear ${speakerRecognitionName} ${verb} "${message.content}" in a nearby room.`);
+                                    else if (occupant.name === speakerRecognitionName)
+                                        occupant.notify(game, `You hear someone with your voice ${verb} "${message.content} in a nearby room.`);
                                     else if (deafPlayerInNextdoor || occupant.hasAttribute("hear room"))
-                                        occupant.notify(game, `You hear ${player.voiceString} from a nearby room ${verb} "${message.content}".`);
+                                        occupant.notify(game, `You hear ${speakerVoiceString} from a nearby room ${verb} "${message.content}".`);
                                 }
                                 // Players with the acute hearing attribute should hear messages from adjacent rooms.
-                                else if (occupant.hasAttribute("acute hearing") && occupant.hasAttribute(`knows ${player.name}`))
-                                    occupant.notify(game, `You hear ${player.name} ${verb} "${message.content}" in a nearby room.`);
+                                else if (occupant.hasAttribute("acute hearing") && occupant.hasAttribute(`knows ${speakerRecognitionName}`))
+                                    occupant.notify(game, `You hear ${speakerRecognitionName} ${verb} "${message.content}" in a nearby room.`);
+                                else if (occupant.hasAttribute("acute hearing") && occupant.name === speakerRecognitionName)
+                                    occupant.notify(game, `You hear someone with your voice ${verb} "${message.content}" in a nearby room.`);
                                 else if (!isShouting && occupant.hasAttribute("acute hearing"))
-                                    occupant.notify(game, `You hear ${player.voiceString} from a nearby room say "${message.content}".`);
+                                    occupant.notify(game, `You hear ${speakerVoiceString} from a nearby room say "${message.content}".`);
                             }
                             if (isShouting && nextdoor.tags.includes("audio surveilled")) {
                                 let roomDisplayName = nextdoor.tags.includes("secret") ? "Intercom" : nextdoor.name;
@@ -194,14 +232,16 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                                             deafPlayerInMonitoringRoom = true;
 
                                         if (!deafPlayerInMonitoringRoom)
-                                            game.messageHandler.addNarration(monitoringRoom, `\`[${roomDisplayName}]\` Someone in a nearby room with ${player.voiceString} shouts "${message.content}".`, true, player);
+                                            game.messageHandler.addNarration(monitoringRoom, `\`[${roomDisplayName}]\` Someone in a nearby room with ${speakerVoiceString} shouts "${message.content}".`, true, player);
                                         for (let k = 0; k < monitoringRoom.occupants.length; k++) {
                                             let occupant = monitoringRoom.occupants[k];
                                             if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
-                                            if (occupant.hasAttribute(`knows ${player.name}`))
-                                                occupant.notify(game, `\`[${roomDisplayName}]\` ${player.name} shouts "${message.content}" in a nearby room.`);
+                                            if (occupant.hasAttribute(`knows ${speakerRecognitionName}`))
+                                                occupant.notify(game, `\`[${roomDisplayName}]\` ${speakerRecognitionName} shouts "${message.content}" in a nearby room.`);
+                                            else if (occupant.name === speakerRecognitionName)
+                                                occupant.notify(game, `\`[${roomDisplayName}]\` Someone with your voice shouts "${message.content}" in a nearby room.`);
                                             else if (deafPlayerInMonitoringRoom || occupant.hasAttribute("hear room"))
-                                                occupant.notify(game, `\`[${roomDisplayName}]\` You hear ${player.voiceString} from a nearby room shout "${message.content}".`);
+                                                occupant.notify(game, `\`[${roomDisplayName}]\` You hear ${speakerVoiceString} from a nearby room shout "${message.content}".`);
                                         }
                                     }
                                 }
@@ -228,35 +268,49 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                     if (occupant.name !== player.name && !message.content.startsWith('(')) {
                         if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
 
-                        if (occupant.hasAttribute(`knows ${player.name}`) && !occupant.hasAttribute("no sight")) {
-                            if (player.displayName !== player.name) {
-                                occupant.notify(game, `${player.displayName}, with ${player.voiceString} you recognize to be ${player.name}'s, ${verb}s "${message.content}".`, false);
-                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `${player.displayName} (${player.name})`);
+                        if (occupant.hasAttribute(`knows ${speakerRecognitionName}`) && !occupant.hasAttribute("no sight")) {
+                            if (player.displayName !== speakerRecognitionName) {
+                                occupant.notify(game, `${player.displayName}, with ${speakerVoiceString} you recognize to be ${speakerRecognitionName}'s, ${verb}s "${message.content}".`, false);
+                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `${player.displayName} (${speakerRecognitionName})`);
                             }
                             else if (occupant.hasAttribute("hear room")) {
-                                occupant.notify(game, `${player.name} ${verb}s "${message.content}".`, false);
+                                occupant.notify(game, `${speakerRecognitionName} ${verb}s "${message.content}".`, false);
                                 game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message);
                             }
                             else game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message);
                         }
                         else if (occupant.hasAttribute("hear room") || deafPlayerInRoom) {
-                            if (occupant.hasAttribute(`knows ${player.name}`)) {
-                                occupant.notify(game, `${player.name} ${verb}s "${message.content}".`, false);
-                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, player.name);
+                            if (occupant.hasAttribute(`knows ${speakerRecognitionName}`)) {
+                                occupant.notify(game, `${speakerRecognitionName} ${verb}s "${message.content}".`, false);
+                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, speakerRecognitionName);
                             }
                             else if (!occupant.hasAttribute("no sight") && player.hasAttribute("hidden") && occupant.hasAttribute("hidden") && player.hidingSpot === occupant.hidingSpot) {
-                                occupant.notify(game, `${originalDisplayName} ${verb}s "${message.content}".`, false);
-                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `${player.displayName} (${originalDisplayName})`);
+                                if (occupant.name === speakerRecognitionName)
+                                    occupant.notify(game, `${originalDisplayName} ${verb}s "${message.content}" in your voice!`);
+                                else {
+                                    occupant.notify(game, `${originalDisplayName} ${verb}s "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `${player.displayName} (${originalDisplayName})`);
+                                }
                             }
                             else if (!occupant.hasAttribute("no sight")) {
-                                occupant.notify(game, `${player.displayName} ${verb}s "${message.content}".`, false);
-                                game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message);
+                                if (occupant.name === speakerRecognitionName)
+                                    occupant.notify(game, `${player.displayName} ${verb}s "${message.content}" in your voice!`);
+                                else {
+                                    occupant.notify(game, `${player.displayName} ${verb}s "${message.content}".`, false);
+                                    game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message);
+                                }
                             }
+                            else if (occupant.name === speakerRecognitionName)
+                                occupant.notify(game, `You hear someone with your voice in the room ${verb} "${message.content}".`);
                             else
-                                occupant.notify(game, `You hear ${player.voiceString} in the room ${verb} "${message.content}".`);
+                                occupant.notify(game, `You hear ${speakerVoiceString} in the room ${verb} "${message.content}".`);
                         }
-                        else if (!player.hasAttribute("concealed") || player.hasAttribute("concealed") && deletable)
-                            game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message);
+                        else if (!player.hasAttribute("concealed") || player.hasAttribute("concealed") && deletable) {
+                            if (occupant.name === speakerRecognitionName)
+                                occupant.notify(game, `${player.displayName} ${verb}s "${message.content}" in your voice!`);
+                            else game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message);
+                        }
+                            
                     }
                     else if (occupant.name === player.name && !message.content.startsWith('(')) {
                         if (player.displayName !== player.name)
@@ -299,45 +353,57 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                                 });
                             }
                             else if (!deafPlayerInMonitoringRoom) {
-                                game.messageHandler.addNarration(monitoringRoom, `\`[${roomDisplayName}]\` Someone with ${player.voiceString} ${verb}s "${message.content}".`, true, player);
+                                game.messageHandler.addNarration(monitoringRoom, `\`[${roomDisplayName}]\` Someone with ${speakerVoiceString} ${verb}s "${message.content}".`, true, player);
                             }
                             for (let j = 0; j < monitoringRoom.occupants.length; j++) {
                                 let occupant = monitoringRoom.occupants[j];
                                 if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
-
-                                if (occupant.hasAttribute(`knows ${player.name}`) && room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !occupant.hasAttribute("no sight")) {
-                                    if (player.displayName !== player.name) {
-                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName}, with ${player.voiceString} you recognize to be ${player.name}'s, ${verb}s "${message.content}".`, false);
-                                        game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName} (${player.name})`);
+                                
+                                if (occupant.hasAttribute(`knows ${speakerRecognitionName}`) && room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !occupant.hasAttribute("no sight")) {
+                                    if (player.displayName !== speakerRecognitionName) {
+                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName}, with ${speakerVoiceString} you recognize to be ${speakerRecognitionName}'s, ${verb}s "${message.content}".`, false);
+                                        game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName} (${speakerRecognitionName})`);
                                     }
                                     else if (occupant.hasAttribute("hear room")) {
-                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${player.name} ${verb}s "${message.content}".`, false);
+                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${speakerRecognitionName} ${verb}s "${message.content}".`, false);
                                         game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
                                     }
                                     else game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
                                 }
                                 else if (room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !occupant.hasAttribute("no sight")) {
                                     if (occupant.hasAttribute("hear room")) {
-                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${player.name} ${verb}s "${message.content}".`, false);
-                                        game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
+                                        if (occupant.name === speakerRecognitionName)
+                                            occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}" in your voice!`);
+                                        else {
+                                            occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}".`, false);
+                                            game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
+                                        }
                                     }
+                                    else if (occupant.name === speakerRecognitionName)
+                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}" in your voice!`);
                                     else game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
                                 }
-                                else if (occupant.hasAttribute(`knows ${player.name}`) && (!room.tags.includes("video surveilled") || !monitoringRoom.tags.includes("video monitoring"))) {
-                                    occupant.notify(game, `\`[${roomDisplayName}]\` ${player.name} ${verb}s "${message.content}".`, false);
-                                    game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.name}`);
+                                else if (occupant.hasAttribute(`knows ${speakerRecognitionName}`) && (!room.tags.includes("video surveilled") || !monitoringRoom.tags.includes("video monitoring"))) {
+                                    occupant.notify(game, `\`[${roomDisplayName}]\` ${speakerRecognitionName} ${verb}s "${message.content}".`);
                                 }
                                 else if (occupant.hasAttribute("hear room") || deafPlayerInMonitoringRoom) {
-                                    if (occupant.hasAttribute(`knows ${player.name}`)) {
-                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${player.name} ${verb}s "${message.content}".`, false);
-                                        game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.name}`);
+                                    if (occupant.hasAttribute(`knows ${speakerRecognitionName}`)) {
+                                        let noSight = occupant.hasAttribute("no sight");
+                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${speakerRecognitionName} ${verb}s "${message.content}".`, noSight);
+                                        if (!noSight) game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${speakerRecognitionName}`);
                                     }
                                     else if (room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !occupant.hasAttribute("no sight")) {
-                                        occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}".`, false);
-                                        game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
+                                        if (occupant.name === speakerRecognitionName)
+                                            occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}" in your voice!`);
+                                        else {
+                                            occupant.notify(game, `\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}".`, false);
+                                            game.messageHandler.addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
+                                        }
                                     }
+                                    else if (occupant.name === speakerRecognitionName)
+                                        occupant.notify(game, `\`[${roomDisplayName}]\` Someone with your voice ${verb}s "${message.content}".`);
                                     else
-                                        occupant.notify(game, `\`[${roomDisplayName}]\` Someone with ${player.voiceString} ${verb}s "${message.content}".`);
+                                        occupant.notify(game, `\`[${roomDisplayName}]\` Someone with ${speakerVoiceString} ${verb}s "${message.content}".`);
                                 }
                             }
 
@@ -364,7 +430,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                         }
                     }
                     if (receiver !== null) {
-                        let voiceString = player.voiceString.substring(0, 1).toUpperCase() + player.voiceString.substring(1);
+                        let voiceString = speakerVoiceString.substring(0, 1).toUpperCase() + speakerVoiceString.substring(1);
                         var deafPlayerInReceiverRoom = false;
                         // Check if there are any deaf players in the room. Count non-deaf players.
                         for (let i = 0; i < receiver.location.occupants.length; i++) {
@@ -384,10 +450,12 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                             let occupant = receiver.location.occupants[j];
                             if (occupant.hasAttribute("no hearing") || occupant.hasAttribute("unconscious")) continue;
                             const receiverName = occupant.name === receiver.name ? "your" : `${receiver.displayName}'s`;
-                            if (occupant.hasAttribute(`knows ${player.name}`))
-                                occupant.notify(game, `${player.name} ${verb}s "${message.content}" through ${receiverName} WALKIE TALKIE.`);
+                            if (occupant.hasAttribute(`knows ${speakerRecognitionName}`))
+                                occupant.notify(game, `${speakerRecognitionName} ${verb}s "${message.content}" through ${receiverName} WALKIE TALKIE.`);
                             else if (occupant.hasAttribute("hear room") || deafPlayerInReceiverRoom)
-                                occupant.notify(game, `${voiceString} coming from ${receiverName} WALKIE TALKIE ${verb}s "${message.content}".`, false);
+                                occupant.notify(game, `${voiceString} coming from ${receiverName} WALKIE TALKIE ${verb}s "${message.content}".`);
+                            else if (occupant.name === speakerRecognitionName)
+                                occupant.notify(game, `Someone ${verb}s "${message.content}" through ${receiverName} WALKIE TALKIE in your voice!`);
                         }
 
                         for (let i = 0; i < game.puzzles.length; i++) {
@@ -417,7 +485,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
                 let roomDisplayName = room.tags.includes("secret") ? "Surveillance feed" : room.name;
                 let messageText = `\`[${roomDisplayName}] ${message.content}\``;
                 for (let i = 0; i < game.rooms.length; i++) {
-                    if (game.rooms[i].tags.includes("video monitoring") && game.rooms[i].occupants.length > 0) {
+                    if (game.rooms[i].tags.includes("video monitoring") && game.rooms[i].occupants.length > 0 && game.rooms[i].name !== room.name) {
                         for (let j = 0; j < game.rooms[i].occupants.length; j++) {
                             let occupant = game.rooms[i].occupants[j];
                             if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !occupant.hasAttribute("hidden") && occupant.talent !== "NPC") {
