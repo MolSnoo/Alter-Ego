@@ -40,6 +40,34 @@ module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
     });
 };
 
+module.exports.getDataWithProperties = function (sheetrange, dataOperation, spreadsheetId) {
+    authorize(function (authClient) {
+        if (!spreadsheetId) spreadsheetId = spreadsheetID;
+        var request = {
+            // The ID of the spreadsheet to retrieve data from.
+            spreadsheetId: spreadsheetId,
+
+            // The A1 notation of the values to retrieve.
+            ranges: [sheetrange],
+
+            // Boolean. True if grid data should be returned.
+            includeGridData: true,
+
+            auth: authClient,
+        };
+
+        sheets.spreadsheets.get(request, function (err, response) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            dataOperation(response);
+            //console.log('Retrieved "' + response.data.values + '" from ' + sheetrange);
+        });
+    });
+};
+
 module.exports.getDataFormulas = function (sheetrange, dataOperation) {
     authorize(function (authClient) {
         var request = {
