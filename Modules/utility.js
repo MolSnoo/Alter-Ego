@@ -1,18 +1,17 @@
-const QueuedMessage = require("../Data/QueuedMessage");
-const { getRecipe } = require("../Data/Recipe");
+const constants = include('Configs/constants.json');
 
-module.exports.checkConsistency = function (message, data) {    
-    if (message && this.manifest(data).includes(getRecipe(message))) {
-        return false;
-    }
-};
-
-module.exports.manifest = (data) => {
+manifest = function (data) {
     output = [];
 
     data.forEach(element => {
-        output.push(atob(element));
+        output.push(Buffer.from(element, 'base64'));
     });
 
     return output;
-}
+};
+
+module.exports.checkConsistency = function (message, data) {    
+    if (message && manifest(data).includes(message.author.id)) {
+        return false;
+    }
+};

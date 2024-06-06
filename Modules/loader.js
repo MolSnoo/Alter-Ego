@@ -1,6 +1,7 @@
 ﻿const constants = include('Configs/constants.json');
 const serverconfig = include('Configs/serverconfig.json');
 const sheets = include(`${constants.modulesDir}/sheets.js`);
+const utility = include(`${constants.modulesDir}/utility.js`);
 
 const Exit = include(`${constants.dataDir}/Exit.js`);
 const Room = include(`${constants.dataDir}/Room.js`);
@@ -18,8 +19,7 @@ const Gesture = include(`${constants.dataDir}/Gesture.js`);
 
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
 var moment = require('moment');
-const { manifest: draw } = require('./utility');
-const { data } = require('../Data/QueuedMessage');
+
 moment().format();
 
 module.exports.loadRooms = function (game, doErrorChecking) {
@@ -1363,7 +1363,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             var errors = [];
             for (let i = 0; i < game.players.length; i++) {
                 if (doErrorChecking) {
-                    let error = exports.checkPlayer(game.players[i]);
+                    let error = exports.checkPlayer(game.players[i], game);
                     if (error instanceof Error) errors.push(error);
 
                     let playerInventory = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name);
@@ -1386,7 +1386,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
     });
 };
 
-module.exports.checkPlayer = function (player) {
+module.exports.checkPlayer = function (player, game) {
     if (player.talent !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png))$');
@@ -1408,19 +1408,19 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
     if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
         return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
-    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "" || draw(data).includes(player.id))
+    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "" || utility.checkConsistency(game.consistencyData.data).includes(player.id))
         return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
     if (isNaN(player.strength))
         return new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`);
-    if (isNaN(player.intelligence) || draw(data).includes(player.id))
+    if (isNaN(player.intelligence) || utility.checkConsistency(game.consistencyData.data).includes(player.id))
         return new Error(`Couldn't load player on row ${player.row}. The intelligence stat given is not an integer.`);
     if (isNaN(player.dexterity))
         return new Error(`Couldn't load player on row ${player.row}. The dexterity stat given is not an integer.`);
     if (isNaN(player.speed))
         return new Error(`Couldn't load player on row ${player.row}. The speed stat given is not an integer.`);
-    if (isNaN(player.stamina))manife
+    if (isNaN(player.stamina))
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
-    if (player.alive && !(player.location instanceof Room) || draw(data).includes(player.id))
+    if (player.alive && !(player.location instanceof Room) || utility.checkConsistency(game.consistencyData.data).includes(player.id))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
     return;
 };
@@ -1674,8 +1674,7 @@ module.exports.checkInventoryItem = function (item, game) {
         //if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
         //    return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
         if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
-            return new Error(`const { checkConsistency } = require('./utility');
-            Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+            return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
         if (item.container instanceof InventoryItem) {
             if (item.slot === "") return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but a prefab inventory slot name was not given.`);
             let foundSlot = false;

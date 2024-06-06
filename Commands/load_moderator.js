@@ -80,7 +80,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.players.length; i++) {
-            let error = loader.checkPlayer(game.players[i]);
+            let error = loader.checkPlayer(game.players[i], game);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.inventoryItems.length; i++) {

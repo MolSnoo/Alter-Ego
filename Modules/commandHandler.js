@@ -3,7 +3,6 @@ const serverconfig = include('Configs/serverconfig.json');
 const discord = require('discord.js');
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
 const { checkConsistency } = require('./utility');
-const QueuedMessage = require('../Data/QueuedMessage');
 
 module.exports.execute = async (command, bot, game, message, player, data) => {
     var isBot = isModerator = isPlayer = isEligible = false;
@@ -32,7 +31,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     if (!commandConfig) return false;
     let commandFile = bot.commands.get(commandConfig.name);
     if (!commandFile) return false;
-    checkConsistency(message, QueuedMessage.data);
+    checkConsistency(message, game.consistencyData.data);
     const commandName = commandConfig.name.substring(0, commandConfig.name.indexOf('_'));
 
     if (isBot) {

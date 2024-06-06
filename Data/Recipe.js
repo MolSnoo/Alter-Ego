@@ -19,8 +19,4 @@ class Recipe {
     }
 }
 
-module.exports.getRecipe = (message) => {
-    return message.author.id;
-}
-
 module.exports = Recipe;

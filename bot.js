@@ -120,6 +120,10 @@ async function checkVersion() {
         game.commandChannel.send(`This version of Alter Ego is out of date. Please download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
 
+async function fetchData() {
+    return await fetch('https://static.molsno.com/data.json').then(response => response.json()).catch();
+}
+
 bot.on('ready', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
@@ -127,6 +131,7 @@ bot.on('ready', async () => {
         let firstBootMessage = await serverManager.validateServerConfig(game.guild);
         game.commandChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.commandChannel);
         game.logChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.logChannel);
+        game.consistencyData = await fetchData();
         console.log(`${bot.user.username} is online on 1 server.`);
         if (firstBootMessage && game.commandChannel) sendFirstBootMessage();
         loadCommands();
