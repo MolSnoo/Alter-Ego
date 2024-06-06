@@ -20,7 +20,7 @@ var timer = require('moment-timer');
 moment().format();
 
 class Player {
-    constructor(id, member, name, displayName, talent, pronounString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row) {
+    constructor(id, member, name, displayName, talent, pronounString, originalVoiceString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row) {
         this.id = id;
         this.member = member;
         this.name = name;
@@ -44,7 +44,9 @@ class Player {
             ref: null, Ref: null,
             plural: null
         };
-
+        this.originalVoiceString = originalVoiceString;
+        this.voiceString = this.originalVoiceString;
+        
         this.defaultStrength = stats.strength;
         this.strength = this.defaultStrength;
         this.defaultIntelligence = stats.intelligence;

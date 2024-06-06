@@ -6,6 +6,7 @@ const constants = include('Configs/constants.json');
 const credentials = include('Configs/credentials.json');
 const serverconfig = include('Configs/serverconfig.json');
 const serverManager = include(`${constants.modulesDir}/serverManager.js`);
+const updateHandler = include(`${constants.modulesDir}/updateHandler.js`);
 const messageHandler = include(`${constants.modulesDir}/messageHandler.js`);
 const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
@@ -117,7 +118,7 @@ async function checkVersion() {
     const masterPackage = await fetch('https://raw.githubusercontent.com/MolSnoo/Alter-Ego/master/package.json').then(response => response.json()).catch();
     const localPackage = include('package.json');
     if (masterPackage.version !== localPackage.version && !localPackage.version.endsWith("d"))
-        game.commandChannel.send(`This version of Alter Ego is out of date. Please download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
+        game.commandChannel.send(`This version of Alter Ego is out of date. Please update using Docker or download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
 
 bot.on('ready', async () => {
@@ -132,6 +133,7 @@ bot.on('ready', async () => {
         loadCommands();
         updateStatus();
         checkVersion();
+        updateHandler.autoUpdate();
     }
     else {
         console.log("Error: Bot must be on one and only one server.");

@@ -30,6 +30,7 @@ module.exports.run = async (bot, game, message, args) => {
         member.displayName,
         "",
         "neutral",
+        "an average voice",
         playerdefaults.defaultStats,
         true,
         playerdefaults.defaultLocation,
