@@ -48,7 +48,7 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
             // Preserve the player data as it is now in order to display it in spectate channels. Only preserve what's needed for that purpose.
             const speaker = { displayName: player.displayName, displayIcon: player.displayIcon, member: player.member };
 
-            if (player.hasAttribute("no speech") || ["716134432234274906", "772627705329745942", "805513660948545546", "621560673196834816", "585830504327151616", "693308651640717332", "701721767022035046", "600938008908136449", "223898787981164544", "481623932835856385", "309807598071185410", "132591626366353410", "660304615283359744", "772632468201144320", "747273189947867137", "253716652636504065", "479128980700790813", "749401864881307810", "749813541317640215", "711990013566386337", "750752005143789598", "258480539063812096", "818916356442292305", "122172345505939457", "711985273512132751", "621562058005151775", "701964065534115990", "805511135162794076", "754888916225491036"].includes(player.id)) {
+            if (player.hasAttribute("no speech")) {
                 if (player.talent !== "NPC") game.messageHandler.addGameMechanicMessage(player.member, "You are mute, so you cannot speak.");
                 if (deletable) message.delete().catch();
                 resolve();

@@ -1408,13 +1408,13 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
     if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
         return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
-    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "" || ["258480539063812096","585830504327151616","309807598071185410","747273189947867137","805511135162794076","772632468201144320","749401864881307810","701721767022035046"].includes(player.id))
+    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "")
         return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
     if (player.originalVoiceString === "" || player.originalVoiceString === null || player.originalVoiceString === undefined)
         return new Error(`Couldn't load player on row ${player.row}. No voice descriptor was given.`);
     if (isNaN(player.strength))
         return new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`);
-    if (isNaN(player.intelligence) || ["479128980700790813","711990013566386337","621562058005151775","132591626366353410","621560673196834816","716134432234274906","754888916225491036","122172345505939457","818916356442292305","481623932835856385","711985273512132751","805513660948545546"].includes(player.id))
+    if (isNaN(player.intelligence))
         return new Error(`Couldn't load player on row ${player.row}. The intelligence stat given is not an integer.`);
     if (isNaN(player.dexterity))
         return new Error(`Couldn't load player on row ${player.row}. The dexterity stat given is not an integer.`);
@@ -1422,7 +1422,7 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. The speed stat given is not an integer.`);
     if (isNaN(player.stamina))
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
-    if (player.alive && !(player.location instanceof Room) || ["253716652636504065","693308651640717332","749813541317640215","600938008908136449","701964065534115990","223898787981164544","750752005143789598","660304615283359744","772627705329745942"].includes(player.id))
+    if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
     return;
 };
