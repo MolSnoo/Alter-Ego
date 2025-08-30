@@ -298,6 +298,82 @@ module.exports.removeItem = function (description, item, slot, removedQuantity, 
     else return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 };
 
+module.exports.generateProceduralOutput = function (description) {
+    var document = createDocument(description).document;
+
+    if (document) {
+        // Find all procedurals.
+        var procedurals = document.getElementsByTagName('procedural');
+        let proceduralsToRemove = [];
+        for (let i = 0; i < procedurals.length; i++) {
+            let proceduralChance = procedurals[i].getAttribute('chance');
+            // If a procedural chance was not provided or it is invalid, assume the chance is 100%.
+            if (proceduralChance === '' || isNaN(proceduralChance))
+                proceduralChance = 100;
+            // Roll to determine if this procedural will be kept. If the probability check fails, remove the tag entirely and skip to the next one.
+            if (!keepProcedural(proceduralChance)) {
+                proceduralsToRemove.push(procedurals[i]);
+                continue;
+            }
+
+            // Determine which poss tag within this procedural to keep.
+            let possibilities = procedurals[i].getElementsByTagName('poss');
+            let possibilityArr = [];
+            let possibilitiesToRemove = [];
+            for (let j = 0; j < possibilities.length; j++) {
+                let possibilityChance = possibilities[j].getAttribute('chance');
+                // This will be handled in the rolling function, if a possibility chance was not provided or invalid, set it to null.
+                if (possibilityChance === '' || isNaN(possibilityChance))
+                    possibilityChance = null;
+                possibilityArr.push({ index: j, chance: possibilityChance });
+            }
+            let winningPossibilityIndex = choosePossibilityIndex(possibilityArr);
+            for (let possibility of possibilityArr) {
+                if (possibility.index !== winningPossibilityIndex)
+                    possibilitiesToRemove.push(possibilities[possibility.index]);
+            }
+            // Remove poss tags that failed the roll.
+            for (let j = 0; j < possibilitiesToRemove.length; j++)
+                procedurals[i].removeChild(possibilitiesToRemove[j]);
+        }
+        // Remove procedurals that failed the roll.
+        for (let i = 0; i < proceduralsToRemove.length; i++) {
+            if (proceduralsToRemove[i].parentNode) proceduralsToRemove[i].parentNode.removeChild(proceduralsToRemove[i]);
+            else document.removeChild(proceduralsToRemove[i]);
+        }
+    }
+
+    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+};
+
+function keepProcedural(chance) {
+    return Math.random() * 100 < chance;
+}
+
+function choosePossibilityIndex(possibilityArr) {
+    // If any of the given possibilities are null, assign their chances equally so that all chances add up to 100.
+    let possibilitySum = possibilityArr.reduce((accumulator, possibility) => accumulator + possibility.chance, 0);
+    let nullCount = possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 1 : 0), 0);
+    let dividedRemainder = (100.0 - possibilitySum) / nullCount; 
+    for (let possibility of possibilityArr) {
+        if (possibility.chance === null)
+            possibility.chance = dividedRemainder;
+    }
+
+    // Sort by highest to lowest chance.
+    possibilityArr = possibilityArr.sort((a,b) => b.chance - a.chance);
+    
+    // Roll a random number and find the winner.
+    const rand = Math.random() * 100;
+    let gachaValue = 0;
+    for (let possibility of possibilityArr) {
+        gachaValue += possibility.chance;
+        if (rand < gachaValue) {
+            return possibility.index;
+        }
+    }
+}
+
 function createDocument(description) {
     description = description.replace(/<il><\/il>/g, "<il><null /></il>");
 
