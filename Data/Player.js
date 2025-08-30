@@ -1638,6 +1638,51 @@ class Player {
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
+    
+    uncraft(game, item, recipe, bot) {
+        var ingredient1 = recipe.ingredients[0];
+        var ingredient2 = recipe.ingredients[1];
+
+        var rightHand = null;
+        var leftHand = null;
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === "RIGHT HAND") rightHand = this.inventory[slot];
+            else if (this.inventory[slot].name === "LEFT HAND") leftHand = this.inventory[slot];
+        }
+
+        if (!item.prefab.discreet) this.description = parser.removeItem(this.description, item, "hands");
+        itemManager.replaceInventoryItem(item, ingredient1);
+        itemManager.instantiateInventoryItem(
+            ingredient2,
+            this,
+            rightHand.equippedItem === null ? "RIGHT HAND" : "LEFT HAND",
+            "",
+            "",
+            1,
+            bot
+        )
+
+        if (!item.prefab.discreet || ingredient1.discreet || ingredient2.discreet) {
+            let ingredientPhrase = "";
+            let ingredient1Phrase = "";
+            let ingredient2Phrase = "";
+            if (!ingredient1.discreet) {
+                ingredient1Phrase = ingredient1.singleContainingPhrase;
+                this.description = parser.addItem(this.description, ingredient1, "hands");
+            }
+            if (!ingredient2.discreet) {
+                ingredient2Phrase = ingredient2.singleContainingPhrase;
+                this.description = parser.addItem(this.description, ingredient2, "hands");
+            }
+            if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+            else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
+            else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
+
+            if (ingredientPhrase !== "") new Narration(game, this, this.location, `${this.displayName} dismantles ${item.prefab.singleContainingPhrase} into ${ingredientPhrase}`);
+        }
+        
+        return {ingredient1: ingredient1, ingredient2: ingredient2};
+    }
 
     hasItem(game, id) {
         const playerItems = game.inventoryItems.filter(item => item.player.name === this.name && item.prefab !== null && item.quantity > 0);
