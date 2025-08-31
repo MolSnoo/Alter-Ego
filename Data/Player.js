@@ -1656,8 +1656,8 @@ class Player {
             ingredient2,
             this,
             rightHand.equippedItem === null ? "RIGHT HAND" : "LEFT HAND",
-            "",
-            "",
+            null,
+            null,
             1,
             bot
         )
