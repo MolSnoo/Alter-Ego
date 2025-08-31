@@ -19,6 +19,9 @@ class Recipe {
     completedCell() {
         return constants.recipeSheetCompletedColumn + this.row;
     }
+    uncraftedCell() {
+        return constants.recipeSheetUncraftedColumn + this.row;
+    }
 }
 
 module.exports = Recipe;
