@@ -5,7 +5,7 @@
     ],
     "objects": [
         [ "FLOOR", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "0", "on", "<desc><s>The floor is covered in a beige carpet.</s> <s>On it, you find <il></il>.</s></desc>" ],
-        [ "TABLE", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "1", "on", "<desc><s>It's a simple wooden coffee table.</s> <s>On its surface, you see <il>a layer of dust</il>.</s> <s>There's enough space underneath that you might be able to hide under it, if you needed to.</s></desc>" ],
+        [ "TABLE", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "1", "on", "<desc><s>It's a simple wooden coffee table.</s> <s>On its surface, you see <il>a layer of dust</il>.</s> <s>There's enough space underneath that you might be able to hide under it, if you needed to. On it, you find <il><item>a PEN</item></il>.</s></desc>" ],
         [ "SOFA", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "0", "", "<desc><s>It's a brown leather sofa.</s> <s>It looks old, but still feels fairly comfortable.</s></desc>" ],
         [ "BOLT", "living-room", "TRUE", "LOCK", "", "FALSE", "FALSE", "FALSE", "0", "", "<desc><s>You examine the bolt.</s> <s>It has a metal switch that you can use to lock the door from this side.</s> <s>Right now, it appears to be <if cond=\"this.childPuzzle.solved === true\">un</if>locked.</s></desc>" ],
         [ "FLOOR", "kitchen", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "0", "on", "<desc><s>The floor in this room is made up of white tiles.</s> <s>It looks like it hasn't been mopped in a while.</s> <s>On it, you find <il></il>.</s></desc>" ],
@@ -24,15 +24,20 @@
         [ "EMPTY BAG OF POPCORN", "BAG OF POPCORN, BAGS OF POPCORN", "an empty BAG OF POPCORN, empty BAGS OF POPCORN", "TRUE", "3", "1", "FALSE", "", "", "", "", "", "FALSE", "", "", "", "", "", "<desc><s>It's an empty bag of microwaveable popcorn.</s></desc>" ],
         [ "CLEAN BOWL", "BOWL, BOWLS", "a BOWL,BOWLS", "FALSE", "4", "1", "FALSE", "", "", "", "", "", "FALSE", "", "", "", "", "", "<desc><s>This is a plain, white bowl.</s> <s>It's a decent size, but not overly large.</s></desc>" ],
         [ "BOWL OF POPCORN", "POPCORN", "a bowl of POPCORN, bowls of POPCORN", "TRUE", "4", "1", "TRUE", "snacks on", "1", "", "satisfied, hungry", "DIRTY BOWL", "FALSE", "", "", "", "", "", "<desc><s>This is a plain, white bowl filled with freshly-cooked popcorn.</s></desc>" ],
-        [ "DIRTY BOWL", "DIRTY BOWL, DIRTY BOWLS", "a DIRTY BOWL, DIRTY BOWLS", "FALSE", "4", "1", "FALSE", "", "", "", "", "", "FALSE", "", "", "", "", "", "<desc><s>This is a plain, white bowl with some bits of food left in it.</s></desc>" ]
+        [ "DIRTY BOWL", "DIRTY BOWL, DIRTY BOWLS", "a DIRTY BOWL, DIRTY BOWLS", "FALSE", "4", "1", "FALSE", "", "", "", "", "", "FALSE", "", "", "", "", "", "<desc><s>This is a plain, white bowl with some bits of food left in it.</s></desc>" ],
+        [ "PEN", "PEN, PENS", "a PEN, PENS", "TRUE", "1", "0", "FALSE", "", "", "", "", "", "FALSE", "", "", "", "", "", "<desc><s>This is a plain, black pen. The cap is on.</s></desc>" ],
+        [ "PEN CAP", "PEN CAP, PEN CAPS", "a PEN CAP, PEN CAPS", "TRUE", "1", "0", "FALSE", "", "", "", "", "", "FALSE", "", "", "", "", "", "<desc><s>This is a plain, black pen cap.</s></desc>" ],
+        [ "PEN BODY", "PEN, PENS", "a PEN, PENS", "TRUE", "1", "0", "FALSE", "", "", "", "", "", "FALSE", "", "", "", "", "", "<desc><s>This is a plain, black pen. The cap is off.</s></desc>" ]
     ],
     "recipes": [
-        [ "BAG OF POPCORN", "microwave", "90s", "BAG OF HOT POPCORN", "<desc>You put the BAG OF POPCORN in the MICROWAVE for 1 minute and 30 seconds.</s></desc>", "<desc><s>The MICROWAVE beeps three times.</s> <s>The BAG OF POPCORN should be done now.</s></desc>" ],
-        [ "CLEAN BOWL, BAG OF HOT POPCORN", "", "", "BOWL OF POPCORN, BAG OF HOT POPCORN", "", "<desc><s>You pour some of the BAG OF POPCORN into a BOWL.</s> <s>You now have a bowl of POPCORN.</s></desc>" ]
+        [ "BAG OF POPCORN", "FALSE", "microwave", "90s", "BAG OF HOT POPCORN", "<desc>You put the BAG OF POPCORN in the MICROWAVE for 1 minute and 30 seconds.</s></desc>", "<desc><s>The MICROWAVE beeps three times.</s> <s>The BAG OF POPCORN should be done now.</s></desc>", "" ],
+        [ "CLEAN BOWL, BAG OF HOT POPCORN", "FALSE", "", "", "BOWL OF POPCORN, BAG OF HOT POPCORN", "", "<desc><s>You pour some of the BAG OF POPCORN into a BOWL.</s> <s>You now have a bowl of POPCORN.</s></desc>", "" ],
+        [ "PEN CAP, PEN BODY", "TRUE", "", "", "PEN", "", "<desc><s>You put the PEN CAP on the PEN.</s></desc>", "<desc><s>You take the PEN CAP off the PEN.</s></desc>"]
     ],
     "items": [
         [ "CLEAN BOWL", "", "kitchen", "TRUE", "Object: COUNTER", "1", "", "<desc><s>This is a plain, white bowl.</s> <s>It's a decent size, but not overly large.</s></desc>" ],
-        [ "BAG OF POPCORN", "", "kitchen", "TRUE", "Object: COUNTER", "1", "", "<desc><s>It's a bag of microwaveable popcorn.</s> <s>It says to put the bag in the microwave until it stops popping.</s></desc>" ]
+        [ "BAG OF POPCORN", "", "kitchen", "TRUE", "Object: COUNTER", "1", "", "<desc><s>It's a bag of microwaveable popcorn.</s> <s>It says to put the bag in the microwave until it stops popping.</s></desc>" ],
+        [ "PEN", "", "living-room", "TRUE", "Object: TABLE", "1", "", "<desc><s>This is a plain, black pen. The cap is on.</s></desc>"]
     ],
     "puzzles": [
         [ "LOCK", "FALSE", "", "FALSE", "living-room", "BOLT", "toggle", "TRUE", "", "", "", "unlock living-room RED DOOR / lock living-room BLUE DOOR", "<desc><s>You flip the bolt switch and the RED DOOR unlocks.</s></desc>", "<desc><s>You flip the bolt switch and the RED DOOR locks.</s></desc>", "", "", "" ]
