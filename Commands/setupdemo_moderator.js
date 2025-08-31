@@ -11,7 +11,7 @@ module.exports.config = {
     description: "Sets up a demo game.",
     details: "Populates an empty spreadsheet with default game data as defined in the demodata config file. "
         + "This will create a game environment to demonstrate most of the basics of Neo World Program gameplay. "
-        + "By default, it will generate 2 rooms, 8 objects, 11 prefabs, 2 recipes, 2 items, 1 puzzle, 1 event, "
+        + "By default, it will generate 2 rooms, 8 objects, 14 prefabs, 3 recipes, 3 items, 1 puzzle, 1 event, "
         + "13 status effects, and 6 gestures. If the channels for the demo game's rooms don't exist, they will be "
         + "created automatically. It will not create any players for you. Once this command is used you can use "
         + `the ${settings.commandPrefix}startgame command to add players, or manually add them on the spreadsheet. `
