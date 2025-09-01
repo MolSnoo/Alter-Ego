@@ -5,6 +5,8 @@ const serverconfig = include('Configs/serverconfig.json');
 
 const Player = include(`${constants.dataDir}/Player.js`);
 
+const { ChannelType } = require('../node_modules/discord-api-types/v10');
+
 module.exports.config = {
     name: "addplayer_moderator",
     description: "Adds a player to the game.",
