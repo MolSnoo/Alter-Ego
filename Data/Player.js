@@ -1280,15 +1280,17 @@ class Player {
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
             if (notify) this.notify(game, `You take ${item.singleContainingPhrase}.`);
-            if (!item.prefab.discreet) {
+            if (!item.prefab.discreet && notify) {
                 new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
                 this.description = parser.addItem(this.description, item, "hands");
             }
         }
         else {
-            if (notify) this.notify(game, `You equip the ${item.name}.`);
-            new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            if (notify) {
+                this.notify(game, `You equip the ${item.name}.`);
+                new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            }
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
                 const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
