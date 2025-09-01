@@ -35,11 +35,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     if (args.length === 1) {
         location = playerdefaults.defaultLocation;
-        status = playerdefaults.defaultStatusEffects;
+        status = playerdefaults.defaultStatusEffects.split(', ');
     }
     else if (args.length === 2) {
         location = args[1];
-        status = playerdefaults.defaultStatusEffects;
+        status = playerdefaults.defaultStatusEffects.split(', ');
     }
     else if (args.length >= 3) {
         location = args[1];
