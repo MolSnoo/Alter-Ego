@@ -97,10 +97,10 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.players.push(player);
     game.players_alive.push(player);
-    locationData.addPlayer(game, player, null, null, true)
     for (let i = i; i < status.length; i++) {
         player.inflict(game, status[i], false, false, false)
     }
+    locationData.addPlayer(game, player, null, null, true)
     member.roles.add(serverconfig.playerRole);
 
     message.channel.send(`<@${member.id}> added to game!`);
