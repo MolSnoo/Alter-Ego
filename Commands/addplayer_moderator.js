@@ -48,12 +48,6 @@ module.exports.run = async (bot, game, message, command, args) => {
         status = args.slice(2).join(' ').split(', ');
     }
 
-    if (settings.debug) {
-        console.log(location)
-        console.log(status)
-        console.log(args)
-    }
-
     for (let i = 0; i < game.rooms.length; i++) {
         if (game.rooms[i].name === location) {
             locationCheck = true;
@@ -90,10 +84,6 @@ module.exports.run = async (bot, game, message, command, args) => {
         new Array(),
         null
     );
-
-    if (settings.debug) {
-        console.log(player)
-    }
 
     game.players.push(player);
     game.players_alive.push(player);
