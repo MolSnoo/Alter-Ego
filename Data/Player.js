@@ -1663,7 +1663,7 @@ class Player {
             false
         )
 
-        if (!item.prefab.discreet || ingredient1.discreet || ingredient2.discreet) {
+        if (!item.prefab.discreet || !ingredient1.discreet || !ingredient2.discreet) {
             let ingredientPhrase = "";
             let ingredient1Phrase = "";
             let ingredient2Phrase = "";
