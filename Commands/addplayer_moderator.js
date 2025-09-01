@@ -79,7 +79,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         true,
         location,
         "",
-        status.join(", "),
+        [],
         playerdefaults.defaultDescription,
         new Array(),
         null
@@ -88,7 +88,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     game.players.push(player);
     game.players_alive.push(player);
     for (let i = 0; i < status.length; i++) {
-        player.inflict(game, status[i], false, false, false)
+        player.inflict(game, status[i], false, false, false, null, null)
     }
     locationData.addPlayer(game, player, null, null, true)
     member.roles.add(serverconfig.playerRole);
