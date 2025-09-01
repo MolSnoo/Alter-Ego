@@ -88,6 +88,11 @@ module.exports.run = async (bot, game, message, command, args) => {
         new Array(),
         null
     );
+
+    if (settings.debug) {
+        console.log(player)
+    }
+
     game.players.push(player);
     game.players_alive.push(player);
     member.roles.add(serverconfig.playerRole);
