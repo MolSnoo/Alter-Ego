@@ -2,6 +2,7 @@ const settings = include('Configs/settings.json');
 const constants = include('Configs/constants.json');
 const playerdefaults = include('Configs/playerdefaults.json');
 const serverconfig = include('Configs/serverconfig.json');
+const sheets = include(`${constants.modulesDir}/sheets.js`);
 
 const Player = include(`${constants.dataDir}/Player.js`);
 
@@ -90,6 +91,41 @@ module.exports.run = async (bot, game, message, command, args) => {
     game.players.push(player);
     game.players_alive.push(player);
     member.roles.add(serverconfig.playerRole);
+    var playerCells = [];
+    var inventoryCells = [];
+    for (let i = 0; i < game.players.length; i++) {
+        const p = game.players[i];
+        const playerData = [
+            p.id,
+            p.name,
+            p.talent,
+            p.pronounString,
+            p.originalVoiceString,
+            p.strength,
+            p.intelligence,
+            p.dexterity,
+            p.speed,
+            p.stamina,
+            p.alive,
+            p.location,
+            p.hidingSpot,
+            p.status,
+            p.description
+        ];
+        playerCells.push(playerData);
+
+        for (let j = 0; j < playerdefaults.defaultInventory.length; j++) {
+            var row = [player.name];
+            row = row.concat(playerdefaults.defaultInventory[j]);
+            for (let k = 0; k < row.length; k++) {
+                if (row[k].includes('#'))
+                    row[k] = row[k].replace(/#/g, i + 1);
+            }
+            inventoryCells.push(row);
+        }
+    }
+    sheets.updateData(constants.playerSheetDataCells, playerCells);
+    sheets.updateData(constants.inventorySheetDataCells, inventoryCells);
     message.channel.send(`<@${member.id}> added to game!`);
 
     return;
