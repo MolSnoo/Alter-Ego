@@ -306,9 +306,9 @@ module.exports.generateProceduralOutput = function (description) {
         var procedurals = document.getElementsByTagName('procedural');
         let proceduralsToRemove = [];
         for (let i = 0; i < procedurals.length; i++) {
-            let proceduralChance = procedurals[i].getAttribute('chance');
+            let proceduralChance = parseFloat(procedurals[i].getAttribute('chance'));
             // If a procedural chance was not provided or it is invalid, assume the chance is 100%.
-            if (proceduralChance === '' || isNaN(proceduralChance))
+            if (isNaN(proceduralChance) || proceduralChance < 0 || proceduralChance > 100)
                 proceduralChance = 100;
             // Roll to determine if this procedural will be kept. If the probability check fails, remove the tag entirely and skip to the next one.
             if (!keepProcedural(proceduralChance)) {
@@ -321,9 +321,9 @@ module.exports.generateProceduralOutput = function (description) {
             let possibilityArr = [];
             let possibilitiesToRemove = [];
             for (let j = 0; j < possibilities.length; j++) {
-                let possibilityChance = possibilities[j].getAttribute('chance');
+                let possibilityChance = parseFloat(possibilities[j].getAttribute('chance'));
                 // This will be handled in the rolling function, if a possibility chance was not provided or invalid, set it to null.
-                if (possibilityChance === '' || isNaN(possibilityChance))
+                if (isNaN(possibilityChance) || possibilityChance < 0 || possibilityChance > 100)
                     possibilityChance = null;
                 possibilityArr.push({ index: j, chance: possibilityChance });
             }
@@ -343,7 +343,7 @@ module.exports.generateProceduralOutput = function (description) {
         }
     }
 
-    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
 };
 
 function keepProcedural(chance) {
@@ -352,12 +352,15 @@ function keepProcedural(chance) {
 
 function choosePossibilityIndex(possibilityArr) {
     // If any of the given possibilities are null, assign their chances equally so that all chances add up to 100.
-    let possibilitySum = possibilityArr.reduce((accumulator, possibility) => accumulator + possibility.chance, 0);
+    // Clamp the sum of non-null possibilities between 0 and 100.
+    let possibilitySum = Math.min(Math.max(possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 0 : possibility.chance), 0), 0), 100);
     let nullCount = possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 1 : 0), 0);
-    let dividedRemainder = (100.0 - possibilitySum) / nullCount; 
-    for (let possibility of possibilityArr) {
-        if (possibility.chance === null)
-            possibility.chance = dividedRemainder;
+    if (nullCount > 0) {
+        let dividedRemainder = (100.0 - possibilitySum) / nullCount; 
+        for (let possibility of possibilityArr) {
+            if (possibility.chance === null)
+                possibility.chance = dividedRemainder;
+        }
     }
 
     // Sort by highest to lowest chance.
