@@ -6,7 +6,7 @@ const serverconfig = include('Configs/serverconfig.json');
 const Player = include(`${constants.dataDir}/Player.js`);
 
 module.exports.config = {
-    name: "player_moderator",
+    name: "addplayer_moderator",
     description: "Adds a player to the game.",
     details: "Adds a player to the list of players for the current game. You can additionally specify a "
         + "non-default starting room and a list of non-default status effects. Note that if you specify "
@@ -15,7 +15,7 @@ module.exports.config = {
         + `${settings.commandPrefix}addplayer @MolSno kitchen\n`
         + `${settings.commandPrefix}addplayer @MolSno living-room warm, well rested, full\n`,
     usableBy: "Moderator",
-    aliases: ["play"]
+    aliases: ["addplayer"]
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
