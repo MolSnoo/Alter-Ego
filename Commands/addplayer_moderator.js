@@ -91,6 +91,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     game.players.push(player);
     game.players_alive.push(player);
     member.roles.add(serverconfig.playerRole);
+
     var playerCells = [];
     var inventoryCells = [];
     for (let i = 0; i < game.players.length; i++) {
@@ -115,7 +116,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         playerCells.push(playerData);
 
         for (let j = 0; j < playerdefaults.defaultInventory.length; j++) {
-            var row = [player.name];
+            var row = [p.name];
             row = row.concat(playerdefaults.defaultInventory[j]);
             for (let k = 0; k < row.length; k++) {
                 if (row[k].includes('#'))
@@ -126,6 +127,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     sheets.updateData(constants.playerSheetDataCells, playerCells);
     sheets.updateData(constants.inventorySheetDataCells, inventoryCells);
+    
     message.channel.send(`<@${member.id}> added to game!`);
 
     return;
