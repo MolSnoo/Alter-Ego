@@ -43,7 +43,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else if (args.length >= 3) {
         location = args[1];
-        status = args.slice(2);
+        status = args.slice(2).join(' ').split(', ');
     }
 
     for (let i = 0; i < game.rooms.length; i++) {
