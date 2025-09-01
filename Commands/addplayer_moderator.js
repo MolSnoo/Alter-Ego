@@ -83,7 +83,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         true,
         location,
         "",
-        status,
+        status.join(", "),
         playerdefaults.defaultDescription,
         new Array(),
         null
