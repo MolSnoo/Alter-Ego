@@ -25,6 +25,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     const member = message.mentions.members.first();
     var location = null;
+    var locationData = null;
     var status = null;
     var locationCheck = false;
     var statusCheck = 0;
@@ -56,6 +57,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     for (let i = 0; i < game.rooms.length; i++) {
         if (game.rooms[i].name === location) {
             locationCheck = true;
+            locationData = game.rooms[i];
             break;
         }
     }
@@ -95,6 +97,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.players.push(player);
     game.players_alive.push(player);
+    locationData.addPlayer(game, player, null, null, true)
     member.roles.add(serverconfig.playerRole);
 
     message.channel.send(`<@${member.id}> added to game!`);
