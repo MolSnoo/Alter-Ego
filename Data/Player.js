@@ -1663,6 +1663,7 @@ class Player {
             false
         )
 
+        this.sendDescription(game, recipe.uncraftedDescription, recipe);
         if (!item.prefab.discreet || !ingredient1.discreet || !ingredient2.discreet) {
             let ingredientPhrase = "";
             let ingredient1Phrase = "";
