@@ -97,7 +97,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.players.push(player);
     game.players_alive.push(player);
-    for (let i = i; i < status.length; i++) {
+    for (let i = 0; i < status.length; i++) {
         player.inflict(game, status[i], false, false, false)
     }
     locationData.addPlayer(game, player, null, null, true)
