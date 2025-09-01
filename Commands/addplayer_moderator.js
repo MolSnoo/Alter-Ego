@@ -46,6 +46,12 @@ module.exports.run = async (bot, game, message, command, args) => {
         status = args.slice(2).join(' ').split(', ');
     }
 
+    if (settings.debug) {
+        console.log(location)
+        console.log(status)
+        console.log(args)
+    }
+
     for (let i = 0; i < game.rooms.length; i++) {
         if (game.rooms[i].name === location) {
             locationCheck = true;
