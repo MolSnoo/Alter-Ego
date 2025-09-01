@@ -1255,7 +1255,7 @@ class Player {
         return;
     }
 
-    async fastEquip(game, item, slotName, bot) {
+    async fastEquip(game, item, slotName, bot, notify = true) {
         // Get the row number of the EquipmentSlot that the item will go into.
         var rowNumber = 0;
         for (var slot = 0; slot < this.inventory.length; slot++) {
@@ -1279,7 +1279,7 @@ class Player {
         }
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            this.notify(game, `You take ${item.singleContainingPhrase}.`);
+            if (notify) this.notify(game, `You take ${item.singleContainingPhrase}.`);
             if (!item.prefab.discreet) {
                 new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
@@ -1287,7 +1287,7 @@ class Player {
             }
         }
         else {
-            this.notify(game, `You equip the ${item.name}.`);
+            if (notify) this.notify(game, `You equip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
@@ -1659,7 +1659,8 @@ class Player {
             null,
             null,
             1,
-            bot
+            bot,
+            false
         )
 
         if (!item.prefab.discreet || ingredient1.discreet || ingredient2.discreet) {
