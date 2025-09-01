@@ -2,7 +2,6 @@ const settings = include('Configs/settings.json');
 const constants = include('Configs/constants.json');
 const playerdefaults = include('Configs/playerdefaults.json');
 const serverconfig = include('Configs/serverconfig.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
 
 const Player = include(`${constants.dataDir}/Player.js`);
 
