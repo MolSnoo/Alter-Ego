@@ -3,6 +3,7 @@ const constants = include('Configs/constants.json');
 const playerdefaults = include('Configs/playerdefaults.json');
 const serverconfig = include('Configs/serverconfig.json');
 
+const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 const Player = include(`${constants.dataDir}/Player.js`);
 
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
@@ -104,6 +105,23 @@ module.exports.run = async (bot, game, message, command, args) => {
         player.inflict(game, status[i], false, false, false, null, null)
     }
     locationData.addPlayer(game, player, null, null, true)
+
+    // CURSED INVENTORY CREATION CODE BEGINS
+    const indexPrefab = 0;
+    const indexIdentifier = 1;
+    const indexEquipmentSlot = 2;
+    const indexContainer = 3;
+    const indexQuantity = 4;
+    const indexUses = 5;
+    const indexDescription = 6;
+    var playerInventory = structuredClone(playerdefaults.defaultInventory);
+    for (let i = 0; i < playerInventory.length; i++) {
+        for (let j = 0; j < playerInventory[i].length; j++) {
+            if (playerInventory[i][j].includes('#'))
+                playerInventory[i][j] = playerInventory[i][j].replace(/#/g, game.players.length + 1);
+        }
+    }
+    // CURSED INVENTORY CREATION CODE ENDS
 
     member.roles.add(serverconfig.playerRole);
 
