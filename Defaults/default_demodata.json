@@ -5,7 +5,7 @@
     ],
     "objects": [
         [ "FLOOR", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "0", "on", "<desc><s>The floor is covered in a beige carpet.</s> <s>On it, you find <il></il>.</s></desc>" ],
-        [ "TABLE", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "1", "on", "<desc><s>It's a simple wooden coffee table.</s> <s>On its surface, you see <il>a layer of dust</il>.</s> <s>There's enough space underneath that you might be able to hide under it, if you needed to.</s> <s>On it, you find <il><item>a PEN</item></il>.</s></desc>" ],
+        [ "TABLE", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "1", "on", "<desc><s>It's a simple wooden coffee table.</s> <s>On its surface, you see <il><item>a PEN</item> and a layer of dust</il>.</s> <s>There's enough space underneath that you might be able to hide under it, if you needed to.</s></desc>" ],
         [ "SOFA", "living-room", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "0", "", "<desc><s>It's a brown leather sofa.</s> <s>It looks old, but still feels fairly comfortable.</s></desc>" ],
         [ "BOLT", "living-room", "TRUE", "LOCK", "", "FALSE", "FALSE", "FALSE", "0", "", "<desc><s>You examine the bolt.</s> <s>It has a metal switch that you can use to lock the door from this side.</s> <s>Right now, it appears to be <if cond=\"this.childPuzzle.solved === true\">un</if>locked.</s></desc>" ],
         [ "FLOOR", "kitchen", "TRUE", "", "", "FALSE", "FALSE", "FALSE", "0", "on", "<desc><s>The floor in this room is made up of white tiles.</s> <s>It looks like it hasn't been mopped in a while.</s> <s>On it, you find <il></il>.</s></desc>" ],
