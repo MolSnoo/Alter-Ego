@@ -28,6 +28,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     var status = null;
     var locationCheck = false;
     var statusCheck = 0;
+    var spectateChannel = null;
 
     for (let i = 0; i < game.players.length; i++) {
         if (member.id === game.players[i].id)
@@ -66,6 +67,16 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (statusCheck !== status.length)
         return game.messageHandler.addReply(message, `Not all given status effects could be found. Missing: ${status.length - statusCheck}.`);
 
+    spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === member.displayName.toLowerCase());
+    const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
+    if (!spectateChannel && noSpectateChannels < 50) {
+        spectateChannel = await game.guild.channels.create({
+            name: member.displayName.toLowerCase(),
+            type: ChannelType.GuildText,    
+            parent: serverconfig.spectateCategory
+        });
+    }
+
     var player = new Player(
         member.id,
         member,
@@ -81,15 +92,17 @@ module.exports.run = async (bot, game, message, command, args) => {
         [],
         playerdefaults.defaultDescription,
         new Array(),
-        null
+        spectateChannel
     );
 
     game.players.push(player);
     game.players_alive.push(player);
+    
     for (let i = 0; i < status.length; i++) {
         player.inflict(game, status[i], false, false, false, null, null)
     }
     locationData.addPlayer(game, player, null, null, true)
+
     member.roles.add(serverconfig.playerRole);
 
     message.channel.send(`<@${member.id}> added to game!`);
