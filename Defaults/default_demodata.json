@@ -35,7 +35,7 @@
         [ "BAG OF POPCORN", "", "kitchen", "TRUE", "Object: COUNTER", "1", "", "<desc><s>It's a bag of microwaveable popcorn.</s> <s>It says to put the bag in the microwave until it stops popping.</s></desc>" ]
     ],
     "puzzles": [
-        [ "LOCK", "FALSE", "", "FALSE", "living-room", "BOLT", "toggle", "TRUE", "", "", "", "unlock living-room RED DOOR / lock living-room BLUE DOOR", "<desc><s>You flip the bolt switch and the RED DOOR unlocks.</s></desc>", "<desc><s>You flip the bolt switch and the RED DOOR locks.</s></desc>", "", "", "" ]
+        [ "LOCK", "FALSE", "", "FALSE", "living-room", "BOLT", "toggle", "TRUE", "", "", "", "unlock living-room RED DOOR / lock living-room RED DOOR", "<desc><s>You flip the bolt switch and the RED DOOR unlocks.</s></desc>", "<desc><s>You flip the bolt switch and the RED DOOR locks.</s></desc>", "", "", "" ]
     ],
     "events": [
         [ "HEAT", "TRUE", "", "", "", "heating", "", "warm", "warm", "", "" ]
