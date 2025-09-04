@@ -4,22 +4,25 @@ const itemManager = include(`${constants.modulesDir}/itemManager.js`);
 module.exports.config = {
     name: "instantiate_bot",
     description: "Generates an item.",
-    details: "Generates an item in the specified location on the map or in the given player's inventory. The prefab ID must be given. A quantity can also be specified.\n\n"
-        + "In order to instantiate an item, the name of the room must be given at the end, following \"at\". The name of the container it will be created in "
-        + "must also be specified. If the container is an object with a child puzzle, the item will be instantiated in that puzzle. If the container is another item, "
-        + "the name of the item or its container identifier can be used. The name of the inventory slot to instantiate the item in can also be specified.\n\n"
+    details: "Generates an item or inventory item in the specified location. The prefab ID must be used. "
+        + "A quantity can also be set. If the prefab has procedural options, they can be manually set in parentheses.\n\n"
+        + "To instantiate an item, the name of the room must be given at the end, following \"at\". The name of the container to put it in "
+        + "must also be given. If the container is an object with a child puzzle, the puzzle will be its container. If the container is another item, "
+        + "the item's name or container identifier can be used. The name of the inventory slot to instantiate the item in can also be specified.\n\n"
         + "To instantiate an inventory item, \"player\", \"room\", \"all\", or the name of a player followed by \"'s\", must be given. A container item can be specified, as well as which slot to "
-        + "instantiate the item into. The player will not be notified if a container item is specified. An equipment slot can also be specified instead of a container item. "
+        + "instantiate the item into. The player will not be notified if a container item is specified. An equipment slot can also be chosen instead of a container item. "
         + "The player will be notified of obtaining the item in this case, and the prefab's equipped commands will be run.",
     usage: `instantiate raw fish on floor at beach\n`
         + `create pickaxe in locker 1 at mining hub\n`
         + `generate 3 empty drain cleaner in cupboards at kitchen\n`
         + `instantiate green book in main pocket of large backpack 1 at dorm library\n`
         + `create 4 screwdriver in tool box at beach house\n`
+        + `instantiate gacha capsule (color=metal + character=upa) in gacha slot at arcade\n`
         + `generate katana in player right hand\n`
         + `instantiate monokuma mask on all face\n`
         + `create laptop in vivian's vivians satchel\n`
-        + `generate 2 shotput ball in cassie's main pocket of large backpack`,
+        + `generate 2 shotput ball in cassie's main pocket of large backpack`
+        + `instantiate 3 capsulebeast card (species=lavazard) in asuka's left pocket of gamer hoodie`,
     usableBy: "Bot",
     aliases: ["instantiate", "create", "generate"]
 };
@@ -57,6 +60,20 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${parsedRoomName}`));
             break;
         }
+    }
+
+    // If a parenthetical expression is included, procedural options are being manually set.
+    var proceduralSelections = new Map();
+    if (parsedInput.indexOf('(') < parsedInput.indexOf(')')) {
+        const proceduralString = parsedInput.substring(parsedInput.indexOf('(') + 1, parsedInput.indexOf(')'));
+        let proceduralList = proceduralString.split('+');
+        for (let procedural of proceduralList) {
+            const proceduralAssignment = procedural.split('=');
+            if (proceduralAssignment.length !== 2)
+                return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Procedural options must be separated with \`+\`, and the name of the poss to select must be assigned to the name of its containing procedural with \`=\`.`);
+            proceduralSelections.set(proceduralAssignment[0].toLowerCase().trim(), proceduralAssignment[1].toLowerCase().trim());
+        }
+        parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')'));
     }
 
     // Room was found. Look for the container in it.
@@ -160,9 +177,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
             for (let i = 0; i < quantity; i++)
-                itemManager.instantiateItem(prefab, room, container, slotName, 1);
+                itemManager.instantiateItem(prefab, room, container, slotName, 1, proceduralSelections);
         }
-        else itemManager.instantiateItem(prefab, room, container, slotName, quantity);
+        else itemManager.instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections);
     }
     else {
         var players = [];
@@ -293,9 +310,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
             if (prefab.inventory.length > 0) {
                 for (let i = 0; i < quantity; i++)
-                    itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, bot);
+                    itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, proceduralSelections, bot);
             }
-            else itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, bot);
+            else itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections, bot);
         }
     }
 
