@@ -5,6 +5,7 @@ const discord = require('discord.js');
 const QueuedMessage = include(`${constants.dataDir}/QueuedMessage.js`);
 
 module.exports.queue = [];
+module.exports.cache = [];
 module.exports.clientID = null;
 
 const messagePriority = {
@@ -106,6 +107,7 @@ module.exports.addReply = async (message, messageText) => {
 // Take a message sent in a room/whisper by a player and add it to the spectate channels of other players in the room
 module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whisper = null, displayName = null) => {
     if (player.spectateChannel !== null) {
+
         var messageText = message.content || '';
         // If this is a whisper, specify that the following message comes from the whisper
         if (whisper && whisper.players.length > 1)
@@ -122,6 +124,17 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
+        if (module.exports.cache.length >= 25) {
+            module.exports.cache.pop()
+        }
+
+        module.exports.cache.unshift(
+            {
+                id: message.id,
+                related: []
+            }
+        );
+
         // Send through the webhook with the original author's username and avatar, and the original message's contents
         addWebhookMessageToQueue(webHook,
             {
@@ -131,7 +144,7 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
                 embeds: message.embeds,
                 files: files
             },
-            messagePriority.spectatorMessage);
+            messagePriority.spectatorMessage, message.id);
     }
 };
 
@@ -161,7 +174,7 @@ function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
     addToQueue(sendAction, priority);
 }
 
-function addWebhookMessageToQueue(webHook, webHookContents, priority) {
+function addWebhookMessageToQueue(webHook, webHookContents, priority, originId) {
     let sendAction = () => webHook.send(webHookContents);
     addToQueue(sendAction, priority);
 }
