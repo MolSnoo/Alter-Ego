@@ -31,7 +31,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     const minutes = parseInt(matches[2])
 
     if (isNaN(hours) || isNaN(minutes) || hours < 0 || minutes < 0) {
-        return game.messageHandler.addReply(message, `Invalid time values. Hours and minutes must be valid, positive numbers. Usage:\n${exports.config.usage}`);
+        return game.messageHandler.addReply(message, `Invalid time values. Hours and/or minutes must be valid, non-negative numbers. Usage:\n${exports.config.usage}`);
     }
 
     const offset = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)
