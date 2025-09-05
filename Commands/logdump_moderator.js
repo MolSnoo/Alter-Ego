@@ -30,7 +30,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     const hours = parseInt(matches[1])
     const minutes = parseInt(matches[2])
 
-    if (isNaN(hours) || isNaN(minutes || hours < 0 || minutes < 0)) {
+    if (isNaN(hours) || isNaN(minutes) || hours < 0 || minutes < 0) {
         return game.messageHandler.addReply(message, `Invalid time values. Hours and minutes must be valid, positive numbers. Usage:\n${exports.config.usage}`);
     }
 
