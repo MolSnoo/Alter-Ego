@@ -23,8 +23,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     const regex = /^(?:(\d+)h)?(?:(\d+)m)?$/;
     const matches = args[0].match(regex)
 
-    const hours = parseInt(matches[0])
-    const minutes = parseInt(matches[1])
+    const hours = parseInt(matches[1])
+    const minutes = parseInt(matches[2])
 
     const offset = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)
 
