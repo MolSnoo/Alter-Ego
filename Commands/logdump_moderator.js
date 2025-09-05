@@ -35,9 +35,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     const offset = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)
-
     const time = Date.now() - offset;
-
     const entries = bot.commandLog.filter(entry => entry.timestamp.getTime() >= time)
 
     const dataGame = inspect(game, {
@@ -46,9 +44,18 @@ module.exports.run = async (bot, game, message, command, args) => {
     const dataLog = inspect(entries, {
         depth: args[1], colors: false, showHidden: false
     })
+
     const bufferGame = Buffer.from(dataGame)
     const bufferLog = Buffer.from(dataLog)
+
+    if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
+        return game.messageHandler.addReply(message, "The data requested exceeds Discord's file size limit. Try again with a smaller time window or lower depth.\n"
+            + `Game Data: \`${bufferGame.byteLength}B\`\n`
+            + `Log Data: \`${bufferLog.byteLength}B\``);
+    }
+
     const fileGame = { attachment: bufferGame, name: "data_game.txt" }
     const fileLog = { attachment: bufferLog, name: "data_commands.log" }
-    message.channel.send({ files: [fileGame, fileLog] }); // TODO: check that we dont send 1000 molsnovian megabytes to discord on accident before trying to send
+
+    message.channel.send({ files: [fileGame, fileLog] });
 }
