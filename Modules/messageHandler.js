@@ -151,8 +151,8 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
 module.exports.editSpectatorMessage = async (messageOld, messageNew) => {
     const cache = module.exports.cache.find(entry => entry.id === messageOld.id)
     if (!cache) return;
-    for (let i = 0; i < cache.related; i++) {
-        cache.related[i].edit(messageNew.content)
+    for (let i = 0; i < cache.related.length; i++) {
+        cache.related[i].webhook.editMessage(cache.related[i].message, { content: messageNew.content })
     }
 }
 
@@ -185,7 +185,7 @@ function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
 function addWebhookMessageToQueue(webHook, webHookContents, priority, originId) {
     let sendAction = () => webHook.send(webHookContents).then(message => {
         const cache = module.exports.cache.find(entry => entry.id === originId);
-        cache.related.push(message);
+        cache.related.push({ message: message, webhook: webHook });
     }).catch(console.error);
     addToQueue(sendAction, priority);
 }
