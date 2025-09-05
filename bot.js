@@ -18,7 +18,6 @@ var moment = require('moment');
 moment().format();
 const discord = require('discord.js');
 const { ActivityType, ChannelType } = require('./node_modules/discord-api-types/v10');
-const { blogger } = require('googleapis/build/src/apis/blogger');
 const bot = new discord.Client({
     retryLimit: Infinity,
     partials: [
