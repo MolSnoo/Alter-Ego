@@ -175,7 +175,10 @@ function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
 }
 
 function addWebhookMessageToQueue(webHook, webHookContents, priority, originId) {
-    let sendAction = () => webHook.send(webHookContents);
+    let sendAction = () => webHook.send(webHookContents).then(message => {
+        const cache = module.exports.cache.find(entry => entry.id === originId);
+        cache.related.push(message.id);
+    }).catch(console.error);
     addToQueue(sendAction, priority);
 }
 
