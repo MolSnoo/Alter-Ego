@@ -23,8 +23,16 @@ module.exports.run = async (bot, game, message, command, args) => {
     const regex = /^(?:(\d+)h)?(?:(\d+)m)?$/;
     const matches = args[0].match(regex)
 
+    if (!matches || (matches[1] === undefined && matches[2] === undefined)) {
+        return game.messageHandler.addReply(message, `Invalid time format. Use format like "2h30m" where at least one component is provided. Usage:\n${exports.config.usage}`);
+    }
+
     const hours = parseInt(matches[1])
     const minutes = parseInt(matches[2])
+
+    if (isNaN(hours) || isNaN(minutes || hours < 0 || minutes < 0)) {
+        return game.messageHandler.addReply(message, `Invalid time values. Hours and minutes must be valid, positive numbers. Usage:\n${exports.config.usage}`);
+    }
 
     const offset = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)
 
@@ -42,5 +50,5 @@ module.exports.run = async (bot, game, message, command, args) => {
     const bufferLog = Buffer.from(dataLog)
     const fileGame = { attachment: bufferGame, name: "data_game.txt" }
     const fileLog = { attachment: bufferLog, name: "data_commands.log" }
-    message.channel.send({ files: [fileGame, fileLog] });
+    message.channel.send({ files: [fileGame, fileLog] }); // TODO: check that we dont send 1000 molsnovian megabytes to discord on accident before trying to send
 }
