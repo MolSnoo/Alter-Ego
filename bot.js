@@ -45,6 +45,7 @@ game.messageHandler = messageHandler;
 
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
+bot.commandLog = [];
 function loadCommands() {
     const commandsDir = `./${constants.commandsDir}/`;
     fs.readdir(commandsDir, (err, files) => {
@@ -187,6 +188,17 @@ bot.on('messageCreate', async message => {
     }
     if (message && !isCommand && game.inProgress && (serverconfig.roomCategories.includes(message.channel.parentId) || message.channel.parentId === serverconfig.whisperCategory || message.channel.id === serverconfig.announcementChannel)) {
         await dialogHandler.execute(bot, game, message, true);
+    }
+    if (isCommand) {
+        const entry = {
+            timestamp: new Date(),
+            author: message.author,
+            content: message.content
+        };
+        bot.commandLog.unshift(entry)
+        if (bot.commandLog.length >= 500) {
+            bot.commandLog.pop()
+        }
     }
 });
 
