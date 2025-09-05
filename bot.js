@@ -18,6 +18,7 @@ var moment = require('moment');
 moment().format();
 const discord = require('discord.js');
 const { ActivityType, ChannelType } = require('./node_modules/discord-api-types/v10');
+const { blogger } = require('googleapis/build/src/apis/blogger');
 const bot = new discord.Client({
     retryLimit: Infinity,
     partials: [
@@ -189,6 +190,12 @@ bot.on('messageCreate', async message => {
         await dialogHandler.execute(bot, game, message, true);
     }
 });
+
+bot.on('messageUpdate', async (messageOld, messageNew) => {
+    if (messageOld.partial || messageNew.partial || messageOld.author.bot || messageOld.content == messageNew.content) return;
+
+    messageHandler.editSpectatorMessage(messageOld, messageNew)
+})
 
 process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);

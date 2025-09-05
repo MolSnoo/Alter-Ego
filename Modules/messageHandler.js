@@ -148,6 +148,14 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
     }
 };
 
+module.exports.editSpectatorMessage = async (messageOld, messageNew) => {
+    const cache = module.exports.cache.find(entry => entry.id === messageOld.id)
+    if (!cache) return;
+    for (let i = 0; i < cache.related; i++) {
+        cache.related[i].edit(messageNew.content)
+    }
+}
+
 module.exports.sendQueuedMessages = async () => {
     let queue = module.exports.queue;
     // Send the first message and remove it, until there are no messages left
@@ -177,7 +185,7 @@ function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
 function addWebhookMessageToQueue(webHook, webHookContents, priority, originId) {
     let sendAction = () => webHook.send(webHookContents).then(message => {
         const cache = module.exports.cache.find(entry => entry.id === originId);
-        cache.related.push(message.id);
+        cache.related.push(message);
     }).catch(console.error);
     addToQueue(sendAction, priority);
 }
