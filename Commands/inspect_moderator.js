@@ -82,16 +82,6 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     if (item !== null) {
-        if (hiddenStatus.length > 0) {
-            let topContainer = item.container;
-            while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
-                topContainer = topContainer.container;
-            if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
-                topContainer = topContainer.parentObject;
-
-            if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-                return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
-        }
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} on ${object.name}.`).send();
         player.sendDescription(game, item.description, item);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${item.identifier !== "" ? item.identifier : item.prefab.id} on ${object.name} for ${player.name}`)
