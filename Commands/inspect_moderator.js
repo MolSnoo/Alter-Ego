@@ -164,13 +164,13 @@ module.exports.run = async (bot, game, message, command, args) => {
                     && item.prefab.name === containerName);
 
                 for (let j = 0; j < puzzleContainers.length; j++) {
-                    if (item.container === puzzleContainers[j]) {
+                    if (items[i].container === puzzleContainers[j]) {
                         item = items[i];
                         break;
                     }
                 }
                 for (let j = 0; j < itemContainers.length; j++) {
-                    if (item.container == itemContainers[j]) {
+                    if (items[i].container == itemContainers[j]) {
                         item = items[i];
                         break;
                     }
