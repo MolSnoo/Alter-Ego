@@ -158,6 +158,30 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 item = items[i];
                 break;
             }
+
+            if (parsedInput.startsWith(`${items[i].name} IN `)) {
+                const containerName = parsedInput.slice(`${items[i].name} IN `.length);
+                const puzzleContainers = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name
+                    && puzzle.accessible
+                    && puzzle.name === containerName)
+                const itemContainers = game.items.filter(item => item.location.name === player.location.name
+                    && item.accessible
+                    && (item.quantity > 0 || isNaN(item.quantity))
+                    && item.prefab.name === containerName);
+
+                for (let j = 0; j < puzzleContainers.length; j++) {
+                    if (item.container === puzzleContainers[j]) {
+                        item = items[i];
+                        break;
+                    }
+                }
+                for (let j = 0; j < itemContainers.length; j++) {
+                    if (item.container == itemContainers[j]) {
+                        item = items[i];
+                        break;
+                    }
+                }
+            }
         }
 
         if (item !== null) {
