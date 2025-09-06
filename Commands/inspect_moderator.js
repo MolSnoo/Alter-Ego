@@ -56,14 +56,50 @@ module.exports.run = async (bot, game, message, command, args) => {
         return;
     }
 
-    // Check if the input is an object.
+    // Check if the input is an object, or an item on an object.
     const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
     var object = null;
+    var item = null;
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) {
             object = objects[i];
             break;
         }
+
+        if (parsedInput.endsWith(` ${objects[i].preposition.toUpperCase()} ${objects[i].name}`)) {
+            const items = game.items.filter(item => item.location.name === player.location.name
+                && item.accessible
+                && (item.quantity > 0 || isNaN(item.quantity))
+                && item.container === objects[i]);
+            for (let j = 0; j < items.length; j++) {
+                if (parsedInput === `${items[j].prefab.name} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` || parsedInput === `${items[j].prefab.pluralName} ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) {
+                    object = objects[i];
+                    item = items[j];
+                    break;
+                }
+            }
+        }
+    }
+
+    if (item !== null) {
+        if (hiddenStatus.length > 0) {
+            let topContainer = item.container;
+            while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+                topContainer = topContainer.container;
+            if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+                topContainer = topContainer.parentObject;
+
+            if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+                return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        }
+        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} on ${object.name}.`).send();
+        player.sendDescription(game, item.description, item);
+        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${item.identifier !== "" ? item.identifier : item.prefab.id} on ${object.name} for ${player.name}`)
+
+        const time = new Date().toLocaleTimeString();
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel} on ${object.name}`);
+
+        return;
     }
 
     if (object !== null) {
