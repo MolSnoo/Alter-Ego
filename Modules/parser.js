@@ -298,7 +298,7 @@ module.exports.removeItem = function (description, item, slot, removedQuantity, 
     else return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 };
 
-module.exports.generateProceduralOutput = function (description, proceduralSelections) {
+module.exports.generateProceduralOutput = function (description, proceduralSelections, player) {
     var document = createDocument(description).document;
 
     if (document) {
@@ -306,7 +306,7 @@ module.exports.generateProceduralOutput = function (description, proceduralSelec
         var procedurals = document.getElementsByTagName('procedural');
         let proceduralsToRemove = [];
         for (let i = 0; i < procedurals.length; i++) {
-            const proceduralName = procedurals[i].getAttribute('name').toLowerCase();
+            const proceduralName = procedurals[i].getAttribute('name').toLowerCase().trim();
             let proceduralAssigned = false;
             if (proceduralName !== '' && proceduralSelections.has(proceduralName))
                 proceduralAssigned = true;
@@ -337,7 +337,18 @@ module.exports.generateProceduralOutput = function (description, proceduralSelec
                     possibilityChance = null;
                 possibilityArr.push({ index: j, chance: possibilityChance });
             }
-            if (winningPossibilityIndex === null) winningPossibilityIndex = choosePossibilityIndex(possibilityArr);
+            if (winningPossibilityIndex === null) {
+                let statValue = null;
+                const proceduralStat = procedurals[i].getAttribute('stat').toLowerCase();
+                if (proceduralStat !== '' && player !== null) {
+                    if (proceduralStat === "strength" || proceduralStat === "str") statValue = player.strength;
+                    else if (proceduralStat === "intelligence" || proceduralStat === "int") statValue = player.intelligence;
+                    else if (proceduralStat === "dexterity" || proceduralStat === "dex") statValue = player.dexterity;
+                    else if (proceduralStat === "speed" || proceduralStat === "spd") statValue = player.speed;
+                    else if (proceduralStat === "stamina" || proceduralStat === "sta") statValue = player.stamina;
+                }
+                winningPossibilityIndex = choosePossibilityIndex(possibilityArr, statValue);
+            }
             for (let possibility of possibilityArr) {
                 if (possibility.index !== winningPossibilityIndex)
                     possibilitiesToRemove.push(possibilities[possibility.index]);
@@ -360,7 +371,7 @@ function keepProcedural(chance) {
     return Math.random() * 100 < chance;
 }
 
-function choosePossibilityIndex(possibilityArr) {
+function choosePossibilityIndex(possibilityArr, statValue) {
     // If any of the given possibilities are null, assign their chances equally so that all chances add up to 100.
     // Clamp the sum of non-null possibilities between 0 and 100.
     let possibilitySum = Math.min(Math.max(possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 0 : possibility.chance), 0), 0), 100);
@@ -370,6 +381,16 @@ function choosePossibilityIndex(possibilityArr) {
         for (let possibility of possibilityArr) {
             if (possibility.chance === null)
                 possibility.chance = dividedRemainder;
+        }
+    }
+
+    // Generate modified percentages based on the supplied stat value.
+    if (statValue !== null && possibilityArr.length > 1) {
+        const modifierMax = statValue - 5;
+        const modifierMin = -1 * modifierMax;
+        for (let i = 0; i < possibilityArr.length; i++) {
+            const percentageModifier = (modifierMin + (modifierMax - modifierMin) / (possibilityArr.length - 1) * i) * 10;
+            possibilityArr[i].chance = possibilityArr[i].chance + percentageModifier;
         }
     }
 

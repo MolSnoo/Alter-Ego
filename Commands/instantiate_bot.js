@@ -177,9 +177,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
             for (let i = 0; i < quantity; i++)
-                itemManager.instantiateItem(prefab, room, container, slotName, 1, proceduralSelections);
+                itemManager.instantiateItem(prefab, room, container, slotName, 1, proceduralSelections, player);
         }
-        else itemManager.instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections);
+        else itemManager.instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections, player);
     }
     else {
         var players = [];
