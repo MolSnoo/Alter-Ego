@@ -1,0 +1,1 @@
+global.include = require('app-root-path').require;
