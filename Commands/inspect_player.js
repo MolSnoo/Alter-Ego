@@ -66,7 +66,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             const items = game.items.filter(item => item.location.name === player.location.name
                 && item.accessible
                 && (item.quantity > 0 || isNaN(item.quantity))
-                && item.container === objects[i]);
+                && item.container.name === objects[i].name);
             for (let j = 0; j < items.length; j++) {
                 if (parsedInput === `${items[j].prefab.name} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` || parsedInput === `${items[j].prefab.pluralName} ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) {
                     object = objects[i];
