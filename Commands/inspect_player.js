@@ -88,11 +88,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
                 return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         }
-        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} on ${object.name}.`).send();
+        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} ${object.preposition} ${object.name}.`).send();
         player.sendDescription(game, item.description, item);
 
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel} on ${object.name}`);
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` ${object.preposition} ${object.name} in ${player.location.channel}`);
 
         return;
     }
