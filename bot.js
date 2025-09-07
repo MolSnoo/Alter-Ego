@@ -191,7 +191,7 @@ bot.on('messageCreate', async message => {
 });
 
 bot.on('messageUpdate', async (messageOld, messageNew) => {
-    if (messageOld.partial || messageNew.partial || messageOld.author.bot || messageOld.content == messageNew.content) return;
+    if (messageOld.partial || messageNew.partial || messageOld.author.bot || messageOld.content === messageNew.content) return;
 
     messageHandler.editSpectatorMessage(messageOld, messageNew);
 });
