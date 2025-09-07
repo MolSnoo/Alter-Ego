@@ -283,3 +283,5 @@ parsedText.xml
 # Docker Files
 *.env
 
+# Coverage
+coverage/
