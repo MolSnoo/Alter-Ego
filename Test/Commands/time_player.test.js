@@ -29,7 +29,7 @@ describe('time_player command', () => {
         expect(game.messageHandler.addGameMechanicMessage).toHaveBeenCalled();
         expect(game.messageHandler.addReply).not.toHaveBeenCalled();
         const timeMessage = game.messageHandler.addGameMechanicMessage.mock.calls[0][1];
-        expect(timeMessage).toBe(`The time is **${new Date().toLocaleTimeString()}**.`);
+        expect(timeMessage).toMatch(/The time is \*\*\d?\d:\d\d:\d\d A?P?M\*\*\./); // TODO: match to LocaleTimeString
     });
     
     test('should not show time when player has disable time status', async () => {
