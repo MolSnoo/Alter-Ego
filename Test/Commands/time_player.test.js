@@ -29,11 +29,11 @@ describe('time_player command', () => {
         expect(game.messageHandler.addGameMechanicMessage).toHaveBeenCalled();
         expect(game.messageHandler.addReply).not.toHaveBeenCalled();
         const timeMessage = game.messageHandler.addGameMechanicMessage.mock.calls[0][1];
-        expect(timeMessage).toMatch(/The time is \*\*\d?\d:\d\d:\d\d A?P?M\*\*\./);
+        expect(timeMessage).toBe(`The time is **${new Date().toLocaleTimeString()}**.`);
     });
     
     test('should not show time when player has disable time status', async () => {
-        const statusEffect = { name: 'Time Blinded' };
+        const statusEffect = { name: 'timeless' };
         player.getAttributeStatusEffects.mockReturnValue([statusEffect]);
         await time_player.run(bot, game, message, 'time', [], player);
         expect(game.messageHandler.addReply).toHaveBeenCalled();
