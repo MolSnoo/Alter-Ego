@@ -17,6 +17,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Copy configuration files for testing
+        run: |
+          cp Defaults/default_constants.json Configs/constants.json
+          cp Defaults/default_credentials.json Configs/credentials.json
+          cp Defaults/default_demodata.json Configs/demodata.json
+          cp Defaults/default_playerdefaults.json Configs/playerdefaults.json
+          cp Defaults/default_serverconfig.json Configs/serverconfig.json
+          cp Defaults/default_settings.json Configs/settings.json
+
       - name: Run tests with Jest
         run: npm test -- --coverage
 
