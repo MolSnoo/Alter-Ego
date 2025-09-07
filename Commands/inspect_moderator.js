@@ -72,7 +72,12 @@ module.exports.run = async (bot, game, message, command, args) => {
                 && (item.quantity > 0 || isNaN(item.quantity))
                 && item.container.name === objects[i].name);
             for (let j = 0; j < items.length; j++) {
-                if (parsedInput === `${items[j].prefab.name} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` || parsedInput === `${items[j].prefab.pluralName} ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) {
+                if (
+                    parsedInput === `${items[j].prefab.name} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
+                    parsedInput === `${items[j].prefab.pluralName} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
+                    parsedInput === `${items[j].prefab.name} IN ${objects[i].name}` ||
+                    parsedInput === `${items[j].prefab.pluralName} IN ${objects[i].name}`
+                ) {
                     object = objects[i];
                     item = items[j];
                     break;
