@@ -41,7 +41,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         commandFile.run(bot, game, commandSplit[0], args, player, data);
         entry = {
             timestamp: new Date(),
-            author: message.author.name,
+            author: message.author.username,
             content: message.content
         };
         bot.commandLog.push(entry);
@@ -55,7 +55,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         commandFile.run(bot, game, message, commandSplit[0], args);
         entry = {
             timestamp: new Date(),
-            author: message.author.name,
+            author: message.author.username,
             content: message.content
         };
         bot.commandLog.push(entry);
@@ -113,7 +113,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             commandFile.run(bot, game, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
             entry = {
                 timestamp: new Date(),
-                author: message.author.name,
+                author: message.author.username,
                 content: message.content
             };
             bot.commandLog.push(entry);
