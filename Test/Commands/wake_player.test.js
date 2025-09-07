@@ -1,21 +1,16 @@
 const wake_player = include('Commands/wake_player');
 
+var bot_mock = include('Test/Mocks/bot').mock;
+var game_mock = include('Test/Mocks/game').mock;
+var message_mock = include('Test/Mocks/message').mock;
+var player_mock = include('Test/Mocks/player').mock;
+
 describe('wake_player command', () => {
     beforeEach(() => {
-        bot = {};
-        game = {
-            messageHandler: {
-                addReply: jest.fn()
-            }
-        };
-        message = {};
-        player = {
-            cure: jest.fn(),
-            getAttributeStatusEffects: jest.fn(),
-            statusString: {
-                includes: jest.fn()
-            }
-        };
+        bot = bot_mock;
+        game = game_mock;
+        message = message_mock;
+        player = player_mock;
     });
 
     afterEach(() => {

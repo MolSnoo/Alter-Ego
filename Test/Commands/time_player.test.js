@@ -1,22 +1,16 @@
 const time_player = include('Commands/time_player');
 
+var bot_mock = include('Test/Mocks/bot').mock;
+var game_mock = include('Test/Mocks/game').mock;
+var message_mock = include('Test/Mocks/message').mock;
+var player_mock = include('Test/Mocks/player').mock;
+
 describe('time_player command', () => {
     beforeEach(() => {
-        bot = {};
-        
-        game = {
-            messageHandler: {
-                addReply: jest.fn(),
-                addGameMechanicMessage: jest.fn()
-            }
-        };
-        
-        message = {};
-        
-        player = {
-            getAttributeStatusEffects: jest.fn(),
-            member: {}
-        };
+        bot = bot_mock;
+        game = game_mock;
+        message = message_mock;
+        player = player_mock;
     });
     
     afterEach(() => {

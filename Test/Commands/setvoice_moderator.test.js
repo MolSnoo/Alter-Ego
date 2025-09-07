@@ -1,11 +1,16 @@
 const setvoice_moderator = include('Commands/setvoice_moderator');
 
+var bot_mock = include('Test/Mocks/bot').mock;
+var game_mock = include('Test/Mocks/game').mock;
+var message_mock = include('Test/Mocks/message').mock;
+var player_mock = include('Test/Mocks/player').mock;
+
 describe('setvoice_moderator command', () => {
     beforeEach(() => {
-        bot = {};
-        game = {};
-        message = {};
-        player = {};
+        bot = bot_mock;
+        game = game_mock;
+        message = message_mock;
+        player = player_mock;
     });
     
     afterEach(() => {
