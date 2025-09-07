@@ -21,22 +21,22 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     const regex = /^(?:(\d+)h)?(?:(\d+)m)?$/;
-    const matches = args[0].match(regex)
+    const matches = args[0].match(regex);
 
     if (!matches || (matches[1] === undefined && matches[2] === undefined)) {
         return game.messageHandler.addReply(message, `Invalid time format. Use format like "2h30m" where at least one component is provided. Usage:\n${exports.config.usage}`);
     }
 
-    const hours = parseInt(matches[1])
-    const minutes = parseInt(matches[2])
+    const hours = parseInt(matches[1]);
+    const minutes = parseInt(matches[2]);
 
     if (isNaN(hours) || isNaN(minutes) || hours < 0 || minutes < 0) {
         return game.messageHandler.addReply(message, `Invalid time values. Hours and/or minutes must be valid, non-negative numbers. Usage:\n${exports.config.usage}`);
     }
 
-    const offset = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000)
+    const offset = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000);
     const time = Date.now() - offset;
-    const entries = bot.commandLog.filter(entry => entry.timestamp.getTime() >= time)
+    const entries = bot.commandLog.filter(entry => entry.timestamp.getTime() >= time);
 
     const dataGame = inspect(game, {
         depth: args[1], colors: false, showHidden: false
@@ -45,8 +45,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         depth: args[1], colors: false, showHidden: false
     })
 
-    const bufferGame = Buffer.from(dataGame)
-    const bufferLog = Buffer.from(dataLog)
+    const bufferGame = Buffer.from(dataGame);
+    const bufferLog = Buffer.from(dataLog);
 
     if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
         return game.messageHandler.addReply(message, "The data requested exceeds Discord's file size limit. Try again with a smaller time window or lower depth.\n"
@@ -54,8 +54,8 @@ module.exports.run = async (bot, game, message, command, args) => {
             + `Log Data: \`${bufferLog.byteLength}B\``);
     }
 
-    const fileGame = { attachment: bufferGame, name: "data_game.txt" }
-    const fileLog = { attachment: bufferLog, name: "data_commands.log" }
+    const fileGame = { attachment: bufferGame, name: "data_game.txt" };
+    const fileLog = { attachment: bufferLog, name: "data_commands.log" };
 
     message.channel.send({ files: [fileGame, fileLog] });
 }
