@@ -123,17 +123,6 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
-        if (module.exports.cache.length >= 25) {
-            module.exports.cache.pop()
-        }
-
-        module.exports.cache.unshift(
-            {
-                id: message.id,
-                related: []
-            }
-        );
-
         // Send through the webhook with the original author's username and avatar, and the original message's contents
         addWebhookMessageToQueue(webHook,
             {
