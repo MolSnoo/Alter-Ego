@@ -41,8 +41,8 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         commandFile.run(bot, game, commandSplit[0], args, player, data);
         entry = {
             timestamp: new Date(),
-            author: message.author.username,
-            content: message.content
+            author: bot.user.username,
+            content: command
         };
         bot.commandLog.push(entry);
         return true;
