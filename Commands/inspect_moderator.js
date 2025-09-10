@@ -159,10 +159,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
 
             if (parsedInput.startsWith(`${items[i].name} IN `)) {
-                const containerName = parsedInput.slice(`${items[i].name} IN `.length);
+                const containerName = items[i].containerName
                 const puzzleContainers = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name
                     && puzzle.accessible
-                    && puzzle.name === containerName)
+                    && `Puzzle: ${puzzle.name}` === containerName)
                 const itemContainers = game.items.filter(item => item.location.name === player.location.name
                     && item.accessible
                     && (item.quantity > 0 || isNaN(item.quantity))
