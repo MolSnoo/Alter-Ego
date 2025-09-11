@@ -158,13 +158,13 @@ module.exports.run = async (bot, game, message, command, args) => {
         var item = null;
         var logMsg = null;
         for (let i = 0; i < items.length; i++) {
+            const containerName = items[i].containerName;
             if (items[i].identifier !== "" && items[i].identifier === parsedInput || items[i].prefab.id === parsedInput || items[i].prefab.name === parsedInput || items[i].prefab.pluralName === parsedInput) {
                 item = items[i];
                 break;
             }
 
             if (parsedInput.startsWith(`${items[i].name} IN `)) {
-                const containerName = items[i].containerName;
                 const puzzleContainers = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name
                     && puzzle.accessible
                     && `Puzzle: ${puzzle.name}` === containerName);
