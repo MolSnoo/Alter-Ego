@@ -174,10 +174,17 @@ module.exports.run = async (bot, game, message, command, args) => {
                         break;
                     }
                 }
+            }
 
-                const roomItems = items.filter(item => item.inventory.length > 0);
-                for (let j = 0; j < roomItems.length; j++) {
-                    let containerSubstr = parsedInput.substring(`${items[i].name} IN`.length).trim();
+            const roomItems = items.filter(item => item.inventory.length > 0);
+            for (let j = 0; j < roomItems.length; j++) {
+                if (roomItems[j].preposition.length > 0 && parsedInput.startsWith(`${items[i].name} ${roomItems[j].preposition.toUpperCase()} `) || parsedInput.startsWith(`${items[i].name} IN `)) {
+                    let containerSubstr = null;
+                    if (parsedInput.startsWith(`${items[i].name} ${roomItems[j].preposition.toUpperCase()} `)) {
+                        containerSubstr = parsedInput.substring(`${items[i].name} ${roomItems[j].preposition.toUpperCase()} `.length).trim();
+                    } else {
+                        containerSubstr = parsedInput.substring(`${items[i].name} IN `.length).trim();
+                    }
                     if (parsedInput.endsWith(` OF ${roomItems[j].name}`)) {
                         let tempSlotName = containerSubstr.substring(0, containerSubstr.indexOf(` OF ${items[i].container.name}`));
                         for (let k = 0; k < roomItems[j].inventory.length; k++) {
@@ -194,13 +201,13 @@ module.exports.run = async (bot, game, message, command, args) => {
                         }
                     }
                 }
-                if (item === null) {
-                    for (let j = 0; j < roomItems.length; j++) {
-                        if (items[i].container.identifier === roomItems[j].identifier) {
-                            item = items[i];
-                            logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${roomItems[j].container.identifier} in ${player.location.channel}`;
-                            break;
-                        }
+            }
+            if (item === null) {
+                for (let j = 0; j < roomItems.length; j++) {
+                    if (items[i].container.identifier === roomItems[j].identifier) {
+                        item = items[i];
+                        logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${roomItems[j].container.identifier} in ${player.location.channel}`;
+                        break;
                     }
                 }
             }
