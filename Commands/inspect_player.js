@@ -183,10 +183,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
             const roomItems = items.filter(item => item.inventory.length > 0);
             for (let j = 0; j < roomItems.length; j++) {
-                if (roomItems[j].preposition.length > 0 && parsedInput.startsWith(`${items[i].name} ${roomItems[j].preposition.toUpperCase()} `) || parsedInput.startsWith(`${items[i].name} IN `)) {
+                if (roomItems[j].prefab.preposition !== "" && parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `) || parsedInput.startsWith(`${items[i].name} IN `)) {
                     let containerSubstr = null;
-                    if (parsedInput.startsWith(`${items[i].name} ${roomItems[j].preposition.toUpperCase()} `)) {
-                        containerSubstr = parsedInput.substring(`${items[i].name} ${roomItems[j].preposition.toUpperCase()} `.length).trim();
+                    if (parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `)) {
+                        containerSubstr = parsedInput.substring(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `.length).trim();
                     } else {
                         containerSubstr = parsedInput.substring(`${items[i].name} IN `.length).trim();
                     }
