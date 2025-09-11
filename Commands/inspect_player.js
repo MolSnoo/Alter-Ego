@@ -17,6 +17,8 @@ module.exports.config = {
         + `You can use "${settings.commandPrefix}inspect room" to get the description of the room you're currently in.`,
     usage: `${settings.commandPrefix}inspect desk\n`
         + `${settings.commandPrefix}examine knife\n`
+        + `${settings.commandPrefix}examine knife on desk\n`
+        + `${settings.commandPrefix}examine knife in left pocket of pants\n`
         + `${settings.commandPrefix}investigate my knife\n`
         + `${settings.commandPrefix}look akari\n`
         + `${settings.commandPrefix}examine an individual wearing a mask\n`
@@ -158,6 +160,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             && item.accessible
             && (item.quantity > 0 || isNaN(item.quantity)));
         var item = null;
+        var logMsg = null;
         for (let i = 0; i < items.length; i++) {
             if (items[i].prefab.name === parsedInput || items[i].prefab.pluralName === parsedInput) {
                 item = items[i];
@@ -184,6 +187,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         for (let k = 0; k < roomItems[j].inventory.length; k++) {
                             if (containerName === `Item: ${items[i].container.identifier}/${tempSlotName}`) {
                                 item = items[i];
+                                logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${tempSlotName} of ${items[i].container.identifier} in ${player.location.channel}`
                                 break;
                             }
                         }
@@ -194,6 +198,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     for (let j = 0; j < roomItems.length; j++) {
                         if (items[i].container.identifier === roomItems[j].identifier) {
                             item = items[i];
+                            logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${roomItems[j].container.identifier} in ${player.location.channel}`
                             break;
                         }
                     }
@@ -217,7 +222,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
+            if (logMsg !== null) {
+                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${logMsg}`)
+            } else {
+                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
+            }
 
             return;
         }

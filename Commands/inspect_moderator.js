@@ -15,6 +15,8 @@ module.exports.config = {
         + `"'s". If inspecting a different player's inventory items, a narration will not be sent.`,
     usage: `${settings.commandPrefix}inspect akio desk\n`
         + `${settings.commandPrefix}examine florian knife\n`
+        + `${settings.commandPrefix}examine florian knife on desk\n`
+        + `${settings.commandPrefix}examine florian knife in left pocket of pants\n`
         + `${settings.commandPrefix}investigate blake blake's knife\n`
         + `${settings.commandPrefix}look jun amadeus\n`
         + `${settings.commandPrefix}examine nestor jae-seong\n`
@@ -152,6 +154,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             && item.accessible
             && (item.quantity > 0 || isNaN(item.quantity)));
         var item = null;
+        var logMsg = null;
         for (let i = 0; i < items.length; i++) {
             if (items[i].identifier !== "" && items[i].identifier === parsedInput || items[i].prefab.id === parsedInput || items[i].prefab.name === parsedInput || items[i].prefab.pluralName === parsedInput) {
                 item = items[i];
@@ -178,6 +181,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                         for (let k = 0; k < roomItems[j].inventory.length; k++) {
                             if (containerName === `Item: ${items[i].container.identifier}/${tempSlotName}`) {
                                 item = items[i];
+                                logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${tempSlotName} of ${items[i].container.identifier} in ${player.location.channel}`
                                 break;
                             }
                         }
@@ -201,7 +205,11 @@ module.exports.run = async (bot, game, message, command, args) => {
             game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` for ${player.name}.`);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
+            if (logMsg !== null) {
+                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${logMsg}`)
+            } else {
+                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
+            }
 
             return;
         }
