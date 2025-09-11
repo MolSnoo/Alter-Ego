@@ -164,10 +164,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
 
             if (parsedInput.startsWith(`${items[i].name} IN `)) {
-                const containerName = items[i].containerName
+                const containerName = items[i].containerName;
                 const puzzleContainers = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name
                     && puzzle.accessible
-                    && `Puzzle: ${puzzle.name}` === containerName)
+                    && `Puzzle: ${puzzle.name}` === containerName);
                 for (let j = 0; j < puzzleContainers.length; j++) {
                     if (items[i].container === puzzleContainers[j]) {
                         item = items[i];
@@ -183,17 +183,22 @@ module.exports.run = async (bot, game, message, command, args) => {
                         for (let k = 0; k < roomItems[j].inventory.length; k++) {
                             if (containerName === `Item: ${items[i].container.identifier}/${tempSlotName}`) {
                                 item = items[i];
-                                logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${tempSlotName} of ${items[i].container.identifier} in ${player.location.channel}`
+                                logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${tempSlotName} of ${items[i].container.identifier} in ${player.location.channel}`;
                                 break;
                             }
                         }
-                        if (item !== null) break;
+                        if (item !== null) {
+                            break;
+                        } else {
+                            return game.messageHandler.addReply(message, `Couldn't find ${items[i].name} in ${tempSlotName} of ${items[i].container.identifier}`);
+                        }
                     }
                 }
                 if (item === null) {
                     for (let j = 0; j < roomItems.length; j++) {
                         if (items[i].container.identifier === roomItems[j].identifier) {
                             item = items[i];
+                            logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${roomItems[j].container.identifier} in ${player.location.channel}`;
                             break;
                         }
                     }
