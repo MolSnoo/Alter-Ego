@@ -6,10 +6,11 @@ const Narration = include(`${constants.dataDir}/Narration.js`);
 module.exports.config = {
     name: "inspect_player",
     description: "Learn more about an object, item, or player.",
-    details: 'Tells you about an object, item, or player in the room you\'re in. The description will be sent to you via DMs. '
+    details: 'Tells you about an object, item, or player in the room you\'re in. '
         + 'An object is something in the room that you can interact with but not take with you. '
         + 'An item is something that you can both interact with and take with you. If you inspect an object, '
         + 'everyone in the room will see you inspect it. The same goes for very large items. '
+        + 'If there are multiple items with the same name in the room, you can specify which one you want to inspect using the name of the container it\'s in. '
         + 'You can also inspect items in your inventory. If you have an item with the same name as an item in the room you\'re currently in, '
         + 'you can specify that you want to inspect your item by adding "my" before the item name. '
         + 'You can even inspect visible items in another player\'s inventory by adding "[player name]\'s" before the item name. No one will '

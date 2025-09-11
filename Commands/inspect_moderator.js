@@ -10,9 +10,11 @@ module.exports.config = {
         + "a player, or an inventory item, and it must be in the same room as the given player. The description will "
         + "be parsed and sent to the player in DMs. If the target is an object, or a non-discreet item or inventory "
         + "item, a narration will be sent about the player inspecting it to the room channel. Items and inventory "
-        + "items should generally use the prefab ID or container identifier. The player can be forced to inspect items "
-        + "and inventory items belonging to a specific player (including themself) using the player's name followed by "
-        + `"'s". If inspecting a different player's inventory items, a narration will not be sent.`,
+        + "items should generally use the prefab ID or container identifier. If there are multiple items in the room "
+        + "with the same ID, you can specify which one to inspect using its container's name (if the container is an "
+        + "object or puzzle), or its prefab ID or container identifier (if it's an item). The player can be forced "
+        + "to inspect items and inventory items belonging to a specific player (including themself) using the "
+        + "player's name followed by \"'s\". If inspecting a different player's inventory items, a narration will not be sent.",
     usage: `${settings.commandPrefix}inspect akio desk\n`
         + `${settings.commandPrefix}examine florian knife\n`
         + `${settings.commandPrefix}examine florian knife on desk\n`
