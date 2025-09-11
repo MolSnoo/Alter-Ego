@@ -182,7 +182,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     if (parsedInput.endsWith(` OF ${roomItems[j].name}`)) {
                         let tempSlotName = containerSubstr.substring(0, containerSubstr.indexOf(` OF ${items[i].container.name}`));
                         for (let k = 0; k < roomItems[j].inventory.length; k++) {
-                            if (containerName === `Item: ${items[i].container.name}/${roomItems[j].inventory[k].name}`) {
+                            if (containerName === `Item: ${items[i].container.name}/${tempSlotName}`) {
                                 item = items[i];
                                 break;
                             }
