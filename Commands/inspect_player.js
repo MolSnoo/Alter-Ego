@@ -169,19 +169,28 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 const puzzleContainers = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name
                     && puzzle.accessible
                     && `Puzzle: ${puzzle.name}` === containerName)
-                const itemContainers = game.items.filter(item => item.location.name === player.location.name
-                    && item.accessible
-                    && (item.quantity > 0 || isNaN(item.quantity))
-                    && item.prefab.name === containerName);
-
                 for (let j = 0; j < puzzleContainers.length; j++) {
                     if (items[i].container === puzzleContainers[j]) {
                         item = items[i];
                         break;
                     }
                 }
-                for (let j = 0; j < itemContainers.length; j++) {
-                    if (items[i].container == itemContainers[j]) {
+
+                const roomItems = items.filter(item => item.inventory.length > 0);
+                for (let j = 0; j < roomItems.length; j++) {
+                    let containerSubstr = parsedInput.substring(`${items[i]} IN `.length).trim();
+                    if (parsedInput.endsWith(` OF ${roomItems[j].name}`)) {
+                        let tempSlotName = containerSubstr.substring(0, containerSubstr.indexOf(` OF ${items[i].container.name}`));
+                        for (let k = 0; k < roomItems[j].inventory.length; k++) {
+                            if (containerName === `Item: ${items[i].container.name}/${roomItems[j].inventory[k].name}`) {
+                                item = items[i];
+                                break;
+                            }
+                        }
+                    }
+                }
+                for (let j = 0; j < roomItems.length; j++) {
+                    if (items[i].container.identifier === roomItems[j].identifier) {
                         item = items[i];
                         break;
                     }
