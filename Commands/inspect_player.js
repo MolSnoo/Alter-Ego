@@ -166,6 +166,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
             if (parsedInput.startsWith(`${items[i].name} IN `)) {
                 const containerName = items[i].containerName
+                console.log(containerName)
                 const puzzleContainers = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name
                     && puzzle.accessible
                     && `Puzzle: ${puzzle.name}` === containerName)
@@ -179,8 +180,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 const roomItems = items.filter(item => item.inventory.length > 0);
                 for (let j = 0; j < roomItems.length; j++) {
                     let containerSubstr = parsedInput.substring(`${items[i]} IN `.length).trim();
+                    console.log(containerSubstr)
                     if (parsedInput.endsWith(` OF ${roomItems[j].name}`)) {
                         let tempSlotName = containerSubstr.substring(0, containerSubstr.indexOf(` OF ${items[i].container.name}`));
+                        console.log(tempSlotName)
                         for (let k = 0; k < roomItems[j].inventory.length; k++) {
                             if (containerName === `Item: ${items[i].container.name}/${tempSlotName}`) {
                                 item = items[i];
