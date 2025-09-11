@@ -5,13 +5,13 @@ module.exports.config = {
     name: "recipes_player",
     description: "Lists all recipes available to you.",
     details: "Lists all recipes you can carry out with the items in your inventory and items in the room. If you supply the name of an item in your inventory, "
-        + "you will receive a list of all recipes that use that item as an ingredient. There are crafting and object recipes.\n\n"
+        + "you will receive a list of all recipes that use that item as an ingredient. There are crafting and processing recipes.\n\n"
         + `To carry out a crafting recipe, you must have both of the ingredients in your hands and combine them with the \`${settings.commandPrefix}craft\` `
-        + `command. Crafting recipes will be completed instantaneously.\n\n`
-        + `To carry out an object recipe, you must use the \`${settings.commandPrefix}drop\` command to place all the ingredients in the appropriate object, and `
-        + `then activate the object with the \`${settings.commandPrefix}use\` command. Object recipes take a certain amount of time to be completed. `
-        + "If it worked correctly, you will receive a message indicating that the process has begun, and another message when it is completed. "
-        + "You will not receive a message if the object was already activated when all of the ingredients were put in, though the recipe "
+        + `command. These recipes take no time. If reversible, you can use the \`${settings.commandPrefix}uncraft\` command to get the ingredients again.\n\n`
+        + `To carry out a processing recipe, use the \`${settings.commandPrefix}drop\` command to place all the ingredients in an object, and `
+        + `then activate the object with the \`${settings.commandPrefix}use\` command. These recipes take a set amount of time to complete. `
+        + "If it worked, you'll receive a message indicating that the process has begun, and another message when it finishes. "
+        + "You won't receive a message if the object was already activated when all of the ingredients were put in, but the recipe "
         + "will still be carried out so long as all of the ingredients are in place.",
     usage: `${settings.commandPrefix}recipes\n`
         + `${settings.commandPrefix}recipes glass\n`
