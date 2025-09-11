@@ -182,7 +182,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
                 const roomItems = items.filter(item => item.inventory.length > 0);
                 for (let j = 0; j < roomItems.length; j++) {
-                    let containerSubstr = parsedInput.substring(`${items[i]} IN`.length).trim();
+                    let containerSubstr = parsedInput.substring(`${items[i].name} IN`.length).trim();
                     if (parsedInput.endsWith(` OF ${roomItems[j].name}`)) {
                         let tempSlotName = containerSubstr.substring(0, containerSubstr.indexOf(` OF ${items[i].container.name}`));
                         for (let k = 0; k < roomItems[j].inventory.length; k++) {
