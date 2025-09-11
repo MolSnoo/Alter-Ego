@@ -228,7 +228,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
             const time = new Date().toLocaleTimeString();
             if (logMsg !== null) {
-                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${logMsg}`)
+                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${logMsg}`);
             } else {
                 game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
             }

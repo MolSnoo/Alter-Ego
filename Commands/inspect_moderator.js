@@ -93,7 +93,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (item !== null) {
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} on ${object.name}.`).send();
         player.sendDescription(game, item.description, item);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${item.identifier !== "" ? item.identifier : item.prefab.id} ${object.preposition} ${object.name} for ${player.name}`)
+        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${item.identifier !== "" ? item.identifier : item.prefab.id} ${object.preposition} ${object.name} for ${player.name}`);
 
         const time = new Date().toLocaleTimeString();
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` ${object.preposition} ${object.name} in ${player.location.channel}`);
@@ -213,7 +213,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
             const time = new Date().toLocaleTimeString();
             if (logMsg !== null) {
-                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${logMsg}`)
+                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${logMsg}`);
             } else {
                 game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
             }
