@@ -62,7 +62,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             break;
         }
 
-        if ((parsedInput.endsWith(` ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endswith(` IN ${objects[i].name}`) && objects[i].preposition !== "")) {
+        if ((parsedInput.endsWith(` ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(` IN ${objects[i].name}`) && objects[i].preposition !== "")) {
             const items = game.items.filter(item => item.location.name === player.location.name
                 && item.accessible
                 && (item.quantity > 0 || isNaN(item.quantity))
