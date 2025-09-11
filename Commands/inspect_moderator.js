@@ -189,8 +189,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                         }
                         if (item !== null) {
                             break;
-                        } else {
-                            return game.messageHandler.addReply(message, `Couldn't find ${items[i].name} in ${tempSlotName} of ${items[i].container.identifier}`);
+                        } else if (tempSlotName !== "") {
+                            return game.messageHandler.addReply(message, `Couldn't find ${items[i].name} in ${tempSlotName} of ${items[i].container.name}.`);
                         }
                     }
                 }
