@@ -311,12 +311,16 @@ module.exports.generateProceduralOutput = function (description, proceduralSelec
             if (proceduralName !== '' && proceduralSelections.has(proceduralName))
                 proceduralAssigned = true;
             else {
+                let parentProcedural = procedurals[i].parentNode;
+                // If this procedural is nested, find its parent procedural.
+                while (!parentProcedural.hasOwnProperty("documentElement") && parentProcedural.tagName !== "procedural")
+                    parentProcedural = parentProcedural.parentNode;
                 let proceduralChance = parseFloat(procedurals[i].getAttribute('chance'));
                 // If a procedural chance was not provided or it is invalid, assume the chance is 100%.
                 if (isNaN(proceduralChance) || proceduralChance < 0 || proceduralChance > 100)
                     proceduralChance = 100;
                 // Roll to determine if this procedural will be kept. If the probability check fails, remove the tag entirely and skip to the next one.
-                if (!keepProcedural(proceduralChance)) {
+                if (!keepProcedural(proceduralChance) || proceduralsToRemove.includes(parentProcedural)) {
                     proceduralsToRemove.push(procedurals[i]);
                     continue;
                 }
@@ -328,6 +332,8 @@ module.exports.generateProceduralOutput = function (description, proceduralSelec
             let possibilitiesToRemove = [];
             let winningPossibilityIndex = null;
             for (let j = 0; j < possibilities.length; j++) {
+                // Skip possibilities that belong to nested procedurals.
+                if (possibilities[j].parentNode !== procedurals[i]) continue;
                 const possibilityName = possibilities[j].getAttribute('name').toLowerCase();
                 if (proceduralAssigned && proceduralSelections.get(proceduralName) === possibilityName)
                     winningPossibilityIndex = j;
@@ -364,7 +370,7 @@ module.exports.generateProceduralOutput = function (description, proceduralSelec
         }
     }
 
-    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/<s>\s*<\/s>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
 };
 
 function keepProcedural(chance) {
