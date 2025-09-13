@@ -183,7 +183,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
             const roomItems = items.filter(item => item.inventory.length > 0);
             for (let j = 0; j < roomItems.length; j++) {
-                if (roomItems[j].prefab.preposition !== "" && parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `) || parsedInput.startsWith(`${items[i].name} IN `)) {
+                if (parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `) || parsedInput.startsWith(`${items[i].name} IN `)) {
                     let containerSubstr = null;
                     if (parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `)) {
                         containerSubstr = parsedInput.substring(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `.length).trim();
@@ -209,11 +209,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             }
             if (item === null) {
                 for (let j = 0; j < roomItems.length; j++) {
-                    if (items[i].container.identifier === roomItems[j].identifier) {
+                    if (
+                        parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} ${roomItems[j].name}`)
+                        || parsedInput.startsWith(`${items[i].pluralName} ${roomItems[j].prefab.preposition.toUpperCase()} ${roomItems[j].name}`)
+                        || parsedInput.startsWith(`${items[i].name} IN ${roomItems[j].name}`)
+                        || parsedInput.startsWith(`${items[i].pluralName} IN ${roomItems[j].name}`)
+                        ) {
                         item = items[i];
                         logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${roomItems[j].container.identifier} in ${player.location.channel}`;
                         break;
-                    }
+                    }  
                 }
             }
         }
