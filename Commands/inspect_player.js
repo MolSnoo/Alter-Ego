@@ -96,7 +96,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
                 return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         }
-        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} ${object.preposition} ${object.name}.`).send();
+        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} ${object.preposition} the ${object.name}.`).send();
         player.sendDescription(game, item.description, item);
 
         const time = new Date().toLocaleTimeString();

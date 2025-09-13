@@ -91,7 +91,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     if (item !== null) {
-        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} on ${object.name}.`).send();
+        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} ${object.preposition} the ${object.name}.`).send();
         player.sendDescription(game, item.description, item);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${item.identifier !== "" ? item.identifier : item.prefab.id} ${object.preposition} ${object.name} for ${player.name}`);
 
