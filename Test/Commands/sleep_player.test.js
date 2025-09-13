@@ -13,10 +13,6 @@ describe('sleep_player command', () => {
         player = player_mock;
     });
     
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should inflict when conditions met', async () => {
         player.getAttributeStatusEffects.mockReturnValue([]);
         player.statusString.includes.mockReturnValue(true);

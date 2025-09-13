@@ -7,3 +7,7 @@ global.include = (path) => {
         return _app_root_path_require_(path);
     }
 };
+
+afterEach(() => {
+    jest.clearAllMocks();
+});

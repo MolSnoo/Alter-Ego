@@ -12,10 +12,6 @@ describe('setdisplayicon_bot command', () => {
         message = message_mock;
         player = player_mock;
     });
-    
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-    
+        
     test('', async () => {});
 });

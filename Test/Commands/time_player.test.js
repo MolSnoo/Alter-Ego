@@ -12,11 +12,7 @@ describe('time_player command', () => {
         message = message_mock;
         player = player_mock;
     });
-    
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-    
+        
     test('should show time when player is ok', async () => {
         player.getAttributeStatusEffects.mockReturnValue([]);
         await time_player.run(bot, game, message, 'time', [], player);

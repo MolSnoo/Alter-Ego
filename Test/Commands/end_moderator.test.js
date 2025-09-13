@@ -12,10 +12,6 @@ describe('end_moderator command', () => {
         message = message_mock;
         player = player_mock;
     });
-    
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-    
+        
     test('', async () => {});
 });
