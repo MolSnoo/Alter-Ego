@@ -18,8 +18,8 @@ module.exports.config = {
         + `You can use "${settings.commandPrefix}inspect room" to get the description of the room you're currently in.`,
     usage: `${settings.commandPrefix}inspect desk\n`
         + `${settings.commandPrefix}examine knife\n`
-        + `${settings.commandPrefix}examine knife on desk\n`
-        + `${settings.commandPrefix}examine knife in left pocket of pants\n`
+        + `${settings.commandPrefix}look knife on desk\n`
+        + `${settings.commandPrefix}x knife in main pouch of red backpack\n`
         + `${settings.commandPrefix}investigate my knife\n`
         + `${settings.commandPrefix}look akari\n`
         + `${settings.commandPrefix}examine an individual wearing a mask\n`
@@ -57,52 +57,34 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     // Check if the input is an object, or an item on an object.
     const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+    const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     var object = null;
     var item = null;
+    var container = null;
+    var slotName = "";
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) {
             object = objects[i];
             break;
         }
 
-        if ((parsedInput.endsWith(` ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(` IN ${objects[i].name}`) && objects[i].preposition !== "")) {
-            const items = game.items.filter(item => item.location.name === player.location.name
-                && item.accessible
-                && (item.quantity > 0 || isNaN(item.quantity))
-                && item.container.name === objects[i].name);
-            for (let j = 0; j < items.length; j++) {
+        if ((parsedInput.endsWith(` ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(` IN ${objects[i].name}`)) && objects[i].preposition !== "") {
+            const objectItems = items.filter(item => item.containerName === `Object: ${objects[i].name}` || objects[i].childPuzzle !== null && item.containerName === `Puzzle: ${objects[i].childPuzzle.name}`);
+            for (let j = 0; j < objectItems.length; j++) {
                 if (
-                    parsedInput === `${items[j].prefab.name} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
-                    parsedInput === `${items[j].prefab.pluralName} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
-                    parsedInput === `${items[j].prefab.name} IN ${objects[i].name}` ||
-                    parsedInput === `${items[j].prefab.pluralName} IN ${objects[i].name}`
+                    parsedInput === `${objectItems[j].name} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
+                    parsedInput === `${objectItems[j].pluralName} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
+                    parsedInput === `${objectItems[j].name} IN ${objects[i].name}` ||
+                    parsedInput === `${objectItems[j].pluralName} IN ${objects[i].name}`
                 ) {
-                    object = objects[i];
-                    item = items[j];
+                    item = objectItems[j];
+                    container = item.container;
+                    slotName = item.slot;
                     break;
                 }
             }
+            if (item !== null) break;
         }
-    }
-
-    if (item !== null) {
-        if (hiddenStatus.length > 0) {
-            let topContainer = item.container;
-            while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
-                topContainer = topContainer.container;
-            if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
-                topContainer = topContainer.parentObject;
-
-            if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-                return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
-        }
-        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase} ${object.preposition} the ${object.name}.`).send();
-        player.sendDescription(game, item.description, item);
-
-        const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` ${object.preposition} ${object.name} in ${player.location.channel}`);
-
-        return;
     }
 
     if (object !== null) {
@@ -157,96 +139,92 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (!onlySearchInventory) {
         // Now check if the input is an item.
-        const items = game.items.filter(item => item.location.name === player.location.name
-            && item.accessible
-            && (item.quantity > 0 || isNaN(item.quantity)));
-        var item = null;
-        var logMsg = null;
         for (let i = 0; i < items.length; i++) {
-            const containerName = items[i].containerName;
-            if (items[i].prefab.name === parsedInput || items[i].prefab.pluralName === parsedInput) {
+            if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
                 item = items[i];
+                container = item.container;
+                slotName = item.slot;
                 break;
             }
 
-            if (parsedInput.startsWith(`${items[i].name} IN `)) {
-                const puzzleContainers = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name
-                    && puzzle.accessible
-                    && `Puzzle: ${puzzle.name}` === containerName);
-                for (let j = 0; j < puzzleContainers.length; j++) {
-                    if (items[i].container === puzzleContainers[j]) {
-                        item = items[i];
-                        break;
-                    }
-                }
-            }
-
-            const roomItems = items.filter(item => item.inventory.length > 0);
-            for (let j = 0; j < roomItems.length; j++) {
-                if (parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `) || parsedInput.startsWith(`${items[i].name} IN `)) {
-                    let containerSubstr = null;
-                    if (parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `)) {
-                        containerSubstr = parsedInput.substring(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} `.length).trim();
-                    } else {
-                        containerSubstr = parsedInput.substring(`${items[i].name} IN `.length).trim();
-                    }
-                    if (parsedInput.endsWith(` OF ${roomItems[j].name}`)) {
-                        let tempSlotName = containerSubstr.substring(0, containerSubstr.indexOf(` OF ${items[i].container.name}`));
-                        for (let k = 0; k < roomItems[j].inventory.length; k++) {
-                            if (containerName === `Item: ${items[i].container.identifier}/${tempSlotName}`) {
+            if (items[i].container !== null && items[i].container.hasOwnProperty("prefab")) {
+                const preposition = items[i].container.prefab.preposition.toUpperCase();
+                let containerString = "";
+                if (parsedInput.startsWith(`${items[i].name} ${preposition} `))
+                    containerString = parsedInput.substring(`${items[i].name} ${preposition} `.length).trim();
+                else if (parsedInput.startsWith(`${items[i].pluralName} ${preposition} `))
+                    containerString = parsedInput.substring(`${items[i].pluralName} ${preposition} `.length).trim();
+                else if (parsedInput.startsWith(`${items[i].name} IN `))
+                    containerString = parsedInput.substring(`${items[i].name} IN `.length).trim();
+                else if (parsedInput.startsWith(`${items[i].pluralName} IN `))
+                    containerString = parsedInput.substring(`${items[i].pluralName} IN `.length).trim();
+                
+                if (containerString !== "") {
+                    // Slot name was specified.
+                    if (parsedInput.endsWith(` OF ${items[i].container.name}`)) {
+                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${items[i].container.name}`)).trim();
+                        for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
+                            if (items[i].container.inventory[slot].name === tempSlotName && items[i].slot === tempSlotName) {
                                 item = items[i];
-                                logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${tempSlotName} of ${items[i].container.identifier} in ${player.location.channel}`;
+                                container = item.container;
+                                slotName = item.slot;
                                 break;
                             }
                         }
-                        if (item !== null) {
-                            break;
-                        } else {
-                            return game.messageHandler.addReply(message, `Couldn't find ${items[i].name} in ${tempSlotName} of ${items[i].container.identifier}`);
-                        }
+                        if (item !== null) break;
+                    }
+                    // Only a container was specified.
+                    else if (items[i].container.name === containerString) {
+                        item = items[i];
+                        container = item.container;
+                        slotName = item.slot;
+                        break;
                     }
                 }
             }
-            if (item === null) {
-                for (let j = 0; j < roomItems.length; j++) {
-                    if (
-                        parsedInput.startsWith(`${items[i].name} ${roomItems[j].prefab.preposition.toUpperCase()} ${roomItems[j].name}`)
-                        || parsedInput.startsWith(`${items[i].pluralName} ${roomItems[j].prefab.preposition.toUpperCase()} ${roomItems[j].name}`)
-                        || parsedInput.startsWith(`${items[i].name} IN ${roomItems[j].name}`)
-                        || parsedInput.startsWith(`${items[i].pluralName} IN ${roomItems[j].name}`)
-                        ) {
-                        item = items[i];
-                        logMsg = `${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${roomItems[j].container.identifier} in ${player.location.channel}`;
-                        break;
-                    }  
-                }
-            }
+        }
+    }
+
+    if (item !== null) {
+        // Make sure the player can only inspect items contained in the object they're hiding in, if they're hidden.
+        if (hiddenStatus.length > 0) {
+            let topContainer = item.container;
+            while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+                topContainer = topContainer.container;
+            if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+                topContainer = topContainer.parentObject;
+
+            if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+                return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         }
 
-        if (item !== null) {
-            // Make sure the player can only inspect items contained in the object they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0) {
-                let topContainer = item.container;
-                while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
-                    topContainer = topContainer.container;
-                if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
-                    topContainer = topContainer.parentObject;
-
-                if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-                    return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
-            }
-            if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase}.`).send();
-            player.sendDescription(game, item.description, item);
-
-            const time = new Date().toLocaleTimeString();
-            if (logMsg !== null) {
-                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${logMsg}`);
-            } else {
-                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
-            }
-
-            return;
+        let preposition = "in";
+        let containerName = "";
+        let containerIdentifier = "";
+        if (container.hasOwnProperty("prefab")) {
+            preposition = container.prefab.preposition;
+            containerName = container.singleContainingPhrase;
+            containerIdentifier = `${slotName} of ${container.identifier}`;
         }
+        else if (container.hasOwnProperty("hidingSpotCapacity")) {
+            preposition = container.preposition;
+            containerName = `the ${container.name}`;
+            containerIdentifier = container.name;
+        }
+        else if (container.hasOwnProperty("solved")) {
+            preposition = container.parentObject.preposition;
+            containerName = `the ${container.parentObject.name}`;
+            containerIdentifier = container.name;
+        }
+        if (!item.prefab.discreet)
+            new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.singleContainingPhrase}` + (containerName ? ` ${preposition} ${containerName}` : '') + `.`).send();
+        player.sendDescription(game, item.description, item);
+
+        const time = new Date().toLocaleTimeString();
+        const identifier = item.identifier !== "" ? item.identifier : item.prefab.id;
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
+
+        return;
     }
 
     // Check if the input is an item in the player's inventory.
