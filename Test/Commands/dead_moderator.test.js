@@ -1,16 +1,16 @@
 const dead_moderator = include('Commands/dead_moderator');
 
-var bot_mock = include('Test/Mocks/bot').mock;
-var game_mock = include('Test/Mocks/game').mock;
-var message_mock = include('Test/Mocks/message').mock;
-var player_mock = include('Test/Mocks/player').mock;
+var botMock = include('Test/Mocks/bot').mock;
+var gameMock = include('Test/Mocks/game').mock;
+var messageMock = include('Test/Mocks/message').mock;
+var playerMock = include('Test/Mocks/player').mock;
 
 describe('dead_moderator command', () => {
     beforeEach(() => {
-        bot = bot_mock;
-        game = game_mock;
-        message = message_mock;
-        player = player_mock;
+        bot = botMock;
+        game = gameMock;
+        message = messageMock;
+        player = playerMock;
     });
         
     test('', async () => {});

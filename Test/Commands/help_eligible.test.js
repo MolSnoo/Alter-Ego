@@ -1,16 +1,16 @@
 const help_eligible = include('Commands/help_eligible');
 
-var bot_mock = include('Test/Mocks/bot').mock;
-var game_mock = include('Test/Mocks/game').mock;
-var message_mock = include('Test/Mocks/message').mock;
-var player_mock = include('Test/Mocks/player').mock;
+var botMock = include('Test/Mocks/bot').mock;
+var gameMock = include('Test/Mocks/game').mock;
+var messageMock = include('Test/Mocks/message').mock;
+var playerMock = include('Test/Mocks/player').mock;
 
 describe('help_eligible command', () => {
     beforeEach(() => {
-        bot = bot_mock;
-        game = game_mock;
-        message = message_mock;
-        player = player_mock;
+        bot = botMock;
+        game = gameMock;
+        message = messageMock;
+        player = playerMock;
     });
         
     test('', async () => {});
