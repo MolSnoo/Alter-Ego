@@ -64,7 +64,7 @@ module.exports.mock = () => {
     });
 
     const mocked = require('googleapis');
-    const internals = mocked.mockInternals || {};
+    const internals = mocked.mockInternals;
 
     return {
         sheetsFactory: mocked.google.sheets,
