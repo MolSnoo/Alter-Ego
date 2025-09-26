@@ -62,10 +62,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     break;
                 }
             }
-            if (game.recipes[i].uncraftable && game.recipes[i].products[0].id === item.prefab.id) {
+            if (game.recipes[i].uncraftable && game.recipes[i].products.length === 1 && game.recipes[i].products[0].id === item.prefab.id) {
                 // This recipe contains the given item as the sole product and is uncraftable.
-                let ingredients = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
-                let products = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                let ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                let products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
@@ -127,43 +127,34 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     objects = recipeObjects.map(object => object.name);
                 }
                 ingredients = ingredients.map(ingredient => ingredient.prefab.singleContainingPhrase);
-                let products = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                products = game.recipes[i].products.map(product => product.singleContainingPhrase);
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: objects.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
             }
 
-            for (let j = 0; j < game.recipes[i].products.length; j++) {
-                for (let k = 0; k < inventoryItems.length; k ++) {
-                    let found = false;
-                    if (inventoryItems[k].prefab.id == game.recipes[i].products[j].id && game.recipes[i].uncraftable) {
-                        products.push(inventoryItems[k]);
-                        found = true;
+            if (game.recipes[i].products.length === 1 && game.recipes[i].uncraftable) {
+                products = [];
+                for (let j = 0; j < inventoryItems.length; j++) {
+                    if (inventoryItems[j].prefab.id == game.recipes[i].products[0].id) {
+                        products.push(inventoryItems[j]);
                         break;
-                    }
-                    if (!found) {
-                        for (let k = 0; k < roomItems.length; k++) {
-                            if (roomItems[k].prefab.id === game.recipes[i].products[j].id && game.recipes[i].uncraftable) {
-                                products.push(roomItems[k]);
-                                break;
-                            }
-                        }
                     }
                 }
             }
-            products.sort(function (a, b) {
-                if (a.prefab.id < b.prefab.id) return -1;
-                if (a.prefab.id > b.prefab.id) return 1;
-                return 0;
-            });
-            if (productsMatch(products, game.recipes[i].products)) {
-                let ingredients = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
-                products = game.recipes[i].products.map(product => product.singleContainingPhrase);
+            if (products.length !== 0) {
+                products.sort(function (a, b) {
+                    if (a.prefab.id < b.prefab.id) return -1;
+                    if (a.prefab.id > b.prefab.id) return 1;
+                    return 0;
+                });
+                ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
         if (recipes.length === 0) return game.messageHandler.addReply(message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
-        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}uncraft\` command. Note that only recipes whose product include at least one item currently in your inventory are listed.`;
+        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;
         objectRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}use\` command on an object after dropping all of the ingredients into it. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
     }
 

@@ -1652,40 +1652,54 @@ class Player {
             else if (this.inventory[slot].name === "LEFT HAND") leftHand = this.inventory[slot];
         }
 
-        if (!item.prefab.discreet) this.description = parser.removeItem(this.description, item, "hands");
+        const originalItemPhrase = item.singleContainingPhrase;
+        const itemDiscreet = item.prefab.discreet;
+
+        if (!itemDiscreet) this.description = parser.removeItem(this.description, item, "hands");
         itemManager.replaceInventoryItem(item, ingredient1);
         itemManager.instantiateInventoryItem(
             ingredient2,
             this,
             rightHand.equippedItem === null ? "RIGHT HAND" : "LEFT HAND",
             null,
-            null,
+            "",
             1,
             bot,
             false
         )
 
         this.sendDescription(game, recipe.uncraftedDescription, recipe);
-        if (!item.prefab.discreet || !ingredient1.discreet || !ingredient2.discreet) {
+        if (!itemDiscreet || !ingredient1.discreet || !ingredient2.discreet) {
+            let itemPhrase = item.singleContainingPhrase;
             let ingredientPhrase = "";
             let ingredient1Phrase = "";
             let ingredient2Phrase = "";
+            let verb = "removes";
+            let preposition = "from";
             if (!ingredient1.discreet) {
-                ingredient1Phrase = ingredient1.singleContainingPhrase;
+                if (ingredient1.singleContainingPhrase !== originalItemPhrase || ingredient1.singleContainingPhrase !== itemPhrase)
+                    ingredient1Phrase = ingredient1.singleContainingPhrase;
                 this.description = parser.addItem(this.description, ingredient1, "hands");
             }
             if (!ingredient2.discreet) {
-                ingredient2Phrase = ingredient2.singleContainingPhrase;
+                if (ingredient2.singleContainingPhrase !== originalItemPhrase || ingredient2.singleContainingPhrase !== itemPhrase)
+                    ingredient2Phrase = ingredient2.singleContainingPhrase;
                 this.description = parser.addItem(this.description, ingredient2, "hands");
             }
-            if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+            if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
+                itemPhrase = originalItemPhrase;
+                ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+                verb = "separates";
+                preposition = "into";
+            }
             else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
             else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
 
-            if (ingredientPhrase !== "") new Narration(game, this, this.location, `${this.displayName} dismantles ${item.prefab.singleContainingPhrase} into ${ingredientPhrase}`);
+            if (ingredientPhrase !== "") ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
+            if (!itemDiscreet || ingredientPhrase !== "") new Narration(game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
         }
-        
-        return {ingredient1: ingredient1, ingredient2: ingredient2};
+
+        return { ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null, ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null };
     }
 
     hasItem(game, id) {
