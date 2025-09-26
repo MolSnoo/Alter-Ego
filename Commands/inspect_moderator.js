@@ -171,7 +171,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                     else if (parsedInput.endsWith(` OF ${items[i].container.prefab.id}`))
                         containerName = items[i].container.prefab.id;
                     if (containerName !== "") {
-                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(containerName).trim());
+                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${containerName}`)).trim();
                         for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
                             if (items[i].container.inventory[slot].name === tempSlotName && items[i].slot === tempSlotName) {
                                 item = items[i];
@@ -183,7 +183,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                         if (item !== null) break;
                     }
                     // Only a container was specified.
-                    else if (items[i].container.name === containerString) {
+                    else if (items[i].container.identifier !== "" && items[i].container.identifier === containerString || items[i].container.prefab.id === containerString) {
                         item = items[i];
                         container = item.container;
                         slotName = item.slot;
