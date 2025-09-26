@@ -3,8 +3,8 @@ const settings = include('Configs/settings.json');
 module.exports.config = {
     name: "craft_moderator",
     description: "Crafts two items in a player's inventory together.",
-    details: 'Creates a new item using the two items in the given player\'s hand. The names of the items must be separated by "with" or "and". '
-        + "If no recipe for those two items exists, the items cannot be crafted together. "
+    details: 'Creates a new item using the two items in the given player\'s hand. The prefab IDs or container identifiers of the '
+        + 'items must be separated by "with" or "and". If no recipe for those two items exists, the items cannot be crafted together. '
         + "Note that this command can also be used to use one item on another item, which may produce something new.",
     usage: `${settings.commandPrefix}craft chris drain cleaner and plastic bottle\n`
         + `${settings.commandPrefix}combine keiko's bread and cheese\n`
