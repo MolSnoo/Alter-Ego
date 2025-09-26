@@ -6,10 +6,11 @@ const Narration = include(`${constants.dataDir}/Narration.js`);
 module.exports.config = {
     name: "inspect_player",
     description: "Learn more about an object, item, or player.",
-    details: 'Tells you about an object, item, or player in the room you\'re in. The description will be sent to you via DMs. '
+    details: 'Tells you about an object, item, or player in the room you\'re in. '
         + 'An object is something in the room that you can interact with but not take with you. '
         + 'An item is something that you can both interact with and take with you. If you inspect an object, '
         + 'everyone in the room will see you inspect it. The same goes for very large items. '
+        + 'If there are multiple items with the same name in the room, you can specify which one you want to inspect using the name of the container it\'s in. '
         + 'You can also inspect items in your inventory. If you have an item with the same name as an item in the room you\'re currently in, '
         + 'you can specify that you want to inspect your item by adding "my" before the item name. '
         + 'You can even inspect visible items in another player\'s inventory by adding "[player name]\'s" before the item name. No one will '
@@ -17,6 +18,8 @@ module.exports.config = {
         + `You can use "${settings.commandPrefix}inspect room" to get the description of the room you're currently in.`,
     usage: `${settings.commandPrefix}inspect desk\n`
         + `${settings.commandPrefix}examine knife\n`
+        + `${settings.commandPrefix}look knife on desk\n`
+        + `${settings.commandPrefix}x knife in main pouch of red backpack\n`
         + `${settings.commandPrefix}investigate my knife\n`
         + `${settings.commandPrefix}look akari\n`
         + `${settings.commandPrefix}examine an individual wearing a mask\n`
@@ -52,13 +55,35 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         return;
     }
 
-    // Check if the input is an object.
+    // Check if the input is an object, or an item on an object.
     const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+    const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     var object = null;
+    var item = null;
+    var container = null;
+    var slotName = "";
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) {
             object = objects[i];
             break;
+        }
+
+        if ((parsedInput.endsWith(` ${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(` IN ${objects[i].name}`)) && objects[i].preposition !== "") {
+            const objectItems = items.filter(item => item.containerName === `Object: ${objects[i].name}` || objects[i].childPuzzle !== null && item.containerName === `Puzzle: ${objects[i].childPuzzle.name}`);
+            for (let j = 0; j < objectItems.length; j++) {
+                if (
+                    parsedInput === `${objectItems[j].name} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
+                    parsedInput === `${objectItems[j].pluralName} ${objects[i].preposition.toUpperCase()} ${objects[i].name}` ||
+                    parsedInput === `${objectItems[j].name} IN ${objects[i].name}` ||
+                    parsedInput === `${objectItems[j].pluralName} IN ${objects[i].name}`
+                ) {
+                    item = objectItems[j];
+                    container = item.container;
+                    slotName = item.slot;
+                    break;
+                }
+            }
+            if (item !== null) break;
         }
     }
 
@@ -114,37 +139,92 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (!onlySearchInventory) {
         // Now check if the input is an item.
-        const items = game.items.filter(item => item.location.name === player.location.name
-            && item.accessible
-            && (item.quantity > 0 || isNaN(item.quantity)));
-        var item = null;
         for (let i = 0; i < items.length; i++) {
-            if (items[i].prefab.name === parsedInput || items[i].prefab.pluralName === parsedInput) {
+            if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
                 item = items[i];
+                container = item.container;
+                slotName = item.slot;
                 break;
             }
-        }
 
-        if (item !== null) {
-            // Make sure the player can only inspect items contained in the object they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0) {
-                let topContainer = item.container;
-                while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
-                    topContainer = topContainer.container;
-                if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
-                    topContainer = topContainer.parentObject;
-
-                if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-                    return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            if (items[i].container !== null && items[i].container.hasOwnProperty("prefab")) {
+                const preposition = items[i].container.prefab.preposition.toUpperCase();
+                let containerString = "";
+                if (parsedInput.startsWith(`${items[i].name} ${preposition} `))
+                    containerString = parsedInput.substring(`${items[i].name} ${preposition} `.length).trim();
+                else if (parsedInput.startsWith(`${items[i].pluralName} ${preposition} `))
+                    containerString = parsedInput.substring(`${items[i].pluralName} ${preposition} `.length).trim();
+                else if (parsedInput.startsWith(`${items[i].name} IN `))
+                    containerString = parsedInput.substring(`${items[i].name} IN `.length).trim();
+                else if (parsedInput.startsWith(`${items[i].pluralName} IN `))
+                    containerString = parsedInput.substring(`${items[i].pluralName} IN `.length).trim();
+                
+                if (containerString !== "") {
+                    // Slot name was specified.
+                    if (parsedInput.endsWith(` OF ${items[i].container.name}`)) {
+                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${items[i].container.name}`)).trim();
+                        for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
+                            if (items[i].container.inventory[slot].name === tempSlotName && items[i].slot === tempSlotName) {
+                                item = items[i];
+                                container = item.container;
+                                slotName = item.slot;
+                                break;
+                            }
+                        }
+                        if (item !== null) break;
+                    }
+                    // Only a container was specified.
+                    else if (items[i].container.name === containerString) {
+                        item = items[i];
+                        container = item.container;
+                        slotName = item.slot;
+                        break;
+                    }
+                }
             }
-            if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.prefab.singleContainingPhrase}.`).send();
-            player.sendDescription(game, item.description, item);
-
-            const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` in ${player.location.channel}`);
-
-            return;
         }
+    }
+
+    if (item !== null) {
+        // Make sure the player can only inspect items contained in the object they're hiding in, if they're hidden.
+        if (hiddenStatus.length > 0) {
+            let topContainer = item.container;
+            while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+                topContainer = topContainer.container;
+            if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+                topContainer = topContainer.parentObject;
+
+            if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+                return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        }
+
+        let preposition = "in";
+        let containerName = "";
+        let containerIdentifier = "";
+        if (container.hasOwnProperty("prefab")) {
+            preposition = container.prefab.preposition;
+            containerName = container.singleContainingPhrase;
+            containerIdentifier = `${slotName} of ${container.identifier}`;
+        }
+        else if (container.hasOwnProperty("hidingSpotCapacity")) {
+            preposition = container.preposition;
+            containerName = `the ${container.name}`;
+            containerIdentifier = container.name;
+        }
+        else if (container.hasOwnProperty("solved")) {
+            preposition = container.parentObject.preposition;
+            containerName = `the ${container.parentObject.name}`;
+            containerIdentifier = container.name;
+        }
+        if (!item.prefab.discreet)
+            new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.singleContainingPhrase}` + (containerName ? ` ${preposition} ${containerName}` : '') + `.`).send();
+        player.sendDescription(game, item.description, item);
+
+        const time = new Date().toLocaleTimeString();
+        const identifier = item.identifier !== "" ? item.identifier : item.prefab.id;
+        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
+
+        return;
     }
 
     // Check if the input is an item in the player's inventory.
