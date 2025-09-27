@@ -65,7 +65,7 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
     return;
 };
 
-module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlot, container, slotName, quantity, bot) {
+module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlot, container, slotName, quantity, bot, notify = true) {
     var createdItem = new InventoryItem(
         player,
         prefab,
@@ -113,7 +113,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
     }
     // Item is being equipped.
     else {
-        player.fastEquip(game, createdItem, equipmentSlot, bot);
+        player.fastEquip(game, createdItem, equipmentSlot, bot, notify);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
