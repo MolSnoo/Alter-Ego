@@ -2,16 +2,6 @@
 
 module.exports.execute = async (bot, game, message, deletable, player = null, originalDisplayName = "") => {
     return new Promise(async (resolve) => {
-        // Add message to messageHandler cache
-        if (game.messageHandler.cache.length >= 50)
-            game.messageHandler.cache.pop()
-        game.messageHandler.cache.unshift(
-            {
-                id: message.id,
-                related: []
-            }
-        );
-
         // Determine if the speaker is a moderator first.
         var isModerator = false;
         if (message.member && message.member.roles.cache.find(role => role.id === serverconfig.moderatorRole))
@@ -51,6 +41,10 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
             resolve();
         }
         if (room === null) resolve();
+
+        // Add message to messageHandler cache.
+        if (game.messageHandler.cache.length >= 50) game.messageHandler.cache.pop();
+        game.messageHandler.cache.unshift({ id: message.id, related: [] });
 
         if (player !== null && message.channel.id !== serverconfig.announcementChannel) {
             if (player.talent !== "NPC") player.setOnline();
