@@ -13,5 +13,14 @@ describe('uncraft_player command', () => {
         player = playerMock;
     });
         
-    test('', async () => {});
+    test('should abort when empty args provided', async () => {
+        await uncraft_player.run(bot, game, message, 'uncraft', [], player)
+        expect(game.messageHandler.addReply).toHaveBeenCalled();
+        expect(player.getAttributeStatusEffects).not.toHaveBeenCalled();
+    });
+        
+    test('', async () => {
+        player.getAttributeStatusEffects.mockReturnValue([]);
+        await uncraft_player.run(bot, game, message, 'uncraft', ['pen'], player)
+    });
 });
