@@ -42,6 +42,10 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
         }
         if (room === null) resolve();
 
+        // Add message to messageHandler cache.
+        if (game.messageHandler.cache.length >= 50) game.messageHandler.cache.pop();
+        game.messageHandler.cache.unshift({ id: message.id, related: [] });
+
         if (player !== null && message.channel.id !== serverconfig.announcementChannel) {
             if (player.talent !== "NPC") player.setOnline();
 

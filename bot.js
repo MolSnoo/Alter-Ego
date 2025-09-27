@@ -190,6 +190,14 @@ bot.on('messageCreate', async message => {
     }
 });
 
+bot.on('messageUpdate', async (messageOld, messageNew) => {
+    if (messageOld.partial || messageNew.partial || messageOld.author.bot || messageOld.content === messageNew.content) return;
+
+    if (messageOld && game.inProgress && (serverconfig.roomCategories.includes(messageOld.channel.parentId) || messageOld.channel.parentId === serverconfig.whisperCategory || messageOld.channel.id === serverconfig.announcementChannel)) {
+        messageHandler.editSpectatorMessage(messageOld, messageNew);
+    }
+});
+
 process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);
 });
