@@ -1255,7 +1255,7 @@ class Player {
         return;
     }
 
-    async fastEquip(game, item, slotName, bot) {
+    async fastEquip(game, item, slotName, bot, notify = true) {
         // Get the row number of the EquipmentSlot that the item will go into.
         var rowNumber = 0;
         for (var slot = 0; slot < this.inventory.length; slot++) {
@@ -1279,16 +1279,18 @@ class Player {
         }
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            this.notify(game, `You take ${item.singleContainingPhrase}.`);
-            if (!item.prefab.discreet) {
+            if (notify) this.notify(game, `You take ${item.singleContainingPhrase}.`);
+            if (!item.prefab.discreet && notify) {
                 new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
                 this.description = parser.addItem(this.description, item, "hands");
             }
         }
         else {
-            this.notify(game, `You equip the ${item.name}.`);
-            new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            if (notify) {
+                this.notify(game, `You equip the ${item.name}.`);
+                new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            }
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
                 const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
@@ -1637,6 +1639,67 @@ class Player {
         }
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
+    }
+    
+    uncraft(game, item, recipe, bot) {
+        var ingredient1 = recipe.ingredients[0];
+        var ingredient2 = recipe.ingredients[1];
+
+        var rightHand = null;
+        var leftHand = null;
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === "RIGHT HAND") rightHand = this.inventory[slot];
+            else if (this.inventory[slot].name === "LEFT HAND") leftHand = this.inventory[slot];
+        }
+
+        const originalItemPhrase = item.singleContainingPhrase;
+        const itemDiscreet = item.prefab.discreet;
+
+        if (!itemDiscreet) this.description = parser.removeItem(this.description, item, "hands");
+        itemManager.replaceInventoryItem(item, ingredient1);
+        itemManager.instantiateInventoryItem(
+            ingredient2,
+            this,
+            rightHand.equippedItem === null ? "RIGHT HAND" : "LEFT HAND",
+            null,
+            "",
+            1,
+            bot,
+            false
+        )
+
+        this.sendDescription(game, recipe.uncraftedDescription, recipe);
+        if (!itemDiscreet || !ingredient1.discreet || !ingredient2.discreet) {
+            let itemPhrase = item.singleContainingPhrase;
+            let ingredientPhrase = "";
+            let ingredient1Phrase = "";
+            let ingredient2Phrase = "";
+            let verb = "removes";
+            let preposition = "from";
+            if (!ingredient1.discreet) {
+                if (ingredient1.singleContainingPhrase !== originalItemPhrase || ingredient1.singleContainingPhrase !== itemPhrase)
+                    ingredient1Phrase = ingredient1.singleContainingPhrase;
+                this.description = parser.addItem(this.description, ingredient1, "hands");
+            }
+            if (!ingredient2.discreet) {
+                if (ingredient2.singleContainingPhrase !== originalItemPhrase || ingredient2.singleContainingPhrase !== itemPhrase)
+                    ingredient2Phrase = ingredient2.singleContainingPhrase;
+                this.description = parser.addItem(this.description, ingredient2, "hands");
+            }
+            if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
+                itemPhrase = originalItemPhrase;
+                ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+                verb = "separates";
+                preposition = "into";
+            }
+            else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
+            else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
+
+            if (ingredientPhrase !== "") ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
+            if (!itemDiscreet || ingredientPhrase !== "") new Narration(game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
+        }
+
+        return { ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null, ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null };
     }
 
     hasItem(game, id) {

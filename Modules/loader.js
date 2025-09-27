@@ -415,11 +415,13 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
-            const columnObjectTag = 1;
-            const columnDuration = 2;
-            const columnProducts = 3;
-            const columnInitiatedDescription = 4;
-            const columnCompletedDescription = 5;
+            const columnUncraftable = 1;
+            const columnObjectTag = 2;
+            const columnDuration = 3;
+            const columnProducts = 4;
+            const columnInitiatedDescription = 5;
+            const columnCompletedDescription = 6;
+            const columnUncraftedDescription = 7;
 
             game.recipes.length = 0;
             for (let i = 0; i < sheet.length; i++) {
@@ -460,11 +462,13 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                 game.recipes.push(
                     new Recipe(
                         ingredients,
+                        sheet[i][columnUncraftable] ? sheet[i][columnUncraftable].trim() === "TRUE" : false,
                         sheet[i][columnObjectTag] ? sheet[i][columnObjectTag].trim() : "",
                         duration,
                         products,
                         sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription].trim() : "",
                         sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription].trim() : "",
+                        sheet[i][columnUncraftedDescription] ? sheet[i][columnUncraftedDescription].trim() : "",
                         i + 2
                     )
                 );
@@ -508,6 +512,10 @@ module.exports.checkRecipe = function (recipe) {
         if (!(recipe.products[i] instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.products[i]}" in products is not a prefab.`);
     }
+    if (recipe.objectTag !== "" && recipe.uncraftable)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with an object tag cannot be uncraftable.`)
+    if (recipe.products.length > 1 && recipe.uncraftable)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than one product cannot be uncraftable.`)
 };
 
 module.exports.loadItems = function (game, doErrorChecking) {
