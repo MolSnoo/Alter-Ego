@@ -1720,7 +1720,7 @@ class Player {
                         else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
                 }
-                else if (puzzle.type === "interact") {
+                else if (puzzle.type === "interact" || puzzle.type === "matrix") {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
                 }
@@ -1843,6 +1843,12 @@ class Player {
                     else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
                     else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
                 }
+                else if (puzzle.type === "option") {
+                    if (puzzle.solved && password === "") puzzle.unsolve(bot, game, this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for ${puzzleName}.`, true);
+                    if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} sets the ${puzzleName}, but nothing changes.`);
+                    else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
+                    else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
+                }
                 else if (puzzle.type === "media") {
                     if (puzzle.solved && item === null) {
                         let message = null;
@@ -1872,6 +1878,20 @@ class Player {
                         if (puzzle.solutions.includes(this.name)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, this.name, true);
                         else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
+                }
+                else if (puzzle.type === "room player") {
+                    let solution = "";
+                    if (misc.targetPlayer) {
+                        for (let i = 0; i < puzzle.solutions.length; i++) {
+                            if (puzzle.solutions[i].toLowerCase() === misc.targetPlayer.displayName.toLowerCase()) {
+                                solution = puzzle.solutions[i];
+                                break;
+                            }
+                        }
+                    }
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    else if (solution !== "") puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, solution, true, misc.targetPlayer);
+                    else puzzle.fail(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
                 }
             }
             // The player is missing an item needed to solve the puzzle.

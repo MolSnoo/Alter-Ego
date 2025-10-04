@@ -66,6 +66,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Now check to see if the player is trying to solve a puzzle.
     var puzzle = null;
     var password = "";
+    var targetPlayer = null;
     if (parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
         var puzzles = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name);
         if (command === "lock" || command === "unlock") puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
@@ -92,6 +93,14 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
+            for (let i = 0; i < game.players_alive.length; i++) {
+                if (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() &&
+                game.players_alive[i].location.name === player.location.name &&
+                (!game.players_alive[i].hasAttribute("hidden") || game.players_alive[i].hidingSpot === player.hidingSpot)) {
+                    targetPlayer = game.players_alive[i];
+                    break;
+                }
+            }
         }
     }
 
@@ -131,7 +140,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const misc = {
             command: command,
             input: args.join(" "),
-            message: message
+            message: message,
+            targetPlayer: targetPlayer
         };
         const response = player.attemptPuzzle(bot, game, puzzle, item, password, command, misc);
         if (response === "" || !response) return;
