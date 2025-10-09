@@ -89,7 +89,7 @@ class Puzzle {
                     if (this.type === "matrix") {
                         const regex = /{([^{},/]+?)}/g;
                         let match;
-                        while (match = regex.exec(command)) {
+                        while (match = regex.exec(commandSet[i])) {
                             for (const requirement of this.requirements) {
                                 if (requirement instanceof Puzzle && requirement.name === match[1] && requirement.outcome !== "") {
                                     command = command.replace(match[0], requirement.outcome);
