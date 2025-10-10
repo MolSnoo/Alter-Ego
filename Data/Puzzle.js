@@ -36,7 +36,7 @@ class Puzzle {
         this.accessible = false;
     }
 
-    async solve(bot, game, player, message, outcome, doSolvedCommands) {
+    async solve(bot, game, player, message, outcome, doSolvedCommands, targetPlayer = null) {
         // Mark it as solved.
         this.solved = true;
         // Set the outcome.
@@ -85,7 +85,19 @@ class Puzzle {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(commandSet[i], bot, game, null, player, this);
+                    let command = commandSet[i];
+                    if (this.type === "matrix") {
+                        const regex = /{([^{},/]+?)}/g;
+                        let match;
+                        while (match = regex.exec(commandSet[i])) {
+                            for (const requirement of this.requirements) {
+                                if (requirement instanceof Puzzle && requirement.name.toUpperCase() === match[1].toUpperCase() && requirement.outcome !== "") {
+                                    command = command.replace(match[0], requirement.outcome);
+                                }
+                            }
+                        }
+                    }
+                    commandHandler.execute(command, bot, game, null, targetPlayer ? targetPlayer : player, this);
                 }
             }
         }
