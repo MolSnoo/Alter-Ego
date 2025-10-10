@@ -1664,6 +1664,7 @@ class Player {
             null,
             "",
             1,
+            new Map(),
             bot,
             false
         )
