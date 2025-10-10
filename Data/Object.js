@@ -265,7 +265,7 @@ function process(game, object, player) {
                     break;
                 }
             }
-            if (instantiate) itemManager.instantiateItem(product, object.location, object, "", quantity);
+            if (instantiate) itemManager.instantiateItem(product, object.location, object, "", quantity, new Map());
         }
         if (player && player.alive && player.location.name === object.location.name) player.sendDescription(game, object.process.recipe.completedDescription, object);
     }

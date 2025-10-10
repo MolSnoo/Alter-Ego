@@ -101,12 +101,21 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
     else if (puzzle === null) return game.messageHandler.addReply(message, `Couldn't find puzzle "${input}".`);
 
-    // If anything is left in the input, make that the outcome.
-    var outcome = input;
-    var validOutcome = false;
+    var outcome = "";
+    var targetPlayer = null;
+    if (player !== null && puzzle.type === "room player") {
+        for (let i = 0; i < game.players_alive.length; i++) {
+            if (game.players_alive[i].location.name === player.location.name &&
+                (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() || game.players_alive[i].name.toLowerCase() === input.toLowerCase())) {
+                targetPlayer = game.players_alive[i];
+                break;
+            }
+        }
+    }
     for (let i = 0; i < puzzle.solutions.length; i++) {
-        if (puzzle.solutions[i].toLowerCase() === outcome.toLowerCase()) {
-            validOutcome = true;
+        if (targetPlayer && puzzle.solutions[i].toLowerCase() === targetPlayer.displayName.toLowerCase() ||
+            puzzle.type !== "room player" && puzzle.solutions[i].toLowerCase() === input.toLowerCase()) {
+            outcome = puzzle.solutions[i];
             break;
         }
     }
@@ -114,8 +123,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && outcome !== "" && !validOutcome) return game.messageHandler.addReply(message, `"${outcome}" is not a valid solution.`);
-        puzzle.solve(bot, game, player, announcement, outcome, true);
+        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return game.messageHandler.addReply(message, `"${input}" is not a valid solution.`);
+        puzzle.solve(bot, game, player, announcement, outcome, true, targetPlayer);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
@@ -127,9 +136,10 @@ module.exports.run = async (bot, game, message, command, args) => {
         const misc = {
             command: command,
             input: input,
-            message: message
+            message: message,
+            targetPlayer: targetPlayer
         };
-        player.attemptPuzzle(bot, game, puzzle, null, outcome, command, misc);
+        player.attemptPuzzle(bot, game, puzzle, null, input, command, misc);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 

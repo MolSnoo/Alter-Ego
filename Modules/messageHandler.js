@@ -5,6 +5,7 @@ const discord = require('discord.js');
 const QueuedMessage = include(`${constants.dataDir}/QueuedMessage.js`);
 
 module.exports.queue = [];
+module.exports.cache = [];
 module.exports.clientID = null;
 
 const messagePriority = {
@@ -131,9 +132,27 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
                 embeds: message.embeds,
                 files: files
             },
-            messagePriority.spectatorMessage);
+            messagePriority.spectatorMessage, message.id
+        );
     }
 };
+
+module.exports.editSpectatorMessage = async (messageOld, messageNew) => {
+    const cachedMessage = module.exports.cache.find(entry => entry.id === messageOld.id);
+    if (!cachedMessage) return;
+    cachedMessage.related.forEach(async related => {
+        const webHook = await messageOld.client.fetchWebhook(related.webHook);
+        if (webHook) {
+            let messageText = messageNew.content;
+            if (messageOld.channel.parentId === serverconfig.whisperCategory) {
+                const relatedMessage = await webHook.fetchMessage(related.message);
+                const regexGroups = relatedMessage.content.match(new RegExp(/(\*\(Whispered(?:.*)\):\*\n)(.*)/m));
+                if (regexGroups) messageText = regexGroups[1] + messageNew.content;
+            }
+            webHook.editMessage(related.message, { content: messageText });
+        }
+    });
+}
 
 module.exports.sendQueuedMessages = async () => {
     let queue = module.exports.queue;
@@ -161,8 +180,11 @@ function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
     addToQueue(sendAction, priority);
 }
 
-function addWebhookMessageToQueue(webHook, webHookContents, priority) {
-    let sendAction = () => webHook.send(webHookContents);
+function addWebhookMessageToQueue(webHook, webHookContents, priority, originId) {
+    let sendAction = () => webHook.send(webHookContents).then(message => {
+        const cachedMessage = module.exports.cache.find(entry => entry.id === originId);
+        if (cachedMessage) cachedMessage.related.push({ message: message.id, webHook: webHook.id });
+    }).catch(console.error);
     addToQueue(sendAction, priority);
 }
 
