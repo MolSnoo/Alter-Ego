@@ -2,82 +2,37 @@ const settings = include('Configs/settings.json');
 const constants = include('Configs/constants.json');
 const playerdefaults = include('Configs/playerdefaults.json');
 const serverconfig = include('Configs/serverconfig.json');
+const sheets = include(`${constants.modulesDir}/sheets.js`);
 
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 const Player = include(`${constants.dataDir}/Player.js`);
-
-const { ChannelType } = require('../node_modules/discord-api-types/v10');
 
 module.exports.config = {
     name: "addplayer_moderator",
     description: "Adds a player to the game.",
-    details: "Adds a player to the list of players for the current game. You can additionally specify a "
-        + "non-default starting room and a list of non-default status effects. Note that if you specify "
-        + "a list of non-default status effects, the default status effects will not be applied.",
-    usage: `${settings.commandPrefix}addplayer @MolSno\n`
-        + `${settings.commandPrefix}addplayer @MolSno kitchen\n`
-        + `${settings.commandPrefix}addplayer @MolSno living-room warm, well rested, full\n`,
+    details: "Adds a user to the list of players for the current game. This command will give the specified user the "
+        + "Player role and add their data to the players and inventory items spreadsheets. This will be generated "
+        + "using the data in the playerdefaults config file. Note that edit mode must be turned on in order to use "
+        + "this command. After using this command, you may edit the new Player's data. Then, the players sheet "
+        + "must be loaded, otherwise the new player will not be created correctly, and their data may be overwritten.",
+    usage: `${settings.commandPrefix}addplayer @cella`,
     usableBy: "Moderator",
-    aliases: ["addplayer"]
+    aliases: ["addplayer"],
+    requiresGame: false
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to mention a user to add. Usage:\n${exports.config.usage}`);
+    if (game.inProgress && !game.editMode)
+        return game.messageHandler.addReply(message, `You cannot add a player to the spreadsheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
-    const member = message.mentions.members.first();
-    var location = null;
-    var locationData = null;
-    var status = null;
-    var locationCheck = false;
-    var statusCheck = 0;
-    var spectateChannel = null;
+    if (args.length !== 1) return game.messageHandler.addReply(message, `You need to mention a user to add. Usage:\n${exports.config.usage}`);
+
+    const mentionedMember = message.mentions.members.first();
+    const member = await game.guild.members.fetch(mentionedMember.id);
+    if (!member) return game.messageHandler.addReply(message, `Couldn't find "${args[0]}" in the server. If the user you want isn't appearing in Discord's suggestions, type @ and enter their full username.`);
 
     for (let i = 0; i < game.players.length; i++) {
         if (member.id === game.players[i].id)
             return message.reply("That user is already playing.");
-    }
-
-    if (args.length === 1) {
-        location = playerdefaults.defaultLocation;
-        status = playerdefaults.defaultStatusEffects.split(', ');
-    }
-    else if (args.length === 2) {
-        location = args[1];
-        status = playerdefaults.defaultStatusEffects.split(', ');
-    }
-    else if (args.length >= 3) {
-        location = args[1];
-        status = args.slice(2).join(' ').split(', ');
-    }
-
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === location) {
-            locationCheck = true;
-            locationData = game.rooms[i];
-            break;
-        }
-    }
-    for (let i = 0; i < game.statusEffects.length; i++) {
-        if (status.includes(game.statusEffects[i].name)) {
-            statusCheck++;
-        }
-        if (statusCheck === status.length) break;
-    }
-
-    if (!locationCheck)
-        return game.messageHandler.addReply(message, `Room ${location} couldn't be found.`);
-    if (statusCheck !== status.length)
-        return game.messageHandler.addReply(message, `Not all given status effects could be found. Missing: ${status.length - statusCheck}.`);
-
-    spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === member.displayName.toLowerCase());
-    const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
-    if (!spectateChannel && noSpectateChannels < 50) {
-        spectateChannel = await game.guild.channels.create({
-            name: member.displayName.toLowerCase(),
-            type: ChannelType.GuildText,    
-            parent: serverconfig.spectateCategory
-        });
     }
 
     var player = new Player(
@@ -90,42 +45,61 @@ module.exports.run = async (bot, game, message, command, args) => {
         "an average voice",
         playerdefaults.defaultStats,
         true,
-        location,
+        playerdefaults.defaultLocation,
         "",
-        [],
+        playerdefaults.defaultStatusEffects,
         playerdefaults.defaultDescription,
         new Array(),
-        spectateChannel
+        null
     );
 
     game.players.push(player);
     game.players_alive.push(player);
-    
-    for (let i = 0; i < status.length; i++) {
-        player.inflict(game, status[i], false, false, false, null, null)
-    }
-    locationData.addPlayer(game, player, null, null, true)
-
-    // CURSED INVENTORY CREATION CODE BEGINS
-    const indexPrefab = 0;
-    const indexIdentifier = 1;
-    const indexEquipmentSlot = 2;
-    const indexContainer = 3;
-    const indexQuantity = 4;
-    const indexUses = 5;
-    const indexDescription = 6;
-    var playerInventory = structuredClone(playerdefaults.defaultInventory);
-    for (let i = 0; i < playerInventory.length; i++) {
-        for (let j = 0; j < playerInventory[i].length; j++) {
-            if (playerInventory[i][j].includes('#'))
-                playerInventory[i][j] = playerInventory[i][j].replace(/#/g, game.players.length + 1);
-        }
-    }
-    // CURSED INVENTORY CREATION CODE ENDS
-
     member.roles.add(serverconfig.playerRole);
 
-    message.channel.send(`<@${member.id}> added to game!`);
+    var playerCells = [];
+    var inventoryCells = [];
+    playerCells.push([
+        player.id,
+        player.name,
+        player.talent,
+        player.pronounString,
+        player.originalVoiceString,
+        player.defaultStrength,
+        player.defaultIntelligence,
+        player.defaultDexterity,
+        player.defaultSpeed,
+        player.defaultStamina,
+        player.alive,
+        player.location,
+        player.hidingSpot,
+        player.status,
+        player.description
+    ]);
+
+    for (let i = 0; i < playerdefaults.defaultInventory.length; i++) {
+        let row = [player.name];
+        row = row.concat(playerdefaults.defaultInventory[i]);
+        for (let j = 0; j < row.length; j++) {
+            if (row[j].includes('#'))
+                row[j] = row[j].replace(/#/g, game.players.length);
+        }
+        inventoryCells.push(row);
+    }
+
+    try {
+        await sheets.appendRows(constants.playerSheetDataCells, playerCells);
+        await sheets.appendRows(constants.inventorySheetDataCells, inventoryCells);
+
+        const successMessage = `<@${member.id}> has been added to the game. `
+            + "After making any desired changes to the players and inventory items sheets, be sure to load players before disabling edit mode.";
+        game.messageHandler.addGameMechanicMessage(message.channel, successMessage);
+    }
+    catch (err) {
+        const errorMessage = `<@${member.id}> has been added to the game, but there was an error saving the data to the spreadsheet. `
+            + "It is recommended that you add their data to the spreadsheet manually, then load it before proceeding. Error:\n```" + err + "```";
+        game.messageHandler.addGameMechanicMessage(message.channel, errorMessage);
+    }
 
     return;
 };

@@ -233,8 +233,9 @@ module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
     });
 };
 
-module.exports.appendRow = function (sheetrange, data, dataOperation) {
-    authorize(function (authClient) {
+module.exports.appendRows = function (sheetrange, data, dataOperation) {
+    return new Promise((resolve, reject) => {
+        authorize(function (authClient) {
         var request = {
             // The ID of the spreadsheet to update.
             spreadsheetId: spreadsheetID,
@@ -244,13 +245,13 @@ module.exports.appendRow = function (sheetrange, data, dataOperation) {
             range: sheetrange,
 
             // How the input data should be interpreted.
-            valueInputOption: 'USER_ENTERED',
+            valueInputOption: 'RAW',
 
             // How the input data should be inserted.
             insertDataOption: 'INSERT_ROWS',
 
             resource: {
-                values: new Array(data),
+                values: data,
             },
 
             auth: authClient,
@@ -259,14 +260,15 @@ module.exports.appendRow = function (sheetrange, data, dataOperation) {
         sheets.spreadsheets.values.append(request, function (err, response) {
             if (err) {
                 console.error(err);
-                return;
+                reject(err);
             }
 
             if (dataOperation) {
                 dataOperation(response);
             }
-            //console.log('Appended row "' + data + '" to ' + sheetrange);
+            resolve();
         });
+    });
     });
 };
 
