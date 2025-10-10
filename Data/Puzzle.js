@@ -91,7 +91,7 @@ class Puzzle {
                         let match;
                         while (match = regex.exec(commandSet[i])) {
                             for (const requirement of this.requirements) {
-                                if (requirement instanceof Puzzle && requirement.name === match[1] && requirement.outcome !== "") {
+                                if (requirement instanceof Puzzle && requirement.name.toUpperCase() === match[1].toUpperCase() && requirement.outcome !== "") {
                                     command = command.replace(match[0], requirement.outcome);
                                 }
                             }
