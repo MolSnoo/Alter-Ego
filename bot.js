@@ -163,7 +163,7 @@ bot.on('ready', async () => {
                 if (!game.events[i].ongoing) {
                     for (let j = 0; j < game.events[i].triggerTimes.length; j++) {
                         const time = game.events[i].triggerTimes[j];
-                        if (now.hour() === time.hour() && now.minute() === time.minute()) {
+                        if (now.month() === time.month() && now.weekday() === time.weekday() && now.date() === time.date() && now.hour() === time.hour() && now.minute() === time.minute()) {
                             game.events[i].trigger(bot, game, true);
                             break;
                         }
