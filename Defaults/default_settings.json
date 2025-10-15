@@ -11,6 +11,7 @@
   "defaultDropObject": "FLOOR",
   "defaultRoomIconURL": "",
   "autoDeleteWhisperChannels": true,
+  "language": "en",
   "onlineActivity": {
     "type": "LISTENING",
     "string": "Future Foundation HQ"

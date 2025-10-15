@@ -283,3 +283,8 @@ parsedText.xml
 # Docker Files
 *.env
 
+# crates
+target/
+Cargo.lock
+*.node
+*.d.ts
