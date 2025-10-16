@@ -1,28 +1,56 @@
+var game = include('game.json');
 const constants = include('Configs/constants.json');
 const parser = include(`${constants.modulesDir}/parser.js`);
 
+const Event = include(`${constants.dataDir}/Event.js`);
 const Player = include(`${constants.dataDir}/Player.js`);
 const Prefab = include(`${constants.dataDir}/Prefab.js`);
 const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 
-// Custom mock for Player to allow construction with (talent, intelligence)
+jest.mock(`../../Data/Event.js`);
 jest.mock(`../../Data/Player.js`);
 jest.mock(`../../Data/InventoryItem.js`);
 
-var gameMock = include('Test/Mocks/game').mock;
-
 beforeAll(() => {
+	Event.mockImplementation(function(name, ongoing) {
+		this.name = name;
+		this.ongoing = ongoing;
+
+		game.events.push(this);
+	});
 	Player.mockImplementation(function(talent, intelligence) {
 		this.name = talent;
 		this.talent = talent;
 		this.intelligence = intelligence;
+
+		game.players.push(this);
+		game.players_alive.push(this);
 	});
 	InventoryItem.mockImplementation(function(player, name, uses, weight) {
 		this.player = player;
 		this.name = name;
 		this.uses = uses;
 		this.weight = weight;
+
+		game.inventoryItems.push(this);
 	});
+});
+
+afterEach(() => {
+	game.players = [];
+	game.players_alive = [];
+	game.players_dead = [];
+	game.rooms = [];
+	game.objects = [];
+	game.prefabs = [];
+	game.recipes = [];
+	game.items = [];
+	game.puzzles = [];
+	game.events = [];
+	game.whispers = [];
+	game.statusEffects = [];
+	game.inventoryItems = [];
+	game.gestures = [];
 });
 
 describe('test item lists', () => {
@@ -301,6 +329,95 @@ describe('test inventory items', () => {
 			const item = new InventoryItem(player, "CHICKEN NUGGETS", 0, 1);
 			const expected = `It's a bag of frozen chicken nuggets. Sadly, they don't come in fun shapes. It's empty.`;
 			const result = parser.parseDescription(text, item, player);
+			expect(result).toBe(expected);
+		});
+	});
+});
+
+describe('test events', () => {
+	const player = new Player("", 5);
+
+	describe('single event birthday', () => {
+		const text = `<desc><s>It's a wooden picnic table with <if cond="findEvent('BIRTHDAY').ongoing === true">a flame-themed</if><if cond="findEvent('BIRTHDAY').ongoing === false">a red and white checkered</if> tablecloth.</s> <s>It has two benches built in on either side of it.</s> <s>On it, you find <il></il>.</s> <if cond="findEvent('BIRTHDAY').ongoing === true"><s>In the center of the table is a BIRTHDAY CAKE.</s></if></desc>`;
+
+		test('birthday ongoing', () => {
+			const event = new Event("BIRTHDAY", true);
+			const expected = `It's a wooden picnic table with a flame-themed tablecloth. It has two benches built in on either side of it. In the center of the table is a BIRTHDAY CAKE.`;
+			const result = parser.parseDescription(text, null, player);
+			expect(result).toBe(expected);
+		});
+
+		test('birthday not ongoing', () => {
+			const event = new Event("BIRTHDAY", false);
+			const expected = `It's a wooden picnic table with a red and white checkered tablecloth. It has two benches built in on either side of it.`;
+			const result = parser.parseDescription(text, null, player);
+			expect(result).toBe(expected);
+		});
+	});
+
+	describe('multiple events winter checkpoint', () => {
+		const text = `<desc><s>You exit the CHECKPOINT.</s> <if cond="findEvent('SNOW').ongoing === true"><s>Snowflakes gently fall from the cloudy sky above.</s></if><if cond="findEvent('BLIZZARD').ongoing === true"><s>You're immediately greeted by a blizzard blowing snow at you at a high speed.</s></if><if cond="findEvent('SNOW').ongoing === false && findEvent('BLIZZARD').ongoing === false"><if cond="findEvent('OVERCAST').ongoing === false && findEvent('NIGHT').ongoing === false"><s>Your eyes take a minute to adjust to the sunlight.</s></if><if cond="findEvent('OVERCAST').ongoing === true && findEvent('NIGHT').ongoing === false"><s>The sky above is covered by thick, light gray clouds.</s></if><if cond="findEvent('NIGHT').ongoing === true"><s>You breathe in the crisp, chilly nighttime air.</s></if></if> <s>The path ahead of you is short and thin, leading to the SOUTH PATH.</s></desc>`;
+
+		describe('no snow no blizzard', () => {
+			beforeEach(() => {
+				const snowEvent = new Event("SNOW", false);
+				const blizzardEvent = new Event("BLIZZARD", false);
+			});
+			
+			describe('overcast ongoing', () => {
+				beforeEach(() => {
+					const overcastEvent = new Event("OVERCAST", true);
+				});
+
+				test('overcast ongoing daytime', () => {
+					const nightEvent = new Event("NIGHT", false);
+					const expected = `You exit the CHECKPOINT. The sky above is covered by thick, light gray clouds. The path ahead of you is short and thin, leading to the SOUTH PATH.`;
+					const result = parser.parseDescription(text, null, player);
+					expect(result).toBe(expected);
+				});
+
+				test('overcast ongoing night ongoing', () => {
+					const nightEvent = new Event("NIGHT", true);
+					const expected = `You exit the CHECKPOINT. You breathe in the crisp, chilly nighttime air. The path ahead of you is short and thin, leading to the SOUTH PATH.`;
+					const result = parser.parseDescription(text, null, player);
+					expect(result).toBe(expected);
+				});
+			});
+
+			describe('not overcast', () => {
+				beforeEach(() => {
+					const overcastEvent = new Event("OVERCAST", false);
+				});
+
+				test('not overcast daytime', () => {
+					const nightEvent = new Event("NIGHT", false);
+					const expected = `You exit the CHECKPOINT. Your eyes take a minute to adjust to the sunlight. The path ahead of you is short and thin, leading to the SOUTH PATH.`;
+					const result = parser.parseDescription(text, null, player);
+					expect(result).toBe(expected);
+				});
+
+				test('not overcast night ongoing', () => {
+					const nightEvent = new Event("NIGHT", true);
+					const expected = `You exit the CHECKPOINT. You breathe in the crisp, chilly nighttime air. The path ahead of you is short and thin, leading to the SOUTH PATH.`;
+					const result = parser.parseDescription(text, null, player);
+					expect(result).toBe(expected);
+				});
+			});
+		});
+
+		test('snow ongoing', () => {
+			const snowEvent = new Event("SNOW", true);
+			const blizzardEvent = new Event("BLIZZARD", false);
+			const expected = `You exit the CHECKPOINT. Snowflakes gently fall from the cloudy sky above. The path ahead of you is short and thin, leading to the SOUTH PATH.`;
+			const result = parser.parseDescription(text, null, player);
+			expect(result).toBe(expected);
+		});
+
+		test('blizzard ongoing', () => {
+			const snowEvent = new Event("SNOW", false);
+			const blizzardEvent = new Event("BLIZZARD", true);
+			const expected = `You exit the CHECKPOINT. You're immediately greeted by a blizzard blowing snow at you at a high speed. The path ahead of you is short and thin, leading to the SOUTH PATH.`;
+			const result = parser.parseDescription(text, null, player);
 			expect(result).toBe(expected);
 		});
 	});
