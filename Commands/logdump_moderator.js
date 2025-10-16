@@ -1,6 +1,36 @@
 const settings = include('Configs/settings.json');
-const { inspect } = require('node:util');
+const {format: prettyFormat} = require('pretty-format');
 const zlib = require('zlib');
+
+const filter = new Set([
+  'Guild', 'GuildMember', 'TextChannel', 'Duration', 'Timeout'
+]);
+
+const denyPlugin = {
+    test: (val) => {
+        if (val === null || typeof val !== 'object') return false;
+        return filter.has(val.constructor?.name);
+    },
+  
+    print: (val) => {
+        const constructorName = val.constructor?.name;
+        
+        switch (constructorName) {
+            case 'Guild':
+                return `<Guild "${val.name || 'unknown'}">`;
+            case 'GuildMember':
+                return `<GuildMember "${val.displayName || 'unknown'}">`;
+            case 'TextChannel':
+                return `<TextChannel "${val.name || 'unknown'}">`;
+            case 'Duration':
+                return `<Duration ${val.humanize?.() || 'unknown'}>`;
+            case 'Timeout':
+                return `<Timeout (ref=${val._idleTimeout}ms)>`;
+            default:
+                return `<${constructorName || 'Unknown'}>`;
+        }
+    }
+};
 
 module.exports.config = {
     name: "logdump_moderator",
@@ -39,11 +69,18 @@ module.exports.run = async (bot, game, message, command, args) => {
     const time = Date.now() - offset;
     const entries = bot.commandLog.filter(entry => entry.timestamp.getTime() >= time);
 
-    const dataGame = inspect(game, {
-        depth: args[1], colors: false, showHidden: false
+    const depth = parseInt(args[1]);
+
+    const dataGame = prettyFormat(game, {
+        maxDepth: depth,
+        plugins: [denyPlugin],
+        indent: 4
     })
-    const dataLog = inspect(entries, {
-        depth: args[1], colors: false, showHidden: false
+    
+    const dataLog = prettyFormat(entries, {
+        maxDepth: depth,
+        plugins: [denyPlugin],
+        indent: 4
     })
 
     try {
