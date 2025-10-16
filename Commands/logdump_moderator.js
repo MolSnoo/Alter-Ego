@@ -75,13 +75,13 @@ module.exports.run = async (bot, game, message, command, args) => {
         maxDepth: depth,
         plugins: [denyPlugin],
         indent: 4
-    })
+    });
     
     const dataLog = prettyFormat(entries, {
         maxDepth: depth,
         plugins: [denyPlugin],
         indent: 4
-    })
+    });
 
     try {
         const bufferGame = await new Promise((resolve, reject) => {
@@ -112,4 +112,4 @@ module.exports.run = async (bot, game, message, command, args) => {
         console.error("Compression error:", error);
         return game.messageHandler.addReply(message, "An error occurred while compressing the data.");
     }
-}
+};
