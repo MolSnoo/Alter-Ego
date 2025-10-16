@@ -1,14 +1,15 @@
 use crate::config::*;
+use crate::format::*;
 use napi::Result;
 use napi_derive::napi;
 
 mod config;
-mod stringtable;
+mod format;
 
 /// Localizes a string based on the language set in the config file.
 #[napi]
 pub fn localize(id: String) -> Result<String> {
-    let config = load_config()?;
+    let config = load_settings()?;
     let language = config.language;
     let stringtable = load_stringtable()?;
     let value = stringtable.get(&id, &language);
@@ -20,4 +21,12 @@ pub fn localize(id: String) -> Result<String> {
             "String not found",
         )),
     }
+}
+
+/// Localizes a string based on the language set in the config file and formats it with arguments.
+#[napi]
+pub fn localize_format(id: String, args: Vec<String>) -> Result<String> {
+    let preformat = localize(id)?;
+    let res = format(&preformat, &args);
+    Ok(res)
 }

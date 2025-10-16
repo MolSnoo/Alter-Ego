@@ -7,12 +7,13 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-isolang = { version = "2.4.0", features = ["serde"] }
+language-tags = { version = "0.3.2", features = ["serde"] }
 napi = { version = "3", features = ["napi10"] }
 napi-derive = "3"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.145"
-thiserror = "2.0.17"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
 
 [build-dependencies]
 napi-build = "2"
