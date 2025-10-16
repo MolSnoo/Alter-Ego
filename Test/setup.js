@@ -1,3 +1,7 @@
+const { expect } = require('@jest/globals');
+const { toBeWithinRange } = require('./__extenders__/toBeWithinRange.js');
+const { toHaveSize } = require('./__extenders__/toHaveSize.js');
+
 const _app_root_path_require_ = require('app-root-path').require;
 global.include = (path) => {
     if (path.startsWith("Configs/")) {
@@ -10,4 +14,9 @@ global.include = (path) => {
 
 afterEach(() => {
     jest.clearAllMocks();
+});
+
+expect.extend({
+    toBeWithinRange,
+    toHaveSize
 });
