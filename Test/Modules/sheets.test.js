@@ -107,19 +107,20 @@ describe('sheets module', () => {
         });
     });
 
-    describe('appendRow', () => {
-        test('appends a row using values.append and forwards the response', (done) => {
-            const row = ['one', 'two', 'three'];
+    describe('appendRows', () => {
+        test('appends rows using values.append and forwards the response', (done) => {
+            const rows = [['one', 'two', 'three']];
             const dataOperation = jest.fn((response) => {
                 expect(googleapisMock.valuesAppend).toHaveBeenCalled();
                 done();
             });
 
-            sheets.appendRow('Sheet1!A:A', row, dataOperation);
+            sheets.appendRows('Sheet1!A:A', rows, dataOperation);
             const req = googleapisMock.valuesAppend.mock.calls[0][0];
             expect(req.range).toBe('Sheet1!A:A');
-            expect(req.valueInputOption).toBe('USER_ENTERED');
-            expect(req.resource.values[0]).toBe(row);
+            expect(req.valueInputOption).toBe('RAW');
+            expect(req.insertDataOption).toBe('INSERT_ROWS');
+            expect(req.resource.values).toBe(rows);
         });
     });
 
