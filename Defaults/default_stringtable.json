@@ -2,5 +2,9 @@
   "TestString": {
     "en": "Hello World!",
     "fr": "Boujour le monde!"
+  },
+  "TestStringWithArgs": {
+    "en": "{1} puts {2} in {3} pockets and ties {3} shoelaces together.",
+    "fr": "{1} met {2} dans sa poche et attache ses sachets."
   }
 }
