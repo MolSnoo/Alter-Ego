@@ -32,6 +32,18 @@ const denyPlugin = {
     }
 };
 
+const truncateStatusPlugin = {
+    test: (val) => {
+        if (val === null || typeof val !== 'object') return false;
+        if (val.constructor?.name === "Status") return true;
+        return false
+    },
+
+    print: (val) => {
+        return `<Status "${val.name}" lasting ${val.duration?.humanize?.() || 'unknown'}>`
+    }
+};
+
 module.exports.config = {
     name: "logdump_moderator",
     description: "Dump log of last used commands, as well as current internal state.",
@@ -73,13 +85,13 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     const dataGame = prettyFormat(game, {
         maxDepth: depth,
-        plugins: [denyPlugin],
+        plugins: [denyPlugin, truncateStatusPlugin],
         indent: 4
     });
     
     const dataLog = prettyFormat(entries, {
         maxDepth: depth,
-        plugins: [denyPlugin],
+        plugins: [denyPlugin, truncateStatusPlugin],
         indent: 4
     });
 
