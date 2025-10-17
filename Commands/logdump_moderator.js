@@ -65,7 +65,7 @@ const complexFilterPlugin = {
                 }
             case 'Room':
                 if (depth > 2) {
-                    let occupants = val.occupants
+                    let occupants = val.occupants.length
                         ? ` occupied by ${val.occupants.map(player => player.name).join(', ')}`
                         : '';
                     return `<Room ${val.name}${occupants}>`;
