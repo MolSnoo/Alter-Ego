@@ -4,7 +4,7 @@ const zlib = require('zlib');
 const fs = require('fs');
 
 module.exports.config = {
-    name: "logdump_moderator",
+    name: "dumplog_moderator",
     description: "Dump current game state to file.",
     details: "Dumps a log of the last used commands, as well as current internal game state. "
         + "This will generate two files. The data_commands file will contain all successfully-issued "
@@ -17,9 +17,9 @@ module.exports.config = {
         + "This command is for debugging purposes, and has no use during regular gameplay. If you discover "
         + "a bug that was not caused by Moderator error, please use this command and attach these files to "
         + "a new Issue on the [Alter Ego GitHub page](https://github.com/MolSnoo/Alter-Ego/issues).",
-    usage: `${settings.commandPrefix}logdump`,
+    usage: `${settings.commandPrefix}dumplog`,
     usableBy: "Moderator",
-    aliases: ["logdump"]
+    aliases: ["dumplog"]
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
