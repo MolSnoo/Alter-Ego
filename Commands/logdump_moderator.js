@@ -3,7 +3,8 @@ const {format: prettyFormat} = require('pretty-format');
 const zlib = require('zlib');
 
 const filter = new Set([
-  'Guild', 'GuildMember', 'TextChannel', 'Duration', 'Timeout'
+    'Guild', 'GuildMember', 'TextChannel', 'Duration', 'Timeout',
+    'Timer'
 ]);
 
 const denyPlugin = {
@@ -25,7 +26,9 @@ const denyPlugin = {
             case 'Duration':
                 return `<Duration ${val.humanize?.() || 'unknown'}>`;
             case 'Timeout':
-                return `<Timeout (ref=${val._idleTimeout}ms)>`;
+                return `<Timeout ${val._idleTimeout}ms>`;
+            case 'Timer':
+                return `<Timer ${val.timerDuration}ms>`;
             default:
                 return `<${constructorName || 'Unknown'}>`;
         }
