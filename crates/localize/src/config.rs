@@ -1,5 +1,6 @@
 use language_tags::LanguageTag;
 use napi::Status;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::{Error, ErrorKind};
@@ -31,7 +32,7 @@ pub struct Settings {
 }
 
 /// Struct representing the data in the stringtable.json file.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct StringTable {
     #[serde(flatten)]
     pub map: HashMap<String, HashMap<LanguageTag, String>>,
@@ -60,32 +61,21 @@ impl StringTable {
     }
 }
 
-/// Reads settings.json from the Configs folder and returns a Config struct containing language
-/// settings.
-pub fn load_settings() -> Result<Settings, LoadConfigError> {
-    let mut config_path = get_config_path_root()?;
-    config_path.push("settings.json");
+// Reads a config file from the Configs folder and returns a deserialized struct.
+pub fn load_config<T: DeserializeOwned>(file_name: &str) -> Result<T, LoadConfigError> {
+    let config_path = get_config_path_root()?.join(file_name);
     let config_string = std::fs::read_to_string(config_path)?;
-    let config: Settings = serde_json::from_str(&config_string)?;
+    let config: T = serde_json::from_str(&config_string)?;
     Ok(config)
-}
-
-/// Reads stringtable.json from the Configs folder and returns a StringTable struct.
-pub fn load_stringtable() -> Result<StringTable, LoadConfigError> {
-    let mut config_path = get_config_path_root()?;
-    config_path.push("stringtable.json");
-    let stringtable_string = std::fs::read_to_string(config_path)?;
-    let stringtable: StringTable = serde_json::from_str(&stringtable_string)?;
-    Ok(stringtable)
 }
 
 /// Returns the path to the Configs folder.
 fn get_config_path_root() -> Result<PathBuf, Error> {
-    let base_path = Path::new("../../Configs");
+    let base_path = Path::new("Configs");
     if base_path.exists() {
         Ok(base_path.to_path_buf())
     } else {
-        let base_path = Path::new("Configs");
+        let base_path = Path::new("../../Configs");
         if base_path.exists() {
             Ok(base_path.to_path_buf())
         } else {
@@ -104,8 +94,8 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    fn test_load_config() -> Result<(), LoadConfigError> {
-        let res = load_settings();
+    fn test_load_settings() -> Result<(), LoadConfigError> {
+        let res = load_config::<Settings>("settings.json");
         match res {
             Ok(_) => Ok(()),
             Err(res) => Err(res),
@@ -114,11 +104,19 @@ mod tests {
 
     #[test]
     fn test_load_stringtable() -> Result<(), LoadConfigError> {
-        let res = load_stringtable();
+        let res = load_config::<StringTable>("stringtable.json");
         match res {
             Ok(_) => Ok(()),
             Err(res) => Err(res),
         }
+    }
+
+    #[test]
+    fn test_load_config_invalid_filename() {
+        let res = load_config::<StringTable>("invalid_stringtable.json");
+        assert!(res.is_err());
+        let res = load_config::<Settings>("invalid_setting.json");
+        assert!(res.is_err());
     }
 
     #[test]

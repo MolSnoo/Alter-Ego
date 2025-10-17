@@ -9,9 +9,9 @@ mod format;
 /// Localizes a string based on the language set in the config file.
 #[napi]
 pub fn localize(id: String) -> Result<String> {
-    let config = load_settings()?;
+    let config: Settings = load_config("settings.json")?;
     let language = config.language;
-    let stringtable = load_stringtable()?;
+    let stringtable: StringTable = load_config("stringtable.json")?;
     let value = stringtable.get(&id, &language);
 
     match value {
