@@ -33,7 +33,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     const commandName = commandConfig.name.substring(0, commandConfig.name.indexOf('_'));
 
     var entry = null;
-    if (bot.commandLog.length >= 500) {
+    if (bot.commandLog.length >= 10000) {
         bot.commandLog.shift();
     }
 
