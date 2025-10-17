@@ -56,10 +56,6 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
-        game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Saving to disk...\n"
-            + `Game Data: \`${bufferGame.byteLength}B\`\n`
-            + `Log Data: \`${bufferLog.byteLength}B\``);
-            
         const fileGame = "./data_game.txt.gz";
         const fileLog = "./data_commands.log.gz";
         fs.writeFile(fileGame, bufferGame, function (err) {
