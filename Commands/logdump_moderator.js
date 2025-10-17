@@ -2,17 +2,20 @@ const settings = include('Configs/settings.json');
 const {format: prettyFormat} = require('pretty-format');
 const zlib = require('zlib');
 
-const filter = new Set([
+const simpleFilter = new Set([
     'Guild', 'GuildMember', 'TextChannel', 'Duration', 'Timeout',
     'Timer', 'Status', 'Gesture'
 ]);
+const complexFilter = new Set([
+    'Player'
+]);
 
-const truncatePlugin = {
+const simpleFilterPlugin = {
     test: (val) => {
         if (val === null || typeof val !== 'object') return false;
-        return filter.has(val.constructor?.name);
+        return simpleFilter.has(val.constructor?.name);
     },
-  
+
     print: (val) => {
         const constructorName = val.constructor?.name;
         
@@ -33,6 +36,27 @@ const truncatePlugin = {
                 return `<Status "${val.name}" lasting ${val.duration?.humanize?.() || 'unknown'}>`
             case 'Gesture':
                 return `<Gesture "${val.name}">`
+            default:
+                return `<${constructorName || 'Unknown'}>`;
+        }
+    }
+};
+const complexFilterPlugin = {
+    test: (val) => {
+        if (val === null || typeof val !== 'object') return false;
+        return complexFilter.has(val.constructor?.name);
+    },
+
+    serialize: (val, config, indentation, depth, refs, printer) => {
+        const constructorName = val.constructor?.name;
+        
+        switch (constructorName) {
+            case 'Player':
+                if (depth > 2) {
+                    return `<Player ${val.name}>`;
+                } else {
+                    return printer(val, config, indentation, depth, refs);
+                }
             default:
                 return `<${constructorName || 'Unknown'}>`;
         }
@@ -80,13 +104,13 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     const dataGame = prettyFormat(game, {
         maxDepth: depth,
-        plugins: [truncatePlugin],
+        plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });
     
     const dataLog = prettyFormat(entries, {
         maxDepth: depth,
-        plugins: [truncatePlugin],
+        plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });
 
