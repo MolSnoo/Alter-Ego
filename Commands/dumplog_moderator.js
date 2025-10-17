@@ -62,17 +62,17 @@ module.exports.run = async (bot, game, message, command, args) => {
         fs.writeFile(fileGame, bufferGame, function (err) {
             if (err) {
                 console.log(err);
-                return game.messageHandler.addReply(message, "Failed to write to `./data_game.txt.gz`, see console for details!");
+                return game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_game.txt.gz`, see console for details!");
             }
         });
         fs.writeFile(fileLog, bufferLog, function (err) {
             if (err) {
                 console.log(err);
-                return game.messageHandler.addReply(message, "Failed to write to `./data_commands.log.gz`, see console for details!");
+                return game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_commands.log.gz`, see console for details!");
             }
         });
 
-        return game.messageHandler.addReply(message, "Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
+        return game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
     } else {
         const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
         const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
