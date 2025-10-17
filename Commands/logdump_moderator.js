@@ -87,9 +87,9 @@ const simpleFilterPlugin = {
             case 'Timer':
                 return `<Timer ${val.timerDuration}ms>`;
             case 'Status':
-                return `<Status "${val.name}" lasting ${val.duration?.humanize?.() || 'unknown'}>`
+                return `<Status "${val.name}" lasting ${val.duration?.humanize?.() || 'unknown'}>`;
             case 'Gesture':
-                return `<Gesture "${val.name}">`
+                return `<Gesture "${val.name}">`;
             default:
                 return `<${constructorName || 'Unknown'}>`;
         }
