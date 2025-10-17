@@ -6,7 +6,17 @@ const fs = require('fs');
 module.exports.config = {
     name: "logdump_moderator",
     description: "Dump current game state to file.",
-    details: "Dumps a log of the last used commands, as well as current internal state.",
+    details: "Dumps a log of the last used commands, as well as current internal game state. "
+        + "This will generate two files. The data_commands file will contain all successfully-issued "
+        + "Commands that have been used recently, but keep it mind that the bot only stores up to "
+        + "10,000 commands at a time. The data_game file will contain the entirety of the bot's internal "
+        + "memory relating to the game, with certain data types being truncated when nested. Because these "
+        + "files can be quite large, and Discord has a maximum file size limit of 10 MiB, they will be "
+        + "compressed into a .gz file before being sent. If the file size exceeds this, they will"
+        + "instead be saved to disk.\n\n"
+        + "This command is for debugging purposes, and has no use during regular gameplay. If you discover "
+        + "a bug that was not caused by Moderator error, please use this command and attach these files to "
+        + "a new Issue on the [Alter Ego GitHub page](https://github.com/MolSnoo/Alter-Ego/issues).",
     usage: `${settings.commandPrefix}logdump`,
     usableBy: "Moderator",
     aliases: ["logdump"]
