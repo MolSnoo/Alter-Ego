@@ -7,7 +7,7 @@ const simpleFilter = new Set([
     'Timer', 'Status', 'Gesture'
 ]);
 const complexFilter = new Set([
-    'Player'
+    'Player', 'Room'
 ]);
 
 const complexProcessing = new Set()
@@ -57,6 +57,15 @@ const complexFilterPlugin = {
             case 'Player':
                 if (depth > 2) {
                     return `<Player ${val.name}>`;
+                } else {
+                    complexProcessing.add(val);
+                    let serialized = printer(val, config, indentation, depth, refs);
+                    complexProcessing.delete(val);
+                    return serialized;
+                }
+            case 'Room':
+                if (depth > 2) {
+                    return `<Room ${val.name}>`;
                 } else {
                     complexProcessing.add(val);
                     let serialized = printer(val, config, indentation, depth, refs);
