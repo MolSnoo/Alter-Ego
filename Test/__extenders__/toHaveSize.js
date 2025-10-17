@@ -7,23 +7,13 @@ module.exports.toHaveSize = (actual, size) => {
 	const pass = actual.size === size;
 	if (pass) {
 		return {
-		message: () =>
-			`expected ${this.utils.printReceived(
-			actual,
-			)} not to have size ${this.utils.printExpected(
-			`${size}`,
-			)}`,
-		pass: true,
+			message: () => `expected ${actual} not to have size ${size}`,
+			pass: true,
 		};
 	} else {
 		return {
-		message: () =>
-			`expected ${this.utils.printReceived(
-			actual,
-			)} to have size ${this.utils.printExpected(
-			`${size}`,
-			)}`,
-		pass: false,
+			message: () => `expected ${actual} to have size ${size}`,
+			pass: false,
 		};
 	}
 };

@@ -10,22 +10,12 @@ module.exports.toBeWithinRange = (actual, floor, ceiling) => {
   const pass = actual >= floor && actual <= ceiling;
   if (pass) {
     return {
-      message: () =>
-        `expected ${this.utils.printReceived(
-          actual,
-        )} not to be within range ${this.utils.printExpected(
-          `${floor} - ${ceiling}`,
-        )}`,
+      message: () => `expected ${actual} not to be within range ${floor} - ${ceiling}`,
       pass: true,
     };
   } else {
     return {
-      message: () =>
-        `expected ${this.utils.printReceived(
-          actual,
-        )} to be within range ${this.utils.printExpected(
-          `${floor} - ${ceiling}`,
-        )}`,
+      message: () => `expected ${actual} to be within range ${floor} - ${ceiling}`,
       pass: false,
     };
   }
