@@ -10,6 +10,8 @@ const complexFilter = new Set([
     'Player'
 ]);
 
+const complexProcessing = new Set()
+
 const simpleFilterPlugin = {
     test: (val) => {
         if (val === null || typeof val !== 'object') return false;
@@ -44,6 +46,7 @@ const simpleFilterPlugin = {
 const complexFilterPlugin = {
     test: (val) => {
         if (val === null || typeof val !== 'object') return false;
+        if (complexProcessing.has(val)) return false;
         return complexFilter.has(val.constructor?.name);
     },
 
@@ -55,7 +58,10 @@ const complexFilterPlugin = {
                 if (depth > 2) {
                     return `<Player ${val.name}>`;
                 } else {
-                    return printer(val, config, indentation, depth, refs);
+                    complexProcessing.add(val);
+                    let serialized = printer(val, config, indentation, depth, refs);
+                    complexProcessing.delete(val);
+                    return serialized;
                 }
             default:
                 return `<${constructorName || 'Unknown'}>`;
