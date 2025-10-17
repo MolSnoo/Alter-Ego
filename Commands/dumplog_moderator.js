@@ -33,51 +33,54 @@ module.exports.run = async (bot, game, message, command, args) => {
         indent: 4
     });
 
+    var bufferGame = null
+    var bufferLog = null
+
     try {
-        const bufferGame = await new Promise((resolve, reject) => {
+        bufferGame = await new Promise((resolve, reject) => {
             zlib.gzip(dataGame, (err, buffer) => {
                 if (err) reject(err);
                 else resolve(buffer);
             });
         });
 
-        const bufferLog = await new Promise((resolve, reject) => {
+        bufferLog = await new Promise((resolve, reject) => {
             zlib.gzip(dataLog, (err, buffer) => {
                 if (err) reject(err);
                 else resolve(buffer);
             });
         });
-
-        if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
-            game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Saving to disk...\n"
-                + `Game Data: \`${bufferGame.byteLength}B\`\n`
-                + `Log Data: \`${bufferLog.byteLength}B\``);
-                
-            const fileGame = "./data_game.txt.gz";
-            const fileLog = "./data_commands.log.gz";
-            fs.writeFile(fileGame, bufferGame, function (err) {
-                if (err) {
-                    console.log(err);
-                    return game.messageHandler.addReply(message, "Failed to write to `./data_game.txt.gz`, see console for details!");
-                }
-            });
-            fs.writeFile(fileLog, bufferLog, function (err) {
-                if (err) {
-                    console.log(err);
-                    return game.messageHandler.addReply(message, "Failed to write to `./data_commands.log.gz`, see console for details!");
-                }
-            });
-
-            return game.messageHandler.addReply(message, "Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
-        } else {
-            const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
-            const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
-
-            message.channel.send({ files: [fileGame, fileLog] });
-        }
     } catch (error) {
         console.error("Compression error:", error);
         return game.messageHandler.addReply(message, "An error occurred while compressing the data.");
+    }
+
+    if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
+        game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Saving to disk...\n"
+            + `Game Data: \`${bufferGame.byteLength}B\`\n`
+            + `Log Data: \`${bufferLog.byteLength}B\``);
+            
+        const fileGame = "./data_game.txt.gz";
+        const fileLog = "./data_commands.log.gz";
+        fs.writeFile(fileGame, bufferGame, function (err) {
+            if (err) {
+                console.log(err);
+                return game.messageHandler.addReply(message, "Failed to write to `./data_game.txt.gz`, see console for details!");
+            }
+        });
+        fs.writeFile(fileLog, bufferLog, function (err) {
+            if (err) {
+                console.log(err);
+                return game.messageHandler.addReply(message, "Failed to write to `./data_commands.log.gz`, see console for details!");
+            }
+        });
+
+        return game.messageHandler.addReply(message, "Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
+    } else {
+        const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
+        const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
+
+        message.channel.send({ files: [fileGame, fileLog] });
     }
 };
 
