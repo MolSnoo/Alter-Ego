@@ -65,7 +65,10 @@ const complexFilterPlugin = {
                 }
             case 'Room':
                 if (depth > 2) {
-                    return `<Room ${val.name}>`;
+                    let occupants = val.occupants
+                        ? ` occupied by ${val.occupants.map(player => player.name).join(', ')}`
+                        : '';
+                    return `<Room ${val.name}${occupants}>`;
                 } else {
                     complexProcessing.add(val);
                     let serialized = printer(val, config, indentation, depth, refs);
