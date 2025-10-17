@@ -1,6 +1,7 @@
 const settings = include('Configs/settings.json');
 const {format: prettyFormat} = require('pretty-format');
 const zlib = require('zlib');
+const fs = require('fs');
 
 module.exports.config = {
     name: "logdump_moderator",
@@ -38,15 +39,32 @@ module.exports.run = async (bot, game, message, command, args) => {
         });
 
         if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
-            return game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit.\n"
+            game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Saving to disk...\n"
                 + `Game Data: \`${bufferGame.byteLength}B\`\n`
                 + `Log Data: \`${bufferLog.byteLength}B\``);
+                
+            const fileGame = "./data_game.txt.gz";
+            const fileLog = "./data_commands.log.gz";
+            fs.writeFile(fileGame, bufferGame, function (err) {
+                if (err) {
+                    console.log(err);
+                    return game.messageHandler.addReply(message, "Failed to write to `./data_game.txt.gz`, see console for details!");
+                }
+            });
+            fs.writeFile(fileLog, bufferLog, function (err) {
+                if (err) {
+                    console.log(err);
+                    return game.messageHandler.addReply(message, "Failed to write to `./data_commands.log.gz`, see console for details!");
+                }
+            });
+
+            return game.messageHandler.addReply(message, "Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
+        } else {
+            const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
+            const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
+
+            message.channel.send({ files: [fileGame, fileLog] });
         }
-
-        const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
-        const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
-
-        message.channel.send({ files: [fileGame, fileLog] });
     } catch (error) {
         console.error("Compression error:", error);
         return game.messageHandler.addReply(message, "An error occurred while compressing the data.");
