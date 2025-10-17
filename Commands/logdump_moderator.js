@@ -4,10 +4,10 @@ const zlib = require('zlib');
 
 const filter = new Set([
     'Guild', 'GuildMember', 'TextChannel', 'Duration', 'Timeout',
-    'Timer'
+    'Timer', 'Status', 'Gesture'
 ]);
 
-const denyPlugin = {
+const truncatePlugin = {
     test: (val) => {
         if (val === null || typeof val !== 'object') return false;
         return filter.has(val.constructor?.name);
@@ -29,21 +29,13 @@ const denyPlugin = {
                 return `<Timeout ${val._idleTimeout}ms>`;
             case 'Timer':
                 return `<Timer ${val.timerDuration}ms>`;
+            case 'Status':
+                return `<Status "${val.name}" lasting ${val.duration?.humanize?.() || 'unknown'}>`
+            case 'Gesture':
+                return `<Gesture "${val.name}">`
             default:
                 return `<${constructorName || 'Unknown'}>`;
         }
-    }
-};
-
-const truncateStatusPlugin = {
-    test: (val) => {
-        if (val === null || typeof val !== 'object') return false;
-        if (val.constructor?.name === "Status") return true;
-        return false
-    },
-
-    print: (val) => {
-        return `<Status "${val.name}" lasting ${val.duration?.humanize?.() || 'unknown'}>`
     }
 };
 
@@ -88,13 +80,13 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     const dataGame = prettyFormat(game, {
         maxDepth: depth,
-        plugins: [denyPlugin, truncateStatusPlugin],
+        plugins: [truncatePlugin],
         indent: 4
     });
     
     const dataLog = prettyFormat(entries, {
         maxDepth: depth,
-        plugins: [denyPlugin, truncateStatusPlugin],
+        plugins: [truncatePlugin],
         indent: 4
     });
 
