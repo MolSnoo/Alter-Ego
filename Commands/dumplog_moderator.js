@@ -6,9 +6,9 @@ const fs = require('fs');
 module.exports.config = {
     name: "dumplog_moderator",
     description: "Dump current game state to file.",
-    details: "Dumps a log of the last used commands, as well as current internal game state. "
+    details: "Dumps a log of the most recently used commands, as well as current internal game state. "
         + "This will generate two files. The data_commands file will contain all successfully-issued "
-        + "Commands that have been used recently, but keep in mind that the bot only stores up to "
+        + "commands that have been used recently, but keep in mind that the bot only stores up to "
         + "10,000 commands at a time. The data_game file will contain the entirety of the bot's internal "
         + "memory relating to the game, with certain data types being truncated when nested. Because these "
         + "files can be quite large, and Discord has a maximum file size limit of 10 MiB, they will be "
@@ -19,7 +19,8 @@ module.exports.config = {
         + "a new Issue on the [Alter Ego GitHub page](https://github.com/MolSnoo/Alter-Ego/issues).",
     usage: `${settings.commandPrefix}dumplog`,
     usableBy: "Moderator",
-    aliases: ["dumplog"]
+    aliases: ["dumplog"],
+    requiresGame: false
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
