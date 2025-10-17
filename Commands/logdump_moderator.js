@@ -5,7 +5,7 @@ const fs = require('fs');
 
 module.exports.config = {
     name: "logdump_moderator",
-    description: "Dump log of last used commands, as well as current internal state.",
+    description: "Dump current game state to file.",
     details: "Dumps a log of the last used commands, as well as current internal state.",
     usage: `${settings.commandPrefix}logdump`,
     usableBy: "Moderator",
