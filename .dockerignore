@@ -6,7 +6,6 @@
 settings-*.json
 *.bat
 Old_Commands/
-parse.js
 *Matches*.txt
 parsedText.txt
 prefabs*.js
@@ -34,7 +33,6 @@ Configs/
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
-[Rr]elease/
 [Rr]eleases/
 x64/
 x86/
@@ -175,7 +173,6 @@ PublishScripts/
 # NuGet Packages
 *.nupkg
 # The packages folder can be ignored because of Package Restore
-**/packages/*
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
@@ -271,16 +268,12 @@ paket-files/
 .fake/
 
 # JetBrains Rider
-.idea/
 *.sln.iml
 
 # CodeRush
 .cr/
 
 # Python Tools for Visual Studio (PTVS)
-__pycache__/
-*.pyc
-convert.js
 convertedText.txt
 parsedText.xml
 
