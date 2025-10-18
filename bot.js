@@ -45,6 +45,7 @@ game.messageHandler = messageHandler;
 
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
+bot.commandLog = [];
 function loadCommands() {
     const commandsDir = `./${constants.commandsDir}/`;
     fs.readdir(commandsDir, (err, files) => {

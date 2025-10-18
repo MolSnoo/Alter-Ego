@@ -32,8 +32,19 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     if (!commandFile) return false;
     const commandName = commandConfig.name.substring(0, commandConfig.name.indexOf('_'));
 
+    var entry = null;
+    if (bot.commandLog.length >= 10000) {
+        bot.commandLog.shift();
+    }
+
     if (isBot) {
         commandFile.run(bot, game, commandSplit[0], args, player, data);
+        entry = {
+            timestamp: new Date(),
+            author: bot.user.username,
+            content: command
+        };
+        bot.commandLog.push(entry);
         return true;
     }
     else if (isModerator) {
@@ -42,6 +53,12 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             return false;
         }
         commandFile.run(bot, game, message, commandSplit[0], args);
+        entry = {
+            timestamp: new Date(),
+            author: message.author.username,
+            content: message.content
+        };
+        bot.commandLog.push(entry);
         return true;
     }
     else if (isPlayer) {
@@ -75,6 +92,13 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
             player.setOnline();
 
             commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && commandName !== "say" && message.channel.type !== ChannelType.DM) message.delete().catch(); });
+            
+            entry = {
+                timestamp: new Date(),
+                author: player.name,
+                content: message.content
+            };
+            bot.commandLog.push(entry);
             return true;
         }
         return false;
@@ -87,6 +111,12 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         if ((settings.debug && message.channel.id === serverconfig.testingChannel)
             || (!settings.debug && message.channel.id === serverconfig.generalChannel)) {
             commandFile.run(bot, game, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
+            entry = {
+                timestamp: new Date(),
+                author: message.author.username,
+                content: message.content
+            };
+            bot.commandLog.push(entry);
             return true;
         }
         return false;
