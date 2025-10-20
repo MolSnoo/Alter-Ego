@@ -1,6 +1,7 @@
 ﻿const settings = include('Configs/settings.json');
 const serverconfig = include('Configs/serverconfig.json');
 const discord = require('discord.js');
+const {localizeFormat} = require("../crates/localize");
 
 module.exports.config = {
     name: "help_moderator",
@@ -30,7 +31,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
         roleCommands.forEach(function (value, key, map) {
             const commandName = key.substring(0, key.indexOf('_'));
-            fields.push({ command: `${settings.commandPrefix}${commandName}`, description: value.description });
+            fields.push({command: `${settings.commandPrefix}${commandName}`, description: value.description});
         });
 
         // Divide the fields into pages.
@@ -44,56 +45,59 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
 
         let embed = createEmbed(game, page, pages);
-        message.channel.send({ embeds: [embed] }).then(msg => {
+        message.channel.send({embeds: [embed]}).then(msg => {
             msg.react('⏪').then(() => {
                 msg.react('⏩');
 
                 const backwardsFilter = (reaction, user) => reaction.emoji.name === '⏪' && user.id === message.author.id;
                 const forwardsFilter = (reaction, user) => reaction.emoji.name === '⏩' && user.id === message.author.id;
 
-                const backwards = msg.createReactionCollector({ filter: backwardsFilter, time: 60000 });
-                const forwards = msg.createReactionCollector({ filter: forwardsFilter, time: 60000 });
+                const backwards = msg.createReactionCollector({filter: backwardsFilter, time: 60000});
+                const forwards = msg.createReactionCollector({filter: forwardsFilter, time: 60000});
 
                 backwards.on("collect", () => {
                     const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏪');
-                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
+                    if (reaction) reaction.users.cache.forEach(user => {
+                        if (user.id !== bot.user.id) reaction.users.remove(user.id);
+                    });
                     if (page === 0) return;
                     page--;
                     embed = createEmbed(game, page, pages);
-                    msg.edit({ embeds: [embed] });
+                    msg.edit({embeds: [embed]});
                 });
 
                 forwards.on("collect", () => {
                     const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏩');
-                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
+                    if (reaction) reaction.users.cache.forEach(user => {
+                        if (user.id !== bot.user.id) reaction.users.remove(user.id);
+                    });
                     if (page === pages.length - 1) return;
                     page++;
                     embed = createEmbed(game, page, pages);
-                    msg.edit({ embeds: [embed] });
+                    msg.edit({embeds: [embed]});
                 });
             });
         });
-    }
-    else {
+    } else {
         let command = roleCommands.find(command => command.aliases.includes(args[0]));
         if (!command) return game.messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
 
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
         let embed = new discord.EmbedBuilder()
             .setColor('1F8B4C')
-            .setAuthor({ name: `${commandName} Command Help`, iconURL: game.guild.iconURL() })
+            .setAuthor({name: `${commandName} Command Help`, iconURL: game.guild.iconURL()})
             .setDescription(command.description);
 
         let aliasString = "";
         for (let i = 0; i < command.aliases.length; i++)
             aliasString += `\`${settings.commandPrefix}${command.aliases[i]}\` `;
         embed.addFields([
-            { name: "Aliases", value: aliasString },
-            { name: "Examples", value: command.usage },
-            { name: "Description", value: command.details }
+            {name: "Aliases", value: aliasString},
+            {name: "Examples", value: command.usage},
+            {name: "Description", value: command.details}
         ]);
 
-        message.channel.send({ embeds: [embed] });
+        message.channel.send({embeds: [embed]});
     }
 
     return;
@@ -104,14 +108,17 @@ function createEmbed(game, page, pages) {
     const roleName = role ? role.name : "Moderator";
     let embed = new discord.EmbedBuilder()
         .setColor('1F8B4C')
-        .setAuthor({ name: `${game.guild.members.me.displayName} Help`, iconURL: game.guild.iconURL() })
-        .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
-        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
+        .setAuthor({
+            name: localizeFormat("helpAuthor", [game.guild.members.me.displayName]),
+            iconURL: game.guild.iconURL()
+        })
+        .setDescription(localizeFormat("helpDescription", [roleName, settings.commandPrefix]))
+        .setFooter({text: `Page ${page + 1}/${pages.length}`});
 
     let fields = [];
     // Now add the fields of the first page.
     for (let i = 0; i < pages[page].length; i++)
-        fields.push({ name: pages[page][i].command, value: pages[page][i].description })
+        fields.push({name: pages[page][i].command, value: pages[page][i].description})
     embed.addFields(fields);
 
     return embed;
