@@ -1,0 +1,19 @@
+[package]
+name = "localize"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+language-tags = { version = "0.3.2", features = ["serde"] }
+napi = { version = "3", features = ["napi10"] }
+napi-derive = "3"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[build-dependencies]
+napi-build = "2"

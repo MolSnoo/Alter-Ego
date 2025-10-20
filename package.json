@@ -4,7 +4,9 @@
   "description": "An in-depth, multiplayer text adventure role-playing game for Discord.",
   "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-napi-test": "napi build --release --package localize",
+    "build": "npm run build-napi-test"
   },
   "repository": {
     "type": "git",
@@ -27,5 +29,8 @@
     "node-fetch": "^2.6.6",
     "nodemon": "^1.19.0",
     "xmldom": "^0.1.27"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.3.1"
   }
 }

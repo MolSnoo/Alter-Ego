@@ -1,7 +1,9 @@
-import sys
 import json
 import os
+import shutil
+import sys
 from os import environ
+
 
 def write():
     """Writes config files from environment variables"""
@@ -14,6 +16,7 @@ def write():
     default_serverconfig_path = get_path("/../Defaults/default_serverconfig.json")
     default_constants_path = get_path("/../Defaults/default_constants.json")
     default_demodata_path = get_path("/../Defaults/default_demodata.json")
+    default_stringtable_path = get_path("/../Defaults/default_stringtable.json")
 
     # actual
     credentials_path = get_path("/../Configs/credentials.json")
@@ -22,6 +25,7 @@ def write():
     playerdefaults_path = get_path("/../Configs/playerdefaults.json")
     constants_path = get_path("/../Configs/constants.json")
     demodata_path = get_path("/../Configs/demodata.json")
+    stringtable_path = get_path("/../Configs/stringtable.json")
 
     # load json files to be written
     credentials = load_json(default_credentials_path)
@@ -35,7 +39,7 @@ def write():
         serverconfig = load_json(serverconfig_path)
     else:
         serverconfig = load_json(default_serverconfig_path)
-               
+
     # set credentials
     set_key(credentials, "s", "DISCORD_TOKEN", "discord", "token")
     set_key(credentials, "s", "G_PROJECT_ID", "google", "project_id")
@@ -64,6 +68,7 @@ def write():
     set_key(settings, "s", "DEBUG_MODE_STRING", "debugModeActivity", "string")
     set_key(settings, "s", "IN_PROGRESS_TYPE", "gameInProgressActivity", "type")
     set_key(settings, "s", "IN_PROGRESS_STRING", "gameInProgressActivity", "string")
+    set_key(settings, "s", "LANGUAGE", "language")
 
     # set serverconfig
     set_key(serverconfig, "s", "TESTER_ROLE", "testerRole")
@@ -92,7 +97,7 @@ def write():
     set_key(playerdefaults, "s", "DEFAULT_STATUS_EFFECTS", "defaultStatusEffects")
     set_key(playerdefaults, "a", "DEFAULT_INVENTORY", "defaultInventory")
     set_key(playerdefaults, "s", "DEFAULT_DESC", "defaultDescription")
-    
+
     # write files
     write_json(credentials_path, credentials)
     write_json(settings_path, settings)
@@ -100,15 +105,19 @@ def write():
     write_json(constants_path, constants)
     write_json(demodata_path, demodata)
     write_json(serverconfig_path, serverconfig)
+    shutil.copyfile(default_stringtable_path, stringtable_path)
+
 
 def get_path(path):
     """Gets absolute path from relative path"""
     return sys.path[0] + path
 
+
 def load_json(file_path):
     """Loads json file and returns it"""
     with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
+
 
 def set_key(config, flag, env, key1, key2=None):
     """Sets json key from environment variable"""
@@ -118,7 +127,7 @@ def set_key(config, flag, env, key1, key2=None):
         env_string = env_string.replace(r'\n', '\n')
         config_key = ""
 
-        match(flag):
+        match (flag):
             case "s":
                 config_key = env_string
             case "b":
@@ -151,10 +160,12 @@ def set_key(config, flag, env, key1, key2=None):
         else:
             config[key1] = config_key
 
+
 def write_json(file_path, config):
     """Writes json file from dictionary"""
     with open(file_path, "w+", encoding="utf-8") as file:
         file.write(json.dumps(config, indent=4))
+
 
 if __debug__:
     write()
