@@ -1,8 +1,7 @@
-version: "3.8"
-
 services:
   alterego:
     image: ghcr.io/molsnoo/alter-ego:latest
+    build: .
     container_name: alterego
     env_file:
       - .env
