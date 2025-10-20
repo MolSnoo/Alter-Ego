@@ -1,7 +1,7 @@
-import sys
 import json
 import os
 import shutil
+import sys
 from os import environ
 
 
@@ -68,6 +68,7 @@ def write():
     set_key(settings, "s", "DEBUG_MODE_STRING", "debugModeActivity", "string")
     set_key(settings, "s", "IN_PROGRESS_TYPE", "gameInProgressActivity", "type")
     set_key(settings, "s", "IN_PROGRESS_STRING", "gameInProgressActivity", "string")
+    set_key(settings, "s", "LANGUAGE", "language")
 
     # set serverconfig
     set_key(serverconfig, "s", "TESTER_ROLE", "testerRole")
