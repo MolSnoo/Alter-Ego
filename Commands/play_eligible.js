@@ -29,8 +29,8 @@ module.exports.run = async (bot, game, message, args) => {
         member.displayName,
         member.displayName,
         "",
-        "neutral",
-        "an average voice",
+        playerdefaults.defaultPronouns,
+        playerdefaults.defaultVoice,
         playerdefaults.defaultStats,
         true,
         playerdefaults.defaultLocation,
@@ -40,6 +40,8 @@ module.exports.run = async (bot, game, message, args) => {
         new Array(),
         null
     );
+    player.setPronouns(player.originalPronouns, player.pronounString);
+    player.setPronouns(player.pronouns, player.pronounString);
     game.players.push(player);
     game.players_alive.push(player);
     member.roles.add(serverconfig.playerRole);
