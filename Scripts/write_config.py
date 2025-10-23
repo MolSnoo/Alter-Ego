@@ -83,6 +83,8 @@ def write():
     set_key(serverconfig, "s", "LOG_CHANNEL", "logChannel")
 
     # set playerdefaults
+    set_key(playerdefaults, "i", "DEFAULT_PRONOUNS", "defaultPronouns")
+    set_key(playerdefaults, "i", "DEFAULT_VOICE", "defaultVoice")
     set_key(playerdefaults, "i", "DEFAULT_STR", "defaultStats", "strength")
     set_key(playerdefaults, "i", "DEFAULT_INT", "defaultStats", "intelligence")
     set_key(playerdefaults, "i", "DEFAULT_DEX", "defaultStats", "dexterity")

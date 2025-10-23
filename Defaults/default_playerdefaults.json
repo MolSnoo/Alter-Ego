@@ -1,4 +1,6 @@
 {
+  "defaultPronouns": "neutral",
+  "defaultVoice": "a neutral voice",
   "defaultStats": {
     "strength": 5,
     "intelligence": 5,
