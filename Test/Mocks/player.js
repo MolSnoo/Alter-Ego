@@ -1,8 +1,8 @@
 const InventoryItem = include("Data/InventoryItem");
 const EquipmentSlot = include("Data/EquipmentSlot");
 const Prefab = include("Data/Prefab");
-const playerdefaults = include('Configs/playerdefaults.json')
-const demodata = include('Configs/demodata.json')
+const playerdefaults = include('Configs/playerdefaults.json');
+const demodata = include('Configs/demodata.json');
 
 const prefabMap = {};
 if (demodata.prefabs) {
