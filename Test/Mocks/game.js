@@ -125,6 +125,25 @@ module.exports.mock = {
         await loader.loadInventories(this.mock, false);
     }),
 
+    clearPlayersAndInventories: jest.fn(() => {
+        for (let i = 0; i < this.mock.players.length; i++) {
+            for (let j = 0; j < this.mock.players[i].status.length; j++) {
+                if (this.mock.players[i].status[j].hasOwnProperty("timer") && this.mock.players[i].status[j].timer !== null)
+                    this.mock.players[i].status[j].timer.stop();
+            }
+            this.mock.players[i].isMoving = false;
+            clearInterval(this.mock.players[i].interval);
+            clearInterval(this.mock.players[i].moveTimer);
+            clearInterval(this.mock.players[i].onlineInterval);
+            this.mock.players[i].remainingTime = 0;
+            this.mock.players[i].moveQueue.length = 0;
+        }
+        this.mock.players.length = 0;
+        this.mock.players_alive.length = 0;
+        this.mock.players_dead.length = 0;
+        this.mock.inventoryItems.length = 0;
+    }),
+
     reset: jest.fn(() => {
         for (let i = 0; i < this.mock.objects.length; i++) {
             if (this.mock.objects[i].recipeInterval !== null)
