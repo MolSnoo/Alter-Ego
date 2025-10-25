@@ -1,314 +1,154 @@
 ﻿const { google } = require('googleapis');
 const credentials = include('Configs/credentials.json');
-var sheets = google.sheets('v4');
+var sheets = google.sheets({ version: 'v4' });
 
 const settings = include('Configs/settings.json');
 const spreadsheetID = settings.spreadsheetID;
 
 module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
-    authorize(function (authClient) {
-        if (!spreadsheetId) spreadsheetId = spreadsheetID;
-        var request = {
-            // The ID of the spreadsheet to retrieve data from.
-            spreadsheetId: spreadsheetId,
+    if (!spreadsheetId) spreadsheetId = spreadsheetID;
+    const request = {
+        // The ID of the spreadsheet to retrieve data from.
+        spreadsheetId: spreadsheetId,
 
-            // The A1 notation of the values to retrieve.
-            range: sheetrange,
+        // The A1 notation of the values to retrieve.
+        range: sheetrange,
 
-            // How values should be represented in the output.
-            // The default render option is ValueRenderOption.FORMATTED_VALUE.
-            valueRenderOption: 'FORMATTED_VALUE',
+        // How values should be represented in the output.
+        // The default render option is ValueRenderOption.FORMATTED_VALUE.
+        valueRenderOption: 'FORMATTED_VALUE',
 
-            // How dates, times, and durations should be represented in the output.
-            // This is ignored if value_render_option is
-            // FORMATTED_VALUE.
-            // The default dateTime render option is [DateTimeRenderOption.SERIAL_NUMBER].
-            dateTimeRenderOption: 'SERIAL_NUMBER',
+        // How dates, times, and durations should be represented in the output.
+        // This is ignored if value_render_option is
+        // FORMATTED_VALUE.
+        // The default dateTime render option is [DateTimeRenderOption.SERIAL_NUMBER].
+        dateTimeRenderOption: 'SERIAL_NUMBER',
 
-            auth: authClient,
-        };
+        auth: authorize(),
+    };
 
-        sheets.spreadsheets.values.get(request, function (err, response) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
+    sheets.spreadsheets.values.get(request).then(response => {
+        if (dataOperation)
             dataOperation(response);
-            //console.log('Retrieved "' + response.data.values + '" from ' + sheetrange);
-        });
-    });
+    }).catch(err => console.error(err));
 };
 
 module.exports.getDataWithProperties = function (sheetrange, dataOperation, spreadsheetId) {
-    authorize(function (authClient) {
-        if (!spreadsheetId) spreadsheetId = spreadsheetID;
-        var request = {
-            // The ID of the spreadsheet to retrieve data from.
-            spreadsheetId: spreadsheetId,
+    if (!spreadsheetId) spreadsheetId = spreadsheetID;
+    const request = {
+        spreadsheetId: spreadsheetId,
 
-            // The A1 notation of the values to retrieve.
-            ranges: [sheetrange],
+        ranges: [sheetrange],
 
-            // Boolean. True if grid data should be returned.
-            includeGridData: true,
+        includeGridData: true,
 
-            auth: authClient,
-        };
+        auth: authorize(),
+    };
 
-        sheets.spreadsheets.get(request, function (err, response) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
+    sheets.spreadsheets.get(request).then(response => {
+        if (dataOperation)
             dataOperation(response);
-            //console.log('Retrieved "' + response.data.values + '" from ' + sheetrange);
-        });
-    });
-};
-
-module.exports.getDataFormulas = function (sheetrange, dataOperation) {
-    authorize(function (authClient) {
-        var request = {
-            // The ID of the spreadsheet to retrieve data from.
-            spreadsheetId: spreadsheetID,
-
-            // The A1 notation of the values to retrieve.
-            range: sheetrange,
-
-            // How values should be represented in the output.
-            // The default render option is ValueRenderOption.FORMATTED_VALUE.
-            valueRenderOption: 'FORMULA',
-
-            // How dates, times, and durations should be represented in the output.
-            // This is ignored if value_render_option is
-            // FORMATTED_VALUE.
-            // The default dateTime render option is [DateTimeRenderOption.SERIAL_NUMBER].
-            dateTimeRenderOption: 'SERIAL_NUMBER',
-
-            auth: authClient,
-        };
-
-        sheets.spreadsheets.values.get(request, function (err, response) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
-            dataOperation(response);
-            //console.log('Retrieved "' + response.data.values + '" from ' + sheetrange);
-        });
-    });
+    }).catch(err => console.error(err));
 };
 
 module.exports.updateData = function (sheetrange, data, dataOperation) {
-    authorize(function (authClient) {
-        var request = {
-            // The ID of the spreadsheet to update.
-            spreadsheetId: spreadsheetID,
+    const request = {
+        spreadsheetId: spreadsheetID,
 
-            // The A1 notation of the values to update.
-            range: sheetrange,
+        range: sheetrange,
 
-            // How the input data should be interpreted.
-            valueInputOption: 'RAW',
+        valueInputOption: 'RAW',
 
-            resource: {
-                values: data,
-            },
+        resource: {
+            values: data,
+        },
 
-            auth: authClient,
-        };
+        auth: authorize(),
+    };
 
-        sheets.spreadsheets.values.update(request, function (err, response) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
-            if (dataOperation) {
-                dataOperation(response);
-            }
-            //console.log('Wrote "' + data + '" to ' + sheetrange);
-        });
-    });
+    sheets.spreadsheets.values.update(request).then(response => {
+        if (dataOperation)
+            dataOperation(response);
+    }).catch(err => console.error(err));
 };
 
 module.exports.batchUpdateData = function (data, dataOperation) {
+    const request = {
+        spreadsheetId: spreadsheetID,
+
+        resource: {
+            valueInputOption: 'RAW',
+
+            data: data
+        },
+
+        auth: authorize()
+    };
+
     return new Promise((resolve, reject) => {
-        authorize(function (authClient) {
-            var request = {
-                // The ID of the spreadsheet to update.
-                spreadsheetId: spreadsheetID,
-
-                resource: {
-                    // How the input data should be interpreted.
-                    valueInputOption: 'RAW',
-
-                    data: data
-                },
-
-                auth: authClient
-            };
-
-            sheets.spreadsheets.values.batchUpdate(request, function (err, response) {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                }
-
-                if (dataOperation) {
-                    dataOperation(response);
-                }
-                resolve();
-            });
-        });
-    });
-};
-
-module.exports.updateCell = function (sheetrange, data, dataOperation) {
-    authorize(function (authClient) {
-        var request = {
-            // The ID of the spreadsheet to update.
-            spreadsheetId: spreadsheetID,
-
-            // The A1 notation of the values to update.
-            range: sheetrange,
-
-            // How the input data should be interpreted.
-            valueInputOption: 'USER_ENTERED',
-
-            resource: {
-                values: new Array(new Array(data.toString())),
-            },
-
-            auth: authClient,
-        };
-
-        sheets.spreadsheets.values.update(request, function (err, response) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
-            if (dataOperation) {
+        sheets.spreadsheets.values.batchUpdate(request).then(response => {
+            if (dataOperation)
                 dataOperation(response);
-            }
-            //console.log('Wrote "' + data + '" to ' + sheetrange);
-        });
+            resolve();
+        }).catch(err => reject(err));
     });
 };
 
 module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
+    if (!spreadsheetId) spreadsheetId = spreadsheetID;
+    const request = {
+        spreadsheetId: spreadsheetId,
+
+        resource: {
+            // A list of updates to apply to the spreadsheet.
+            // Requests will be applied in the order they are specified.
+            // If any request is not valid, no requests will be applied.
+            requests: requests
+        },
+
+        auth: authorize()
+    };
+
     return new Promise((resolve, reject) => {
-        authorize(function (authClient) {
-            if (!spreadsheetId) spreadsheetId = spreadsheetID;
-            var request = {
-                // The ID of the spreadsheet to update.
-                spreadsheetId: spreadsheetId,
-
-                resource: {
-                    // A list of updates to apply to the spreadsheet.
-                    // Requests will be applied in the order they are specified.
-                    // If any request is not valid, no requests will be applied.
-                    requests: requests
-                },
-
-                auth: authClient
-            };
-
-            sheets.spreadsheets.batchUpdate(request, function (err, response) {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                }
-
-                if (dataOperation) {
-                    dataOperation(response);
-                }
-                resolve();
-            });
-        });
+        sheets.spreadsheets.batchUpdate(request).then(response => {
+            if (dataOperation)
+                dataOperation(response);
+            resolve();
+        }).catch(err => reject(console.error(err)));
     });
 };
 
 module.exports.appendRows = function (sheetrange, data, dataOperation) {
+    const request = {
+        spreadsheetId: spreadsheetID,
+
+        range: sheetrange,
+
+        valueInputOption: 'RAW',
+
+        insertDataOption: 'INSERT_ROWS',
+
+        resource: {
+            values: data,
+        },
+
+        auth: authorize()
+    };
+
     return new Promise((resolve, reject) => {
-        authorize(function (authClient) {
-        var request = {
-            // The ID of the spreadsheet to update.
-            spreadsheetId: spreadsheetID,
-
-            // The A1 notation of a range to search for a logical table of data.
-            // Values will be appended after the last row of the table.
-            range: sheetrange,
-
-            // How the input data should be interpreted.
-            valueInputOption: 'RAW',
-
-            // How the input data should be inserted.
-            insertDataOption: 'INSERT_ROWS',
-
-            resource: {
-                values: data,
-            },
-
-            auth: authClient,
-        };
-
-        sheets.spreadsheets.values.append(request, function (err, response) {
-            if (err) {
-                console.error(err);
-                reject(err);
-            }
-
-            if (dataOperation) {
+        sheets.spreadsheets.values.append(request).then(response => {
+            if (dataOperation)
                 dataOperation(response);
-            }
             resolve();
-        });
-    });
-    });
-};
-
-module.exports.fetchData = function (sheetrange) {
-    return new Promise((resolve) => {
-        exports.getDataFormulas(sheetrange, (response) => {
-            resolve(response.data.values);
-        });
+        }).catch(err => reject(err));
     });
 };
 
-module.exports.fetchDescription = function (descriptionCell) {
-    return new Promise((resolve) => {
-        exports.getDataFormulas(descriptionCell, (response) => {
-            resolve(response.data.values[0][0]);
-        });
+function authorize() {
+    return new google.auth.JWT({
+        email: credentials.google.client_email,
+        key: credentials.google.private_key,
+        keyId: credentials.google.private_key_id,
+        scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
-};
-
-function authorize(callback) {
-    // TODO: Change placeholder below to generate authentication credentials. See
-    // https://developers.google.com/sheets/quickstart/nodejs#step_3_set_up_the_sample
-    //
-    // Authorize using one of the following scopes:
-    //   'https://www.googleapis.com/auth/drive'
-    //   'https://www.googleapis.com/auth/drive.file'
-    //   'https://www.googleapis.com/auth/drive.readonly'
-    //   'https://www.googleapis.com/auth/spreadsheets'
-    //   'https://www.googleapis.com/auth/spreadsheets.readonly'
-    const privatekey = credentials.google;
-
-    var authClient = new google.auth.JWT(
-        privatekey.client_email,
-        null,
-        privatekey.private_key,
-        ['https://www.googleapis.com/auth/spreadsheets']);
-
-    if (authClient == null) {
-        console.log('authentication failed');
-        return;
-    }
-    callback(authClient);
 }

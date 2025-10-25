@@ -122,7 +122,7 @@ async function checkVersion() {
         game.commandChannel.send(`This version of Alter Ego is out of date. Please update using Docker or download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
 
-bot.on('ready', async () => {
+bot.on('clientReady', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
         game.guild = bot.guilds.cache.first();
