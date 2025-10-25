@@ -12,7 +12,7 @@ module.exports.config = {
         + "10,000 commands at a time. The data_game file will contain the entirety of the bot's internal "
         + "memory relating to the game, with certain data types being truncated when nested. Because these "
         + "files can be quite large, and Discord has a maximum file size limit of 10 MiB, they will be "
-        + "compressed into a .gz file before being sent. If the file size exceeds this, they will"
+        + "compressed into a .gz file before being sent. If the file size exceeds this, they will "
         + "instead be saved to disk.\n\n"
         + "This command is for debugging purposes, and has no use during regular gameplay. If you discover "
         + "a bug that was not caused by Moderator error, please use this command and attach these files to "
@@ -77,7 +77,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
         const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
 
-        message.channel.send({ files: [fileGame, fileLog] });
+        message.channel.send({ content: "Successfully generated log files.", files: [fileGame, fileLog] });
     }
 };
 
