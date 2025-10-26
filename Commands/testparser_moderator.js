@@ -73,10 +73,12 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
         }
         if (warnings.length > 0) {
-            if (warnings.length > 15) {
-                warnings = warnings.slice(0, 15);
+            // Trim excess warnings to not exceed Discord's 2000 character limit.
+            const tooManyWarnings = warnings.length > 20 || warnings.join('\n').length >= 1980;
+            while (warnings.length > 20 || warnings.join('\n').length >= 1980)
+                warnings = warnings.slice(0, warnings.length - 1);  
+            if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            }
             game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
         }
         let errors = [];
@@ -87,10 +89,12 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
+            // Trim excess errors to not exceed Discord's 2000 character limit.
+            const tooManyErrors = errors.length > 20 || errors.join('\n').length >= 1980;
+            while (errors.length > 20 || errors.join('\n').length >= 1980)
+                errors = errors.slice(0, errors.length - 1);
+            if (tooManyErrors)
                 errors.push("Too many errors.");
-            }
             game.messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
         }
     }
@@ -107,10 +111,11 @@ module.exports.run = async (bot, game, message, command, args) => {
         for (let i = 0; i < result.length; i++)
             warnings.push(`Warning on ${result[i].cell}: ${result[i].text}`);
         if (warnings.length > 0) {
-            if (warnings.length > 15) {
-                warnings = warnings.slice(0, 15);
+            const tooManyWarnings = warnings.length > 20 || warnings.join('\n').length >= 1980;
+            while (warnings.length > 20 || warnings.join('\n').length >= 1980)
+                warnings = warnings.slice(0, warnings.length - 1);  
+            if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            }
             game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
         }
     }
