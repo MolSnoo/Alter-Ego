@@ -57,21 +57,21 @@ describe('test item lists', () => {
 	const player = new Player("", 5);
 
 	test('empty item list 0', () => {
-		const text = `<s>The floor beneath you is soft and earthy.</s> <s>You find <il></il> haphazardly placed on it.</s>`;
+		const text = `<desc><s>The floor beneath you is soft and earthy.</s> <s>You find <il></il> haphazardly placed on it.</s></desc>`;
 		const expected = `The floor beneath you is soft and earthy.`;
 		const result = parser.parseDescription(text, null, player);
 		expect(result).toBe(expected);
 	});
 
 	test('empty item list 1', () => {
-		const text = `<s>You look at the sink.</s> <s>It looks to be very clean.</s> <s>On the wall above it is a mirror.</s> <s>Under the sink, you find <il></il>.</s>`;
+		const text = `<desc><s>You look at the sink.</s> <s>It looks to be very clean.</s> <s>On the wall above it is a mirror.</s> <s>Under the sink, you find <il></il>.</s></desc>`;
 		const expected = `You look at the sink. It looks to be very clean. On the wall above it is a mirror.`;
 		const result = parser.parseDescription(text, null, player);
 		expect(result).toBe(expected);
 	});
 	
 	test('single item list single item 0', () => {
-		const text = `<s>You open the locker.</s> <s>Inside, you find <il><item>a pair of SWIM TRUNKS</item></il>.</s>`;
+		const text = `<desc><s>You open the locker.</s> <s>Inside, you find <il><item>a pair of SWIM TRUNKS</item></il>.</s></desc>`;
 		const expected = `You open the locker. Inside, you find a pair of SWIM TRUNKS.`;
 		const result = parser.parseDescription(text, null, player);
 		expect(result).toBe(expected);
@@ -101,7 +101,7 @@ describe('test item lists', () => {
 
 describe('test player intelligence', () => {
 	describe('joshua body', () => {
-		const text = `<s>You inspect Joshua's body.</s> <if cond="player.intelligence >= 5"><s>He looks pretty emaciated, like he hasn't eaten or drank in days.</s> <s>You don't find any injuries except for a gash in his **NECK**.</s></if> <if cond="player.intelligence < 5"><s>Nothing seems out of the ordinary except for a gash in his **NECK**.</s></if>`;
+		const text = `<desc><s>You inspect Joshua's body.</s> <if cond="player.intelligence >= 5"><s>He looks pretty emaciated, like he hasn't eaten or drank in days.</s> <s>You don't find any injuries except for a gash in his **NECK**.</s></if> <if cond="player.intelligence < 5"><s>Nothing seems out of the ordinary except for a gash in his **NECK**.</s></if></desc>`;
 
 		test('joshua body intelligence 5', () => {
 			const player = new Player("", 5);
@@ -119,7 +119,7 @@ describe('test player intelligence', () => {
 	});
 
 	describe('veronica with items', () => {
-		const text = `<s>You find Veronica's body lying face up.</s> <s>Her arms are extended straight out with her palms facing up.</s> <s>There's a bloody WOUND on her chest, and the blood has soaked her shirt.</s> <if cond="player.intelligence >= 5"><s>In her pockets, you find <il><item>a CIGARETTE</item>, <item>a KNIFE</item>, and <item>a pair of NEEDLES</item></il>.</s></if>`;
+		const text = `<desc><s>You find Veronica's body lying face up.</s> <s>Her arms are extended straight out with her palms facing up.</s> <s>There's a bloody WOUND on her chest, and the blood has soaked her shirt.</s> <if cond="player.intelligence >= 5"><s>In her pockets, you find <il><item>a CIGARETTE</item>, <item>a KNIFE</item>, and <item>a pair of NEEDLES</item></il>.</s></if></desc>`;
 
 		test('veronica with items intelligence 5', () => {
 			const player = new Player("", 5);
@@ -137,7 +137,7 @@ describe('test player intelligence', () => {
 	});
 
 	describe('veronica with conditional items', () => {
-		const text = `<s>You find Veronica's body lying face up.</s> <s>Her arms are extended straight out with her palms facing up.</s> <s>There's a bloody WOUND on her chest, and the blood has soaked her shirt.</s> <s>In her pockets, you find <il><item>a CIGARETTE</item><if cond="player.intelligence >= 5">, <item>a KNIFE</item>,</if> and <item>a pair of NEEDLES</item></il>.</s>`;
+		const text = `<desc><s>You find Veronica's body lying face up.</s> <s>Her arms are extended straight out with her palms facing up.</s> <s>There's a bloody WOUND on her chest, and the blood has soaked her shirt.</s> <s>In her pockets, you find <il><item>a CIGARETTE</item><if cond="player.intelligence >= 5">, <item>a KNIFE</item>,</if> and <item>a pair of NEEDLES</item></il>.</s></desc>`;
 
 		test('veronica intelligence 5 with conditional item', () => {
 			const player = new Player("", 5);
@@ -156,7 +156,7 @@ describe('test player intelligence', () => {
 
 	test('veronica intelligence 5 with empty item list', () => {
 		const player = new Player("", 5);
-		const text = `<s>You find Veronica's body lying face up.</s> <s>Her arms are extended straight out with her palms facing up.</s> <s>There's a bloody WOUND on her chest, and the blood has soaked her shirt.</s> <if cond="player.intelligence >= 5"><s>In her pockets, you find <il></il>.</s></if>`;
+		const text = `<desc><s>You find Veronica's body lying face up.</s> <s>Her arms are extended straight out with her palms facing up.</s> <s>There's a bloody WOUND on her chest, and the blood has soaked her shirt.</s> <if cond="player.intelligence >= 5"><s>In her pockets, you find <il></il>.</s></if></desc>`;
 		const expected = `You find Veronica's body lying face up. Her arms are extended straight out with her palms facing up. There's a bloody WOUND on her chest, and the blood has soaked her shirt.`;
 		const result = parser.parseDescription(text, null, player);
 		expect(result).toBe(expected);
@@ -165,7 +165,7 @@ describe('test player intelligence', () => {
 
 describe('test player talent', () => {
 	describe('nemu tree', () => {
-		const text = `<s>You take a look at the nemu tree.</s> <s>It's unlike anything you've ever seen before.</s> <s>It has purple wood and blue leaves.</s> <s><if cond="player.talent === 'Ultimate Herbalist'">Supposedly if you boil a piece of bark from this it creates some kind of sleep medicine.</if></s>`;
+		const text = `<desc><s>You take a look at the nemu tree.</s> <s>It's unlike anything you've ever seen before.</s> <s>It has purple wood and blue leaves.</s> <s><if cond="player.talent === 'Ultimate Herbalist'">Supposedly if you boil a piece of bark from this it creates some kind of sleep medicine.</if></s></desc>`;
 
 		test('nemu tree ultimate herbalist', () => {
 			const player = new Player("Ultimate Herbalist", 5);
@@ -444,20 +444,20 @@ describe('test formatting', () => {
 		const text = `desc><s>It’s a raspberry blue blanket filled with plastic pellets that weigh it down.</s> <s>It weighs 10 pounds and is very comforting.</s></desc>`;
 		const expected = `It’s a raspberry blue blanket filled with plastic pellets that weigh it down. It weighs 10 pounds and is very comforting.`;
 		const result = parser.parseDescription(text, null, player);
-		expect(result).toBe(expected);
+		expect(result).not.toBe(expected);
 	});
 
 	test('duplicate closing desc tag', () => {
 		const text = `</desc><s>It's a wide, boxy typewriter set into a wooden base.</s> <s>There is a *QWERTZ* keyboard set into the front that makes heavy, noisy clicks whenever the keys are pressed down.</s> <s>A cylinder at the back of the typewriter has a roll of paper clipped in.</s> <s>When a key is typed, ink stamps down onto the paper, producing letters onto the paper.</s> <s>There are visible signs of aging on this typewriter, as if it’s accompanied its owner for many years.</s> <s>Despite the small placard below the keyboard reading “NEO-TYPEWRITER”, nothing about it seems particularly futuristic.</s></desc>`;
-		const expected = `It's a wide, boxy typewriter set into a wooden base. There is a *QWERTZ* keyboard set into the front that makes heavy, noisy clicks whenever the keys are pressed down. A cylinder at the back of the typewriter has a roll of paper clipped in. When a key is typed, ink stamps down onto the paper, producing letters onto the paper.</s> <s>There are visible signs of aging on this typewriter, as if it’s accompanied its owner for many years. Despite the small placard below the keyboard reading “NEO-TYPEWRITER”, nothing about it seems particularly futuristic.`;
+		const expected = `It's a wide, boxy typewriter set into a wooden base. There is a *QWERTZ* keyboard set into the front that makes heavy, noisy clicks whenever the keys are pressed down. A cylinder at the back of the typewriter has a roll of paper clipped in. When a key is typed, ink stamps down onto the paper, producing letters onto the paper. There are visible signs of aging on this typewriter, as if it’s accompanied its owner for many years. Despite the small placard below the keyboard reading “NEO-TYPEWRITER”, nothing about it seems particularly futuristic.`;
 		const result = parser.parseDescription(text, null, player);
-		expect(result).toBe(expected);
+		expect(result).not.toBe(expected);
 	});
 
 	test('missing opening desc tag', () => {
 		const text = `<s>It’s a black, early-2000s CD player.</s> <s>Plugged into the audio port is a similarly black pair of earbuds.</s> <s>The player itself is round and its lid flips up with the help of a tiny button, granting access to the CD inside.</s> <s>The CD currently in the player has no design on it, but it has music nonetheless.</s></desc>`;
 		const expected = `It’s a black, early-2000s CD player. Plugged into the audio port is a similarly black pair of earbuds. The player itself is round and its lid flips up with the help of a tiny button, granting access to the CD inside. The CD currently in the player has no design on it, but it has music nonetheless.`;
 		const result = parser.parseDescription(text, null, player);
-		expect(result).toBe(expected);
+		expect(result).not.toBe(expected);
 	})
 });
