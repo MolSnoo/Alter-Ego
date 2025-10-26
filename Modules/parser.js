@@ -1,8 +1,8 @@
 const constants = include('Configs/constants.json');
 const finder = include(`${constants.modulesDir}/finder.js`);
 
-const DOMParser = require('xmldom').DOMParser;
-const XMLSerializer = require('xmldom').XMLSerializer;
+const DOMParser = require('@xmldom/xmldom').DOMParser;
+const XMLSerializer = require('@xmldom/xmldom').XMLSerializer;
 
 class Clause {
     constructor(node, isItem, itemNo, itemQuantity) {
@@ -21,11 +21,12 @@ class Clause {
     delete() {
         if (this.node) {
             let parentNode = this.node.parentNode;
+            let grandParentNode = parentNode.parentNode;
             parentNode.removeChild(this.node);
             // If this is an item clause, then the parent node is an item tag. Delete the now empty item tag.
-            if (this.isItem) parentNode.parentNode.removeChild(parentNode);
+            if (this.isItem) grandParentNode.removeChild(parentNode);
             // If this item is contained in an if tag, remove the if tag.
-            if (parentNode.parentNode.nodeName === 'if') parentNode.parentNode.parentNode.removeChild(parentNode.parentNode);
+            if (grandParentNode.nodeName === 'if') grandParentNode.parentNode.removeChild(grandParentNode);
             this.node = null;
         }
         this.text = "";

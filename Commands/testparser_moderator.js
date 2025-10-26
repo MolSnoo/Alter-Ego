@@ -225,7 +225,7 @@ testparse = async (file, player) => {
                 text += parsedDescription.text + os.EOL;
             }
 
-            // Finally, do the completed text.
+            // Next, do the completed text.
             if (game.recipes[i].completedDescription !== "") {
                 text += "      MESSAGE WHEN COMPLETED:" + os.EOL;
 
@@ -235,6 +235,21 @@ testparse = async (file, player) => {
 
                 text += "         ";
                 text += game.recipes[i].completedDescription + os.EOL;
+
+                text += "         ";
+                text += parsedDescription.text + os.EOL;
+            }
+
+            // Finally, do the uncrafted text.
+            if (game.recipes[i].uncraftedDescription !== "") {
+                text += "      MESSAGE WHEN UNCRAFTED:" + os.EOL;
+
+                const parsedDescription = parser.parseDescription(game.recipes[i].uncraftedDescription, game.recipes[i], player, true);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].uncraftedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].uncraftedCell(), errors: parsedDescription.errors });
+
+                text += "         ";
+                text += game.recipes[i].uncraftedDescription + os.EOL;
 
                 text += "         ";
                 text += parsedDescription.text + os.EOL;

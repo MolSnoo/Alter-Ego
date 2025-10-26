@@ -12,6 +12,8 @@ const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
 const saver = include(`${constants.modulesDir}/saver.js`);
 
+const Event = include(`${constants.dataDir}/Event.js`);
+
 const fs = require('fs');
 const fetch = require('node-fetch');
 var moment = require('moment');
@@ -122,7 +124,7 @@ async function checkVersion() {
         game.commandChannel.send(`This version of Alter Ego is out of date. Please update using Docker or download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
 
-bot.on('ready', async () => {
+bot.on('clientReady', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
         game.guild = bot.guilds.cache.first();
@@ -163,7 +165,7 @@ bot.on('ready', async () => {
             for (let i = 0; i < game.events.length; i++) {
                 if (!game.events[i].ongoing) {
                     for (let j = 0; j < game.events[i].triggerTimes.length; j++) {
-                        const time = game.events[i].triggerTimes[j];
+                        const time = moment(game.events[i].triggerTimes[j], Event.formats);
                         if (now.month() === time.month() && now.weekday() === time.weekday() && now.date() === time.date() && now.hour() === time.hour() && now.minute() === time.minute()) {
                             game.events[i].trigger(bot, game, true);
                             break;

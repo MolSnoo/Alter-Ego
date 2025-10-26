@@ -947,33 +947,6 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 game.events[i].effectsTimer.stop();
         }
 
-        // Create an array of acceptable formats for trigger times.
-        const dayFormats = [
-            "ddd",          // Abbreviated day of week.                             Wed
-            "dddd",         // Day of week.                                         Wednesday
-            "Do",           // Day of month with ordinal.                           16th
-            "Do MMM",       // Day of month with ordinal + abbreviated month.       16th Apr
-            "Do MMMM",      // Day of month with ordinal + month.                   16th April
-            "D MMM",        // Day of month + abbreviated month.                    16 Apr
-            "D MMMM",       // Day of month + month.                                16 April
-            "MMM Do",       // Abbreviated month + day of month with ordinal.       Apr 16th
-            "MMMM Do",      // Month + day of month with ordinal.                   April 16th
-            "MMM D",        // Abbreviated month + day of month.                    Apr 16
-            "MMMM D"        // Month + day of month.                                April 16
-        ];
-        const timeFormats = [
-            "LT",           // Locale aware time (without seconds).                 8:30 PM 
-            "LTS",          // Locale aware time (with seconds).                    8:30:00 PM
-            "HH:mm",        // Hours (24-hour time), minutes.                       20:30
-            "hh:mm a",      // Hours (12-hour time), minutes.                       08:30 PM
-        ];
-        let formats = [...timeFormats];
-        for (let dayFormat of dayFormats) {
-            for (let timeFormat of timeFormats) {
-                formats.push(`${dayFormat} ${timeFormat}`);
-            }
-        }
-
         sheets.getData(constants.eventSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
@@ -1003,7 +976,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var timeRemaining = sheet[i][columnTimeRemaining] ? moment.duration(sheet[i][columnTimeRemaining]) : null;
                 var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
                 for (let j = 0; j < triggerTimes.length; j++)
-                    triggerTimes[j] = moment(triggerTimes[j].trim(), formats);
+                    triggerTimes[j] = triggerTimes[j].trim();
                 const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : ["", ""];
                 var triggeredCommands = commands[0] ? commands[0].split(',') : [];
@@ -1082,8 +1055,9 @@ module.exports.checkEvent = function (event, game) {
     if (event.ongoing && event.duration !== null && event.remaining === null)
         return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
     for (let i = 0; i < event.triggerTimes.length; i++) {
-        if (!event.triggerTimes[i].isValid()) {
-            let timeString = event.triggerTimes[i].inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
+        let triggerTime = moment(event.triggerTimes[i], Event.formats);
+        if (!triggerTime.isValid()) {
+            let timeString = triggerTime.inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
             return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
         }
     }
