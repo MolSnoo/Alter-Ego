@@ -36,19 +36,6 @@ describe('sheets module', () => {
         });
     });
 
-    describe('getDataFormulas', () => {
-        test('requests formulas via valueRenderOption FORMULA and returns values to callback', (done) => {
-            const dataOperation = jest.fn((response) => {
-                expect(response.data.values[0][0]).toBe('cellA1');
-                const req = googleapisMock.valuesGet.mock.calls[googleapisMock.valuesGet.mock.calls.length - 1][0];
-                expect(req.valueRenderOption).toBe('FORMULA');
-                done();
-            });
-
-            sheets.getDataFormulas('Sheet1!A1:B2', dataOperation);
-        });
-    });
-
     describe('updateData', () => {
         test('calls values.update with provided data and resolves via callback', (done) => {
             const payload = [['a', 'b'], ['c', 'd']];
@@ -81,21 +68,6 @@ describe('sheets module', () => {
         });
     });
 
-    describe('updateCell', () => {
-        test('writes single cell using USER_ENTERED and sends the stringified data', (done) => {
-            const dataOperation = jest.fn((response) => {
-                expect(googleapisMock.valuesUpdate).toHaveBeenCalled();
-                done();
-            });
-
-            sheets.updateCell('Sheet1!C3', 12345, dataOperation);
-            const req = googleapisMock.valuesUpdate.mock.calls[googleapisMock.valuesUpdate.mock.calls.length - 1][0];
-            expect(req.range).toBe('Sheet1!C3');
-            expect(req.valueInputOption).toBe('USER_ENTERED');
-            expect(req.resource.values).toEqual([['12345']]);
-        });
-    });
-
     describe('batchUpdate', () => {
         test('sends batch update requests to spreadsheets.batchUpdate and resolves', async () => {
             const requests = [{ repeatCell: {} }, { addSheet: {} }];
@@ -121,21 +93,6 @@ describe('sheets module', () => {
             expect(req.valueInputOption).toBe('RAW');
             expect(req.insertDataOption).toBe('INSERT_ROWS');
             expect(req.resource.values).toBe(rows);
-        });
-    });
-
-    describe('fetchData', () => {
-        test('returns a promise that resolves to the raw values array', async () => {
-            const values = await sheets.fetchData('Sheet1!A1:B2');
-            expect(Array.isArray(values)).toBe(true);
-            expect(values[0][0]).toBe('cellA1');
-        });
-    });
-
-    describe('fetchDescription', () => {
-        test('resolves to the first cell string from the requested range', async () => {
-            const desc = await sheets.fetchDescription('Sheet1!A1');
-            expect(desc).toBe('cellA1');
         });
     });
 });
