@@ -371,7 +371,7 @@ module.exports.generateProceduralOutput = function (description, proceduralSelec
         }
     }
 
-    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/<s>\s*<\/s>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/<s>\s*<\/s>/g, '').replace(/<\/([^>]+?)> +<\/desc>/g, "</$1></desc>").replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
 };
 
 function keepProcedural(chance) {
@@ -493,7 +493,7 @@ function getItemListSentences(document) {
 
 function stringify(document) {
     var description = new XMLSerializer().serializeToString(document);
-    description = description.replace(/<il\/>/g, "<il></il>").replace(/(<(il)\s[^>]+?)\/>/g, "$1></$2>").replace(/<s\/>/g, "").replace(/<null\/>/g, "").replace(/<\/s> <\/desc>/g, "</s></desc>").replace(/ {2,}/g, " ").trim();
+    description = description.replace(/<il\/>/g, "<il></il>").replace(/(<(il)\s[^>]+?)\/>/g, "$1></$2>").replace(/<s\/>/g, "").replace(/<null\/>/g, "").replace(/<\/([^>]+?)> +<\/desc>/g, "</$1></desc>").replace(/ {2,}/g, " ").trim();
     return description;
 }
 
