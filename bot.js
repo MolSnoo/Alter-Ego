@@ -12,6 +12,8 @@ const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
 const saver = include(`${constants.modulesDir}/saver.js`);
 
+const Event = include(`${constants.dataDir}/Event.js`);
+
 const fs = require('fs');
 const fetch = require('node-fetch');
 var moment = require('moment');
@@ -163,7 +165,7 @@ bot.on('clientReady', async () => {
             for (let i = 0; i < game.events.length; i++) {
                 if (!game.events[i].ongoing) {
                     for (let j = 0; j < game.events[i].triggerTimes.length; j++) {
-                        const time = game.events[i].triggerTimes[j];
+                        const time = moment(game.events[i].triggerTimes[j], Event.formats);
                         if (now.month() === time.month() && now.weekday() === time.weekday() && now.date() === time.date() && now.hour() === time.hour() && now.minute() === time.minute()) {
                             game.events[i].trigger(bot, game, true);
                             break;

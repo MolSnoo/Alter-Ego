@@ -34,6 +34,22 @@ class Event {
         this.effectsTimer = null;
     }
 
+    static formats = [
+        "LT",           "LTS",          "HH:mm",            "hh:mm a",
+        "ddd LT",       "ddd LTS",      "ddd HH:mm",        "ddd hh:mm a",
+        "dddd LT",      "dddd LTS",     "dddd HH:mm",       "dddd hh:mm a",
+        "Do LT",        "Do LTS",       "Do HH:mm",         "Do hh:mm a",
+        "Do MMM LT",    "Do MMM LTS",   "Do MMM HH:mm",     "Do MMM hh:mm a",
+        "Do MMMM LT",   "Do MMMM LTS",  "Do MMMM HH:mm",    "Do MMMM hh:mm a",
+        "D MMM LT",     "D MMM LTS",    "D MMM HH:mm",      "D MMM hh:mm a",
+        "D MMMM LT",    "D MMMM LTS",   "D MMMM HH:mm",     "D MMMM hh:mm a",
+        "MMM Do LT",    "MMM Do LTS",   "MMM Do HH:mm",     "MMM Do hh:mm a",
+        "MMMM Do LT",   "MMMM Do LTS",  "MMMM Do HH:mm",    "MMMM Do hh:mm a",
+        "MMM D LT",     "MMM D LTS",    "MMM D HH:mm",      "MMM D hh:mm a",
+        "MMMM D LT",    "MMMM D LTS",   "MMMM D HH:mm",     "MMMM D hh:mm a"
+    ];
+
+
     async trigger(bot, game, doTriggeredCommands) {
         // Mark it as ongoing.
         this.ongoing = true;
