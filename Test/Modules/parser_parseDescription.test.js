@@ -439,4 +439,25 @@ describe('test formatting', () => {
 		const result = parser.parseDescription(text, null, player);
 		expect(result).toBe(expected);
 	});
+
+	test('broken opening desc tag', () => {
+		const text = `desc><s>It’s a raspberry blue blanket filled with plastic pellets that weigh it down.</s> <s>It weighs 10 pounds and is very comforting.</s></desc>`;
+		const expected = `It’s a raspberry blue blanket filled with plastic pellets that weigh it down. It weighs 10 pounds and is very comforting.`;
+		const result = parser.parseDescription(text, null, player);
+		expect(result).toBe(expected);
+	});
+
+	test('duplicate closing desc tag', () => {
+		const text = `</desc><s>It's a wide, boxy typewriter set into a wooden base.</s> <s>There is a *QWERTZ* keyboard set into the front that makes heavy, noisy clicks whenever the keys are pressed down.</s> <s>A cylinder at the back of the typewriter has a roll of paper clipped in.</s> <s>When a key is typed, ink stamps down onto the paper, producing letters onto the paper.</s> <s>There are visible signs of aging on this typewriter, as if it’s accompanied its owner for many years.</s> <s>Despite the small placard below the keyboard reading “NEO-TYPEWRITER”, nothing about it seems particularly futuristic.</s></desc>`;
+		const expected = `It's a wide, boxy typewriter set into a wooden base. There is a *QWERTZ* keyboard set into the front that makes heavy, noisy clicks whenever the keys are pressed down. A cylinder at the back of the typewriter has a roll of paper clipped in. When a key is typed, ink stamps down onto the paper, producing letters onto the paper.</s> <s>There are visible signs of aging on this typewriter, as if it’s accompanied its owner for many years. Despite the small placard below the keyboard reading “NEO-TYPEWRITER”, nothing about it seems particularly futuristic.`;
+		const result = parser.parseDescription(text, null, player);
+		expect(result).toBe(expected);
+	});
+
+	test('missing opening desc tag', () => {
+		const text = `<s>It’s a black, early-2000s CD player.</s> <s>Plugged into the audio port is a similarly black pair of earbuds.</s> <s>The player itself is round and its lid flips up with the help of a tiny button, granting access to the CD inside.</s> <s>The CD currently in the player has no design on it, but it has music nonetheless.</s></desc>`;
+		const expected = `It’s a black, early-2000s CD player. Plugged into the audio port is a similarly black pair of earbuds. The player itself is round and its lid flips up with the help of a tiny button, granting access to the CD inside. The CD currently in the player has no design on it, but it has music nonetheless.`;
+		const result = parser.parseDescription(text, null, player);
+		expect(result).toBe(expected);
+	})
 });
