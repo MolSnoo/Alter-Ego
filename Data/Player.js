@@ -77,6 +77,8 @@ class Player {
         this.remainingTime = 0;
         this.moveQueue = [];
 
+        this.aoeTimer = null;
+
         this.reachedHalfStamina = false;
         let player = this;
         this.interval = setInterval(function () {
@@ -433,6 +435,9 @@ class Player {
             this.remainingTime = 0;
             this.moveQueue.length = 0;
         }
+        if(status.attributes.toLowerCase().includes("aoe")) {
+            this.handleAreaOfEffectStatus(game, notify, doCures, narrate, item, duration, status);
+        }
 
         // Announce when a player falls asleep or unconscious.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
@@ -521,6 +526,10 @@ class Player {
             this.setPronouns(this.pronouns, this.pronounString);
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         }
+        if(status.attributes.toLowerCase().includes("aoe")) {
+            this.aoeTimer?.stop();
+            this.aoeTimer = null;
+        }
 
         // Announce when a player awakens.
         if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
@@ -566,6 +575,39 @@ class Player {
 
         return returnMessage;
     }
+
+    // Handles any AOE statuses that the player has, if any.
+    handleAreaOfEffectStatus(game, notify, doCures, narrate, item, duration, status){
+        // Determine if we're inflicting the same status or a status that was populated in the attributes field (format: aoe (status)).
+        var statusToInflict = status;
+        var regExp = /aoe\s*\(([^)]*)\)/i;
+        
+        if(regExp.test(status.attributes.toLowerCase())){
+            // Extract the inflicted status from the aoe attribute.
+            let aoeStatus = regExp.exec(status.attributes)[1];
+
+            statusToInflict = game.statusEffects.find(statusEffect => statusEffect.name === aoeStatus.toLowerCase().trim()) || statusToInflict;
+            
+            if (statusToInflict === status) return `Could not find "${aoeStatus}" for AOE effect "${status}".`;
+        }
+                
+        const player = this;
+
+        this.aoeTimer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                        
+            const room = game.rooms.find(room => room === player.location);
+                            
+            // Determine if any occupants in the room have the status applied to them.
+            room.occupants.filter(occupant => occupant.name !== player.name).forEach(occupant => {
+                // If an occupant in the room doesn't have the status, inflict it on them.
+                if(!occupant.statusString.includes(statusToInflict.name)){
+                    // Inflict the status on any un-inflicted occupants.
+                    occupant.inflict(game, statusToInflict, notify, doCures, narrate, item, duration);
+                }
+            });
+
+        });
+    }   
     
     generate_statusList(includeHidden, includeDurations) {
         var statusList = "";
