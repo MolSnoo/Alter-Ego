@@ -1,8 +1,8 @@
 # Prefab
 
 A **Prefab** is a data structure in the [[Neo World Program]]. It represents the concept of an item, and is the
-underlying data structure which gives [[Items|Data-Structure:-Item]]
-and [[Inventory Items|Data-Structure:-InventoryItem]] their properties.
+underlying data structure which gives [Items](Item.md)
+and [Inventory Items](inventory_item.md) their properties.
 
 Prefabs are static; once loaded from the [[spreadsheet]], they do not change in any way. Thus,
 the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/saver.js) will never make changes to the
@@ -36,8 +36,8 @@ Prefabs can have many attributes in common, no two Prefabs can have the same ID.
   `this.name`
 
 This is the name used to refer to a singular instance of an Item or Inventory Item using this Prefab.
-When [[Players|Data-Structure:-Player]] use a command to interact with an Item or Inventory Item using this Prefab, this
-string is what they will need to enter to refer to it. All letters should be capitalized, and spaces are allowed.
+When [Players](player.md) use a command to interact with an Item or Inventory Item using this Prefab, this string is
+what they will need to enter to refer to it. All letters should be capitalized, and spaces are allowed.
 
 ### Plural Name
 
@@ -59,9 +59,9 @@ would be the same as its single name.
 This is the phrase that will be inserted in/removed from [[item tags|Tutorial:-Writing-descriptions#item]] when an Item
 or Inventory Item using this Prefab is added to/removed from an [[item list|Tutorial:-Writing-descriptions#il]]. It is
 also the phrase that will be used when a non-discreet Item is inspected, taken, or dropped; when a non-discreet
-Inventory Item is inspected, stashed, unstashed, or carried from one [[Room|Data-Structure:-Room]] to another; and when
-an Inventory Item (whether discreet or non-discreet) is equipped or unequipped. No restrictions are placed on the
-content of this string, however it should generally contain the Prefab's single name.
+Inventory Item is inspected, stashed, unstashed, or carried from one [Room](room.md) to another; and when an Inventory
+Item (whether discreet or non-discreet) is equipped or unequipped. No restrictions are placed on the content of this
+string, however it should generally contain the Prefab's single name.
 
 ### Plural Containing Phrase
 
@@ -82,11 +82,10 @@ plural containing phrase would be the same as its single containing phrase, one 
   `this.discreet`
 
 This is a simple Boolean value indicating whether interactions with Items and Inventory Items using this Prefab will
-be [[narrated|Data-Structure:-Narration]] or not. Specifically, if this is `false`, then [[Alter Ego]] will notify the
-Room if a Player inspects, takes, or drops an Item using this Prefab; or inspects, stashes, unstashes, or moves to
-another Room carrying an Inventory Item using this Prefab. Additionally, if this is `false`, then when an Inventory Item
-using this Prefab is moved to either of the Player's hands, it will be added to the "hands" item list in that Player's
-description.
+be [narrated](Narration.md) or not. Specifically, if this is `false`, then [[Alter Ego]] will notify the Room if a
+Player inspects, takes, or drops an Item using this Prefab; or inspects, stashes, unstashes, or moves to another Room
+carrying an Inventory Item using this Prefab. Additionally, if this is `false`, then when an Inventory Item using this
+Prefab is moved to either of the Player's hands, it will be added to the "hands" item list in that Player's description.
 
 ### Size
 
@@ -106,9 +105,9 @@ it should be non-negative.
   `this.weight`
 
 This is a whole number representing roughly how much the Prefab weighs in kilograms. This number determines whether a
-Player is capable of taking an Item using this Prefab with their [[strength stat|Data-Structure:-Player#Strength]]. For
-more details, see the sections about [[Item|Data-Structure:-Item#weight]]
-and [[Inventory Item|Data-Structure:-InventoryItem#weight]] weights.
+Player is capable of taking an Item using this Prefab with their [strength stat](player.md#Strength). For more details,
+see the sections about [Item](Item.md#weight)
+and [Inventory Item](inventory_item.md#weight) weights.
 
 ### Usable
 
@@ -117,10 +116,10 @@ and [[Inventory Item|Data-Structure:-InventoryItem#weight]] weights.
   `this.usable`
 
 This is another Boolean value indicating whether Inventory Items using this Prefab can be used to inflict/cure one or
-more [[Status Effects|Data-Structure:-Status]] on the Player using it. If this is `false`, the Player will be told the
-Inventory Item has no programmed use. Additionally, if a Player already has all of the Status Effects the Prefab
-inflicts and doesn't have any of the Status Effects it cures, the Player will not be able to use the Inventory Item and
-will instead be told that it has no effect.
+more [Status Effects](status.md) on the Player using it. If this is `false`, the Player will be told the Inventory Item
+has no programmed use. Additionally, if a Player already has all of the Status Effects the Prefab inflicts and doesn't
+have any of the Status Effects it cures, the Player will not be able to use the Inventory Item and will instead be told
+that it has no effect.
 
 ### Use Verb
 
@@ -149,7 +148,7 @@ See the following table for some examples of the resulting Narration:
   `this.uses`
 
 This is a whole number indicating how many times a single instance of this Prefab can be used. For more details, see the
-sections about [[Item uses|Data-Structure:-Item#uses]] and [[Inventory Item uses|Data-Structure:-InventoryItem#uses]].
+sections about [Item uses](Item.md#uses) and [Inventory Item uses](inventory_item.md#uses).
 
 ### Effects Strings
 
@@ -164,7 +163,7 @@ when used.
 ### Effects
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Status Effect|Data-Structure:-Status]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](status.md)>
   `this.effects`
 
 This is an internal attribute which contains references to each of the Status Effect objects whose names are listed in
@@ -178,11 +177,11 @@ This is an internal attribute which contains references to each of the Status Ef
   `this.curesStrings`
 
 This is a comma-separated list of Status Effects that Inventory Items using this Prefab will cure the Player of when
-used. Status Effects will turn into their [[cured condition|Data-Structure:-Status#curedCondition]], if applicable. Note
-that it will attempt to cure them in the order given. As a consequence, if the next Status Effect in the list is the
-current Status Effect's cured condition, it will immediately be cured after being inflicted, turning into _its_ cured
-condition, and so on. For example, imagine the following series of Status Effects, where each one's cured condition
-follows the `->` symbol:
+used. Status Effects will turn into their [cured condition](status.md#curedCondition), if applicable. Note that it will
+attempt to cure them in the order given. As a consequence, if the next Status Effect in the list is the current Status
+Effect's cured condition, it will immediately be cured after being inflicted, turning into _its_ cured condition, and so
+on. For example, imagine the following series of Status Effects, where each one's cured condition follows the `->`
+symbol:
 
 `starving->famished->hungry->satisfied->full`
 
@@ -198,7 +197,7 @@ they should be listed in reverse order. In the above example, the cures string s
 ### Cures
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Status Effect|Data-Structure:-Status]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](status.md)>
   `this.cures`
 
 This is an internal attribute which contains references to each of the Status Effect objects whose names are listed in
@@ -217,7 +216,7 @@ is blank, Inventory Items using it will simply disappear from the Player's inven
 
 ### Next Stage
 
-* Class attribute: [[Prefab|Data-Structure:-Prefab]] `this.nextStage`
+* Class attribute: [Prefab](prefab.md) `this.nextStage`
 
 This is an internal attribute which simply contains a reference to the actual Prefab object whose ID matches
 `this.nextStageName`. If no next stage name is given, this will be `null` instead.
@@ -229,12 +228,12 @@ This is an internal attribute which simply contains a reference to the actual Pr
   `this.equippable`
 
 This is another Boolean value indicating whether Inventory Items using this Prefab can be equipped to one of the
-player's [[Equipment Slots|Data-Structure:-EquipmentSlot]]. If this is `true`, then Players will be able to equip it to
-one of the Equipment Slots that it's restricted to. If this is `false`, they will simply be told that the item is
-unequippable. Additionally, if this is `false`, Players will be unable to unequip the Inventory Item if it's already
-equipped. Note that a [[moderator|Tutorial:-Moderating]] can forcibly equip and unequip Inventory Items for a Player
-regardless of whether this is `true` or `false`. Note that when an Inventory Item is equipped or unequipped, a Narration
-will always be sent to the Room the Player is in.
+player's [Equipment Slots](equipment_slot.md). If this is `true`, then Players will be able to equip it to one of the
+Equipment Slots that it's restricted to. If this is `false`, they will simply be told that the item is unequippable.
+Additionally, if this is `false`, Players will be unable to unequip the Inventory Item if it's already equipped. Note
+that a [[moderator|Tutorial:-Moderating]] can forcibly equip and unequip Inventory Items for a Player regardless of
+whether this is `true` or `false`. Note that when an Inventory Item is equipped or unequipped, a Narration will always
+be sent to the Room the Player is in.
 
 ### Equipment Slots
 
@@ -260,9 +259,9 @@ whether or not it is listed here.
 
 This is a list of Equipment Slots that this Prefab will cover when it is equipped. When an Equipment Slot is covered by
 another equipped Inventory Item, the single containing phrase of whatever Inventory Item is equipped to it will be
-removed from the equipment item list in the [[Player's description|Data-Structure:-Player#description]]. Only when the
-Player unequips all Inventory Items whose Prefabs cover that Equipment Slot will the single containing phrase of that
-Inventory Item be added to the Player description's equipment item list again.
+removed from the equipment item list in the [Player's description](player.md#description). Only when the Player unequips
+all Inventory Items whose Prefabs cover that Equipment Slot will the single containing phrase of that Inventory Item be
+added to the Player description's equipment item list again.
 
 ### Equipped Commands
 
@@ -327,14 +326,14 @@ Items/Inventory Items.**
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.preposition`
 
-This attribute is similar to the [[preposition attribute in the Object class|Data-Structure:-Object#preposition]].
-However, it does not determine whether instances of this Prefab can contain Items/Inventory Items. That function is
-taken care of by the inventory attribute of the Prefab. Otherwise, it functions the same. When a Player drops/stashes a
-non-discreet Item/Inventory Item into an instance of this Prefab, Alter Ego will narrate them doing so using this
-preposition. For example, if the player Seamus stashes an Inventory Item named MALLET into another Inventory Item named
-GUITAR CASE whose Prefab has the preposition "in", Alter Ego will send "Seamus stashes a MALLET in his GUITAR CASE." to
-the Room channel Seamus is currently in. If, however, Seamus drops the MALLET Inventory Item into a GUITAR CASE Item in
-the room, Alter Ego will send "Seamus puts a MALLET in the GUITAR CASE."
+This attribute is similar to the [preposition attribute in the Object class](object.md#preposition). However, it does
+not determine whether instances of this Prefab can contain Items/Inventory Items. That function is taken care of by the
+inventory attribute of the Prefab. Otherwise, it functions the same. When a Player drops/stashes a non-discreet
+Item/Inventory Item into an instance of this Prefab, Alter Ego will narrate them doing so using this preposition. For
+example, if the player Seamus stashes an Inventory Item named MALLET into another Inventory Item named GUITAR CASE whose
+Prefab has the preposition "in", Alter Ego will send "Seamus stashes a MALLET in his GUITAR CASE." to the Room channel
+Seamus is currently in. If, however, Seamus drops the MALLET Inventory Item into a GUITAR CASE Item in the room, Alter
+Ego will send "Seamus puts a MALLET in the GUITAR CASE."
 
 ### Description
 

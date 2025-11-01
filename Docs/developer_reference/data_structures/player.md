@@ -1,14 +1,14 @@
 # Player
 
-A **Player** is a data structure in the [[Neo World Program]]. It represents a player that can interact with the game
-world in a variety of ways.
+A Player is a data structure in the Neo World Program. It represents a player that can interact with the game world in a
+variety of ways.
 
-There are two types of Players: full Players and NPCs. A full Player is associated with a [[Discord]] account, and can
-be controlled by that account. An NPC, short for non-player character, can do nearly everything a full Player can do,
-however it is not associated with a Discord account; it can only be controlled by a [[moderator|Tutorial:-Moderating]].
+There are two types of Players: full Players and NPCs. A full Player is associated with a Discord account, and can be
+controlled by that account. An NPC, short for non-player character, can do nearly everything a full Player can do,
+however it is not associated with a Discord account; it can only be controlled by a moderator.
 
-It should be noted that when Player data is loaded, so too are [[Inventory Items|Data-Structure:-InventoryItem]].
-Inventory Items can be loaded without loading Player data, but not vice versa.
+It should be noted that when Player data is loaded, so too are [Inventory Items](inventory_item.md). Inventory Items can
+be loaded without loading Player data, but not vice versa.
 
 ## Table of Contents
 
@@ -19,8 +19,8 @@ Inventory Items can be loaded without loading Player data, but not vice versa.
 In order to provide a wide array of functionality, Players have many attributes. Note that if an attribute is
 _internal_, that means it only exists within
 the [Player class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Player.js). Internal attributes will be given
-in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on the
+spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### ID
 
@@ -28,19 +28,19 @@ the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.id`
 
-For full Players, this is the [unique ID](https://discord.js.org/#/docs/main/stable/typedef/Snowflake) assigned to
-their [[Discord]] account. [[Developer Mode|Tutorial:-Installation-and-setup#enable-developer-mode]] must be enabled in
-order to obtain this ID by right clicking on a Discord user and selecting **Copy ID**. When Player data is
-loaded, [[Alter Ego]] will fetch the [guild member](https://discord.js.org/#/docs/main/stable/class/GuildMember) whose
-account has this ID. That Discord user will then be able to control this Player. Because Alter Ego requires guild member
-data, this account must belong to a Discord user in the server. If the user associated with a particular Player leaves
-the server, Alter Ego will be unable to load that Player's data; they must either be removed from the spreadsheet,
-converted to an NPC, or reassigned a different ID.
+For full Players, this is the [unique ID](https://discord.js.org/#/docs/main/stable/typedef/Snowflake) assigned to their
+Discord account. [Developer Mode](../../moderator_guide/installation.md#enable-developer-mode) must be enabled in order
+to obtain this ID by right clicking on a Discord user and selecting **Copy ID**. When Player data is loaded, Alter Ego
+will fetch the [guild member](https://discord.js.org/#/docs/main/stable/class/GuildMember) whose account has this ID.
+That Discord user will then be able to control this Player. Because Alter Ego requires guild member data, this account
+must belong to a Discord user in the server. If the user associated with a particular Player leaves the server, Alter
+Ego will be unable to load that Player's data; they must either be removed from the spreadsheet, converted to an NPC, or
+reassigned a different ID.
 
 Because NPCs aren't associated with a Discord account, this attribute is repurposed for them. Instead of a Discord user
 ID, this must be an image URL with a `.png` or `.jpg` file extension. This image will be used as the NPC's avatar when
-they speak; it will appear in [[Room|Data-Structure:-Room]], [[Whisper|Data-Structure:-Whisper]],
-and [[spectate channels|Data-Structure:-Player#spectate-channel]].
+they speak; it will appear in [Room](room.md), [Whisper](whisper.md),
+and [spectate channels](player.md#spectate-channel).
 
 ### Member
 
@@ -67,13 +67,13 @@ letter is capitalized, and the rest is in lowercase. However, this is not a requ
   `this.displayName`
 
 This internal attribute is the string which Alter Ego uses to refer to the Player during most gameplay scenarios. It is
-used instead of the name in [[Narrations|Data-Structure:-Narration]], spectate channels, and more. The reason this is
-used is that unlike the Player's name, this can change during gameplay. It is automatically changed when the Player is
-inflicted with a [[Status Effect|Data-Structure:-Status]] that has the
-`concealed` [[behavior attribute|Data-Structure:-Status#behavior-attributes]], and it can be manually changed with
-the [[setdisplayname|Commands#setdisplayname-moderator-command]] [[command|Commands#setdisplayname-bot-command]]. When
-Player data is loaded, this is the same as the Player's name. For that reason, moderators should be careful when loading
-Player data during gameplay, as any Players with different display names will have their display names reset.
+used instead of the name in [Narrations](), spectate channels, and more. The reason this is used is that unlike the
+Player's name, this can change during gameplay. It is automatically changed when the Player is inflicted with
+a [Status Effect](status.md) that has the
+`concealed` [behavior attribute](status.md#behavior-attributes), and it can be manually changed with
+the [setdisplayname](../commands/moderator_commands.md#setdisplayname) [command](../commands/bot_commands.md#setdisplayname).
+When Player data is loaded, this is the same as the Player's name. For that reason, moderators should be careful when
+loading Player data during gameplay, as any Players with different display names will have their display names reset.
 
 ### Display Icon
 
@@ -81,15 +81,16 @@ Player data during gameplay, as any Players with different display names will ha
   `this.displayIcon`
 
 This is an internal attribute which contains an image URL that will be used as an avatar when the Player uses
-the [[say|Commands#say-player-command]] [[command|Commands#say-moderator-command]], and when their dialog appears in a
-spectate channel. It is also used when NPCs use the [[whisper command|Commands#whisper-moderator-command]]. For full
-Players, this is most often `null` -
+the [say](../commands/player_commands.md#say) [command](../commands/moderator_commands.md#say), and when their dialog
+appears in a spectate channel. It is also used when NPCs use
+the [whisper command](../commands/moderator_commands.md#whisper). For full Players, this is most often `null` -
 their [display avatar](https://discord.js.org/#/docs/main/stable/class/GuildMember?scrollTo=displayAvatarURL) is used
 instead. Only NPCs have this set to a non-`null` value by default: the image URL in their ID. Much like the Player's
 display name, this can change during gameplay. It is automatically set
 to [this image](https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png) when the
 Player is inflicted with a Status Effect that has the `concealed` behavior attribute, and it can be manually changed
-with the [[setdisplayicon|Commands#setdisplayicon-moderator-command]] [[command|Commands#setdisplayicon-bot-command]].
+with
+the [setdisplayicon](../commands/moderator_commands.md#setdisplayicon) [command](../commands/bot_commands.md#setdisplayicon).
 However, it should be noted this will **not** replace a full Player's avatar when they speak in a Room or Whisper
 channel by sending a message to it; it will only appear in spectate channels when this is the case.
 
@@ -101,15 +102,15 @@ channel by sending a message to it; it will only appear in spectate channels whe
 
 This is primarily a relic from older versions of Alter Ego which used this attribute to produce behavior that has since
 been re-implemented using Status Effect behavior attributes. For full Players, this can be left blank without issue.
-However, its main benefit is that it can be used as a variable in [[descriptions|Tutorial:-Writing-descriptions#if]].
+However, its main benefit is that it can be used as a variable
+in [descriptions](../../moderator_guide/writing_descriptions.md#if).
 
 There is one programmed use case for this attribute. If this is set to `NPC`, then the Player will become an NPC. If the
 Player has the `NPC` talent, then Alter Ego will not do anything to them that would require a Discord account, such as
 sending them DMs, granting/revoking them permission to read channels, and adding/removing roles. NPC Players also will
 not be counted in the online Player count, will not be inflicted with or cured of Status Effects when the "all" argument
-is used in the [[status|Commands#status-moderator-command]] [[command|Commands#status-bot-command]], and will not be
-moved when the "all" argument is used in
-the [[move|Commands#move-moderator-command]] [[command|Commands#move-bot-command]].
+is used in the [status](status.md) [command](../commands/bot_commands.md#status), and will not be moved when the "all"
+argument is used in the [move](../commands/moderator_commands.md#move) [command](../commands/bot_commands.md#move).
 
 ### Pronoun String
 
@@ -156,8 +157,7 @@ Narrations, and dialog can all be written with alternating pronouns.
   `this.originalPronouns`
 
 This internal attribute is an object containing variables that contain each of the Player's default pronouns. This is
-primarily used in response messages in [[moderator commands|Commands#moderator-commands]] and
-in [[log messages|Tutorial:-Installation-and-setup#channel-bot-log]].
+primarily used in response messages in [moderator commands](../commands/moderator_commands.md) and in log messages.
 
 Please see the following class attribute for more info.
 
@@ -170,10 +170,10 @@ This internal attribute is an object containing variables that contain each of t
 primarily what is used in Narrations. The reason this is used is that unlike the Player's original pronouns, this can
 change during gameplay. It is automatically changed to the `neutral` pronoun set when the Player is inflicted with a
 Status Effect that has the `concealed` behavior attribute, and it can be manually changed with
-the [[setpronouns|Commands#setpronouns-moderator-command]] [[command|Commands#setpronouns-bot-command]]. When Player
-data is loaded, this is the same as the Player's original pronouns, right down to the structure. For that reason,
-moderators should be careful when loading Player data during gameplay, as any Players with pronouns different from their
-original pronouns will have their pronouns reset.
+the [setpronouns](../commands/moderator_commands.md#setpronouns) [command](../commands/bot_commands.md#setpronouns).
+When Player data is loaded, this is the same as the Player's original pronouns, right down to the structure. For that
+reason, moderators should be careful when loading Player data during gameplay, as any Players with pronouns different
+from their original pronouns will have their pronouns reset.
 
 This, as well as the original pronouns attribute, has the following structure:
 
@@ -283,13 +283,14 @@ with "voice". Here are some examples with the Player's voice string in bold:
 
 This internal attribute contains the Player's current voice descriptor. This is primarily what is used in Narrations.
 The reason this is used is that unlike the Player's original voice string, this can change during gameplay. It can be
-manually changed with the [[setvoice|Commands#setvoice-moderator-command]] [[command|Commands#setvoice-bot-command]].
-When Player data is loaded, this is the same as the Player's original voice string. For that reason, moderators should
-be careful when loading Player data during gameplay, as any Players with a voice string different from their original
-voice string will have their voice string reset. If the name of another Player, whether living or dead, is supplied,
-then the Player will speak using that Player's voice. This will even trick Players with the
-`knows [Player name]` [[behavior attribute|Data-Structure:-Status#behavior-attributes]] into recognizing this Player's
-voice as the mimicked Player.
+manually changed with
+the [setvoice](../commands/moderator_commands.md#setvoice) [command](../commands/bot_commands.md#setvoice). When Player
+data is loaded, this is the same as the Player's original voice string. For that reason, moderators should be careful
+when loading Player data during gameplay, as any Players with a voice string different from their original voice string
+will have their voice string reset. If the name of another Player, whether living or dead, is supplied, then the Player
+will speak using that Player's voice. This will even trick Players with the
+`knows [Player name]` [behavior attribute](status.md#behavior-attributes) into recognizing this Player's voice as the
+mimicked Player.
 
 ### Stats
 
@@ -297,8 +298,8 @@ voice as the mimicked Player.
 
 This is an external attribute. It only exists to group the Player's stats together under one label. A Player's stats are
 used in a variety of situations. Common applications of all of them include their ability to
-be [[modified by Status Effects|Data-Structure:-Status#stat-modifiers]] and their ability to be used as a modifier
-in [[Die rolls|Data-Structure:-Die]]. Here, their individual properties and applications will be detailed below.
+be [modified by Status Effects](status.md#Stat-modifiers) and their ability to be used as a modifier
+in [Die rolls](die.md). Here, their individual properties and applications will be detailed below.
 
 ### Default Strength
 
@@ -317,8 +318,8 @@ from 1 - 10.
 This internal attribute is the Player's current strength stat. By default, this equals their default strength, however
 it can be changed by Status Effects with stat modifiers.
 
-This stat is used to calculate the Player's [[maximum carry weight|Data-Structure:-Player#max-carry-weight]]. This value
-is recalculated every time the Player's strength stat changes. The formula to calculate the Player's max carry weight in
+This stat is used to calculate the Player's [maximum carry weight](player.md#Max-carry-weight). This value is
+recalculated every time the Player's strength stat changes. The formula to calculate the Player's max carry weight in
 kilograms is quadratic, not linear. It is roughly based on the range of real human weightlifting capacities. The full
 formula, where `x` is the Player's strength stat, is:
 
@@ -342,7 +343,7 @@ In effect, each strength stat value corresponds with a predetermined max carry w
 | 10             | 180                   | 396                   |
 
 The strength stat also has special behavior in Die rolls. If a Die is rolled using this Player's strength stat,
-the [[defender's|Data-Structure:-Die#defender]] [[dexterity|Data-Structure:-Player#dexterity]] [[roll modifier|Data-Structure:-Die#stat-roll-modifier]]
+the [defender's](Die.Md#Defender) [dexterity](player.md#Dexterity) [roll modifier](Die.Md#Stat-roll-modifier)
 will be multiplied by `-1` and added to the Die's modifier. In effect, this factors in the defender's ability to dodge
 the Player's attack.
 
@@ -365,8 +366,8 @@ however it can be changed by Status Effects with stat modifiers.
 
 This stat has no programmed use. However, it can be used in [[if conditionals|Tutorial:-Writing-descriptions#if]] when
 writing descriptions to affect what the Player sees when inspecting various things. For example, a Player with a high
-intelligence stat may receive more clues to assist in solving [[Puzzles|Data-Structure:-Puzzle]] and murders than a
-Player with a low intelligence stat. Whereas a Player with a low intelligence stat might see this:
+intelligence stat may receive more clues to assist in solving [Puzzles](puzzle.md) and murders than a Player with a low
+intelligence stat. Whereas a Player with a low intelligence stat might see this:
 
 `It's a small compartment below the dartboard. Written on it is "Prime x Prime x Prime = 266". There doesn't seem to be any way to open it. Maybe it will open if you hit three prime numbers on the dartboard that multiply together to make 266.`
 
@@ -399,12 +400,11 @@ body. It must be a whole number from 1 - 10.
 This internal attribute is the Player's current dexterity stat. By default, this equals their default dexterity, however
 it can be changed by Status Effects with stat modifiers.
 
-This stat is used to determine the Player's probability of success when attempting
-to [[steal|Stealing]] [[Inventory Items|Data-Structure:-InventoryItem]] from another Player. When this occurs, a Die is
-rolled using this Player's dexterity stat, with the victim as the defender. If the Player has a high dexterity stat, and
-thus a positive dexterity roll modifier, then they will be more likely to succeed when attempting to steal. If the
-Player has a low dexterity stat, and thus a negative dexterity roll modifier, then they will be more likely to fail when
-attempting to steal.
+This stat is used to determine the Player's probability of success when attempting to
+steal [Inventory Items](InventoryIte.Mdm) from another Player. When this occurs, a Die is rolled using this Player's
+dexterity stat, with the victim as the defender. If the Player has a high dexterity stat, and thus a positive dexterity
+roll modifier, then they will be more likely to succeed when attempting to steal. If the Player has a low dexterity
+stat, and thus a negative dexterity roll modifier, then they will be more likely to fail when attempting to steal.
 
 It also has special behavior in Die rolls. If a Die is rolled using a different Player's strength stat where this Player
 is the defender, this Player's dexterity roll modifier will be multiplied by `-1` and added to the Die's modifier. In
@@ -428,17 +428,16 @@ number from 1 - 10.
 This internal attribute is the Player's current speed stat. By default, this equals their default speed, however it can
 be changed by Status Effects with stat modifiers.
 
-This stat is used to calculate the amount of time it takes for the Player to travel from
-one [[Exit|Data-Structure:-Exit]] to another in a [[Room|Data-Structure:-Room]].
+This stat is used to calculate the amount of time it takes for the Player to travel from one [Exit](Exi.Mdt) to another
+in a [Room](Roo.Mdm).
 
 The flat distance in pixels between the Player's current position and the desired Exit's position is calculated using
 the [distance formula](https://en.wikipedia.org/wiki/Euclidean_distance#Two_dimensions) with the two positions'
-respective [[X|Data-Structure:-Exit#x]] and [[Z|Data-Structure:-Exit#z]] coordinates. The flat distance is then
-converted to meters by dividing this value by the [[pixelsPerMeter setting|Tutorial:-Settings-(Node)#pixelspermeter]].
-The rise of the Exit's position relative to the Player's is calculated by subtracting the
-Player's [[Y coordinate|Data-Structure:-Player#y]] from [[the Exit's|Data-Structure:-Exit#y]] and dividing the resulting
-value by the pixels per meter setting. The slope between the two positions is then calculated by dividing the rise in
-meters by the flat distance in meters.
+respective [X](exit.md#X) and [Z](exit.md#Z) coordinates. The flat distance is then converted to meters by dividing this
+value by the [[pixelsPerMeter setting|Tutorial:-Settings-(Node)#pixelspermeter]]. The rise of the Exit's position
+relative to the Player's is calculated by subtracting the Player's [Y coordinate](player.md#Y)
+from [the Exit's](exit.md#Y) and dividing the resulting value by the pixels per meter setting. The slope between the two
+positions is then calculated by dividing the rise in meters by the flat distance in meters.
 
 Movement speed is roughly based on the range of real human movement speeds. For example, a Player with a speed stat of
 10 would have a movement speed of 8.34 meters per second. This is slightly less than Usain Bolt's top sprinting speed of
@@ -451,8 +450,8 @@ In this formula are several variables:
 
 * `x` is the Player's speed stat.
 * `r` is `1` if the Player is walking and `2` if the Player is running.
-* `w` is a fraction which represents slowdown based on the [[combined weight|Data-Structure:-Player#carry-weight]] of
-  all of the Player's Inventory Items. The formula to calculate this, where `c` is the Player's carry weight, is
+* `w` is a fraction which represents slowdown based on the [combined weight](player.md#Carry-weight) of all of the
+  Player's Inventory Items. The formula to calculate this, where `c` is the Player's carry weight, is
   `w = 15 / c`. However, the calculated value is clamped between 1/4 and 1.
 
 The final rate, in meters per millisecond, is then calculated with the following formula, where `b` is the base rate and
@@ -564,7 +563,7 @@ interacted with, all of their data is inaccessible.
 ### Location
 
 * Spreadsheet label: **Location**
-* Class attribute: [[Room|Data-Structure:-Room]] `this.location`
+* Class attribute: [Room](Roo.Mdm) `this.location`
 
 This is the Room that the Player is currently in. This must match the Room's name exactly on the spreadsheet.
 
@@ -626,7 +625,7 @@ Player is not currently hidden, this should be left blank.
 ### Status
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Status Effect|Data-Structure:-Status]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](Statu.Mds)>
   `this.status`
 
 This internal attribute contains a list of all instantiated Status Effects that the Player currently has. Every time a
@@ -639,9 +638,8 @@ Status Effect is inflicted or cured, the Player's stats are recalculated.
   `this.statusString`
 
 This string is a comma-separated list of the names of all Status Effects that the Player currently has, including those
-that aren't [[visible|Data-Structure:-Status#visible]]. If a Status Effect has
-a [[duration|Data-Structure:-Status#duration]], it can be listed here by putting the duration in parentheses. The
-duration must follow a specific format:
+that aren't [visible](status.md#Visible). If a Status Effect has a [duration](status.md#Duration), it can be listed here
+by putting the duration in parentheses. The duration must follow a specific format:
 
 `(D) H:mm:ss`
 
@@ -696,14 +694,14 @@ Within the `desc` tags of the Player's description, there are five sections:
 
 `<if cond="container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /> <if cond="container.pronouns.plural">are</if><if cond="!container.pronouns.plural">is</if> [HEIGHT], but <var v="container.pronouns.dpos" /> face is concealed.</s></if>`
 
-* This section describes the Player with very little detail in order to avoid revealing their identity when they
-  have the `concealed` behavior attribute.
+* This section describes the Player with very little detail in order to avoid revealing their identity when they have
+  the `concealed` behavior attribute.
 * The `concealed` behavior attribute automatically changes the Player's pronouns to the `neutral` set. Consequently,
   this section could be written as
   `<if cond="container.hasAttribute('concealed')"><s>They are [HEIGHT], but their face is concealed.</s></if>` for
   simplicity's sake. However, doing so removes the possibility of using the setpronouns command after the Player is
-  inflicted with the `concealed` behavior attribute. It can still be used, but the new pronouns will not be
-  reflected in the Player's description.
+  inflicted with the `concealed` behavior attribute. It can still be used, but the new pronouns will not be reflected in
+  the Player's description.
 
 *
 
@@ -713,34 +711,34 @@ Within the `desc` tags of the Player's description, there are five sections:
   attribute.
 * Because the Player's pronouns do not automatically change unless they are inflicted with the `concealed` behavior
   attribute, this section could be written without making use of the Player's pronouns in `var` tags. Instead, the
-  Player's pronouns could be written as plain text. This would allow a Player who uses multiple pronouns
-  interchangeably to be referred to with alternating pronouns, for example. However, this would hamper the use of
-  the setpronouns command for the Player unless additional logic checking is added.
-* In this section, the Player can be described in much more detail than the default description allows for, and
-  detail can be added throughout the course of the game if the Player's appearance changes in significant ways.
-  However, Player descriptions should ideally be kept as short as possible so as to not overwhelm Players with too
-  much irrelevant information.
-* An example of this section that makes use of static pronouns, extra detail, and extra conditionals, might look
-  like this:
+  Player's pronouns could be written as plain text. This would allow a Player who uses multiple pronouns interchangeably
+  to be referred to with alternating pronouns, for example. However, this would hamper the use of the setpronouns
+  command for the Player unless additional logic checking is added.
+* In this section, the Player can be described in much more detail than the default description allows for, and detail
+  can be added throughout the course of the game if the Player's appearance changes in significant ways. However, Player
+  descriptions should ideally be kept as short as possible so as to not overwhelm Players with too much irrelevant
+  information.
+* An example of this section that makes use of static pronouns, extra detail, and extra conditionals, might look like
+  this:
   `<if cond="!container.hasAttribute('concealed')"><s>It's a fairly young individual of average height with very pale skin.</s> <s>He's quite scrawny and frail-looking, with a very small chest.</s> <s>She has black eyes and short, red hair with bangs falling a little into her face and shoulder-length fringes on both sides, with the rest of its hair <if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') !== undefined">done up in two buns held together with a pair of black ribbons</if><if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') === undefined">coming down to about the shoulders</if>.</s> <s>He looks easy enough to get along with, if a little nervous.</s></if>`
 
 *
 
 `<s><var v="container.pronouns.Sbj" /> wear<if cond="!container.pronouns.plural">s</if> <il name="equipment"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s>`
 
-* This sentence lists all Inventory Items that the Player currently has [[equipped|Data-Structure:-EquipmentSlot]],
-  except for those equipped to their "RIGHT HAND" and "LEFT HAND" Equipment Slots and those whose Equipment Slot
-  is [[covered|Data-Structure:-Prefab#covered-equipment-slots]] by another equipped Inventory Item.
-* If the Player's equipped Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag
-  must be manually updated with the [[single containing phrases|Data-Structure:-Prefab#single-containing-phrase]] of
-  the respective Inventory Items in `item` tags.
+* This sentence lists all Inventory Items that the Player currently has [equipped](equipment_slot.md), except for those
+  equipped to their "RIGHT HAND" and "LEFT HAND" Equipment Slots and those whose Equipment Slot
+  is [covered](prefab.md#Covered-equipment-slots) by another equipped Inventory Item.
+* If the Player's equipped Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
+  manually updated with the [single containing phrases](prefab.md#Single-containing-phrase) of the respective Inventory
+  Items in `item` tags.
 * If nothing is listed in the `il` tag, this sentence will not appear in the parsed description.
 * Because this sentence appears regardless of whether or not the Player has the `concealed` behavior attribute,
   `var` tags should be used to reference the Player's pronouns. They should not be replaced with static pronouns.
 
 * `<s>You see <var v="container.pronouns.obj" /> carrying <il name="hands"></il>.</s>`
-    * This sentence lists all [[non-discreet|Data-Structure:-Prefab#discreet]] Inventory Items that the Player currently
-      has equipped to their "RIGHT HAND" or "LEFT HAND" Equipment Slots.
+    * This sentence lists all [non-discreet](prefab.md#Discreet) Inventory Items that the Player currently has equipped
+      to their "RIGHT HAND" or "LEFT HAND" Equipment Slots.
     * If the Player's held Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
       manually updated with the single containing phrases of the respective Inventory Items in `item` tags.
     * If nothing is listed in the `il` tag, this sentence will not appear in the parsed description.
@@ -757,11 +755,11 @@ with additional detail that makes use of static pronouns where possible might lo
 ### Inventory
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Equipment Slot|Data-Structure:-EquipmentSlot]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Equipment Slot](equipment_slot.md)>
   `this.inventory`
 
 This internal attribute is a list of Equipment Slots that the Player has. See the article
-on [[Equipment Slots|Data-Structure:-EquipmentSlot]] for more information.
+on [Equipment Slots](equipment_slot.md) for more information.
 
 ### Spectate Channel
 
@@ -781,7 +779,8 @@ There are some things that do not appear in spectate channels, however. Out-Of-C
 begin with `(` - are not sent, as
 the [dialogHandler module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/dialogHandler.js) does not count
 these as dialog. The Player's commands are also not sent, nor are error messages about command syntax. When the Player
-uses the [[status command|Commands#status-player-command]], their status will not appear in their spectate channel.
+uses the [status command](../commands/player_commands.md#status), their status will not appear in their spectate
+channel.
 
 ### Max Carry Weight
 
@@ -789,22 +788,22 @@ uses the [[status command|Commands#status-player-command]], their status will no
   `this.maxCarryWeight`
 
 This internal attribute is the maximum weight the Player can currently carry in kilograms. How it is calculated is
-described in more detail in the [[strength stat section|Data-Structure:-Player#strength]]. If the Player attempts to
-take an Item that is heavier than this number, they will be told it is too heavy to lift, and if the Item is
-non-discreet, their attempt to take it will be Narrated in the Room channel. Likewise, if they attempt to take an Item
-that would make their current carry weight exceed this value, they will be told that they're carrying too much weight;
-however, this will not be Narrated. The same happens if another Player attempts to give this Player an Inventory Item
-that would exceed this value. If the Player uses the [[dress command|Commands#dress-player-command]], they will be
-unable to dress themself in any Items that would exceed this value, although they will not be notified of it.
+described in more detail in the [strength stat section](player.md#Strength). If the Player attempts to take an Item that
+is heavier than this number, they will be told it is too heavy to lift, and if the Item is non-discreet, their attempt
+to take it will be Narrated in the Room channel. Likewise, if they attempt to take an Item that would make their current
+carry weight exceed this value, they will be told that they're carrying too much weight; however, this will not be
+Narrated. The same happens if another Player attempts to give this Player an Inventory Item that would exceed this
+value. If the Player uses the [dress command](../commands/player_commands.md#dress), they will be unable to dress
+themself in any Items that would exceed this value, although they will not be notified of it.
 
 ### Carry Weight
 
 * Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.carryWeight`
 
-This internal attribute is the combined [[weight|Data-Structure:-InventoryItem#weight]] of all of the Player's Inventory
-Items. This is updated every time the Player's inventory changes. This is used to determine how much slower the Player
-will be [[when moving|Data-Structure:-Player#speed]].
+This internal attribute is the combined [weight](inventory_item.md#Weight) of all of the Player's Inventory Items. This
+is updated every time the Player's inventory changes. This is used to determine how much slower the Player will
+be [when moving](player.md#Speed).
 
 ### Row
 
@@ -833,11 +832,10 @@ dies, they will stop moving, and all class attributes associated with movement w
 
 This internal attribute uses the [setInterval method](https://developer.mozilla.org/en-US/docs/Web/API/setInterval) to
 handle the Player's movement. Every 100 milliseconds, 100 milliseconds are subtracted from the
-Player's [[remaining time|Data-Structure:-Player#remaining-time]], and the Player's position and stamina are updated.
-However, if at least one Player in the game has the "heated" Status Effect, the amount of milliseconds subtracted from
-the Player's remaining time is first multiplied by
-the [[heatedSlowdownRate setting|Tutorial:-Settings-(Node)#heatedslowdownrate]], effectively making the Player move more
-slowly. If the Player stops moving for any reason,
+Player's [remaining time](player.md#Remaining-time), and the Player's position and stamina are updated. However, if at
+least one Player in the game has the "heated" Status Effect, the amount of milliseconds subtracted from the Player's
+remaining time is first multiplied by the [[heatedSlowdownRate setting|Tutorial:-Settings-(Node)#heatedslowdownrate]],
+effectively making the Player move more slowly. If the Player stops moving for any reason,
 the [clearInterval method](https://developer.mozilla.org/en-US/docs/Web/API/clearInterval) is used on this so that the
 Player's movement will no longer continue. When Player data is loaded, this is `null`.
 
@@ -856,12 +854,12 @@ currently moving to. If the Player stops moving for any reason, this is set to `
   `this.moveQueue`
 
 This internal attribute is a list of all movements the Player wishes to make in sequential order. When the Player uses
-the [[move command|Commands#move-player-command]] or [[run command|Commands#run-player-command]], the Exits they supply
-as arguments are inserted into this list. Each one is parsed, and if the desired Exit is found, the Player begins moving
-to that Exit. When they reach the next Room, the next entry in the queue is parsed and the cycle continues until the
-Player reaches the final destination. However, if any entry in the queue is an invalid destination or they attempt to
-enter a [[locked Exit|Data-Structure:-Exit#unlocked]], the Player is notified of their mistake, they stop moving, and
-the queue is emptied.
+the [move command](../commands/player_commands.md#move) or [run command](../commands/player_commands.md#run), the Exits
+they supply as arguments are inserted into this list. Each one is parsed, and if the desired Exit is found, the Player
+begins moving to that Exit. When they reach the next Room, the next entry in the queue is parsed and the cycle continues
+until the Player reaches the final destination. However, if any entry in the queue is an invalid destination or they
+attempt to enter a [locked Exit](exit.md#Unlocked), the Player is notified of their mistake, they stop moving, and the
+queue is emptied.
 
 This class attribute is unused if the Player is moved with the moderator or bot command, because those commands move the
 Player instantaneously. As such, NPCs cannot have queued movements.

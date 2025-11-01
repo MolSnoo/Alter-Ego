@@ -1,8 +1,8 @@
 # Item
 
-An **Item** is a data structure in the [[Neo World Program]]. It represents an item in a [[Room|Data-Structure:-Room]]
-that a [[Player|Data-Structure:-Player]] can take with them. It is an instance of a [[Prefab|Data-Structure:-Prefab]],
-and is similar to an [[Inventory Item|Data-Structure:-InventoryItem]].
+An Item is a data structure in the Neo World Program. It represents an item in a [Room](room.md)
+that a [Player](player.md) can take with them. It is an instance of a [Prefab](prefab.md), and is similar to
+an [Inventory Item](inventory_item.md).
 
 ## Table of Contents
 
@@ -13,13 +13,13 @@ and is similar to an [[Inventory Item|Data-Structure:-InventoryItem]].
 Items themselves have relatively few attributes. However. being instances of Prefabs, they inherit many attributes as a
 result. Note that if an attribute is _internal_, that means it only exists within
 the [Item class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Item.js). Internal attributes will be given in
-the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on the
+spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Prefab
 
 * Spreadsheet label: **Prefab**
-* Class attribute: [[Prefab|Data-Structure:-Prefab]] `this.prefab`
+* Class attribute: [Prefab](prefab.md) `this.prefab`
 
 This is the ID of the Prefab this Item is an instance of. It gives the Item most of its properties. The class attribute,
 `this.prefab` is a reference to the actual Prefab object underlying the Item, making all of that Prefab's attributes
@@ -82,7 +82,7 @@ the Prefab's plural containing phrase slightly easier.
 ### Location
 
 * Spreadsheet label: **Location**
-* Class attribute: [[Room|Data-Structure:-Room]] `this.location`
+* Class attribute: [Room](room.md) `this.location`
 
 This is the Room the Item can be found in. This must match the Room's name exactly on the spreadsheet.
 
@@ -103,14 +103,14 @@ player tries to interact with it in any way.
   `this.containerName`
 
 This is a type and name of the container the Item can be found in. An Item's container is the data structure whose
-description contains a mention of the Item in an [[item list|Tutorial:-Writing-descriptions#il]]. When the Item is
-taken, mention of the Item will be removed from the item list in its container. Note that the Item's container must be
-in the same Room as the Item itself.
+description contains a mention of the Item in an [item list](../../moderator_guide/writing_descriptions.md#il). When the
+Item is taken, mention of the Item will be removed from the item list in its container. Note that the Item's container
+must be in the same Room as the Item itself.
 
 In order to properly specify an Item's container, the type of the container must be specified, then a colon, then the
 container's name. However, if the container is another Item, then its identifier must be given instead of its name, and
-the [[inventory slot|Data-Structure:-Prefab#inventory]] this Item is in, with both separated by a forward slash (`/`).
-For some examples of correct container names, see the following table:
+the [inventory slot](prefab.md#inventory) this Item is in, with both separated by a forward slash (`/`). For some
+examples of correct container names, see the following table:
 
 | Type   | Name / Identifier | Inventory Slot | Container Name                      |
 |--------|-------------------|----------------|-------------------------------------|
@@ -120,7 +120,7 @@ For some examples of correct container names, see the following table:
 
 ### Container
 
-* Class attribute: [[Object|Data-Structure:-Object]]|[[Puzzle|Data-Structure:-Puzzle]]|[[Item|Data-Structure:-Item]]
+* Class attribute: [Object](object.md)|[Puzzle](puzzle.md)|[Item](item.md)
   `this.container`
 
 This is an internal attribute which simply contains a reference to the actual Object, Puzzle, or Item object whose name
@@ -155,15 +155,15 @@ This is a whole number indicating how many times this Item can be used. Although
 Prefab, it can be manually set to differ on the spreadsheet. If no number of uses is given, the Item can be used
 infinitely. Note that Items cannot be used by a Player, so this attribute primarily denotes how many times an Item can
 be used if it is turned into an Inventory Item by being taken. For more details, see the section
-about [[Inventory Item uses|Data-Structure:-InventoryItem#uses]].
+about [Inventory Item uses](inventory_item.md#uses).
 
-Alter Ego uses this attribute when processing this Item as part of a [[Recipe|Data-Structure:-Recipe]]. If this Item is
-used as an ingredient and its Prefab is listed as a product in the Recipe, and it has a limited number of uses, its uses
-will be decreased by 1 every time the Recipe is finished processing. If this happens and its uses is decreased to 0, one
-of two things will happen:
+Alter Ego uses this attribute when processing this Item as part of a [Recipe](recipe.md). If this Item is used as an
+ingredient and its Prefab is listed as a product in the Recipe, and it has a limited number of uses, its uses will be
+decreased by 1 every time the Recipe is finished processing. If this happens and its uses is decreased to 0, one of two
+things will happen:
 
-* If the Item's Prefab has a [[next stage|Data-Structure:-Prefab#next-stage]], then it will be destroyed and its next
-  stage will be instantiated.
+* If the Item's Prefab has a [next stage](prefab.md#next-stage), then it will be destroyed and its next stage will be
+  instantiated.
 * If the Item's Prefab has no next stage, it will simply be destroyed.
 
 ### Weight
@@ -181,7 +181,7 @@ of containing Items, the Items inside will add to the weight of the parent Item.
   `this.inventory`
 
 This is a list of inventory slot objects that the Item has. It is inherited from its Prefab. For more details, see the
-section about [[Prefab inventories|Data-Structure:-Prefab#Inventory]].
+section about [Prefab inventories](prefab.md#inventory).
 
 ### Description
 
@@ -191,7 +191,7 @@ section about [[Prefab inventories|Data-Structure:-Prefab#Inventory]].
 
 This is the description of the Item. Note that this can be completely different from the description of the Item's
 Prefab. When a Player inspects this Item, they will receive a parsed version of this string. See the article
-on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information.
+on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
 
 ### Row
 

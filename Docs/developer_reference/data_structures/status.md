@@ -1,7 +1,7 @@
 # Status
 
 A **Status**, also called a **Status Effect**, is a data structure in the [[Neo World Program]]. It represents a
-condition that affects a [[Player|Data-Structure:-Player]].
+condition that affects a [Player](player.md).
 
 Status Effects that are loaded from the [[spreadsheet]] are static; once loaded, they do not change in any way. Thus,
 the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/saver.js) will never make changes to the
@@ -39,15 +39,8 @@ Effect (e.g. "injured" and "badly injured") should be avoided.
 This is a Duration object which determines how long after the Status Effect is inflicted it will take to expire. This
 should consist of a whole number (no decimals) with a letter immediately following it, with no space between them. There
 is a fixed set of predefined units that correspond with each letter. They are as follows:
-| Letter | Unit |
-| ------ | ------- |
-| s | seconds |
-| m | minutes |
-| h | hours |
-| d | days |
-| w | weeks |
-| M | months |
-| y | years |
+| Letter | Unit | | ------ | ------- | | s | seconds | | m | minutes | | h | hours | | d | days | | w | weeks | | M |
+months | | y | years |
 
 So, a Status Effect that should last 30 seconds should have a duration of `30s`, one that should last 15 minutes should
 have a duration of `15m`, one that should last 2 hours should have a duration of `2h`, one that should last 1.5 days
@@ -76,7 +69,7 @@ longer to expire.
 This is a simple Boolean value indicating whether an instance of this Status Effect will kill the Player when it expires
 or not. If this is `true`, then a Player inflicted with this Status Effect will die when the Status Effect expires. If
 this is `false`, the Player will simply be cured of the Status Effect. However, [[Alter Ego]] will not check if the
-Status Effect is fatal if it has a [[next stage|Data-Structure:-Status#next-stage]].
+Status Effect is fatal if it has a [next stage](status.md#next-stage).
 
 ### Visible
 
@@ -85,15 +78,15 @@ Status Effect is fatal if it has a [[next stage|Data-Structure:-Status#next-stag
   `this.visible`
 
 This is a simple Boolean value indicating whether an instance of this Status Effect will appear if a Player inflicted
-with it uses the [[status command|Commands#status-player-command]]. If this is `true`, then it will appear in the
+with it uses the [status command](../commands/player_commands.md#status). If this is `true`, then it will appear in the
 Player's status. If this is `false`, then it will not. However, it will still be visible to
-a [[moderator|Tutorial:-Moderating]] who [[views the Player's status|Commands#status-moderator-command]].
+a [[moderator|Tutorial:-Moderating]] who [views the Player's status](../commands/moderator_commands.md#status).
 
 ### Overriders
 
 * Spreadsheet label: **Don't Inflict If**
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Status|Data-Structure:-Status]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status](status.md)>
   `this.overriders`
 
 This is a comma-separated list of Status Effects that prevent this Status Effect from being inflicted. If a Player
@@ -105,26 +98,26 @@ when they are inflicted on a Player.
 
 * Spreadsheet label: **Cures**
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Status|Data-Structure:-Status]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status](status.md)>
   `this.cures`
 
 This is a comma-separated list of Status Effects that an instance of this Status Effect will cure once it is inflicted
 on a Player. Among other things, this allows particular Status Effects to be mutually exclusive, allowing for cycles
 where a Player can only be inflicted with one Status Effect in the cycle at any given time. For that reason, if the
 Status Effect is being inflicted due to being a previous Status Effect's next stage
-or [[cured condition|Data-Structure:-Status#cured-condition]], it will not cure any Status Effects on this list.
+or [cured condition](status.md#cured-condition), it will not cure any Status Effects on this list.
 
 ### Next Stage
 
 * Spreadsheet label: **Develops Into**
-* Class attribute: [[Status|Data-Structure:-Status]] `this.nextStage`
+* Class attribute: [Status](status.md) `this.nextStage`
 
 This is a single Status Effect that an instance of this Status Effect will develop into when it expires. When it
 expires, it will be cured, and the next stage will be inflicted on the Player. If the Player cannot be inflicted with
 the Status Effect's next stage because they are inflicted with any of the next stage'
-s [[overriders|Data-Structure:-Status#overriders]], they will be sent the Status
-Effect's [[cured description|Data-Structure:-Status#cured-description]]. Otherwise, they will be sent the next
-stage's [[inflicted description|Data-Structure:-Status#inflicted-description]].
+s [overriders](status.md#overriders), they will be sent the Status
+Effect's [cured description](status.md#cured-description). Otherwise, they will be sent the next
+stage's [inflicted description](status.md#inflicted-description).
 
 It is not possible for a Status Effect to have more than one next stage. If the Status Effect has no next stage, this is
 `null`.
@@ -132,7 +125,7 @@ It is not possible for a Status Effect to have more than one next stage. If the 
 ### Duplicated Status
 
 * Spreadsheet label: **When Duplicated**
-* Class attribute: [[Status|Data-Structure:-Status]] `this.duplicatedStatus`
+* Class attribute: [Status](status.md) `this.duplicatedStatus`
 
 This is a single Status Effect that an instance of this Status Effect will develop into if it is inflicted on a Player
 who already has an instance of this Status Effect. If the Status Effect is duplicated, the Player will be cured of it
@@ -145,15 +138,15 @@ Status, this is `null`.
 ### Cured Condition
 
 * Spreadsheet label: **When Cured**
-* Class attribute: [[Status|Data-Structure:-Status]] `this.curedCondition`
+* Class attribute: [Status](status.md) `this.curedCondition`
 
 This is a single Status Effect that an instance of this Status Effect will develop into if it is cured. When it is
 cured, the cured condition will be inflicted on the Player. However, it will not be inflicted if the Status Effect is
 cured by being duplicated, by being one of a recently inflicted Status Effect's cures, or by developing into its next
 stage. The cured condition will only be inflicted if the Status Effect is cured by expiring with no next stage, or if it
 is cured by some external phenomenon (such as a moderator command or the Player using
-an [[Inventory Item|Data-Structure:-InventoryItem]]) before it normally expires. When the cured condition is inflicted,
-the Player will not receive its inflicted description; they will be sent the cured Status Effect's cured description.
+an [Inventory Item](inventory_item.md)) before it normally expires. When the cured condition is inflicted, the Player
+will not receive its inflicted description; they will be sent the cured Status Effect's cured description.
 
 It is not possible for a Status Effect to have more than one cured condition. If the Status Effect has no cured
 condition, this is `null`.
@@ -173,15 +166,15 @@ inflicted with it. Stat modifier objects have the following structure:
 In order to define a stat modifier, the name or abbreviation of the stat to modify must be listed. This must be
 `strength`, `intelligence`, `dexterity`, `speed`, or `stamina`; or their abbreviations, `str`, `int`, `dex`, `spd`, or
 `sta`. It must then be followed by an operator: `+`, `-`, or `=`. Next must be an integer value from `1` to `10`.
-Finally, if the stat is meant to modify the attacker's stat in a [[Die roll|Data-Structure:-Die]] where a Player
-inflicted with this Status Effect is the defender, prefix the modifier with `@`.
+Finally, if the stat is meant to modify the attacker's stat in a [Die roll](die.md) where a Player inflicted with this
+Status Effect is the defender, prefix the modifier with `@`.
 
 Valid examples of stat modifiers for a single Status Effect are:
 
-* `int-1`. This decreases the Player's [[intelligence|Data-Structure:-Player#intelligence]] stat by 1.
+* `int-1`. This decreases the Player's [intelligence](player.md#intelligence) stat by 1.
 * `str-2, dex-2, spd-2, sta-2`. This decreases the
-  Player's [[strength|Data-Structure:-Player#strength]], [[dexterity|Data-Structure:-Player#dexterity]], [[speed|Data-Structure:-Player#speed]],
-  and [[stamina|Data-Structure:-Player#stamina]] stats by 2.
+  Player's [strength](player.md#strength), [dexterity](player.md#dexterity), [speed](player.md#speed),
+  and [stamina](player.md#stamina) stats by 2.
 * `spd+4`. This increases the Player's speed stat by 4.
 * `str+9, int+9, dex+9, spd+9, sta+9`. This increases all of the Player's stats by 9.
 * `spd=1, sta=1`. This sets the Player's speed and stamina stats to 1.
@@ -220,10 +213,10 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
 * `enable text`
     * Enables the text command, which is disabled by default.
 * `no channel`
-    * Removes the Player from the channel of the [[Room|Data-Structure:-Room]] they're in.
+    * Removes the Player from the channel of the [Room](room.md) they're in.
     * When the Player moves to a different Room, they will not be added to the Room's channel.
-    * If the Player is added to a [[Whisper|Data-Structure:-Whisper]] as a result of hiding, they will not be given
-      permission to read the Whisper channel, unless the only Status Effect they have with this attribute is the "
+    * If the Player is added to a [Whisper](whisper.md) as a result of hiding, they will not be given permission to read
+      the Whisper channel, unless the only Status Effect they have with this attribute is the "
       hidden" Status Effect.
 * `hear room`
     * All dialog from other Players in the Room will be sent to the Player via DM.
@@ -231,8 +224,8 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
     * All dialog from other Players in adjacent Rooms will be sent to the Player via DM.
     * All Whisper messages from other Players in the same Room will be sent to the Player via DM.
 * `knows [Player name]`
-    * When the known Player speaks and their [[display name|Data-Structure:-Player#display-name]] differs from their
-      name, the Player will receive a DM revealing the known Player's identity. Example:
+    * When the known Player speaks and their [display name](player.md#display-name) differs from their name, the Player
+      will receive a DM revealing the known Player's identity. Example:
       `[Player display name], whose voice you recognize to be [Player name]'s, says "[Message]".`
     * When the Player has the `no sight` and `hear room` behavior attributes, they will receive a DM revealing the known
       Player's identity when they speak. Example: `[Player name] says "[Message]".`
@@ -244,9 +237,9 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
     * When the known Player has the `sender` behavior attribute and someone in the same Room as the Player has the
       `receiver` attribute, the Player will receive a DM revealing the known Player's identity when they speak. Example:
       `[Player name] says "[Message]" through [Receiver display name]'s WALKIE TALKIE.`
-    * When the Player is in a Room with the `audio monitoring` [[tag|Data-Structure:-Room#tags]] and the known Player
-      speaks in a Room with the `audio surveilled` tag, the Player will receive a DM revealing the known Player's
-      identity. Example: `[Room name] [Player name] says "[Message]".`
+    * When the Player is in a Room with the `audio monitoring` [tag](room.md#tags) and the known Player speaks in a Room
+      with the `audio surveilled` tag, the Player will receive a DM revealing the known Player's identity. Example:
+      `[Room name] [Player name] says "[Message]".`
     * Note: The Player name is case sensitive. It must match the Player's name exactly as it appears on the spreadsheet.
 * `no hearing`
     * All messages from other Players in the Room will be deleted and sent to hearing Players via DM.
@@ -255,20 +248,21 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
       channel.
     * If the Player is in a Whisper as a result of hiding, they will not receive any notifications about dialog sent in
       that Whisper.
-    * The Player cannot hear shouted dialog from adjacent Rooms. Instead of being [[narrated|Data-Structure:-Narration]]
+    * The Player cannot hear shouted dialog from adjacent Rooms. Instead of being [narrated]()
       in the Room channel, it will be sent to all hearing Players in the Room via DM.
-    * The Player will not notice when someone in an adjacent Room uses
-      the [[knock command|Commands#knock-player-command]].
-    * The Player will not hear dialog coming from a Player with the `receiver` behavior attribute. Instead of being
-      narrated in the Room channel, it will be sent to all hearing Players in the Room via DM.
-    * If the Player is in a Room with the `audio monitoring` tag, they will not hear dialog coming from a Room with the
-      `audio surveilled` tag. Instead of being narrated in the Room channel, it will be sent to all hearing Players in
-      the Room via DM.
+        * The Player will not notice when someone in an adjacent Room uses
+          the [knock command](../commands/player_commands.md#knock).
+        * The Player will not hear dialog coming from a Player with the `receiver` behavior attribute. Instead of being
+          narrated in the Room channel, it will be sent to all hearing Players in the Room via DM.
+        * If the Player is in a Room with the `audio monitoring` tag, they will not hear dialog coming from a Room with
+          the
+          `audio surveilled` tag. Instead of being narrated in the Room channel, it will be sent to all hearing Players
+          in the Room via DM.
 * `sender`
     * All of the Player's dialog (except Whispers) will be narrated in the Room of the Player with the `receiver`
       attribute, if there is one that isn't the `sender` Player, regardless of the respective Players' locations on
       the [[Map]].
-    * The Player will attempt to solve any [[voice-type Puzzles|Data-Structure:-Puzzle#type]] in the Room that the
+    * The Player will attempt to solve any [voice-type Puzzles](puzzle.md#type) in the Room that the
       `receiver` Player is in.
 * `receiver`
     * Non-Whispered dialog spoken by the Player with the `sender` attribute will be narrated in the Room of the
@@ -324,42 +318,42 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
       coming out of hiding.
     * If the Player is in a Whisper, Narrations about their actions will be sent to the Whisper channel.
     * The Player will not appear in the list of occupants when another Player enters the Room they're in.
-    * The Player will not appear in the [[occupants string|Data-Structure:-Room#occupants-string]] of the Room they're
-      in.
-    * The Player cannot be inspected, except by another Player hiding in the same Object as them.
-    * The Player cannot be given to or stolen from, except by another Player hiding in the same Object as them.
-    * The Player cannot be the target for a [[Gesture|Data-Structure:-Gesture]], except by another Player hiding in the
-      same Object as them.
-    * The Player can only use the dress command to dress from the Object they're hiding in, from
-      its [[child Puzzle|Data-Structure:-Object#child-puzzle]], or from Items contained within it.
-    * The Player can only use the drop command to drop Inventory Items into the Object they're hiding in, into its child
-      Puzzle, or into Items contained within it.
-    * The Player can only use the gesture command to target the Object they're hiding in, Items contained within it,
-      Players hiding in the same Object they're hiding in, and their own Inventory Items.
-    * The Player can only use the give command to give Inventory Items to Players hiding in the same Object as them.
-    * The Player can only use the inspect command to inspect the Room, the Object they're hiding in, Items contained
-      within it, their own Inventory Items, Players hiding in the same Object they're hiding in, and their Inventory
-      Items.
-    * When the Player uses the say command, their display name will be temporarily changed to `Someone in the room`. It
-      will be restored to what it was previously after the command is executed.
-    * When the Player uses the say command, their display icon will be temporarily changed
-      to [this image](https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png). It
-      will be restored to what it was previously after the command is executed.
-    * The Player can only use the steal command to steal Inventory Items from Players hiding in the same Object as them.
-    * The Player can only use the take command to take Items from the Object they're hiding in, from its child Puzzle,
-      or from Items contained within it.
-    * The Player can only use the undress command to undress into the Object they're hiding in, into its child Puzzle,
-      or into Items contained within it.
-    * The Player can only use the use command to activate/deactivate the Object they're hiding in, solve/unsolve its
-      child Puzzle, or use their own Inventory Items.
+    * The Player will not appear in the [occupants string](room.md#occupants-string) of the Room they're in.
+        * The Player cannot be inspected, except by another Player hiding in the same Object as them.
+        * The Player cannot be given to or stolen from, except by another Player hiding in the same Object as them.
+    * The Player cannot be the target for a [Gesture](gesture.md), except by another Player hiding in the same Object as
+      them.
+        * The Player can only use the dress command to dress from the Object they're hiding in, from
+          its [child Puzzle](object.md#child-puzzle), or from Items contained within it.
+        * The Player can only use the drop command to drop Inventory Items into the Object they're hiding in, into its
+          child Puzzle, or into Items contained within it.
+        * The Player can only use the gesture command to target the Object they're hiding in, Items contained within it,
+          Players hiding in the same Object they're hiding in, and their own Inventory Items.
+        * The Player can only use the give command to give Inventory Items to Players hiding in the same Object as them.
+        * The Player can only use the inspect command to inspect the Room, the Object they're hiding in, Items contained
+          within it, their own Inventory Items, Players hiding in the same Object they're hiding in, and their Inventory
+          Items.
+        * When the Player uses the say command, their display name will be temporarily changed to `Someone in the room`.
+          It will be restored to what it was previously after the command is executed.
+        * When the Player uses the say command, their display icon will be temporarily changed
+          to [this image](https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png).
+          It will be restored to what it was previously after the command is executed.
+        * The Player can only use the steal command to steal Inventory Items from Players hiding in the same Object as
+          them.
+        * The Player can only use the take command to take Items from the Object they're hiding in, from its child
+          Puzzle, or from Items contained within it.
+        * The Player can only use the undress command to undress into the Object they're hiding in, into its child
+          Puzzle, or into Items contained within it.
+        * The Player can only use the use command to activate/deactivate the Object they're hiding in, solve/unsolve its
+          child Puzzle, or use their own Inventory Items.
 * `concealed`
     * When this behavior attribute is inflicted:
         * The Player's display name will be changed. If an equipped Inventory Item inflicted this behavior attribute,
           then it will be changed to `An individual wearing [Inventory Item single containing phrase]`. If the behavior
           attribute was inflicted some other way, it will be changed to `An individual wearing a MASK`.
-        * The Player's [[display icon|Data-Structure:-Player#display-icon]] will be changed
+        * The Player's [display icon](player.md#display-icon) will be changed
           to [this image](https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png).
-        * The Player's [[pronouns|Data-Structure:-Player#pronouns]] will be changed to `neutral`.
+        * The Player's [pronouns](player.md#pronouns) will be changed to `neutral`.
     * When this behavior attribute is cured:
         * The Player's display name will be reset.
         * The Player's display icon will be reset.
@@ -374,12 +368,12 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
       if the minimum is 1 and the maximum is 20, all of the Player's rolls will be 1 or 20 before modifiers.
 * `coin flipper`
     * All Die rolls when the Player is the attacker will have a 50% chance of having a modifier of +1 applied if the
-      Player has an Inventory Item with "COIN" in its [[name|Data-Structure:-Prefab#single-name]].
+      Player has an Inventory Item with "COIN" in its [name](prefab.md#single-name).
 * `no stamina decrease`
     * The Player will not consume stamina when moving.
 * `thief`
     * The Player will always succeed without getting caught when stealing an Inventory Item from another Player.
-      However, they will still get caught if the Inventory Item is [[non-discreet|Data-Structure:-Prefab#discreet]].
+      However, they will still get caught if the Inventory Item is [non-discreet](prefab.md#discreet).
 
 ### Effect
 
@@ -420,5 +414,5 @@ This is an internal attribute which contains a timer counting down until the Sta
 all Status Effects loaded from the spreadsheet. This is only assigned to an instantiated Status Effect that has a
 duration. If the instantiated Status Effect has no duration, this is `null`. While the instantiated Status Effect is
 active, every 1000 milliseconds, 1 second is subtracted from the Status
-Effect's [[remaining Duration|Data-Structure:-Status#remaining]] until it reaches 0. When it does, the timer is stopped,
-and the Status Effect is cured.
+Effect's [remaining Duration](status.md#remaining) until it reaches 0. When it does, the timer is stopped, and the
+Status Effect is cured.

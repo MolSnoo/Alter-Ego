@@ -1,8 +1,7 @@
 # Inventory Item
 
-An **Inventory Item** is a data structure in the [[Neo World Program]]. It represents an item that is currently
-possessed by a [[Player|Data-Structure:-Player]]. It is an instance of a [[Prefab|Data-Structure:-Prefab]], and is
-similar to an [[Item|Data-Structure:-Item]].
+An Inventory Item is a data structure in the Neo World Program. It represents an item that is currently possessed by
+a [Player](player.md). It is an instance of a [Prefab](prefab.md), and is similar to an [Item](item.md).
 
 ## Table of Contents
 
@@ -14,12 +13,12 @@ Inventory Items themselves have relatively few attributes. However, being instan
 attributes as a result. Note that if an attribute is _internal_, that means it only exists within
 the [InventoryItem class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/InventoryItem.js). Internal attributes
 will be given in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only
-exists on the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+exists on the spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Player
 
 * Spreadsheet label: **Player Name**
-* Class attribute: [[Player|Data-Structure:-Player]] `this.player`
+* Class attribute: [Player](player.md) `this.player`
 
 This is the name of the Player whose inventory this Inventory Item is in. This must match the Player's name exactly on
 the spreadsheet.
@@ -27,14 +26,14 @@ the spreadsheet.
 ### Prefab
 
 * Spreadsheet label: **Prefab**
-* Class attribute: [[Prefab|Data-Structure:-Prefab]] `this.prefab`
+* Class attribute: [Prefab](prefab.md) `this.prefab`
 
 This is the ID of the Prefab this Inventory Item is an instance of. It gives the Inventory Item most of its properties.
 The class attribute, `this.prefab` is a reference to the actual Prefab object underlying the Inventory Item, making all
 of that Prefab's attributes accessible.
 
-This cell can never be left blank, even for empty [[Equipment Slots|Data-Structure:-EquipmentSlot]]. If the Inventory
-Item is an Equipment Slot with nothing equipped to it, this should be `NULL`.
+This cell can never be left blank, even for empty [Equipment Slots](equipment_slot.md). If the Inventory Item is an
+Equipment Slot with nothing equipped to it, this should be `NULL`.
 
 ### Identifier
 
@@ -99,7 +98,7 @@ the Prefab's plural containing phrase slightly easier.
 
 This is the name of the Equipment Slot that this Inventory Item belongs to, whether it is equipped to it or contained in
 another Inventory Item that is. This cell can never be left blank. For more information, see the article
-on [[Equipment Slots|Data-Structure:-EquipmentSlot]].
+on [Equipment Slots](equipment_slot.md).
 
 ### Found Equipment Slot
 
@@ -118,13 +117,13 @@ Equipment Slot given for an Inventory Item contained within another Inventory It
 This is a container identifier and slot of the container the Inventory Item can be found in. Unlike Items, Inventory
 Items cannot have containers of different types; they can only be other Inventory Items. An Inventory Item's container
 will have a description that contains a mention of the Inventory Item in
-an [[item list|Tutorial:-Writing-descriptions#il]]. When the Inventory Item is unstashed, mention of the Inventory Item
-will be removed from the item list in its container. Note that the Inventory Item's container must belong to the same
-Player and Equipment Slot as the Inventory Item itself.
+an [item list](../../moderator_guide/writing_descriptions.md#il). When the Inventory Item is unstashed, mention of the
+Inventory Item will be removed from the item list in its container. Note that the Inventory Item's container must belong
+to the same Player and Equipment Slot as the Inventory Item itself.
 
 In order to properly specify an Inventory Item's container, the container's identifier must be given, as well as
-the [[inventory slot|Data-Structure:-Prefab#inventory]] this Inventory Item is in, with both separated by a forward
-slash (`/`). The following are some examples of correct container names:
+the [inventory slot](prefab.md#inventory) this Inventory Item is in, with both separated by a forward slash (`/`). The
+following are some examples of correct container names:
 
 * LAB COAT 1/RIGHT POCKET
 * LAB COAT 2/LEFT POCKET
@@ -134,7 +133,7 @@ If no container name is supplied, then this Inventory Item is equipped to the li
 
 ### Container
 
-* Class attribute: [[InventoryItem|Data-Structure:-InventoryItem]] `this.container`
+* Class attribute: [InventoryItem](inventory_item.md) `this.container`
 
 This is an internal attribute which simply contains a reference to the actual Inventory Item object in the Player's
 inventory whose container identifier matches that of `this.containerName`. If this Inventory Item is equipped to an
@@ -168,21 +167,20 @@ unless they have the `NULL` Prefab - in that case, their quantity should be left
   `this.uses`
 
 This is a whole number indicating how many times this Inventory Item can be used with
-the [[use command|Commands#use-player-command]]. Although this number is derived from an Inventory Item's Prefab, it can
-be manually set to differ on the spreadsheet. If no number of uses is given, the Inventory Item can be used infinitely.
-If the Inventory Item is dropped, its uses will be retained when it's converted into an Item. This number can then be
-used when the subsequent Item is processed as part of a [[Recipe|Data-Structure:-Recipe]]. For more details, see the
-section about [[Item uses|Data-Structure:-Item#uses]].
+the [use command](../commands/player_commands.md#use) Although this number is derived from an Inventory Item's Prefab,
+it can be manually set to differ on the spreadsheet. If no number of uses is given, the Inventory Item can be used
+infinitely. If the Inventory Item is dropped, its uses will be retained when it's converted into an Item. This number
+can then be used when the subsequent Item is processed as part of a [Recipe](recipe.md). For more details, see the
+section about [Item uses](item.md#uses).
 
-When this Inventory Item is used (assuming its Prefab is [[usable|Data-Structure:-Prefab#usable]]), different things
-will happen depending on certain factors. First, it will inflict the Player with all of
-the [[Status Effects|Data-Structure:-Status]] listed in its
-Prefab's [[effects strings|Data-Structure:-Prefab#effects-strings]] and cure the Player of all of the Status Effects
-listed in its Prefab's [[cures strings|Data-Structure:-Prefab#cures-strings]]. Then, if it has a limited number of uses,
-its uses will be decreased by 1. If this happens and its uses is decreased to 0, one of two things will happen:
+When this Inventory Item is used (assuming its Prefab is [usable](prefab.md#usable) different things will happen
+depending on certain factors. First, it will inflict the Player with all of the [Status Effects](status.md) listed in
+its Prefab's [effects strings](prefab.md#effects-strings) and cure the Player of all of the Status Effects listed in its
+Prefab's [cures strings](prefab.md#cures-strings). Then, if it has a limited number of uses, its uses will be decreased
+by 1. If this happens and its uses is decreased to 0, one of two things will happen:
 
-* If the Inventory Item's Prefab has a [[next stage|Data-Structure:-Prefab#next-stage]], then it will be destroyed and
-  its next stage will be instantiated in its place.
+* If the Inventory Item's Prefab has a [next stage](prefab.md#next-stage), then it will be destroyed and its next stage
+  will be instantiated in its place.
 * If the Inventory Item's Prefab has no next stage, it will simply be destroyed.
 
 ### Weight
@@ -192,7 +190,7 @@ its uses will be decreased by 1. If this happens and its uses is decreased to 0,
 
 This is an internal attribute. It is a whole number inherited from the weight of Inventory Item's Prefab. If the
 Inventory Item is capable of containing Inventory Items, the Inventory Items inside will add to the weight of the parent
-Inventory Item. This will also be added to the Player's [[carry weight|Data-Structure:-Player#carry-weight]].
+Inventory Item. This will also be added to the Player's [carry weight](player.md#carry-weight).
 
 ### Inventory
 
@@ -201,7 +199,7 @@ Inventory Item. This will also be added to the Player's [[carry weight|Data-Stru
   `this.inventory`
 
 This is a list of inventory slot objects that the Inventory Item has. It is inherited from its Prefab. For more details,
-see the section about [[Prefab inventories|Data-Structure:-Prefab#Inventory]].
+see the section about [Prefab inventories](prefab.md#inventory).
 
 ### Description
 
@@ -211,9 +209,9 @@ see the section about [[Prefab inventories|Data-Structure:-Prefab#Inventory]].
 
 This is the description of the Inventory Item. Note that this can be completely different from the description of the
 Inventory Item's Prefab. When a Player inspects this Inventory Item, they will receive a parsed version of this string.
-See the article on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information. Note that when an
-Inventory Item is inspected by a different Player than the one who possesses it, all sentences containing item list tags
-will be removed.
+See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information. Note that
+when an Inventory Item is inspected by a different Player than the one who possesses it, all sentences containing item
+list tags will be removed.
 
 ### Row
 

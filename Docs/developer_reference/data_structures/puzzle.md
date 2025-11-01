@@ -1,9 +1,9 @@
 # Puzzle
 
-A **Puzzle** is a data structure in the [[Neo World Program]]. Its primary purpose is to
-allow [[Players|Data-Structure:-Player]] to interact with the game world and change its state in predictable, predefined
-ways. While this can be in the form of a gameplay puzzle that the Player can solve, a Puzzle can be far simpler than
-what would traditionally be called a puzzle in most games.
+A **Puzzle** is a data structure in the [[Neo World Program]]. Its primary purpose is to allow [Players](player.md) to
+interact with the game world and change its state in predictable, predefined ways. While this can be in the form of a
+gameplay puzzle that the Player can solve, a Puzzle can be far simpler than what would traditionally be called a puzzle
+in most games.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label
   `this.name`
 
 This is the name of the Puzzle. All letters should be capitalized, and spaces are allowed. Players will be able to
-interact with this Puzzle by using it as an argument in the [[use command|Commands#use-player-command]]. Note that
+interact with this Puzzle by using it as an argument in the [use command](../commands/player_commands.md#use). Note that
 multiple Puzzles can have the same name, so long as they are in different Rooms. However, to lower the likelihood of
 bugs and enable certain features, it is recommended that each Puzzle be given a unique name.
 
@@ -36,9 +36,9 @@ bugs and enable certain features, it is recommended that each Puzzle be given a 
 
 This is a simple Boolean value indicating whether the Puzzle has already been solved or not. If this is `true`, then the
 Puzzle has been solved. If it is `false`, then the Puzzle has not been solved. How this affects a Puzzle's behavior
-varies based on the Puzzle's [[type|Data-Structure:-Puzzle#type]], but in general, if the Puzzle has not been solved,
-then a Player can attempt to solve it. If the Puzzle has been solved, then the Player will simply receive the text in
-the [[already solved description|Data-Structure:-Puzzle#already-solved-description]].
+varies based on the Puzzle's [type](puzzle.md#type), but in general, if the Puzzle has not been solved, then a Player
+can attempt to solve it. If the Puzzle has been solved, then the Player will simply receive the text in
+the [already solved description](puzzle.md#already-solved-description).
 
 ### Outcome
 
@@ -46,11 +46,11 @@ the [[already solved description|Data-Structure:-Puzzle#already-solved-descripti
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.outcome`
 
-This is a string indicating which [[solution|Data-Structure:-Puzzle#solutions]] the Puzzle has been solved with, if any.
-If the Puzzle is not solved or only has one possible solution, then this must be blank. In general, this does not need
-to be set manually. [[Alter Ego]] will automatically set this when the Puzzle is solved, if it has multiple possible
-solutions. This should only be set manually if the Puzzle should be solved by default. If that is the case, then it
-should match exactly one of the Puzzle's solutions.
+This is a string indicating which [solution](puzzle.md#solutions) the Puzzle has been solved with, if any. If the Puzzle
+is not solved or only has one possible solution, then this must be blank. In general, this does not need to be set
+manually. [[Alter Ego]] will automatically set this when the Puzzle is solved, if it has multiple possible solutions.
+This should only be set manually if the Puzzle should be solved by default. If that is the case, then it should match
+exactly one of the Puzzle's solutions.
 
 ### Requires Moderator
 
@@ -60,9 +60,9 @@ should match exactly one of the Puzzle's solutions.
 
 This is another Boolean value indicating whether the Puzzle requires [[moderator|Tutorial:-Moderating]] intervention to
 solve. If this is `true`, then the Puzzle can only be solved by a moderator using
-the [[puzzle command|Commands#puzzle-moderator-command]], and a Player who attempts to solve the Puzzle will receive the
-message "You need moderator assistance to do that." If this is `false`, then a Player will be able to attempt to solve
-the Puzzle freely.
+the [puzzle command](../commands/moderator_commands.md#puzzle), and a Player who attempts to solve the Puzzle will
+receive the message "You need moderator assistance to do that." If this is `false`, then a Player will be able to
+attempt to solve the Puzzle freely.
 
 A Puzzle that requires moderator intervention to solve can be useful in a few situations. A few examples are:
 
@@ -79,7 +79,7 @@ predefined behavior that makes Puzzles such a useful data type.
 ### Location
 
 * Spreadsheet label: **Location**
-* Class attribute: [[Room|Data-Structure:-Room]] `this.location`
+* Class attribute: [Room](room.md) `this.location`
 
 This is the Room the Puzzle can be found in. This must match the Room's name exactly on the spreadsheet.
 
@@ -89,24 +89,24 @@ This is the Room the Puzzle can be found in. This must match the Room's name exa
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.parentObjectName`
 
-This is the name of an [[Object|Data-Structure:-Object]] that is associated with the Puzzle, if any. The parent Object
-must be in the same Room as the Puzzle referencing it. If the name of an Object is supplied, then a Player will be able
-to supply the name of the parent Object as an argument in the use command instead of the name of the
-Puzzle. [[Narrations|Data-Structure:-Narration]] involving the Puzzle will also use the parent Object's name instead of
-the Puzzle's name. This is particularly useful if every Puzzle is given a unique name. For example, if the Puzzle is
-named "PANIC BUTTON" and the parent Object is named "YELLOW BUTTON", then a Player will be able to interact with the
-Puzzle by sending `.use YELLOW BUTTON` or `.use PANIC BUTTON`. When the Puzzle is interacted with by a Player named
-Haru, Alter Ego will send "Haru uses the YELLOW BUTTON." to the PANIC BUTTON's Room channel.
+This is the name of an [Object](object.md) that is associated with the Puzzle, if any. The parent Object must be in the
+same Room as the Puzzle referencing it. If the name of an Object is supplied, then a Player will be able to supply the
+name of the parent Object as an argument in the use command instead of the name of the
+Puzzle. [Narrations](Narration.md) involving the Puzzle will also use the parent Object's name instead of the Puzzle's
+name. This is particularly useful if every Puzzle is given a unique name. For example, if the Puzzle is named "PANIC
+BUTTON" and the parent Object is named "YELLOW BUTTON", then a Player will be able to interact with the Puzzle by
+sending `.use YELLOW BUTTON` or `.use PANIC BUTTON`. When the Puzzle is interacted with by a Player named Haru, Alter
+Ego will send "Haru uses the YELLOW BUTTON." to the PANIC BUTTON's Room channel.
 
-Additionally, by assigning a Puzzle a parent Object, it becomes possible for the Puzzle to
-contain [[Items|Data-Structure:-Item]]. This allows Items to be made inaccessible until the Puzzle is solved, while also
-allowing Players to take and drop Items from/into the parent Object if the Puzzle is solved. When an Object capable of
-containing Items is assigned a child Puzzle, the [[item list|Tutorial:-Writing-descriptions#il]] must be in the Puzzle's
-already solved description. If no parent Object is needed, this cell can simply be left blank on the spreadsheet.
+Additionally, by assigning a Puzzle a parent Object, it becomes possible for the Puzzle to contain [Items](item.md).
+This allows Items to be made inaccessible until the Puzzle is solved, while also allowing Players to take and drop Items
+from/into the parent Object if the Puzzle is solved. When an Object capable of containing Items is assigned a child
+Puzzle, the [[item list|Tutorial:-Writing-descriptions#il]] must be in the Puzzle's already solved description. If no
+parent Object is needed, this cell can simply be left blank on the spreadsheet.
 
 ### Parent Object
 
-* Class attribute: [[Object|Data-Structure:-Object]] `this.parentObject`
+* Class attribute: [Object](object.md) `this.parentObject`
 
 This is an internal attribute which simply contains a reference to the actual Object object whose name matches
 `this.parentObjectName` and whose location is the same as the Puzzle. If no parent Object name is given, this will be
@@ -152,8 +152,8 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
     * If a Player unsolves the Puzzle, they will be sent the Puzzle's already solved description.
     * When a Player interacts with the Puzzle, whether they solve or unsolve it, Alter Ego will narrate "
       `[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel. However, if the Player attempts to
-      unsolve it and the [[requirements|Data-Structure:-Puzzle#requirements-strings]] have not all been met, Alter Ego
-      will narrate "`[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." instead.
+      unsolve it and the [requirements](puzzle.md#requirements-strings) have not all been met, Alter Ego will narrate "
+      `[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." instead.
 
 * `combination lock`
     * A Player must enter the correct password in order to solve the Puzzle. The password is case sensitive. If a Player
@@ -170,10 +170,10 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
       the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 * `key lock`
-    * A Player must have an [[Inventory Item|Data-Structure:-InventoryItem]] based on
-      the [[Prefab|Data-Structure:-Prefab]] specified in the Puzzle's solution in order to solve the Puzzle. If no
-      solution is given, this Puzzle behaves almost identically to a `toggle`-type Puzzle. If a Player solves the
-      Puzzle, Alter Ego will narrate "`[Player displayName]` unlocks the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+    * A Player must have an [Inventory Item](inventory_item.md) based on the [Prefab](prefab.md) specified in the
+      Puzzle's solution in order to solve the Puzzle. If no solution is given, this Puzzle behaves almost identically to
+      a `toggle`-type Puzzle. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` unlocks the
+      `[PUZZLE NAME]`." in the Puzzle's Room channel.
     * Once the Puzzle has been solved, it can be unsolved when a Player uses the lock alias for the use command, but
       only if they have the required Inventory Item. If the Player does not have the required Inventory Item, Alter Ego
       will narrate "`[Player displayName]` attempts and fails to lock the `[PUZZLE NAME]`." in the Puzzle's Room
@@ -193,8 +193,8 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
       `[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 * `stat probability`
-    * A Player must only interact with the Puzzle in order to solve it. A stat-weighted [[Die|Data-Structure:-Die]] will
-      be rolled to semi-randomly choose one of the Puzzle's solutions as the outcome.
+    * A Player must only interact with the Puzzle in order to solve it. A stat-weighted [Die](die.md) will be rolled to
+      semi-randomly choose one of the Puzzle's solutions as the outcome.
     * There are five versions of this Puzzle type: `str probability`, `int probability`, `dex probability`,
       `spd probability`, and `sta probability`. The stat that the Die is weighted with determines which of the Player's
       stats will be used. The Player's roll modifier in that stat will be applied to the initial roll, and the ratio of
@@ -254,11 +254,11 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
 
 * `voice`
     * A Player must say the correct password in the Room that the Puzzle is in in order to solve it. Alternatively, a
-      Player with the [[sender attribute|Data-Structure:-Status#sender]] must say the correct password while a Player
-      with the [[receiver attribute|Data-Structure:-Status#receiver]] is in the Room that the Puzzle is in in order to
-      solve it. The password is case insensitive, and non-alphanumeric (A-Z, 0-9, and spaces) characters will be
-      ignored. The Player's whole message does not need to be the password; it only needs to contain it. For example, if
-      the password is "unlock the door", then a Player who says "How do I unlock the door?" will still solve the Puzzle.
+      Player with the [sender attribute](status.md#sender) must say the correct password while a Player with
+      the [receiver attribute](status.md#receiver) is in the Room that the Puzzle is in in order to solve it. The
+      password is case insensitive, and non-alphanumeric (A-Z, 0-9, and spaces) characters will be ignored. The Player's
+      whole message does not need to be the password; it only needs to contain it. For example, if the password is "
+      unlock the door", then a Player who says "How do I unlock the door?" will still solve the Puzzle.
     * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
     * If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, they
       will solve it again with that solution as the outcome.
@@ -298,11 +298,10 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
       discreet, it will be the Prefab's single containing phrase.
 
 * `restricted exit`
-    * A Player must enter the [[Exit|Data-Structure:-Exit]] whose name matches the name of this Puzzle in order to solve
-      it. However, the Player's name must match one of the Puzzle's solutions, and the Puzzle must be accessible. The
-      Exit must be in the same Room as the Puzzle.
-    * If the Player solves the Puzzle, they will be able to enter the Exit, even if
-      it's [[locked|Data-Structure:-Exit#unlocked]].
+    * A Player must enter the [Exit](exit.md) whose name matches the name of this Puzzle in order to solve it. However,
+      the Player's name must match one of the Puzzle's solutions, and the Puzzle must be accessible. The Exit must be in
+      the same Room as the Puzzle.
+    * If the Player solves the Puzzle, they will be able to enter the Exit, even if it's [locked](exit.md#unlocked).
     * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
     * Even if the Puzzle has been solved, it will be repeatedly solved any time a Player enters the Exit if they are
       listed in the solutions and the Puzzle is accessible.
@@ -321,7 +320,7 @@ of them are met, the Puzzle will be made inaccessible. If it is `false`, then a 
 Player uses the Puzzle, based on various factors. If the Puzzle has any requirements, Alter Ego will check each one to
 see if it is met. If all requirements are met, the Puzzle will be made accessible, and the Player will attempt to solve
 it. If all requirements are not met, the Player will receive the
-Puzzle's [[requirements not met description|Data-Structure:-Puzzle#requirements-not-met]], and Alter Ego will narrate "
+Puzzle's [requirements not met description](puzzle.md#requirements-not-met), and Alter Ego will narrate "
 `[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel. If the Puzzle
 has no requirements not met description, Alter Ego will act as if the Puzzle doesn't exist if the Player tries to use
 it.
@@ -346,7 +345,7 @@ in the Player's inventory as Inventory Items.
 ### Requirements
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Puzzle|Data-Structure:-Puzzle]]|[[Prefab|Data-Structure:-Prefab]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Puzzle](puzzle.md)|[Prefab](prefab.md)>
   `this.requirements`
 
 This is an internal attribute which contains references to each of the Puzzle or Prefab objects whose names are listed
@@ -378,8 +377,8 @@ a time.
 This is a whole number indicating how many times the Puzzle can be failed. Each time a Player attempts to solve the
 Puzzle and fails, this number will decrease by 1. If this reaches 0, the Puzzle cannot be solved, even if the correct
 solution is provided, and a Player who attempts to do so will receive the
-Puzzle's [[no more attempts description|Data-Structure:-Puzzle#no-more-attempts]]. If no number is given, the Puzzle can
-be attempted and failed infinitely many times.
+Puzzle's [no more attempts description](puzzle.md#no-more-attempts). If no number is given, the Puzzle can be attempted
+and failed infinitely many times.
 
 ### Command Sets String
 

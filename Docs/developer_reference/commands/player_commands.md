@@ -1,14 +1,14 @@
 # Player commands
 
-Player commands are usable by users with the Player role. These commands
-allow Players to interact with the game world of their own volition.
+Player commands are usable by users with the Player role. These commands allow Players to interact with the game world
+of their own volition.
 
 Player commands can only be used when a game is in progress. They can be sent to Alter Ego through DM or in the channel
-corresponding with the [[Room|Data-Structure:-Room]] that the Player is in. The Player must
-be [[alive|Data-Structure:-Player#alive]] to use commands, and they must not be inflicted with
-a [[Status Effect|Data-Structure:-Status]] which disables the command they're trying to use. With few exceptions,
-Players cannot use commands when [[edit mode]] is enabled. If Alter Ego accepts the Player's command and it was sent in
-a Room channel, the message in which the command was issued will be deleted.
+corresponding with the [Room](../data_structures/room.md) that the Player is in. The Player must
+be [alive](../data_structures/player.md#alive) to use commands, and they must not be inflicted with
+a [Status Effect](../data_structures/status.md) which disables the command they're trying to use. With few exceptions,
+Players cannot use commands when [edit mode](../../moderator_guide/edit_mode.md) is enabled. If Alter Ego accepts the
+Player's command and it was sent in a Room channel, the message in which the command was issued will be deleted.
 
 ## Table of Contents
 

@@ -1,12 +1,13 @@
 # Moderator commands
 
-Moderator commands are usable by users with the [[Moderator role|Tutorial:-Installation-and-setup#moderator]]. These
-commands allow [[moderators|Tutorial:-Moderating]] to control the game world and Players. They allow many built-in
+Moderator commands are usable by users with
+the [Moderator role](../../appendix/manual_installation/channel_and_role_creation.md#moderator). These commands
+allow [moderators](../../moderator_guide/moderating.md) to control the game world and Players. They allow many built-in
 restrictions placed on Players' actions to be bypassed.
 
 Most moderator commands can only be used when a game is in progress, but some are able to be used when this isn't the
-case. With the exception of the delete command, all moderator commands must be sent to
-the [[bot commands channel|Tutorial:-Installation-and-setup#channel-bot-commands]].
+case. With the exception of the delete command, all moderator commands must be sent to the [bot commands channel](
+../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-commands).
 
 ## Table of Contents
 

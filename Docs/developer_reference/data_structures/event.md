@@ -1,8 +1,8 @@
 # Event
 
-An **Event** is a data structure in the [[Neo World Program]]. Its primary purpose is to
-allow [[moderators|Tutorial:-Moderating]] to create a more dynamic game world capable of automatically changing its
-state in predictable, predefined ways. [[Players|Data-Structure:-Player]] cannot directly interact with Events. In most
+An Event is a data structure in the Neo World Program. Its primary purpose is to
+allow [moderators](../../moderator_guide/moderating.md) to create a more dynamic game world capable of automatically
+changing its state in predictable, predefined ways. [Players](player.md) cannot directly interact with Events. In most
 cases, Events are completely autonomous, requiring little to no intervention from Players or moderators.
 
 ## Table of Contents
@@ -14,8 +14,8 @@ cases, Events are completely autonomous, requiring little to no intervention fro
 Events have relatively few attributes. However, they are capable of quite a lot despite this. Note that if an attribute
 is _internal_, that means it only exists within
 the [Event class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Event.js). Internal attributes will be given in
-the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on the
+spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Name
 
@@ -25,8 +25,8 @@ the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label
 
 This is the name of the Event. All letters should be capitalized, and spaces are allowed. Every Event must have a unique
 name. This will only be used when Events are triggered or ended
-with [[moderator|Commands#trigger-moderator-command]] [[commands|Commands#end-moderator-command]]
-or [[bot|Commands#trigger-bot-command]] [[commands|Commands#end-bot-command]].
+with [moderator](../commands/moderator_commands.md#trigger) [commands](../commands/moderator_commands.md#end)
+or [bot](../commands/bot_commands.md#trigger) [commands](../commands/bot_commands.md#end).
 
 ### Ongoing
 
@@ -46,15 +46,8 @@ is ongoing. If it is `false`, then the Event is not ongoing.
 This is a string which determines how long after the Event is triggered it will be ongoing until it ends. This should
 consist of a whole number (no decimals) with a letter immediately following it, with no space between them. There is a
 fixed set of predefined units that correspond with each letter. They are as follows:
-| Letter | Unit |
-| ------ | ------- |
-| s | seconds |
-| m | minutes |
-| h | hours |
-| d | days |
-| w | weeks |
-| M | months |
-| y | years |
+| Letter | Unit | | ------ | ------- | | s | seconds | | m | minutes | | h | hours | | d | days | | w | weeks | | M |
+months | | y | years |
 
 So, an Event that should last 30 seconds should have a duration of `30s`, one that should last 15 minutes should have a
 duration of `15m`, one that should last 2 hours should have a duration of `2h`, one that should last 1.5 days should
@@ -101,12 +94,11 @@ the Event ends.
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.triggerTimesString`
 
-This is a string of comma-separated times of day that this Event will automatically trigger at. Every
-minute, [[Alter Ego]] iterates through the list of all Events and checks the trigger times for each one. If the current
-hour and minute match one of the Event's trigger times, it will automatically be triggered, after which it will be
-ongoing. A single Event can trigger at multiple times of day, even if it is already ongoing. If this cell is left blank,
-then the Event will not trigger automatically at any time of day. Trigger times must be written in either of the
-following formats:
+This is a string of comma-separated times of day that this Event will automatically trigger at. Every minute, Alter Ego
+iterates through the list of all Events and checks the trigger times for each one. If the current hour and minute match
+one of the Event's trigger times, it will automatically be triggered, after which it will be ongoing. A single Event can
+trigger at multiple times of day, even if it is already ongoing. If this cell is left blank, then the Event will not
+trigger automatically at any time of day. Trigger times must be written in either of the following formats:
 
 * `H:mm`, where `H` stands for the hour in a 24-hour format (0-23) and `mm` stands for the minutes with leading zeroes.
   For example: `7:35` or `15:00`.
@@ -132,13 +124,12 @@ they match, the Event is triggered.
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.roomTag`
 
-This is a keyword or phrase assigned to an Event that allows it to affect [[Rooms|Data-Structure:-Room]]. When the Event
-is triggered, its [[triggered narration|Data-Structure:-Event#triggered-narration]] is sent to the channels of all Rooms
-which have this [[tag|Data-Structure:-Room#tags]], provided there is at least one Player in each Room. Likewise, when
-the Event is ended, its [[ended narration|Data-Structure:-Event#ended-narration]] is sent. Additionally, when an Event
-is ongoing, any Players in a Room affected by it will be subjected to
-its [[inflicted|Data-Structure:-Event#inflicted-status-effects-strings]]
-and [[refreshed|Data-Structure:-Event#refreshed-status-effects-strings]] [[Status Effects|Data-Structure:-Status]].
+This is a keyword or phrase assigned to an Event that allows it to affect [Rooms](room.md). When the Event is triggered,
+its [triggered narration](event.md#triggered-narration) is sent to the channels of all Rooms which have
+this [tag](room.md#tags), provided there is at least one Player in each Room. Likewise, when the Event is ended,
+its [ended narration](event.md#ended-narration) is sent. Additionally, when an Event is ongoing, any Players in a Room
+affected by it will be subjected to its [inflicted](event.md#inflicted-status-effects-strings)
+and [refreshed](event.md#refreshed-status-effects-strings) [Status Effects](status.md).
 
 ### Commands String
 
@@ -146,7 +137,7 @@ and [[refreshed|Data-Structure:-Event#refreshed-status-effects-strings]] [[Statu
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.commandsString`
 
-This is a comma-separated list of [[bot commands|Commands#bot-commands]] that will be executed when the Event is
+This is a comma-separated list of [bot commands](../commands/bot_commands.md) that will be executed when the Event is
 triggered. A comma-separated list of bot commands that will be executed when the Event is ended can also be included,
 with both sets separated by a forward slash (`/`). If no ended commands are desired, then the forward slash can be
 omitted from the cell. If no triggered commands are desired but ended commands are, the forward slash should be the
@@ -183,12 +174,12 @@ This is a comma-separated list of Status Effects that will be inflicted onto all
 affected by this Event. Every second, if the Event is ongoing, Alter Ego will look for all Rooms affected by it and
 attempt to inflict all Players in those Rooms with these Status Effects, if there are any listed. Players who are in the
 Room when the Event is triggered and Players who enter the Room later while it is still ongoing will all be inflicted,
-unless they have a Status Effect which [[overrides|Data-Structure:-Status#overriders]] it.
+unless they have a Status Effect which [overrides](status.md#overriders) it.
 
 ### Inflicted Status Effects
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Status Effect|Data-Structure:-Status]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](../data_structuresstatus.md)>
   `this.effects`
 
 This is an internal attribute which contains references to each of the Status Effect objects whose names are listed in
@@ -204,11 +195,12 @@ This is an internal attribute which contains references to each of the Status Ef
 This is a comma-separated list of Status Effects whose durations will be reset to full on all Players who are in a Room
 which is affected by this Event. Every second, if the Event is ongoing, Alter Ego will look for all Rooms affected by it
 and attempt to refresh the durations of all Status Effects every Player in each Room has that are listed here. When a
-Status Effect's duration is refreshed, it is set to its original value: the [[duration|Data-Structure:-Status#duration]]
+Status Effect's duration is refreshed, it is set to its original value:
+the [duration](status.md#duration)
 of the Status Effect that the Player's Status Effect is an instance of. The Player's instance of the Status Effect will
 continue to have its duration decremented by 1000 milliseconds every second; however, this will be canceled out every
 second when its duration is refreshed. Effectively, this makes it so that the Player's instance of the Status Effect
-cannot expire or develop into its [[next stage|Data-Structure:-Status#next-stage]] because its duration can never reach
+cannot expire or develop into its [next stage](status.md#next-stage) because its duration can never reach
 
 0.
 
@@ -224,7 +216,7 @@ the Event's inflicted Status Effects.
 ### Refreshed Status Effects
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Status Effect|Data-Structure:-Status]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](status.md)>
   `this.refreshes`
 
 This is an internal attribute which contains references to each of the Status Effect objects whose names are listed in
@@ -236,11 +228,11 @@ This is an internal attribute which contains references to each of the Status Ef
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.triggeredNarration`
 
-This is the [[Narration|Data-Structure:-Narration]] that will be parsed and then sent to the channels of all occupied
-Rooms that the Event is affected by when it is triggered. If no Players are in one of the Rooms affected by the Event,
-the Narration will not be sent to that Room's channel. See the article
-on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information. However, note that because this is a
-Narration and not a description, it cannot make use of the `player` variable under any circumstances.
+This is the [Narration]() that will be parsed and then sent to the channels of all occupied Rooms that the Event is
+affected by when it is triggered. If no Players are in one of the Rooms affected by the Event, the Narration will not be
+sent to that Room's channel. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md)
+for more information. However, note that because this is a Narration and not a description, it cannot make use of the
+`player` variable under any circumstances.
 
 ### Ended Narration
 
@@ -250,9 +242,9 @@ Narration and not a description, it cannot make use of the `player` variable und
 
 This is the Narration that will be parsed and then sent to the channels of all occupied Rooms that the Event is affected
 by when it is ended. If no Players are in one of the Rooms affected by the Event, the Narration will not be sent to that
-Room's channel. See the article on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information.
-However, note that because this is a Narration and not a description, it cannot make use of the `player` variable under
-any circumstances.
+Room's channel. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more
+information. However, note that because this is a Narration and not a description, it cannot make use of the `player`
+variable under any circumstances.
 
 ### Row
 
@@ -266,8 +258,8 @@ This is an internal attribute, but it can also be found on the spreadsheet. This
 * Class attribute: [moment-timer](https://momentjs.com/docs/#/plugins/timer/) `this.timer`
 
 This is an internal attribute which contains a timer counting down until the Event ends. Every 1000 milliseconds, 1
-second is subtracted from the Event's [[remaining Duration|Data-Structure:-Event#remaining]] until it reaches 0. When it
-does, the Event ends, and this attribute becomes `null`.
+second is subtracted from the Event's [remaining Duration](event.md#remaining) until it reaches 0. When it does, the
+Event ends, and this attribute becomes `null`.
 
 ### Effects Timer
 
@@ -275,6 +267,6 @@ does, the Event ends, and this attribute becomes `null`.
 
 This is an internal attribute which contains a timer that inflicts and refreshes Status Effects while the Event is
 ongoing. Every 1000 milliseconds, Alter Ego iterates through all Rooms tagged with this
-Event's [[room tag|Data-Structure:-Event#room-tag]] and attempts to inflict and refresh its inflicted and refreshed
-Status Effects on any Players occupying them. If this Event has no inflicted or refreshed Status Effects, or if the
-Event is not ongoing, this attribute becomes `null`.
+Event's [room tag](event.md#room-tag) and attempts to inflict and refresh its inflicted and refreshed Status Effects on
+any Players occupying them. If this Event has no inflicted or refreshed Status Effects, or if the Event is not ongoing,
+this attribute becomes `null`.

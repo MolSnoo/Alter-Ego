@@ -1,9 +1,8 @@
 # Data Structures
 
-In the Neo World Program, all of the [[map|Map]] data is stored on a Google Sheet. There are a number of reasons for
-this:
+In the Neo World Program, all of the map data is stored on a Google Sheet. There are a number of reasons for this:
 
-1. It allows multiple [[moderators|Tutorial:-Moderating]] to collaborate and develop the map together.
+1. It allows multiple [moderators](../../moderator_guide/moderating.md) to collaborate and develop the map together.
 1. It requires the data be organized in a consistent way which is easily readable by a bot such as Alter Ego.
 1. All edits to the spreadsheet are automatically saved, and the moderator(s) can revert the spreadsheet to any previous
    state they please if need be.

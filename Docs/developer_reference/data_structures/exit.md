@@ -1,6 +1,6 @@
 # Exit
 
-An **Exit** is a data structure in the [[Neo World Program]]. It represents an exit in a [[Room|Data-Structure:-Room]].
+An Exit is a data structure in the Neo World Program. It represents an exit in a [Room](room.md).
 
 ## Table of Contents
 
@@ -11,8 +11,8 @@ An **Exit** is a data structure in the [[Neo World Program]]. It represents an e
 Exits are the internal data structure linking Rooms to one another. As such, most of their attributes serve this
 purpose. Note that if an attribute is _internal_, that means it only exists within
 the [Exit class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Exit.js). Internal attributes will be given in
-the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on the
+spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Name
 
@@ -29,7 +29,7 @@ usually be mentioned in all descriptions of the Room it belongs to, unless it is
   `this.pos`
 
 This is an internal attribute whose properties are the X, Y, and Z coordinates of the Exit. For more information, see
-the article on [[Maps|Map]].
+the article on [Maps]().
 
 #### X
 
@@ -61,13 +61,13 @@ This is the Z coordinate of the Exit.
 * Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.unlocked`
 
-This indicates whether the Exit is unlocked or not. If this is `true`, then [[Players|Data-Structure:-Player]] can
-travel through this Exit. If it is `false`, then the Player will simply be told that the Exit is locked.
+This indicates whether the Exit is unlocked or not. If this is `true`, then [Players](player.md) can travel through this
+Exit. If it is `false`, then the Player will simply be told that the Exit is locked.
 
 ### Destination
 
 * Spreadsheet label: **Leads To**
-* Class attribute: [[Room|Data-Structure:-Room]] `this.dest`
+* Class attribute: [Room](room.md) `this.dest`
 
 This is the Room that the Exit leads to. When a Player travels through this Exit, their permission to view the channel
 of their current Room will be revoked and they will then be given permission to view the channel associated with the

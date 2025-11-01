@@ -1,18 +1,17 @@
 # Recipe
 
-A **Recipe** is a data structure in the [[Neo World Program]]. Its primary purpose is to
-allow [[Players|Data-Structure:-Player]] to transform [[Items|Data-Structure:-Item]]
-or [[Inventory Items|Data-Structure:-InventoryItem]] into other Items or Inventory Items using game-like crafting
-mechanics.
+A **Recipe** is a data structure in the [[Neo World Program]]. Its primary purpose is to allow [Players](player.md) to
+transform [Items](item.md)
+or [Inventory Items](inventory_item.md) into other Items or Inventory Items using game-like crafting mechanics.
 
 Recipes are static; once loaded from the [[spreadsheet]], they do not change in any way. Thus,
 the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/saver.js) will never make changes to the
 Recipes sheet. As a result, the Recipes sheet can be freely edited without [[edit mode]] being enabled.
 
 This article will impose two terms. **Crafting** is the act of transforming two Inventory Items into up to two Inventory
-Items using the [[craft command|Commands#craft-player-command]]. **Processing** is the act of transforming one or more
-Items into zero or more Items using an [[Object|Data-Structure:-Object]]. Every Recipe is either a crafting-type Recipe
-or a processing-type Recipe, but not both.
+Items using the [craft command](../commands/player_commands.md#craft). **Processing** is the act of transforming one or
+more Items into zero or more Items using an [Object](object.md). Every Recipe is either a crafting-type Recipe or a
+processing-type Recipe, but not both.
 
 ## Table of Contents
 
@@ -31,13 +30,13 @@ point.
 
 * Spreadsheet label: **Ingredient Prefab(s)**
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Prefab|Data-Structure:-Prefab]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Prefab](prefab.md)>
   `this.ingredients`
 
-This is a comma-separated list of [[Prefab IDs|Data-Structure:-Prefab#id]]. When Recipes are loaded, Alter Ego will
-automatically convert these to actual references to the Prefabs. Ingredients determine what Items or Inventory Items are
-required for the Recipe. Multiple Recipes can have the same list of ingredients. There are different sets of rules for
-ingredients, depending on the Recipe's type.
+This is a comma-separated list of [Prefab IDs](prefab.md#id). When Recipes are loaded, Alter Ego will automatically
+convert these to actual references to the Prefabs. Ingredients determine what Items or Inventory Items are required for
+the Recipe. Multiple Recipes can have the same list of ingredients. There are different sets of rules for ingredients,
+depending on the Recipe's type.
 
 Crafting-type Recipes:
 
@@ -51,11 +50,11 @@ Processing-type Recipes:
 * Must not have more than one of the same Prefab as ingredients.
 
 Note that the final rule only applies due to the way Items with the same Prefab ID are concatenated with
-the [[quantity attribute|Data-Structure:-Item#quantity]]. If the Items are on two different rows of the spreadsheet due
-to having some difference between them, such as different numbers of [[uses|Data-Structure:-Item#uses]] or
-different [[descriptions|Data-Structure:-Item#description]], then processing-type Recipes can be carried out with
-multiple of the same Prefab as ingredients. However, because this will rarely be the case, processing-type Recipes with
-more than one of the same Prefab as ingredients should be avoided.
+the [quantity attribute](item.md#quantity). If the Items are on two different rows of the spreadsheet due to having some
+difference between them, such as different numbers of [uses](item.md#uses) or
+different [descriptions](item.md#description), then processing-type Recipes can be carried out with multiple of the same
+Prefab as ingredients. However, because this will rarely be the case, processing-type Recipes with more than one of the
+same Prefab as ingredients should be avoided.
 
 ### Object Tag
 
@@ -68,9 +67,9 @@ how Object tags must be named, but a single Recipe can only have one Object tag.
 determines the type of each Recipe. If an Object tag is given, it will be a processing-type Recipe. If no Object tag is
 given, it will be a crafting-type Recipe.
 
-The tag should match exactly the [[Recipe tag|Data-Structure:-Object#recipe-tag]] of any Objects that can be used to
-process this Recipe. For example, a Recipe with the Object tag "blender" can only be processed by an Object with the
-Recipe tag "blender" when it is activated.
+The tag should match exactly the [Recipe tag](object.md#recipe-tag) of any Objects that can be used to process this
+Recipe. For example, a Recipe with the Object tag "blender" can only be processed by an Object with the Recipe tag "
+blender" when it is activated.
 
 ### Duration
 
@@ -81,15 +80,8 @@ This is a string which determines how long the Recipe will take to process befor
 given for processing-type Recipes. This should consist of a whole number (no decimals) with a letter immediately
 following it, with no space between them. There is a fixed set of predefined units that correspond with each letter.
 They are as follows:
-| Letter | Unit |
-| ------ | ------- |
-| s | seconds |
-| m | minutes |
-| h | hours |
-| d | days |
-| w | weeks |
-| M | months |
-| y | years |
+| Letter | Unit | | ------ | ------- | | s | seconds | | m | minutes | | h | hours | | d | days | | w | weeks | | M |
+months | | y | years |
 
 So, a Recipe that should take 30 seconds to process should have a duration of `30s`, one that should take 15 minutes
 should have a duration of `15m`, one that should take 2 hours should have a duration of `2h`, one that should take 1.5
@@ -99,12 +91,12 @@ days should have a duration of `36h`, and so on.
 
 * Spreadsheet label: **Produces**
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Prefab|Data-Structure:-Prefab]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Prefab](prefab.md)>
   `this.products`
 
-This is a comma-separated list of [[Prefab IDs|Data-Structure:-Prefab#id]]. When Recipes are loaded, Alter Ego will
-automatically convert these to actual references to the Prefabs. Products determine what the ingredients will be turned
-into upon completion of the Recipe. There are different sets of rules for products, depending on the Recipe's type.
+This is a comma-separated list of [Prefab IDs](prefab.md#id). When Recipes are loaded, Alter Ego will automatically
+convert these to actual references to the Prefabs. Products determine what the ingredients will be turned into upon
+completion of the Recipe. There are different sets of rules for products, depending on the Recipe's type.
 
 Crafting-type Recipes:
 
@@ -158,10 +150,10 @@ This is an internal attribute, but it can also be found on the spreadsheet. This
 
 Crafting is a simple game mechanic that uses Recipes. It makes use of
 the [craft Player method](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Data/Player.js#L1488).
-Whether the action is initiated [[by a Player|Commands#craft-player-command]]
-or [[by a moderator|Commands#craft-moderator-command]], the rules are the same:
+Whether the action is initiated [by a Player](../commands/player_commands.md#craft)
+or [by a moderator](../commands/moderator_commands.md#craft), the rules are the same:
 
-* The Player must have [[Equipment Slots|Data-Structure:-EquipmentSlot]] named "RIGHT HAND" and "LEFT HAND".
+* The Player must have [Equipment Slots](equipment_slot.md) named "RIGHT HAND" and "LEFT HAND".
 * The Player must have two Inventory Items, one equipped to their RIGHT HAND and one equipped to their LEFT HAND.
 * There must be a crafting-type Recipe whose ingredients are the Prefabs underlying the Player's two held Inventory
   Items.
@@ -170,8 +162,8 @@ If all of the above requirements are met, the Player will craft the two Inventor
 
 First, Alter Ego checks to see if any of the ingredients are also products. If that is the case, it then checks if the
 Inventory Item only has 1 use left. If so, the Inventory Item will be replaced with
-its [[next stage|Data-Structure:-Prefab#next-stage]]. If it doesn't have a next stage, it will simply be destroyed. If
-the Inventory Item has a limited number of uses but it has more than 1 use left, its number of uses will be decreased by
+its [next stage](prefab.md#next-stage). If it doesn't have a next stage, it will simply be destroyed. If the Inventory
+Item has a limited number of uses but it has more than 1 use left, its number of uses will be decreased by
 
 1.
 
@@ -190,22 +182,22 @@ If there is only 1 product, then the second ingredient will simply be destroyed,
 replaced. If there are 0 products, then both ingredients will be destroyed, and no products will be created.
 
 Once the ingredients are finished being crafted, Alter Ego will send the Player the Recipe's completed description.
-Additionally, if any of the product Prefabs are [[non-discreet|Data-Structure:-Prefab#discreet]], Alter Ego
-will [[narrate|Data-Structure:-Narration]] the Player crafting them.
+Additionally, if any of the product Prefabs are [non-discreet](prefab.md#discreet), Alter Ego
+will [narrate](Narration.md) the Player crafting them.
 
 ## Processing
 
 Processing is a complex game mechanic that uses Recipes. It makes use of
 the [processRecipes Object method](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Data/Object.js#L96).
 
-Recipes can be processed in an Object as long as that Object is [[activated|Data-Structure:-Object#activated]] and has
-a [[Recipe tag|Data-Structure:-Object#recipe-tag]] that matches the Recipe's Object tag, regardless of how the Object
-was activated. There are four ways an Object can be activated:
+Recipes can be processed in an Object as long as that Object is [activated](object.md#activated) and has
+a [Recipe tag](object.md#recipe-tag) that matches the Recipe's Object tag, regardless of how the Object was activated.
+There are four ways an Object can be activated:
 
-* By a Player using the [[use player command|Commands#use-player-command]],
-* By a moderator using the [[object moderator command|Commands#object-moderator-command]],
+* By a Player using the [use player command](../commands/player_commands.md#use),
+* By a moderator using the [object moderator command](../commands/moderator_commands.md#object),
 * By a Puzzle or Event's solved/unsolved or triggered/ended commands using
-  the [[object bot command|Commands#object-bot-command]], or
+  the [object bot command](../commands/bot_commands.md#object), or
 * By being loaded from the spreadsheet with its activation state being set to `true`.
 
 While an Object with a Recipe tag is activated, Alter Ego will attempt every second
@@ -224,15 +216,15 @@ However, even if the Object was not activated by a Player for the current Recipe
 processed. If a Recipe was already being processed and a different one that uses more of the Object's Items is found,
 then it will be canceled in favor of the new one.
 
-A Recipe being processed means that the [[Object's process variable|Data-Structure:-Object#process]] has been assigned,
-and that Alter Ego will decrement the process's duration by 1 every second. When the duration reaches 0, the Items
+A Recipe being processed means that the [Object's process variable](object.md#process) has been assigned, and that Alter
+Ego will decrement the process's duration by 1 every second. When the duration reaches 0, the Items
 are [processed](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Data/Object.js#L208).
 
 Alter Ego checks that all of the Items required for the Recipe are still contained in the Object. If it is, it then
 checks to see if any of the ingredients are also products. If that is the case, it then checks if the Item only has 1
-use left. If so, the Item will be replaced with its [[next stage|Data-Structure:-Prefab#next-stage]]. If the Item has a
-limited number of uses but it has more than 1 use left, its number of uses will be decreased by 1. This follows the same
-logic as in crafting-type Recipes.
+use left. If so, the Item will be replaced with its [next stage](prefab.md#next-stage). If the Item has a limited number
+of uses but it has more than 1 use left, its number of uses will be decreased by 1. This follows the same logic as in
+crafting-type Recipes.
 
 If all of the Items are still in the Object, it destroys all of them regardless of quantity. So, even if a Recipe with
 multiple ingredients only requires 1 of a certain ingredient, all copies of that ingredient will be destroyed. Items

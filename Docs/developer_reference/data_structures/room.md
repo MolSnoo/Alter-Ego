@@ -1,7 +1,6 @@
 # Room
 
-A **Room** is a data structure in the [[Neo World Program]]. It represents a room
-that [[Players|Data-Structure:-Player]] can move to.
+A **Room** is a data structure in the [[Neo World Program]]. It represents a room that [Players](player.md) can move to.
 
 ## Table of Contents
 
@@ -33,8 +32,8 @@ This is an internal attribute. When the Room data is loaded, [[Alter Ego]] will 
 matches the name of the Room. By making the channel a persistent internal attribute, Alter Ego can perform many
 operations more easily, such as adding a Player to the Room's channel. It should be noted that even if a Room's channel
 is not part of a [[room category|Tutorial:-Settings-(Node)#roomcategories]], Players will still be added to the channel
-when moving to its associated Room and  [[Narrations|Data-Structure:-Narration]] will still be sent to the channel,
-but [[commands]] and [[dialog]] sent to that channel will not be passed through
+when moving to its associated Room and  [Narrations](Narration.md) will still be sent to the channel, but [[commands]]
+and [[dialog]] sent to that channel will not be passed through
 the [commandHandler](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/commandHandler.js)
 and [dialogHandler](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/dialogHandler.js) modules, respectively.
 
@@ -46,13 +45,13 @@ and [dialogHandler](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/dia
   `this.tags`
 
 This is a comma-separated list of keywords or phrases assigned to a Room that allows that Room, and others with shared
-tags, to be affected by [[Events|Data-Structure:-Event]]. There are no rules for how tags must be named, and there is no
-theoretical limit on the number of tags a single Room can have. Some tags have predefined behavior. Here, each
-predefined tag will be listed, and their behavior will be detailed.
+tags, to be affected by [Events](event.md). There are no rules for how tags must be named, and there is no theoretical
+limit on the number of tags a single Room can have. Some tags have predefined behavior. Here, each predefined tag will
+be listed, and their behavior will be detailed.
 
 * `soundproof`
     * All dialog spoken inside the Room will not be narrated in adjacent Rooms, even if it is shouted or if Players in
-      adjacent Rooms have the `acute hearing` [[attribute|Data-Structure:-Status#Attributes]].
+      adjacent Rooms have the `acute hearing` [attribute](status.md#Attributes).
     * Players in the Room will not hear dialog from adjacent Rooms, regardless of the same circumstances.
 * `audio surveilled`
     * All non-Whispered dialog sent to the Room will be narrated in all Rooms with the `audio monitoring` tag with an
@@ -68,7 +67,7 @@ predefined tag will be listed, and their behavior will be detailed.
       tag.
     * Example: `[break-room] Someone in a nearby room with an obnoxious voice shouts "SOMEONE HELP!".`
 * `video surveilled`
-    * All [[Narrations|Data-Structure:-Narration]] sent to the Room will be narrated in all Rooms with the
+    * All [Narrations](Narration.md) sent to the Room will be narrated in all Rooms with the
       `video monitoring` tag with an indication of which Room the Narration originated in.
     * While there is no limit to how many Rooms can have this tag, applying it to too many could negatively affect Alter
       Ego's performance.
@@ -78,8 +77,8 @@ predefined tag will be listed, and their behavior will be detailed.
     * Example: `[break-room] Kyra begins inspecting the DESK.`
     * If the Room also has the `audio monitoring` tag, then all non-Whispered dialog spoken in any Room with the
       `video surveilled` and `audio surveilled` tags will appear as a more natural dialog message, with the
-      speaker's [[display name|Data-Structure:-Player#display-name]]
-      and [[display icon|Data-Structure:-Player#display-icon]] alongside the name of the Room the dialog originated in.
+      speaker's [display name](player.md#display-name)
+      and [display icon](player.md#display-icon) alongside the name of the Room the dialog originated in.
 * `secret`
     * If the Room also has the `audio surveilled` or `video surveilled` tag, then its name will be obscured when dialog
       and Narrations are transmitted to Rooms with the `audio monitoring` or `video monitoring` tags.
@@ -98,12 +97,12 @@ This is an optional image URL that will accompany a Room's description. The URL 
 
 * Spreadsheet labels: **Exits**, **X**, **Y**, **Z**, **Unlocked?**, **Leads To**, **From**, **Room Description**
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Exit|Data-Structure:-Exit]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Exit](exit.md)>
   `this.exit`
 
 This is a list of Exits in the Room. All Rooms that can be accessed via a given Room's Exits are considered **adjacent**
 to the given Room, meaning a Player can freely travel to them. For more information, see the article
-on [[Exits|Data-Structure:-Exit]].
+on [Exits](exit.md).
 
 ### Room Description
 
@@ -142,7 +141,7 @@ Room.
 ### Occupants
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[[Player|Data-Structure:-Player]]>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Player](player.md)>
   `this.occupants`
 
 This is an internal attribute. It is an array of all Players currently in the Room.
@@ -153,5 +152,5 @@ This is an internal attribute. It is an array of all Players currently in the Ro
   `this.occupantsString`
 
 This is an internal attribute. It is a string listing all of the Room's
-occupants' [[display names|Data-Structure:-Player#displayName]] in alphabetical order, however any Players with the
-`hidden` [[attribute|Data-Structure:-Status#Attributes]] are omitted.
+occupants' [display names](player.md#displayName) in alphabetical order, however any Players with the
+`hidden` [attribute](status.md#Attributes) are omitted.
