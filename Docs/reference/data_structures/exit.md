@@ -102,12 +102,12 @@ they will be sent a [Discord Embed](https://discord.js.org/docs/packages/discord
 * The name of the Room.
 * The description of the Exit they entered from.
 * The Room's occupants, excluding the Player themself.
-* The description of the Room's [default drop Object](../settings/docker_settings.md#default_drop_object). If the Room doesn't
-  have one, "You don't see any items." will be sent instead.
+* The description of the Room's [default drop Object](../settings/docker_settings.md#default_drop_object). If the Room
+  doesn't have one, "You don't see any items." will be sent instead.
 * The Room's icon URL. If the Room does not have one, then
-  the [default Room icon URL](../settings/docker_settings.md#default_room_icon_url) will be used instead. If no default Room
-  icon URL is set, then Alter Ego will use the server icon instead. If the server icon is not set, then no image will be
-  sent in the MessageEmbed.
+  the [default Room icon URL](../settings/docker_settings.md#default_room_icon_url) will be used instead. If no default
+  Room icon URL is set, then Alter Ego will use the server icon instead. If the server icon is not set, then no image
+  will be sent in the MessageEmbed.
 
 ![An example of an Exit description Embed.](https://i.imgur.com/6fY2HKd.png)
 

@@ -6,12 +6,13 @@ or [Inventory Items](inventory_item.md) into other Items or Inventory Items usin
 
 Recipes are static; once loaded from the [spreadsheet](index.md), they do not change in any way. Thus,
 the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/saver.js) will never make changes to the
-Recipes sheet. As a result, the Recipes sheet can be freely edited without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
+Recipes sheet. As a result, the Recipes sheet can be freely edited
+without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
 
 This article will impose two terms. **Crafting** is the act of transforming two Inventory Items into up to two Inventory
-Items using the [craft](../commands/player_commands.md#craft) [command](../commands/moderator_commands.md#craft). **Processing** is the act of transforming one or
-more Items into zero or more Items using an [Object](object.md). Every Recipe is either a crafting-type Recipe or a
-processing-type Recipe, but not both.
+Items using the [craft](../commands/player_commands.md#craft) [command](../commands/moderator_commands.md#craft).
+**Processing** is the act of transforming one or more Items into zero or more Items using an [Object](object.md). Every
+Recipe is either a crafting-type Recipe or a processing-type Recipe, but not both.
 
 ## Table of Contents
 
@@ -59,11 +60,16 @@ same Prefab as ingredients should be avoided.
 ### Uncraftable
 
 * Spreadsheet label: **Uncraftable?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) `this.uncraftable`
+* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+  `this.uncraftable`
 
-This is a Boolean value indicating whether or not this Recipe can be reversed. If this is `true`, then the [uncraft](../commands/player_commands.md#uncraft) [command](../commands/moderator_commands.md#uncraft) can be used to convert the [product](recipe.md#products) into its [ingredients](recipe.md#ingredients). If this value is `false`, then the Recipe cannot be reversed.
+This is a Boolean value indicating whether or not this Recipe can be reversed. If this is `true`, then
+the [uncraft](../commands/player_commands.md#uncraft) [command](../commands/moderator_commands.md#uncraft) can be used
+to convert the [product](recipe.md#products) into its [ingredients](recipe.md#ingredients). If this value is `false`,
+then the Recipe cannot be reversed.
 
-Note that in order for a Recipe to be uncraftable, it must be a crafting-type Recipe with only one product. Crafting-type Recipes with two products cannot be uncraftable.
+Note that in order for a Recipe to be uncraftable, it must be a crafting-type Recipe with only one product.
+Crafting-type Recipes with two products cannot be uncraftable.
 
 ### Object Tag
 
@@ -135,9 +141,9 @@ the same does not apply to products. A processing-type Recipe can produce as man
 
 This is a description that indicates when a Recipe has begun being processed. When a Player activates an Object that can
 process this Recipe and all of the ingredients required for it are contained within the Object, they will receive a
-parsed version of this string. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more
-information. Note that unlike most other data types, the `this` keyword does not refer to the Recipe, but rather the
-Object processing the Recipe. For example, in the description
+parsed version of this string. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md)
+for more information. Note that unlike most other data types, the `this` keyword does not refer to the Recipe, but
+rather the Object processing the Recipe. For example, in the description
 `<desc><s>You begin filling up the GLASS in the <var v="this.name" />.</s></desc>`, the variable `<var v="this.name" />`
 would be replaced with the name of the Object processing the Recipe.
 
@@ -158,9 +164,11 @@ does refer to the Recipe itself.
 ### Uncrafted Description
 
 * Spreadsheet label: **Message When Uncrafted**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) `this.uncraftedDescription`
+* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+  `this.uncraftedDescription`
 
-When a Player uncrafts an Inventory Item, they will receive a parsed version of this string. Because uncraftable Recipes cannot have an Object tag, the `this` keyword will always refer to the Recipe itself.
+When a Player uncrafts an Inventory Item, they will receive a parsed version of this string. Because uncraftable Recipes
+cannot have an Object tag, the `this` keyword will always refer to the Recipe itself.
 
 ### Row
 
@@ -208,7 +216,10 @@ will [narrate](narration.md) the Player crafting them.
 
 ## Uncrafting
 
-Uncrafting is a simplified reversal of the crafting mechanic. It makes use of the [uncraft Player method](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Player.js#L1644). Whether the action is initiated by a Player or by a moderator, the rules are the same:
+Uncrafting is a simplified reversal of the crafting mechanic. It makes use of
+the [uncraft Player method](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Player.js#L1644).
+Whether the action is initiated by a Player or by a moderator, the rules are the same:
+
 * The Player must have Equipment Slots named "RIGHT HAND" and "LEFT HAND".
 * The Player must have one Inventory Item equipped to their RIGHT HAND or LEFT HAND.
 * The Player's other hand must be empty.
@@ -216,13 +227,20 @@ Uncrafting is a simplified reversal of the crafting mechanic. It makes use of th
 
 If all of the above requirements are met, the Player will uncraft their held Inventory Item.
 
-First, Alter Ego checks the Recipe's ingredients to see if only one of them is discreet. If so, then the ingredient with the discreet Prefab will be ingredient 1, and the non-discreet Prefab will be ingredient 2. If both are discreet or both are non-discreet, ingredients 1 and 2 will be the ingredient Prefabs in alphabetical order by their IDs.
+First, Alter Ego checks the Recipe's ingredients to see if only one of them is discreet. If so, then the ingredient with
+the discreet Prefab will be ingredient 1, and the non-discreet Prefab will be ingredient 2. If both are discreet or both
+are non-discreet, ingredients 1 and 2 will be the ingredient Prefabs in alphabetical order by their IDs.
 
-Next, the Player's held Inventory Item will be replaced with the properties of ingredient 1's Prefab, and any Inventory Items contained inside of it will be recursively destroyed. The Prefab of ingredient 2 will then be instantiated in the Player's free hand. Note that even if the original Inventory Item had a limited number of uses, both of the ingredients will be created with the default number of uses of their respective Prefabs.
+Next, the Player's held Inventory Item will be replaced with the properties of ingredient 1's Prefab, and any Inventory
+Items contained inside of it will be recursively destroyed. The Prefab of ingredient 2 will then be instantiated in the
+Player's free hand. Note that even if the original Inventory Item had a limited number of uses, both of the ingredients
+will be created with the default number of uses of their respective Prefabs.
 
 Alter Ego will then send the Player the Recipe's uncrafted description.
 
-If either of the ingredients are non-discreet, Alter Ego will narrate the Player uncrafting them. If only one of them is discreet, then the Narration will be as follows:
+If either of the ingredients are non-discreet, Alter Ego will narrate the Player uncrafting them. If only one of them is
+discreet, then the Narration will be as follows:
+
 * `[Player displayName] removes [ingredient 1 singleContainingPhrase] from [ingredient 2 singleContainingPhrase].`
 
 If both ingredients are non-discreet, then the Narration will instead be:

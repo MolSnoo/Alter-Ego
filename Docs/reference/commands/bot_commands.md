@@ -3,8 +3,8 @@
 Bot commands are not usable by any Discord user. These commands are passed into the commandHandler module directly by
 Alter Ego. Their purpose is to allow greater flexibility in behavior
 for [Prefabs](../reference/data_structures/prefab.md), [Events](../reference/data_structures/event.md),
-and [Puzzles](../reference/data_structures/puzzle.md). They allow many built-in restrictions placed on
-Players' actions to be bypassed.
+and [Puzzles](../reference/data_structures/puzzle.md). They allow many built-in restrictions placed on Players' actions
+to be bypassed.
 
 Bot commands can only be used when a game is in progress. They can only be entered on the spreadsheet. Unlike other
 commands, bot commands must not start with the [commandPrefix](../settings/docker_settings.md#command_prefix). Bot
@@ -128,11 +128,18 @@ Generates an item.
 
 #### Description
 
-Generates an item or inventory item in the specified location. The prefab ID must be used. A quantity can also be set. If the prefab has procedural options, they can be manually set in parentheses.
+Generates an item or inventory item in the specified location. The prefab ID must be used. A quantity can also be set.
+If the prefab has procedural options, they can be manually set in parentheses.
 
-To instantiate an item, the name of the room must be given at the end, following "at". The name of the container to put it in must also be given. If the container is an object with a child puzzle, the puzzle will be its container. If the container is another item, the item's name or container identifier can be used. The name of the inventory slot to instantiate the item in can also be specified.
+To instantiate an item, the name of the room must be given at the end, following "at". The name of the container to put
+it in must also be given. If the container is an object with a child puzzle, the puzzle will be its container. If the
+container is another item, the item's name or container identifier can be used. The name of the inventory slot to
+instantiate the item in can also be specified.
 
-To instantiate an inventory item, "player", "room", "all", or the name of a player followed by "'s", must be given. A container item can be specified, as well as which slot to instantiate the item into. The player will not be notified if a container item is specified. An equipment slot can also be chosen instead of a container item. The player will be notified of obtaining the item in this case, and the prefab's equipped commands will be run.
+To instantiate an inventory item, "player", "room", "all", or the name of a player followed by "'s", must be given. A
+container item can be specified, as well as which slot to instantiate the item into. The player will not be notified if
+a container item is specified. An equipment slot can also be chosen instead of a container item. The player will be
+notified of obtaining the item in this case, and the prefab's equipped commands will be run.
 
 ## kill
 

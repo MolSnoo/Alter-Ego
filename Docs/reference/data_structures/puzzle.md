@@ -14,8 +14,8 @@ in most games.
 In order to provide a versatile array of behaviors, Puzzles have many attributes. Note that if an attribute is
 _internal_, that means it only exists within
 the [Puzzle class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Puzzle.js). Internal attributes will be given
-in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
+in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on the
+spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Name
 
@@ -48,9 +48,9 @@ the [already solved description](puzzle.md#already-solved-description).
 
 This is a string indicating which [solution](puzzle.md#solutions) the Puzzle has been solved with, if any. If the Puzzle
 is not solved or only has one possible solution, then this must be blank. In general, this does not need to be set
-manually. Alter Ego will automatically set this when the Puzzle is solved, if it has multiple possible solutions.
-This should only be set manually if the Puzzle should be solved by default. If that is the case, then it should match
-exactly one of the Puzzle's solutions.
+manually. Alter Ego will automatically set this when the Puzzle is solved, if it has multiple possible solutions. This
+should only be set manually if the Puzzle should be solved by default. If that is the case, then it should match exactly
+one of the Puzzle's solutions.
 
 ### Requires Moderator
 
@@ -58,16 +58,16 @@ exactly one of the Puzzle's solutions.
 * Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.requiresMod`
 
-This is another Boolean value indicating whether the Puzzle requires [moderator](../../moderator_guide/moderating) intervention to
-solve. If this is `true`, then the Puzzle can only be solved by a moderator using
+This is another Boolean value indicating whether the Puzzle requires [moderator](../../moderator_guide/moderating)
+intervention to solve. If this is `true`, then the Puzzle can only be solved by a moderator using
 the [puzzle command](../commands/moderator_commands.md#puzzle), and a Player who attempts to solve the Puzzle will
 receive the message "You need moderator assistance to do that." If this is `false`, then a Player will be able to
 attempt to solve the Puzzle freely.
 
 A Puzzle that requires moderator intervention to solve can be useful in a few situations. A few examples are:
 
-* A Puzzle whose solution cannot be entered in a [Discord](../../about/discord.md) message and interpreted by Alter Ego, such as an image or
-  an arrangement of items in a certain order,
+* A Puzzle whose solution cannot be entered in a [Discord](../../about/discord.md) message and interpreted by Alter Ego,
+  such as an image or an arrangement of items in a certain order,
 * A Puzzle with an open-ended solution that requires a Player to think creatively,
 * A Puzzle that can only be attempted under certain conditions,
 * A Puzzle that is not intended to be solved until a certain time, and
@@ -101,8 +101,8 @@ Ego will send "Haru uses the YELLOW BUTTON." to the PANIC BUTTON's Room channel.
 Additionally, by assigning a Puzzle a parent Object, it becomes possible for the Puzzle to contain [Items](item.md).
 This allows Items to be made inaccessible until the Puzzle is solved, while also allowing Players to take and drop Items
 from/into the parent Object if the Puzzle is solved. When an Object capable of containing Items is assigned a child
-Puzzle, the [item list](../../moderator_guide/writing_descriptions.md#il) must be in the Puzzle's already solved description. If no
-parent Object is needed, this cell can simply be left blank on the spreadsheet.
+Puzzle, the [item list](../../moderator_guide/writing_descriptions.md#il) must be in the Puzzle's already solved
+description. If no parent Object is needed, this cell can simply be left blank on the spreadsheet.
 
 ### Parent Object
 
@@ -124,207 +124,240 @@ detailed. Note that if the term `[PUZZLE NAME]` is used, it doesn't necessarily 
 can refer to that, or the name of the Puzzle's parent Object, if it has one.
 
 #### `password`
+
 * A Player must enter the correct password in order to solve the Puzzle. The password is case sensitive.
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
 * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate 
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate
   "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `interact`
+
 * A Player must only interact with the Puzzle in order to solve it.
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
 * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate 
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate
   "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `matrix`
+
 * The Puzzle behaves exactly the same as an `interact`-type Puzzle. However, its solved commands have special behavior.
-* When the Puzzle's solved commands are executed, the outcomes of all of its required Puzzles are accessible in its solved commands. If a solved command contains the name of one of its required Puzzles in curly braces (for example: `{PUZZLE NAME}`), that string will be replaced with that Puzzle's outcome before it is executed. This allows solved commands to have variable arguments that result in different behavior depending on the outcomes of one or more Puzzles.
-* This is especially useful for instantiating [procedurally generated Prefabs](../../moderator_guide/writing_descriptions.md#poss-attribute-name) with possibilities manually selected by a Player in other Puzzles. However, this behavior can be used in any bot command.
+* When the Puzzle's solved commands are executed, the outcomes of all of its required Puzzles are accessible in its
+  solved commands. If a solved command contains the name of one of its required Puzzles in curly braces (for example:
+  `{PUZZLE NAME}`), that string will be replaced with that Puzzle's outcome before it is executed. This allows solved
+  commands to have variable arguments that result in different behavior depending on the outcomes of one or more
+  Puzzles.
+* This is especially useful for
+  instantiating [procedurally generated Prefabs](../../moderator_guide/writing_descriptions.md#poss-attribute-name) with
+  possibilities manually selected by a Player in other Puzzles. However, this behavior can be used in any bot command.
 
 #### `player`
+
 * A Player must only interact with the Puzzle in order to solve it. However, the Player's name must match one of the
   Puzzle's solutions. The name is case sensitive.
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
 * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate 
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate
   "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `room player`
-* A Player must enter the display name of a Player in the same Room as them in order to solve the Puzzle. However, the chosen Player's display name must match one of the Puzzle's solutions. The display name is not case sensitive. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel. When the Puzzle's solved commands are executed, the selected Player will be passed into the commandHandler module. As a result, any commands that use the `player` argument will execute as if the selected Player was the one who initiated them.
+
+* A Player must enter the display name of a Player in the same Room as them in order to solve the Puzzle. However, the
+  chosen Player's display name must match one of the Puzzle's solutions. The display name is not case sensitive. If a
+  Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's
+  Room channel. When the Puzzle's solved commands are executed, the selected Player will be passed into the
+  commandHandler module. As a result, any commands that use the `player` argument will execute as if the selected Player
+  was the one who initiated them.
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
-* If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description. Alter Ego will narrate "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
+* If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description. Alter Ego
+  will narrate "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to use the
+  `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
 
 #### `toggle`
+
 * A Player must only interact with the Puzzle in order to solve it.
-* Once the Puzzle has been solved, it can be unsolved when a Player interacts with it again. This allows it to be 
+* Once the Puzzle has been solved, it can be unsolved when a Player interacts with it again. This allows it to be
   "toggled" between two states at will.
 * If a Player unsolves the Puzzle, they will be sent the Puzzle's already solved description.
 * When a Player interacts with the Puzzle, whether they solve or unsolve it, Alter Ego will narrate "
   `[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel. However, if the Player attempts to
-  unsolve it and the [requirements](puzzle.md#requirements-strings) have not all been met, Alter Ego will narrate 
+  unsolve it and the [requirements](puzzle.md#requirements-strings) have not all been met, Alter Ego will narrate
   "`[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." instead.
 
 #### `combination lock`
+
 * A Player must enter the correct password in order to solve the Puzzle. The password is case sensitive. If a Player
-  solves the Puzzle, Alter Ego will narrate "`[Player displayName]` unlocks the `[PUZZLE NAME]`." in the Puzzle's
-  Room channel.
+  solves the Puzzle, Alter Ego will narrate "`[Player displayName]` unlocks the `[PUZZLE NAME]`." in the Puzzle's Room
+  channel.
 * Once the Puzzle has been solved, it can be unsolved when a Player attempts to solve it again using an incorrect
   password or by using the lock alias for the use command.
-* If a Player unsolves the Puzzle, they will be sent "You lock the `[PUZZLE NAME]`.", and Alter Ego will narrate 
+* If a Player unsolves the Puzzle, they will be sent "You lock the `[PUZZLE NAME]`.", and Alter Ego will narrate
   "`[Player displayName]` locks the `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, or
-  without supplying a password, Alter Ego will narrate "`[Player displayName]` opens the `[PUZZLE NAME]`." in the
-  Puzzle's Room channel.
-* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts and fails to unlock
-  the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, or without
+  supplying a password, Alter Ego will narrate "`[Player displayName]` opens the `[PUZZLE NAME]`." in the Puzzle's Room
+  channel.
+* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts and fails to unlock the
+  `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `key lock`
-* A Player must have an [Inventory Item](inventory_item.md) based on the [Prefab](prefab.md) specified in the
-  Puzzle's solution in order to solve the Puzzle. If no solution is given, this Puzzle behaves almost identically to
-  a `toggle`-type Puzzle. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` unlocks the
+
+* A Player must have an [Inventory Item](inventory_item.md) based on the [Prefab](prefab.md) specified in the Puzzle's
+  solution in order to solve the Puzzle. If no solution is given, this Puzzle behaves almost identically to a `toggle`
+  -type Puzzle. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` unlocks the
   `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* Once the Puzzle has been solved, it can be unsolved when a Player uses the lock alias for the use command, but
-  only if they have the required Inventory Item. If the Player does not have the required Inventory Item, Alter Ego
-  will narrate "`[Player displayName]` attempts and fails to lock the `[PUZZLE NAME]`." in the Puzzle's Room
-  channel.
-* If a Player unsolves the Puzzle, they will be sent "You lock the `[PUZZLE NAME]`.", and Alter Ego will narrate 
+* Once the Puzzle has been solved, it can be unsolved when a Player uses the lock alias for the use command, but only if
+  they have the required Inventory Item. If the Player does not have the required Inventory Item, Alter Ego will
+  narrate "`[Player displayName]` attempts and fails to lock the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+* If a Player unsolves the Puzzle, they will be sent "You lock the `[PUZZLE NAME]`.", and Alter Ego will narrate
   "`[Player displayName]` locks the `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* If the Puzzle is already solved and a Player attempts to solve the Puzzle again while holding the required
-  Inventory Item, Alter Ego will narrate "`[Player displayName]` opens the `[PUZZLE NAME]`." in the Puzzle's Room
-  channel.
+* If the Puzzle is already solved and a Player attempts to solve the Puzzle again while holding the required Inventory
+  Item, Alter Ego will narrate "`[Player displayName]` opens the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `probability`
+
 * A Player must only interact with the Puzzle in order to solve it. One of the Puzzle's solutions will be randomly
   chosen as the outcome.
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
 * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate 
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate
   "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `stat probability`
+
 * A Player must only interact with the Puzzle in order to solve it. A stat-weighted [Die](die.md) will be rolled to
   semi-randomly choose one of the Puzzle's solutions as the outcome.
 * There are five versions of this Puzzle type: `str probability`, `int probability`, `dex probability`,
   `spd probability`, and `sta probability`. The stat that the Die is weighted with determines which of the Player's
-  stats will be used. The Player's roll modifier in that stat will be applied to the initial roll, and the ratio of
-  the final result to the maximum Die value is multiplied by the number of solutions to determine the outcome. In
-  effect, this means that a higher stat value is more likely to consistently yield outcomes which appear later in
-  the list of solutions; whereas a lower stat value is more likely to consistently yield outcomes which appear first
-  in the list of solutions. A Player with a stat value of 1, for example, may never get the final listed solution
-  and a Player with a stat value of 10 may never get the first listed solution, depending on how many solutions
-  there are and the range of possible Die rolls.
+  stats will be used. The Player's roll modifier in that stat will be applied to the initial roll, and the ratio of the
+  final result to the maximum Die value is multiplied by the number of solutions to determine the outcome. In effect,
+  this means that a higher stat value is more likely to consistently yield outcomes which appear later in the list of
+  solutions; whereas a lower stat value is more likely to consistently yield outcomes which appear first in the list of
+  solutions. A Player with a stat value of 1, for example, may never get the final listed solution and a Player with a
+  stat value of 10 may never get the first listed solution, depending on how many solutions there are and the range of
+  possible Die rolls.
 * The precision of outcomes is limited by the range of Die values. For example, if the Die has
-  a [minimum](../settings/docker_settings.md#dice_min) of 1 and a [maximum](../settings/docker_settings.md#dice_max) of 6, but
-  there are 20 solutions, some outcomes may be impossible to achieve.
+  a [minimum](../settings/docker_settings.md#dice_min) of 1 and a [maximum](../settings/docker_settings.md#dice_max) of
+  6, but there are 20 solutions, some outcomes may be impossible to achieve.
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
 * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate 
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate
   "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `channels`
+
 * A Player must only interact with the Puzzle in order to solve it. However, the Player can also enter the correct
   password to solve the Puzzle. The password is case sensitive. If a password is supplied, it will be used as the
-  outcome. If no password is supplied and the Puzzle has no current outcome, the first solution in the list will be
-  used as the outcome. If no password is supplied and the Puzzle does have a current outcome, that outcome will be
-  used. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` turns on the `[PUZZLE NAME]`."
+  outcome. If no password is supplied and the Puzzle has no current outcome, the first solution in the list will be used
+  as the outcome. If no password is supplied and the Puzzle does have a current outcome, that outcome will be used. If a
+  Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` turns on the `[PUZZLE NAME]`."
   in the Puzzle's Room channel.
 * Once the Puzzle has been solved, it can be unsolved when a Player interacts with the Puzzle without providing a
-  password. The outcome that the Puzzle was previously solved with will be retained and used if the Player solves
-  the Puzzle again without providing a password.
-* If a Player unsolves the Puzzle, they will be sent "You turn off the `[PUZZLE NAME]`.", and Alter Ego will
-  narrate "`[Player displayName]` turns off the `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, they
-  will solve it again with that solution as the outcome, and Alter Ego will narrate "`[Player displayName]` changes
-  the channel on the `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts and fails to change
-  the channel on the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+  password. The outcome that the Puzzle was previously solved with will be retained and used if the Player solves the
+  Puzzle again without providing a password.
+* If a Player unsolves the Puzzle, they will be sent "You turn off the `[PUZZLE NAME]`.", and Alter Ego will narrate
+  "`[Player displayName]` turns off the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, they will
+  solve it again with that solution as the outcome, and Alter Ego will narrate "`[Player displayName]` changes the
+  channel on the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts and fails to change the
+  channel on the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
 #### `weight`
-* A Player must take from or drop into the Puzzle's parent Object an Item which makes the total weight of all Items
-  in the Object equal the Puzzle's solution in order to solve the Puzzle. In order to prevent the Player from simply
+
+* A Player must take from or drop into the Puzzle's parent Object an Item which makes the total weight of all Items in
+  the Object equal the Puzzle's solution in order to solve the Puzzle. In order to prevent the Player from simply
   entering the correct weight as a password with the use command, the Puzzle should be made inaccessible.
 * Once the Puzzle has been solved, it can be unsolved when the Player takes from or drops into the Puzzle's parent
   Object an Item which makes the total weight of all Items in the Object not equal the Puzzle's solution. The Player
   will not be sent a message for unsolving the Puzzle.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate
-  anything in the Puzzle's Room channel.
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate anything
+  in the Puzzle's Room channel.
 
 #### `container`
+
 * A Player must take from or drop into the Puzzle's parent Object an Item which makes the container hold all of the
-  Items listed in the solution. Every time an Item is dropped into the Puzzle's parent Object, Alter Ego will check
-  if the complete list of Items contained inside it matches the Puzzle's solution. If multiple Items are required to
-  solve the Puzzle, they should be separated with a plus sign (`+`) in the solution. In order to prevent the Player
-  from simply entering the Prefab IDs as a password with the use command, the Puzzle should be made inaccessible.
+  Items listed in the solution. Every time an Item is dropped into the Puzzle's parent Object, Alter Ego will check if
+  the complete list of Items contained inside it matches the Puzzle's solution. If multiple Items are required to solve
+  the Puzzle, they should be separated with a plus sign (`+`) in the solution. In order to prevent the Player from
+  simply entering the Prefab IDs as a password with the use command, the Puzzle should be made inaccessible.
 * Once the Puzzle has been solved, it can be unsolved when the Player takes from or drops into the Puzzle's parent
-  Object an Item. However, if the remaining Items are also a valid solution, the Puzzle will immediately be solved
-  again using them as an outcome. The Player will not be sent a message for unsolving the Puzzle.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate
-  anything in the Puzzle's Room channel.
+  Object an Item. However, if the remaining Items are also a valid solution, the Puzzle will immediately be solved again
+  using them as an outcome. The Player will not be sent a message for unsolving the Puzzle.
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate anything
+  in the Puzzle's Room channel.
 
 #### `voice`
-* A Player must say the correct password in the Room that the Puzzle is in in order to solve it. Alternatively, a
-  Player with the [`sender` behavior attribute](status.md#sender) must say the correct password while a Player with
-  the [`receiver` behavior attribute](status.md#receiver) is in the Room that the Puzzle is in in order to solve it. The
+
+* A Player must say the correct password in the Room that the Puzzle is in in order to solve it. Alternatively, a Player
+  with the [`sender` behavior attribute](status.md#sender) must say the correct password while a Player with the [
+  `receiver` behavior attribute](status.md#receiver) is in the Room that the Puzzle is in in order to solve it. The
   password is case insensitive, and non-alphanumeric (A-Z, 0-9, and spaces) characters will be ignored. The Player's
-  whole message does not need to be the password; it only needs to contain it. For example, if the password is 
+  whole message does not need to be the password; it only needs to contain it. For example, if the password is
   "unlock the door", then a Player who says "How do I unlock the door?" will still solve the Puzzle.
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
-* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, they
-  will solve it again with that solution as the outcome.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate
-  anything in the Puzzle's Room channel.
+* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, they will
+  solve it again with that solution as the outcome.
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate anything
+  in the Puzzle's Room channel.
 
 #### `switch`
+
 * A Player must enter the correct password in order to solve the Puzzle. The password is case sensitive. If a Player
-  solves the Puzzle, Alter Ego will narrate "`[Player displayName]` sets the `[PUZZLE NAME]` to `[password]`." in
-  the Puzzle's Room channel.
-* A switch-type Puzzle can never be unsolved under any circumstances; it can only be set to different outcomes. For
-  this reason, Alter Ego will fail to load switch-type Puzzles that are not solved and which do not have an outcome
-  set.
+  solves the Puzzle, Alter Ego will narrate "`[Player displayName]` sets the `[PUZZLE NAME]` to `[password]`." in the
+  Puzzle's Room channel.
+* A switch-type Puzzle can never be unsolved under any circumstances; it can only be set to different outcomes. For this
+  reason, Alter Ego will fail to load switch-type Puzzles that are not solved and which do not have an outcome set.
 * If the Player attempts to solve the Puzzle again using the same password as the current outcome, Alter Ego will
   narrate "`[Player displayName]` uses the `[PUZZLE NAME]`, but nothing happens." in the Puzzle's Room channel.
 * If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to set the
   `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
 
 #### `option`
-* A Player must enter the correct password in order to solve the Puzzle. The password is case sensitive. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` sets the `[PUZZLE NAME]` to `[password]`." in the Puzzle's Room channel.
+
+* A Player must enter the correct password in order to solve the Puzzle. The password is case sensitive. If a Player
+  solves the Puzzle, Alter Ego will narrate "`[Player displayName]` sets the `[PUZZLE NAME]` to `[password]`." in the
+  Puzzle's Room channel.
 * Once the Puzzle has been solved, it can be unsolved when a Player attempts to solve it without supplying a password.
-* If a Player unsolves the Puzzle, they will be sent "You clear the selection for the `[PUZZLE NAME]`.", and Alter Ego will narrate "`[Player displayName]` resets the `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, Alter Ego will narrate "`[Player displayName]` sets the `[PUZZLE NAME]`, but nothing changes." in the Puzzle's Room channel.
-* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to set the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
+* If a Player unsolves the Puzzle, they will be sent "You clear the selection for the `[PUZZLE NAME]`.", and Alter Ego
+  will narrate "`[Player displayName]` resets the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+* If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, Alter Ego
+  will narrate "`[Player displayName]` sets the `[PUZZLE NAME]`, but nothing changes." in the Puzzle's Room channel.
+* If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to set the
+  `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
 
 #### `media`
-* A Player must provide the name of an Inventory Item in their inventory which is one of the Puzzle's solutions in
-  order to solve the Puzzle. Unlike other Puzzle types which require an Inventory Item to solve, the name of the
-  Inventory Item **must** be provided in the Player's use command; simply having it in their inventory isn't
-  sufficient. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` inserts `[item phrase]`
-  into the `[PUZZLE NAME]`." in the Puzzle's Room channel. The item phrase can be one of two things: if the
-  Inventory Item's Prefab is discreet, it will simply be "an item"; if it is not discreet, it will be the Prefab's
-  single containing phrase.
-* Once the Puzzle has been solved, it can be unsolved when a Player interacts with the Puzzle without providing the
-  name of an Inventory Item.
+
+* A Player must provide the name of an Inventory Item in their inventory which is one of the Puzzle's solutions in order
+  to solve the Puzzle. Unlike other Puzzle types which require an Inventory Item to solve, the name of the Inventory
+  Item **must** be provided in the Player's use command; simply having it in their inventory isn't sufficient. If a
+  Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` inserts `[item phrase]`
+  into the `[PUZZLE NAME]`." in the Puzzle's Room channel. The item phrase can be one of two things: if the Inventory
+  Item's Prefab is discreet, it will simply be "an item"; if it is not discreet, it will be the Prefab's single
+  containing phrase.
+* Once the Puzzle has been solved, it can be unsolved when a Player interacts with the Puzzle without providing the name
+  of an Inventory Item.
 * If a Player unsolves the Puzzle, they will be sent the Puzzle's already solved description, and Alter Ego will
   narrate "`[Player displayName]` presses eject on the `[PUZZLE NAME]`." in the Puzzle's Room channel.
-* If the Puzzle is already solved and a Player attempts to solve the Puzzle again with one of the Puzzle's
-  solutions, they will be sent "You cannot insert `[Prefab singleContainingPhrase]` into the `[PUZZLE NAME]` as
-  something is already inside it. Eject it first by sending `.use [PUZZLE NAME]`."
+* If the Puzzle is already solved and a Player attempts to solve the Puzzle again with one of the Puzzle's solutions,
+  they will be sent "You cannot insert `[Prefab singleContainingPhrase]` into the `[PUZZLE NAME]` as something is
+  already inside it. Eject it first by sending `.use [PUZZLE NAME]`."
 * If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to insert
-  `[item phrase]` into the `[PUZZLE NAME]`, but it doesn't fit." in the Puzzle's Room channel. The item phrase can
-  be one of two things: if the Inventory Item's Prefab is discreet, it will simply be "an item"; if it is not
-  discreet, it will be the Prefab's single containing phrase.
+  `[item phrase]` into the `[PUZZLE NAME]`, but it doesn't fit." in the Puzzle's Room channel. The item phrase can be
+  one of two things: if the Inventory Item's Prefab is discreet, it will simply be "an item"; if it is not discreet, it
+  will be the Prefab's single containing phrase.
 
 #### `restricted exit`
-* A Player must enter the [Exit](exit.md) whose name matches the name of this Puzzle in order to solve it. However,
-  the Player's name must match one of the Puzzle's solutions, and the Puzzle must be accessible. The Exit must be in
-  the same Room as the Puzzle.
+
+* A Player must enter the [Exit](exit.md) whose name matches the name of this Puzzle in order to solve it. However, the
+  Player's name must match one of the Puzzle's solutions, and the Puzzle must be accessible. The Exit must be in the
+  same Room as the Puzzle.
 * If the Player solves the Puzzle, they will be able to enter the Exit, even if it's [locked](exit.md#unlocked).
 * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
-* Even if the Puzzle has been solved, it will be repeatedly solved any time a Player enters the Exit if they are
-  listed in the solutions and the Puzzle is accessible.
-* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate
-  anything in the Puzzle's Room channel.
+* Even if the Puzzle has been solved, it will be repeatedly solved any time a Player enters the Exit if they are listed
+  in the solutions and the Puzzle is accessible.
+* When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will not narrate anything
+  in the Puzzle's Room channel.
 
 ### Accessible
 
@@ -395,8 +428,8 @@ a time.
 This is a whole number indicating how many times the Puzzle can be failed. Each time a Player attempts to solve the
 Puzzle and fails, this number will decrease by 1. If this reaches 0, the Puzzle cannot be solved, even if the correct
 solution is provided, and a Player who attempts to do so will receive the
-Puzzle's [no more attempts description](puzzle.md#no-more-attempts-description). If no number is given, the Puzzle can be attempted
-and failed infinitely many times.
+Puzzle's [no more attempts description](puzzle.md#no-more-attempts-description). If no number is given, the Puzzle can
+be attempted and failed infinitely many times.
 
 ### Command Sets String
 
@@ -404,8 +437,8 @@ and failed infinitely many times.
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.commandSetsString`
 
-This is a comma-separated list of sets of [bot commands](../commands/bot_commands.md) that will be executed when the Puzzle
-is solved or unsolved.
+This is a comma-separated list of sets of [bot commands](../commands/bot_commands.md) that will be executed when the
+Puzzle is solved or unsolved.
 
 If the Puzzle has only one solution, then command sets are implicit, and do not need to be written. Instead, a simple
 list of commands is sufficient. This takes the form of a comma-separated list of bot commands that will be executed when
@@ -470,10 +503,10 @@ structure:
   `this.correctDescription`
 
 When a Player solves the Puzzle, they will receive a parsed version of this string. See the article
-on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information. If a Puzzle has multiple solutions, it
-can be beneficial to make this vary based on the outcome the Player receives using if conditionals. It should be noted
-that solutions are all strings, even if they're numbers. Therefore, solutions in if conditionals should be surrounded
-with single quote characters (`'`).
+on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information. If a Puzzle has multiple
+solutions, it can be beneficial to make this vary based on the outcome the Player receives using if conditionals. It
+should be noted that solutions are all strings, even if they're numbers. Therefore, solutions in if conditionals should
+be surrounded with single quote characters (`'`).
 
 ### Already Solved Description
 

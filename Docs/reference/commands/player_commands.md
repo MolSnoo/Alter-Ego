@@ -208,7 +208,15 @@ Learn more about an object, item, or player.
 
 #### Description
 
-Tells you about an object, item, or player in the room you're in. An object is something in the room that you can interact with but not take with you. An item is something that you can both interact with and take with you. If you inspect an object, everyone in the room will see you inspect it. The same goes for very large items. If there are multiple items with the same name in the room, you can specify which one you want to inspect using the name of the container it's in. You can also inspect items in your inventory. If you have an item with the same name as an item in the room you're currently in, you can specify that you want to inspect your item by adding "my" before the item name. You can even inspect visible items in another player's inventory by adding "[player name]'s" before the item name. No one will see you do this, however you will receive slightly less info when inspecting another player's items. You can use ".inspect room" to get the description of the room you're currently in.
+Tells you about an object, item, or player in the room you're in. An object is something in the room that you can
+interact with but not take with you. An item is something that you can both interact with and take with you. If you
+inspect an object, everyone in the room will see you inspect it. The same goes for very large items. If there are
+multiple items with the same name in the room, you can specify which one you want to inspect using the name of the
+container it's in. You can also inspect items in your inventory. If you have an item with the same name as an item in
+the room you're currently in, you can specify that you want to inspect your item by adding "my" before the item name.
+You can even inspect visible items in another player's inventory by adding "[player name]'s" before the item name. No
+one will see you do this, however you will receive slightly less info when inspecting another player's items. You can
+use ".inspect room" to get the description of the room you're currently in.
 
 ## inventory
 
@@ -284,11 +292,18 @@ Lists all recipes available to you.
 
 #### Description
 
-Lists all recipes you can carry out with the items in your inventory and items in the room. If you supply the name of an item in your inventory, you will receive a list of all recipes that use that item as an ingredient. There are crafting and processing recipes.
+Lists all recipes you can carry out with the items in your inventory and items in the room. If you supply the name of an
+item in your inventory, you will receive a list of all recipes that use that item as an ingredient. There are crafting
+and processing recipes.
 
-To carry out a crafting recipe, you must have both of the ingredients in your hands and combine them with the `.craft` command. These recipes take no time. If reversible, you can use the `.uncraft` command to get the ingredients again.
+To carry out a crafting recipe, you must have both of the ingredients in your hands and combine them with the `.craft`
+command. These recipes take no time. If reversible, you can use the `.uncraft` command to get the ingredients again.
 
-To carry out a processing recipe, use the `.drop` command to place all the ingredients in an object, and then activate the object with the `.use` command. These recipes take a set amount of time to complete. If it worked, you'll receive a message indicating that the process has begun, and another message when it finishes. You won't receive a message if the object was already activated when all of the ingredients were put in, but the recipe will still be carried out so long as all of the ingredients are in place.
+To carry out a processing recipe, use the `.drop` command to place all the ingredients in an object, and then activate
+the object with the `.use` command. These recipes take a set amount of time to complete. If it worked, you'll receive a
+message indicating that the process has begun, and another message when it finishes. You won't receive a message if the
+object was already activated when all of the ingredients were put in, but the recipe will still be carried out so long
+as all of the ingredients are in place.
 
 ## run
 
@@ -484,11 +499,12 @@ best when sent via direct message, rather than in a room channel. This command i
 status effects.
 
 ## time
+
 Shows the current in-game time.
 
 #### Aliases
 
-`.time` 
+`.time`
 
 #### Examples
 
@@ -496,9 +512,11 @@ Shows the current in-game time.
 
 #### Description
 
-Shows the current in-game time and date. This will show you the time in the timezone that the bot is currently operating in. This may differ from your local time.
+Shows the current in-game time and date. This will show you the time in the timezone that the bot is currently operating
+in. This may differ from your local time.
 
 ## uncraft
+
 Separates an item in your inventory into its component parts.
 
 #### Aliases
@@ -513,7 +531,10 @@ Separates an item in your inventory into its component parts.
 
 #### Description
 
-Separates an item in one of your hands into its component parts, assuming they can be separated. This will produce two items, so you will need a free hand in order to use this command. If there is no crafting recipe for its components that allows them to be separated again, the item cannot be uncrafted. If you want to re-assemble them, use the `.craft` command.
+Separates an item in one of your hands into its component parts, assuming they can be separated. This will produce two
+items, so you will need a free hand in order to use this command. If there is no crafting recipe for its components that
+allows them to be separated again, the item cannot be uncrafted. If you want to re-assemble them, use the `.craft`
+command.
 
 ## undress
 

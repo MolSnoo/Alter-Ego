@@ -48,7 +48,7 @@ consist of a whole number (no decimals) with a letter immediately following it, 
 fixed set of predefined units that correspond with each letter. They are as follows:
 
 | Letter | Unit    |
-| ------ | ------- |
+|--------|---------|
 | s      | seconds |
 | m      | minutes |
 | h      | hours   |
@@ -102,18 +102,27 @@ the Event ends.
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.triggerTimesString`
 
-This is a string of comma-separated times that this Event will automatically trigger at. Every minute, Alter Ego iterates through the list of all Events and checks the trigger times for each one. If the current month, weekday, date, hour and minute match one of the Event's trigger times, it will automatically be triggered, after which it will be ongoing. A single Event can have multiple trigger times. However, if it is already ongoing, it will not be triggered again. If this cell is left blank, then the Event will not trigger automatically at any time of day.
+This is a string of comma-separated times that this Event will automatically trigger at. Every minute, Alter Ego
+iterates through the list of all Events and checks the trigger times for each one. If the current month, weekday, date,
+hour, and minute match one of the Event's trigger times, it will automatically be triggered, after which it will be
+ongoing. A single Event can have multiple trigger times. However, if it is already ongoing, it will not be triggered
+again. If this cell is left blank, then the Event will not trigger automatically at any time of day.
 
-Note that trigger times are based on the clock of the system running Alter Ego. If it is running on a server with a different timezone than the moderator's local time, the server's timezone must be used.
+Note that trigger times are based on the clock of the system running Alter Ego. If it is running on a server with a
+different timezone than the moderator's local time, the server's timezone must be used.
 
-In addition to setting the time that an Event will trigger, it is also possible to specify the day of the week, the numbered day of the month, or days of the year. Trigger times must be written in a specific format.
+In addition to setting the time that an Event will trigger, it is also possible to specify the day of the week, the
+numbered day of the month, or days of the year. Trigger times must be written in a specific format.
 
 First, the accepted time formats are as follows:
 
 * `LT`, the time (in hours and minutes) in the system's local format.
-* `LTS`, the time (in hours, minutes, and seconds) in the system's local format. Note that triggering Events on specific seconds is not supported, so the seconds will be ignored.
-* `HH:mm`, where `HH` stands for the hour in a 24-hour format (0-23) and `mm` stands for the minutes with leading zeroes. Example: `7:35` or `15:00`.
-* `hh:mm a`, where `hh` stands for the hour in a 12-hour format (1-12), `mm` stands for the minutes with leading zeroes, and `a` is either `AM` or `PM`. Example: `7:35 AM` or `3:00 PM`.
+* `LTS`, the time (in hours, minutes, and seconds) in the system's local format. Note that triggering Events on specific
+  seconds is not supported, so the seconds will be ignored.
+* `HH:mm`, where `HH` stands for the hour in a 24-hour format (0-23) and `mm` stands for the minutes with leading
+  zeroes. Example: `7:35` or `15:00`.
+* `hh:mm a`, where `hh` stands for the hour in a 12-hour format (1-12), `mm` stands for the minutes with leading zeroes,
+  and `a` is either `AM` or `PM`. Example: `7:35 AM` or `3:00 PM`.
 
 The accepted date formats are as follows:
 
@@ -129,27 +138,40 @@ The accepted date formats are as follows:
 * `MMM D`, the abbreviated month and numbered day of the month. Example: `Apr 16`.
 * `MMMM D`, the month and numbered day of the month. Example: `April 16`.
 
-It is possible to set a trigger time with only a time of day, and no date. In this case, the Event will trigger at the same time every day. However, it is not possible to set a trigger time with only a date; a time must also be specified. In this case, the date must always precede the time. This is the full table of acceptable formats grouped by date format, as well as an example and a note indicating when the given example will cause the Event to trigger:
-|				        |				        |					          |					          | Example					          | Triggers on								                |
-| ------------- | ------------- | ----------------- | ----------------- | ------------------------- | ----------------------------------------- |
-| `LT`          | `LTS`         | `HH:mm`           | `hh:mm a`			    | `8:30 PM`					        | Every day at 8:30 PM						          |
-| `ddd LT`      | `ddd LTS`     | `ddd HH:mm`       | `ddd hh:mm a`		  | `Wed 8:30:00 PM`			    | Every Wednesday at 8:30 PM				        |
-| `dddd LT`     | `dddd LTS`    | `dddd HH:mm`      | `dddd hh:mm a`	  | `Wednesday 20:30`			    | Every Wednesday at 8:30 PM				        |
-| `Do LT`       | `Do LTS`      | `Do HH:mm`        | `Do hh:mm a`		  | `16th 08:30 PM`			      | The 16th day of every month at 8:30 PM	  |
-| `Do MMM LT`   | `Do MMM LTS`  | `Do MMM HH:mm`    | `Do MMM hh:mm a`	| `16th Apr 8:30 PM`		    | The 16th of April at 8:30 PM 				      |
-| `Do MMMM LT`  | `Do MMMM LTS` | `Do MMMM HH:mm`   | `Do MMMM hh:mm a`	| `16th April 8:30:00 PM`	  | The 16th of April at 8:30 PM				      |
-| `D MMM LT`    | `D MMM LTS`   | `D MMM HH:mm`     | `D MMM hh:mm a`	  | `16 Apr 20:30`			      | The 16th of April at 8:30 PM				      |
-| `D MMMM LT`   | `D MMMM LTS`  | `D MMMM HH:mm`    | `D MMMM hh:mm a`	| `16 April 08:30 PM`		    | The 16th of April at 8:30 PM				      |
-| `MMM Do LT`   | `MMM Do LTS`  | `MMM Do HH:mm`    | `MMM Do hh:mm a`	| `Apr 16th 8:30 PM`		    | The 16th of April at 8:30 PM				      |
-| `MMMM Do LT`  | `MMMM Do LTS` | `MMMM Do HH:mm`   | `MMMM Do hh:mm a`	| `April 16th 8:30:00 PM`	  | The 16th of April at 8:30 PM				      |
-| `MMM D LT`    | `MMM D LTS`   | `MMM D HH:mm`     | `MMM D hh:mm a`	  | `Apr 16 20:30`			      | The 16th of April at 8:30 PM				      |
-| `MMMM D LT`   | `MMMM D LTS`  | `MMMM D HH:mm`    | `MMMM D hh:mm a`	| `April 16 08:30 PM`		    | The 16th of April at 8:30 PM				      |
+It is possible to set a trigger time with only a time of day, and no date. In this case, the Event will trigger at the
+same time every day. However, it is not possible to set a trigger time with only a date; a time must also be specified.
+In this case, the date must always precede the time. This is the full table of acceptable formats grouped by date
+format, as well as an example and a note indicating when the given example will cause the Event to trigger:
+| | | | | Example | Triggers
+on | | ------------- | ------------- | ----------------- | ----------------- | ------------------------- | ----------------------------------------- | |
+`LT`          | `LTS`         | `HH:mm`           | `hh:mm a`                | `8:30 PM`                            |
+Every day at 8:30 PM | | `ddd LT`      | `ddd LTS`     | `ddd HH:mm`       | `ddd hh:mm a`          |
+`Wed 8:30:00 PM`                | Every Wednesday at 8:30 PM | | `dddd LT`     | `dddd LTS`    | `dddd HH:mm`      |
+`dddd hh:mm a`      | `Wednesday 20:30`                | Every Wednesday at 8:30 PM | | `Do LT`       | `Do LTS`      |
+`Do HH:mm`        | `Do hh:mm a`          | `16th 08:30 PM`                  | The 16th day of every month at 8:30
+PM | | `Do MMM LT`   | `Do MMM LTS`  | `Do MMM HH:mm`    | `Do MMM hh:mm a`    | `16th Apr 8:30 PM`            | The
+16th of April at 8:30 PM | | `Do MMMM LT`  | `Do MMMM LTS` | `Do MMMM HH:mm`   | `Do MMMM hh:mm a`    |
+`16th April 8:30:00 PM`      | The 16th of April at 8:30 PM | | `D MMM LT`    | `D MMM LTS`   | `D MMM HH:mm`     |
+`D MMM hh:mm a`      | `16 Apr 20:30`                  | The 16th of April at 8:30 PM | | `D MMMM LT`   |
+`D MMMM LTS`  | `D MMMM HH:mm`    | `D MMMM hh:mm a`    | `16 April 08:30 PM`            | The 16th of April at 8:30
+PM | | `MMM Do LT`   | `MMM Do LTS`  | `MMM Do HH:mm`    | `MMM Do hh:mm a`    | `Apr 16th 8:30 PM`            | The
+16th of April at 8:30 PM | | `MMMM Do LT`  | `MMMM Do LTS` | `MMMM Do HH:mm`   | `MMMM Do hh:mm a`    |
+`April 16th 8:30:00 PM`      | The 16th of April at 8:30 PM | | `MMM D LT`    | `MMM D LTS`   | `MMM D HH:mm`     |
+`MMM D hh:mm a`      | `Apr 16 20:30`                  | The 16th of April at 8:30 PM | | `MMMM D LT`   |
+`MMMM D LTS`  | `MMMM D HH:mm`    | `MMMM D hh:mm a`    | `April 16 08:30 PM`            | The 16th of April at 8:30
+PM |
 
 ### Trigger Times
 
-* Class attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)> `this.triggerTimes`
+* Class
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+  `this.triggerTimes`
 
-This is an internal attribute which contains a list of strings separated from the trigger times string. Every minute, each string in this list is converted into a [Moment](https://momentjs.com/docs/#/parsing/). This is to ensure that any fields that are not set in this string will match the current date. Then the month, weekday, date, hour, and minute of every Event's trigger time Moment objects are compared to the current month, weekday, date, hour, and minute. If they match, the Event is triggered.
+This is an internal attribute which contains a list of strings separated from the trigger times string. Every minute,
+each string in this list is converted into a [Moment](https://momentjs.com/docs/#/parsing/). This is to ensure that any
+fields that are not set in this string will match the current date. Then the month, weekday, date, hour, and minute of
+every Event's trigger time Moment objects are compared to the current month, weekday, date, hour, and minute. If they
+match, the Event is triggered.
 
 ### Room Tag
 
@@ -259,9 +281,10 @@ This is an internal attribute which contains references to each of the Status Ef
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.triggeredNarration`
 
-This is the [Narration](narration.md) that will be parsed and then sent to the channels of all occupied Rooms that the Event is
-affected by when it is triggered. If no Players are in one of the Rooms affected by the Event, the Narration will not be
-sent to that Room's channel. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md)
+This is the [Narration](narration.md) that will be parsed and then sent to the channels of all occupied Rooms that the
+Event is affected by when it is triggered. If no Players are in one of the Rooms affected by the Event, the Narration
+will not be sent to that Room's channel. See the article
+on [writing descriptions](../../moderator_guide/writing_descriptions.md)
 for more information. However, note that because this is a Narration and not a description, it cannot make use of the
 `player` variable under any circumstances.
 

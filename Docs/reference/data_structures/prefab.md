@@ -1,12 +1,13 @@
 # Prefab
 
-A **Prefab** is a data structure in the Neo World Program. It represents the concept of an item, and is the
-underlying data structure which gives [Items](item.md)
+A **Prefab** is a data structure in the Neo World Program. It represents the concept of an item, and is the underlying
+data structure which gives [Items](item.md)
 and [Inventory Items](inventory_item.md) their properties.
 
 Prefabs are static; once loaded from the [spreadsheet](index.md), they do not change in any way. Thus,
 the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/saver.js) will never make changes to the
-Prefabs sheet. As a result, the Prefabs sheet can be freely edited without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
+Prefabs sheet. As a result, the Prefabs sheet can be freely edited
+without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
 
 ## Table of Contents
 
@@ -17,8 +18,8 @@ Prefabs sheet. As a result, the Prefabs sheet can be freely edited without [edit
 Due to the versatility of functions that different items can have, Prefabs have many attributes. Note that if an
 attribute is _internal_, that means it only exists within
 the [Prefab class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Prefab.js). Internal attributes will be given
-in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
+in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on the
+spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### ID
 
@@ -56,12 +57,13 @@ would be the same as its single name.
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.singleContainingPhrase`
 
-This is the phrase that will be inserted in/removed from [item tags](../../moderator_guide/writing_descriptions.md#item) when an Item
-or Inventory Item using this Prefab is added to/removed from an [item list](../../moderator_guide/writing_descriptions.md#il). It is
-also the phrase that will be used when a non-discreet Item is inspected, taken, or dropped; when a non-discreet
-Inventory Item is inspected, stashed, unstashed, or carried from one [Room](room.md) to another; and when an Inventory
-Item (whether discreet or non-discreet) is equipped or unequipped. No restrictions are placed on the content of this
-string, however it should generally contain the Prefab's single name.
+This is the phrase that will be inserted in/removed from [item tags](../../moderator_guide/writing_descriptions.md#item)
+when an Item or Inventory Item using this Prefab is added to/removed from
+an [item list](../../moderator_guide/writing_descriptions.md#il). It is also the phrase that will be used when a
+non-discreet Item is inspected, taken, or dropped; when a non-discreet Inventory Item is inspected, stashed, unstashed,
+or carried from one [Room](room.md) to another; and when an Inventory Item (whether discreet or non-discreet) is
+equipped or unequipped. No restrictions are placed on the content of this string, however it should generally contain
+the Prefab's single name.
 
 ### Plural Containing Phrase
 
@@ -82,10 +84,10 @@ plural containing phrase would be the same as its single containing phrase, one 
   `this.discreet`
 
 This is a simple Boolean value indicating whether interactions with Items and Inventory Items using this Prefab will
-be [narrated](narration.md) or not. Specifically, if this is `false`, then Alter Ego will notify the Room if a
-Player inspects, takes, or drops an Item using this Prefab; or inspects, stashes, unstashes, or moves to another Room
-carrying an Inventory Item using this Prefab. Additionally, if this is `false`, then when an Inventory Item using this
-Prefab is moved to either of the Player's hands, it will be added to the "hands" item list in that Player's description.
+be [narrated](narration.md) or not. Specifically, if this is `false`, then Alter Ego will notify the Room if a Player
+inspects, takes, or drops an Item using this Prefab; or inspects, stashes, unstashes, or moves to another Room carrying
+an Inventory Item using this Prefab. Additionally, if this is `false`, then when an Inventory Item using this Prefab is
+moved to either of the Player's hands, it will be added to the "hands" item list in that Player's description.
 
 ### Size
 
@@ -231,9 +233,9 @@ This is another Boolean value indicating whether Inventory Items using this Pref
 player's [Equipment Slots](equipment_slot.md). If this is `true`, then Players will be able to equip it to one of the
 Equipment Slots that it's restricted to. If this is `false`, they will simply be told that the item is unequippable.
 Additionally, if this is `false`, Players will be unable to unequip the Inventory Item if it's already equipped. Note
-that a [moderator](../../moderator_guide/moderating.md) can forcibly equip and unequip Inventory Items for a Player regardless of
-whether this is `true` or `false`. Note that when an Inventory Item is equipped or unequipped, a Narration will always
-be sent to the Room the Player is in.
+that a [moderator](../../moderator_guide/moderating.md) can forcibly equip and unequip Inventory Items for a Player
+regardless of whether this is `true` or `false`. Note that when an Inventory Item is equipped or unequipped, a Narration
+will always be sent to the Room the Player is in.
 
 ### Equipment Slots
 
@@ -270,10 +272,10 @@ added to the Player description's equipment item list again.
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.equipCommands`
 
-This is a comma-separated list of [bot commands](../commands/bot_commands.md) that will be executed when an Inventory Item
-using this Prefab is equipped. Note that this shares the same spreadsheet cell as the Prefab's unequipped commands, with
-both sets of commands separated by a forward slash (`/`). If no unequipped commands are desired, the forward slash can
-be omitted from the cell.
+This is a comma-separated list of [bot commands](../commands/bot_commands.md) that will be executed when an Inventory
+Item using this Prefab is equipped. Note that this shares the same spreadsheet cell as the Prefab's unequipped commands,
+with both sets of commands separated by a forward slash (`/`). If no unequipped commands are desired, the forward slash
+can be omitted from the cell.
 
 ### Unequipped Commands
 
@@ -345,7 +347,8 @@ This is the description of the Prefab. When a Player inspects an instance of thi
 version of this string. Any item lists in a Prefab's description _must_ be blank. Note that when a Player inspects an
 Inventory Item that is equipped to one of another Player's Equipment Slots, all sentences containing item lists will be
 removed from the description before it is parsed, effectively making it so that Players cannot see what is stashed in
-that Inventory Item. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
+that Inventory Item. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more
+information.
 
 ### Row
 

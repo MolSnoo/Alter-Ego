@@ -14,6 +14,7 @@ case. With the exception of the delete command, all moderator commands must be s
 <!-- toc -->
 
 ## addplayer
+
 Adds a player to the game.
 
 #### Aliases
@@ -26,7 +27,11 @@ Adds a player to the game.
 
 #### Description
 
-Adds a user to the list of players for the current game. This command will give the specified user the Player role and add their data to the players and inventory items spreadsheets. This will be generated using the data in the playerdefaults config file. Note that edit mode must be turned on in order to use this command. After using this command, you may edit the new Player's data. Then, the players sheet must be loaded, otherwise the new player will not be created correctly, and their data may be overwritten.
+Adds a user to the list of players for the current game. This command will give the specified user the Player role and
+add their data to the players and inventory items spreadsheets. This will be generated using the data in the
+playerdefaults config file. Note that edit mode must be turned on in order to use this command. After using this
+command, you may edit the new Player's data. Then, the players sheet must be loaded, otherwise the new player will not
+be created correctly, and their data may be overwritten.
 
 ## clean
 
@@ -66,7 +71,9 @@ Crafts two items in a player's inventory together.
 
 #### Description
 
-Creates a new item using the two items in the given player's hand. The prefab IDs or container identifiers of the items must be separated by "with" or "and". If no recipe for those two items exists, the items cannot be crafted together. Note that this command can also be used to use one item on another item, which may produce something new.
+Creates a new item using the two items in the given player's hand. The prefab IDs or container identifiers of the items
+must be separated by "with" or "and". If no recipe for those two items exists, the items cannot be crafted together.
+Note that this command can also be used to use one item on another item, which may produce something new.
 
 ## createroomcategory
 
@@ -211,11 +218,12 @@ specified, they will drop it on the FLOOR. This can be changed in the settings f
 room as the player can be specified.
 
 ## dumplog
+
 Dump current game state to file.
 
 #### Aliases
 
-`.dumplog` 
+`.dumplog`
 
 #### Examples
 
@@ -223,9 +231,16 @@ Dump current game state to file.
 
 #### Description
 
-Dumps a log of the most recently used commands, as well as current internal game state. This will generate two files. The data_commands file will contain all successfully-issued commands that have been used recently, but keep in mind that the bot only stores up to 10,000 commands at a time. The data_game file will contain the entirety of the bot's internal memory relating to the game, with certain data types being truncated when nested. Because these files can be quite large, and Discord has a maximum file size limit of 10 MiB, they will be compressed into a .gz file before being sent. If the file size exceeds this, they will instead be saved to disk.
+Dumps a log of the most recently used commands, as well as current internal game state. This will generate two files.
+The data_commands file will contain all successfully-issued commands that have been used recently, but keep in mind that
+the bot only stores up to 10,000 commands at a time. The data_game file will contain the entirety of the bot's internal
+memory relating to the game, with certain data types being truncated when nested. Because these files can be quite
+large, and Discord has a maximum file size limit of 10 MiB, they will be compressed into a .gz file before being sent.
+If the file size exceeds this, they will instead be saved to disk.
 
-This command is for debugging purposes, and has no use during regular gameplay. If you discover a bug that was not caused by Moderator error, please use this command and attach these files to a new Issue on the [Alter Ego GitHub page](https://github.com/MolSnoo/Alter-Ego/issues).
+This command is for debugging purposes, and has no use during regular gameplay. If you discover a bug that was not
+caused by Moderator error, please use this command and attach these files to a new Issue on
+the [Alter Ego GitHub page](https://github.com/MolSnoo/Alter-Ego/issues).
 
 ## editmode
 
@@ -429,7 +444,14 @@ Inspects something for a player.
 
 #### Description
 
-Inspect something for the given player. The target must be the "room" argument, an object, an item, a player, or an inventory item, and it must be in the same room as the given player. The description will be parsed and sent to the player in DMs. If the target is an object, or a non-discreet item or inventory item, a narration will be sent about the player inspecting it to the room channel. Items and inventory items should use the prefab ID or container identifier. If there are multiple items in the room with the same ID, you can specify which one to inspect using its container's name (if the container is an object or puzzle), or its prefab ID or container identifier (if it's an item). The player can be forced to inspect items and inventory items belonging to a specific player (including themself) using the player's name followed by "'s". If inspecting a different player's inventory items, a narration will not be sent.
+Inspect something for the given player. The target must be the "room" argument, an object, an item, a player, or an
+inventory item, and it must be in the same room as the given player. The description will be parsed and sent to the
+player in DMs. If the target is an object, or a non-discreet item or inventory item, a narration will be sent about the
+player inspecting it to the room channel. Items and inventory items should use the prefab ID or container identifier. If
+there are multiple items in the room with the same ID, you can specify which one to inspect using its container's name
+(if the container is an object or puzzle), or its prefab ID or container identifier (if it's an item). The player can be
+forced to inspect items and inventory items belonging to a specific player (including themself) using the player's name
+followed by "'s". If inspecting a different player's inventory items, a narration will not be sent.
 
 ## instantiate
 
@@ -453,11 +475,18 @@ Generates an item.
     .generate 2 shotput ball in cassie's main pocket of large backpack
     .instantiate 3 capsulebeast card (species=lavazard) in asuka's left pocket of gamer hoodie
 
-Generates an item or inventory item in the specified location. The prefab ID must be used. A quantity can also be set. If the prefab has procedural options, they can be manually set in parentheses.
+Generates an item or inventory item in the specified location. The prefab ID must be used. A quantity can also be set.
+If the prefab has procedural options, they can be manually set in parentheses.
 
-To instantiate an item, the name of the room must be given at the end, following "at". The name of the container to put it in must also be given. If the container is an object with a child puzzle, the puzzle will be its container. If the container is another item, the item's name or container identifier can be used. The name of the inventory slot to instantiate the item in can also be specified.
+To instantiate an item, the name of the room must be given at the end, following "at". The name of the container to put
+it in must also be given. If the container is an object with a child puzzle, the puzzle will be its container. If the
+container is another item, the item's name or container identifier can be used. The name of the inventory slot to
+instantiate the item in can also be specified.
 
-To instantiate an inventory item, the name of the player must be given followed by "'s". A container item can be specified, as well as which slot to instantiate the item into. The player will not be notified if a container item is specified. An equipment slot can also be chosen instead of a container item. The player will be notified of obtaining the item in this case, and the prefab's equipped commands will be run.
+To instantiate an inventory item, the name of the player must be given followed by "'s". A container item can be
+specified, as well as which slot to instantiate the item into. The player will not be notified if a container item is
+specified. An equipment slot can also be chosen instead of a container item. The player will be notified of obtaining
+the item in this case, and the prefab's equipped commands will be run.
 
 ## inventory
 
@@ -968,7 +997,14 @@ Sets up a demo game.
 
 #### Description
 
-Populates an empty spreadsheet with default game data as defined in the demodata config file. This will create a game environment to demonstrate most of the basics of Neo World Program gameplay. By default, it will generate 2 rooms, 8 objects, 14 prefabs, 3 recipes, 3 items, 1 puzzle, 1 event, 13 status effects, and 6 gestures. If the channels for the demo game's rooms don't exist, they will be created automatically. It will not create any players for you. Once this command is used you can use the .startgame command to add players, or manually add them on the spreadsheet. It is recommended that you have at least one other Discord account to use as a player. Once the spreadsheet has been fully populated, you can use .load all start to begin the demo. **If there is already data on the spreadsheet, it will be overwritten. Only use this command if the spreadsheet is currently blank.**
+Populates an empty spreadsheet with default game data as defined in the demodata config file. This will create a game
+environment to demonstrate most of the basics of Neo World Program gameplay. By default, it will generate 2 rooms, 8
+objects, 14 prefabs, 3 recipes, 3 items, 1 puzzle, 1 event, 13 status effects, and 6 gestures. If the channels for the
+demo game's rooms don't exist, they will be created automatically. It will not create any players for you. Once this
+command is used you can use the .startgame command to add players, or manually add them on the spreadsheet. It is
+recommended that you have at least one other Discord account to use as a player. Once the spreadsheet has been fully
+populated, you can use .load all start to begin the demo. **If there is already data on the spreadsheet, it will be
+overwritten. Only use this command if the spreadsheet is currently blank.**
 
 ## setvoice
 
@@ -1249,6 +1285,7 @@ Triggers the specified event. The event must not already be ongoing. If the even
 be run.
 
 ## uncraft
+
 Separates an item in a player's inventory into its component parts.
 
 #### Aliases
@@ -1263,7 +1300,11 @@ Separates an item in a player's inventory into its component parts.
 
 #### Description
 
-Separates an item in one of the given player's hands into its component parts, assuming they can be separated. This reverses the process of a crafting recipe, using the product of the recipe as an ingredient, and creating its ingredients as products. This will produce two items, so they will need a free hand in order for this command to be usable. If there is no crafting recipe that produces the supplied item which allows it to be uncrafted again, this command cannot be used.
+Separates an item in one of the given player's hands into its component parts, assuming they can be separated. This
+reverses the process of a crafting recipe, using the product of the recipe as an ingredient, and creating its
+ingredients as products. This will produce two items, so they will need a free hand in order for this command to be
+usable. If there is no crafting recipe that produces the supplied item which allows it to be uncrafted again, this
+command cannot be used.
 
 ## undress
 

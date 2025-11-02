@@ -1,7 +1,7 @@
 # Node Installation
 
-Installation of Alter Ego is rather complicated. In order to create an environment in which Alter Ego can
-facilitate a game, many steps need to be taken. This page will explain them in detail.
+Installation of Alter Ego is rather complicated. In order to create an environment in which Alter Ego can facilitate a
+game, many steps need to be taken. This page will explain them in detail.
 
 ## Table of Contents
 
@@ -67,8 +67,8 @@ https://nodejs.org/en/
 
 ## Step 3: Install dependencies
 
-Alter Ego requires a few dependencies in order to run properly. These are things like the [Discord](../../about/discord.md) and the Google
-Sheets API which allow it to facilitate a game.
+Alter Ego requires a few dependencies in order to run properly. These are things like
+the [Discord](../../about/discord.md) and the Google Sheets API which allow it to facilitate a game.
 
 First, open the Node.js command prompt. It should look like this:
 
@@ -260,7 +260,7 @@ service account. Copy and paste this into the file:
         "token": ""
     },
     "google": {
-        
+
     }
 }
 ```

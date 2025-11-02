@@ -1,8 +1,8 @@
 # Docker Settings
 
-Alter Ego has various **settings** that can be configured in the file `.env`. All values should be enclosed with
-single quotes. Remember to uncomment (i.e. remove the `#` before the line) for them to go into effect. This page details
-each setting and what it does.
+Alter Ego has various **settings** that can be configured in the file `.env`. All values should be enclosed with single
+quotes. Remember to uncomment (i.e. remove the `#` before the line) for them to go into effect. This page details each
+setting and what it does.
 
 ## Table of Contents
 
@@ -56,12 +56,13 @@ changed to any number higher than diceMin.
 
 ### DEFAULT_DROP_OBJECT
 
-This is the name of the [Object](../data_structures/object.md) in each room that players will drop Items on if they don't
-specify one themselves. Every Room must have an Object with this name capable of holding Items.
+This is the name of the [Object](../data_structures/object.md) in each room that players will drop Items on if they
+don't specify one themselves. Every Room must have an Object with this name capable of holding Items.
 
 ### DEFAULT_ROOM_ICON_URL
 
-This is the URL of an image that will be inserted into the [Room MessageEmbed](../data_structures/room.md#room-description)
+This is the URL of an image that will be inserted into
+the [Room MessageEmbed](../data_structures/room.md#room-description)
 when a player enters or inspects a Room if the Room does not have a unique icon URL. This must end in `.jpg`, `.png`, or
 `.gif`. If this is left blank and the Room does not have a unique icon URL, then Alter Ego will use the server icon
 instead. If the server icon is not set, then no image will be sent in the MessageEmbed.
@@ -70,9 +71,9 @@ instead. If the server icon is not set, then no image will be sent in the Messag
 
 This is a Boolean value that determines whether or not [Whisper](../data_structures/whisper.md) channels will be
 automatically deleted when all players have left the room. If this is `true`, they will be deleted. If this is `false`,
-they will be renamed "archived-(Room name)". Because [Discord](../../about/discord.md) only allows a single category to have up to 50
-channels, this should be `true` unless you plan on manually deleting Whisper channels when you no longer need to see
-them.
+they will be renamed "archived-(Room name)". Because [Discord](../../about/discord.md) only allows a single category to
+have up to 50 channels, this should be `true` unless you plan on manually deleting Whisper channels when you no longer
+need to see them.
 
 ### AUTOSAVE_INTERVAL
 
@@ -109,39 +110,38 @@ to be streaming. The number of players online will be appended and updated perio
 
 ## Default player data
 
-All of the settings in this section will be uploaded to the Players sheet when the startgame
-timer ends. They can be changed to suit each individual player on the spreadsheet itself before all game data is loaded
-for the first time.
+All of the settings in this section will be uploaded to the Players sheet when the startgame timer ends. They can be
+changed to suit each individual player on the spreadsheet itself before all game data is loaded for the first time.
 
 ### Default Stats
 
-These are the default [stats](../data_structures/player.md#stats) a player will have. These should generally be changed on
-the spreadsheet to suit each individual player before the game is officially started. These must be a whole number between
-1 and 10.
+These are the default [stats](../data_structures/player.md#stats) a player will have. These should generally be changed
+on the spreadsheet to suit each individual player before the game is officially started. These must be a whole number
+between 1 and 10.
 
 #### DEFAULT_STR
 
-This is the strength stat that each player will have by default. The default is `5`. For more information, read the 
+This is the strength stat that each player will have by default. The default is `5`. For more information, read the
 [strength section](../data_structures/player.md#strength) of the Player article.
 
 #### DEFAULT_INT
 
-This is the intelligence stat that each player will have by default. The default is `5`. For more information, read the 
+This is the intelligence stat that each player will have by default. The default is `5`. For more information, read the
 [intelligence section](../data_structures/player.md#intelligence) of the Player article.
 
 #### DEFAULT_DEX
 
-This is the dexterity stat that each player will have by default. The default is `5`. For more information, read the 
+This is the dexterity stat that each player will have by default. The default is `5`. For more information, read the
 [dexterity section](../data_structures/player.md#dexterity) of the Player article.
 
 #### DEFAULT_SPD
 
-This is the speed stat that each player will have by default. The default is `5`. For more information, read the 
+This is the speed stat that each player will have by default. The default is `5`. For more information, read the
 [speed section](../data_structures/player.md#speed) of the Player article.
 
 #### DEFAULT_STA
 
-This is the stamina stat that each player will have by default. The default is `5`. For more information, read the 
+This is the stamina stat that each player will have by default. The default is `5`. For more information, read the
 [stamina section](../data_structures/player.md#stamina) of the Player article.
 
 ### DEFAULT_LOCATION
@@ -150,8 +150,8 @@ This is the name of the [Room](../data_structures/room.md) that all players will
 
 ### DEFAULT_STATUS_EFFECTS
 
-This is a comma-separated list of [Status Effects](../data_structures/status.md) that will be inflicted on all players at the
-beginning of the game.
+This is a comma-separated list of [Status Effects](../data_structures/status.md) that will be inflicted on all players
+at the beginning of the game.
 
 ### DEFAULT_INVENTORY
 
@@ -179,31 +179,38 @@ ID, which is a string of numbers.
 
 ### TESTER_ROLE
 
-This should be the ID of the [Tester role](../../appendix/manual_installation/channel_and_role_creation.md#tester) in single quotes.
+This should be the ID of the [Tester role](../../appendix/manual_installation/channel_and_role_creation.md#tester) in
+single quotes.
 
 ### ELIGIBLE_ROLE
 
-This should be the ID of the [Eligible role](../../appendix/manual_installation/channel_and_role_creation.md#eligible) in single quotes.
+This should be the ID of the [Eligible role](../../appendix/manual_installation/channel_and_role_creation.md#eligible)
+in single quotes.
 
 ### PLAYER_ROLE
 
-This should be the ID of the [Player role](../../appendix/manual_installation/channel_and_role_creation.md#player) in single quotes.
+This should be the ID of the [Player role](../../appendix/manual_installation/channel_and_role_creation.md#player) in
+single quotes.
 
 ### HEADMASTER_ROLE
 
-This should be the ID of the [Headmaster role](../../appendix/manual_installation/channel_and_role_creation.md#headmaster) in single quotes.
+This should be the ID of
+the [Headmaster role](../../appendix/manual_installation/channel_and_role_creation.md#headmaster) in single quotes.
 
 ### MODERATOR_ROLE
 
-This should be the ID of the [Moderator role](../../appendix/manual_installation/channel_and_role_creation.md#moderator) in single quotes.
+This should be the ID of the [Moderator role](../../appendix/manual_installation/channel_and_role_creation.md#moderator)
+in single quotes.
 
 ### DEAD_ROLE
 
-This should be the ID of the [Dead role](../../appendix/manual_installation/channel_and_role_creation.md#dead) in single quotes.
+This should be the ID of the [Dead role](../../appendix/manual_installation/channel_and_role_creation.md#dead) in single
+quotes.
 
 ### SPECTATOR_ROLE
 
-This should be the ID of the [Spectator role](../../appendix/manual_installation/channel_and_role_creation.md#spectator) in single quotes.
+This should be the ID of the [Spectator role](../../appendix/manual_installation/channel_and_role_creation.md#spectator)
+in single quotes.
 
 ## Category and channel IDs
 
@@ -218,36 +225,45 @@ In order to copy a category or channel ID, right click on it in the channel list
 > **NOTE:** You can now use the `.createroomcategory` command to set these, so it is very unlikely that you will need to
 > change this.
 
-This is a list of all [room category IDs](../../appendix/manual_installation/channel_and_role_creation.md#category-rooms). They can be separated by
-commas, spaces, or anything else, but it should all be a single string.
+This is a list of
+all [room category IDs](../../appendix/manual_installation/channel_and_role_creation.md#category-rooms). They can be
+separated by commas, spaces, or anything else, but it should all be a single string.
 
 ### WHISPER_CATEGORY
 
-This should be the ID of the [Whisper category](../../appendix/manual_installation/channel_and_role_creation.md#category-whispers) in single quotes.
+This should be the ID of
+the [Whisper category](../../appendix/manual_installation/channel_and_role_creation.md#category-whispers) in single
+quotes.
 
 ### SPECTATE_CATEGORY
 
-This should be the ID of the [Spectator category](../../appendix/manual_installation/channel_and_role_creation.md#category-spectators) in single
+This should be the ID of
+the [Spectator category](../../appendix/manual_installation/channel_and_role_creation.md#category-spectators) in single
 quotes.
 
 ### TESTING_CHANNEL
 
-This should be the ID of the [testing channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-testing) in single quotes.
+This should be the ID of
+the [testing channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-testing) in single quotes.
 
 ### GENERAL_CHANNEL
 
-This should be the ID of the [general channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-general) in single quotes.
+This should be the ID of
+the [general channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-general) in single quotes.
 
 ### ANNOUNCEMENT_CHANNEL
 
-This should be the ID of the [announcements channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-announcements) in single
-quotes.
+This should be the ID of
+the [announcements channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-announcements) in
+single quotes.
 
 ### COMMAND_CHANNEL
 
-This should be the ID of the [bot-commands channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-commands) in single
-quotes.
+This should be the ID of
+the [bot-commands channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-commands) in
+single quotes.
 
 ### LOG_CHANNEL
 
-This should be the ID of the [bot-log channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-log) in single quotes.
+This should be the ID of
+the [bot-log channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-log) in single quotes.

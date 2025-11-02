@@ -9,9 +9,9 @@ Players can initiate a Die roll of their own volition:
 * A Die roll is initiated when a Player uses the [steal command](../commands/player_commands.md#steal). The roll is
   modified by their [dexterity stat](../data_structures/player.md#dexterity) and whether or not they have the
   [`thief` behavior attribute](../data_structures/status.md#thief).
-* A Die roll is initiated when a Player solves
-  a [`probability`-type](../data_structures/puzzle.md#probability) or [`stat probability`-type](../data_structures/puzzle.md#stat-probability) Puzzle. The roll is modified by the
-  stat used, if applicable. The result is then used to determine which solution is used to solve the Puzzle.
+* A Die roll is initiated when a Player solves a [`probability`-type](../data_structures/puzzle.md#probability) or [
+  `stat probability`-type](../data_structures/puzzle.md#stat-probability) Puzzle. The roll is modified by the stat used,
+  if applicable. The result is then used to determine which solution is used to solve the Puzzle.
 
 Dice are predominantly used by [moderators](../../moderator_guide/moderating.md) in order to determine the result of a
 given Player's action. This is done with the [roll command](../commands/moderator_commands.md#roll).
@@ -110,7 +110,7 @@ briefly inflicted with Status Effects that modify their current stats accordingl
 calculated stat roll modifier.
 
 Finally, if the Die is being rolled for a stat, the attacker's stat roll modifier for the given stat is calculated and
-added to Die's modifier. This is the final value of the Die's mofidier.
+added to Die's modifier. This is the final value of the Die's modifier.
 
 ### Modifier String
 
