@@ -20,6 +20,7 @@ max-level = 3
 [output]
 
 [output.html]
+mathjax-support = true
 additional-css = ["./mdbook-admonish.css"]
 git-repository-url = "https://github.com/MolSnoo/Alter-Ego"
 git-repository-icon = "fa-github"

@@ -9,7 +9,7 @@ the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/save
 Recipes sheet. As a result, the Recipes sheet can be freely edited without [[edit mode]] being enabled.
 
 This article will impose two terms. **Crafting** is the act of transforming two Inventory Items into up to two Inventory
-Items using the [craft command](../commands/player_commands.md#craft). **Processing** is the act of transforming one or
+Items using the [craft](../commands/player_commands.md#craft) [command](../commands/moderator_commands.md#craft). **Processing** is the act of transforming one or
 more Items into zero or more Items using an [Object](object.md). Every Recipe is either a crafting-type Recipe or a
 processing-type Recipe, but not both.
 
@@ -55,6 +55,15 @@ difference between them, such as different numbers of [uses](item.md#uses) or
 different [descriptions](item.md#description), then processing-type Recipes can be carried out with multiple of the same
 Prefab as ingredients. However, because this will rarely be the case, processing-type Recipes with more than one of the
 same Prefab as ingredients should be avoided.
+
+### Uncraftable
+
+* Spreadsheet label: **Uncraftable?**
+* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) `this.uncraftable`
+
+This is a Boolean value indicating whether or not this Recipe can be reversed. If this is `true`, then the [uncraft](../commands/player_commands.md#uncraft) [command](../commands/moderator_commands.md#uncraft) can be used to convert the [product](recipe.md#products) into its [ingredients](recipe.md#ingredients). If this value is `false`, then the Recipe cannot be reversed.
+
+Note that in order for a Recipe to be uncraftable, it must be a crafting-type Recipe with only one product. Crafting-type Recipes with two products cannot be uncraftable.
 
 ### Object Tag
 
@@ -139,6 +148,13 @@ in the same Room as the Object, they will receive a parsed version of this strin
 the `this` keyword refers to the Object processing the Recipe. However, in crafting-type Recipes, the `this` keyword
 does refer to the Recipe itself.
 
+### Uncrafted Description
+
+* Spreadsheet label: **Message When Uncrafted**
+* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) `this.uncraftedDescription`
+
+When a Player uncrafts an Inventory Item, they will receive a parsed version of this string. Because uncraftable Recipes cannot have an Object tag, the `this` keyword will always refer to the Recipe itself.
+
 ### Row
 
 * Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
@@ -149,7 +165,7 @@ This is an internal attribute, but it can also be found on the spreadsheet. This
 ## Crafting
 
 Crafting is a simple game mechanic that uses Recipes. It makes use of
-the [craft Player method](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Data/Player.js#L1488).
+the [craft Player method](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Player.js#L1586).
 Whether the action is initiated [by a Player](../commands/player_commands.md#craft)
 or [by a moderator](../commands/moderator_commands.md#craft), the rules are the same:
 
@@ -163,9 +179,7 @@ If all of the above requirements are met, the Player will craft the two Inventor
 First, Alter Ego checks to see if any of the ingredients are also products. If that is the case, it then checks if the
 Inventory Item only has 1 use left. If so, the Inventory Item will be replaced with
 its [next stage](prefab.md#next-stage). If it doesn't have a next stage, it will simply be destroyed. If the Inventory
-Item has a limited number of uses but it has more than 1 use left, its number of uses will be decreased by
-
-1.
+Item has a limited number of uses but it has more than 1 use left, its number of uses will be decreased by 1.
 
 As an example of the above condition, suppose there is a crafting-type Recipe whose ingredients are a CLEAN GLASS and a
 JUG OF ORANGE JUICE, and whose products are a GLASS OF ORANGE JUICE and a JUG OF ORANGE JUICE. The JUG OF ORANGE JUICE
@@ -174,10 +188,10 @@ uses decreases to 0, then it will be replaced with its next stage, an EMPTY JUG 
 no longer be crafted.
 
 The respective Inventory Items will then
-be [replaced](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Modules/itemManager.js#L126)
+be [replaced](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Modules/itemManager.js#L126)
 with the properties of the product Prefabs. When Inventory Items are replaced, any Inventory Items contained inside them
 will be
-recursively [destroyed](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Modules/itemManager.js#L206).
+recursively [destroyed](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Modules/itemManager.js#L163).
 If there is only 1 product, then the second ingredient will simply be destroyed, and only the first ingredient will be
 replaced. If there are 0 products, then both ingredients will be destroyed, and no products will be created.
 
@@ -185,10 +199,32 @@ Once the ingredients are finished being crafted, Alter Ego will send the Player 
 Additionally, if any of the product Prefabs are [non-discreet](prefab.md#discreet), Alter Ego
 will [narrate](Narration.md) the Player crafting them.
 
+## Uncrafting
+
+Uncrafting is a simplified reversal of the crafting mechanic. It makes use of the [uncraft Player method](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Player.js#L1644). Whether the action is initiated by a Player or by a moderator, the rules are the same:
+* The Player must have Equipment Slots named "RIGHT HAND" and "LEFT HAND".
+* The Player must have one Inventory Item equipped to their RIGHT HAND or LEFT HAND.
+* The Player's other hand must be empty.
+* There must be a crafting-type Recipe whose only product is the Prefab underlying the Player held Inventory Item.
+
+If all of the above requirements are met, the Player will uncraft their held Inventory Item.
+
+First, Alter Ego checks the Recipe's ingredients to see if only one of them is discreet. If so, then the ingredient with the discreet Prefab will be ingredient 1, and the non-discreet Prefab will be ingredient 2. If both are discreet or both are non-discreet, ingredients 1 and 2 will be the ingredient Prefabs in alphabetical order by their IDs.
+
+Next, the Player's held Inventory Item will be replaced with the properties of ingredient 1's Prefab, and any Inventory Items contained inside of it will be recursively destroyed. The Prefab of ingredient 2 will then be instantiated in the Player's free hand. Note that even if the original Inventory Item had a limited number of uses, both of the ingredients will be created with the default number of uses of their respective Prefabs.
+
+Alter Ego will then send the Player the Recipe's uncrafted description.
+
+If either of the ingredients are non-discreet, Alter Ego will narrate the Player uncrafting them. If only one of them is discreet, then the Narration will be as follows:
+* `[Player displayName] removes [ingredient 1 singleContainingPhrase] from [ingredient 2 singleContainingPhrase].`
+
+If both ingredients are non-discreet, then the Narration will instead be:
+* `[Player displayName] separates [product singleContainingPhrase] into [ingredient 1 singleContainingPhrase] and [ingredient 2 singleContainingPhrase].`
+
 ## Processing
 
 Processing is a complex game mechanic that uses Recipes. It makes use of
-the [processRecipes Object method](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Data/Object.js#L96).
+the [processRecipes Object method](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Object.js#L96).
 
 Recipes can be processed in an Object as long as that Object is [activated](object.md#activated) and has
 a [Recipe tag](object.md#recipe-tag) that matches the Recipe's Object tag, regardless of how the Object was activated.
@@ -201,7 +237,7 @@ There are four ways an Object can be activated:
 * By being loaded from the spreadsheet with its activation state being set to `true`.
 
 While an Object with a Recipe tag is activated, Alter Ego will attempt every second
-to [find a Recipe](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Data/Object.js#L140)
+to [find a Recipe](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Object.js#L140)
 that can be processed by the Object. In order to determine this, it looks for all Items contained in the Object, as well
 as any Items contained inside those Items (recursively). Next, it checks all Recipes whose Object tag matches the
 Object's Recipe tag. For each Recipe, it compares the list of Items contained within the Object (including child Items)
@@ -218,7 +254,7 @@ then it will be canceled in favor of the new one.
 
 A Recipe being processed means that the [Object's process variable](object.md#process) has been assigned, and that Alter
 Ego will decrement the process's duration by 1 every second. When the duration reaches 0, the Items
-are [processed](https://github.com/MolSnoo/Alter-Ego/blob/90e1a7b3b0d067505e5890058e196795ab141996/Data/Object.js#L208).
+are [processed](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Object.js#L208).
 
 Alter Ego checks that all of the Items required for the Recipe are still contained in the Object. If it is, it then
 checks to see if any of the ingredients are also products. If that is the case, it then checks if the Item only has 1

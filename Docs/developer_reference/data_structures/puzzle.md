@@ -137,6 +137,11 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
     * When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate "
       `[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
 
+* `matrix`
+   * The Puzzle behaves exactly the same as an `interact`-type Puzzle. However, its solved commands have special behavior.
+   * When the Puzzle's solved commands are executed, the outcomes of all of its required Puzzles are accessible in its solved commands. If a solved command contains the name of one of its required Puzzles in curly braces (for example: `{PUZZLE NAME}`), that string will be replaced with that Puzzle's outcome before it is executed. This allows solved commands to have variable arguments that result in different behavior depending on the outcomes of one or more Puzzles.
+   * This is especially useful for instantiating [procedurally generated Prefabs](../../moderator_guide/writing_descriptions.md#poss-attribute-name) with possibilities manually selected by a Player in other Puzzles. However, this behavior can be used in any bot command.
+
 * `player`
     * A Player must only interact with the Puzzle in order to solve it. However, the Player's name must match one of the
       Puzzle's solutions. The name is case sensitive.
@@ -144,6 +149,12 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
     * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description.
     * When a Player interacts with the Puzzle in any way, whether they solve it or not, Alter Ego will narrate "
       `[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+
+* `room player`
+   * A Player must enter the display name of a Player in the same Room as them in order to solve the Puzzle. However, the chosen Player's display name must match one of the Puzzle's solutions. The display name is not case sensitive. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel. When the Puzzle's solved commands are executed, the selected Player will be passed into the commandHandler module. As a result, any commands that use the `player` argument will execute as if the selected Player was the one who initiated them.
+   * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
+   * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description. Alter Ego will narrate "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+   * If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
 
 * `toggle`
     * A Player must only interact with the Puzzle in order to solve it.
@@ -276,6 +287,13 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
       narrate "`[Player displayName]` uses the `[PUZZLE NAME]`, but nothing happens." in the Puzzle's Room channel.
     * If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to set the
       `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
+
+* `option`
+   * A Player must enter the correct password in order to solve the Puzzle. The password is case sensitive. If a Player solves the Puzzle, Alter Ego will narrate "`[Player displayName]` sets the `[PUZZLE NAME]` to `[password]`." in the Puzzle's Room channel.
+   * Once the Puzzle has been solved, it can be unsolved when a Player attempts to solve it without supplying a password.
+   * If a Player unsolves the Puzzle, they will be sent "You clear the selection for the `[PUZZLE NAME]`.", and Alter Ego will narrate "`[Player displayName]` resets the `[PUZZLE NAME]`." in the Puzzle's Room channel.
+   * If the Puzzle is already solved and a Player attempts to solve the Puzzle again using the right password, Alter Ego will narrate "`[Player displayName]` sets the `[PUZZLE NAME]`, but nothing changes." in the Puzzle's Room channel.
+   * If a Player fails to solve the Puzzle, Alter Ego will narrate "`[Player displayName]` attempts to set the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel.
 
 * `media`
     * A Player must provide the name of an Inventory Item in their inventory which is one of the Puzzle's solutions in

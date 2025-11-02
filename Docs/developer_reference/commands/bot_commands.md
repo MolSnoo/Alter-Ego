@@ -119,25 +119,20 @@ Generates an item.
     generate 3 empty drain cleaner in cupboards at kitchen
     instantiate green book in main pocket of large backpack 1 at dorm library
     create 4 screwdriver in tool box at beach house
+    instantiate gacha capsule (color=metal + character=upa) in gacha slot at arcade
     generate katana in player right hand
     instantiate monokuma mask on all face
     create laptop in vivian's vivians satchel
     generate 2 shotput ball in cassie's main pocket of large backpack
+    instantiate 3 capsulebeast card (species=lavazard) in asuka's left pocket of gamer hoodie
 
 #### Description
 
-Generates an item in the specified location on the map or in the given player's inventory. The prefab ID must be given.
-A quantity can also be specified.
+Generates an item or inventory item in the specified location. The prefab ID must be used. A quantity can also be set. If the prefab has procedural options, they can be manually set in parentheses.
 
-In order to instantiate an item, the name of the room must be given at the end, following "at". The name of the
-container it will be created in must also be specified. If the container is an object with a child puzzle, the item will
-be instantiated in that puzzle. If the container is another item, the name of the item or its container identifier can
-be used. The name of the inventory slot to instantiate the item in can also be specified.
+To instantiate an item, the name of the room must be given at the end, following "at". The name of the container to put it in must also be given. If the container is an object with a child puzzle, the puzzle will be its container. If the container is another item, the item's name or container identifier can be used. The name of the inventory slot to instantiate the item in can also be specified.
 
-To instantiate an inventory item, "player", "room", "all", or the name of a player followed by "'s", must be given. A
-container item can be specified, as well as which slot to instantiate the item into. The player will not be notified if
-a container item is specified. An equipment slot can also be specified instead of a container item. The player will be
-notified of obtaining the item in this case, and the prefab's equipped commands will be run.
+To instantiate an inventory item, "player", "room", "all", or the name of a player followed by "'s", must be given. A container item can be specified, as well as which slot to instantiate the item into. The player will not be notified if a container item is specified. An equipment slot can also be chosen instead of a container item. The player will be notified of obtaining the item in this case, and the prefab's equipped commands will be run.
 
 ## kill
 
@@ -418,7 +413,7 @@ method. They must adhere to the following format:
 `subjective\objective\dependent possessive\independent possessive\reflexive\plural`. If you use "player" in place of a
 player's name, then the player who triggered the command will have their pronouns set.
 
-## setpronouns
+## setvoice
 
 Sets a player's voice.
 

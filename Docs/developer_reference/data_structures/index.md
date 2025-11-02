@@ -17,6 +17,6 @@ sheet. This article lists each of the main data structures.
 
 In order to create a workable spreadsheet, the latest version template should be duplicated into a moderator's Google
 Drive
-by [accessing this link](https://docs.google.com/spreadsheets/d/19_3MkcvedH9vBk0J2wbxwhgbZanDrjKsfsCqK2uHS4A/edit?usp=sharing),
+by [accessing this link](https://docs.google.com/spreadsheets/d/1ZA7LZL3XIvw7QieVcEAURpacvznr3ceNd60128vCA_I/edit?usp=sharing),
 opening the **File** menu, and selecting **Make a copy**. At this point, they will have a copy that they can edit as
 they please.
