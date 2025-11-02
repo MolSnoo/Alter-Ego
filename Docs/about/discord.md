@@ -33,34 +33,34 @@ This section lists how Discord is used to facilitate the Neo World Program.
 
 A game is contained in one and only one Discord server. It is run by Alter Ego.
 
-Every [Player](../developer_reference/data_structures/player.md) is represented by
+Every [Player](../reference/data_structures/player.md) is represented by
 a [Discord server member](https://discord.js.org/docs/packages/discord.js/main/GuildMember:Class). Each Player must have their own
 Discord account. A single account cannot be used for multiple Players.
 
-Every [Room](../developer_reference/data_structures/room.md) is represented by
+Every [Room](../reference/data_structures/room.md) is represented by
 a [Discord text channel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class). When a Player moves to a given
 Room, they will be granted permission to read that channel, and their permission to read the channel of the Room they
 were previously in will be revoked. This creates the effect of only being in one Room at a time. In a Room, a Player can
 see all of the other Players that are in the Room on the user list on the right side of the screen. Messages sent by a
 Player to a Room channel act as dialogue from that Player, enabling communication between Players in a Room.
 
-Every [Whisper](../developer_reference/data_structures/whisper.md) is also represented by a Discord text channel. When a
+Every [Whisper](../reference/data_structures/whisper.md) is also represented by a Discord text channel. When a
 Whisper is created between two or more Players, a new channel will be created in the Whisper category, and only the
 Players in the Whisper will be granted read access to that channel. When a Player leaves the Room or is otherwise
 removed from the Room's channel, their read access to all Whispers they were in will be revoked. Their name will also be
 removed from the Whisper name, whose channel name will be edited accordingly. When all Players in a Whisper leave the
 Room, the Whisper channel will either be archived or immediately deleted, depending on the
-[autoDeleteWhisperChannels setting](../developer_reference/settings/docker_settings.md#autodelete_whisper_channels).
+[autoDeleteWhisperChannels setting](../reference/settings/docker_settings.md#autodelete_whisper_channels).
 
-Every [spectate channel](../developer_reference/data_structures/player.md#spectate-channel) also has a Discord text
+Every [spectate channel](../reference/data_structures/player.md#spectate-channel) also has a Discord text
 channel. When Player data is loaded from the spreadsheet, Alter Ego will check to see if that Player already has a
 spectate channel in the Spectator category. If not, it will create one with that Player's name. It will not do this if
 there are already 50 spectate channels in the category.
 
-When a Player enters a Room, inspects an [Object](../developer_reference/data_structures/object.md) or
-[Item](../developer_reference/data_structures/item.md), or otherwise does something that requires text from
-the [Spreadsheet](../developer_reference/data_structures/index.md) be sent, Alter Ego will send the text to that Player
-via DM. Any [Narration](../developer_reference/data_structures/narration.md) regarding a Player action will generally be
+When a Player enters a Room, inspects an [Object](../reference/data_structures/object.md) or
+[Item](../reference/data_structures/item.md), or otherwise does something that requires text from
+the [Spreadsheet](../reference/data_structures/index.md) be sent, Alter Ego will send the text to that Player
+via DM. Any [Narration](../reference/data_structures/narration.md) regarding a Player action will generally be
 sent to the channel of the Room that Player is in.
 
 ## Limitations

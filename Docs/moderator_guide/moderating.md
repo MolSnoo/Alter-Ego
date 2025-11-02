@@ -37,7 +37,7 @@ Once you've decided that you want to be a Neo World Program moderator, your firs
 Alter Ego. To do that, see the following articles:
 
 * [Installation and Setup](installation.md)
-* [Settings](../developer_reference/settings/docker_settings.md)
+* [Settings](../reference/settings/docker_settings.md)
 
 Once you're able to use Alter Ego, you must learn how it works. Alter Ego is a complex tool with many intricate
 behaviors that you need to familiarize yourself with. The best way to get started is to read all of the articles on this
@@ -45,11 +45,11 @@ wiki - most importantly, the Data Structure entries and the [writing description
 After that, you can begin putting your knowledge into practice.
 
 Familiarize yourself with all of the commands available to you as a moderator by utilizing
-the [help command](../developer_reference/commands/moderator_commands.md#help) to read the details of each one. Memorize
+the [help command](../reference/commands/moderator_commands.md#help) to read the details of each one. Memorize
 the syntax of each command and all of the ways it can be used. Create a small test game consisting of a few Rooms. Get a
 good understanding of how Alter Ego interprets data entered on the spreadsheet and what will make it return errors when
-you load data. Make use of the [testparser command](../developer_reference/commands/moderator_commands.md#testparser) to
-catch errors in your writing. Test your game using a separate [Player](../developer_reference/data_structures/player.md)
+you load data. Make use of the [testparser command](../reference/commands/moderator_commands.md#testparser) to
+catch errors in your writing. Test your game using a separate [Player](../reference/data_structures/player.md)
 account and observe what bugs Alter Ego is unable to detect. Implement fixes for them and test again. Develop a habit of
 loading, parsing, testing, and fixing your game until it's second nature to you.
 
@@ -77,16 +77,16 @@ the [mapmaking tutorial]() for more information.
 
 By far the longest and most difficult part of a moderator's job is writing the game. Writing takes place entirely on the
 spreadsheet. In this stage of development, your goal must be to write all of
-the [Rooms](../developer_reference/data_structures/room.md) on the map and fill them
-with [Objects](../developer_reference/data_structures/object.md), [Items](../developer_reference/data_structures/item.md)
-and [Puzzles](../developer_reference/data_structures/puzzle.md) for Players to interact with. You'll need to
-write [Prefabs](../developer_reference/data_structures/prefab.md) to provide functionality to Items,
-add [Recipes](../developer_reference/data_structures/recipe.md) for Players to carry out, and
-create [Events](../developer_reference/data_structures/event.md) to enhance the game world.
-Creating [Status Effects](../developer_reference/data_structures/status.md) can make Players feel more immersed in the
-game, and writing [Gestures](../developer_reference/data_structures/gesture.md) makes it easier for them to roleplay
-simple actions. You'll need to personalize each [Player](../developer_reference/data_structures/player.md)'s data to
-suit their character and give them [Inventory Items](../developer_reference/data_structures/inventory_item.md) to start
+the [Rooms](../reference/data_structures/room.md) on the map and fill them
+with [Objects](../reference/data_structures/object.md), [Items](../reference/data_structures/item.md)
+and [Puzzles](../reference/data_structures/puzzle.md) for Players to interact with. You'll need to
+write [Prefabs](../reference/data_structures/prefab.md) to provide functionality to Items,
+add [Recipes](../reference/data_structures/recipe.md) for Players to carry out, and
+create [Events](../reference/data_structures/event.md) to enhance the game world.
+Creating [Status Effects](../reference/data_structures/status.md) can make Players feel more immersed in the
+game, and writing [Gestures](../reference/data_structures/gesture.md) makes it easier for them to roleplay
+simple actions. You'll need to personalize each [Player](../reference/data_structures/player.md)'s data to
+suit their character and give them [Inventory Items](../reference/data_structures/inventory_item.md) to start
 out with. When all of these features work together in harmony, it can create an experience that makes it easy for the
 players on the other side of the screen to feel like they really *are* a part of the world.
 
@@ -149,14 +149,14 @@ otherwise Alter Ego will be unable to send them messages. Your players will like
 begin - let yourself be excited with them.
 
 If, during the writing process, you made all of the Players NPCs, you'll need to make them regular Players now by
-changing their [talent](../developer_reference/data_structures/player.md#talent) and assigning their Discord ID. **Be
+changing their [talent](../reference/data_structures/player.md#talent) and assigning their Discord ID. **Be
 warned that once you do this, loading the game after this point will give them access to the channel associated with
 their location.** If you want to continue testing, give them all a Status Effect on the spreadsheet with the following
-[behavior attributes](../developer_reference/data_structures/status.md#behavior-attributes):
+[behavior attributes](../reference/data_structures/status.md#behavior-attributes):
 `disable all, no speech, no channel, hidden, unconscious`. This will prevent them from gaining access to any Room
 channels and from getting most messages related to the game, but be aware that they will still receive Status
-Effect [inflicted](../developer_reference/data_structures/status.md#inflicted-description)
-and [cured](../developer_reference/data_structures/status.md#cured-description) Effect messages unless their other
+Effect [inflicted](../reference/data_structures/status.md#inflicted-description)
+and [cured](../reference/data_structures/status.md#cured-description) Effect messages unless their other
 Status Effects are manually removed from the sheet. For this reason, it's recommended that if you're not currently
 testing something, you should keep Alter Ego running *without* having any game data loaded until it's time to begin.
 Once you finish testing, you can simply reboot Alter Ego to unload everything.
@@ -184,7 +184,7 @@ over to it and get Alter Ego up and running with ease.
 You can write a custom spawn message for all of the Players to receive when the game begins for the first time. This can
 be an effective way of immediately immersing the Players into the game world. To accomplish this, all you need to do is
 make an Event which is ongoing at the start of the game. For the sake of example, this Event will be called PROLOGUE.
-Once it exists, you can modify the description of the first [Exit](../developer_reference/data_structures/exit.md) in each Room that the Players
+Once it exists, you can modify the description of the first [Exit](../reference/data_structures/exit.md) in each Room that the Players
 spawn into to contain an if conditional tag that checks whether the PROLOGUE Event is ongoing or not. This message can
 be customized to suit each individual Player. You can then end the PROLOGUE Event immediately after everyone spawns in
 so that they don't receive the spawn message again when they inspect or enter the Room through the first Exit. An
@@ -194,7 +194,7 @@ example of a description that uses this tactic looks something like this:
 
 Once all of your preparations have been made and you have Alter Ego up and running, it's officially time to start the
 game. Note that if you have all of the Player data written on the spreadsheet already, you don't have to use
-the [startgame command](../developer_reference/commands/moderator_commands.md#startgame) at all, and doing so will
+the [startgame command](../reference/commands/moderator_commands.md#startgame) at all, and doing so will
 result in your Player data being overwritten. To begin, all you need to do is send `.load all start`.
 
 ## Running a game
@@ -267,8 +267,8 @@ If the prospective culprit wants to target a Player whose writer doesn't want th
 opportunity for combat if the chosen victim intends to fight back. During combat, you should give all involved Players
 the `heated` Status Effect, which will slow down movement speed for all other Players. Then, you should take turns
 gathering input from all involved Players about what they intend to do during their next combat move. You can use
-the [roll command](../developer_reference/commands/moderator_commands.md#roll) to roll
-a [Die](../developer_reference/data_structures/die.md) to determine the success of each action and narrate the results.
+the [roll command](../reference/commands/moderator_commands.md#roll) to roll
+a [Die](../reference/data_structures/die.md) to determine the success of each action and narrate the results.
 In this scenario, the chosen victim can actually come out on top and kill the prospective killer, which can create an
 interesting murder case.
 
@@ -284,7 +284,7 @@ time - this can tip players off out-of-character that something is going on, whi
 in-character. If you need to, you can always just write the victim's body into the Room description so that Players can
 discover it and save writing clues for after the session is over. There's nothing wrong with holding the investigation
 and trial the next day. When you *do* write clues, try to find ways to incorporate the
-Players' [intelligence stat](../developer_reference/data_structures/player.md#intelligence) into the descriptions using
+Players' [intelligence stat](../reference/data_structures/player.md#intelligence) into the descriptions using
 if conditionals. For example, Players with a high intelligence stat may notice details about the body that other Players
 don't. This can make players who created characters with high intelligence stats feel like the investment was worth it.
 

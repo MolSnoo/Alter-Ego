@@ -93,41 +93,41 @@ allows you to insert multiple item lists into a description, giving each a name.
 `<desc><s>It's a plain pair of black jeans.</s> <s>It has four pockets in total.</s> <s>In the right pocket, you find <il name="RIGHT POCKET"></il>.</s> <s>In the left pocket, you find <il name="LEFT POCKET"></il>.</s> <s>In the right back pocket, you find <il name="RIGHT BACK POCKET"></il>.</s> <s>In the left back pocket, you find <il name="LEFT BACK POCKET"></il>.</s></desc>`
 
 Note that
-only [Prefabs](../developer_reference/data_structures/prefab.md), [Items](../developer_reference/data_structures/item.md),
-[Inventory Items](../developer_reference/data_structures/inventory_item.md)
-and [Players](../developer_reference/data_structures/player.md) support multiple `il` tags in a single description.
+only [Prefabs](../reference/data_structures/prefab.md), [Items](../reference/data_structures/item.md),
+[Inventory Items](../reference/data_structures/inventory_item.md)
+and [Players](../reference/data_structures/player.md) support multiple `il` tags in a single description.
 
 Lastly, `il` tags can only be used in a certain number of places, and each one has its own limitations. They can be used
 in:
 
-* An [Object](../developer_reference/data_structures/object.md)'s description. A single Object can only have one item
+* An [Object](../reference/data_structures/object.md)'s description. A single Object can only have one item
   list in its description.
-* A [Prefab](../developer_reference/data_structures/prefab.md)'s description. A single Prefab can have multiple item
+* A [Prefab](../reference/data_structures/prefab.md)'s description. A single Prefab can have multiple item
   lists; however, there must be one for
-  each [inventory slot](../developer_reference/data_structures/prefab.md#inventory), with names to match. Item lists in
+  each [inventory slot](../reference/data_structures/prefab.md#inventory), with names to match. Item lists in
   a Prefab's description will never be updated. They simply serve as a base for instances of that Prefab.
-* An [Item](../developer_reference/data_structures/item.md)
-  or [Inventory Item](../developer_reference/data_structures/inventory_item.md)'s description. The same rules that
+* An [Item](../reference/data_structures/item.md)
+  or [Inventory Item](../reference/data_structures/inventory_item.md)'s description. The same rules that
   Prefabs have apply, however these can be updated as other Items/Inventory Items are inserted or removed.
-* A [Puzzle](../developer_reference/data_structures/puzzle.md)'s "Already Solved" text. A single Puzzle can only have
+* A [Puzzle](../reference/data_structures/puzzle.md)'s "Already Solved" text. A single Puzzle can only have
   one item list in its "
   Already Solved" text.
-* A [Player](../developer_reference/data_structures/player.md)'s description. A single Player can only have two item
+* A [Player](../reference/data_structures/player.md)'s description. A single Player can only have two item
   lists in their description, and they must be named `equipment` and `hands`. Any other item lists will never be
   updated.
 
 Lastly, every item list must be in its own sentence. That is, a single `s` tag can only have one `il` tag within it.
 
 To test that you've formatted item lists correctly, use the `add` and `remove` functions of
-the [testparser command](../developer_reference/commands/moderator_commands.md#testparser).
+the [testparser command](../reference/commands/moderator_commands.md#testparser).
 
 ## `<item>`
 
 Example: `<desc><s>You open the locker.</s> <s>Inside, you find <il><item>a SWIMSUIT</item></il>.</s></desc>`
 
-The `item` tag is used to mark the beginning and ending of [Items](../developer_reference/data_structures/item.md). It
+The `item` tag is used to mark the beginning and ending of [Items](../reference/data_structures/item.md). It
 must go inside an [il tag](#il) and contain only the Item's
-entire [single containing phrase](../developer_reference/data_structures/item.md#single-containing-phrase) or a quantity
+entire [single containing phrase](../reference/data_structures/item.md#single-containing-phrase) or a quantity
 plus its plural containing phrase. For example:
 
 `<desc><s>You open the dresser.</s> <s>There are a few drawers with nothing of interest in them.</s> <s>In the bottom drawer, you find <il><item>a pair of NEEDLES</item></il>.</s></desc>`
@@ -168,26 +168,26 @@ The function which parses descriptions (and thus, `if` tags) has access to the P
 
 * Based on the Player's name: `<if cond="player.name === 'Astrid'">Your name is Astrid.</if>`
 * Based on the Player's talent: `<if cond="player.talent === 'Ultimate Mortician'">You are the Ultimate Mortician.</if>`
-* Based on the Player's [intelligence stat](../developer_reference/data_structures/player.md#intelligence): `<if cond="player.intelligence > 7">You notice something your classmates didn't notice.</if>`
-* Based on whether a Player has a given [Status Effect](../developer_reference/data_structures/status.md): `<if cond="player.statusString.includes('hungry')">This food looks delicious.</if>`
-* Based on whether a Player has a given [behavior attribute](../developer_reference/data_structures/status#behavior-attributes): `<if cond="player.hasAttribute('acute hearing')">It produces an extremely faint noise that you should be able to make out if you listen closely.</if>`
+* Based on the Player's [intelligence stat](../reference/data_structures/player.md#intelligence): `<if cond="player.intelligence > 7">You notice something your classmates didn't notice.</if>`
+* Based on whether a Player has a given [Status Effect](../reference/data_structures/status.md): `<if cond="player.statusString.includes('hungry')">This food looks delicious.</if>`
+* Based on whether a Player has a given [behavior attribute](../reference/data_structures/status#behavior-attributes): `<if cond="player.hasAttribute('acute hearing')">It produces an extremely faint noise that you should be able to make out if you listen closely.</if>`
 
 ### Container conditionals
 
 The function which parses descriptions also has access to the entire _container_ of the description, which is accessible
 with the `this` keyword. That is, if the description belongs to
-a [Room](../developer_reference/data_structures/room.md), you can write descriptions that change:
+a [Room](../reference/data_structures/room.md), you can write descriptions that change:
 
 * Based on the number of Players in the room:
   `<if cond="this.occupants.length > 6">It's a little cramped with so many people in a room this small.</if>`
 
-If the description belongs to an [Object](../developer_reference/data_structures/object.md), you can write descriptions
+If the description belongs to an [Object](../reference/data_structures/object.md), you can write descriptions
 that change:
 
 * Based on whether the Object's child Puzzle has been solved:
   `<desc><if cond="this.childPuzzle.solved === true"><s>You examine the poster.</s> <s>It looks like this: https://i.imgur.com/wtUujam.png</s></if><if cond="this.childPuzzle.solved === false"><s>It is too dark to see anything.</s></if></desc>`
 
-If the description belongs to an [Item](../developer_reference/data_structures/item.md), you can write descriptions that
+If the description belongs to an [Item](../reference/data_structures/item.md), you can write descriptions that
 change:
 
 * Based on the number of uses the Item has left:
@@ -199,7 +199,7 @@ the most helpful and commonly used.
 ### Finder conditionals
 
 The function which parses descriptions also has access to the entire game. This is most useful when descriptions should
-change based on the status of a [Puzzle](../developer_reference/data_structures/puzzle.md). This is made easy using the
+change based on the status of a [Puzzle](../reference/data_structures/puzzle.md). This is made easy using the
 functions in the [finder module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/finder.js). The finder module
 includes the following functions (parameters listed in parentheses are optional):
 
@@ -336,7 +336,7 @@ Note that only Prefabs can have `procedural` tags in their description. When a P
 
 ### Procedural attribute: `name`
 
-`name` allows you to give each `procedural` tag its own identifier. This allows you to manually select procedurals and the possibilities contained within them when using the [instantiate](../developer_reference/commands/moderator_commands.md#instantiate) [command](../developer_reference/commands/bot_commands.md#instantiate).
+`name` allows you to give each `procedural` tag its own identifier. This allows you to manually select procedurals and the possibilities contained within them when using the [instantiate](../reference/commands/moderator_commands.md#instantiate) [command](../reference/commands/bot_commands.md#instantiate).
 
 ### Procedural attribute: `chance`
 
@@ -366,7 +366,7 @@ Because `procedural` `A3` is nested inside `procedural` `A2` — which is itself
 
 ### Procedural attribute: `stat`
 
-`stat` takes the name of one of the Player's five [stats](../developer_reference/data_structures/player.md#stats): `strength`, `intelligence`, `dexterity`, `speed`, `stamina`, or their abbreviations: `str`, `int`, `dex`, `spd`, `sta`. If a Player is supplied when the output is generated, then the chosen stat will affect the chances of all of the `poss` tags contained within this `procedural` tag. When instantiating a Prefab as an Inventory Item, the Player will always be the Player who the Inventory Item belongs to. When instantiating a Prefab as an Item, it is only possible to supply a Player in the bot version of the instantiate command; this is the Player who caused the command to be executed.
+`stat` takes the name of one of the Player's five [stats](../reference/data_structures/player.md#stats): `strength`, `intelligence`, `dexterity`, `speed`, `stamina`, or their abbreviations: `str`, `int`, `dex`, `spd`, `sta`. If a Player is supplied when the output is generated, then the chosen stat will affect the chances of all of the `poss` tags contained within this `procedural` tag. When instantiating a Prefab as an Inventory Item, the Player will always be the Player who the Inventory Item belongs to. When instantiating a Prefab as an Item, it is only possible to supply a Player in the bot version of the instantiate command; this is the Player who caused the command to be executed.
 
 When a Player's stat is provided, a percent modifier, \\(M\\), is calculated for each `poss` tag within the `procedural`. The formula for \\(M\\) is as follows:
 
@@ -414,7 +414,7 @@ When a Prefab is instantiated into an Item or Inventory Item, the parser module 
 
 ### Poss attribute: `name`
 
-`name` allows you to give each `poss` tag its own identifier. This allows you to manually select procedurals and the possibilities contained within them when using the [instantiate](../developer_reference/commands/moderator_commands.md#instantiate) [command](../developer_reference/commands/bot_commands.md#instantiate).
+`name` allows you to give each `poss` tag its own identifier. This allows you to manually select procedurals and the possibilities contained within them when using the [instantiate](../reference/commands/moderator_commands.md#instantiate) [command](../reference/commands/bot_commands.md#instantiate).
 
 In order to make use of the `name` attribute in a `poss` tag, the `procedural` tag that contains it must also have a `name`. When using the instantiate command, it is possible to provide procedural selections with the syntax `(procedural name=poss name)`. For instance, in the above example, if you wanted to manually instantiate an Item with the `standard` `finish`, which normally has no possibility of generating, your command would start with: `.instantiate GACHA CAPSULE (finish=standard)`. This syntax is not case-sensitive, and extra spaces are ignored. The effect of doing this would result in the final `s` tag being removed, because the `poss` that was selected contained no text, and as a result, the `procedural` and thus `s` tag contained no text. The `poss` tags within the other `procedural` tags in the description would still be randomly chosen.
 

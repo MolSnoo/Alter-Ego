@@ -145,7 +145,7 @@ things.
 ## Step 7: Create a spreadsheet
 
 Next, you will need to create a spreadsheet for Alter Ego to use. For more information, see the article
-on [spreadsheets](../../developer_reference/data_structures/index.md).
+on [spreadsheets](../../reference/data_structures/index.md).
 
 ## Step 8: Enable the Google Sheets API
 
@@ -296,7 +296,7 @@ everything's indented properly, and if you did everything right, you'll have a f
 ## Step 13: Fill out settings
 
 The last thing you must do before you can run Alter Ego is configure the settings file. For more information, see the
-article on [settings](../../developer_reference/settings/node_settings.md).
+article on [settings](../../reference/settings/node_settings.md).
 
 ## Step 14: Run Alter Ego
 

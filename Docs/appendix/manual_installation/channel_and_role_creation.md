@@ -24,7 +24,7 @@ permissions you can enable for it, however. Doing this will enable them for ever
 * Use External Emojis _(optional)_
     * If this permission is not enabled, then any external emojis that are sent in a Room channel, whether by a Player
       or a [moderator](../../moderator_guide/moderating.md), will not be sent
-      in [spectate channels](../../developer_reference/data_structures/player.md#spectate-channel). Instead, they will be replaced with the name of
+      in [spectate channels](../../reference/data_structures/player.md#spectate-channel). Instead, they will be replaced with the name of
       the emoji.
 * Use External Stickers _(optional)_
     * Stickers will not show up in spectate channels under any circumstances.
@@ -245,7 +245,7 @@ This channel is the only place where Alter Ego will accept commands from a moder
 ### Category: Rooms
 
 This doesn't have to be a single category, but can in fact be several. A room category is where you'll create all of the
-channels corresponding with the game's [Rooms](../../developer_reference/data_structures/room.md). The reason you can create multiple categories for
+channels corresponding with the game's [Rooms](../../reference/data_structures/room.md). The reason you can create multiple categories for
 this is that Discord only allows a single category to have 50 channels. Since this is too restrictive for the game,
 Alter Ego allows you to divide the room channels amongst several categories, in whatever way you like. The overall role
 permissions you set up earlier are configured specifically for the game, so you don't need to set any permission
@@ -253,7 +253,7 @@ overrides for room categories or the channels that belong to them.
 
 ### Category: Whispers
 
-This category is where Alter Ego will create [Whisper](../../developer_reference/data_structures/whisper.md) channels. There is only one permission
+This category is where Alter Ego will create [Whisper](../../reference/data_structures/whisper.md) channels. There is only one permission
 override you should make, but it is optional:
 
 * Player

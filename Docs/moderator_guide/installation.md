@@ -164,7 +164,7 @@ things.
 ## Step 6: Create a spreadsheet
 
 Next, you will need to create a spreadsheet for Alter Ego to use. For more information, see the article
-on [spreadsheets](../developer_reference/data_structures/index.md).
+on [spreadsheets](../reference/data_structures/index.md).
 
 ## Step 7: Enable the Google Sheets API
 
@@ -325,7 +325,7 @@ SPREADSHEET_ID='1234567890'
 
 If you wish to change other settings other than the ones outlined above, you can edit their entries in the `.env` file.
 Remember to uncomment (i.e. remove the `#` before the line) for them to go into effect. For more information, see the
-article on [settings](../developer_reference/settings/docker_settings.md).
+article on [settings](../reference/settings/docker_settings.md).
 
 ## Step 11: Run Alter Ego
 

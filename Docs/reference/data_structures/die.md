@@ -8,9 +8,9 @@ Players can initiate a Die roll of their own volition:
 
 * A Die roll is initiated when a Player uses the [steal command](../commands/player_commands.md#steal). The roll is
   modified by their [dexterity stat](../data_structures/player.md#dexterity) and whether or not they have the
-  `thief` [behavior attribute](../data_structures/status.md#behavior-attributes).
+  [`thief` behavior attribute](../data_structures/status.md#thief).
 * A Die roll is initiated when a Player solves
-  a [probability-type or stat probability-type Puzzle](../data_structures/puzzle.md#type). The roll is modified by the
+  a [`probability`-type](../data_structures/puzzle.md#probability) or [`stat probability`-type](../data_structures/puzzle.md#stat-probability) Puzzle. The roll is modified by the
   stat used, if applicable. The result is then used to determine which solution is used to solve the Puzzle.
 
 Dice are predominantly used by [moderators](../../moderator_guide/moderating.md) in order to determine the result of a
@@ -44,15 +44,16 @@ specifying a stat.
 #### Stat Roll Modifier
 
 This is not a parameter, but a value derived from the attacker's specified stat. This determines what value is added or
-subtracted from the base roll. It is calculated with the following formula:
+subtracted from the base roll. The stat roll modifier, \\(M\\), is calculated with the following formula:
 
-`Stat roll modifier = floor(floor(((s - 10) / 3) / 2) + (a - i) / a)`
+\\[ M = \left\lfloor \Bigl\lfloor \frac{1}{2}s - \frac{10}{6} \Bigr\rfloor + \frac{a - i}{a} \right\rfloor \\]
+Stat roll modifier = floor(floor( ( (s - 10) / 3) / 2 ) + (a - i) / a)
 
 In this formula are several variables:
 
-* `s` is the attacker's specified stat.
-* `a` is the [diceMax setting](../settings/docker_settings.md#dice_max).
-* `i` is the [diceMin setting](../settings/docker_settings.md#dice_min).
+* \\(s\\) is the attacker's specified stat.
+* \\(a\\) is the [diceMax setting](../settings/docker_settings.md#dice_max).
+* \\(i\\) is the [diceMin setting](../settings/docker_settings.md#dice_min).
 
 ## Attributes
 

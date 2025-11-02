@@ -116,39 +116,33 @@ for the first time.
 ### Default Stats
 
 These are the default [stats](../data_structures/player.md#stats) a player will have. These should generally be changed on
-the spreadsheet to suit each individual player before the game is officially started.
+the spreadsheet to suit each individual player before the game is officially started. These must be a whole number between
+1 and 10.
 
 #### DEFAULT_STR
 
-The [strength stat](../data_structures/player.md#strength) determines the maximum weight a Player is able to carry as well as
-the likelihood of attacking successfully in [dice rolls](../data_structures/die.md). The formula for calculating
-their [maximum carry weight](../data_structures/player.md#max-carry-weight) is:
-
-`Max carry weight (kg) = 1.783 * strength^2 - 2 * strength + 22`
+This is the strength stat that each player will have by default. The default is `5`. For more information, read the 
+[strength section](../data_structures/player.md#strength) of the Player article.
 
 #### DEFAULT_INT
 
-The [intelligence stat](../data_structures/player.md#Intelligence) isn't used by Alter Ego's internal code, however it can be
-used in [if conditionals](../../moderator_guide/writing_descriptions.md#if) to alter what a player sees when inspecting various
-things. This is most helpful for investigations.
+This is the intelligence stat that each player will have by default. The default is `5`. For more information, read the 
+[intelligence section](../data_structures/player.md#intelligence) of the Player article.
 
 #### DEFAULT_DEX
 
-The [dexterity stat](../data_structures/player.md#dexterity) determines how likely a Player is to dodge an attack from
-another Player in dice rolls. It also determines how likely a Player is to succeed when [stealing]() Items from another
-Player.
+This is the dexterity stat that each player will have by default. The default is `5`. For more information, read the 
+[dexterity section](../data_structures/player.md#dexterity) of the Player article.
 
 #### DEFAULT_SPD
 
-The [speed stat](../data_structures/player.md#speed) is used to calculate how quickly a player can move from one room to
-another. The base formula for calculating their rate of movement (without factoring in slope) is:
-
-`Rate (m/ms) = 0.0183 * speed^2 + 0.005 * speed + 0.916`
+This is the speed stat that each player will have by default. The default is `5`. For more information, read the 
+[speed section](../data_structures/player.md#speed) of the Player article.
 
 #### DEFAULT_STA
 
-The [stamina stat](../data_structures/player.md#max-stamina) is used to determine how long a player can move before being
-inflicted with the `weary` [Status Effect](../data_structures/status.md).
+This is the stamina stat that each player will have by default. The default is `5`. For more information, read the 
+[stamina section](../data_structures/player.md#stamina) of the Player article.
 
 ### DEFAULT_LOCATION
 

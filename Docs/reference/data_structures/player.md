@@ -70,7 +70,7 @@ This internal attribute is the string which Alter Ego uses to refer to the Playe
 used instead of the name in [Narrations](), spectate channels, and more. The reason this is used is that unlike the
 Player's name, this can change during gameplay. It is automatically changed when the Player is inflicted with
 a [Status Effect](status.md) that has the
-`concealed` [behavior attribute](status.md#behavior-attributes), and it can be manually changed with
+[`concealed` behavior attribute](status.md#concealed), and it can be manually changed with
 the [setdisplayname](../commands/moderator_commands.md#setdisplayname) [command](../commands/bot_commands.md#setdisplayname).
 When Player data is loaded, this is the same as the Player's name. For that reason, moderators should be careful when
 loading Player data during gameplay, as any Players with different display names will have their display names reset.
@@ -289,7 +289,7 @@ data is loaded, this is the same as the Player's original voice string. For that
 when loading Player data during gameplay, as any Players with a voice string different from their original voice string
 will have their voice string reset. If the name of another Player, whether living or dead, is supplied, then the Player
 will speak using that Player's voice. This will even trick Players with the
-`knows [Player name]` [behavior attribute](status.md#behavior-attributes) into recognizing this Player's voice as the
+[`knows [Player name]` behavior attribute](status.md#knows-player-name) into recognizing this Player's voice as the
 mimicked Player.
 
 ### Stats
@@ -344,7 +344,7 @@ In effect, each strength stat value corresponds with a predetermined max carry w
 
 The strength stat also has special behavior in Die rolls. If a Die is rolled using this Player's strength stat,
 the [defender's](die.md#defender) [dexterity](player.md#dexterity) [roll modifier](die.md#stat-roll-modifier)
-will be multiplied by `-1` and added to the Die's modifier. In effect, this factors in the defender's ability to dodge
+will be multiplied by \\(-1\\) and added to the Die's modifier. In effect, this factors in the defender's ability to dodge
 the Player's attack.
 
 ### Default Intelligence

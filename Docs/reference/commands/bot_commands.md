@@ -2,8 +2,8 @@
 
 Bot commands are not usable by any Discord user. These commands are passed into the commandHandler module directly by
 Alter Ego. Their purpose is to allow greater flexibility in behavior
-for [Prefabs](../developer_reference/data_structures/prefab.md), [Events](../developer_reference/data_structures/event.md),
-and [Puzzles](../developer_reference/data_structures/puzzle.md). They allow many built-in restrictions placed on
+for [Prefabs](../reference/data_structures/prefab.md), [Events](../reference/data_structures/event.md),
+and [Puzzles](../reference/data_structures/puzzle.md). They allow many built-in restrictions placed on
 Players' actions to be bypassed.
 
 Bot commands can only be used when a game is in progress. They can only be entered on the spreadsheet. Unlike other

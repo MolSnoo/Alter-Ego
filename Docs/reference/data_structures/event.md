@@ -46,8 +46,16 @@ is ongoing. If it is `false`, then the Event is not ongoing.
 This is a string which determines how long after the Event is triggered it will be ongoing until it ends. This should
 consist of a whole number (no decimals) with a letter immediately following it, with no space between them. There is a
 fixed set of predefined units that correspond with each letter. They are as follows:
-| Letter | Unit | | ------ | ------- | | s | seconds | | m | minutes | | h | hours | | d | days | | w | weeks | | M |
-months | | y | years |
+
+| Letter | Unit    |
+| ------ | ------- |
+| s      | seconds |
+| m      | minutes |
+| h      | hours   |
+| d      | days    |
+| w      | weeks   |
+| M      | months  |
+| y      | years   |
 
 So, an Event that should last 30 seconds should have a duration of `30s`, one that should last 15 minutes should have a
 duration of `15m`, one that should last 2 hours should have a duration of `2h`, one that should last 1.5 days should
@@ -225,9 +233,7 @@ the [duration](status.md#duration)
 of the Status Effect that the Player's Status Effect is an instance of. The Player's instance of the Status Effect will
 continue to have its duration decremented by 1000 milliseconds every second; however, this will be canceled out every
 second when its duration is refreshed. Effectively, this makes it so that the Player's instance of the Status Effect
-cannot expire or develop into its [next stage](status.md#next-stage) because its duration can never reach
-
-0.
+cannot expire or develop into its [next stage](status.md#next-stage) because its duration can never reach 0.
 
 This is particularly useful if the Event is intended to inflict a Status Effect upon all Players who enter certain Rooms
 that should not expire while the Player continues to stay in one of the affected Rooms (such as "soaking wet" for a RAIN

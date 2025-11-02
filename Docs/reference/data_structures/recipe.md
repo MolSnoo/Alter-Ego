@@ -89,8 +89,15 @@ This is a string which determines how long the Recipe will take to process befor
 given for processing-type Recipes. This should consist of a whole number (no decimals) with a letter immediately
 following it, with no space between them. There is a fixed set of predefined units that correspond with each letter.
 They are as follows:
-| Letter | Unit | | ------ | ------- | | s | seconds | | m | minutes | | h | hours | | d | days | | w | weeks | | M |
-months | | y | years |
+| Letter | Unit    |
+| ------ | ------- |
+| s      | seconds |
+| m      | minutes |
+| h      | hours   |
+| d      | days    |
+| w      | weeks   |
+| M      | months  |
+| y      | years   |
 
 So, a Recipe that should take 30 seconds to process should have a duration of `30s`, one that should take 15 minutes
 should have a duration of `15m`, one that should take 2 hours should have a duration of `2h`, one that should take 1.5
