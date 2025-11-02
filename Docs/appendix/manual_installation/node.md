@@ -13,13 +13,13 @@ First, you need to download Alter Ego itself. If you already have Git, you can c
 `git clone https://github.com/MolSnoo/Alter-Ego.git` in Git. If not, you can simply download the ZIP file to your
 computer.
 
-![](https://i.imgur.com/TCXM8RK.png)
+![](../../images/TCXM8RK.png)
 
 Downloading Alter Ego as a ZIP file is not recommended however, as that makes it harder to keep your copy of Alter Ego
 up to date. If you do not already have Git, [install the official GitHub Desktop app](https://desktop.github.com/), and
 then click File > Clone Repository, then navigate to the URL tab and paste the Alter Ego repository link like so:
 
-![](https://i.imgur.com/u0xB9rt.png)
+![](../../images/u0xB9rt.png)
 
 If you've done it this way, then you can update Alter Ego by clicking the **Pull origin** button in the GitHub Desktop
 app.
@@ -47,11 +47,11 @@ e.g. `1.8.0`)
 Go to the Alter Ego GitHub page and download the latest release. Click the releases box and select the newest one (or
 whichever version you choose).
 
-![](https://i.imgur.com/WxTbH1P.png)
+![](../../images/WxTbH1P.png)
 
 There, you will see something like this.
 
-![](https://i.imgur.com/vZOZdkb.jpg)
+![](../../images/vZOZdkb.jpg)
 
 Download the source code archive `Source code (zip)`. Use your favorite archive utility to open the archive (e.g. 7zip,
 GNOME Archive Manager, Keka), and extract the contents into your folder of choice.
@@ -72,12 +72,12 @@ the [Discord](../../about/discord.md) and the Google Sheets API which allow it t
 
 First, open the Node.js command prompt. It should look like this:
 
-![](https://i.imgur.com/hILAAyG.png)
+![](../../images/hILAAyG.png)
 
 Now run the command `cd <the directory you installed Alter Ego in>`. It will take you to that directory. It should look
 something like this:
 
-![](https://i.imgur.com/uwT7YRM.png)
+![](../../images/uwT7YRM.png)
 
 Now that you're in the directory of Alter Ego, run this command: `npm install`. This will automatically install all of
 the required dependencies.
@@ -89,12 +89,12 @@ to https://discordapp.com/developers/applications/, and once you log in to your 
 application. You can call it whatever you like. This example will use an application called "Test Bot". Once you create
 the application, you'll be taken to a page that looks like this:
 
-![](https://i.imgur.com/DRThFdI.png)
+![](../../images/DRThFdI.png)
 
 You can ignore this for now. Navigate over to the Bot tab on the left-hand side, then click **Add Bot**. This will bring
 you to a page like this:
 
-![](https://i.imgur.com/f4fw8xo.png)
+![](../../images/f4fw8xo.png)
 
 On this page, you can change the bot's name, set its profile picture, and a few other things. _Be sure to uncheck
 the **Public Bot** setting! Alter Ego can only be on one server, so you definitely don't want people inviting it to
@@ -104,7 +104,7 @@ In order for Alter Ego to function properly, you _must_ check the three options 
 section, specifically the **Presence Intent**, **Server Members Intent**, and **Message Content Intent**. If you've done
 this right, it will look like this:
 
-![](https://i.imgur.com/mj2Qx5l.png)
+![](../../images/mj2Qx5l.png)
 
 ## Step 5: Create a Discord server
 
@@ -125,17 +125,17 @@ in Discord. Open the **Appearance** tab and scroll to the bottom. Under **Advanc
 
 Back on the Discord Developer Portal, click on the **OAuth2** tab on the left-hand side. Scroll down to this section:
 
-![](https://i.imgur.com/eG2rW4e.png)
+![](../../images/eG2rW4e.png)
 
 Check **bot**, then in the box that appears below, check **Administrator**. You should have something that looks like
 this:
 
-![](https://i.imgur.com/NbnehLI.png)
+![](../../images/NbnehLI.png)
 
 Finally, copy that URL in the **Scopes** box and open it in your browser. It will take you to a page that looks like
 this:
 
-![](https://i.imgur.com/k5gESaN.png)
+![](../../images/k5gESaN.png)
 
 Select the server you just made, make sure **Administrator** is checked, and click **Authorize**.
 
@@ -155,7 +155,7 @@ the [Google Workspace project creation guide](https://developers.google.com/work
 the instructions. For step 5 under the **Enable a Google Workspace API** section, search for **Google Sheets API**.
 Assuming you've done this correctly, you should arrive at a page that looks like this:
 
-![](https://i.imgur.com/XhRe8il.png)
+![](../../images/XhRe8il.png)
 
 ## Step 9: Create a service account
 
@@ -163,7 +163,7 @@ In order to allow Alter Ego to make changes to the spreadsheet, you'll need to c
 To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the *
 *Create credentials** button and select **Service account**. You should be brought to a page like this:
 
-![](https://i.imgur.com/xETtI3t.png)
+![](../../images/xETtI3t.png)
 
 For the name, enter the bot's name; in this case, it's Test Bot. For the description, enter whatever you like. Next,
 grant it the "Owner" role. You can skip step 3.
@@ -171,7 +171,7 @@ grant it the "Owner" role. You can skip step 3.
 Once your service account is made, you should see it under the **Service Accounts** list. Click on the edit button for
 the service account, and then click on the **Keys** tab, so that it brings you to a page like this:
 
-![](https://i.imgur.com/XRC8QSC.png)
+![](../../images/XRC8QSC.png)
 
 Click the **Add Key** button and select **Create new key**. Make sure the key type is JSON, then click **Create**. This
 will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the *
@@ -303,6 +303,6 @@ article on [settings](../../reference/settings/node_settings.md).
 Finally, you can run Alter Ego. In the Node.js terminal, run `node bot.js`. If you did everything right, this is what
 you'll see:
 
-![](https://i.imgur.com/KoETySR.png)
+![](../../images/KoETySR.png)
 
 You can now use Alter Ego to run a game of the Neo World Program. Good luck!
