@@ -145,8 +145,7 @@ in:
   or [Inventory Item](../reference/data_structures/inventory_item.md)'s description. The same rules that Prefabs have
   apply, however these can be updated as other Items/Inventory Items are inserted or removed.
 * A [Puzzle](../reference/data_structures/puzzle.md)'s "Already Solved" text. A single Puzzle can only have one item
-  list in its "
-  Already Solved" text.
+  list in its "Already Solved" text.
 * A [Player](../reference/data_structures/player.md)'s description. A single Player can only have two item lists in
   their description, and they must be named `equipment` and `hands`. Any other item lists will never be updated.
 
@@ -348,7 +347,6 @@ examples:
   `This is a gallon-sized jug of orange juice. It's pulp-free. It's about 1/6th full.`
   * Parsed description if this Item has 0 uses left:
     `This is a gallon-sized jug of orange juice. It's pulp-free. It's empty.`
-
 * `<desc><s>It's a bag of frozen chicken nuggets.</s> <s>Sadly, they don't come in fun shapes.</s> <if cond="this.uses > 0"><s>It looks like there are enough in here for <var v="this.uses" /> serving<if cond="this.uses > 1">s</if>, though.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`
   * Parsed description if this Item has (for example) 3 uses left:
   `It's a bag of frozen chicken nuggets. Sadly, they don't come in fun shapes. It looks like there are enough in here for 3 servings, though.`
@@ -356,7 +354,6 @@ examples:
   `It's a bag of frozen chicken nuggets. Sadly, they don't come in fun shapes. It looks like there are enough in here for 1 serving, though.`
   * Parsed description if this Item has 0 uses left:
   `It's a bag of frozen chicken nuggets. Sadly, they don't come in fun shapes. It's empty.`
-
 * `<desc><s>It's a box of fish sticks.</s> <if cond="this.uses > 0"><s>These look delicious.</s> <s>You should cook them in the oven before eating them, though.</s> <s>There are about <var v="this.uses * 8" /> fish sticks inside.</s></if><if cond="this.uses === 0"><s>It's empty.</s></if></desc>`
   * Parsed description if this Item has (for example) 6 uses left:
     `It's a box of fish sticks. These look delicious. You should cook them in the oven before eating them, though. There are about 48 fish sticks inside.`
@@ -473,19 +470,17 @@ tag would be +20%, ±0%, and -20%, respectively. On the other hand, if the provi
 percent modifiers would instead be -40%, ±0%, and +40%, respectively. As a result, the parser module's generated output
 would be:
 
-*
-
 * `<desc><s>This is a red clay pot.</s> <s>Judging by the abysmal craftsmanship, it looks like it was made by a total rookie.</s></desc>`
-   * **70%** of the time if the Player's dexterity stat is 3.
-   * **10%** of the time if the Player's dexterity stat is 9.
+  * **70%** of the time if the Player's dexterity stat is 3.
+  * **10%** of the time if the Player's dexterity stat is 9.
 * `<desc><s>This is a red clay pot.</s> <s>It looks decently made, but there are some noticeable mistakes.</s></desc>`
-    * **30%** of the time if the Player's dexterity stat is 3. This is because 70% + 35% exceeds 100%, so the extra 5%
-      doesn't matter.
-    * **35%** of the time if the Player's dexterity stat is 9.
+  * **30%** of the time if the Player's dexterity stat is 3. This is because 70% + 35% exceeds 100%, so the extra 5%
+    doesn't matter.
+  * **35%** of the time if the Player's dexterity stat is 9.
 * `<desc><s>This is a red clay pot.</s> <s>It's very well made, with perfectly smooth edges.</s></desc>`
-    * **0%** of the time if the Player's dexterity stat is 3. The actual calculated probability is -5%, but because
-      70% + 35% exceeds 100%, this makes no difference.
-    * **55%** of the time if the Player's dexterity stat is 9.
+  * **0%** of the time if the Player's dexterity stat is 3. The actual calculated probability is -5%, but because
+    70% + 35% exceeds 100%, this makes no difference.
+  * **55%** of the time if the Player's dexterity stat is 9.
 
 Note that if the `stat` attribute is set, but there is no Player provided, or the Player's stat value is 5, the chances
 of all of the `poss` tags contained within the `procedural` will not be changed.

@@ -40,8 +40,16 @@ Effect (e.g. "injured" and "badly injured") should be avoided.
 This is a Duration object which determines how long after the Status Effect is inflicted it will take to expire. This
 should consist of a whole number (no decimals) with a letter immediately following it, with no space between them. There
 is a fixed set of predefined units that correspond with each letter. They are as follows:
-| Letter | Unit | | ------ | ------- | | s | seconds | | m | minutes | | h | hours | | d | days | | w | weeks | | M |
-months | | y | years |
+
+| Letter | Unit    |
+|--------|---------|
+| s      | seconds |
+| m      | minutes |
+| h      | hours   |
+| d      | days    |
+| w      | weeks   |
+| M      | months  |
+| y      | years   |
 
 So, a Status Effect that should last 30 seconds should have a duration of `30s`, one that should last 15 minutes should
 have a duration of `15m`, one that should last 2 hours should have a duration of `2h`, one that should last 1.5 days
@@ -229,8 +237,8 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
 * Removes the Player from the channel of the [Room](room.md) they're in.
 * When the Player moves to a different Room, they will not be added to the Room's channel.
 * If the Player is added to a [Whisper](whisper.md) as a result of hiding, they will not be given permission to read the
-  Whisper channel, unless the only Status Effect they have with this attribute is the "
-  hidden" Status Effect.
+  Whisper channel, unless the only Status Effect they have with this attribute is the 
+  "hidden" Status Effect.
 
 #### `hear room`
 

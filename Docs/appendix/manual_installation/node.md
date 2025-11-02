@@ -118,8 +118,8 @@ to [this page](channel_and_role_creation.md).
 ### Enable Developer Mode
 
 You'll have to enable Developer Mode for your account for the next few steps. To do this, navigate to your User Settings
-in Discord. Open the **Appearance** tab and scroll to the bottom. Under **Advanced**, you'll see a switch labeled *
-*Developer Mode**. Turn it on if it's not already.
+in Discord. Open the **Appearance** tab and scroll to the bottom. Under **Advanced**, you'll see a switch labeled
+**Developer Mode**. Turn it on if it's not already.
 
 ## Step 6: Invite your bot to the server
 
@@ -160,8 +160,8 @@ Assuming you've done this correctly, you should arrive at a page that looks like
 ## Step 9: Create a service account
 
 In order to allow Alter Ego to make changes to the spreadsheet, you'll need to create a service account for it to use.
-To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the *
-*Create credentials** button and select **Service account**. You should be brought to a page like this:
+To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the 
+**Create credentials** button and select **Service account**. You should be brought to a page like this:
 
 ![](../../images/xETtI3t.png)
 
@@ -174,8 +174,8 @@ the service account, and then click on the **Keys** tab, so that it brings you t
 ![](../../images/XRC8QSC.png)
 
 Click the **Add Key** button and select **Create new key**. Make sure the key type is JSON, then click **Create**. This
-will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the *
-*Service Accounts** page.
+will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the 
+**Service Accounts** page.
 
 ## Step 10: Share the spreadsheet
 

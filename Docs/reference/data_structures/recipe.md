@@ -83,8 +83,8 @@ determines the type of each Recipe. If an Object tag is given, it will be a proc
 given, it will be a crafting-type Recipe.
 
 The tag should match exactly the [Recipe tag](object.md#recipe-tag) of any Objects that can be used to process this
-Recipe. For example, a Recipe with the Object tag "blender" can only be processed by an Object with the Recipe tag "
-blender" when it is activated.
+Recipe. For example, a Recipe with the Object tag "blender" can only be processed by an Object with the Recipe tag 
+"blender" when it is activated.
 
 ### Duration
 

@@ -142,24 +142,21 @@ It is possible to set a trigger time with only a time of day, and no date. In th
 same time every day. However, it is not possible to set a trigger time with only a date; a time must also be specified.
 In this case, the date must always precede the time. This is the full table of acceptable formats grouped by date
 format, as well as an example and a note indicating when the given example will cause the Event to trigger:
-| | | | | Example | Triggers
-on | | ------------- | ------------- | ----------------- | ----------------- | ------------------------- | ----------------------------------------- | |
-`LT`          | `LTS`         | `HH:mm`           | `hh:mm a`                | `8:30 PM`                            |
-Every day at 8:30 PM | | `ddd LT`      | `ddd LTS`     | `ddd HH:mm`       | `ddd hh:mm a`          |
-`Wed 8:30:00 PM`                | Every Wednesday at 8:30 PM | | `dddd LT`     | `dddd LTS`    | `dddd HH:mm`      |
-`dddd hh:mm a`      | `Wednesday 20:30`                | Every Wednesday at 8:30 PM | | `Do LT`       | `Do LTS`      |
-`Do HH:mm`        | `Do hh:mm a`          | `16th 08:30 PM`                  | The 16th day of every month at 8:30
-PM | | `Do MMM LT`   | `Do MMM LTS`  | `Do MMM HH:mm`    | `Do MMM hh:mm a`    | `16th Apr 8:30 PM`            | The
-16th of April at 8:30 PM | | `Do MMMM LT`  | `Do MMMM LTS` | `Do MMMM HH:mm`   | `Do MMMM hh:mm a`    |
-`16th April 8:30:00 PM`      | The 16th of April at 8:30 PM | | `D MMM LT`    | `D MMM LTS`   | `D MMM HH:mm`     |
-`D MMM hh:mm a`      | `16 Apr 20:30`                  | The 16th of April at 8:30 PM | | `D MMMM LT`   |
-`D MMMM LTS`  | `D MMMM HH:mm`    | `D MMMM hh:mm a`    | `16 April 08:30 PM`            | The 16th of April at 8:30
-PM | | `MMM Do LT`   | `MMM Do LTS`  | `MMM Do HH:mm`    | `MMM Do hh:mm a`    | `Apr 16th 8:30 PM`            | The
-16th of April at 8:30 PM | | `MMMM Do LT`  | `MMMM Do LTS` | `MMMM Do HH:mm`   | `MMMM Do hh:mm a`    |
-`April 16th 8:30:00 PM`      | The 16th of April at 8:30 PM | | `MMM D LT`    | `MMM D LTS`   | `MMM D HH:mm`     |
-`MMM D hh:mm a`      | `Apr 16 20:30`                  | The 16th of April at 8:30 PM | | `MMMM D LT`   |
-`MMMM D LTS`  | `MMMM D HH:mm`    | `MMMM D hh:mm a`    | `April 16 08:30 PM`            | The 16th of April at 8:30
-PM |
+|				        |				        |					          |					          | Example					          | Triggers on								                |
+| ------------- | ------------- | ----------------- | ----------------- | ------------------------- | ----------------------------------------- |
+| `LT`          | `LTS`         | `HH:mm`           | `hh:mm a`			    | `8:30 PM`					        | Every day at 8:30 PM						          |
+| `ddd LT`      | `ddd LTS`     | `ddd HH:mm`       | `ddd hh:mm a`		  | `Wed 8:30:00 PM`			    | Every Wednesday at 8:30 PM				        |
+| `dddd LT`     | `dddd LTS`    | `dddd HH:mm`      | `dddd hh:mm a`	  | `Wednesday 20:30`			    | Every Wednesday at 8:30 PM				        |
+| `Do LT`       | `Do LTS`      | `Do HH:mm`        | `Do hh:mm a`		  | `16th 08:30 PM`			      | The 16th day of every month at 8:30 PM	  |
+| `Do MMM LT`   | `Do MMM LTS`  | `Do MMM HH:mm`    | `Do MMM hh:mm a`	| `16th Apr 8:30 PM`		    | The 16th of April at 8:30 PM 				      |
+| `Do MMMM LT`  | `Do MMMM LTS` | `Do MMMM HH:mm`   | `Do MMMM hh:mm a`	| `16th April 8:30:00 PM`	  | The 16th of April at 8:30 PM				      |
+| `D MMM LT`    | `D MMM LTS`   | `D MMM HH:mm`     | `D MMM hh:mm a`	  | `16 Apr 20:30`			      | The 16th of April at 8:30 PM				      |
+| `D MMMM LT`   | `D MMMM LTS`  | `D MMMM HH:mm`    | `D MMMM hh:mm a`	| `16 April 08:30 PM`		    | The 16th of April at 8:30 PM				      |
+| `MMM Do LT`   | `MMM Do LTS`  | `MMM Do HH:mm`    | `MMM Do hh:mm a`	| `Apr 16th 8:30 PM`		    | The 16th of April at 8:30 PM				      |
+| `MMMM Do LT`  | `MMMM Do LTS` | `MMMM Do HH:mm`   | `MMMM Do hh:mm a`	| `April 16th 8:30:00 PM`	  | The 16th of April at 8:30 PM				      |
+| `MMM D LT`    | `MMM D LTS`   | `MMM D HH:mm`     | `MMM D hh:mm a`	  | `Apr 16 20:30`			      | The 16th of April at 8:30 PM				      |
+| `MMMM D LT`   | `MMMM D LTS`  | `MMMM D HH:mm`    | `MMMM D hh:mm a`	| `April 16 08:30 PM`		    | The 16th of April at 8:30 PM				      |
+
 
 ### Trigger Times
 

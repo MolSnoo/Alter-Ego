@@ -140,8 +140,8 @@ There are several parts to this format. They are as follows:
   subject. For example, "They wash **themself**."
 * The plural variable determines whether this set of pronouns pluralizes verbs. If this is `true`, then verbs will take
   the form they use with plural pronouns. For example, "They **are** here. They **have** money. They **smell** strange."
-  If this is `false`, then verbs will take the form they use with singular pronouns. For example, "He **is** here. She *
-  *has** money. It **smells** strange."
+  If this is `false`, then verbs will take the form they use with singular pronouns. For example, "He **is** here. She 
+  **has** money. It **smells** strange."
 
 As long as this format is followed, any set of pronouns can be used. For example, a Player who uses _it_ pronouns would
 have the pronoun string `it/it/its/its/itself/false`.
@@ -271,8 +271,8 @@ with "voice". Here are some examples with the Player's voice string in bold:
 
 * You hear **a bitter voice** in the room say "...What are you looking at?".
 * You hear **a brash voice** from a nearby room shout "HEY! IS ANYONE IN THERE!?".
-* You overhear an individual wearing a PLAGUE DOCTOR MASK, with **a crisp voice** you recognize to be Kyra's, whisper "
-  Yes, everything is going according to plan.".
+* You overhear an individual wearing a PLAGUE DOCTOR MASK, with **a crisp voice** you recognize to be Kyra's, whisper 
+  "Yes, everything is going according to plan.".
 * **A deep modulated voice** coming from Amy's WALKIE TALKIE says "That is correct. I am hidden somewhere in this
   facility.".
 

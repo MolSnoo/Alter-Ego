@@ -180,8 +180,8 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
 * Once the Puzzle has been solved, it can be unsolved when a Player interacts with it again. This allows it to be
   "toggled" between two states at will.
 * If a Player unsolves the Puzzle, they will be sent the Puzzle's already solved description.
-* When a Player interacts with the Puzzle, whether they solve or unsolve it, Alter Ego will narrate "
-  `[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel. However, if the Player attempts to
+* When a Player interacts with the Puzzle, whether they solve or unsolve it, Alter Ego will narrate 
+  "`[Player displayName]` uses the `[PUZZLE NAME]`." in the Puzzle's Room channel. However, if the Player attempts to
   unsolve it and the [requirements](puzzle.md#requirements-strings) have not all been met, Alter Ego will narrate
   "`[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." instead.
 
@@ -371,10 +371,10 @@ of them are met, the Puzzle will be made inaccessible. If it is `false`, then a 
 Player uses the Puzzle, based on various factors. If the Puzzle has any requirements, Alter Ego will check each one to
 see if it is met. If all requirements are met, the Puzzle will be made accessible, and the Player will attempt to solve
 it. If all requirements are not met, the Player will receive the
-Puzzle's [requirements not met description](puzzle.md#requirements-not-met-description), and Alter Ego will narrate "
-`[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel. If the Puzzle
-has no requirements not met description, Alter Ego will act as if the Puzzle doesn't exist if the Player tries to use
-it.
+Puzzle's [requirements not met description](puzzle.md#requirements-not-met-description), and Alter Ego will narrate 
+"`[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel. If the 
+Puzzle has no requirements not met description, Alter Ego will act as if the Puzzle doesn't exist if the Player tries 
+to use it.
 
 ### Requirements Strings
 

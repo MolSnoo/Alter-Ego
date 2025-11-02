@@ -1123,10 +1123,10 @@ Deals with status effects on players.
 
 Deals with status effects on players.
 
--**add**/**inflict**: Inflicts the specified players with the given status effect. Those players will receive the "
-Message When Inflicted" message for the specified status effect. If the status effect has a timer, the players will be
-cured and then inflicted with the status effect in the "Develops Into" column when the timer reaches 0. If the status
-effect is fatal, then they will simply die when the timer reaches 0 instead.
+-**add**/**inflict**: Inflicts the specified players with the given status effect. Those players will receive the 
+"Message When Inflicted" message for the specified status effect. If the status effect has a timer, the players will 
+be cured and then inflicted with the status effect in the "Develops Into" column when the timer reaches 0. If the 
+status effect is fatal, then they will simply die when the timer reaches 0 instead.
 
 -**remove**/**cure**: Cures the specified players of the given status effect. Those players will receive the "Message
 When Cured" message for the specified status effect. If the status effect develops into another effect when cured, the
