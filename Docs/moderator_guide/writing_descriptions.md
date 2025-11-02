@@ -94,7 +94,7 @@ allows you to insert multiple item lists into a description, giving each a name.
 
 Note that
 only [Prefabs](../developer_reference/data_structures/prefab.md), [Items](../developer_reference/data_structures/item.md),
-[Inventory Items](../developer_reference/data_structures/inventory_items.md)
+[Inventory Items](../developer_reference/data_structures/inventory_item.md)
 and [Players](../developer_reference/data_structures/player.md) support multiple `il` tags in a single description.
 
 Lastly, `il` tags can only be used in a certain number of places, and each one has its own limitations. They can be used
@@ -168,9 +168,9 @@ The function which parses descriptions (and thus, `if` tags) has access to the P
 
 * Based on the Player's name: `<if cond="player.name === 'Astrid'">Your name is Astrid.</if>`
 * Based on the Player's talent: `<if cond="player.talent === 'Ultimate Mortician'">You are the Ultimate Mortician.</if>`
-* Based on the Player's [[intelligence stat|Data-Structure:-Player#Intelligence]]: `<if cond="player.intelligence > 7">You notice something your classmates didn't notice.</if>`
-* Based on whether a Player has a given [[Status Effect|Data-Structure:-Status]]: `<if cond="player.statusString.includes('hungry')">This food looks delicious.</if>`
-* Based on whether a Player has a given [[behavior attribute|Data-Structure:-Status#behavior-attributes]]: `<if cond="player.hasAttribute('acute hearing')">It produces an extremely faint noise that you should be able to make out if you listen closely.</if>`
+* Based on the Player's [intelligence stat](../developer_reference/data_structures/player.md#intelligence): `<if cond="player.intelligence > 7">You notice something your classmates didn't notice.</if>`
+* Based on whether a Player has a given [Status Effect](../developer_reference/data_structures/status.md): `<if cond="player.statusString.includes('hungry')">This food looks delicious.</if>`
+* Based on whether a Player has a given [behavior attribute](../developer_reference/data_structures/status#behavior-attributes): `<if cond="player.hasAttribute('acute hearing')">It produces an extremely faint noise that you should be able to make out if you listen closely.</if>`
 
 ### Container conditionals
 

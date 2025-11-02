@@ -94,7 +94,7 @@ the Event ends.
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.triggerTimesString`
 
-This is a string of comma-separated times that this Event will automatically trigger at. Every minute, [[Alter Ego]] iterates through the list of all Events and checks the trigger times for each one. If the current month, weekday, date, hour and minute match one of the Event's trigger times, it will automatically be triggered, after which it will be ongoing. A single Event can have multiple trigger times. However, if it is already ongoing, it will not be triggered again. If this cell is left blank, then the Event will not trigger automatically at any time of day.
+This is a string of comma-separated times that this Event will automatically trigger at. Every minute, Alter Ego iterates through the list of all Events and checks the trigger times for each one. If the current month, weekday, date, hour and minute match one of the Event's trigger times, it will automatically be triggered, after which it will be ongoing. A single Event can have multiple trigger times. However, if it is already ongoing, it will not be triggered again. If this cell is left blank, then the Event will not trigger automatically at any time of day.
 
 Note that trigger times are based on the clock of the system running Alter Ego. If it is running on a server with a different timezone than the moderator's local time, the server's timezone must be used.
 
@@ -253,7 +253,7 @@ This is an internal attribute which contains references to each of the Status Ef
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.triggeredNarration`
 
-This is the [Narration]() that will be parsed and then sent to the channels of all occupied Rooms that the Event is
+This is the [Narration](narration.md) that will be parsed and then sent to the channels of all occupied Rooms that the Event is
 affected by when it is triggered. If no Players are in one of the Rooms affected by the Event, the Narration will not be
 sent to that Room's channel. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md)
 for more information. However, note that because this is a Narration and not a description, it cannot make use of the

@@ -6,7 +6,7 @@ designed specifically to use it via the [discord.js API](https://discord.js.org/
 ## Features
 
 Discord members congregate in _servers_. Servers may be publicly accessible or open only to members who are sent an
-invite link to that serer. Further, text and voice chat can take place in different _channels_ in a server. Within a
+invite link to that server. Further, text and voice chat can take place in different _channels_ in a server. Within a
 server, different members may be granted specific permissions. These permissions can be given to specific _roles_ or
 assigned to members on a channel by channel basis. Permissions exist to give members the ability do several different
 things, including:
@@ -34,11 +34,11 @@ This section lists how Discord is used to facilitate the Neo World Program.
 A game is contained in one and only one Discord server. It is run by Alter Ego.
 
 Every [Player](../developer_reference/data_structures/player.md) is represented by
-a [Discord server member](https://discord.js.org/#/docs/main/stable/class/GuildMember). Each Player must have their own
+a [Discord server member](https://discord.js.org/docs/packages/discord.js/main/GuildMember:Class). Each Player must have their own
 Discord account. A single account cannot be used for multiple Players.
 
 Every [Room](../developer_reference/data_structures/room.md) is represented by
-a [Discord text channel](https://discord.js.org/#/docs/main/stable/class/TextChannel). When a Player moves to a given
+a [Discord text channel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class). When a Player moves to a given
 Room, they will be granted permission to read that channel, and their permission to read the channel of the Room they
 were previously in will be revoked. This creates the effect of only being in one Room at a time. In a Room, a Player can
 see all of the other Players that are in the Room on the user list on the right side of the screen. Messages sent by a
@@ -65,8 +65,7 @@ sent to the channel of the Room that Player is in.
 
 ## Limitations
 
-Discord servers have a number of limits. Many of them are listed on [this page](https://discordia.me/en/server-limits),
-but the following are relevant to Alter Ego and the Neo World Program:
+Discord servers have a number of limits. The following limitations are relevant to Alter Ego and the Neo World Program:
 
 * A server can have _at most_ **500 channels** - text, voice, and categories combined. Once 500 channels are reached, no
   more channels can be created.

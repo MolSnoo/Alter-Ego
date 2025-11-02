@@ -135,7 +135,7 @@ This attribute is a string that performs two functions:
 
 1. It determines whether or not the Object can contain Items. If it is blank, players cannot take Items from or drop
    Items into the Object. If it is not blank, then they can.
-1. When a Player drops a non-discreet Item into the Object, Alter Ego will [narrate]() them doing so using this
+1. When a Player drops a non-discreet Item into the Object, Alter Ego will [narrate](narration.md) them doing so using this
    preposition. For example, if the player Nero drops an Item named SWORD into an Object named CABINET whose preposition
    is "in", Alter Ego will send "Nero puts a SWORD in the CABINET." to CABINET's Room channel.
 

@@ -133,7 +133,7 @@ period in the development cycle.
 
 The first step you should take in the preparation phase is to make your server presentable before inviting the players.
 If you have any moderator-controlled Player characters that you'd like to keep hidden, you should give their account
-the [Hidden role](installation.md#hidden) and making sure there are no publicly accessible channels where they appear on
+the [Hidden role](../appendix/manual_installation/channel_and_role_creation.md#hidden) and making sure there are no publicly accessible channels where they appear on
 the user list. Make sure to delete any messages in publicly accessible channels that spoil the game. If any of your Room
 channels have message history enabled for Players (such as the trial grounds, in the case of a killing game role play),
 make sure to delete any messages that have been sent in that channel. Create any supplementary channels that the players
@@ -184,7 +184,7 @@ over to it and get Alter Ego up and running with ease.
 You can write a custom spawn message for all of the Players to receive when the game begins for the first time. This can
 be an effective way of immediately immersing the Players into the game world. To accomplish this, all you need to do is
 make an Event which is ongoing at the start of the game. For the sake of example, this Event will be called PROLOGUE.
-Once it exists, you can modify the description of the first [[Exit|Data-Structure:-Exit]] in each Room that the Players
+Once it exists, you can modify the description of the first [Exit](../developer_reference/data_structures/exit.md) in each Room that the Players
 spawn into to contain an if conditional tag that checks whether the PROLOGUE Event is ongoing or not. This message can
 be customized to suit each individual Player. You can then end the PROLOGUE Event immediately after everyone spawns in
 so that they don't receive the spawn message again when they inspect or enter the Room through the first Exit. An

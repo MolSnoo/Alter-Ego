@@ -1,11 +1,11 @@
 # Status
 
-A **Status**, also called a **Status Effect**, is a data structure in the [[Neo World Program]]. It represents a
+A **Status**, also called a **Status Effect**, is a data structure in the Neo World Program. It represents a
 condition that affects a [Player](player.md).
 
-Status Effects that are loaded from the [[spreadsheet]] are static; once loaded, they do not change in any way. Thus,
+Status Effects that are loaded from the [spreadsheet](index.md) are static; once loaded, they do not change in any way. Thus,
 the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/saver.js) will never make changes to the
-Status Effects sheet. As a result, the Status Effects sheet can be freely edited without [[edit mode]] being enabled.
+Status Effects sheet. As a result, the Status Effects sheet can be freely edited without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
 Only _instantiated_ Status Effects — Status Effects that are inflicted on a Player — are dynamic.
 
 ## Table of Contents
@@ -18,7 +18,7 @@ Status Effects have several attributes. However, their behavior is relatively li
 _internal_, that means it only exists within
 the [Status class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Status.js). Internal attributes will be given
 in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+the spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Name
 
@@ -57,7 +57,7 @@ instantiated Status Effect that has a duration. If the instantiated Status Effec
 the instantiated Status Effect is active, 1000 milliseconds are subtracted from this Duration every second until it is
 less than or equal to zero, at which point the Status Effect expires. However, the amount subtracted every second can
 vary. If at least one Player in the game has the "heated" Status Effect, the amount subtracted is multiplied by the
-`heatedSlowdownRate` [[setting|Tutorial:-Settings-(Node)#heatedSlowdownRate]], effectively making the Status Effect take
+`heatedSlowdownRate` [setting](../settings/docker_settings.md#heated_slowdown_rate), effectively making the Status Effect take
 longer to expire.
 
 ### Fatal
@@ -68,7 +68,7 @@ longer to expire.
 
 This is a simple Boolean value indicating whether an instance of this Status Effect will kill the Player when it expires
 or not. If this is `true`, then a Player inflicted with this Status Effect will die when the Status Effect expires. If
-this is `false`, the Player will simply be cured of the Status Effect. However, [[Alter Ego]] will not check if the
+this is `false`, the Player will simply be cured of the Status Effect. However, Alter Ego will not check if the
 Status Effect is fatal if it has a [next stage](status.md#next-stage).
 
 ### Visible
@@ -80,7 +80,7 @@ Status Effect is fatal if it has a [next stage](status.md#next-stage).
 This is a simple Boolean value indicating whether an instance of this Status Effect will appear if a Player inflicted
 with it uses the [status command](../commands/player_commands.md#status). If this is `true`, then it will appear in the
 Player's status. If this is `false`, then it will not. However, it will still be visible to
-a [[moderator|Tutorial:-Moderating]] who [views the Player's status](../commands/moderator_commands.md#status).
+a [moderator](../../moderator_guide/moderating.md) who [views the Player's status](../commands/moderator_commands.md#status).
 
 ### Overriders
 
@@ -261,7 +261,7 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
 * `sender`
     * All of the Player's dialog (except Whispers) will be narrated in the Room of the Player with the `receiver`
       attribute, if there is one that isn't the `sender` Player, regardless of the respective Players' locations on
-      the [[Map]].
+      the [Map]().
     * The Player will attempt to solve any [voice-type Puzzles](puzzle.md#type) in the Room that the
       `receiver` Player is in.
 * `receiver`
@@ -363,8 +363,8 @@ programmed into Alter Ego. Here, each behavior attribute will be listed, and the
           attribute was cured some other way, "MASK" will be used in place of `[Inventory Item name]`.
     * The Player cannot be Whispered to. They will be removed from any Whispers that they are a part of.
 * `all or nothing`
-    * All Die rolls when the Player is the attacker will be the [[minimum|Tutorial:-Settings-(Node)#dicemin]]
-      or [[maximum|Tutorial:-Settings-(Node)#dicemax]] possible for the Die before modifiers are applied. For example,
+    * All Die rolls when the Player is the attacker will be the [minimum](../settings/docker_settings.md#dice_min)
+      or [maximum](../settings/docker_settings.md#dice_max) possible for the Die before modifiers are applied. For example,
       if the minimum is 1 and the maximum is 20, all of the Player's rolls will be 1 or 20 before modifiers.
 * `coin flipper`
     * All Die rolls when the Player is the attacker will have a 50% chance of having a modifier of +1 applied if the
@@ -389,7 +389,7 @@ explaining entirely how it works and what it does to a Player inflicted with it.
   `this.inflictedDescription`
 
 When a Player is inflicted with this Status Effect, they will receive a parsed version of this string. See the article
-on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information.
+on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
 
 ### Cured Description
 

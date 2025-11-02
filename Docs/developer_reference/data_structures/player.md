@@ -28,10 +28,10 @@ spreadsheet. External attributes will be given in the "Spreadsheet label" bullet
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.id`
 
-For full Players, this is the [unique ID](https://discord.js.org/#/docs/main/stable/typedef/Snowflake) assigned to their
+For full Players, this is the [unique ID](https://discord.js.org/docs/packages/discord.js/main/Snowflake:TypeAlias) assigned to their
 Discord account. [Developer Mode](../../moderator_guide/installation.md#enable-developer-mode) must be enabled in order
 to obtain this ID by right clicking on a Discord user and selecting **Copy ID**. When Player data is loaded, Alter Ego
-will fetch the [guild member](https://discord.js.org/#/docs/main/stable/class/GuildMember) whose account has this ID.
+will fetch the [guild member](https://discord.js.org/docs/packages/discord.js/main/GuildMember:Class) whose account has this ID.
 That Discord user will then be able to control this Player. Because Alter Ego requires guild member data, this account
 must belong to a Discord user in the server. If the user associated with a particular Player leaves the server, Alter
 Ego will be unable to load that Player's data; they must either be removed from the spreadsheet, converted to an NPC, or
@@ -44,7 +44,7 @@ and [spectate channels](player.md#spectate-channel).
 
 ### Member
 
-* Class attribute: [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) `this.member`
+* Class attribute: [GuildMember](https://discord.js.org/docs/packages/discord.js/main/GuildMember:Class) `this.member`
 
 This is an internal attribute which contains a reference to the guild member whose Discord ID matches the Player ID. For
 NPCs, this is `null`.
@@ -84,7 +84,7 @@ This is an internal attribute which contains an image URL that will be used as a
 the [say](../commands/player_commands.md#say) [command](../commands/moderator_commands.md#say), and when their dialog
 appears in a spectate channel. It is also used when NPCs use
 the [whisper command](../commands/moderator_commands.md#whisper). For full Players, this is most often `null` -
-their [display avatar](https://discord.js.org/#/docs/main/stable/class/GuildMember?scrollTo=displayAvatarURL) is used
+their [display avatar](https://discord.js.org/docs/packages/discord.js/main/GuildMember:Class#displayAvatarURL) is used
 instead. Only NPCs have this set to a non-`null` value by default: the image URL in their ID. Much like the Player's
 display name, this can change during gameplay. It is automatically set
 to [this image](https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png) when the
@@ -298,7 +298,7 @@ mimicked Player.
 
 This is an external attribute. It only exists to group the Player's stats together under one label. A Player's stats are
 used in a variety of situations. Common applications of all of them include their ability to
-be [modified by Status Effects](status.md#Stat-modifiers) and their ability to be used as a modifier
+be [modified by Status Effects](status.md#stat-modifiers) and their ability to be used as a modifier
 in [Die rolls](die.md). Here, their individual properties and applications will be detailed below.
 
 ### Default Strength
@@ -318,12 +318,12 @@ from 1 - 10.
 This internal attribute is the Player's current strength stat. By default, this equals their default strength, however
 it can be changed by Status Effects with stat modifiers.
 
-This stat is used to calculate the Player's [maximum carry weight](player.md#Max-carry-weight). This value is
+This stat is used to calculate the Player's [maximum carry weight](player.md#max-carry-weight). This value is
 recalculated every time the Player's strength stat changes. The formula to calculate the Player's max carry weight in
 kilograms is quadratic, not linear. It is roughly based on the range of real human weightlifting capacities. The full
-formula, where `x` is the Player's strength stat, is:
+formula, where \\(x\\) is the Player's strength stat, is:
 
-`Max carry weight (kg) = 1.783x^2 - 2x + 22`
+\\[ W_{max} = 1.783x^2 - 2x + 22 \\]
 
 The result is rounded down to the nearest whole number.
 
@@ -343,7 +343,7 @@ In effect, each strength stat value corresponds with a predetermined max carry w
 | 10             | 180                   | 396                   |
 
 The strength stat also has special behavior in Die rolls. If a Die is rolled using this Player's strength stat,
-the [defender's](Die.Md#Defender) [dexterity](player.md#Dexterity) [roll modifier](Die.Md#Stat-roll-modifier)
+the [defender's](die.md#defender) [dexterity](player.md#dexterity) [roll modifier](die.md#stat-roll-modifier)
 will be multiplied by `-1` and added to the Die's modifier. In effect, this factors in the defender's ability to dodge
 the Player's attack.
 
@@ -364,7 +364,7 @@ number from 1 - 10.
 This internal attribute is the Player's current intelligence stat. By default, this equals their default intelligence,
 however it can be changed by Status Effects with stat modifiers.
 
-This stat has no programmed use. However, it can be used in [[if conditionals|Tutorial:-Writing-descriptions#if]] when
+This stat has no programmed use. However, it can be used in [if conditionals](../../moderator_guide/writing_descriptions.md#if) when
 writing descriptions to affect what the Player sees when inspecting various things. For example, a Player with a high
 intelligence stat may receive more clues to assist in solving [Puzzles](puzzle.md) and murders than a Player with a low
 intelligence stat. Whereas a Player with a low intelligence stat might see this:
@@ -401,7 +401,7 @@ This internal attribute is the Player's current dexterity stat. By default, this
 it can be changed by Status Effects with stat modifiers.
 
 This stat is used to determine the Player's probability of success when attempting to
-steal [Inventory Items](InventoryIte.Mdm) from another Player. When this occurs, a Die is rolled using this Player's
+steal [Inventory Items](inventory_item.md) from another Player. When this occurs, a Die is rolled using this Player's
 dexterity stat, with the victim as the defender. If the Player has a high dexterity stat, and thus a positive dexterity
 roll modifier, then they will be more likely to succeed when attempting to steal. If the Player has a low dexterity
 stat, and thus a negative dexterity roll modifier, then they will be more likely to fail when attempting to steal.
@@ -428,65 +428,63 @@ number from 1 - 10.
 This internal attribute is the Player's current speed stat. By default, this equals their default speed, however it can
 be changed by Status Effects with stat modifiers.
 
-This stat is used to calculate the amount of time it takes for the Player to travel from one [Exit](Exi.Mdt) to another
-in a [Room](Roo.Mdm).
+This stat is used to calculate the amount of time it takes for the Player to travel from one [Exit](exit.md) to another
+in a [Room](room.md).
 
 The flat distance in pixels between the Player's current position and the desired Exit's position is calculated using
 the [distance formula](https://en.wikipedia.org/wiki/Euclidean_distance#Two_dimensions) with the two positions'
-respective [X](exit.md#X) and [Z](exit.md#Z) coordinates. The flat distance is then converted to meters by dividing this
-value by the [[pixelsPerMeter setting|Tutorial:-Settings-(Node)#pixelspermeter]]. The rise of the Exit's position
-relative to the Player's is calculated by subtracting the Player's [Y coordinate](player.md#Y)
-from [the Exit's](exit.md#Y) and dividing the resulting value by the pixels per meter setting. The slope between the two
+respective [X](exit.md#x) and [Z](exit.md#z) coordinates. The flat distance is then converted to meters by dividing this
+value by the [pixelsPerMeter setting](../settings/docker_settings.md#pixels_per_m). The rise of the Exit's position
+relative to the Player's is calculated by subtracting the Player's [Y coordinate](player.md#y)
+from [the Exit's](exit.md#y) and dividing the resulting value by the pixels per meter setting. The slope between the two
 positions is then calculated by dividing the rise in meters by the flat distance in meters.
 
 Movement speed is roughly based on the range of real human movement speeds. For example, a Player with a speed stat of
 10 would have a movement speed of 8.34 meters per second. This is slightly less than Usain Bolt's top sprinting speed of
-10.44 meters per second. The base formula to calculate a Player's movement speed is quadratic, not linear. It is as
+10.44 meters per second. The base formula to calculate a Player's movement speed in meters per millisecond (m/ms) is quadratic, not linear. It is as
 follows:
 
-`Rate (m/ms) = (0.0183(rx)^2 + 0.005rx + 0.916)w`
+\\[ R = (0.0183(rx)^2 + 0.005rx + 0.916)w \\]
 
 In this formula are several variables:
 
-* `x` is the Player's speed stat.
-* `r` is `1` if the Player is walking and `2` if the Player is running.
-* `w` is a fraction which represents slowdown based on the [combined weight](player.md#Carry-weight) of all of the
-  Player's Inventory Items. The formula to calculate this, where `c` is the Player's carry weight, is
-  `w = 15 / c`. However, the calculated value is clamped between 1/4 and 1.
+* \\(x\\) is the Player's speed stat.
+* \\(r\\) is \\(1\\) if the Player is walking and \\(2\\) if the Player is running.
+* \\(w\\) is a fraction which represents slowdown based on the [combined weight](player.md#carry-weight) of all of the Player's Inventory Items. The formula to calculate this, where \\(c\\) is the Player's carry weight, is \\(w = \frac{15}{c}\\). However, the calculated value is clamped between \\( \frac{1}{4} \\) and \\(1\\).
 
-The final rate, in meters per millisecond, is then calculated with the following formula, where `b` is the base rate and
-`s` is the slope:
+The final rate, \\(R'\\), in meters per millisecond (m/ms), is then calculated with the following formula, where \\(R\\) is the base rate and
+\\(s\\) is the slope:
 
-`Rate (m/ms) = b - sb`
+\\[ R' = R - sR \\]
 
-The time it takes to move, in seconds, is then calculated with the following formula, where `d` is the flat distance in
-meters and `R` is the final rate in meters per second:
+The time it takes to move, \\(t\\), in seconds, is then calculated with the following formula, where \\(d\\) is the flat distance in
+meters and \\(R'\\) is the final rate in meters per millisecond:
 
-`Time (s) = d / R * 1000`
+\\[ t = \frac{d}{R'} * 1000 \\]
 
 However, there is an alternative calculation method. If the flat distance between the Player's position and the Exit's
-position is 0, then the time it takes to move between them is calculated based on the assumption that the Player is in a
+position is \\(0\\), then the time it takes to move between them is calculated based on the assumption that the Player is in a
 stairwell consisting of two horizontally-flipped right triangles with legs of equal length vertically stacked on top of
 one another, like this diagram:
 
 ![](https://i.imgur.com/K0eQsw3.png)
 
 Here, the Player is marked by the bottom red line and the Exit is marked by the top red line. They have the same X and Z
-coordinates; only their Y coordinates differ. The distance in meters between the Player and the Exit is calculated by
+coordinates; only their Y coordinates differ. The distance, \\(d\\), in meters between the Player and the Exit is calculated by
 using the [Pythagorean theorem](https://en.wikipedia.org/wiki/Pythagorean_theorem) to find the length of the hypotenuse
-for each triangle. In this formula, `L` represents the length of each leg, calculated by dividing the rise in meters by
-2:
+for each triangle. In this formula, \\(l\\) represents the length of each leg, calculated by dividing the rise in meters by
+\\(2\\):
 
-`Distance (m) = 2 * sqrt(2L^2)`
+\\[ d = 2 * \sqrt{2l^2} \\]
 
-Then, if the rise is positive, meaning the Player is moving upstairs, the Player's base rate is multiplied by 2/3. If
-the rise is negative, meaning the Player is moving downstairs, the Player's base rate is multiplied by 4/3. In effect,
+Then, if the rise is positive, meaning the Player is moving upstairs, the Player's base rate is multiplied by \\( \frac{2}{3} \\). If
+the rise is negative, meaning the Player is moving downstairs, the Player's base rate is multiplied by \\( \frac{4}{3} \\). In effect,
 their rate is decreased when moving upstairs and increased when moving downstairs.
 
-Finally, the time it takes to move in this scenario, in seconds, is calculated with the following formula, where `d` is
-the recently determined distance in meters and `R` is the final rate in meters per second:
+Finally, the time it takes to move in this scenario, \\(t\\), in seconds, is calculated with the following formula, where \\(d\\) is
+the recently determined distance in meters and \\(R\\) is the base rate (without accounting for slope) in meters per millisecond:
 
-`Time (s) = d / R * 2 * 1000`
+\\[ t = \frac{d}{R} * 2 * 1000 \\]
 
 ### Default Stamina
 
@@ -517,36 +515,36 @@ This internal attribute is the Player's current stamina stat. By default, this e
 changes as the Player moves and rests. Whenever the Player's max stamina changes, so too does their stamina; the ratio
 of their current stamina to their max stamina is retained.
 
-As the Player moves, their stamina stat decreases. Every 100 milliseconds, the amount of stamina the Player loses is
-calculated using the following formula:
+As the Player moves, their stamina stat decreases. Every 100 milliseconds, the amount of stamina the Player loses, 
+\\(L\\), is calculated using the following formula:
 
-`Lost stamina = dm * (u + su)`
+\\[ L = dm * (u + su) \\]
 
 In this formula are several variables:
 
-* `d` is the flat distance in meters the Player has moved in the past 100 milliseconds.
-* `m` is `1` if the Player is walking and `3` if the Player is running.
-* `u` is the [[staminaUseRate setting|Tutorial:-Settings-(Node)#staminauserate]].
-* `s` is the slope of the Player's movement, calculated by dividing the number of meters they've risen in meters by the
+* \\(d\\) is the flat distance in meters the Player has moved in the past 100 milliseconds.
+* \\(m\\) is \\(1\\) if the Player is walking and \\(3\\) if the Player is running.
+* \\(u\\) is the [staminaUseRate setting](../settings/docker_settings.md#stamina_use_rate).
+* \\(s\\) is the slope of the Player's movement, calculated by dividing the number of meters they've risen in meters by the
   flat distance in meters they've moved in the past 100 milliseconds.
 
 However, there is an alternative calculation method. If the flat distance between the Player's position and the Exit's
-position is 0, then the time it takes to move between them is calculated based on the assumption that the Player is in a
-stairwell. If the rise is positive, meaning the Player is moving upstairs, the amount of stamina the Player loses is
-calculated like so:
+position is \\(0\\), then the time it takes to move between them is calculated based on the assumption that the Player 
+is in astairwell. If the rise is positive, meaning the Player is moving upstairs, the amount of stamina the Player 
+loses is calculated like so:
 
-`Lost stamina = 4dmu`
+\\[ L = 4dmu \\]
 
 If the rise is negative, meaning the Player is moving downstairs, the amount of stamina the Player loses is calculated
 like so:
 
-`Lost stamina = -dmu / 4`
+\\[ L = -\frac{dmu}{4} \\]
 
 When the Player's stamina dips below half of their max stamina, they will be sent a warning that they're starting to get
-tired. If it reaches 0, they will stop moving and be inflicted with the `weary` Status Effect.
+tired. If it reaches \\(0\\), they will stop moving and be inflicted with the `weary` Status Effect.
 
-When the Player is not moving, their stamina is gradually restored. Every 30 seconds, they recover 1/20th of their max
-stamina.
+When the Player is not moving, their stamina is gradually restored. Every 30 seconds, they recover \\( \frac{1}{20} \\) 
+of their max stamina.
 
 ### Alive
 
@@ -563,7 +561,7 @@ interacted with, all of their data is inaccessible.
 ### Location
 
 * Spreadsheet label: **Location**
-* Class attribute: [Room](Roo.Mdm) `this.location`
+* Class attribute: [Room](room.md) `this.location`
 
 This is the Room that the Player is currently in. This must match the Room's name exactly on the spreadsheet.
 
@@ -625,7 +623,7 @@ Player is not currently hidden, this should be left blank.
 ### Status
 
 * Class
-  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](Statu.Mds)>
+  attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](status.md)>
   `this.status`
 
 This internal attribute contains a list of all instantiated Status Effects that the Player currently has. Every time a
@@ -638,7 +636,7 @@ Status Effect is inflicted or cured, the Player's stats are recalculated.
   `this.statusString`
 
 This string is a comma-separated list of the names of all Status Effects that the Player currently has, including those
-that aren't [visible](status.md#Visible). If a Status Effect has a [duration](status.md#Duration), it can be listed here
+that aren't [visible](status.md#visible). If a Status Effect has a [duration](status.md#duration), it can be listed here
 by putting the duration in parentheses. The duration must follow a specific format:
 
 `(D) H:mm:ss`
@@ -662,11 +660,11 @@ gameplay.
   `this.description`
 
 This is the description of the Player. When another Player inspects this Player, they will receive a parsed version of
-this string. See the article on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information.
+this string. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
 
 Player descriptions have a few peculiarities that set them apart from other descriptions, mostly due to the complexity
 of Players. In this section, Player descriptions will be explained in full detail.
-The [[default Player description|Tutorial:-Settings-(Node)#defaultdescription]] provided in the default playerdefaults
+The [default Player description](../settings/docker_settings.md#default_description) provided in the default playerdefaults
 file is:
 
 `<desc><s>You examine <var v="container.displayName" />.</s> <if cond="container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /> <if cond="container.pronouns.plural">are</if><if cond="!container.pronouns.plural">is</if> [HEIGHT], but <var v="container.pronouns.dpos" /> face is concealed.</s></if><if cond="!container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /><if cond="container.pronouns.plural">'re</if><if cond="!container.pronouns.plural">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if> <s><var v="container.pronouns.Sbj" /> wear<if cond="!container.pronouns.plural">s</if> <il name="equipment"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s> <s>You see <var v="container.pronouns.obj" /> carrying <il name="hands"></il>.</s></desc>`
@@ -677,7 +675,7 @@ structures, the class attributes of the Player being described are not being acc
 Instead, they are accessed by the `container` keyword. This is done so that the Player can view their own description
 when inspecting a MIRROR Object, for example. Because
 the [parser module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/parser.js) replaces the `this` keyword
-in [[evaluated|Tutorial:-Writing-descriptions#if]] [[expressions|Tutorial:-Writing-descriptions#var]] with `container`,
+in [evaluated](../../moderator_guide/writing_descriptions.md#if) [expressions](../../moderator_guide/writing_descriptions.md#var) with `container`,
 the name of the variable referring to the data structure being described, and because the container variable when a
 Player inspects a mirror is the MIRROR Object itself, the `this` keyword cannot be used in Player descriptions while
 allowing for this functionality. Instead, the `container` keyword must be used, and a MIRROR Object cannot simply use
@@ -690,9 +688,8 @@ Within the `desc` tags of the Player's description, there are five sections:
 
 * `<s>You examine <var v="container.displayName" />.</s>`
     * This refers to the Player by their current display name. This should never be changed.
-*
 
-`<if cond="container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /> <if cond="container.pronouns.plural">are</if><if cond="!container.pronouns.plural">is</if> [HEIGHT], but <var v="container.pronouns.dpos" /> face is concealed.</s></if>`
+* `<if cond="container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /> <if cond="container.pronouns.plural">are</if><if cond="!container.pronouns.plural">is</if> [HEIGHT], but <var v="container.pronouns.dpos" /> face is concealed.</s></if>`
 
 * This section describes the Player with very little detail in order to avoid revealing their identity when they have
   the `concealed` behavior attribute.
@@ -703,9 +700,7 @@ Within the `desc` tags of the Player's description, there are five sections:
   inflicted with the `concealed` behavior attribute. It can still be used, but the new pronouns will not be reflected in
   the Player's description.
 
-*
-
-`<if cond="!container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /><if cond="container.pronouns.plural">'re</if><if cond="!container.pronouns.plural">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if>`
+* `<if cond="!container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /><if cond="container.pronouns.plural">'re</if><if cond="!container.pronouns.plural">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if>`
 
 * This section describes the Player in more detail. It's used when the Player doesn't have the `concealed` behavior
   attribute.
@@ -722,22 +717,21 @@ Within the `desc` tags of the Player's description, there are five sections:
   this:
   `<if cond="!container.hasAttribute('concealed')"><s>It's a fairly young individual of average height with very pale skin.</s> <s>He's quite scrawny and frail-looking, with a very small chest.</s> <s>She has black eyes and short, red hair with bangs falling a little into her face and shoulder-length fringes on both sides, with the rest of its hair <if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') !== undefined">done up in two buns held together with a pair of black ribbons</if><if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') === undefined">coming down to about the shoulders</if>.</s> <s>He looks easy enough to get along with, if a little nervous.</s></if>`
 
-*
-
-`<s><var v="container.pronouns.Sbj" /> wear<if cond="!container.pronouns.plural">s</if> <il name="equipment"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s>`
+* `<s><var v="container.pronouns.Sbj" /> wear<if cond="!container.pronouns.plural">s</if> <il name="equipment"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s>`
 
 * This sentence lists all Inventory Items that the Player currently has [equipped](equipment_slot.md), except for those
   equipped to their "RIGHT HAND" and "LEFT HAND" Equipment Slots and those whose Equipment Slot
-  is [covered](prefab.md#Covered-equipment-slots) by another equipped Inventory Item.
+  is [covered](prefab.md#covered-equipment-slots) by another equipped Inventory Item.
 * If the Player's equipped Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
-  manually updated with the [single containing phrases](prefab.md#Single-containing-phrase) of the respective Inventory
+  manually updated with the [single containing phrases](prefab.md#single-containing-phrase) of the respective Inventory
   Items in `item` tags.
 * If nothing is listed in the `il` tag, this sentence will not appear in the parsed description.
 * Because this sentence appears regardless of whether or not the Player has the `concealed` behavior attribute,
   `var` tags should be used to reference the Player's pronouns. They should not be replaced with static pronouns.
 
 * `<s>You see <var v="container.pronouns.obj" /> carrying <il name="hands"></il>.</s>`
-    * This sentence lists all [non-discreet](prefab.md#Discreet) Inventory Items that the Player currently has equipped
+
+    * This sentence lists all [non-discreet](prefab.md#discreet) Inventory Items that the Player currently has equipped
       to their "RIGHT HAND" or "LEFT HAND" Equipment Slots.
     * If the Player's held Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
       manually updated with the single containing phrases of the respective Inventory Items in `item` tags.
@@ -763,12 +757,12 @@ on [Equipment Slots](equipment_slot.md) for more information.
 
 ### Spectate Channel
 
-* Class attribute: [TextChannel](https://discord.js.org/#/docs/main/stable/class/TextChannel) `this.spectateChannel`
+* Class attribute: [TextChannel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class) `this.spectateChannel`
 
 This is an internal attribute. When Player data is loaded, Alter Ego will attempt to find the channel in
-the [[Spectator category|Tutorial:-Installation-and-setup#category-spectators]] whose name matches the name of the
+the [Spectate category](../settings/docker_settings.md#spectate_category) whose name matches the name of the
 Player. If it is not found, it will create one with that Player's name. It will not do this if there are already 50
-spectate channels in the Spectator category, however. It also will not attempt to find or create spectate channels for
+spectate channels in the Spectate category, however. It also will not attempt to find or create spectate channels for
 NPCs. In both scenarios, this is `null`.
 
 A spectate channel replicates the experience of being this Player. Everything the Player sees, including descriptions,
@@ -788,7 +782,7 @@ channel.
   `this.maxCarryWeight`
 
 This internal attribute is the maximum weight the Player can currently carry in kilograms. How it is calculated is
-described in more detail in the [strength stat section](player.md#Strength). If the Player attempts to take an Item that
+described in more detail in the [strength stat section](player.md#strength). If the Player attempts to take an Item that
 is heavier than this number, they will be told it is too heavy to lift, and if the Item is non-discreet, their attempt
 to take it will be Narrated in the Room channel. Likewise, if they attempt to take an Item that would make their current
 carry weight exceed this value, they will be told that they're carrying too much weight; however, this will not be
@@ -801,9 +795,9 @@ themself in any Items that would exceed this value, although they will not be no
 * Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.carryWeight`
 
-This internal attribute is the combined [weight](inventory_item.md#Weight) of all of the Player's Inventory Items. This
+This internal attribute is the combined [weight](inventory_item.md#weight) of all of the Player's Inventory Items. This
 is updated every time the Player's inventory changes. This is used to determine how much slower the Player will
-be [when moving](player.md#Speed).
+be [when moving](player.md#speed).
 
 ### Row
 
@@ -821,7 +815,7 @@ This internal attribute indicates whether the Player is currently in the process
 then they are currently moving. If this is `false`, then they are resting.
 
 It should be noted that the Player can be forcibly stopped from moving in many ways. If Player data is reloaded,
-if [[edit mode]] is enabled, if the Player is inflicted with a Status Effect with the `disable all`, `disable move`, or
+if [edit mode](../../moderator_guide/edit_mode.md) is enabled, if the Player is inflicted with a Status Effect with the `disable all`, `disable move`, or
 `disable run` behavior attributes, if the Player is forcibly moved using moderator or bot commands, or if the Player
 dies, they will stop moving, and all class attributes associated with movement will be reset.
 
@@ -832,9 +826,9 @@ dies, they will stop moving, and all class attributes associated with movement w
 
 This internal attribute uses the [setInterval method](https://developer.mozilla.org/en-US/docs/Web/API/setInterval) to
 handle the Player's movement. Every 100 milliseconds, 100 milliseconds are subtracted from the
-Player's [remaining time](player.md#Remaining-time), and the Player's position and stamina are updated. However, if at
+Player's [remaining time](player.md#remaining-time), and the Player's position and stamina are updated. However, if at
 least one Player in the game has the "heated" Status Effect, the amount of milliseconds subtracted from the Player's
-remaining time is first multiplied by the [[heatedSlowdownRate setting|Tutorial:-Settings-(Node)#heatedslowdownrate]],
+remaining time is first multiplied by the [heatedSlowdownRate setting](../settings/docker_settings.md#heated_slowdown_rate),
 effectively making the Player move more slowly. If the Player stops moving for any reason,
 the [clearInterval method](https://developer.mozilla.org/en-US/docs/Web/API/clearInterval) is used on this so that the
 Player's movement will no longer continue. When Player data is loaded, this is `null`.
@@ -858,7 +852,7 @@ the [move command](../commands/player_commands.md#move) or [run command](../comm
 they supply as arguments are inserted into this list. Each one is parsed, and if the desired Exit is found, the Player
 begins moving to that Exit. When they reach the next Room, the next entry in the queue is parsed and the cycle continues
 until the Player reaches the final destination. However, if any entry in the queue is an invalid destination or they
-attempt to enter a [locked Exit](exit.md#Unlocked), the Player is notified of their mistake, they stop moving, and the
+attempt to enter a [locked Exit](exit.md#unlocked), the Player is notified of their mistake, they stop moving, and the
 queue is emptied.
 
 This class attribute is unused if the Player is moved with the moderator or bot command, because those commands move the
@@ -889,9 +883,9 @@ if the Player is moving. If they aren't, and if their current stamina is less th
   `this.online`
 
 This internal attribute determines whether or not the Player is included in the count of online Players in Alter
-Ego's [[status message|Tutorial:-Settings-(Node)#bot-activities]]. If this is `true`, then the Player is counted. If
-this is `false`, then they are not. A Player is set as online whenever they use a command or speak in-game. NPCs are
-never considered online.
+Ego's [status message](../settings/docker_settings.md#in_progress_type-in_progress_string). If this is `true`, 
+then the Player is counted. If this is `false`, then they are not. A Player is set as online whenever they use a 
+command or speak in-game. NPCs are never considered online.
 
 ### Online Interval
 
@@ -901,6 +895,5 @@ never considered online.
 This internal attribute uses the [setTimeout method](https://developer.mozilla.org/en-US/docs/Web/API/setTimeout) to
 count down until the Player is no longer considered online. Every time the Player is set as online, the online interval
 is reset using the [clearTimeout method](https://developer.mozilla.org/en-US/docs/Web/API/clearTimeout) and then
-restarted from the beginning. If the timer reaches 0, then the Player is set as offline. How long it takes for this to
-happen is determined by the [[offlineStatusInterval setting|Tutorial:-Settings-(Node)#offlinestatusinterval]]. When
+restarted from the beginning. If the timer reaches 0, then the Player is set as offline. This takes 15 minutes. When
 Player data is loaded, this is `null`.

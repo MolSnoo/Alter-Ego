@@ -1,12 +1,12 @@
 # Recipe
 
-A **Recipe** is a data structure in the [[Neo World Program]]. Its primary purpose is to allow [Players](player.md) to
+A **Recipe** is a data structure in the Neo World Program. Its primary purpose is to allow [Players](player.md) to
 transform [Items](item.md)
 or [Inventory Items](inventory_item.md) into other Items or Inventory Items using game-like crafting mechanics.
 
-Recipes are static; once loaded from the [[spreadsheet]], they do not change in any way. Thus,
+Recipes are static; once loaded from the [spreadsheet](index.md), they do not change in any way. Thus,
 the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/saver.js) will never make changes to the
-Recipes sheet. As a result, the Recipes sheet can be freely edited without [[edit mode]] being enabled.
+Recipes sheet. As a result, the Recipes sheet can be freely edited without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
 
 This article will impose two terms. **Crafting** is the act of transforming two Inventory Items into up to two Inventory
 Items using the [craft](../commands/player_commands.md#craft) [command](../commands/moderator_commands.md#craft). **Processing** is the act of transforming one or
@@ -23,7 +23,7 @@ Recipes have relatively few attributes. Their behavior is entirely static, incap
 simply serve to provide instructions for Alter Ego to follow. Note that if an attribute is _internal_, that means it
 only exists within the [Recipe class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Recipe.js). Internal
 attributes will be given in the "Class attribute" bullet point, preceded by their data type. If an attribute is
-_external_, it only exists on the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet
+_external_, it only exists on the spreadsheet. External attributes will be given in the "Spreadsheet label" bullet
 point.
 
 ### Ingredients
@@ -128,7 +128,7 @@ the same does not apply to products. A processing-type Recipe can produce as man
 
 This is a description that indicates when a Recipe has begun being processed. When a Player activates an Object that can
 process this Recipe and all of the ingredients required for it are contained within the Object, they will receive a
-parsed version of this string. See the article on [[writing descriptions|Tutorial:-Writing-descriptions]] for more
+parsed version of this string. See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more
 information. Note that unlike most other data types, the `this` keyword does not refer to the Recipe, but rather the
 Object processing the Recipe. For example, in the description
 `<desc><s>You begin filling up the GLASS in the <var v="this.name" />.</s></desc>`, the variable `<var v="this.name" />`
@@ -197,7 +197,7 @@ replaced. If there are 0 products, then both ingredients will be destroyed, and 
 
 Once the ingredients are finished being crafted, Alter Ego will send the Player the Recipe's completed description.
 Additionally, if any of the product Prefabs are [non-discreet](prefab.md#discreet), Alter Ego
-will [narrate](Narration.md) the Player crafting them.
+will [narrate](narration.md) the Player crafting them.
 
 ## Uncrafting
 

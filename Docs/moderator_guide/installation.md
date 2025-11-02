@@ -132,7 +132,7 @@ but once it's made, you'll have to set a number of things up.
 
 The easiest way to create a server is using [this template](https://discord.new/bAA3RcSQPNXj), which will add all of the
 requisite roles and channels for you. If you want to set those up manually, refer
-to [[this page|Tutorial:-Manual-channel-and-role-creation]].
+to [this page](../appendix/manual_installation/channel_and_role_creation.md).
 
 ### Enable Developer Mode
 
@@ -164,7 +164,7 @@ things.
 ## Step 6: Create a spreadsheet
 
 Next, you will need to create a spreadsheet for Alter Ego to use. For more information, see the article
-on [[spreadsheets|Spreadsheet]].
+on [spreadsheets](../developer_reference/data_structures/index.md).
 
 ## Step 7: Enable the Google Sheets API
 

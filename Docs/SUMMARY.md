@@ -22,10 +22,10 @@
 # Developer Reference
 
 - [Commands](developer_reference/commands/index.md)
-    - [Bot Commands](developer_reference/commands/bot_commands.md)
+    - [Player Commands](developer_reference/commands/player_commands.md)
     - [Eligible Commands](developer_reference/commands/eligible_commands.md)
     - [Moderator Commands](developer_reference/commands/moderator_commands.md)
-    - [Player Commands](developer_reference/commands/player_commands.md)
+    - [Bot Commands](developer_reference/commands/bot_commands.md)
 - [Data Structures](developer_reference/data_structures/index.md)
     - [Die](developer_reference/data_structures/die.md)
     - [Equipment Slot](developer_reference/data_structures/equipment_slot.md)

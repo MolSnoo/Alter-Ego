@@ -1,6 +1,6 @@
 # Room
 
-A **Room** is a data structure in the [[Neo World Program]]. It represents a room that [Players](player.md) can move to.
+A **Room** is a data structure in the Neo World Program. It represents a room that [Players](player.md) can move to.
 
 ## Table of Contents
 
@@ -12,7 +12,7 @@ Despite being the basis of the Neo World Program game, Rooms have relatively few
 is _internal_, that means it only exists within
 the [Room class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Room.js). Internal attributes will be given in
 the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+the spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Name
 
@@ -22,18 +22,18 @@ the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label
 
 This is the name of the Room. Unlike the name attribute in most other data structures, this must be in all lowercase
 letters, with no spaces (though hyphens are allowed) or special characters. The reason for this is that the Room name
-must be exactly the same as the corresponding [[Discord]] channel.
+must be exactly the same as the corresponding [Discord](../../about/discord.md) channel.
 
 ### Channel
 
-* Class attribute: [TextChannel](https://discord.js.org/#/docs/main/stable/class/TextChannel) `this.channel`
+* Class attribute: [TextChannel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class) `this.channel`
 
-This is an internal attribute. When the Room data is loaded, [[Alter Ego]] will attempt to find the channel whose name
+This is an internal attribute. When the Room data is loaded, Alter Ego will attempt to find the channel whose name
 matches the name of the Room. By making the channel a persistent internal attribute, Alter Ego can perform many
 operations more easily, such as adding a Player to the Room's channel. It should be noted that even if a Room's channel
-is not part of a [[room category|Tutorial:-Settings-(Node)#roomcategories]], Players will still be added to the channel
-when moving to its associated Room and  [Narrations](Narration.md) will still be sent to the channel, but [[commands]]
-and [[dialog]] sent to that channel will not be passed through
+is not part of a [room category](../settings/docker_settings.md#room_categories), Players will still be added to the channel
+when moving to its associated Room and  [Narrations](narration.md) will still be sent to the channel, but [commands](../commands/player_commands.md)
+and [dialog]() sent to that channel will not be passed through
 the [commandHandler](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/commandHandler.js)
 and [dialogHandler](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/dialogHandler.js) modules, respectively.
 
@@ -51,7 +51,7 @@ be listed, and their behavior will be detailed.
 
 * `soundproof`
     * All dialog spoken inside the Room will not be narrated in adjacent Rooms, even if it is shouted or if Players in
-      adjacent Rooms have the `acute hearing` [attribute](status.md#Attributes).
+      adjacent Rooms have the `acute hearing` [attribute](status.md#behavior-attributes).
     * Players in the Room will not hear dialog from adjacent Rooms, regardless of the same circumstances.
 * `audio surveilled`
     * All non-Whispered dialog sent to the Room will be narrated in all Rooms with the `audio monitoring` tag with an
@@ -67,7 +67,7 @@ be listed, and their behavior will be detailed.
       tag.
     * Example: `[break-room] Someone in a nearby room with an obnoxious voice shouts "SOMEONE HELP!".`
 * `video surveilled`
-    * All [Narrations](Narration.md) sent to the Room will be narrated in all Rooms with the
+    * All [Narrations](narration.md) sent to the Room will be narrated in all Rooms with the
       `video monitoring` tag with an indication of which Room the Narration originated in.
     * While there is no limit to how many Rooms can have this tag, applying it to too many could negatively affect Alter
       Ego's performance.
@@ -113,21 +113,21 @@ on [Exits](exit.md).
 This is the default description of a Room. The default description will always be the description for the first Exit in
 the Room. When a Player enters or inspects a Room, they will receive a parsed version of this string. The Player will
 not be sent the Room's description by itself. Instead, they will be sent
-a [Discord MessageEmbed](https://discord.js.org/#/docs/main/stable/class/MessageEmbed) containing:
+a [Discord Embed](https://discord.js.org/docs/packages/discord.js/main/Embed:Class) containing:
 
 * The name of the Room.
 * The Room's default description, or the description of the Exit they entered from.
 * The Room's occupants, excluding the Player themself.
-* The description of the Room's [[default drop Object|Tutorial:-Settings-(Node)#defaultDropObject]]. If the Room doesn't
+* The description of the Room's [default drop Object](../settings/docker_settings.md#default_drop_object). If the Room doesn't
   have one, "You don't see any items." will be sent instead.
 * The Room's icon URL. If the Room does not have one, then
-  the [[default Room icon URL|Tutorial:-Settings-(Node)#defaultRoomIconURL]] will be used instead. If no default Room
+  the [default Room icon URL](../settings/docker_settings.md#default_room_icon_url) will be used instead. If no default Room
   icon URL is set, then Alter Ego will use the server icon instead. If the server icon is not set, then no image will be
   sent in the MessageEmbed.
 
 ![An example of a Room description MessageEmbed.](https://i.imgur.com/6fY2HKd.png)
 
-See the article on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information.
+See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
 
 ### Row
 
@@ -152,5 +152,5 @@ This is an internal attribute. It is an array of all Players currently in the Ro
   `this.occupantsString`
 
 This is an internal attribute. It is a string listing all of the Room's
-occupants' [display names](player.md#displayName) in alphabetical order, however any Players with the
-`hidden` [attribute](status.md#Attributes) are omitted.
+occupants' [display names](player.md#display-name) in alphabetical order, however any Players with the
+`hidden` [attribute](status.md#behavior-attributes) are omitted.

@@ -67,7 +67,7 @@ https://nodejs.org/en/
 
 ## Step 3: Install dependencies
 
-Alter Ego requires a few dependencies in order to run properly. These are things like the [[Discord]] and the Google
+Alter Ego requires a few dependencies in order to run properly. These are things like the [Discord](../../about/discord.md) and the Google
 Sheets API which allow it to facilitate a game.
 
 First, open the Node.js command prompt. It should look like this:
@@ -113,7 +113,7 @@ but once it's made, you'll have to set a number of things up.
 
 The easiest way to create a server is using [this template](https://discord.new/bAA3RcSQPNXj), which will add all of the
 requisite roles and channels for you. If you want to set those up manually, refer
-to [[this page|Tutorial:-Manual-channel-and-role-creation]].
+to [this page](channel_and_role_creation.md).
 
 ### Enable Developer Mode
 
@@ -145,7 +145,7 @@ things.
 ## Step 7: Create a spreadsheet
 
 Next, you will need to create a spreadsheet for Alter Ego to use. For more information, see the article
-on [[spreadsheets|Spreadsheet]].
+on [spreadsheets](../../developer_reference/data_structures/index.md).
 
 ## Step 8: Enable the Google Sheets API
 
@@ -296,7 +296,7 @@ everything's indented properly, and if you did everything right, you'll have a f
 ## Step 13: Fill out settings
 
 The last thing you must do before you can run Alter Ego is configure the settings file. For more information, see the
-article on [[settings|Tutorial:-Settings-(Node)]].
+article on [settings](../../developer_reference/settings/node_settings.md).
 
 ## Step 14: Run Alter Ego
 

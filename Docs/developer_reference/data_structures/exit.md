@@ -97,21 +97,21 @@ Exit only, their Exit tables must look like this:
 
 This is the description of the Room coming from this Exit. That is, when a Player enters a Room from this Exit, they
 will receive a parsed version of this string. The Player will not be sent the Exit's description by itself. Instead,
-they will be sent a [Discord MessageEmbed](https://discord.js.org/#/docs/main/stable/class/MessageEmbed) containing:
+they will be sent a [Discord Embed](https://discord.js.org/docs/packages/discord.js/main/Embed:Class) containing:
 
 * The name of the Room.
 * The description of the Exit they entered from.
 * The Room's occupants, excluding the Player themself.
-* The description of the Room's [[default drop Object|Tutorial:-Settings-(Node)#defaultDropObject]]. If the Room doesn't
+* The description of the Room's [default drop Object](../settings/docker_settings.md#default_drop_object). If the Room doesn't
   have one, "You don't see any items." will be sent instead.
 * The Room's icon URL. If the Room does not have one, then
-  the [[default Room icon URL|Tutorial:-Settings-(Node)#defaultRoomIconURL]] will be used instead. If no default Room
+  the [default Room icon URL](../settings/docker_settings.md#default_room_icon_url) will be used instead. If no default Room
   icon URL is set, then Alter Ego will use the server icon instead. If the server icon is not set, then no image will be
   sent in the MessageEmbed.
 
-![An example of an Exit description MessageEmbed.](https://i.imgur.com/6fY2HKd.png)
+![An example of an Exit description Embed.](https://i.imgur.com/6fY2HKd.png)
 
-See the article on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information.
+See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
 
 ### Row
 

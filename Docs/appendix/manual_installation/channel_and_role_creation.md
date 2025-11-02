@@ -1,8 +1,8 @@
 # Manual Channel and Role Creation
 
-This article details the process of manually setting up a [[Discord]] server for the [[Neo World Program]]. If you use
+This article details the process of manually setting up a [Discord](../../about/discord.md) server for the Neo World Program. If you use
 the server template provided in
-the [[official tutorial|Tutorial:-Installation-and-setup#step-4-create-a-discord-server]], you can skip this process
+the [official tutorial](../../moderator_guide/installation.md#step-4-create-a-discord-server), you can skip this process
 entirely.
 
 ## Create roles
@@ -23,8 +23,8 @@ permissions you can enable for it, however. Doing this will enable them for ever
 * Add Reactions _(optional)_
 * Use External Emojis _(optional)_
     * If this permission is not enabled, then any external emojis that are sent in a Room channel, whether by a Player
-      or a [[moderator|Tutorial:-Moderating]], will not be sent
-      in [[spectate channels|Data-Structure:-Player#spectate-channel]]. Instead, they will be replaced with the name of
+      or a [moderator](../../moderator_guide/moderating.md), will not be sent
+      in [spectate channels](../../developer_reference/data_structures/player.md#spectate-channel). Instead, they will be replaced with the name of
       the emoji.
 * Use External Stickers _(optional)_
     * Stickers will not show up in spectate channels under any circumstances.
@@ -69,8 +69,7 @@ Disable everything else.
 
 ### Tester
 
-This is the role for testers. This role is only necessary if you use debug mode. For more information, see the article
-on [[debug mode|Debug mode]]. Enable these settings:
+This is the role for testers. This role is only necessary if you use debug mode. Enable these settings:
 
 * Allow anyone to **@mention** this role
 * Send Messages
@@ -100,8 +99,8 @@ Disable everything else.
 
 ### Headmaster
 
-This role allows a player to move to any room they wish, adjacent or not. This should generally only be given to the
-host(s) of your killing game, be it Monokuma, Monomi, or anyone else. Enable these settings:
+This role allows a player to move to any room they wish, adjacent or not. This should generally not be given out freely. 
+Enable these settings:
 
 * Display role members separately from online members
 * Allow anyone to **@mention** this role
@@ -112,8 +111,8 @@ Disable everything else.
 
 ### Moderator
 
-This is the last role you need to make. This should be given to your [[moderator(s)|Tutorial:-Moderating]], including
-yourself. Enable these settings:
+This is the last role you need to make. This should be given to your moderator(s), including yourself. 
+Enable these settings:
 
 * Display role members separately from online members
 * Allow anyone to **@mention** this role
@@ -155,7 +154,7 @@ anything you want, but the ones listed here are recommended for clarity's sake.
 ### Category: Monopad
 
 This category is where you should put all of the important channels that will be viewable to everyone. You can put all
-kinds of channels here such as rules for the killing game, a list of players and their talents,  [[maps|Map]], etc.
+kinds of channels here such as rules for the killing game, a list of players and their talents, [maps](../../moderator_guide/mapmaking.md), etc.
 Before anything else, though, you'll have to set the permission overrides for this category. Be sure to assign the
 following roles the listed permission overrides for this category:
 
@@ -246,7 +245,7 @@ This channel is the only place where Alter Ego will accept commands from a moder
 ### Category: Rooms
 
 This doesn't have to be a single category, but can in fact be several. A room category is where you'll create all of the
-channels corresponding with the game's [[Rooms|Data-Structure:-Room]]. The reason you can create multiple categories for
+channels corresponding with the game's [Rooms](../../developer_reference/data_structures/room.md). The reason you can create multiple categories for
 this is that Discord only allows a single category to have 50 channels. Since this is too restrictive for the game,
 Alter Ego allows you to divide the room channels amongst several categories, in whatever way you like. The overall role
 permissions you set up earlier are configured specifically for the game, so you don't need to set any permission
@@ -254,7 +253,7 @@ overrides for room categories or the channels that belong to them.
 
 ### Category: Whispers
 
-This category is where Alter Ego will create [[Whisper|Data-Structure:-Whisper]] channels. There is only one permission
+This category is where Alter Ego will create [Whisper](../../developer_reference/data_structures/whisper.md) channels. There is only one permission
 override you should make, but it is optional:
 
 * Player

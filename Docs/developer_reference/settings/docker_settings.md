@@ -1,6 +1,6 @@
 # Docker Settings
 
-[[Alter Ego]] has various **settings** that can be configured in the file `.env`. All values should be enclosed with
+Alter Ego has various **settings** that can be configured in the file `.env`. All values should be enclosed with
 single quotes. Remember to uncomment (i.e. remove the `#` before the line) for them to go into effect. This page details
 each setting and what it does.
 
@@ -19,13 +19,13 @@ run it if it was.
 ### DEBUG_MODE
 
 This is a simple [Boolean value](https://en.wikipedia.org/wiki/Boolean_data_type). If this is `true`, Alter Ego will
-start in [[debug mode|Debug mode]]. If this is `false`, it will start normally.
+start in debug mode. If this is `false`, it will start normally.
 
 ## Other game data
 
 ### PIXELS_PER_M
 
-This is how many pixels it takes to represent 1 meter on your [[Map]]. When calculating the amount of time it takes a
+This is how many pixels it takes to represent 1 meter on your [Map](). When calculating the amount of time it takes a
 player to move from one room to another, Alter Ego needs to convert the distance between the two rooms from pixels to
 meters. In order to set this properly, find a part of your map with a standard size (for example, a basketball court
 must be 28 x 15 meters according to the International Basketball Federation). Divide the number of pixels making up its
@@ -56,21 +56,21 @@ changed to any number higher than diceMin.
 
 ### DEFAULT_DROP_OBJECT
 
-This is the name of the [[Object|Data-Structure:-Object]] in each room that players will drop Items on if they don't
+This is the name of the [Object](../data_structures/object.md) in each room that players will drop Items on if they don't
 specify one themselves. Every Room must have an Object with this name capable of holding Items.
 
 ### DEFAULT_ROOM_ICON_URL
 
-This is the URL of an image that will be inserted into the [[Room MessageEmbed|Data-Structure:-Room#room-description]]
+This is the URL of an image that will be inserted into the [Room MessageEmbed](../data_structures/room.md#room-description)
 when a player enters or inspects a Room if the Room does not have a unique icon URL. This must end in `.jpg`, `.png`, or
 `.gif`. If this is left blank and the Room does not have a unique icon URL, then Alter Ego will use the server icon
 instead. If the server icon is not set, then no image will be sent in the MessageEmbed.
 
 ### AUTODELETE_WHISPER_CHANNELS
 
-This is a Boolean value that determines whether or not [[Whisper|Data-Structure:-Whisper]] channels will be
+This is a Boolean value that determines whether or not [Whisper](../data_structures/whisper.md) channels will be
 automatically deleted when all players have left the room. If this is `true`, they will be deleted. If this is `false`,
-they will be renamed "archived-(Room name)". Because [[Discord]] only allows a single category to have up to 50
+they will be renamed "archived-(Room name)". Because [Discord](../../about/discord.md) only allows a single category to have up to 50
 channels, this should be `true` unless you plan on manually deleting Whisper channels when you no longer need to see
 them.
 
@@ -109,54 +109,54 @@ to be streaming. The number of players online will be appended and updated perio
 
 ## Default player data
 
-All of the settings in this section will be uploaded to the [[Players sheet|Spreadsheet#Players]] when the startgame
+All of the settings in this section will be uploaded to the Players sheet when the startgame
 timer ends. They can be changed to suit each individual player on the spreadsheet itself before all game data is loaded
 for the first time.
 
 ### Default Stats
 
-These are the default [[stats|Data-Structure:-Player#Stats]] a player will have. These should generally be changed on
+These are the default [stats](../data_structures/player.md#stats) a player will have. These should generally be changed on
 the spreadsheet to suit each individual player before the game is officially started.
 
 #### DEFAULT_STR
 
-The [[strength stat|Data-Structure:-Player#Strength]] determines the maximum weight a Player is able to carry as well as
-the likelihood of attacking successfully in [[dice rolls|Data-Structure:-Die]]. The formula for calculating
-their [[maximum carry weight|Data-Structure:-Player#maximum-carry-weight]] is:
+The [strength stat](../data_structures/player.md#strength) determines the maximum weight a Player is able to carry as well as
+the likelihood of attacking successfully in [dice rolls](../data_structures/die.md). The formula for calculating
+their [maximum carry weight](../data_structures/player.md#max-carry-weight) is:
 
 `Max carry weight (kg) = 1.783 * strength^2 - 2 * strength + 22`
 
 #### DEFAULT_INT
 
-The [[intelligence stat|Data-Structure:-Player#Intelligence]] isn't used by Alter Ego's internal code, however it can be
-used in [[if conditionals|Tutorial:-Writing-descriptions#if]] to alter what a player sees when inspecting various
+The [intelligence stat](../data_structures/player.md#Intelligence) isn't used by Alter Ego's internal code, however it can be
+used in [if conditionals](../../moderator_guide/writing_descriptions.md#if) to alter what a player sees when inspecting various
 things. This is most helpful for investigations.
 
 #### DEFAULT_DEX
 
-The [[dexterity stat|Data-Structure:-Player#Dexterity]] determines how likely a Player is to dodge an attack from
-another Player in dice rolls. It also determines how likely a Player is to succeed when [[stealing]] Items from another
+The [dexterity stat](../data_structures/player.md#dexterity) determines how likely a Player is to dodge an attack from
+another Player in dice rolls. It also determines how likely a Player is to succeed when [stealing]() Items from another
 Player.
 
 #### DEFAULT_SPD
 
-The [[speed stat|Data-Structure:-Player#Speed]] is used to calculate how quickly a player can move from one room to
+The [speed stat](../data_structures/player.md#speed) is used to calculate how quickly a player can move from one room to
 another. The base formula for calculating their rate of movement (without factoring in slope) is:
 
 `Rate (m/ms) = 0.0183 * speed^2 + 0.005 * speed + 0.916`
 
 #### DEFAULT_STA
 
-The [[stamina stat|Data-Structure:-Player#Max-Stamina]] is used to determine how long a player can move before being
-inflicted with the `weary` [[Status Effect|Data-Structure:-Status]].
+The [stamina stat](../data_structures/player.md#max-stamina) is used to determine how long a player can move before being
+inflicted with the `weary` [Status Effect](../data_structures/status.md).
 
 ### DEFAULT_LOCATION
 
-This is the name of the [[Room|Data-Structure:-Room]] that all players will start in at the beginning of the game.
+This is the name of the [Room](../data_structures/room.md) that all players will start in at the beginning of the game.
 
 ### DEFAULT_STATUS_EFFECTS
 
-This is a comma-separated list of [[Status Effects|Data-Structure:-Status]] that will be inflicted on all players at the
+This is a comma-separated list of [Status Effects](../data_structures/status.md) that will be inflicted on all players at the
 beginning of the game.
 
 ### DEFAULT_INVENTORY
@@ -179,37 +179,37 @@ own roles instead of using a template, or if Alter Ego cannot find the correct r
 IDs here.
 
 In order to copy a role ID, make sure your Discord account
-has [[Developer Mode|Tutorial:-Installation-and-setup#enable-developer-mode]] enabled. Mention a role by typing
+has [Developer Mode](../../moderator_guide/installation.md#enable-developer-mode) enabled. Mention a role by typing
 `@(Role name)` on Discord, but place a `\` before the `@` symbol. When you send the message, the role will display its
 ID, which is a string of numbers.
 
 ### TESTER_ROLE
 
-This should be the ID of the [[Tester role|Tutorial:-Installation-and-setup#tester]] in single quotes.
+This should be the ID of the [Tester role](../../appendix/manual_installation/channel_and_role_creation.md#tester) in single quotes.
 
 ### ELIGIBLE_ROLE
 
-This should be the ID of the [[Eligible role|Tutorial:-Installation-and-setup#eligible]] in single quotes.
+This should be the ID of the [Eligible role](../../appendix/manual_installation/channel_and_role_creation.md#eligible) in single quotes.
 
 ### PLAYER_ROLE
 
-This should be the ID of the [[Player role|Tutorial:-Installation-and-setup#player]] in single quotes.
+This should be the ID of the [Player role](../../appendix/manual_installation/channel_and_role_creation.md#player) in single quotes.
 
 ### HEADMASTER_ROLE
 
-This should be the ID of the [[Headmaster role|Tutorial:-Installation-and-setup#headmaster]] in single quotes.
+This should be the ID of the [Headmaster role](../../appendix/manual_installation/channel_and_role_creation.md#headmaster) in single quotes.
 
 ### MODERATOR_ROLE
 
-This should be the ID of the [[Moderator role|Tutorial:-Installation-and-setup#moderator]] in single quotes.
+This should be the ID of the [Moderator role](../../appendix/manual_installation/channel_and_role_creation.md#moderator) in single quotes.
 
 ### DEAD_ROLE
 
-This should be the ID of the [[Dead role|Tutorial:-Installation-and-setup#dead]] in single quotes.
+This should be the ID of the [Dead role](../../appendix/manual_installation/channel_and_role_creation.md#dead) in single quotes.
 
 ### SPECTATOR_ROLE
 
-This should be the ID of the [[Spectator role|Tutorial:-Installation-and-setup#spectator]] in single quotes.
+This should be the ID of the [Spectator role](../../appendix/manual_installation/channel_and_role_creation.md#spectator) in single quotes.
 
 ## Category and channel IDs
 
@@ -224,36 +224,36 @@ In order to copy a category or channel ID, right click on it in the channel list
 > **NOTE:** You can now use the `.createroomcategory` command to set these, so it is very unlikely that you will need to
 > change this.
 
-This is a list of all [[room category IDs|Tutorial:-Installation-and-setup#category-rooms]]. They can be separated by
+This is a list of all [room category IDs](../../appendix/manual_installation/channel_and_role_creation.md#category-rooms). They can be separated by
 commas, spaces, or anything else, but it should all be a single string.
 
 ### WHISPER_CATEGORY
 
-This should be the ID of the [[Whisper category|Tutorial:-Installation-and-setup#category-whispers]] in single quotes.
+This should be the ID of the [Whisper category](../../appendix/manual_installation/channel_and_role_creation.md#category-whispers) in single quotes.
 
 ### SPECTATE_CATEGORY
 
-This should be the ID of the [[Spectator category|Tutorial:-Installation-and-setup#category-spectators]] in single
+This should be the ID of the [Spectator category](../../appendix/manual_installation/channel_and_role_creation.md#category-spectators) in single
 quotes.
 
 ### TESTING_CHANNEL
 
-This should be the ID of the [[testing channel|Tutorial:-Installation-and-setup#channel-testing]] in single quotes.
+This should be the ID of the [testing channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-testing) in single quotes.
 
 ### GENERAL_CHANNEL
 
-This should be the ID of the [[general channel|Tutorial:-Installation-and-setup#channel-general]] in single quotes.
+This should be the ID of the [general channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-general) in single quotes.
 
 ### ANNOUNCEMENT_CHANNEL
 
-This should be the ID of the [[announcements channel|Tutorial:-Installation-and-setup#channel-announcements]] in single
+This should be the ID of the [announcements channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-announcements) in single
 quotes.
 
 ### COMMAND_CHANNEL
 
-This should be the ID of the [[bot-commands channel|Tutorial:-Installation-and-setup#channel-bot-commands]] in single
+This should be the ID of the [bot-commands channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-commands) in single
 quotes.
 
 ### LOG_CHANNEL
 
-This should be the ID of the [[bot-log channel|Tutorial:-Installation-and-setup#channel-bot-log]] in single quotes.
+This should be the ID of the [bot-log channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-log) in single quotes.

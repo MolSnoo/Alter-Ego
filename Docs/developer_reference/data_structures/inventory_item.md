@@ -173,7 +173,7 @@ infinitely. If the Inventory Item is dropped, its uses will be retained when it'
 can then be used when the subsequent Item is processed as part of a [Recipe](recipe.md). For more details, see the
 section about [Item uses](item.md#uses).
 
-When this Inventory Item is used (assuming its Prefab is [usable](prefab.md#usable) different things will happen
+When this Inventory Item is used (assuming its Prefab is [usable](prefab.md#usable)) different things will happen
 depending on certain factors. First, it will inflict the Player with all of the [Status Effects](status.md) listed in
 its Prefab's [effects strings](prefab.md#effects-strings) and cure the Player of all of the Status Effects listed in its
 Prefab's [cures strings](prefab.md#cures-strings). Then, if it has a limited number of uses, its uses will be decreased

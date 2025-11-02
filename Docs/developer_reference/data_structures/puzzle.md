@@ -1,6 +1,6 @@
 # Puzzle
 
-A **Puzzle** is a data structure in the [[Neo World Program]]. Its primary purpose is to allow [Players](player.md) to
+A **Puzzle** is a data structure in the Neo World Program. Its primary purpose is to allow [Players](player.md) to
 interact with the game world and change its state in predictable, predefined ways. While this can be in the form of a
 gameplay puzzle that the Player can solve, a Puzzle can be far simpler than what would traditionally be called a puzzle
 in most games.
@@ -15,7 +15,7 @@ In order to provide a versatile array of behaviors, Puzzles have many attributes
 _internal_, that means it only exists within
 the [Puzzle class](https://github.com/MolSnoo/Alter-Ego/blob/master/Data/Puzzle.js). Internal attributes will be given
 in the "Class attribute" bullet point, preceded by their data type. If an attribute is _external_, it only exists on
-the [[spreadsheet]]. External attributes will be given in the "Spreadsheet label" bullet point.
+the spreadsheet. External attributes will be given in the "Spreadsheet label" bullet point.
 
 ### Name
 
@@ -48,7 +48,7 @@ the [already solved description](puzzle.md#already-solved-description).
 
 This is a string indicating which [solution](puzzle.md#solutions) the Puzzle has been solved with, if any. If the Puzzle
 is not solved or only has one possible solution, then this must be blank. In general, this does not need to be set
-manually. [[Alter Ego]] will automatically set this when the Puzzle is solved, if it has multiple possible solutions.
+manually. Alter Ego will automatically set this when the Puzzle is solved, if it has multiple possible solutions.
 This should only be set manually if the Puzzle should be solved by default. If that is the case, then it should match
 exactly one of the Puzzle's solutions.
 
@@ -58,7 +58,7 @@ exactly one of the Puzzle's solutions.
 * Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.requiresMod`
 
-This is another Boolean value indicating whether the Puzzle requires [[moderator|Tutorial:-Moderating]] intervention to
+This is another Boolean value indicating whether the Puzzle requires [moderator](../../moderator_guide/moderating) intervention to
 solve. If this is `true`, then the Puzzle can only be solved by a moderator using
 the [puzzle command](../commands/moderator_commands.md#puzzle), and a Player who attempts to solve the Puzzle will
 receive the message "You need moderator assistance to do that." If this is `false`, then a Player will be able to
@@ -66,7 +66,7 @@ attempt to solve the Puzzle freely.
 
 A Puzzle that requires moderator intervention to solve can be useful in a few situations. A few examples are:
 
-* A Puzzle whose solution cannot be entered in a [[Discord]] message and interpreted by Alter Ego, such as an image or
+* A Puzzle whose solution cannot be entered in a [Discord](../../about/discord.md) message and interpreted by Alter Ego, such as an image or
   an arrangement of items in a certain order,
 * A Puzzle with an open-ended solution that requires a Player to think creatively,
 * A Puzzle that can only be attempted under certain conditions,
@@ -92,7 +92,7 @@ This is the Room the Puzzle can be found in. This must match the Room's name exa
 This is the name of an [Object](object.md) that is associated with the Puzzle, if any. The parent Object must be in the
 same Room as the Puzzle referencing it. If the name of an Object is supplied, then a Player will be able to supply the
 name of the parent Object as an argument in the use command instead of the name of the
-Puzzle. [Narrations](Narration.md) involving the Puzzle will also use the parent Object's name instead of the Puzzle's
+Puzzle. [Narrations](narration.md) involving the Puzzle will also use the parent Object's name instead of the Puzzle's
 name. This is particularly useful if every Puzzle is given a unique name. For example, if the Puzzle is named "PANIC
 BUTTON" and the parent Object is named "YELLOW BUTTON", then a Player will be able to interact with the Puzzle by
 sending `.use YELLOW BUTTON` or `.use PANIC BUTTON`. When the Puzzle is interacted with by a Player named Haru, Alter
@@ -101,7 +101,7 @@ Ego will send "Haru uses the YELLOW BUTTON." to the PANIC BUTTON's Room channel.
 Additionally, by assigning a Puzzle a parent Object, it becomes possible for the Puzzle to contain [Items](item.md).
 This allows Items to be made inaccessible until the Puzzle is solved, while also allowing Players to take and drop Items
 from/into the parent Object if the Puzzle is solved. When an Object capable of containing Items is assigned a child
-Puzzle, the [[item list|Tutorial:-Writing-descriptions#il]] must be in the Puzzle's already solved description. If no
+Puzzle, the [item list](../../moderator_guide/writing_descriptions.md#il) must be in the Puzzle's already solved description. If no
 parent Object is needed, this cell can simply be left blank on the spreadsheet.
 
 ### Parent Object
@@ -216,7 +216,7 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
       and a Player with a stat value of 10 may never get the first listed solution, depending on how many solutions
       there are and the range of possible Die rolls.
     * The precision of outcomes is limited by the range of Die values. For example, if the Die has
-      a [[minimum|Tutorial:-Settings-(Node)#dicemin]] of 1 and a [[maximum|Tutorial:-Settings-(Node)#dicemax]] of 6, but
+      a [minimum](../settings/docker_settings.md#dice_min) of 1 and a [maximum](../settings/docker_settings.md#dice_max) of 6, but
       there are 20 solutions, some outcomes may be impossible to achieve.
     * Once the Puzzle has been solved, it can never be directly unsolved by a Player without moderator intervention.
     * If a Player attempts to solve the Puzzle again, they will be sent the Puzzle's already solved description.
@@ -265,8 +265,8 @@ can refer to that, or the name of the Puzzle's parent Object, if it has one.
 
 * `voice`
     * A Player must say the correct password in the Room that the Puzzle is in in order to solve it. Alternatively, a
-      Player with the [sender attribute](status.md#sender) must say the correct password while a Player with
-      the [receiver attribute](status.md#receiver) is in the Room that the Puzzle is in in order to solve it. The
+      Player with the [sender attribute](status.md#behavior-attributes) must say the correct password while a Player with
+      the [receiver attribute](status.md#behavior-attributes) is in the Room that the Puzzle is in in order to solve it. The
       password is case insensitive, and non-alphanumeric (A-Z, 0-9, and spaces) characters will be ignored. The Player's
       whole message does not need to be the password; it only needs to contain it. For example, if the password is "
       unlock the door", then a Player who says "How do I unlock the door?" will still solve the Puzzle.
@@ -338,7 +338,7 @@ of them are met, the Puzzle will be made inaccessible. If it is `false`, then a 
 Player uses the Puzzle, based on various factors. If the Puzzle has any requirements, Alter Ego will check each one to
 see if it is met. If all requirements are met, the Puzzle will be made accessible, and the Player will attempt to solve
 it. If all requirements are not met, the Player will receive the
-Puzzle's [requirements not met description](puzzle.md#requirements-not-met), and Alter Ego will narrate "
+Puzzle's [requirements not met description](puzzle.md#requirements-not-met-description), and Alter Ego will narrate "
 `[Player displayName]` attempts to use the `[PUZZLE NAME]`, but struggles." in the Puzzle's Room channel. If the Puzzle
 has no requirements not met description, Alter Ego will act as if the Puzzle doesn't exist if the Player tries to use
 it.
@@ -395,7 +395,7 @@ a time.
 This is a whole number indicating how many times the Puzzle can be failed. Each time a Player attempts to solve the
 Puzzle and fails, this number will decrease by 1. If this reaches 0, the Puzzle cannot be solved, even if the correct
 solution is provided, and a Player who attempts to do so will receive the
-Puzzle's [no more attempts description](puzzle.md#no-more-attempts). If no number is given, the Puzzle can be attempted
+Puzzle's [no more attempts description](puzzle.md#no-more-attempts-description). If no number is given, the Puzzle can be attempted
 and failed infinitely many times.
 
 ### Command Sets String
@@ -404,7 +404,7 @@ and failed infinitely many times.
 * Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.commandSetsString`
 
-This is a comma-separated list of sets of [[bot commands|Commands#bot-commands]] that will be executed when the Puzzle
+This is a comma-separated list of sets of [bot commands](../commands/bot_commands.md) that will be executed when the Puzzle
 is solved or unsolved.
 
 If the Puzzle has only one solution, then command sets are implicit, and do not need to be written. Instead, a simple
@@ -470,7 +470,7 @@ structure:
   `this.correctDescription`
 
 When a Player solves the Puzzle, they will receive a parsed version of this string. See the article
-on [[writing descriptions|Tutorial:-Writing-descriptions]] for more information. If a Puzzle has multiple solutions, it
+on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information. If a Puzzle has multiple solutions, it
 can be beneficial to make this vary based on the outcome the Player receives using if conditionals. It should be noted
 that solutions are all strings, even if they're numbers. Therefore, solutions in if conditionals should be surrounded
 with single quote characters (`'`).
