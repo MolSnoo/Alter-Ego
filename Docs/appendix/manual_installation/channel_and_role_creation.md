@@ -140,7 +140,7 @@ to do things like change the server name or add emojis. All other permissions ar
 A good thing to do is to organize your roles. You can give them special colors if you want, too. An order like this is
 ideal:
 
-![](https://i.imgur.com/fvi5wb4.png)
+![](../../images/fvi5wb4.png)
 
 **Ensure that the role that was created when you invited Alter Ego to the server (which was automatically assigned to
 it) is the second highest role in the list.** If it's not, it may have issues with permissions.

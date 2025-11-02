@@ -38,11 +38,11 @@ and [Linode](https://www.linode.com/pricing/).
 First, you need to download Alter Ego itself. Go to the Alter Ego GitHub page and download the latest release. Click the
 releases box and select the newest one (or whichever version you choose).
 
-![](https://i.imgur.com/WxTbH1P.png)
+![](../images/WxTbH1P.png)
 
 There, you will see something like this.
 
-![](https://i.imgur.com/vZOZdkb.jpg)
+![](../images/vZOZdkb.jpg)
 
 ### Windows, Linux, Mac Desktop
 
@@ -81,7 +81,7 @@ https://docs.docker.com/engine/install/
 
 Most cloud/VPS providers offer a Docker installation image when you create your VM (e.g. Hetzner).
 
-![](https://i.imgur.com/mUTb1hm.png)
+![](../images/mUTb1hm.png)
 
 This saves you time and effort from installing docker yourself, and is highly recommended for new users.
 
@@ -108,12 +108,12 @@ to https://discordapp.com/developers/applications/, and once you log in to your 
 application. You can call it whatever you like. This example will use an application called "Test Bot". Once you create
 the application, you'll be taken to a page that looks like this:
 
-![](https://i.imgur.com/DRThFdI.png)
+![](../images/DRThFdI.png)
 
 You can ignore this for now. Navigate over to the Bot tab on the left-hand side, then click **Add Bot**. This will bring
 you to a page like this:
 
-![](https://i.imgur.com/f4fw8xo.png)
+![](../images/f4fw8xo.png)
 
 On this page, you can change the bot's name, set its profile picture, and a few other things. _Be sure to uncheck
 the **Public Bot** setting! Alter Ego can only be on one server, so you definitely don't want people inviting it to
@@ -123,7 +123,7 @@ In order for Alter Ego to function properly, you _must_ check the three options 
 section, specifically the **Presence Intent**, **Server Members Intent**, and **Message Content Intent**. If you've done
 this right, it will look like this:
 
-![](https://i.imgur.com/mj2Qx5l.png)
+![](../images/mj2Qx5l.png)
 
 ## Step 4: Create a Discord server
 
@@ -144,17 +144,17 @@ in Discord. Open the **Appearance** tab and scroll to the bottom. Under **Advanc
 
 Back on the Discord Developer Portal, click on the **OAuth2** tab on the left-hand side. Scroll down to this section:
 
-![](https://i.imgur.com/eG2rW4e.png)
+![](../images/eG2rW4e.png)
 
 Check **bot**, then in the box that appears below, check **Administrator**. You should have something that looks like
 this:
 
-![](https://i.imgur.com/NbnehLI.png)
+![](../images/NbnehLI.png)
 
 Finally, copy that URL in the **Scopes** box and open it in your browser. It will take you to a page that looks like
 this:
 
-![](https://i.imgur.com/k5gESaN.png)
+![](../images/k5gESaN.png)
 
 Select the server you just made, make sure **Administrator** is checked, and click **Authorize**.
 
@@ -174,7 +174,7 @@ the [Google Workspace project creation guide](https://developers.google.com/work
 the instructions. For step 5 under the **Enable a Google Workspace API** section, search for **Google Sheets API**.
 Assuming you've done this correctly, you should arrive at a page that looks like this:
 
-![](https://i.imgur.com/XhRe8il.png)
+![](../images/XhRe8il.png)
 
 ## Step 8: Create a service account
 
@@ -182,7 +182,7 @@ In order to allow Alter Ego to make changes to the spreadsheet, you'll need to c
 To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the *
 *Create credentials** button and select **Service account**. You should be brought to a page like this:
 
-![](https://i.imgur.com/xETtI3t.png)
+![](../images/xETtI3t.png)
 
 For the name, enter the bot's name; in this case, it's Test Bot. For the description, enter whatever you like. Next,
 grant it the "Owner" role. You can skip step 3.
@@ -190,7 +190,7 @@ grant it the "Owner" role. You can skip step 3.
 Once your service account is made, you should see it under the **Service Accounts** list. Click on the edit button for
 the service account, and then click on the **Keys** tab, so that it brings you to a page like this:
 
-![](https://i.imgur.com/XRC8QSC.png)
+![](../images/XRC8QSC.png)
 
 Click the **Add Key** button and select **Create new key**. Make sure the key type is JSON, then click **Create**. This
 will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the *
@@ -221,9 +221,9 @@ cp .env.example .env
 Open the `.env` file on your computer. You should see something like this.
 
 ```dotenv
-# This is an example of an environment file for docker compose. 
+# This is an example of an environment file for docker compose.
 #
-# '#' has been used to comment out any variables that do not need 
+# '#' has been used to comment out any variables that do not need
 # to be changed from default. Remove '#' to set them if you want
 # to use something other than the default value.
 #
@@ -339,7 +339,7 @@ docker compose up -d
 
 If you did everything right, this is what you'll see:
 
-![](https://i.imgur.com/MR2aUh2.png)
+![](../images/MR2aUh2.png)
 
 If you run the command `docker compose logs`, you should see this:
 

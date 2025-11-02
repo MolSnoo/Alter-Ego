@@ -137,7 +137,7 @@ a [Discord Embed](https://discord.js.org/docs/packages/discord.js/main/Embed:Cla
   Room icon URL is set, then Alter Ego will use the server icon instead. If the server icon is not set, then no image
   will be sent in the MessageEmbed.
 
-![An example of a Room description MessageEmbed.](https://i.imgur.com/6fY2HKd.png)
+![An example of a Room description MessageEmbed.](../../images/6fY2HKd.png)
 
 See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
 

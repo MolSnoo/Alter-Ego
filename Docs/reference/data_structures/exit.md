@@ -109,7 +109,7 @@ they will be sent a [Discord Embed](https://discord.js.org/docs/packages/discord
   Room icon URL is set, then Alter Ego will use the server icon instead. If the server icon is not set, then no image
   will be sent in the MessageEmbed.
 
-![An example of an Exit description Embed.](https://i.imgur.com/6fY2HKd.png)
+![An example of an Exit description Embed.](../../images/6fY2HKd.png)
 
 See the article on [writing descriptions](../../moderator_guide/writing_descriptions.md) for more information.
 

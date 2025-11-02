@@ -470,7 +470,7 @@ position is \\(0\\), then the time it takes to move between them is calculated b
 is in a stairwell consisting of two horizontally-flipped right triangles with legs of equal length vertically stacked on
 top of one another, like this diagram:
 
-![](https://i.imgur.com/K0eQsw3.png)
+![](../../images/K0eQsw3.png)
 
 Here, the Player is marked by the bottom red line and the Exit is marked by the top red line. They have the same X and Z
 coordinates; only their Y coordinates differ. The distance, \\(d\\), in meters between the Player and the Exit is
