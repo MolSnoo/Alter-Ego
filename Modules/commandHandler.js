@@ -7,7 +7,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
-    else if ((message.channel.id === serverconfig.commandChannel || command.lower().startsWith('delete')) && message.member.roles.cache.find(role => role.id === serverconfig.moderatorRole)) isModerator = true;
+    else if ((message.channel.id === serverconfig.commandChannel || command.startsWith('delete')) && message.member.roles.cache.find(role => role.id === serverconfig.moderatorRole)) isModerator = true;
     else {
         // Don't attempt to find the member who sent this message if it was sent by a webhook.
         if (message.webhookId !== null) return;
