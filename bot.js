@@ -185,7 +185,7 @@ bot.on('messageCreate', async message => {
     // If the message begins with the command prefix, attempt to run a command.
     // If the command is run successfully, the message will be deleted.
     if (message.content.startsWith(settings.commandPrefix)) {
-        const command = message.content.substring(settings.commandPrefix.length).toLowerCase();
+        const command = message.content.substring(settings.commandPrefix.length);
         var isCommand = await commandHandler.execute(command, bot, game, message);
     }
     if (message && !isCommand && game.inProgress && (serverconfig.roomCategories.includes(message.channel.parentId) || message.channel.parentId === serverconfig.whisperCategory || message.channel.id === serverconfig.announcementChannel)) {
