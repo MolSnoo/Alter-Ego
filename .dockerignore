@@ -48,7 +48,6 @@ Cargo.lock
 [Ll]ib
 [Ll]ib64
 [Ll]ocal
-[Ss]cripts
 pyvenv.cfg
 .venv
 pip-selfcheck.json
@@ -111,4 +110,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 book/
-Configs/
+Configs/*.json
