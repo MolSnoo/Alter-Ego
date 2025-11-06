@@ -5,13 +5,13 @@ module.exports.config = {
     name: "recipes_player",
     description: "Lists all recipes available to you.",
     details: "Lists all recipes you can carry out with the items in your inventory and items in the room. If you supply the name of an item in your inventory, "
-        + "you will receive a list of all recipes that use that item as an ingredient. There are crafting and object recipes.\n\n"
+        + "you will receive a list of all recipes that use that item as an ingredient. There are crafting and processing recipes.\n\n"
         + `To carry out a crafting recipe, you must have both of the ingredients in your hands and combine them with the \`${settings.commandPrefix}craft\` `
-        + `command. Crafting recipes will be completed instantaneously.\n\n`
-        + `To carry out an object recipe, you must use the \`${settings.commandPrefix}drop\` command to place all the ingredients in the appropriate object, and `
-        + `then activate the object with the \`${settings.commandPrefix}use\` command. Object recipes take a certain amount of time to be completed. `
-        + "If it worked correctly, you will receive a message indicating that the process has begun, and another message when it is completed. "
-        + "You will not receive a message if the object was already activated when all of the ingredients were put in, though the recipe "
+        + `command. These recipes take no time. If reversible, you can use the \`${settings.commandPrefix}uncraft\` command to get the ingredients again.\n\n`
+        + `To carry out a processing recipe, use the \`${settings.commandPrefix}drop\` command to place all the ingredients in an object, and `
+        + `then activate the object with the \`${settings.commandPrefix}use\` command. These recipes take a set amount of time to complete. `
+        + "If it worked, you'll receive a message indicating that the process has begun, and another message when it finishes. "
+        + "You won't receive a message if the object was already activated when all of the ingredients were put in, but the recipe "
         + "will still be carried out so long as all of the ingredients are in place.",
     usage: `${settings.commandPrefix}recipes\n`
         + `${settings.commandPrefix}recipes glass\n`
@@ -20,6 +20,7 @@ module.exports.config = {
     aliases: ["recipes"]
 };
 
+var uncraftingRecipesDescription = "";
 var craftingRecipesDescription = "";
 var objectRecipesDescription = "";
 
@@ -57,14 +58,21 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     }
                     let ingredients = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
                     let products = game.recipes[i].products.map(product => product.singleContainingPhrase);
-                    recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: objects.join(', '), duration: game.recipes[i].duration.humanize() });
+                    recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: objects.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
                     break;
                 }
+            }
+            if (game.recipes[i].uncraftable && game.recipes[i].products.length === 1 && game.recipes[i].products[0].id === item.prefab.id) {
+                // This recipe contains the given item as the sole product and is uncraftable.
+                let ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                let products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
+                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
         if (recipes.length === 0) return game.messageHandler.addReply(message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}craft\` command with your ${item.name} as an ingredient. The other ingredient may not be available in this room, or you may need to create it yourself.`;
+        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}uncraft\` command with your ${item.name} as an ingredient.`;
         objectRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}use\` command on an object after dropping your ${item.name} and any other required ingredients into it. The other ingredients may not be available in this room, or you may need to create them yourself. `;
         objectRecipesDescription += `If there is no object listed in all uppercase, then you cannot carry out this recipe in the room you're currently in and must find a suitable object elsewhere.`;
     }
@@ -85,6 +93,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         for (let i = 0; i < game.recipes.length; i++) {
             let ingredients = [];
+            let products = [];
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {
                 // Find all the ingredients for this Recipe in the player's inventory or in the room.
                 let found = false;
@@ -118,24 +127,47 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     objects = recipeObjects.map(object => object.name);
                 }
                 ingredients = ingredients.map(ingredient => ingredient.prefab.singleContainingPhrase);
-                let products = game.recipes[i].products.map(product => product.singleContainingPhrase);
-                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: objects.join(', '), duration: game.recipes[i].duration.humanize() });
+                products = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: objects.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
+            }
+
+            if (game.recipes[i].products.length === 1 && game.recipes[i].uncraftable) {
+                products = [];
+                for (let j = 0; j < inventoryItems.length; j++) {
+                    if (inventoryItems[j].prefab.id == game.recipes[i].products[0].id) {
+                        products.push(inventoryItems[j]);
+                        break;
+                    }
+                }
+            }
+            if (products.length !== 0) {
+                products.sort(function (a, b) {
+                    if (a.prefab.id < b.prefab.id) return -1;
+                    if (a.prefab.id > b.prefab.id) return 1;
+                    return 0;
+                });
+                ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
+                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
         if (recipes.length === 0) return game.messageHandler.addReply(message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
+        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;
         objectRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}use\` command on an object after dropping all of the ingredients into it. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
     }
 
     // Create a rich embed for the Recipes.
     var craftingFields = [];
     var objectFields = [];
+    var uncraftingFields = [];
     var pages = [];
     var page = 0;
 
     for (let i = 0; i < recipes.length; i++) {
         if (recipes[i].objects.length > 0) objectFields.push(recipes[i]);
+        else if (recipes[i].uncraftable) uncraftingFields.push(recipes[i]);
         else craftingFields.push(recipes[i]);
     }
 
@@ -157,6 +189,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (i !== 0) pageNo++;
         }
         pages[pageNo].push(objectFields[i]);
+    }
+    if (pages[pageNo] && pages[pageNo].length > 0) pageNo++;
+    for (let i = 0; i < uncraftingFields.length; i++) {
+        // Divide the menu into groups of 5.
+        if (i % 5 === 0) {
+            pages.push([]);
+            if (i !== 0) pageNo++;
+        }
+        pages[pageNo].push(uncraftingFields[i]);
     }
 
     let embed = createEmbed(game, page, pages);
@@ -200,12 +241,24 @@ function ingredientsMatch(items, ingredients) {
     return true;
 }
 
+function productsMatch(items, products) {
+    if (items.length !== products.length) return false;
+    var hasInventoryItem = false;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].prefab.id !== products[i].id) return false;
+        if (items[i].hasOwnProperty("player")) hasInventoryItem = true;
+    }
+    if (!hasInventoryItem) return false;
+    return true;
+}
+
 function createEmbed(game, page, pages) {
-    let craftingPage = pages[page][0].objects.length === 0 ? true : false;
+    let objectRecipe = pages[page][0].objects.length > 0;
+    let uncraftRecipe = pages[page][0].uncraftable;
     let embed = new discord.EmbedBuilder()
         .setColor('1F8B4C')
         .setAuthor({ name: `Recipes List`, iconURL: game.guild.iconURL() })
-        .setDescription(craftingPage ? craftingRecipesDescription : objectRecipesDescription)
+        .setDescription(objectRecipe ? objectRecipesDescription : uncraftRecipe ? uncraftingRecipesDescription : craftingRecipesDescription)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 
     let fields = [];
@@ -215,8 +268,8 @@ function createEmbed(game, page, pages) {
             name: `**Recipe ${i + 1}**`,
             value: `**Ingredients:** ${pages[page][i].ingredients}\n` +
             `**Products:** ${pages[page][i].products}\n` +
-            (craftingPage ? '' : `**Using Object(s):** ${pages[page][i].objects}\n`) +
-            (craftingPage ? '' : `**Duration:** ${pages[page][i].duration}`)
+            (objectRecipe ? `**Using Object(s):** ${pages[page][i].objects}\n` : '') +
+            (objectRecipe ? `**Duration:** ${pages[page][i].duration}` : '')
         });
     embed.addFields(fields);
 

@@ -1255,7 +1255,7 @@ class Player {
         return;
     }
 
-    async fastEquip(game, item, slotName, bot) {
+    async fastEquip(game, item, slotName, bot, notify = true) {
         // Get the row number of the EquipmentSlot that the item will go into.
         var rowNumber = 0;
         for (var slot = 0; slot < this.inventory.length; slot++) {
@@ -1279,16 +1279,18 @@ class Player {
         }
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            this.notify(game, `You take ${item.singleContainingPhrase}.`);
-            if (!item.prefab.discreet) {
+            if (notify) this.notify(game, `You take ${item.singleContainingPhrase}.`);
+            if (!item.prefab.discreet && notify) {
                 new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
                 this.description = parser.addItem(this.description, item, "hands");
             }
         }
         else {
-            this.notify(game, `You equip the ${item.name}.`);
-            new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            if (notify) {
+                this.notify(game, `You equip the ${item.name}.`);
+                new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+            }
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
                 const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
@@ -1638,6 +1640,73 @@ class Player {
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
+    
+    uncraft(game, item, recipe, bot) {
+        // If only one ingredient is discreet, the first ingredient should be the discreet one.
+        // This will result in more natural sounding narrations.
+        const oneDiscreet = !recipe.ingredients[0].discreet && recipe.ingredients[1].discreet || recipe.ingredients[0].discreet && !recipe.ingredients[1].discreet;
+        var ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
+        var ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
+
+        var rightHand = null;
+        var leftHand = null;
+        for (let slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].name === "RIGHT HAND") rightHand = this.inventory[slot];
+            else if (this.inventory[slot].name === "LEFT HAND") leftHand = this.inventory[slot];
+        }
+
+        const originalItemPhrase = item.singleContainingPhrase;
+        const itemDiscreet = item.prefab.discreet;
+
+        if (!itemDiscreet) this.description = parser.removeItem(this.description, item, "hands");
+        itemManager.replaceInventoryItem(item, ingredient1);
+        itemManager.instantiateInventoryItem(
+            ingredient2,
+            this,
+            rightHand.equippedItem === null ? "RIGHT HAND" : "LEFT HAND",
+            null,
+            "",
+            1,
+            new Map(),
+            bot,
+            false
+        )
+
+        this.sendDescription(game, recipe.uncraftedDescription, recipe);
+        if (!itemDiscreet || !ingredient1.discreet || !ingredient2.discreet) {
+            let itemPhrase = item.singleContainingPhrase;
+            let ingredientPhrase = "";
+            let ingredient1Phrase = "";
+            let ingredient2Phrase = "";
+            let verb = "removes";
+            let preposition = "from";
+            if (!ingredient1.discreet) {
+                if (ingredient1.singleContainingPhrase !== originalItemPhrase || ingredient1.singleContainingPhrase !== itemPhrase)
+                    ingredient1Phrase = ingredient1.singleContainingPhrase;
+                this.description = parser.addItem(this.description, ingredient1, "hands");
+            }
+            if (!ingredient2.discreet) {
+                if (ingredient2.singleContainingPhrase !== originalItemPhrase || ingredient2.singleContainingPhrase !== itemPhrase)
+                    ingredient2Phrase = ingredient2.singleContainingPhrase;
+                this.description = parser.addItem(this.description, ingredient2, "hands");
+            }
+            if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
+                itemPhrase = originalItemPhrase;
+                ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+                verb = "separates";
+                preposition = "into";
+            }
+            else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
+            else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
+
+            if (ingredientPhrase !== "") {
+                ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
+                new Narration(game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
+            }
+        }
+
+        return { ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null, ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null };
+    }
 
     hasItem(game, id) {
         const playerItems = game.inventoryItems.filter(item => item.player.name === this.name && item.prefab !== null && item.quantity > 0);
@@ -1720,7 +1789,7 @@ class Player {
                         else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
                 }
-                else if (puzzle.type === "interact") {
+                else if (puzzle.type === "interact" || puzzle.type === "matrix") {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
                 }
@@ -1843,6 +1912,12 @@ class Player {
                     else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
                     else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
                 }
+                else if (puzzle.type === "option") {
+                    if (puzzle.solved && password === "") puzzle.unsolve(bot, game, this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for the ${puzzleName}.`, true);
+                    if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} sets the ${puzzleName}, but nothing changes.`);
+                    else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
+                    else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
+                }
                 else if (puzzle.type === "media") {
                     if (puzzle.solved && item === null) {
                         let message = null;
@@ -1872,6 +1947,20 @@ class Player {
                         if (puzzle.solutions.includes(this.name)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, this.name, true);
                         else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
+                }
+                else if (puzzle.type === "room player") {
+                    let solution = "";
+                    if (misc.targetPlayer) {
+                        for (let i = 0; i < puzzle.solutions.length; i++) {
+                            if (puzzle.solutions[i].toLowerCase() === misc.targetPlayer.displayName.toLowerCase()) {
+                                solution = puzzle.solutions[i];
+                                break;
+                            }
+                        }
+                    }
+                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    else if (solution !== "") puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, solution, true, misc.targetPlayer);
+                    else puzzle.fail(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
                 }
             }
             // The player is missing an item needed to solve the puzzle.

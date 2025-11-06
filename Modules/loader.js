@@ -415,11 +415,13 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
-            const columnObjectTag = 1;
-            const columnDuration = 2;
-            const columnProducts = 3;
-            const columnInitiatedDescription = 4;
-            const columnCompletedDescription = 5;
+            const columnUncraftable = 1;
+            const columnObjectTag = 2;
+            const columnDuration = 3;
+            const columnProducts = 4;
+            const columnInitiatedDescription = 5;
+            const columnCompletedDescription = 6;
+            const columnUncraftedDescription = 7;
 
             game.recipes.length = 0;
             for (let i = 0; i < sheet.length; i++) {
@@ -460,11 +462,13 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
                 game.recipes.push(
                     new Recipe(
                         ingredients,
+                        sheet[i][columnUncraftable] ? sheet[i][columnUncraftable].trim() === "TRUE" : false,
                         sheet[i][columnObjectTag] ? sheet[i][columnObjectTag].trim() : "",
                         duration,
                         products,
                         sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription].trim() : "",
                         sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription].trim() : "",
+                        sheet[i][columnUncraftedDescription] ? sheet[i][columnUncraftedDescription].trim() : "",
                         i + 2
                     )
                 );
@@ -508,6 +512,10 @@ module.exports.checkRecipe = function (recipe) {
         if (!(recipe.products[i] instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.products[i]}" in products is not a prefab.`);
     }
+    if (recipe.objectTag !== "" && recipe.uncraftable)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with an object tag cannot be uncraftable.`)
+    if (recipe.products.length > 1 && recipe.uncraftable)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than one product cannot be uncraftable.`)
 };
 
 module.exports.loadItems = function (game, doErrorChecking) {
@@ -855,7 +863,23 @@ module.exports.checkPuzzle = function (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
     if (puzzle.parentObject !== null && puzzle.parentObject !== undefined && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle !== undefined && puzzle.parentObject.childPuzzle.name !== puzzle.name)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
-    if (puzzle.type !== "password" && puzzle.type !== "interact" && puzzle.type !== "toggle" && puzzle.type !== "combination lock" && puzzle.type !== "key lock" && !puzzle.type.endsWith("probability") && puzzle.type !== "channels" && puzzle.type !== "weight" && puzzle.type !== "container" && puzzle.type !== "voice" && puzzle.type !== "switch" && puzzle.type !== "media" && puzzle.type !== "player" && puzzle.type !== "restricted exit")
+    if (puzzle.type !== "password" &&
+        puzzle.type !== "interact" &&
+        puzzle.type !== "toggle" &&
+        puzzle.type !== "combination lock" &&
+        puzzle.type !== "key lock" &&
+        !puzzle.type.endsWith("probability") &&
+        puzzle.type !== "channels" &&
+        puzzle.type !== "weight" &&
+        puzzle.type !== "container" &&
+        puzzle.type !== "voice" &&
+        puzzle.type !== "switch" &&
+        puzzle.type !== "option" &&
+        puzzle.type !== "media" &&
+        puzzle.type !== "player" &&
+        puzzle.type !== "room player" &&
+        puzzle.type !== "restricted exit" &&
+        puzzle.type !== "matrix")
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if ((puzzle.type === "probability" || puzzle.type.endsWith(" probability")) && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
@@ -952,7 +976,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var timeRemaining = sheet[i][columnTimeRemaining] ? moment.duration(sheet[i][columnTimeRemaining]) : null;
                 var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
                 for (let j = 0; j < triggerTimes.length; j++)
-                    triggerTimes[j] = moment(triggerTimes[j].trim(), ["LT", "LTS", "HH:mm", "hh:mm a"]);
+                    triggerTimes[j] = triggerTimes[j].trim();
                 const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : ["", ""];
                 var triggeredCommands = commands[0] ? commands[0].split(',') : [];
@@ -1031,8 +1055,9 @@ module.exports.checkEvent = function (event, game) {
     if (event.ongoing && event.duration !== null && event.remaining === null)
         return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
     for (let i = 0; i < event.triggerTimes.length; i++) {
-        if (!event.triggerTimes[i].isValid()) {
-            let timeString = event.triggerTimes[i].inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
+        let triggerTime = moment(event.triggerTimes[i], Event.formats);
+        if (!triggerTime.isValid()) {
+            let timeString = triggerTime.inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
             return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
         }
     }

@@ -12,6 +12,8 @@ const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
 const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
 const saver = include(`${constants.modulesDir}/saver.js`);
 
+const Event = include(`${constants.dataDir}/Event.js`);
+
 const fs = require('fs');
 const fetch = require('node-fetch');
 var moment = require('moment');
@@ -45,6 +47,7 @@ game.messageHandler = messageHandler;
 
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
+bot.commandLog = [];
 function loadCommands() {
     const commandsDir = `./${constants.commandsDir}/`;
     fs.readdir(commandsDir, (err, files) => {
@@ -121,7 +124,7 @@ async function checkVersion() {
         game.commandChannel.send(`This version of Alter Ego is out of date. Please update using Docker or download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
 
-bot.on('ready', async () => {
+bot.on('clientReady', async () => {
     if (bot.guilds.cache.size === 1) {
         messageHandler.clientID = bot.user.id;
         game.guild = bot.guilds.cache.first();
@@ -162,8 +165,8 @@ bot.on('ready', async () => {
             for (let i = 0; i < game.events.length; i++) {
                 if (!game.events[i].ongoing) {
                     for (let j = 0; j < game.events[i].triggerTimes.length; j++) {
-                        const time = game.events[i].triggerTimes[j];
-                        if (now.hour() === time.hour() && now.minute() === time.minute()) {
+                        const time = moment(game.events[i].triggerTimes[j], Event.formats);
+                        if (now.month() === time.month() && now.weekday() === time.weekday() && now.date() === time.date() && now.hour() === time.hour() && now.minute() === time.minute()) {
                             game.events[i].trigger(bot, game, true);
                             break;
                         }
@@ -187,6 +190,14 @@ bot.on('messageCreate', async message => {
     }
     if (message && !isCommand && game.inProgress && (serverconfig.roomCategories.includes(message.channel.parentId) || message.channel.parentId === serverconfig.whisperCategory || message.channel.id === serverconfig.announcementChannel)) {
         await dialogHandler.execute(bot, game, message, true);
+    }
+});
+
+bot.on('messageUpdate', async (messageOld, messageNew) => {
+    if (messageOld.partial || messageNew.partial || messageOld.author.bot || messageOld.content === messageNew.content) return;
+
+    if (messageOld && game.inProgress && (serverconfig.roomCategories.includes(messageOld.channel.parentId) || messageOld.channel.parentId === serverconfig.whisperCategory || messageOld.channel.id === serverconfig.announcementChannel)) {
+        messageHandler.editSpectatorMessage(messageOld, messageNew);
     }
 });
 

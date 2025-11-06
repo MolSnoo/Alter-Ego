@@ -7,7 +7,7 @@ const Item = include(`${constants.dataDir}/Item.js`);
 const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
 const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 
-module.exports.instantiateItem = function (prefab, location, container, slotName, quantity) {
+module.exports.instantiateItem = function (prefab, location, container, slotName, quantity, proceduralSelections, player = null) {
     var containerName = "";
     if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
     else if (container instanceof Object) containerName = "Object: " + container.name;
@@ -21,7 +21,7 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
         containerName,
         quantity,
         prefab.uses,
-        prefab.description,
+        parser.generateProceduralOutput(prefab.description, proceduralSelections, player),
         0
     );
     createdItem.container = container;
@@ -65,7 +65,7 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
     return;
 };
 
-module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlot, container, slotName, quantity, bot) {
+module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlot, container, slotName, quantity, proceduralSelections, bot, notify = true) {
     var createdItem = new InventoryItem(
         player,
         prefab,
@@ -74,7 +74,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
         container ? container.identifier + '/' + slotName : "",
         quantity,
         prefab.uses,
-        prefab.description,
+        parser.generateProceduralOutput(prefab.description, proceduralSelections, player),
         0
     );
     createdItem.container = container;
@@ -113,7 +113,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
     }
     // Item is being equipped.
     else {
-        player.fastEquip(game, createdItem, equipmentSlot, bot);
+        player.fastEquip(game, createdItem, equipmentSlot, bot, notify);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();

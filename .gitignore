@@ -5,6 +5,8 @@ Old_Commands/
 parse.js
 *Matches*.txt
 parsedText.txt
+data_game.txt.gz
+data_commands.log.gz
 prefabs*.js
 speed.js
 speeds.txt
@@ -282,4 +284,4 @@ parsedText.xml
 
 # Docker Files
 *.env
-
+book/

@@ -1,8 +1,8 @@
 const constants = include('Configs/constants.json');
 const finder = include(`${constants.modulesDir}/finder.js`);
 
-const DOMParser = require('xmldom').DOMParser;
-const XMLSerializer = require('xmldom').XMLSerializer;
+const DOMParser = require('@xmldom/xmldom').DOMParser;
+const XMLSerializer = require('@xmldom/xmldom').XMLSerializer;
 
 class Clause {
     constructor(node, isItem, itemNo, itemQuantity) {
@@ -21,11 +21,12 @@ class Clause {
     delete() {
         if (this.node) {
             let parentNode = this.node.parentNode;
+            let grandParentNode = parentNode.parentNode;
             parentNode.removeChild(this.node);
             // If this is an item clause, then the parent node is an item tag. Delete the now empty item tag.
-            if (this.isItem) parentNode.parentNode.removeChild(parentNode);
+            if (this.isItem) grandParentNode.removeChild(parentNode);
             // If this item is contained in an if tag, remove the if tag.
-            if (parentNode.parentNode.nodeName === 'if') parentNode.parentNode.parentNode.removeChild(parentNode.parentNode);
+            if (grandParentNode.nodeName === 'if') grandParentNode.parentNode.removeChild(grandParentNode);
             this.node = null;
         }
         this.text = "";
@@ -298,6 +299,122 @@ module.exports.removeItem = function (description, item, slot, removedQuantity, 
     else return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 };
 
+module.exports.generateProceduralOutput = function (description, proceduralSelections, player) {
+    var document = createDocument(description).document;
+
+    if (document) {
+        // Find all procedurals.
+        var procedurals = document.getElementsByTagName('procedural');
+        let proceduralsToRemove = [];
+        for (let i = 0; i < procedurals.length; i++) {
+            const proceduralName = procedurals[i].getAttribute('name').toLowerCase().trim();
+            let proceduralAssigned = false;
+            if (proceduralName !== '' && proceduralSelections.has(proceduralName))
+                proceduralAssigned = true;
+            else {
+                let parentProcedural = procedurals[i].parentNode;
+                // If this procedural is nested, find its parent procedural.
+                while (!parentProcedural.hasOwnProperty("documentElement") && parentProcedural.tagName !== "procedural")
+                    parentProcedural = parentProcedural.parentNode;
+                let proceduralChance = parseFloat(procedurals[i].getAttribute('chance'));
+                // If a procedural chance was not provided or it is invalid, assume the chance is 100%.
+                if (isNaN(proceduralChance) || proceduralChance < 0 || proceduralChance > 100)
+                    proceduralChance = 100;
+                // Roll to determine if this procedural will be kept. If the probability check fails, remove the tag entirely and skip to the next one.
+                if (!keepProcedural(proceduralChance) || proceduralsToRemove.includes(parentProcedural)) {
+                    proceduralsToRemove.push(procedurals[i]);
+                    continue;
+                }
+            }
+
+            // Determine which poss tag within this procedural to keep.
+            let possibilities = procedurals[i].getElementsByTagName('poss');
+            let possibilityArr = [];
+            let possibilitiesToRemove = [];
+            let winningPossibilityIndex = null;
+            for (let j = 0; j < possibilities.length; j++) {
+                // Skip possibilities that belong to nested procedurals.
+                if (possibilities[j].parentNode !== procedurals[i]) continue;
+                const possibilityName = possibilities[j].getAttribute('name').toLowerCase();
+                if (proceduralAssigned && proceduralSelections.get(proceduralName) === possibilityName)
+                    winningPossibilityIndex = j;
+                let possibilityChance = parseFloat(possibilities[j].getAttribute('chance'));
+                // This will be handled in the rolling function, if a possibility chance was not provided or invalid, set it to null.
+                if (isNaN(possibilityChance) || possibilityChance < 0 || possibilityChance > 100)
+                    possibilityChance = null;
+                possibilityArr.push({ index: j, chance: possibilityChance });
+            }
+            if (winningPossibilityIndex === null) {
+                let statValue = null;
+                const proceduralStat = procedurals[i].getAttribute('stat').toLowerCase();
+                if (proceduralStat !== '' && player !== null) {
+                    if (proceduralStat === "strength" || proceduralStat === "str") statValue = player.strength;
+                    else if (proceduralStat === "intelligence" || proceduralStat === "int") statValue = player.intelligence;
+                    else if (proceduralStat === "dexterity" || proceduralStat === "dex") statValue = player.dexterity;
+                    else if (proceduralStat === "speed" || proceduralStat === "spd") statValue = player.speed;
+                    else if (proceduralStat === "stamina" || proceduralStat === "sta") statValue = player.stamina;
+                }
+                winningPossibilityIndex = choosePossibilityIndex(possibilityArr, statValue);
+            }
+            for (let possibility of possibilityArr) {
+                if (possibility.index !== winningPossibilityIndex)
+                    possibilitiesToRemove.push(possibilities[possibility.index]);
+            }
+            // Remove poss tags that failed the roll.
+            for (let j = 0; j < possibilitiesToRemove.length; j++)
+                procedurals[i].removeChild(possibilitiesToRemove[j]);
+        }
+        // Remove procedurals that failed the roll.
+        for (let i = 0; i < proceduralsToRemove.length; i++) {
+            if (proceduralsToRemove[i].parentNode) proceduralsToRemove[i].parentNode.removeChild(proceduralsToRemove[i]);
+            else document.removeChild(proceduralsToRemove[i]);
+        }
+    }
+
+    return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/<s>\s*<\/s>/g, '').replace(/<\/([^>]+?)> +<\/desc>/g, "</$1></desc>").replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+};
+
+function keepProcedural(chance) {
+    return Math.random() * 100 < chance;
+}
+
+function choosePossibilityIndex(possibilityArr, statValue) {
+    // If any of the given possibilities are null, assign their chances equally so that all chances add up to 100.
+    // Clamp the sum of non-null possibilities between 0 and 100.
+    let possibilitySum = Math.min(Math.max(possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 0 : possibility.chance), 0), 0), 100);
+    let nullCount = possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 1 : 0), 0);
+    if (nullCount > 0) {
+        let dividedRemainder = (100.0 - possibilitySum) / nullCount; 
+        for (let possibility of possibilityArr) {
+            if (possibility.chance === null)
+                possibility.chance = dividedRemainder;
+        }
+    }
+
+    // Generate modified percentages based on the supplied stat value.
+    if (statValue !== null && possibilityArr.length > 1) {
+        const modifierMax = statValue - 5;
+        const modifierMin = -1 * modifierMax;
+        for (let i = 0; i < possibilityArr.length; i++) {
+            const percentageModifier = (modifierMin + (modifierMax - modifierMin) / (possibilityArr.length - 1) * i) * 10;
+            possibilityArr[i].chance = possibilityArr[i].chance + percentageModifier;
+        }
+    }
+
+    // Sort by highest to lowest chance.
+    possibilityArr = possibilityArr.sort((a,b) => b.chance - a.chance);
+    
+    // Roll a random number and find the winner.
+    const rand = Math.random() * 100;
+    let gachaValue = 0;
+    for (let possibility of possibilityArr) {
+        gachaValue += possibility.chance;
+        if (rand < gachaValue) {
+            return possibility.index;
+        }
+    }
+}
+
 function createDocument(description) {
     description = description.replace(/<il><\/il>/g, "<il><null /></il>");
 
@@ -376,7 +493,7 @@ function getItemListSentences(document) {
 
 function stringify(document) {
     var description = new XMLSerializer().serializeToString(document);
-    description = description.replace(/<il\/>/g, "<il></il>").replace(/(<(il)\s[^>]+?)\/>/g, "$1></$2>").replace(/<s\/>/g, "").replace(/<null\/>/g, "").replace(/<\/s> <\/desc>/g, "</s></desc>").replace(/ {2,}/g, " ").trim();
+    description = description.replace(/<il\/>/g, "<il></il>").replace(/(<(il)\s[^>]+?)\/>/g, "$1></$2>").replace(/<s\/>/g, "").replace(/<null\/>/g, "").replace(/<\/([^>]+?)> +<\/desc>/g, "</$1></desc>").replace(/ {2,}/g, " ").trim();
     return description;
 }
 
