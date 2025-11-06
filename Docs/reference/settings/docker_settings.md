@@ -113,6 +113,16 @@ to be streaming. The number of players online will be appended and updated perio
 All of the settings in this section will be uploaded to the Players sheet when the startgame timer ends. They can be
 changed to suit each individual player on the spreadsheet itself before all game data is loaded for the first time.
 
+### DEFAULT_PRONOUNS
+
+This is the default [pronoun string](../data_structures/player.md#pronoun-string) that each player will have. The 
+default is `neutral`. Once it is on the spreadsheet, it should be edited to suit each player.
+
+### DEFAULT_VOICE
+
+This is the default [original voice string](../data_structures/player.md#original-voice-string) that each player will 
+have. The default is `a neutral voice`. Once it is on the spreadsheet, it should be edited to suit each player.
+
 ### Default Stats
 
 These are the default [stats](../data_structures/player.md#stats) a player will have. These should generally be changed
