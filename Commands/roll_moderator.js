@@ -33,21 +33,18 @@ module.exports.run = async (bot, game, message, command, args) => {
         if (typeof attacker === "string") return game.messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
         defender = getPlayer(game, args[2].toLowerCase());
         if (typeof defender === "string") return game.messageHandler.addReply(message, `Couldn't find player "${args[2]}".`);
-    }
-    else if (args.length === 2) {
+    } else if (args.length === 2) {
         const arg0 = getPlayer(game, args[0].toLowerCase());
         if (typeof arg0 !== "string") {
             attacker = arg0;
             defender = getPlayer(game, args[1].toLowerCase());
             if (typeof defender === "string") return game.messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
-        }
-        else {
+        } else {
             statString = arg0;
             attacker = getPlayer(game, args[1].toLowerCase());
             if (typeof attacker === "string") return game.messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
         }
-    }
-    else if (args.length === 1) {
+    } else if (args.length === 1) {
         const arg0 = getPlayer(game, args[0].toLowerCase());
         if (typeof arg0 !== "string") attacker = arg0;
         else return game.messageHandler.addReply(message, `Cannot roll for a stat without a given player.`);
@@ -64,10 +61,16 @@ module.exports.run = async (bot, game, message, command, args) => {
     const die = new Die(stat, attacker, defender);
     if (die.modifier === 0) game.messageHandler.addGameMechanicMessage(message.channel, `Rolled a **${die.result}** with no modifiers.`);
     else game.messageHandler.addGameMechanicMessage(message.channel, `Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
-    
+
     return;
 };
 
+/**
+ * Gets a player from the game.
+ * @param {Game} game
+ * @param {string} name
+ * @returns {Player | string}
+ */
 function getPlayer(game, name) {
     for (let i = 0; i < game.players_alive.length; i++) {
         if (game.players_alive[i].name.toLowerCase() === name)

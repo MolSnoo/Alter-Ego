@@ -54,9 +54,15 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
     var files = [];
     [...attachments.values()].forEach(attachment => files.push(attachment.url));
 
-    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, { content: messageText, files: files }, messagePriority.tellPlayer);
+    if (player.talent !== "NPC") addMessageWithAttachmentsToQueue(player.member, {
+        content: messageText,
+        files: files
+    }, messagePriority.tellPlayer);
     if (addSpectate && player.spectateChannel !== null)
-        addMessageWithAttachmentsToQueue(player.spectateChannel, { content: messageText, files: files }, messagePriority.spectatorMessage);
+        addMessageWithAttachmentsToQueue(player.spectateChannel, {
+            content: messageText,
+            files: files
+        }, messagePriority.spectatorMessage);
 };
 
 // Narrate a room description to a player
@@ -76,8 +82,11 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         .setColor('1F8B4C')
         .setDescription(descriptionText)
         .addFields([
-            { name: "Occupants", value: occupantsString },
-            { name: `${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`, value: defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText }
+            {name: "Occupants", value: occupantsString},
+            {
+                name: `${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}`,
+                value: defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText
+            }
         ]);
 
     if (player.talent !== "NPC") addEmbedToQueue(player.member, embed, messagePriority.tellPlayer);
@@ -118,7 +127,7 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
         let webHooks = await player.spectateChannel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === this.clientID);
         if (webHook === null || webHook === undefined)
-            webHook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
+            webHook = await player.spectateChannel.createWebhook({name: player.spectateChannel.name});
 
         var files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
@@ -149,7 +158,7 @@ module.exports.editSpectatorMessage = async (messageOld, messageNew) => {
                 const regexGroups = relatedMessage.content.match(new RegExp(/(\*\(Whispered(?:.*)\):\*\n)(.*)/m));
                 if (regexGroups) messageText = regexGroups[1] + messageNew.content;
             }
-            webHook.editMessage(related.message, { content: messageText });
+            webHook.editMessage(related.message, {content: messageText});
         }
     });
 }
@@ -183,7 +192,7 @@ function addMessageWithAttachmentsToQueue(channel, attachments, priority) {
 function addWebhookMessageToQueue(webHook, webHookContents, priority, originId) {
     let sendAction = () => webHook.send(webHookContents).then(message => {
         const cachedMessage = module.exports.cache.find(entry => entry.id === originId);
-        if (cachedMessage) cachedMessage.related.push({ message: message.id, webHook: webHook.id });
+        if (cachedMessage) cachedMessage.related.push({message: message.id, webHook: webHook.id});
     }).catch(console.error);
     addToQueue(sendAction, priority);
 }
@@ -194,7 +203,7 @@ function addReplyToQueue(message, messageText, priority) {
 }
 
 function addEmbedToQueue(channel, embed, priority) {
-    let sendAction = () => channel.send({ embeds: [embed] });
+    let sendAction = () => channel.send({embeds: [embed]});
     addToQueue(sendAction, priority);
 }
 

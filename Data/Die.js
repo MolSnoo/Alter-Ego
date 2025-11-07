@@ -4,19 +4,40 @@ var game = include('game.json');
 
 const Status = include(`${constants.dataDir}/Status.js`);
 
+/**
+ * @typedef {object} ModifierResult
+ * @property {number} number - The total modifier value.
+ * @property {string[]} strings - The modifier strings.
+ */
+
+/**
+ * @class Die
+ * @classdesc Represents a die in the game.
+ * @constructor
+ * @param {string} stat - The name of the stat to roll for.
+ * @param {Player} attacker - The player who is attacking.
+ * @param {Player} [defender] - The player who is defending.
+ */
 class Die {
+    /**
+     * @param {string} stat - The name of the stat to roll for.
+     * @param {Player} attacker - The player who is attacking.
+     * @param {Player} [defender] - The player who is defending.
+     */
     constructor(stat, attacker, defender) {
+        /** @type {number} */
         this.min = settings.diceMin;
+        /** @type {number} */
         this.max = settings.diceMax;
 
+        /** @type {number} */
         let baseRoll;
         if (attacker && attacker.hasAttribute("all or nothing")) {
             // Make the base roll either the minimum or maximum possible.
             baseRoll = this.doBaseRoll(0, 1);
             baseRoll = baseRoll * (this.max - 1);
             baseRoll += this.min;
-        }
-        else baseRoll = this.doBaseRoll();
+        } else baseRoll = this.doBaseRoll();
         this.baseRoll = baseRoll;
 
         let modifiers = this.calculateModifiers(stat, attacker, defender);
@@ -25,15 +46,29 @@ class Die {
         this.result = this.baseRoll + this.modifier;
     }
 
+    /**
+     * Returns a random number between min and max.
+     * @param {number} min
+     * @param {number} max
+     * @returns {number}
+     */
     doBaseRoll(min, max) {
         if (min === null || min === undefined) min = this.min;
         if (max === null || max === undefined) max = this.max;
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    /**
+     * Calculates the modifiers to apply to the base roll.
+     * @param {string} stat
+     * @param {Player} attacker
+     * @param {Player} defender
+     * @returns {ModifierResult}
+     */
     calculateModifiers(stat, attacker, defender) {
-        var modifier = 0;
-        var modifierStrings = [];
+        let modifier = 0;
+        /** @type {string[]} */
+        let modifierStrings = [];
         if (attacker) {
             if (attacker.hasAttribute("coin flipper")) {
                 let hasCoin = false;
@@ -53,7 +88,8 @@ class Die {
                 }
             }
 
-            var tempStatuses = [];
+            /** @type {Status[]} */
+            let tempStatuses = [];
             if (defender) {
                 if (stat === "str") {
                     const dexterityModifier = -1 * defender.getStatModifier(defender.dexterity);
@@ -69,7 +105,13 @@ class Die {
                         const statModifier = defender.status[i].statModifiers[j];
                         // Get defender's modifiers that affect the attacker's roll.
                         if (!statModifier.modifiesSelf) {
-                            const tempStatus = new Status(`${defender.name} ${defender.status[i].name}`, "", false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], "", "", "", -1);
+                            /** @type {Status} */
+                            const tempStatus = new Status(`${defender.name} ${defender.status[i].name}`, "", false, false, [], [], null, null, null, [{
+                                modifiesSelf: true,
+                                stat: statModifier.stat,
+                                assignValue: statModifier.assignValue,
+                                value: statModifier.value
+                            }], "", "", "", -1);
                             tempStatuses.push(tempStatus);
                             attacker.inflict(game, tempStatus, false, false, false);
                         }
@@ -99,7 +141,7 @@ class Die {
                 attacker.cure(game, tempStatuses[i].name, false, false, false);
         }
 
-        return { number: modifier, strings: modifierStrings };
+        return {number: modifier, strings: modifierStrings};
     }
 }
 

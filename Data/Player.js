@@ -15,19 +15,105 @@ const Gesture = include(`${constants.dataDir}/Gesture.js`);
 const Narration = include(`${constants.dataDir}/Narration.js`);
 const Die = include(`${constants.dataDir}/Die.js`);
 
+const {TextChannel} = require('discord.js');
 var moment = require('moment');
 var timer = require('moment-timer');
 moment().format();
 
+/**
+ * @import {Message} from "discord.js"
+ * @import {Puzzle} from "./Puzzle.js"
+ * @import {Room} from "./Room.js"
+ * @import {Item} from "./Item.js"
+ * @import {InventoryItem} from "./InventoryItem.js"
+ * @import {Status} from "./Status.js"
+ * @import {Gesture} from "./Gesture.js"
+ * @import {Narration} from "./Narration.js"
+ * @import {Die} from "./Die.js"
+ * @import {Object} from "./Object.js"
+ */
+
+/**
+ * @typedef {object} Pronouns
+ * @property {string | null} sbj - The subject pronoun.
+ * @property {string | null} Sbj - The subject pronoun with first letter capitalized.
+ * @property {string | null} obj - The object pronoun.
+ * @property {string | null} Obj - The object pronoun with first letter capitalized.
+ * @property {string | null} dpos - The dependent possessive pronoun.
+ * @property {string | null} Dpos - The dependent possessive pronoun with first letter capitalized.
+ * @property {string | null} ipos - The independent possessive pronoun.
+ * @property {string | null} Ipos - The independent possessive pronoun with first letter capitalized.
+ * @property {string | null} ref - The reflexive pronoun.
+ * @property {string | null} Ref - The reflexive pronoun with first letter capitalized.
+ * @property {boolean | null} plural - Whether this pronoun pluralizes verbs.
+ */
+
+/**
+ * @typedef {object} Stats
+ * @property {number} strength
+ * @property {number} intelligence
+ * @property {number} dexterity
+ * @property {number} speed
+ * @property {number} stamina
+ */
+
+/**
+ * @typedef {object} Misc
+ * @property {string} command - The command alias that was used.
+ * @property {string} input - The combined arguments of the command.
+ * @property {Message} [message] - The message that triggered the command.
+ * @property {Player} [targetPlayer] - The player targeted by the command.
+ */
+
+/**
+ * @class Player
+ * @classdesc Represents a player in the game.
+ * @param {string} id - The Discord ID of the player.
+ * @param {GuildMember | null} member - The Discord member object of the player.
+ * @param {string} name - The name of the player.
+ * @param {string} displayName - The display name of the player.
+ * @param {string} talent - The talent of the player.
+ * @param {string} pronounString - The pronoun string of the player.
+ * @param {string} originalVoiceString - The original voice string of the player.
+ * @param {Stats} stats - The stats of the player.
+ * @param {boolean} alive - Whether the player is alive or not.
+ * @param {Room} location - The location of the player.
+ * @param {string} hidingSpot - The hiding spot of the player.
+ * @param {Status[]} status - The status effects of the player.
+ * @param {string} description - The description of the player.
+ * @param {EquipmentSlot[]} inventory - The inventory of the player.
+ * @param {TextChannel | null} spectateChannel - The spectate channel of the player.
+ * @param {number} row - The row of the player.
+ */
 class Player {
+    /**
+     * @param {string} id - The Discord ID of the player.
+     * @param {GuildMember | null} member - The Discord member object of the player.
+     * @param {string} name - The name of the player.
+     * @param {string} displayName - The display name of the player.
+     * @param {string} talent - The talent of the player.
+     * @param {string} pronounString - The pronoun string of the player.
+     * @param {string} originalVoiceString - The original voice string of the player.
+     * @param {Stats} stats - The stats of the player.
+     * @param {boolean} alive - Whether the player is alive or not.
+     * @param {Room} location - The location of the player.
+     * @param {string} hidingSpot - The hiding spot of the player.
+     * @param {Status[]} status - The status effects of the player.
+     * @param {string} description - The description of the player.
+     * @param {EquipmentSlot[]} inventory - The inventory of the player.
+     * @param {TextChannel | null} spectateChannel - The spectate channel of the player.
+     * @param {number} row - The row of the player.
+     */
     constructor(id, member, name, displayName, talent, pronounString, originalVoiceString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row) {
         this.id = id;
         this.member = member;
         this.name = name;
         this.displayName = displayName;
+        /** @type {string | null} */
         this.displayIcon = null;
         this.talent = talent;
         this.pronounString = pronounString;
+        /** @type {Pronouns} */
         this.originalPronouns = {
             sbj: null, Sbj: null,
             obj: null, Obj: null,
@@ -36,6 +122,7 @@ class Player {
             ref: null, Ref: null,
             plural: null
         };
+        /** @type {Pronouns} */
         this.pronouns = {
             sbj: null, Sbj: null,
             obj: null, Obj: null,
@@ -46,7 +133,7 @@ class Player {
         };
         this.originalVoiceString = originalVoiceString;
         this.voiceString = this.originalVoiceString;
-        
+
         this.defaultStrength = stats.strength;
         this.strength = this.defaultStrength;
         this.defaultIntelligence = stats.intelligence;
@@ -61,20 +148,24 @@ class Player {
 
         this.alive = alive;
         this.location = location;
-        this.pos = { x: 0, y: 0, z: 0 };
+        /** @type {Pos} */
+        this.pos = {x: 0, y: 0, z: 0};
         this.hidingSpot = hidingSpot;
         this.status = status;
         this.statusString = "";
         this.description = description;
         this.inventory = inventory;
         this.spectateChannel = spectateChannel;
+        /** @type {number} */
         this.maxCarryWeight = this.getMaxCarryWeight();
         this.carryWeight = 0;
         this.row = row;
 
         this.isMoving = false;
+        /** @type {NodeJS.Timeout | null} */
         this.moveTimer = null;
         this.remainingTime = 0;
+        /** @type {string[]} */
         this.moveQueue = [];
 
         this.reachedHalfStamina = false;
@@ -84,9 +175,15 @@ class Player {
         }, 30000);
 
         this.online = false;
+        /** @type {NodeJS.Timeout | null} */
         this.onlineInterval = null;
     }
 
+    /**
+     * Sets the pronouns of the player.
+     * @param {Pronouns} pronouns
+     * @param {string} pronounString
+     */
     setPronouns(pronouns, pronounString) {
         if (pronounString === "male") {
             pronouns.sbj = "he";
@@ -100,8 +197,7 @@ class Player {
             pronouns.ref = "himself";
             pronouns.Ref = "Himself";
             pronouns.plural = false;
-        }
-        else if (pronounString === "female") {
+        } else if (pronounString === "female") {
             pronouns.sbj = "she";
             pronouns.Sbj = "She";
             pronouns.obj = "her";
@@ -113,8 +209,7 @@ class Player {
             pronouns.ref = "herself";
             pronouns.Ref = "Herself";
             pronouns.plural = false;
-        }
-        else if (pronounString === "neutral") {
+        } else if (pronounString === "neutral") {
             pronouns.sbj = "they";
             pronouns.Sbj = "They";
             pronouns.obj = "them";
@@ -129,7 +224,7 @@ class Player {
         }
         // If none of the standard pronouns are given, let the user define their own.
         else {
-            var pronounSet = pronounString.split('/');
+            let pronounSet = pronounString.split('/');
             if (pronounSet.length === 6) {
                 pronouns.sbj = pronounSet[0].trim();
                 pronouns.Sbj = pronouns.sbj.charAt(0).toUpperCase() + pronouns.sbj.substring(1);
@@ -146,14 +241,25 @@ class Player {
         }
     }
 
+    /**
+     * Starts moving the player to the next destination in their move queue.
+     * @param {Client} bot
+     * @param {Game} game
+     * @param {boolean} isRunning
+     * @param {string} destination
+     * @return {void}
+     */
     queueMovement(bot, game, isRunning, destination) {
         const currentRoom = this.location;
-        var adjacent = false;
-        var exit = null;
-        var exitMessage = "";
-        var desiredRoom = null;
-        var entrance = null;
-        var entranceMessage = "";
+        let adjacent = false;
+        /** @type {Exit | null} */
+        let exit = null;
+        let exitMessage = "";
+        /** @type {Room | null} */
+        let desiredRoom = null;
+        /** @type {Exit | null} */
+        let entrance = null;
+        let entranceMessage = "";
         const appendString = this.createMoveAppendString();
 
         // If the player has the headmaster role, they can move to any room they please.
@@ -206,20 +312,32 @@ class Player {
                 const time = new Date().toLocaleTimeString();
                 game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} moved to ${desiredRoom.channel}`);
             }
-        }
-        else {
+        } else {
             this.moveQueue.length = 0;
             return this.notify(game, `There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
         }
     }
 
+    /**
+     * Moves the player to the desired room.
+     * @param {Client} bot
+     * @param {Game} game
+     * @param {boolean} isRunning
+     * @param {Room} currentRoom
+     * @param {Room} desiredRoom
+     * @param {Exit} exit
+     * @param {Exit} entrance
+     * @param {string} exitMessage
+     * @param {string} entranceMessage
+     */
     move(bot, game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
         const time = this.calculateMoveTime(exit, isRunning);
         this.remainingTime = time;
         this.isMoving = true;
         const verb = isRunning ? "running" : "walking";
         if (time > 1000) new Narration(game, this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
-        const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
+        /** @type {Pos} */
+        const startingPos = {x: this.pos.x, y: this.pos.y, z: this.pos.z};
 
         let player = this;
         this.moveTimer = setInterval(function () {
@@ -237,14 +355,13 @@ class Player {
             let rise = (y - player.pos.y) / settings.pixelsPerMeter;
             // Calculate the amount of stamina the player has lost traveling this distance.
             const staminaUseMultiplier = isRunning ? 3 : 1;
-            var lostStamina;
+            let lostStamina;
             // If distance is 0, we'll treat it like a staircase.
             if (distance === 0 && rise !== 0) {
-                const uphill = rise > 0 ? true : false;
+                const uphill = rise > 0;
                 distance = rise;
                 lostStamina = uphill ? 4 * staminaUseMultiplier * settings.staminaUseRate * distance : staminaUseMultiplier * settings.staminaUseRate / 4 * -distance;
-            }
-            else {
+            } else {
                 const slope = rise / distance;
                 lostStamina = !isNaN(slope) ? staminaUseMultiplier * (settings.staminaUseRate + slope * settings.staminaUseRate) * distance : staminaUseMultiplier * settings.staminaUseRate * distance;
                 if (isNaN(lostStamina)) lostStamina = 0;
@@ -284,8 +401,7 @@ class Player {
                     player.moveQueue.splice(0, 1);
                     if (player.moveQueue.length > 0)
                         player.queueMovement(bot, game, isRunning, player.moveQueue[0].trim());
-                }
-                else {
+                } else {
                     new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
                     player.pos.x = exit.pos.x;
                     player.pos.y = exit.pos.y;
@@ -297,6 +413,12 @@ class Player {
         }, 100);
     }
 
+    /**
+     * Calculates the time it takes to move the player to the desired exit.
+     * @param {Exit} exit
+     * @param {boolean} isRunning
+     * @returns {number}
+     */
     calculateMoveTime(exit, isRunning) {
         let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
         distance = distance / settings.pixelsPerMeter;
@@ -310,10 +432,10 @@ class Player {
         rate = rate * slowdown;
         // Slope should affect the rate.
         const rise = (exit.pos.y - this.pos.y) / settings.pixelsPerMeter;
-        var time = 0;
+        let time = 0;
         // If distance is 0, we'll treat it like a staircase and just use the rise to calculate the time.
         if (distance === 0 && rise !== 0) {
-            const uphill = rise > 0 ? true : false;
+            const uphill = rise > 0;
             // Assume that the staircase is a right triangle leading to another right triangle flipped horizontally.
             const legs = rise / 2;
             // Calculate the length of the hypotenuse of these right triangles.
@@ -325,8 +447,7 @@ class Player {
             rate = uphill ? 2 * rate / 3 : 4 * rate / 3;
             // To make it feel a little more realistic, multiply it by 2.
             time = distance / rate * 2 * 1000;
-        }
-        else {
+        } else {
             const slope = rise / distance;
             rate = !isNaN(slope) ? rate - slope * rate : rate;
             if (distance < rate) distance = 0;
@@ -336,6 +457,9 @@ class Player {
         return time;
     }
 
+    /**
+     * Resets the player's stamina to its maximum value.
+     */
     regenerateStamina() {
         if (this.stamina < this.maxStamina) {
             // Recover 1/20th of the player's max stamina per cycle.
@@ -347,11 +471,15 @@ class Player {
             else
                 this.stamina = newStamina;
         }
-        return;
     }
 
+    /**
+     * Creates a string of non-discreet items the player is carrying.
+     * @returns {string}
+     */
     createMoveAppendString() {
-        var nonDiscreetItems = new Array();
+        /** @type {string[]} */
+        let nonDiscreetItems = [];
         for (let slot = 0; slot < this.inventory.length; slot++) {
             if ((this.inventory[slot].name === "RIGHT HAND" || this.inventory[slot].name === "LEFT HAND") &&
                 this.inventory[slot].equippedItem !== null &&
@@ -359,7 +487,7 @@ class Player {
                 nonDiscreetItems.push(this.inventory[slot].equippedItem.singleContainingPhrase);
         }
 
-        var appendString = "";
+        let appendString = "";
         if (nonDiscreetItems.length === 0)
             appendString = ".";
         else if (nonDiscreetItems.length === 1)
@@ -370,8 +498,20 @@ class Player {
         return appendString;
     }
 
+    /**
+     * Inflicts the player with a status effect.
+     * @param {Game} game
+     * @param {string} statusName
+     * @param {boolean} [notify]
+     * @param {boolean} [doCures]
+     * @param {boolean} [narrate]
+     * @param {InventoryItem | {singleContainingPhrase : string}} [item]
+     * @param {Duration} [duration]
+     * @returns {string}
+     */
     inflict(game, statusName, notify, doCures, narrate, item, duration) {
-        var status = null;
+        /** @type {Status | null} */
+        let status = null;
         if (statusName instanceof Status) status = statusName;
         else {
             for (let i = 0; i < game.statusEffects.length; i++) {
@@ -398,8 +538,7 @@ class Player {
                 this.cure(game, statusName, false, false, false);
                 this.inflict(game, status.duplicatedStatus.name, true, false, true);
                 return `Status was duplicated, so inflicted ${status.duplicatedStatus.name} instead.`;
-            }
-            else return "Specified player already has that status effect.";
+            } else return "Specified player already has that status effect.";
         }
 
         if (status.cures !== "" && doCures) {
@@ -420,7 +559,7 @@ class Player {
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.name !== this.name));
         }
         if (status.attributes.includes("concealed")) {
-            if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
+            if (item === null || item === undefined) item = {singleContainingPhrase: "a MASK"};
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
             this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
             this.setPronouns(this.pronouns, "neutral");
@@ -447,7 +586,7 @@ class Player {
             else status.remaining = status.duration.clone();
 
             let player = this;
-            status.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+            status.timer = new moment.duration(1000).timer({start: true, loop: true}, function () {
                 let subtractedTime = 1000;
                 if (game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
                 status.remaining.subtract(subtractedTime, 'ms');
@@ -459,13 +598,11 @@ class Player {
                         const response = player.inflict(game, status.nextStage.name, true, false, true);
                         if (response.startsWith(`Couldn't inflict status effect`))
                             player.sendDescription(game, status.curedDescription, status);
-                    }
-                    else {
+                    } else {
                         if (status.fatal) {
                             status.timer.stop();
                             player.die(game);
-                        }
-                        else {
+                        } else {
                             player.cure(game, status.name, true, true, true);
                         }
                     }
@@ -489,9 +626,20 @@ class Player {
         return "Status successfully added.";
     }
 
+    /**
+     * Removes a status effect from the player.
+     * @param {Game} game
+     * @param {string} statusName
+     * @param {boolean} [notify]
+     * @param {boolean} [doCuredCondition]
+     * @param {boolean} [narrate]
+     * @param {InventoryItem | {singleContainingPhrase : string}} [item]
+     * @returns {string}
+     */
     cure(game, statusName, notify, doCuredCondition, narrate, item) {
-        var status = null;
-        var statusIndex = -1;
+        /** @type {Status | null} */
+        let status = null;
+        let statusIndex = -1;
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].name.toLowerCase() === statusName.toLowerCase()) {
                 status = this.status[i];
@@ -516,7 +664,7 @@ class Player {
             this.displayName = this.name;
             if (this.talent === "NPC") this.displayIcon = this.id;
             else this.displayIcon = null;
-            if (item === null || item === undefined) item = { name: "MASK" };
+            if (item === null || item === undefined) item = {name: "MASK"};
             if (narrate) new Narration(game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
             this.setPronouns(this.pronouns, this.pronounString);
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
@@ -527,7 +675,7 @@ class Player {
         else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
         else if (status.attributes.includes("unconscious") && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
 
-        var returnMessage = "Successfully removed status effect.";
+        let returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
             this.inflict(game, status.curedCondition.name, false, false, true);
             returnMessage += ` Player is now ${status.curedCondition.name}.`;
@@ -566,9 +714,15 @@ class Player {
 
         return returnMessage;
     }
-    
+
+    /**
+     * Creates a list of the player's status effects.
+     * @param {boolean} includeHidden
+     * @param {boolean} includeDurations
+     * @returns {string}
+     */
     generate_statusList(includeHidden, includeDurations) {
-        var statusList = "";
+        let statusList = "";
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].visible || includeHidden) {
                 statusList += this.status[i].name;
@@ -595,9 +749,14 @@ class Player {
         return statusList.substring(0, statusList.lastIndexOf(", "));
     }
 
+    /**
+     * Returns true if the player has a status with the specified behavior attribute.
+     * @param {string} attribute
+     * @returns {boolean}
+     */
     hasAttribute(attribute) {
-        var hasAttribute = false;
-        for (let i = 0; i < this.status.length; i++) {         
+        let hasAttribute = false;
+        for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].attributes.includes(attribute)) {
                 hasAttribute = true;
                 break;
@@ -606,8 +765,14 @@ class Player {
         return hasAttribute;
     }
 
+    /**
+     * Returns list of status effects with the specified behavior attribute.
+     * @param {string} attribute
+     * @returns {Status[]}
+     */
     getAttributeStatusEffects(attribute) {
-        var statusEffects = [];
+        /** @type {Status[]} */
+        let statusEffects = [];
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].attributes.includes(attribute))
                 statusEffects.push(this.status[i]);
@@ -615,18 +780,26 @@ class Player {
         return statusEffects;
     }
 
+    /**
+     * Calculates the player's stats based on their current status effects.
+     */
     recalculateStats() {
-        var strength = this.defaultStrength;
-        var intelligence = this.defaultIntelligence;
-        var dexterity = this.defaultDexterity;
-        var speed = this.defaultSpeed;
-        var stamina = this.defaultStamina;
+        let strength = this.defaultStrength;
+        let intelligence = this.defaultIntelligence;
+        let dexterity = this.defaultDexterity;
+        let speed = this.defaultSpeed;
+        let stamina = this.defaultStamina;
 
-        var strModifiers = [];
-        var intModifiers = [];
-        var dexModifiers = [];
-        var spdModifiers = [];
-        var staModifiers = [];
+        /** @type {StatModifier[]} */
+        let strModifiers = [];
+        /** @type {StatModifier[]} */
+        let intModifiers = [];
+        /** @type {StatModifier[]} */
+        let dexModifiers = [];
+        /** @type {StatModifier[]} */
+        let spdModifiers = [];
+        /** @type {StatModifier[]} */
+        let staModifiers = [];
 
         for (let i = 0; i < this.status.length; i++) {
             for (let j = 0; j < this.status[i].statModifiers.length; j++) {
@@ -663,8 +836,14 @@ class Player {
         this.stamina = staminaRatio * this.maxStamina;
     }
 
+    /**
+     * Calculates stat after applying stat modifiers.
+     * @param {number} stat
+     * @param {StatModifier[]} modifiers
+     * @returns {number}
+     */
     recalculateStat(stat, modifiers) {
-        var assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
+        let assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
         if (assignModifiers.length !== 0) return assignModifiers[0].value;
 
         for (let i = 0; i < modifiers.length; i++)
@@ -674,16 +853,32 @@ class Player {
         return stat;
     }
 
+    /**
+     * Calculates dice roll modifier based on the specified stat value.
+     * @param {number} stat
+     * @returns {number}
+     */
     getStatModifier(stat) {
         const statMax = 10;
-        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
-        return modifier;
+        return Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
     }
 
+    /**
+     * Calculates the player's maximum carry weight.
+     * @returns {number}
+     */
     getMaxCarryWeight() {
         return Math.floor(1.783 * Math.pow(this.strength, 2) - 2 * this.strength + 22);
     }
 
+    /**
+     * Uses the player's inventory item and returns string to send to player.
+     * @param {Game} game
+     * @param {InventoryItem} item
+     * @param {Player} target
+     * @param {string} [message]
+     * @returns {string}
+     */
     use(game, item, target = this, message = "") {
         if (item.uses === 0) return "That item has no uses left.";
         if (!item.prefab.usable) return "That item has no programmed use on its own, but you may be able to use it some other way.";
@@ -735,10 +930,17 @@ class Player {
                     this.description = parser.addItem(this.description, item, "hands");
             }
         }
-
-        return;
     }
 
+    /**
+     * Takes an item and puts it in the player's inventory.
+     * @param {Game} game
+     * @param {Item} item
+     * @param {string} hand
+     * @param {Puzzle | Object | Item | Room} container
+     * @param {string} slotName
+     * @param {boolean} [notify]
+     */
     take(game, item, hand, container, slotName, notify = true) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
@@ -751,8 +953,7 @@ class Player {
         else if (container instanceof Item) {
             container.removeItem(item, slotName, 1);
             container.description = parser.removeItem(container.description, item, slotName);
-        }
-        else if (container instanceof Room) {
+        } else if (container instanceof Room) {
             container.description = parser.removeItem(container.description, item);
             for (let i = 0; i < container.exit.length; i++)
                 container.exit[i].description = parser.removeItem(container.exit[i].description, item);
@@ -893,13 +1094,11 @@ class Player {
                     this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
                 else
                     this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
-            }
-            else {
+            } else {
                 if (container.inventory.length === 1) {
                     this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
                     victim.notify(game, `${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
-                }
-                else {
+                } else {
                     this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
                     victim.notify(game, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
                 }
@@ -914,20 +1113,22 @@ class Player {
                 this.description = parser.addItem(this.description, createdItem, "hands");
             }
 
-            return { itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id, successful: true };
+            return {
+                itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id,
+                successful: true
+            };
         }
         // Player failed to steal the item.
         else {
             if (container.inventory.length === 1) {
                 this.notify(game, `You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
                 victim.notify(game, `${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
-            }
-            else {
+            } else {
                 this.notify(game, `You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
                 victim.notify(game, `${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
             }
 
-            return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
+            return {itemName: item.identifier ? item.identifier : item.prefab.id, successful: false};
         }
     }
 
@@ -948,13 +1149,11 @@ class Player {
             container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, item);
             containerName = container.parentObject ? container.parentObject.name : container.name;
             preposition = container.parentObject ? container.parentObject.preposition : "in";
-        }
-        else if (container instanceof Object) {
+        } else if (container instanceof Object) {
             container.description = parser.addItem(container.description, item);
             containerName = container.name;
             preposition = container.preposition;
-        }
-        else if (container instanceof Item) {
+        } else if (container instanceof Item) {
             container.insertItem(createdItem, slotName);
             container.description = parser.addItem(container.description, item, slotName);
             containerName = container.name;
@@ -979,7 +1178,7 @@ class Player {
         };
         deleteChildQuantities(item);
         item.quantity = 0;
-        
+
         itemManager.insertItems(game, this.location, items);
 
         this.carryWeight -= item.weight;
@@ -989,7 +1188,7 @@ class Player {
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, item, "hands");
         }
-        
+
         return;
     }
 
@@ -1151,7 +1350,7 @@ class Player {
             oldChildItems[i].quantity = 0;
 
         itemManager.insertInventoryItems(game, this, items, slot);
-        
+
         this.notify(game, `You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
             new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
@@ -1247,8 +1446,7 @@ class Player {
                 const seconds = parseInt(args[1]);
                 if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                 await sleep(seconds);
-            }
-            else {
+            } else {
                 commandHandler.execute(command, bot, game, null, this, createdItem);
             }
         }
@@ -1285,8 +1483,7 @@ class Player {
                 // Add the new item to the player's hands item list.
                 this.description = parser.addItem(this.description, item, "hands");
             }
-        }
-        else {
+        } else {
             if (notify) {
                 this.notify(game, `You equip the ${item.name}.`);
                 new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
@@ -1331,8 +1528,7 @@ class Player {
                     const seconds = parseInt(args[1]);
                     if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
-                }
-                else {
+                } else {
                     commandHandler.execute(command, bot, game, null, this, item);
                 }
             }
@@ -1448,8 +1644,7 @@ class Player {
                     const seconds = parseInt(args[1]);
                     if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
-                }
-                else {
+                } else {
                     commandHandler.execute(command, bot, game, null, this, createdItem);
                 }
             }
@@ -1495,8 +1690,7 @@ class Player {
             // Remove the item from the player's hands item list.
             if (!item.prefab.discreet)
                 this.description = parser.removeItem(this.description, item, "hands");
-        }
-        else {
+        } else {
             this.notify(game, `You unequip the ${item.name}.`);
             new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
@@ -1531,8 +1725,7 @@ class Player {
                     const seconds = parseInt(args[1]);
                     if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
-                }
-                else {
+                } else {
                     commandHandler.execute(command, bot, game, null, this, item);
                 }
             }
@@ -1594,16 +1787,14 @@ class Player {
         if (product1 && item1.prefab.id === product1.id) {
             if (item1.uses - 1 === 0) product1 = product1.nextStage;
             else if (!isNaN(item1.uses)) item1Uses = item1.uses - 1;
-        }
-        else if (product2 && item1.prefab.id === product2.id) {
+        } else if (product2 && item1.prefab.id === product2.id) {
             if (item1.uses - 1 === 0) product2 = product2.nextStage;
             else if (!isNaN(item1.uses)) item2Uses = item1.uses - 1;
         }
         if (product1 && item2.prefab.id === product1.id) {
             if (item2.uses - 1 === 0) product1 = product1.nextStage;
             else if (!isNaN(item2.uses)) item1Uses = item2.uses - 1;
-        }
-        else if (product2 && item2.prefab.id === product2.id) {
+        } else if (product2 && item2.prefab.id === product2.id) {
             if (item2.uses - 1 === 0) product2 = product2.nextStage;
             else if (!isNaN(item2.uses)) item2Uses = item2.uses - 1;
         }
@@ -1638,9 +1829,9 @@ class Player {
             if (productPhrase !== "") new Narration(game, this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
         }
 
-        return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
+        return {product1: product1 ? item1 : null, product2: product2 ? item2 : null};
     }
-    
+
     uncraft(game, item, recipe, bot) {
         // If only one ingredient is discreet, the first ingredient should be the discreet one.
         // This will result in more natural sounding narrations.
@@ -1695,8 +1886,7 @@ class Player {
                 ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
                 verb = "separates";
                 preposition = "into";
-            }
-            else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
+            } else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
             else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
 
             if (ingredientPhrase !== "") {
@@ -1705,7 +1895,10 @@ class Player {
             }
         }
 
-        return { ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null, ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null };
+        return {
+            ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null,
+            ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null
+        };
     }
 
     hasItem(game, id) {
@@ -1724,13 +1917,11 @@ class Player {
             if (puzzle.requirements[i] instanceof Puzzle && !puzzle.requirements[i].solved) {
                 allRequirementsSolved = false;
                 break;
-            }
-            else if (puzzle.requirements[i].hasOwnProperty("id")) {
+            } else if (puzzle.requirements[i].hasOwnProperty("id")) {
                 if (item !== null && item.prefab.id !== puzzle.requirements[i].id) {
                     allRequirementsSolved = false;
                     break;
-                }
-                else if (item === null) {
+                } else if (item === null) {
                     if (!this.hasItem(game, puzzle.requirements[i].id)) {
                         allRequirementsSolved = false;
                         break;
@@ -1762,8 +1953,7 @@ class Player {
                             hasRequiredItem = true;
                             requiredItemName = puzzle.solutions[i];
                             break;
-                        }
-                        else if (item === null) {
+                        } else if (item === null) {
                             const requiredItem = puzzle.solutions[i].substring("Item: ".length);
                             if (this.hasItem(game, requiredItem)) {
                                 hasRequiredItem = true;
@@ -1774,8 +1964,7 @@ class Player {
                         if (hasRequiredItem) break;
                     }
                 }
-            }
-            else hasRequiredItem = true;
+            } else hasRequiredItem = true;
 
             if (puzzle.solved || hasRequiredItem || puzzle.type === "media" || (puzzle.type === "weight" || puzzle.type === "container") && (misc.command === "take" || misc.command === "drop")) requirementsMet = true;
 
@@ -1788,21 +1977,17 @@ class Player {
                         else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, password, true);
                         else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
-                }
-                else if (puzzle.type === "interact" || puzzle.type === "matrix") {
+                } else if (puzzle.type === "interact" || puzzle.type === "matrix") {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
-                }
-                else if (puzzle.type === "toggle") {
+                } else if (puzzle.type === "toggle") {
                     if (puzzle.solved && hasRequiredItem) {
                         let message = null;
                         if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
                         puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, message, true);
-                    }
-                    else if (puzzle.solved) puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
+                    } else if (puzzle.solved) puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
                     else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true);
-                }
-                else if (puzzle.type === "combination lock") {
+                } else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
                         if (command === "unlock") return `${puzzleName} is already unlocked.`;
@@ -1818,8 +2003,7 @@ class Player {
                         else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, password, true);
                         else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzleName}.`);
                     }
-                }
-                else if (puzzle.type === "key lock") {
+                } else if (puzzle.type === "key lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
                         if (command === "unlock") return `${puzzleName} is already unlocked.`;
@@ -1832,15 +2016,13 @@ class Player {
                         if (command === "lock") return `${puzzleName} is already locked.`;
                         puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, requiredItemName, true);
                     }
-                }
-                else if (puzzle.type === "probability") {
+                } else if (puzzle.type === "probability") {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         const outcome = puzzle.solutions[Math.floor(Math.random() * puzzle.solutions.length)];
                         puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true);
                     }
-                }
-                else if (puzzle.type.endsWith("probability")) {
+                } else if (puzzle.type.endsWith("probability")) {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         let stat = "";
@@ -1858,28 +2040,23 @@ class Player {
                         const outcome = puzzle.solutions[Math.floor(clampedRatio * puzzle.solutions.length)];
                         puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true);
                     }
-                }
-                else if (puzzle.type === "channels") {
+                } else if (puzzle.type === "channels") {
                     if (puzzle.solved) {
                         if (password === "") puzzle.unsolve(bot, game, this, `${this.displayName} turns off the ${puzzleName}.`, `You turn off the ${puzzleName}.`, true);
                         else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} changes the channel on the ${puzzleName}.`, password, true);
                         else puzzle.fail(game, this, `${this.displayName} attempts and fails to change the channel on the ${puzzleName}.`);
-                    }
-                    else {
+                    } else {
                         if (!puzzle.solutions.includes(password)) password = puzzle.outcome ? puzzle.outcome : "";
                         puzzle.solve(bot, game, this, `${this.displayName} turns on the ${puzzleName}.`, password, true);
                     }
-                }
-                else if (puzzle.type === "weight") {
+                } else if (puzzle.type === "weight") {
                     if (puzzle.solved) {
                         if (!puzzle.solutions.includes(password)) puzzle.unsolve(bot, game, this, "", null, true);
-                    }
-                    else {
+                    } else {
                         if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, "", password, true);
                         else puzzle.fail(game, this, "");
                     }
-                }
-                else if (puzzle.type === "container") {
+                } else if (puzzle.type === "container") {
                     if (puzzle.solved) {
                         puzzle.unsolve(bot, game, this, "", null, true);
                     }
@@ -1906,25 +2083,21 @@ class Player {
                     }
                     if (outcome !== "") puzzle.solve(bot, game, this, "", outcome, true);
                     else puzzle.fail(game, this, "");
-                }
-                else if (puzzle.type === "switch") {
+                } else if (puzzle.type === "switch") {
                     if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}, but nothing happens.`);
                     else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
                     else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
-                }
-                else if (puzzle.type === "option") {
+                } else if (puzzle.type === "option") {
                     if (puzzle.solved && password === "") puzzle.unsolve(bot, game, this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for the ${puzzleName}.`, true);
                     if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} sets the ${puzzleName}, but nothing changes.`);
                     else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
                     else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
-                }
-                else if (puzzle.type === "media") {
+                } else if (puzzle.type === "media") {
                     if (puzzle.solved && item === null) {
                         let message = null;
                         if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
-                        puzzle.unsolve(bot, game,this, `${this.displayName} presses eject on the ${puzzleName}.`, message, true);
-                    }
-                    else if (puzzle.solved && item !== null)
+                        puzzle.unsolve(bot, game, this, `${this.displayName} presses eject on the ${puzzleName}.`, message, true);
+                    } else if (puzzle.solved && item !== null)
                         return `you cannot insert ${item.singleContainingPhrase} into the ${puzzleName} as something is already inside it. Eject it first by sending \`.use ${puzzleName}\`.`;
                     else if (!puzzle.solved && item !== null) {
                         hasRequiredItem = false;
@@ -1938,17 +2111,14 @@ class Player {
                         }
                         if (hasRequiredItem) puzzle.solve(bot, game, this, `${this.displayName} inserts ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}.`, solution, true);
                         else puzzle.fail(game, this, `${this.displayName} attempts to insert ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}, but it doesn't fit.`);
-                    }
-                    else puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
-                }
-                else if (puzzle.type === "player") {
+                    } else puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
+                } else if (puzzle.type === "player") {
                     if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         if (puzzle.solutions.includes(this.name)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, this.name, true);
                         else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
                     }
-                }
-                else if (puzzle.type === "room player") {
+                } else if (puzzle.type === "room player") {
                     let solution = "";
                     if (misc.targetPlayer) {
                         for (let i = 0; i < puzzle.solutions.length; i++) {
@@ -2021,7 +2191,7 @@ class Player {
         }
 
         game.messageHandler.addDirectNarration(this, "You have died. When your body is discovered, you will be given the Dead role. Until then, please do not speak on the server or to other players.");
-        
+
         return;
     }
 
@@ -2056,8 +2226,7 @@ class Player {
                 if (defaultDropObject)
                     defaultDropObjectString = parser.parseDescription(defaultDropObject.description, defaultDropObject, this);
                 game.messageHandler.addRoomDescription(game, this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
-            }
-            else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
+            } else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
                 game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
         return;
     }

@@ -1,6 +1,7 @@
 'use strict';
 global.include = require('app-root-path').require;
 
+
 const settings = include('Configs/settings.json');
 const constants = include('Configs/constants.json');
 const credentials = include('Configs/credentials.json');
@@ -19,7 +20,36 @@ const fetch = require('node-fetch');
 var moment = require('moment');
 moment().format();
 const discord = require('discord.js');
-const { ActivityType, ChannelType } = require('./node_modules/discord-api-types/v10');
+const {ActivityType, ChannelType} = require('./node_modules/discord-api-types/v10');
+
+/**
+ * @typedef {object} Game
+ * @property {discord.Guild | null} guild
+ * @property {discord.TextChannel | null} commandChannel
+ * @property {discord.TextChannel | null} logChannel
+ * @property {boolean} inProgress
+ * @property {boolean} canJoin
+ * @property {NodeJS.Timeout | null} halfTimer
+ * @property {NodeJS.Timeout | null} endTimer
+ * @property {boolean} heated
+ * @property {boolean} editMode
+ * @property {Player[]} players
+ * @property {Player[]} players_alive
+ * @property {Player[]} players_dead
+ * @property {Room[]} rooms
+ * @property {Object[]} objects
+ * @property {Prefab[]} prefabs
+ * @property {Recipe[]} recipes
+ * @property {Item[]} items
+ * @property {Puzzle[]} puzzles
+ * @property {Event[]} events
+ * @property {Whisper[]} whispers
+ * @property {Status[]} statusEffects
+ * @property {InventoryItem[]} inventoryItems
+ * @property {Gesture[]} gestures
+ * @property {any} messageHandler
+ */
+
 const bot = new discord.Client({
     retryLimit: Infinity,
     partials: [
@@ -48,6 +78,7 @@ game.messageHandler = messageHandler;
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
 bot.commandLog = [];
+
 function loadCommands() {
     const commandsDir = `./${constants.commandsDir}/`;
     fs.readdir(commandsDir, (err, files) => {
@@ -92,13 +123,32 @@ function updateStatus() {
     var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
 
     if (settings.debug)
-        bot.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: getActivityType(settings.debugModeActivity.type) }] });
+        bot.user.setPresence({
+            status: "dnd",
+            activities: [{
+                name: settings.debugModeActivity.string + onlineString,
+                type: getActivityType(settings.debugModeActivity.type)
+            }]
+        });
     else {
         bot.user.setStatus("online");
         if (game.inProgress && !game.canJoin)
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: getActivityType(settings.gameInProgressActivity.type), url: settings.gameInProgressActivity.url }] });
+            bot.user.setPresence({
+                status: "online",
+                activities: [{
+                    name: settings.gameInProgressActivity.string + onlineString,
+                    type: getActivityType(settings.gameInProgressActivity.type),
+                    url: settings.gameInProgressActivity.url
+                }]
+            });
         else
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: getActivityType(settings.onlineActivity.type) }] });
+            bot.user.setPresence({
+                status: "online",
+                activities: [{
+                    name: settings.onlineActivity.string,
+                    type: getActivityType(settings.onlineActivity.type)
+                }]
+            });
     }
 }
 
@@ -137,8 +187,7 @@ bot.on('clientReady', async () => {
         updateStatus();
         checkVersion();
         updateHandler.autoUpdate();
-    }
-    else {
+    } else {
         console.log("Error: Bot must be on one and only one server.");
         return process.exit(2);
     }

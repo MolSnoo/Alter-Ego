@@ -16,7 +16,7 @@ const Status = include(`${constants.dataDir}/Status.js`);
 const Player = include(`${constants.dataDir}/Player.js`);
 const Gesture = include(`${constants.dataDir}/Gesture.js`);
 
-const { ChannelType } = require('../node_modules/discord-api-types/v10');
+const {ChannelType} = require('../node_modules/discord-api-types/v10');
 var moment = require('moment');
 moment().format();
 
@@ -185,7 +185,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                     new Object(
                         sheet[i][columnName] ? sheet[i][columnName].trim() : "",
                         sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                        sheet[i][columnAccessibility]? sheet[i][columnAccessibility].trim() === "TRUE" : false,
+                        sheet[i][columnAccessibility] ? sheet[i][columnAccessibility].trim() === "TRUE" : false,
                         sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle].trim() : "",
                         sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag].trim() : "",
                         sheet[i][columnActivatable] ? sheet[i][columnActivatable].trim() === "TRUE" : false,
@@ -306,7 +306,13 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 var inventorySlots = sheet[i][columnInventorySlots] ? sheet[i][columnInventorySlots].split(',') : [];
                 for (let j = 0; j < inventorySlots.length; j++) {
                     const inventorySlot = inventorySlots[j].split(':');
-                    inventorySlots[j] = { name: inventorySlot[0].trim(), capacity: parseInt(inventorySlot[1]), takenSpace: 0, weight: 0, item: [] };
+                    inventorySlots[j] = {
+                        name: inventorySlot[0].trim(),
+                        capacity: parseInt(inventorySlot[1]),
+                        takenSpace: 0,
+                        weight: 0,
+                        item: []
+                    };
                 }
 
                 game.prefabs.push(
@@ -559,16 +565,20 @@ module.exports.loadItems = function (game, doErrorChecking) {
                     const prefab = game.items[i].prefab;
                     game.items[i].weight = game.items[i].prefab.weight;
                     for (let j = 0; j < prefab.inventory.length; j++)
-                        game.items[i].inventory.push({ name: prefab.inventory[j].name, capacity: prefab.inventory[j].capacity, takenSpace: prefab.inventory[j].takenSpace, weight: prefab.inventory[j].weight, item: [] });
+                        game.items[i].inventory.push({
+                            name: prefab.inventory[j].name,
+                            capacity: prefab.inventory[j].capacity,
+                            takenSpace: prefab.inventory[j].takenSpace,
+                            weight: prefab.inventory[j].weight,
+                            item: []
+                        });
                 }
                 if (game.items[i].containerName.startsWith("Object:")) {
                     let container = game.objects.find(object => object.name === game.items[i].containerName.substring("Object:".length).trim() && object.location instanceof Room && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
                     if (container) game.items[i].container = container;
-                }
-                else if (game.items[i].containerName.startsWith("Item:")) {
+                } else if (game.items[i].containerName.startsWith("Item:")) {
                     childItemIndexes.push(i);
-                }
-                else if (game.items[i].containerName.startsWith("Puzzle:")) {
+                } else if (game.items[i].containerName.startsWith("Puzzle:")) {
                     let container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location instanceof Room && game.items[i].location instanceof Room && puzzle.location.name === game.items[i].location.name);
                     if (container) game.items[i].container = container;
                 }
@@ -663,8 +673,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
                             }
                         }
                     }
-                }
-                else game.items[i] = insertInventory(game.items[i]);
+                } else game.items[i] = insertInventory(game.items[i]);
 
                 if (doErrorChecking) {
                     let error = exports.checkItem(game.items[i], game);
@@ -681,7 +690,7 @@ module.exports.loadItems = function (game, doErrorChecking) {
             }
             resolve(game);
         });
-    }); 
+    });
 };
 
 module.exports.checkItem = function (item, game) {
@@ -762,7 +771,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                     let unsolvedCommands = commands[1] ? commands[1].split(',') : [];
                     for (let j = 0; j < unsolvedCommands.length; j++)
                         unsolvedCommands[j] = unsolvedCommands[j].trim();
-                    return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
+                    return {solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands};
                 };
                 const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
                 if (regex.test(commandString)) {
@@ -772,13 +781,20 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         for (let j = 0; j < outcomes.length; j++)
                             outcomes[j] = outcomes[j].trim();
                         const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
-                        commandSets.push({ outcomes: outcomes, solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
+                        commandSets.push({
+                            outcomes: outcomes,
+                            solvedCommands: commands.solvedCommands,
+                            unsolvedCommands: commands.unsolvedCommands
+                        });
                         commandString = commandString.replace(RegExp.$1, "").trim();
                     }
-                }
-                else {
+                } else {
                     const commands = getCommands(sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "");
-                    commandSets.push({ outcomes: [], solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
+                    commandSets.push({
+                        outcomes: [],
+                        solvedCommands: commands.solvedCommands,
+                        unsolvedCommands: commands.unsolvedCommands
+                    });
                 }
                 let solutions = sheet[i][columnSolution] ? sheet[i][columnSolution].toString().split(',') : [];
                 for (let j = 0; j < solutions.length; j++) {
@@ -821,8 +837,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                     if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
                         requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
                         if (requirement) game.puzzles[i].requirements[j] = requirement;
-                    }
-                    else
+                    } else
                         requirement = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requirementsStrings[j] || game.puzzles[i].requirementsStrings[j] === `Puzzle: ${puzzle.name}`);
                     if (requirement) game.puzzles[i].requirements[j] = requirement;
                 }
@@ -1125,12 +1140,10 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     if (modifierStrings[j].includes('+')) {
                         stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('+'));
                         value = parseInt(modifierStrings[j].substring(stat.length));
-                    }
-                    else if (modifierStrings[j].includes('-')) {
+                    } else if (modifierStrings[j].includes('-')) {
                         stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('-'));
                         value = parseInt(modifierStrings[j].substring(stat.length));
-                    }
-                    else if (modifierStrings[j].includes('=')) {
+                    } else if (modifierStrings[j].includes('=')) {
                         stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('='));
                         assignValue = true;
                         value = parseInt(modifierStrings[j].substring(stat.length + 1));
@@ -1142,7 +1155,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
                     else if (stat === "speed") stat = "spd";
                     else if (stat === "stamina") stat = "sta";
 
-                    modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
+                    modifiers.push({modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value});
                 }
                 game.statusEffects.push(
                     new Status(
@@ -1378,8 +1391,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                             }
                         }
                     }
-                }
-                else
+                } else
                     game.players_dead.push(player);
             }
 
@@ -1486,8 +1498,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                             i + 2
                         )
                     );
-                }
-                else {
+                } else {
                     game.inventoryItems.push(
                         new InventoryItem(
                             player ? player : sheet[i][columnPlayer] ? sheet[i][columnPlayer].trim() : "",
@@ -1534,8 +1545,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                             if (game.inventoryItems[i].containerName === "") {
                                 if (prefab === null) player.inventory[slot].equippedItem = null;
                                 else player.inventory[slot].equippedItem = game.inventoryItems[i];
-                            }
-                            else {
+                            } else {
                                 const splitContainer = game.inventoryItems[i].containerName.split('/');
                                 const containerItemIdentifier = splitContainer[0] ? splitContainer[0].trim() : "";
                                 const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
@@ -1635,8 +1645,7 @@ module.exports.loadInventories = function (game, doErrorChecking) {
                                 }
                             }
                         }
-                    }
-                    else game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
+                    } else game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
                 }
                 if (game.inventoryItems[i].player instanceof Player) {
                     const player = game.inventoryItems[i].player;

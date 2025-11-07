@@ -6,7 +6,59 @@ var moment = require('moment');
 var timer = require('moment-timer');
 moment().format();
 
+/**
+ * @typedef {object} Process
+ * @property {Recipe | null} recipe - The recipe being processed.
+ * @property {Item[]} ingredients - The ingredients used in the recipe.
+ * @property {Duration | null} duration - The duration of the recipe.
+ * @property {timer | null} timer - The timer used to track the duration of the recipe.
+ */
+
+/**
+ * @typedef {object} FindRecipeResult
+ * @property {Recipe | null} recipe - The recipe found.
+ * @property {Item[]} ingredients - The ingredients used in the recipe.
+ */
+
+/**
+ * @typedef {object} RemainingIngredient
+ * @property {number} ingredientIndex - The index of the ingredient in the ingredients array.
+ * @property {number} productIndex - The index of the product in the products array.
+ * @property {boolean} decreaseUses - Whether to decrease the uses of the ingredient.
+ * @property {boolean} nextStage - Whether to move to the next stage of the product.
+ */
+
+/**
+ * @class Object
+ * @classdesc Represents an object in the game.
+ * @param {string} name - The name of the object.
+ * @param {Room} location - The room the object is located in.
+ * @param {boolean} accessible - Whether the object can be interacted with.
+ * @param {string} childPuzzleName - Name of a puzzle that is associated with the object.
+ * @param {string} recipeTag - A keyword or phrase assigned to an object's recipe that allows it to carry out recipies that require it.
+ * @param {boolean} activatable - Whether the object can be activated or deactivated with the use command.
+ * @param {boolean} activated - Whether the object is currently checking for and processing a recipe.
+ * @param {boolean} autoDeactivate - Whether the object should automatically deactivate after processing a recipe.
+ * @param {number} hidingSpotCapacity - Whole number indicating how many players can hide in this object.
+ * @param {string} preposition - A preposition that can be used to refer to the object.
+ * @param {string} description - A description of the object.
+ * @param {number} row - The row number of the object in the sheet.
+ */
 class Object {
+    /**
+     * @param {string} name - The name of the object.
+     * @param {Room} location - The room the object is located in.
+     * @param {boolean} accessible - Whether the object can be interacted with.
+     * @param {string} childPuzzleName - Name of a puzzle that is associated with the object.
+     * @param {string} recipeTag - A keyword or phrase assigned to an object's recipe that allows it to carry out recipies that require it.
+     * @param {boolean} activatable - Whether the object can be activated or deactivated with the use command.
+     * @param {boolean} activated - Whether the object is currently checking for and processing a recipe.
+     * @param {boolean} autoDeactivate - Whether the object should automatically deactivate after processing a recipe.
+     * @param {number} hidingSpotCapacity - Whole number indicating how many players can hide in this object.
+     * @param {string} preposition - A preposition that can be used to refer to the object.
+     * @param {string} description - A description of the object.
+     * @param {number} row - The row number of the object in the sheet.
+     */
     constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row) {
         this.name = name;
         this.location = location;
@@ -22,19 +74,35 @@ class Object {
         this.description = description;
         this.row = row;
 
-        this.process = { recipe: null, ingredients: [], duration: null, timer: null };
+        /** @type {Process} */
+        this.process = {recipe: null, ingredients: [], duration: null, timer: null};
         let object = this;
-        this.recipeInterval = this.recipeTag ? new moment.duration(1000).timer({ start: true, loop: true }, function () { object.processRecipes(object); }) : null;
+        /** @type {timer | null} */
+        this.recipeInterval = this.recipeTag ? new moment.duration(1000).timer({start: true, loop: true}, function () {
+            object.processRecipes(object);
+        }) : null;
     }
 
+    /**
+     * Sets the object to be accessible.
+     */
     setAccessible() {
         this.accessible = true;
     }
 
+    /**
+     * Sets the object to be inaccessible.
+     */
     setInaccessible() {
         this.accessible = false;
     }
 
+    /**
+     * Makes the object start processing recipes.
+     * @param {Game} game
+     * @param {Player} player
+     * @param {boolean} narrate
+     */
     activate(game, player, narrate) {
         this.activated = true;
         if (narrate) {
@@ -42,13 +110,14 @@ class Object {
             else new Narration(game, null, game.rooms.find(room => room.name === this.location.name), `${this.name} turns on.`).send();
         }
 
+        /** @type {FindRecipeResult} */
         const result = this.findRecipe(game);
         if (result.recipe === null) {
             // If this is supposed to deactivate automatically and no recipe was found, turn it off after 1 minute.
             if (this.autoDeactivate) {
                 this.process.duration = new moment.duration(1, 'm');
                 let object = this;
-                this.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                this.process.timer = new moment.duration(1000).timer({start: true, loop: true}, function () {
                     if (object.process.duration !== null) {
                         object.process.duration.subtract(1000, 'ms');
                         if (object.process.duration.asMilliseconds() <= 0)
@@ -65,7 +134,7 @@ class Object {
         this.process.duration = this.process.recipe.duration.clone();
 
         let object = this;
-        object.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+        object.process.timer = new moment.duration(1000).timer({start: true, loop: true}, function () {
             if (object.process.duration !== null) {
                 object.process.duration.subtract(1000, 'ms');
 
@@ -73,10 +142,14 @@ class Object {
                     process(game, object, player);
             }
         });
-
-        return;
     }
 
+    /**
+     * Stops the object from processing recipes.
+     * @param {Game} game
+     * @param {Player} player
+     * @param {boolean} narrate
+     */
     deactivate(game, player, narrate) {
         this.activated = false;
         if (narrate) {
@@ -89,17 +162,20 @@ class Object {
         if (this.process.timer !== null)
             this.process.timer.stop();
         this.process.duration = null;
-
-        return;
     }
 
+    /**
+     * Checks if the object is activated and processes its recipes if it is.
+     * @param {Object} object
+     */
     processRecipes(object) {
         if (object.activated) {
-            var game = include('game.json');
+            /** @type {Game} */
+            let game = include('game.json');
             const result = object.findRecipe(game);
             if (object.process.recipe === null && object.process.duration === null && result.recipe === null && object.autoDeactivate) {
                 object.process.duration = new moment.duration(1, 'm');
-                object.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                object.process.timer = new moment.duration(1000).timer({start: true, loop: true}, function () {
                     if (object.process.duration !== null) {
                         object.process.duration.subtract(1000, 'ms');
                         if (object.process.duration.asMilliseconds() <= 0)
@@ -123,7 +199,7 @@ class Object {
                 object.process.ingredients = result.ingredients;
                 object.process.duration = object.process.recipe.duration.clone();
 
-                this.process.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+                this.process.timer = new moment.duration(1000).timer({start: true, loop: true}, function () {
                     if (object.process.duration !== null) {
                         object.process.duration.subtract(1000, 'ms');
 
@@ -133,13 +209,16 @@ class Object {
                 });
             }
         }
-
-        return;
     }
 
+    /**
+     * Finds recipes in the game object.
+     * @param {Game} game
+     * @returns {FindRecipeResult}
+     */
     findRecipe(game) {
         // Get all the items contained within this object.
-        var items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Object && item.container.row === this.row && item.quantity > 0);
+        let items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Object && item.container.row === this.row && item.quantity > 0);
         const itemManager = include(`${constants.modulesDir}/itemManager.js`);
         for (let i = 0; i < items.length; i++)
             itemManager.getChildItems(items, items[i]);
@@ -150,8 +229,10 @@ class Object {
         });
 
         const recipes = game.recipes.filter(recipe => recipe.objectTag === this.recipeTag);
-        var recipe = null;
-        var ingredients = [];
+        /** @type {Recipe | null} */
+        let recipe = null;
+        /** @type {Item[]} */
+        let ingredients = [];
         // Check if there's a recipe whose ingredients matches items exactly.
         for (let i = 0; i < recipes.length; i++) {
             if (ingredientsMatch(items, recipes[i].ingredients)) {
@@ -162,6 +243,7 @@ class Object {
         }
         // If no exact match was found, get all recipes that are satisfied by items.
         if (recipe === null) {
+            /** @type {FindRecipeResult[]} */
             let matches = [];
             for (let i = 0; i < recipes.length; i++) {
                 ingredients.length = 0;
@@ -177,7 +259,7 @@ class Object {
                     }
                 }
                 if (recipes[i].ingredients.length === ingredients.length)
-                    matches.push({ recipe: recipes[i], ingredients: [...ingredients] });
+                    matches.push({recipe: recipes[i], ingredients: [...ingredients]});
             }
             if (matches.length > 0) {
                 // Sort matches by number of matched ingredients in decreasing order.
@@ -190,14 +272,21 @@ class Object {
             }
         }
 
-        return { recipe: recipe, ingredients: ingredients };
+        return {recipe: recipe, ingredients: ingredients};
     }
 
+    /** @type {string} */
     descriptionCell() {
         return constants.objectSheetDescriptionColumn + this.row;
     }
 }
 
+/**
+ * Checks if items match ingredients.
+ * @param {Item[]} items
+ * @param {Prefab[]} ingredients
+ * @returns {boolean}
+ */
 function ingredientsMatch(items, ingredients) {
     if (items.length !== ingredients.length) return false;
     for (let i = 0; i < items.length; i++)
@@ -205,8 +294,15 @@ function ingredientsMatch(items, ingredients) {
     return true;
 }
 
+/**
+ * Processes a recipe.
+ * @param {Game} game
+ * @param {Object} object
+ * @param {Player} player
+ */
 function process(game, object, player) {
-    var remainingIngredients = [];
+    /** @type {RemainingIngredient[]} */
+    let remainingIngredients = [];
     // Make sure all the ingredients are still there.
     let stillThere = true;
     for (let i = 0; i < object.process.ingredients.length; i++) {
@@ -224,7 +320,12 @@ function process(game, object, player) {
                     nextStage = true;
                 else if (!isNaN(ingredient.uses))
                     decreaseUses = true;
-                remainingIngredients.push({ ingredientIndex: i, productIndex: j, decreaseUses: decreaseUses, nextStage: nextStage });
+                remainingIngredients.push({
+                    ingredientIndex: i,
+                    productIndex: j,
+                    decreaseUses: decreaseUses,
+                    nextStage: nextStage
+                });
                 break;
             }
         }
@@ -232,6 +333,7 @@ function process(game, object, player) {
     if (stillThere) {
         const itemManager = include(`${constants.modulesDir}/itemManager.js`);
         // If there is only one ingredient in this, remember its quantity.
+        /** @type {number} */
         const quantity = object.process.ingredients.length === 1 ? object.process.ingredients[0].quantity : 1;
         // Destroy the ingredients.
         for (let i = 0; i < object.process.ingredients.length; i++) {
@@ -255,12 +357,10 @@ function process(game, object, player) {
                     ingredient.uses--;
                     if (ingredient.uses === 0) itemManager.destroyItem(ingredient, ingredient.quantity, true);
                     break;
-                }
-                else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
+                } else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
                     product = ingredient.prefab.nextStage;
                     break;
-                }
-                else if (remainingIngredients[j].productIndex === i && isNaN(ingredient.uses)) {
+                } else if (remainingIngredients[j].productIndex === i && isNaN(ingredient.uses)) {
                     instantiate = false;
                     break;
                 }

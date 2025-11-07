@@ -8,7 +8,47 @@ var moment = require('moment');
 var timer = require('moment-timer');
 moment().format();
 
+/**
+ * @class Event
+ * @classdesc Represents an event.
+ * @param {string} name - The name of the event.
+ * @param {boolean} ongoing - Whether the event is ongoing.
+ * @param {string} durationString - The string representation of the duration of the event.
+ * @param {Duration} duration - The duration of the event.
+ * @param {string} remainingString - The string representation of the remaining time of the event.
+ * @param {Duration} remaining - The remaining time of the event.
+ * @param {string} triggerTimesString - The string representation of the trigger times of the event.
+ * @param {string[]} triggerTimes - The trigger times of the event.
+ * @param {string} roomTag - The keyword or phrase assigned to the event that allows it to affect rooms.
+ * @param {string} commandsString - Comma separated list of bot commands to be executed when the event is triggered or ended.
+ * @param {string[]} triggeredCommands - The bot commands to be executed when the event is triggered.
+ * @param {string[]} endedCommands - The bot commands to be executed when the event is ended.
+ * @param {string[]} effectsStrings - String representations of status effects to be inflicted on occupants when the event is ongoing.
+ * @param {string[]} refreshStrings - String representations of status effects whose status effect duration will be reset to full when the event is ongoing.
+ * @param {string} triggeredNarration - The narration to be sent to rooms when the event is triggered.
+ * @param {string} endedNarration - The narration to be sent to rooms when the event is ended.
+ * @param {number} row - The row of the event in the event sheet.
+ */
 class Event {
+    /**
+     * @param {string} name - The name of the event.
+     * @param {boolean} ongoing - Whether the event is ongoing.
+     * @param {string} durationString - The string representation of the duration of the event.
+     * @param {Duration} duration - The duration of the event.
+     * @param {string} remainingString - The string representation of the remaining time of the event.
+     * @param {Duration} remaining - The remaining time of the event.
+     * @param {string} triggerTimesString - The string representation of the trigger times of the event.
+     * @param {string[]} triggerTimes - The trigger times of the event.
+     * @param {string} roomTag - The keyword or phrase assigned to the event that allows it to affect rooms.
+     * @param {string} commandsString - Comma separated list of bot commands to be executed when the event is triggered or ended.
+     * @param {string[]} triggeredCommands - The bot commands to be executed when the event is triggered.
+     * @param {string[]} endedCommands - The bot commands to be executed when the event is ended.
+     * @param {string[]} effectsStrings - String representations of status effects to be inflicted on occupants when the event is ongoing.
+     * @param {string[]} refreshStrings - String representations of status effects whose status effect duration will be reset to full when the event is ongoing.
+     * @param {string} triggeredNarration - The narration to be sent to rooms when the event is triggered.
+     * @param {string} endedNarration - The narration to be sent to rooms when the event is ended.
+     * @param {number} row - The row of the event in the event sheet.
+     */
     constructor(name, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
         this.name = name;
         this.ongoing = ongoing;
@@ -23,33 +63,43 @@ class Event {
         this.triggeredCommands = triggeredCommands;
         this.endedCommands = endedCommands;
         this.effectsStrings = effectsStrings;
+        /** @type {string[] | Status[]} */
         this.effects = [...effectsStrings];
         this.refreshesStrings = refreshStrings;
+        /** @type {string[] | Status[]} */
         this.refreshes = [...refreshStrings];
         this.triggeredNarration = triggeredNarration;
         this.endedNarration = endedNarration;
         this.row = row;
 
+        /** @type {timer | null} */
         this.timer = null;
+        /** @type {timer | null} */
         this.effectsTimer = null;
     }
 
     static formats = [
-        "LT",           "LTS",          "HH:mm",            "hh:mm a",
-        "ddd LT",       "ddd LTS",      "ddd HH:mm",        "ddd hh:mm a",
-        "dddd LT",      "dddd LTS",     "dddd HH:mm",       "dddd hh:mm a",
-        "Do LT",        "Do LTS",       "Do HH:mm",         "Do hh:mm a",
-        "Do MMM LT",    "Do MMM LTS",   "Do MMM HH:mm",     "Do MMM hh:mm a",
-        "Do MMMM LT",   "Do MMMM LTS",  "Do MMMM HH:mm",    "Do MMMM hh:mm a",
-        "D MMM LT",     "D MMM LTS",    "D MMM HH:mm",      "D MMM hh:mm a",
-        "D MMMM LT",    "D MMMM LTS",   "D MMMM HH:mm",     "D MMMM hh:mm a",
-        "MMM Do LT",    "MMM Do LTS",   "MMM Do HH:mm",     "MMM Do hh:mm a",
-        "MMMM Do LT",   "MMMM Do LTS",  "MMMM Do HH:mm",    "MMMM Do hh:mm a",
-        "MMM D LT",     "MMM D LTS",    "MMM D HH:mm",      "MMM D hh:mm a",
-        "MMMM D LT",    "MMMM D LTS",   "MMMM D HH:mm",     "MMMM D hh:mm a"
+        "LT", "LTS", "HH:mm", "hh:mm a",
+        "ddd LT", "ddd LTS", "ddd HH:mm", "ddd hh:mm a",
+        "dddd LT", "dddd LTS", "dddd HH:mm", "dddd hh:mm a",
+        "Do LT", "Do LTS", "Do HH:mm", "Do hh:mm a",
+        "Do MMM LT", "Do MMM LTS", "Do MMM HH:mm", "Do MMM hh:mm a",
+        "Do MMMM LT", "Do MMMM LTS", "Do MMMM HH:mm", "Do MMMM hh:mm a",
+        "D MMM LT", "D MMM LTS", "D MMM HH:mm", "D MMM hh:mm a",
+        "D MMMM LT", "D MMMM LTS", "D MMMM HH:mm", "D MMMM hh:mm a",
+        "MMM Do LT", "MMM Do LTS", "MMM Do HH:mm", "MMM Do hh:mm a",
+        "MMMM Do LT", "MMMM Do LTS", "MMMM Do HH:mm", "MMMM Do hh:mm a",
+        "MMM D LT", "MMM D LTS", "MMM D HH:mm", "MMM D hh:mm a",
+        "MMMM D LT", "MMMM D LTS", "MMMM D HH:mm", "MMMM D hh:mm a"
     ];
 
-
+    /**
+     * Trigger the event.
+     * @param {Client} bot
+     * @param {Game} game
+     * @param {boolean} doTriggeredCommands
+     * @returns {Promise<void>}
+     */
     async trigger(bot, game, doTriggeredCommands) {
         // Mark it as ongoing.
         this.ongoing = true;
@@ -71,8 +121,7 @@ class Event {
                     const seconds = parseInt(args[1]);
                     if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
-                }
-                else {
+                } else {
                     commandHandler.execute(this.triggeredCommands[i], bot, game, null, null, this);
                 }
             }
@@ -87,10 +136,15 @@ class Event {
         // Post log message.
         const time = new Date().toLocaleTimeString();
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} was triggered.`);
-
-        return;
     }
 
+    /**
+     * Ends the event.
+     * @param {Client} bot
+     * @param {Game} game
+     * @param {boolean} doEndedCommands
+     * @returns {Promise<void>}
+     */
     async end(bot, game, doEndedCommands) {
         // Unmark it as ongoing.
         this.ongoing = false;
@@ -124,8 +178,7 @@ class Event {
                     const seconds = parseInt(args[1]);
                     if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
-                }
-                else {
+                } else {
                     commandHandler.execute(this.endedCommands[i], bot, game, null, null, this);
                 }
             }
@@ -134,15 +187,19 @@ class Event {
         // Post log message.
         const time = new Date().toLocaleTimeString();
         game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} was ended.`);
-
-        return;
     }
 
+    /**
+     * Starts the event timer.
+     * @param {Client} bot
+     * @param {Game} game
+     * @returns {Promise<void>}
+     */
     async startTimer(bot, game) {
         if (this.remaining === null)
             this.remaining = this.duration.clone();
         let event = this;
-        this.timer = new moment.duration(1000).timer({ start: true, loop: true }, async function () {
+        this.timer = new moment.duration(1000).timer({start: true, loop: true}, async function () {
             event.remaining.subtract(1000, 'ms');
 
             const days = Math.floor(event.remaining.asDays());
@@ -150,7 +207,7 @@ class Event {
             const minutes = event.remaining.minutes();
             const seconds = event.remaining.seconds();
 
-            var displayString = "";
+            let displayString = "";
             if (days !== 0) displayString += `${days} `;
             if (hours >= 0 && hours < 10) displayString += '0';
             displayString += `${hours}:`;
@@ -165,9 +222,13 @@ class Event {
         });
     }
 
+    /**
+     * Starts the event effects timer.
+     * @param {Game} game
+     */
     startEffectsTimer(game) {
         let event = this;
-        this.effectsTimer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+        this.effectsTimer = new moment.duration(1000).timer({start: true, loop: true}, function () {
             for (let i = 0; i < game.rooms.length; i++) {
                 if (game.rooms[i].tags.includes(event.roomTag)) {
                     for (let j = 0; j < game.rooms[i].occupants.length; j++) {
@@ -193,9 +254,12 @@ class Event {
         });
     }
 
+    /** @return {string} */
     triggeredCell() {
         return constants.eventSheetTriggeredColumn + this.row;
     }
+
+    /** @return {string} */
     endedCell() {
         return constants.eventSheetEndedColumn + this.row;
     }
@@ -203,6 +267,11 @@ class Event {
 
 module.exports = Event;
 
+/**
+ * Sleeps for the specified number of seconds.
+ * @param {number} seconds
+ * @returns {Promise<Timeout>}
+ */
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

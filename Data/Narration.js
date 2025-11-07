@@ -1,4 +1,19 @@
-﻿class Narration {
+﻿/**
+ * @class Narration
+ * @classdesc Represents a narration in the game.
+ * @constructor
+ * @param {Game} game - The game instance.
+ * @param {Player} player - The player who sent the narration.
+ * @param {Room} location - The location where the narration occurred.
+ * @param {string} message - The message content of the narration.
+ */
+class Narration {
+    /**
+     * @param {Game} game - The game instance.
+     * @param {Player} player - The player who sent the narration.
+     * @param {Room} location - The location where the narration occurred.
+     * @param {string} message - The message content of the narration.
+     */
     constructor(game, player, location, message) {
         this.game = game;
         this.player = player;
@@ -6,6 +21,9 @@
         this.message = message;
     }
 
+    /**
+     * Sends the narration to the room channel or to occupants who do not have access to the channel.
+     */
     send() {
         if (!this.player || !this.player.hasAttribute("hidden") || this.message === `${this.player.displayName} comes out of the ${this.player.hidingSpot}.`) {
             for (let i = 0; i < this.location.occupants.length; i++) {
@@ -33,8 +51,7 @@
                     }
                 }
             }
-        }
-        else if (this.player.hasAttribute("hidden")) {
+        } else if (this.player.hasAttribute("hidden")) {
             // Find the whisper channel the player is in, if there is one.
             let whisper = null;
             for (let i = 0; i < this.game.whispers.length; i++) {
@@ -58,7 +75,6 @@
                 this.game.messageHandler.addNarrationToWhisper(whisper, this.message, true);
             }
         }
-        return;
     }
 }
 
