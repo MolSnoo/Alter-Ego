@@ -3,6 +3,7 @@ const constants = require('../Configs/constants.json');
 var game = require('../game.json');
 
 const Status = require('./Status.js');
+const Player = require("./Player");
 
 /**
  * @typedef {object} ModifierResult

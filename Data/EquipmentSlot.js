@@ -1,4 +1,6 @@
-﻿/**
+﻿const InventoryItem = require("./InventoryItem");
+
+/**
  * @class EquipmentSlot
  * @classdesc Represents an equipment slot in the game.
  * @constructor

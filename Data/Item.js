@@ -1,8 +1,8 @@
 const constants = require('../Configs/constants.json');
-
-/**
- * @typedef {import("./Object.js").Object} Object
- */
+const Object = require("./Object");
+const Room = require("./Room");
+const Prefab = require("./Prefab");
+const Puzzle = require("./Puzzle");
 
 /**
  * @class Item

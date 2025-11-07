@@ -2,13 +2,10 @@
 const commandHandler = require('../Modules/commandHandler.js');
 
 const Narration = require('./Narration.js');
-
-/**
- * @typedef {object} CommandSet
- * @property {string[]} outcomes - Strings indicating which puzzle solutions that will execute the commands in this command set.
- * @property {string[]} solvedCommands - Bot commands that will be executed when the puzzle is solved.
- * @property {string[]} unsolvedCommands - Bot commands that will be executed when the puzzle is unsolved.
- */
+const Player = require("./Player");
+const Prefab = require("./Prefab");
+const Room = require("./Room");
+const {Client} = require("discord.js");
 
 /**
  * @class Puzzle
@@ -26,7 +23,7 @@ const Narration = require('./Narration.js');
  * @param {string[]} solutions - The solutions to the puzzle.
  * @param {number} remainingAttempts - The number of attempts the player has left to solve the puzzle.
  * @param {string} commandSetsString - Bot commands that will be executed when the puzzle is solved or unsolved.
- * @param {CommandSet[]} commandSets - A list of command set objects.
+ * @param {PuzzleCommandSet[]} commandSets - A list of command set objects.
  * @param {string} correctDescription - The description of the puzzle when it is solved.
  * @param {string} alreadySolvedDescription - The description of the puzzle when it is already solved.
  * @param {string} incorrectDescription - The description of the puzzle when it is incorrect.
@@ -48,7 +45,7 @@ class Puzzle {
      * @param {string[]} solutions - The solutions to the puzzle.
      * @param {number} remainingAttempts - The number of attempts the player has left to solve the puzzle.
      * @param {string} commandSetsString - Bot commands that will be executed when the puzzle is solved or unsolved.
-     * @param {CommandSet[]} commandSets - A list of command set objects.
+     * @param {PuzzleCommandSet[]} commandSets - A list of command set objects.
      * @param {string} correctDescription - The description of the puzzle when it is solved.
      * @param {string} alreadySolvedDescription - The description of the puzzle when it is already solved.
      * @param {string} incorrectDescription - The description of the puzzle when it is incorrect.
@@ -316,7 +313,7 @@ module.exports = Puzzle;
 /**
  * Sleeps for a specified number of seconds.
  * @param {number} seconds
- * @returns {Promise<Timeout>}
+ * @returns {Promise<NodeJS.Timeout>}
  */
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));

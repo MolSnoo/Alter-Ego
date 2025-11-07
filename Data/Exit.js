@@ -1,11 +1,5 @@
 const constants = require('../Configs/constants.json');
-
-/**
- * @typedef {object} Pos
- * @property {number} x - The x-coordinate of the position.
- * @property {number} y - The y-coordinate of the position.
- * @property {number} z - The z-coordinate of the position.
- */
+const Room = require("./Room");
 
 /**
  * @class Exit

@@ -4,15 +4,12 @@ const Narration = require('./Narration.js');
 
 var moment = require('moment');
 var timer = require('moment-timer');
+const Room = require("./Room");
+const Player = require("./Player");
+const Recipe = require("./Recipe");
+const Item = require("./Item");
+const Prefab = require("./Prefab");
 moment().format();
-
-/**
- * @typedef {object} Process
- * @property {Recipe | null} recipe - The recipe being processed.
- * @property {Item[]} ingredients - The ingredients used in the recipe.
- * @property {Duration | null} duration - The duration of the recipe.
- * @property {timer | null} timer - The timer used to track the duration of the recipe.
- */
 
 /**
  * @typedef {object} FindRecipeResult
@@ -117,6 +114,7 @@ class Object {
             if (this.autoDeactivate) {
                 this.process.duration = new moment.duration(1, 'm');
                 let object = this;
+
                 this.process.timer = new moment.duration(1000).timer({start: true, loop: true}, function () {
                     if (object.process.duration !== null) {
                         object.process.duration.subtract(1000, 'ms');
@@ -275,7 +273,7 @@ class Object {
         return {recipe: recipe, ingredients: ingredients};
     }
 
-    /** @type {string} */
+    /** @returns {string} */
     descriptionCell() {
         return constants.objectSheetDescriptionColumn + this.row;
     }

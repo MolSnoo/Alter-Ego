@@ -20,6 +20,7 @@
     "homepage": "https://github.com/MolSnoo/Alter-Ego",
     "types": "dist/bot.d.ts",
     "dependencies": {
+        "@types/node-fetch": "^2.6.13",
         "@xmldom/xmldom": "^0.8.11",
         "app-root-path": "^2.2.1",
         "discord.js": "^14.24.0",

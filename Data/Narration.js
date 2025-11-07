@@ -1,4 +1,7 @@
-﻿/**
+﻿const Player = require("./Player");
+const Room = require("./Room");
+
+/**
  * @class Narration
  * @classdesc Represents a narration in the game.
  * @constructor

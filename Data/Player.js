@@ -14,55 +14,17 @@ const Status = require('./Status.js');
 const Gesture = require('./Gesture.js');
 const Narration = require('./Narration.js');
 const Die = require('./Die.js');
+const EquipmentSlot = require("./EquipmentSlot");
 
-const {TextChannel} = require('discord.js');
+const {TextChannel, GuildMember} = require('discord.js');
 var moment = require('moment');
 var timer = require('moment-timer');
+const Exit = require("./Exit");
+
 moment().format();
 
 /**
  * @import {Message} from "discord.js"
- * @import {Puzzle} from "./Puzzle.js"
- * @import {Room} from "./Room.js"
- * @import {Item} from "./Item.js"
- * @import {InventoryItem} from "./InventoryItem.js"
- * @import {Status} from "./Status.js"
- * @import {Gesture} from "./Gesture.js"
- * @import {Narration} from "./Narration.js"
- * @import {Die} from "./Die.js"
- * @import {Object} from "./Object.js"
- */
-
-/**
- * @typedef {object} Pronouns
- * @property {string | null} sbj - The subject pronoun.
- * @property {string | null} Sbj - The subject pronoun with first letter capitalized.
- * @property {string | null} obj - The object pronoun.
- * @property {string | null} Obj - The object pronoun with first letter capitalized.
- * @property {string | null} dpos - The dependent possessive pronoun.
- * @property {string | null} Dpos - The dependent possessive pronoun with first letter capitalized.
- * @property {string | null} ipos - The independent possessive pronoun.
- * @property {string | null} Ipos - The independent possessive pronoun with first letter capitalized.
- * @property {string | null} ref - The reflexive pronoun.
- * @property {string | null} Ref - The reflexive pronoun with first letter capitalized.
- * @property {boolean | null} plural - Whether this pronoun pluralizes verbs.
- */
-
-/**
- * @typedef {object} Stats
- * @property {number} strength
- * @property {number} intelligence
- * @property {number} dexterity
- * @property {number} speed
- * @property {number} stamina
- */
-
-/**
- * @typedef {object} Misc
- * @property {string} command - The command alias that was used.
- * @property {string} input - The combined arguments of the command.
- * @property {Message} [message] - The message that triggered the command.
- * @property {Player} [targetPlayer] - The player targeted by the command.
  */
 
 /**
@@ -501,7 +463,7 @@ class Player {
     /**
      * Inflicts the player with a status effect.
      * @param {Game} game
-     * @param {string} statusName
+     * @param {string | Status} statusName
      * @param {boolean} [notify]
      * @param {boolean} [doCures]
      * @param {boolean} [narrate]

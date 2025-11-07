@@ -1,16 +1,8 @@
 ﻿const constants = require('../Configs/constants.json');
+const Status = require("./Status");
 
 /**
  * @import {Object} from "./Object.js"
- */
-
-/**
- * @typedef {object} InventorySlot
- * @property {string} name - The name of the slot.
- * @property {number} capacity - Maximum sum of sizes that can be stored in the slot.
- * @property {number} takenSpace - The current sum of sizes stored in the slot.
- * @property {number} weight - The combined weight of all items stored in the slot.
- * @property {Item[] | InventoryItem[]} item - The items stored in the slot.
  */
 
 /**

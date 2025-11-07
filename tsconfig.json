@@ -10,14 +10,16 @@
         "esModuleInterop": true,
         "target": "esnext",
         "types": [
-            "node"
+            "node",
+            "node-fetch"
         ],
         // For nodejs:
         "lib": [
             "esnext"
         ],
         "allowJs": true,
-        "checkJs": false,
+        "checkJs": true,
+        "resolveJsonModule": true,
         // Other Outputs
         "sourceMap": true,
         "declaration": true,
@@ -35,16 +37,15 @@
         // "noPropertyAccessFromIndexSignature": true,
 
         // Recommended Options
-        "strict": true,
+        // "strict": true,
         "jsx": "react-jsx",
         "verbatimModuleSyntax": true,
         "isolatedModules": true,
-        "noUncheckedSideEffectImports": true,
+        "noUncheckedSideEffectImports": false,
         "moduleDetection": "auto",
         "skipLibCheck": false
     },
     "include": [
-        "**/*.ts",
-        "**/*.js"
+        "**/*"
     ]
 }
