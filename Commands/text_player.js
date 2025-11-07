@@ -1,6 +1,6 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const messageHandler = include(`${constants.modulesDir}/messageHandler.js`);
+const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const messageHandler = require('../Modules/messageHandler.js');
 
 module.exports.config = {
     name: "text_player",

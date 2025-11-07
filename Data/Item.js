@@ -1,4 +1,4 @@
-const constants = include('Configs/constants.json');
+const constants = require('../Configs/constants.json');
 
 /**
  * @typedef {import("./Object.js").Object} Object

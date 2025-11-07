@@ -1,6 +1,6 @@
-const constants = include('Configs/constants.json');
+const constants = require('../Configs/constants.json');
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+const Narration = require('./Narration.js');
 
 var moment = require('moment');
 var timer = require('moment-timer');
@@ -171,7 +171,7 @@ class Object {
     processRecipes(object) {
         if (object.activated) {
             /** @type {Game} */
-            let game = include('game.json');
+            let game = require('../game.json');
             const result = object.findRecipe(game);
             if (object.process.recipe === null && object.process.duration === null && result.recipe === null && object.autoDeactivate) {
                 object.process.duration = new moment.duration(1, 'm');
@@ -219,7 +219,7 @@ class Object {
     findRecipe(game) {
         // Get all the items contained within this object.
         let items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Object && item.container.row === this.row && item.quantity > 0);
-        const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+        const itemManager = require('../Modules/itemManager.js');
         for (let i = 0; i < items.length; i++)
             itemManager.getChildItems(items, items[i]);
         items.sort(function (a, b) {
@@ -331,7 +331,7 @@ function process(game, object, player) {
         }
     }
     if (stillThere) {
-        const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+        const itemManager = require('../Modules/itemManager.js');
         // If there is only one ingredient in this, remember its quantity.
         /** @type {number} */
         const quantity = object.process.ingredients.length === 1 ? object.process.ingredients[0].quantity : 1;

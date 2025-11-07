@@ -1,7 +1,7 @@
 ﻿const Player = require("./Player");
 const Prefab = require("./Prefab");
 
-const constants = include('Configs/constants.json');
+const constants = require('../Configs/constants.json');
 
 /**
  * @class InventoryItem

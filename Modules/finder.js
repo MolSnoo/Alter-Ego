@@ -1,4 +1,4 @@
-var game = include('game.json');
+var game = require('../game.json');
 
 module.exports.findRoom = function (name) {
     if (name) name = name.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');

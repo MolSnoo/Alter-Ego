@@ -1,16 +1,16 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const playerdefaults = include('Configs/playerdefaults.json');
-const parser = include(`${constants.modulesDir}/parser.js`);
+﻿const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const playerdefaults = require('../Configs/playerdefaults.json');
+const parser = require('../Modules/parser.js');
 
 const fs = require('fs');
 const os = require('os');
 
-const Item = include(`${constants.dataDir}/Item.js`);
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
-const Player = include(`${constants.dataDir}/Player.js`);
+const Item = require('../Data/Item.js');
+const InventoryItem = require('../Data/InventoryItem.js');
+const Player = require('../Data/Player.js');
 
-let game = include('game.json');
+let game = require('../game.json');
 
 module.exports.config = {
     name: "testparser_moderator",

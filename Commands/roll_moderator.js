@@ -1,7 +1,7 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+﻿const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
 
-const Die = include(`${constants.dataDir}/Die.js`);
+const Die = require('../Data/Die.js');
 
 module.exports.config = {
     name: "roll_moderator",

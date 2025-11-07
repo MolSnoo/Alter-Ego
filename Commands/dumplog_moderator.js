@@ -1,4 +1,4 @@
-const settings = include('Configs/settings.json');
+const settings = require('../Configs/settings.json');
 const {format: prettyFormat} = require('pretty-format');
 const zlib = require('zlib');
 const fs = require('fs');

@@ -1,8 +1,8 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
+const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const serverconfig = require('../Configs/serverconfig.json');
 const discord = require('discord.js');
-const QueuedMessage = include(`${constants.dataDir}/QueuedMessage.js`);
+const QueuedMessage = require('../Data/QueuedMessage.js');
 
 module.exports.queue = [];
 module.exports.cache = [];

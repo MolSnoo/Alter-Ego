@@ -1,8 +1,8 @@
-const constants = include('Configs/constants.json');
-const demodata = include('Configs/demodata.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+const constants = require('../Configs/constants.json');
+const demodata = require('../Configs/demodata.json');
+const sheets = require('./sheets.js');
 
-var game = include('game.json');
+var game = require('../game.json');
 
 module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventoryItemsCount = 0) {
     return new Promise(async (resolve, reject) => {

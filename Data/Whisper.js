@@ -1,8 +1,8 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
+﻿const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const serverconfig = require('../Configs/serverconfig.json');
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+const Narration = require('./Narration.js');
 
 const {ChannelType, TextChannel} = require("../node_modules/discord-api-types/v10");
 

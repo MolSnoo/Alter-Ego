@@ -1,4 +1,4 @@
-﻿const serverconfig = include('Configs/serverconfig.json');
+﻿const serverconfig = require('../Configs/serverconfig.json');
 
 module.exports.config = {
     name: "move_bot",

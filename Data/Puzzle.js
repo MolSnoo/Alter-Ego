@@ -1,7 +1,7 @@
-﻿const constants = include('Configs/constants.json');
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
+﻿const constants = require('../Configs/constants.json');
+const commandHandler = require('../Modules/commandHandler.js');
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+const Narration = require('./Narration.js');
 
 /**
  * @typedef {object} CommandSet

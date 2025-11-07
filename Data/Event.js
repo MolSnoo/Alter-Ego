@@ -1,8 +1,8 @@
-const constants = include('Configs/constants.json');
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
-const parser = include(`${constants.modulesDir}/parser.js`);
+const constants = require('../Configs/constants.json');
+const commandHandler = require('../Modules/commandHandler.js');
+const parser = require('../Modules/parser.js');
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+const Narration = require('./Narration.js');
 
 var moment = require('moment');
 var timer = require('moment-timer');

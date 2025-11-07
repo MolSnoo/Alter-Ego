@@ -1,8 +1,8 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const playerdefaults = include('Configs/playerdefaults.json');
-const serverconfig = include('Configs/serverconfig.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+﻿const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const playerdefaults = require('../Configs/playerdefaults.json');
+const serverconfig = require('../Configs/serverconfig.json');
+const sheets = require('../Modules/sheets.js');
 
 module.exports.config = {
     name: "startgame_moderator",

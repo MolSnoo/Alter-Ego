@@ -1,5 +1,5 @@
-const constants = include('Configs/constants.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+const constants = require('../Configs/constants.json');
+const sheets = require('./sheets.js');
 
 const fs = require('fs');
 

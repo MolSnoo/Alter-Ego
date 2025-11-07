@@ -1,5 +1,5 @@
-const constants = include('Configs/constants.json');
-const Narration = include(`${constants.dataDir}/Narration.js`);
+const constants = require('../Configs/constants.json');
+const Narration = require('./Narration.js');
 const {TextChannel} = require('discord.js');
 
 /**

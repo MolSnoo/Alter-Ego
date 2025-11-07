@@ -1,8 +1,8 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-var game = include('game.json');
+﻿const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+var game = require('../game.json');
 
-const Status = include(`${constants.dataDir}/Status.js`);
+const Status = require('./Status.js');
 
 /**
  * @typedef {object} ModifierResult
