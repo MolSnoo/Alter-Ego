@@ -1,9 +1,9 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+﻿const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const serverconfig = require('../Configs/serverconfig.json');
+const dialogHandler = require('../Modules/dialogHandler.js');
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+const Narration = require('../Data/Narration.js');
 
 module.exports.config = {
     name: "say_moderator",
