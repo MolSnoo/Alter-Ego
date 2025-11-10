@@ -124,3 +124,10 @@ module.exports.findInventoryItem = function (identifier, player, containerName, 
         && inventoryItem.quantity !== 0
     );
 };
+
+module.exports.findFlag = function (id) {
+    if (id) id = id.toUpperCase().replace(/\'/g, '');
+
+    const flag = game.flags.get(id);
+    return flag ? flag.value : flag;
+};

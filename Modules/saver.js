@@ -172,6 +172,16 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
             ]);
         data.push({ range: constants.inventorySheetDataCells, values: inventoryValues });
 
+        var flagValues = [];
+        game.flags.forEach(flag => {
+            flagValues.push([
+                flag.id,
+                flag.value === null ? "" : flag.value === true ? "TRUE" : flag.value === false ? "FALSE" : flag.value,
+                flag.commandSetsString
+            ]);
+        });
+        data.push({ range: constants.flagSheetDataCells, values: flagValues });
+
         try {
             await sheets.batchUpdateData(data);
             resolve();

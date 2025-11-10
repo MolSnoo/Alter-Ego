@@ -906,3 +906,6 @@ function findDeadPlayer(name) {
 function findInventoryItem(identifier, player, containerName, equipmentSlot) {
     return finder.findInventoryItem(identifier, player, containerName, equipmentSlot);
 }
+function findFlag(id) {
+    return finder.findFlag(id);
+}

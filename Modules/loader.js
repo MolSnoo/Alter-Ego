@@ -15,6 +15,7 @@ const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 const Status = include(`${constants.dataDir}/Status.js`);
 const Player = include(`${constants.dataDir}/Player.js`);
 const Gesture = include(`${constants.dataDir}/Gesture.js`);
+const Flag = include(`${constants.dataDir}/Flag.js`);
 
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
 var moment = require('moment');
@@ -1789,5 +1790,89 @@ module.exports.checkGesture = function (gesture) {
         return new Error(`Couldn't load gesture on row ${gesture.row}. No description was given.`);
     if (gesture.narration === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
+    return;
+};
+
+// Flags always undergo error checking. So, doErrorChecking simply determines if loadFlags trims the error messages itself.
+// Pass the currently existing errors 
+module.exports.loadFlags = function (game, doErrorChecking, errors) {
+    return new Promise((resolve, reject) => {
+        sheets.getData(constants.flagSheetDataCells, function (response) {
+            const sheet = response.data.values ? response.data.values : [];
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnID = 0;
+            const columnValue = 1;
+            const columnCommands = 2;
+
+            if (game.flags instanceof Map) game.flags.clear();
+            game.flags = new Map();
+            if (!errors) errors = [];
+            for (let i = 0; i < sheet.length; i++) {
+                let commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
+                let commandSets = [];
+                let getCommands = function (commandString) {
+                    const commands = commandString.split('/');
+                    let setCommands = commands[0] ? commands[0].split(',') : [];
+                    for (let j = 0; j < setCommands.length; j++)
+                        setCommands[j] = setCommands[j].trim();
+                    let clearedCommands = commands[1] ? commands[1].split(',') : [];
+                    for (let j = 0; j < clearedCommands.length; j++)
+                        clearedCommands[j] = clearedCommands[j].trim();
+                    return { setCommands: setCommands, clearedCommands: clearedCommands };
+                };
+                const regex = new RegExp(/(\[((.*?): (.*?))\],?)/);
+                if (regex.test(commandString)) {
+                    while (regex.test(commandString)) {
+                        const commandSet = RegExp.$2;
+                        let values = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
+                        for (let j = 0; j < values.length; j++)
+                            values[j] = values[j].trim();
+                        const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
+                        commandSets.push({ values: values, setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
+                        commandString = commandString.replace(RegExp.$1, "").trim();
+                    }
+                }
+                else {
+                    const commands = getCommands(sheet[i][columnCommands] ? sheet[i][columnCommands] : "");
+                    commandSets.push({ values: [], setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
+                }
+                let value = sheet[i][columnValue] ? sheet[i][columnValue].trim() : null;
+                if (!isNaN(parseFloat(value))) value = parseFloat(value);
+                else if (value === "TRUE") value = true;
+                else if (value === "FALSE") value = false;
+                
+                let flag = new Flag(
+                    sheet[i][columnID] ? sheet[i][columnID].trim().toUpperCase().replace(/\'/g, '') : "",
+                    value,
+                    sheet[i][columnCommands] ? sheet[i][columnCommands].trim() : "",
+                    commandSets,
+                    i + 2
+                );
+                
+                let error = exports.checkFlag(flag, game);
+                if (error instanceof Error) errors.push(error);
+                else game.flags.set(flag.id, flag);
+            }
+
+            if (doErrorChecking && errors.length > 0) {
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkFlag = function (flag, game) {
+    if (flag.id === "" || flag.id === null || flag.id === undefined)
+        return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
+    if (!!game.flags.get(flag.id) && game.flags.get(flag.id).row !== flag.row)
+        return new Error(`Couldn't get flag on row ${flag.row}. Another flag with this ID already exists.`);
+    if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
+        return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
     return;
 };
