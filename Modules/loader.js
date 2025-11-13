@@ -1319,7 +1319,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var member = null;
                 var spectateChannel = null;
                 if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
-                    member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    try {
+                        member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    } catch (error) {}
                     spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
@@ -1357,24 +1359,26 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 if (player.alive) {
                     game.players_alive.push(player);
 
-                    // Parse statuses and inflict the player with them.
-                    const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                    for (let j = 0; j < game.statusEffects.length; j++) {
-                        for (let k = 0; k < statusList.length; k++) {
-                            const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
-                            if (game.statusEffects[j].name === statusName) {
-                                const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
-                                currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                    if (player.member !== null || player.talent === "NPC") {
+                        // Parse statuses and inflict the player with them.
+                        const currentPlayer = game.players_alive[game.players_alive.length - 1];
+                        for (let j = 0; j < game.statusEffects.length; j++) {
+                            for (let k = 0; k < statusList.length; k++) {
+                                const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
+                                if (game.statusEffects[j].name === statusName) {
+                                    const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
+                                    const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                    currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                                }
                             }
                         }
-                    }
 
-                    if (currentPlayer.location instanceof Room) {
-                        for (let k = 0; k < game.rooms.length; k++) {
-                            if (game.rooms[k].name === currentPlayer.location.name) {
-                                game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
-                                break;
+                        if (currentPlayer.location instanceof Room) {
+                            for (let k = 0; k < game.rooms.length; k++) {
+                                if (game.rooms[k].name === currentPlayer.location.name) {
+                                    game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
+                                    break;
+                                }
                             }
                         }
                     }
