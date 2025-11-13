@@ -1359,7 +1359,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 if (player.alive) {
                     game.players_alive.push(player);
 
-                    if (player.member !== null) {
+                    if (player.member !== null || player.talent === "NPC") {
                         // Parse statuses and inflict the player with them.
                         const currentPlayer = game.players_alive[game.players_alive.length - 1];
                         for (let j = 0; j < game.statusEffects.length; j++) {
