@@ -1319,7 +1319,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var member = null;
                 var spectateChannel = null;
                 if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
-                    member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    try {
+                        member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    } catch (error) {}
                     spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
