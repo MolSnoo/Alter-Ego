@@ -73,7 +73,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
     let embed = new discord.EmbedBuilder()
         .setThumbnail(thumbnail)
         .setTitle(location.name)
-        .setColor('1F8B4C')
+        .setColor(settings.embedColor)
         .setDescription(descriptionText)
         .addFields([
             { name: "Occupants", value: occupantsString },

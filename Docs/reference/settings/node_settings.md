@@ -20,6 +20,10 @@ run it if it was.
 This is a simple [Boolean value](https://en.wikipedia.org/wiki/Boolean_data_type). If this is `true`, Alter Ego will
 start in debug mode. If this is `false`, it will start normally.
 
+### embedColor
+
+This is a string that determines the color of embed messages sent by Alter Ego. String should be in the format of a 24-bit hexadecimal number without a hash symbol, e.g. `1F8B4C`
+
 ## Other game data (settings.json)
 
 ### pixelsPerMeter

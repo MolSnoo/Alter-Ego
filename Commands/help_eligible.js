@@ -80,7 +80,7 @@ module.exports.run = async (bot, game, message, args, player) => {
 
         const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
         let embed = new discord.EmbedBuilder()
-            .setColor('1F8B4C')
+            .setColor(settings.embedColor)
             .setAuthor({ name: `${commandName} Command Help`, iconURL: game.guild.iconURL() })
             .setDescription(command.description);
 
@@ -104,7 +104,7 @@ function createEmbed(game, page, pages) {
     const role = game.guild.roles.cache.get(roleId);
     const roleName = role ? role.name : "Eligible";
     let embed = new discord.EmbedBuilder()
-        .setColor('1F8B4C')
+        .setColor(settings.embedColor)
         .setAuthor({ name: `${game.guild.members.me.displayName} Help`, iconURL: game.guild.iconURL() })
         .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
