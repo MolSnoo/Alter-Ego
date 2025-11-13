@@ -187,7 +187,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
 function createEmbed(game, page, pages) {
     let embed = new discord.EmbedBuilder()
-        .setColor('1F8B4C')
+        .setColor(settings.embedColor)
         .setAuthor({ name: `Gestures List`, iconURL: game.guild.iconURL() })
         .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
