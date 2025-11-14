@@ -1642,8 +1642,11 @@ class Player {
     }
     
     uncraft(game, item, recipe, bot) {
-        var ingredient1 = recipe.ingredients[0];
-        var ingredient2 = recipe.ingredients[1];
+        // If only one ingredient is discreet, the first ingredient should be the discreet one.
+        // This will result in more natural sounding narrations.
+        const oneDiscreet = !recipe.ingredients[0].discreet && recipe.ingredients[1].discreet || recipe.ingredients[0].discreet && !recipe.ingredients[1].discreet;
+        var ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
+        var ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
 
         var rightHand = null;
         var leftHand = null;
@@ -1696,8 +1699,10 @@ class Player {
             else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
             else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
 
-            if (ingredientPhrase !== "") ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
-            if (!itemDiscreet || ingredientPhrase !== "") new Narration(game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
+            if (ingredientPhrase !== "") {
+                ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
+                new Narration(game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
+            }
         }
 
         return { ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null, ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null };
@@ -1908,7 +1913,7 @@ class Player {
                     else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
                 }
                 else if (puzzle.type === "option") {
-                    if (puzzle.solved && password === "") puzzle.unsolve(bot, game, this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for ${puzzleName}.`, true);
+                    if (puzzle.solved && password === "") puzzle.unsolve(bot, game, this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for the ${puzzleName}.`, true);
                     if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} sets the ${puzzleName}, but nothing changes.`);
                     else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true);
                     else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);

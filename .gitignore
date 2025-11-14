@@ -287,3 +287,6 @@ parsedText.xml
 
 # Coverage
 coverage/
+
+# md-book
+book/

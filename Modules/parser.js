@@ -1,5 +1,6 @@
 const constants = include('Configs/constants.json');
 const finder = include(`${constants.modulesDir}/finder.js`);
+const scriptParser = require('./scriptParser.js');
 
 const DOMParser = require('@xmldom/xmldom').DOMParser;
 const XMLSerializer = require('@xmldom/xmldom').XMLSerializer;
@@ -64,8 +65,6 @@ module.exports.parseDescription = function (description, container, player, doEr
     document = document.document;
 
     if (document) {
-        // Include game data for variable functionality.
-        var game = include('game.json');
         // Find any conditionals.
         var conditionals = document.getElementsByTagName('if');
         let conditionalsToRemove = [];
@@ -74,7 +73,7 @@ module.exports.parseDescription = function (description, container, player, doEr
             if (conditional !== null && conditional !== undefined) {
                 conditional = conditional.replace(/this/g, "container");
                 try {
-                    if (eval(conditional) === false)
+                    if (scriptParser.evaluate(conditional, container, player) === false)
                         conditionalsToRemove.push(conditionals[i]);
                 }
                 catch (err) {
@@ -114,7 +113,7 @@ module.exports.parseDescription = function (description, container, player, doEr
             if (varAttribute !== null && varAttribute !== undefined) {
                 varAttribute = varAttribute.replace(/this/g, "container");
                 try {
-                    let variableText = eval(varAttribute);
+                    let variableText = scriptParser.evaluate(varAttribute, container, player);
                     if (variableText === undefined || variableText === "undefined")
                         errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
                     variableStrings.push({ element: variables[i], attribute: variableText });
@@ -905,4 +904,7 @@ function findDeadPlayer(name) {
 }
 function findInventoryItem(identifier, player, containerName, equipmentSlot) {
     return finder.findInventoryItem(identifier, player, containerName, equipmentSlot);
+}
+function findFlag(id) {
+    return finder.findFlag(id);
 }
