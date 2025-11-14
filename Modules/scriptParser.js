@@ -33,17 +33,20 @@ const OPTIONS = {
 		'__proto__',
 		'prototype',
 		'constructor',
+		'channel',
 		'addPlayer',
 		'removePlayer',
 		'joinChannel',
 		'leaveChannel',
 		'unlock',
 		'lock',
+		'recipeInterval',
 		'setAccessible',
 		'setInaccessible',
 		'activate',
 		'deactivate',
 		'processRecipes',
+		'stop',
 		'findRecipe',
 		'insertItem',
 		'removeItem',
@@ -123,7 +126,7 @@ module.exports.evaluate = function (scriptText, container, player) {
 
 	let script;
 	try {
-		script = parseExpression(scriptText.replace(/this/g, "container"));
+		script = parseExpression(scriptText);
 	}
 	catch (err) { throw new Error(`Parse error: ${err.message}`); }
 
@@ -138,13 +141,73 @@ function parseExpression(scriptText) {
 	const script = acorn.parse(scriptText, OPTIONS);
 	if (!script || !script.body || script.body.length !== 1 || script.body[0].type !== 'ExpressionStatement')
 		throw new Error('Only single expressions are allowed');
-	return script.body[0].expression;
+	const expr = script.body[0].expression;
+	replaceThisExpressions(expr);
+	return expr;
+}
+
+// Replace ThisExpression nodes with `container` Identifier nodes so that the `this` keyword is mapped to `container`.
+function replaceThisExpressions(node) {
+	if (!node || typeof node !== 'object') return;
+	if (node.type === 'ThisExpression') {
+		node.type = 'Identifier';
+		node.name = 'container';
+		delete node.object;
+		delete node.property;
+		delete node.callee;
+		delete node.arguments;
+		return;
+	}
+	for (const key of Object.keys(node)) {
+		const child = node[key];
+		if (Array.isArray(child)) {
+			for (const c of child) replaceThisExpressions(c);
+		} else if (child && typeof child === 'object') {
+			replaceThisExpressions(child);
+		}
+	}
 }
 
 function isBlockedProp(name) {
 	if (!name || typeof name !== 'string') return false;
 	// Ensure that sensitive properties cannot be accessed.
 	return OPTIONS.blockedProperties.includes(name);
+}
+
+// Create read-only proxies for objects so script evaluation cannot modify them.
+const proxyCache = new WeakMap();
+function makeReadOnly(val) {
+	if (val === null) return null;
+	if (typeof val !== 'object' && typeof val !== 'function') return val;
+	if (proxyCache.has(val)) return proxyCache.get(val);
+
+	const handler = {
+		get(targetObject, propKey, thisReceiver) {
+			const prop = Reflect.get(targetObject, propKey, thisReceiver);
+			if (typeof prop === 'function') {
+				return function(...args) {
+					// Call original function with the proxy as `this` value so any property accesses go through proxy traps.
+					return prop.apply(proxyCache.get(targetObject) || thisReceiver, args);
+				};
+			}
+			return makeReadOnly(prop);
+		},
+		set() { throw new Error('Mutation prohibited'); },
+		deleteProperty() { throw new Error('Mutation prohibited'); },
+		defineProperty() { throw new Error('Mutation prohibited'); },
+		setPrototypeOf() { throw new Error('Mutation prohibited'); },
+		// Expose basic Reflect traps.
+		has(targetObject, propKey) { return Reflect.has(targetObject, propKey); },
+		ownKeys(targetObject) { return Reflect.ownKeys(targetObject); },
+		getOwnPropertyDescriptor(targetObject, propKey) { return Reflect.getOwnPropertyDescriptor(targetObject, propKey); },
+		getPrototypeOf(targetObject) { return Reflect.getPrototypeOf(targetObject); }
+	};
+
+	const proxy = new Proxy(val, handler);
+	proxyCache.set(val, proxy);
+	// Allow handler get method to find the proxy for a given target.
+	proxyCache.set(proxy, proxy);
+	return proxy;
 }
 
 function validateAndEval(node, context, nodeCount) {
@@ -155,7 +218,7 @@ function validateAndEval(node, context, nodeCount) {
 		case 'Literal':
 			return node.value;
 		case 'Identifier':
-			if (Object.hasOwn(context, node.name)) return context[node.name];
+				if (Object.hasOwn(context, node.name)) return makeReadOnly(context[node.name]);
 			throw new Error(`Unknown identifier: ${node.name}`);
 		case 'UnaryExpression': {
 			if (!UNARY_OPS[node.operator]) throw new Error(`Unsupported unary operator ${node.operator}`);
@@ -215,11 +278,11 @@ function validateAndEval(node, context, nodeCount) {
 				current = validateAndEval(objectNode, context, nodeCount);
 			}
 			for (const prop of chain) {
-				if (isBlockedProp(prop)) throw new Error('Access to prototype/constructor is prohibited');
+				if (isBlockedProp(prop)) throw new Error('Access prohibited');
 				if (current === null || current === undefined) return undefined;
 				current = current[prop];
 			}
-			return current;
+				return makeReadOnly(current);
 		}
 		case 'NewExpression': {
 			// Allow calling constructors from allowedConstructors.
@@ -284,7 +347,7 @@ function validateAndEval(node, context, nodeCount) {
 				let current = rootObj;
 				for (let i = 0; i < chain.length; i++) {
 					const prop = chain[i];
-					if (isBlockedProp(prop)) throw new Error(`Access to property ${prop} is prohibited`);
+					if (isBlockedProp(prop)) throw new Error(`Access prohibited`);
 					if (current === null || current === undefined) { current = undefined; owner = current; break; }
 					owner = current;
 					current = current[prop];
@@ -298,8 +361,8 @@ function validateAndEval(node, context, nodeCount) {
 			if (typeof fn !== 'function') throw new Error('Callee is not a function');
 			// Evaluate args before calling the function.
 			const args = node.arguments.map(arg => validateAndEval(arg, context, nodeCount));
-			// Call with owner as thisArg so instance methods work.
-			return fn.apply(thisArg, args);
+			const result = fn.apply(thisArg, args);
+			return makeReadOnly(result);
 		}
 		case 'ArrayExpression':
 			return node.elements.map(el => validateAndEval(el, context, nodeCount));
