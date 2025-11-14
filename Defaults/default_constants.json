@@ -35,5 +35,5 @@
   "inventorySheetDataCells": "Inventory Items!A2:H",
   "inventorySheetDescriptionColumn": "Inventory Items!H",
   "gestureSheetDataCells": "Gestures!A2:E",
-  "flagSheetDataCells": "Flags!A2:C"
+  "flagSheetDataCells": "Flags!A2:D"
 }

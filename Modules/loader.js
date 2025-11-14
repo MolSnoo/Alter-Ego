@@ -1802,7 +1802,8 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
             const columnValue = 1;
-            const columnCommands = 2;
+            const columnValueScript = 2;
+            const columnCommands = 3;
 
             if (game.flags instanceof Map) game.flags.clear();
             game.flags = new Map();
@@ -1844,6 +1845,7 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
                 let flag = new Flag(
                     sheet[i][columnID] ? sheet[i][columnID].trim().toUpperCase().replace(/\'/g, '') : "",
                     value,
+                    sheet[i][columnValueScript] ? sheet[i][columnValueScript].trim() : "",
                     sheet[i][columnCommands] ? sheet[i][columnCommands].trim() : "",
                     commandSets,
                     i + 2
@@ -1874,5 +1876,13 @@ module.exports.checkFlag = function (flag, game) {
         return new Error(`Couldn't get flag on row ${flag.row}. Another flag with this ID already exists.`);
     if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
         return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
+    if (flag.valueScript !== "") {
+        const scriptParser = require('./scriptParser.js');
+        try {
+            let value = scriptParser.evaluate(flag.valueScript, flag);
+            flag.value = value;
+        } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
+    }
+
     return;
 };

@@ -177,6 +177,7 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
             flagValues.push([
                 flag.id,
                 flag.value === null ? "" : flag.value === true ? "TRUE" : flag.value === false ? "FALSE" : flag.value,
+                flag.valueScript,
                 flag.commandSetsString
             ]);
         });

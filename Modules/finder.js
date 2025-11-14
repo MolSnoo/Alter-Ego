@@ -1,4 +1,4 @@
-var game = include('game.json');
+var game = require('../game.json');
 
 module.exports.findRoom = function (name) {
     if (name) name = name.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
@@ -125,9 +125,16 @@ module.exports.findInventoryItem = function (identifier, player, containerName, 
     );
 };
 
-module.exports.findFlag = function (id) {
+module.exports.findFlag = function (id, evaluate = false) {
     if (id) id = id.toUpperCase().replace(/\'/g, '');
 
     const flag = game.flags.get(id);
+    if (flag && flag.valueScript && evaluate) {
+        const scriptParser = require('./scriptParser.js');
+        try {
+            let value = scriptParser.evaluate(flag.valueScript, flag);
+            flag.value = value;
+        } catch (err) {}
+    }
     return flag ? flag.value : flag;
 };
