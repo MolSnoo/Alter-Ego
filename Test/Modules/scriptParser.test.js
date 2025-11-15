@@ -355,6 +355,30 @@ describe('test finder functions and data accessors', () => {
 				const result = scriptParser.evaluate(script, null, null);
 				expect(result).toBe(expected);
 			});
+
+			test('findItem().uses', () => {
+				const script = "findItem('CHICKEN NUGGETS').uses * 8";
+				const expected = 32;
+				finder.findItem.mockReturnValue({ uses: 4 })
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+
+			test('findItem().uses in range', () => {
+				const script = "findItem('CHICKEN NUGGETS').uses > 0 && findItem('CHICKEN NUGGETS').uses <= 4";
+				const expected = true;
+				finder.findItem.mockReturnValue({ uses: 4 })
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+
+			test('findItem().inventory[].item.length', () => {
+				const script = "findItem('BAG OF CHICKEN NUGGETS').inventory[0].item.length";
+				const expected = 3;
+				finder.findItem.mockReturnValue({ inventory: [ { item: [1, 2, 3] }] })
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
 		});
 
 		describe('test findItem blocked', () => {
@@ -362,6 +386,223 @@ describe('test finder functions and data accessors', () => {
 				const script = "findItem('SLEEPING BAG 1').prefab.effects.push('concealed')";
 				finder.findItem.mockReturnValue({ identifier: 'SLEEPING BAG 1', prefab: { effects: [] } });
 				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findItem().inventory.push() fails', () => {
+				const script = "findItem('BAG OF CHICKEN NUGGETS').inventory.push({ item: [] })";
+				finder.findItem.mockReturnValue({ inventory: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findItem().inventory[].item.push() fails', () => {
+				const script = "findItem('BAG OF CHICKEN NUGGETS').inventory[0].item.push(1)";
+				finder.findItem.mockReturnValue({ inventory: [ { item: [] } ] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findItem().insertItem() prohibited', () => {
+				const script = "findItem('BAG OF CHICKEN NUGGETS').insertItem({}, 'BAG')";
+				finder.findItem.mockReturnValue({ insertItem: (item, slot) => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findItem().removeItem() prohibited', () => {
+				const script = "findItem('BAG OF CHICKEN NUGGETS').removeItem({}, 'BAG')";
+				finder.findItem.mockReturnValue({ removeItem: (item, slot) => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findItem().setAccessible() prohibited', () => {
+				const script = "findItem('BAG OF CHICKEN NUGGETS').setAccessible()";
+				finder.findItem.mockReturnValue({ setAccessible: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findItem().setInaccessible() prohibited', () => {
+				const script = "findItem('BAG OF CHICKEN NUGGETS').setInaccessible()";
+				finder.findItem.mockReturnValue({ setInaccessible: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+		});
+	});
+
+	describe('test findPuzzle', () => {
+		describe('test findPuzzle allowed', () => {
+			test('findPuzzle().solved', () => {
+				const script = "findPuzzle('201 LOCK').solved";
+				const expected = true;
+				finder.findPuzzle.mockReturnValue({ solved: true });
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+			
+			test('findPuzzle().outcome', () => {
+				const script = "findPuzzle('201 LOCK').outcome";
+				const expected = "10-15-29";
+				finder.findPuzzle.mockReturnValue({ outcome: '10-15-29' });
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+
+			test('findPuzzle().outcome math', () => {
+				const script = "0.0183 * Math.pow(2 * player.speed, 2) + 0.005 * 2 * player.speed + 0.916 >= parseFloat(findPuzzle('TREADMILL').outcome)";
+				const expected = true;
+				const player = { speed: 9 };
+				finder.findPuzzle.mockReturnValue({ outcome: '4.1' });
+				const result = scriptParser.evaluate(script, null, player);
+				expect(result).toBe(expected);
+			});
+
+			test('findPuzzle().parentObject.name', () => {
+				const script = "findPuzzle('201 LOCK').parentObject.name";
+				const expected = "LOCKER";
+				finder.findPuzzle.mockReturnValue({ parentObject: { name: 'LOCKER' } });
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+		});
+
+		describe('test findPuzzle blocked', () => {
+			test('findPuzzle().requirements.push() fails', () => {
+				const script = "findPuzzle('201 LOCK').requirements.push({})";
+				finder.findPuzzle.mockReturnValue({ requirements: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findPuzzle().solutions.push() fails', () => {
+				const script = "findPuzzle('201 LOCK').solutions.push('')";
+				finder.findPuzzle.mockReturnValue({ solutions: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findPuzzle().commandSets.push() fails', () => {
+				const script = "findPuzzle('201 LOCK').commandSets.push({})";
+				finder.findPuzzle.mockReturnValue({ commandSets: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findPuzzle().setAccessible() prohibited', () => {
+				const script = "findPuzzle('201 LOCK').setAccessible()";
+				finder.findPuzzle.mockReturnValue({ setAccessible: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findPuzzle().setInaccessible() prohibited', () => {
+				const script = "findPuzzle('201 LOCK').setInaccessible()";
+				finder.findPuzzle.mockReturnValue({ setInaccessible: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findPuzzle().solve() prohibited', () => {
+				const script = "findPuzzle('201 LOCK').solve()";
+				finder.findPuzzle.mockReturnValue({ solve: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findPuzzle().unsolve() prohibited', () => {
+				const script = "findPuzzle('201 LOCK').unsolve()";
+				finder.findPuzzle.mockReturnValue({ unsolve: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findPuzzle().fail() prohibited', () => {
+				const script = "findPuzzle('201 LOCK').fail()";
+				finder.findPuzzle.mockReturnValue({ fail: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findPuzzle().alreadySolved() prohibited', () => {
+				const script = "findPuzzle('201 LOCK').alreadySolved()";
+				finder.findPuzzle.mockReturnValue({ alreadySolved: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findPuzzle().requirementsNotMet() prohibited', () => {
+				const script = "findPuzzle('201 LOCK').requirementsNotMet()";
+				finder.findPuzzle.mockReturnValue({ requirementsNotMet: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+		});
+	});
+
+	describe('test findEvent', () => {
+		describe('test findEvent allowed', () => {
+			test('findEvent().solved', () => {
+				const script = "findEvent('NIGHT').ongoing";
+				const expected = true;
+				finder.findEvent.mockReturnValue({ ongoing: true });
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+
+			test('findEvent().remaining', () => {
+				const script = "Math.floor(findEvent('NIGHT').remaining / 1000 / 60)";
+				const expected = 45;
+				finder.findEvent.mockReturnValue({ remaining: 2700001 });
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+		});
+
+		describe('test findEvent blocked', () => {
+			test('findEvent().triggeredCommands.push() fails', () => {
+				const script = "findEvent('NIGHT').triggeredCommands.push({})";
+				finder.findEvent.mockReturnValue({ triggeredCommands: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findEvent().endedCommands.push() fails', () => {
+				const script = "findEvent('NIGHT').endedCommands.push({})";
+				finder.findEvent.mockReturnValue({ endedCommands: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findEvent().effects.push() fails', () => {
+				const script = "findEvent('NIGHT').effects.push({})";
+				finder.findEvent.mockReturnValue({ effects: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findEvent().refreshes.push() fails', () => {
+				const script = "findEvent('NIGHT').refreshes.push({})";
+				finder.findEvent.mockReturnValue({ refreshes: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findEvent().timer.stop() prohibited', () => {
+				const script = "findEvent('NIGHT').timer.stop()";
+				finder.findEvent.mockReturnValue({ timer: { stop: () => {} } });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findEvent().effectsTimer.stop() prohibited', () => {
+				const script = "findEvent('NIGHT').effectsTimer.stop()";
+				finder.findEvent.mockReturnValue({ effectsTimer: { stop: () => {} } });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+			
+			test('findEvent().trigger() prohibited', () => {
+				const script = "findEvent('NIGHT').trigger()";
+				finder.findEvent.mockReturnValue({ trigger: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+			
+			test('findEvent().end() prohibited', () => {
+				const script = "findEvent('NIGHT').end()";
+				finder.findEvent.mockReturnValue({ end: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+			
+			test('findEvent().startTimer() prohibited', () => {
+				const script = "findEvent('NIGHT').startTimer()";
+				finder.findEvent.mockReturnValue({ startTimer: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+			
+			test('findEvent().startEffectsTimer() prohibited', () => {
+				const script = "findEvent('NIGHT').startEffectsTimer()";
+				finder.findEvent.mockReturnValue({ startEffectsTimer: () => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
 			});
 		});
 	});
@@ -381,9 +622,8 @@ describe('Modules/scriptParser evaluate()', () => {
     });
 
     test('new Date().toLocaleTimeString returns a string time', () => {
-        // use a fixed date literal so result is deterministic-ish; we assert on format rather than exact value
-    const result = scriptParser.evaluate("new Date('2020-01-01T15:04:00Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })", null, null);
-    expect(typeof result).toBe('string');
+		const result = scriptParser.evaluate("new Date('2020-01-01T15:04:00Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })", null, null);
+		expect(typeof result).toBe('string');
         expect(result).toMatch(/^\d{1,2}:\d{2}/);
     });
 
@@ -423,15 +663,15 @@ describe('Modules/scriptParser evaluate()', () => {
     const blockedProps = ['__proto__', 'prototype', 'constructor'];
 
     const blockedTargets = [
-        { expr: "findRoom('X')", setter: () => finder.findRoom.mockReturnValue({}) },
-        { expr: "findObject('OBJ')", setter: () => finder.findObject.mockReturnValue({}) },
-        { expr: "findPrefab('P')", setter: () => finder.findPrefab.mockReturnValue({}) },
-        { expr: "findItem('ID')", setter: () => finder.findItem.mockReturnValue({}) },
-        { expr: "findPuzzle('PZ')", setter: () => finder.findPuzzle.mockReturnValue({}) },
-        { expr: "findEvent('E')", setter: () => finder.findEvent.mockReturnValue({}) },
-        { expr: "findStatusEffect('S')", setter: () => finder.findStatusEffect.mockReturnValue({}) },
-        { expr: "findPlayer('bob')", setter: () => finder.findPlayer.mockReturnValue({}) },
-        { expr: "findInventoryItem('ID','bob')", setter: () => finder.findInventoryItem.mockReturnValue({}) }
+        { expr: "findRoom('living-room')", setter: () => finder.findRoom.mockReturnValue({}) },
+        { expr: "findObject('DESK')", setter: () => finder.findObject.mockReturnValue({}) },
+        { expr: "findPrefab('PEN')", setter: () => finder.findPrefab.mockReturnValue({}) },
+        { expr: "findItem('SLEEPING BAG 1')", setter: () => finder.findItem.mockReturnValue({}) },
+        { expr: "findPuzzle('201 LOCK')", setter: () => finder.findPuzzle.mockReturnValue({}) },
+        { expr: "findEvent('NIGHT')", setter: () => finder.findEvent.mockReturnValue({}) },
+        { expr: "findStatusEffect('weary')", setter: () => finder.findStatusEffect.mockReturnValue({}) },
+        { expr: "findPlayer('Amadeus')", setter: () => finder.findPlayer.mockReturnValue({}) },
+        { expr: "findInventoryItem('SLEEPING BAG', 'Kyra')", setter: () => finder.findInventoryItem.mockReturnValue({}) }
     ];
 
     for (const target of blockedTargets) {
