@@ -71,7 +71,6 @@ module.exports.parseDescription = function (description, container, player, doEr
         for (let i = 0; i < conditionals.length; i++) {
             let conditional = conditionals[i].getAttribute('cond');
             if (conditional !== null && conditional !== undefined) {
-                conditional = conditional.replace(/this/g, "container");
                 try {
                     if (scriptParser.evaluate(conditional, container, player) === false)
                         conditionalsToRemove.push(conditionals[i]);
@@ -111,7 +110,6 @@ module.exports.parseDescription = function (description, container, player, doEr
         for (let i = 0; i < variables.length; i++) {
             let varAttribute = variables[i].getAttribute('v');
             if (varAttribute !== null && varAttribute !== undefined) {
-                varAttribute = varAttribute.replace(/this/g, "container");
                 try {
                     let variableText = scriptParser.evaluate(varAttribute, container, player);
                     if (variableText === undefined || variableText === "undefined")
