@@ -8,10 +8,14 @@ const OPTIONS = {
 
 	maxNodes: 20,
 	allowCall: true,
-	// Expose Math, Date, and finder helpers by default, since those will be most useful.
+	// Expose useful helpers by default.
 	allowedGlobals: {
-		Math,
 		Date,
+		Number,
+		isNaN,
+		parseFloat,
+		parseInt,
+		Math,
 		finder,
 		findRoom: finder.findRoom,
 		findObject: finder.findObject,
