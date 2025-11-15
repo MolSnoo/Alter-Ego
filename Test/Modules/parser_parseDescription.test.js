@@ -1,12 +1,12 @@
-var game = include('game.json');
-const constants = include('Configs/constants.json');
-const parser = include(`${constants.modulesDir}/parser.js`);
+var game = require('../../game.json');
+const finder = require('../../Modules/finder.js');
+const parser = require('../../Modules/parser.js');
 
-const Event = include(`${constants.dataDir}/Event.js`);
-const Player = include(`${constants.dataDir}/Player.js`);
-const Prefab = include(`${constants.dataDir}/Prefab.js`);
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
+const Event = require(`../../Data/Event.js`);
+const Player = require(`../../Data/Player.js`);
+const InventoryItem = require(`../../Data/InventoryItem.js`);
 
+jest.mock('../../Modules/finder.js');
 jest.mock(`../../Data/Event.js`);
 jest.mock(`../../Data/Player.js`);
 jest.mock(`../../Data/InventoryItem.js`);
@@ -34,6 +34,7 @@ beforeAll(() => {
 
 		game.inventoryItems.push(this);
 	});
+	finder.findEvent.mockImplementation(name => game.events.find(event => event.name === name));
 });
 
 afterEach(() => {
