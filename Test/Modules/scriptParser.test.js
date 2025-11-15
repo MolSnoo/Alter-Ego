@@ -606,6 +606,65 @@ describe('test finder functions and data accessors', () => {
 			});
 		});
 	});
+
+	describe('test findInventoryItem', () => {
+		describe('test findInventoryItem allowed', () => {
+			test('findInventoryItem() !== undefined', () => {
+				const script = "findInventoryItem('HAIR TIE', container.name, '', 'HAT') !== undefined";
+				const expected = true;
+				finder.findInventoryItem.mockReturnValue({ identifier: 'HAIR TIE', player: { name: 'Kyra' }, equipmentSlot: 'HAT' });
+				const container = { name: 'Kyra' };
+				const result = scriptParser.evaluate(script, container, null);
+				expect(result).toBe(expected);
+			});
+
+			test('findInventoryItem().player', () => {
+				const script = "findInventoryItem('HAIR TIE').player.name";
+				const expected = "Kyra";
+				finder.findInventoryItem.mockReturnValue({ identifier: 'HAIR TIE', player: { name: 'Kyra' } });
+				const result = scriptParser.evaluate(script, null, null);
+				expect(result).toBe(expected);
+			});
+		});
+
+		describe('test findInventoryItem blocked', () => {
+			test('findInventoryItem().player.setOnline() prohibited', () => {
+				const script = "findInventoryItem('HAIR TIE').player.setOnline()"
+				finder.findInventoryItem.mockReturnValue({ player: { setOnline: () => {} } });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findInventoryItem().prefab.effects.push() fails', () => {
+				const script = "findInventoryItem('SLEEPING BAG 1').prefab.effects.push('concealed')";
+				finder.findInventoryItem.mockReturnValue({ identifier: 'SLEEPING BAG 1', prefab: { effects: [] } });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findInventoryItem().inventory.push() fails', () => {
+				const script = "findInventoryItem('BAG OF CHICKEN NUGGETS').inventory.push({ item: [] })";
+				finder.findInventoryItem.mockReturnValue({ inventory: [] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findInventoryItem().inventory[].item.push() fails', () => {
+				const script = "findInventoryItem('BAG OF CHICKEN NUGGETS').inventory[0].item.push(1)";
+				finder.findInventoryItem.mockReturnValue({ inventory: [ { item: [] } ] });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Mutation prohibited/);
+			});
+
+			test('findInventoryItem().insertItem() prohibited', () => {
+				const script = "findInventoryItem('BAG OF CHICKEN NUGGETS').insertItem({}, 'BAG')";
+				finder.findInventoryItem.mockReturnValue({ insertItem: (item, slot) => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+
+			test('findInventoryItem().removeItem() prohibited', () => {
+				const script = "findInventoryItem('BAG OF CHICKEN NUGGETS').removeItem({}, 'BAG')";
+				finder.findInventoryItem.mockReturnValue({ removeItem: (item, slot) => {} });
+				expect(() => scriptParser.evaluate(script, null, null)).toThrow(/Access prohibited/);
+			});
+		});
+	});
 });
 
 describe('Modules/scriptParser evaluate()', () => {
