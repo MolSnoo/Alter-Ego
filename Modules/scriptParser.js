@@ -16,6 +16,7 @@ const OPTIONS = {
 		parseFloat,
 		parseInt,
 		Math,
+		undefined,
 		finder,
 		findRoom: finder.findRoom,
 		findObject: finder.findObject,
