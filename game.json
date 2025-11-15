@@ -22,5 +22,6 @@
   "statusEffects": [],
   "inventoryItems": [],
   "gestures": [],
+  "flags": {},
   "messageHandler": null
 }

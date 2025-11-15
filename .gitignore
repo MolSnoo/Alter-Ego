@@ -284,4 +284,9 @@ parsedText.xml
 
 # Docker Files
 *.env
+
+# Coverage
+coverage/
+
+# md-book
 book/

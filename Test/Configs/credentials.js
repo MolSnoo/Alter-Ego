@@ -1,0 +1,1 @@
+module.exports = include('Defaults/default_credentials.json')

@@ -34,5 +34,6 @@
   "playerSheetDescriptionColumn": "Players!O",
   "inventorySheetDataCells": "Inventory Items!A2:H",
   "inventorySheetDescriptionColumn": "Inventory Items!H",
-  "gestureSheetDataCells": "Gestures!A2:E"
+  "gestureSheetDataCells": "Gestures!A2:E",
+  "flagSheetDataCells": "Flags!A2:D"
 }
