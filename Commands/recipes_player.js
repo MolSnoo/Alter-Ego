@@ -256,7 +256,7 @@ function createEmbed(game, page, pages) {
     let objectRecipe = pages[page][0].objects.length > 0;
     let uncraftRecipe = pages[page][0].uncraftable;
     let embed = new discord.EmbedBuilder()
-        .setColor('1F8B4C')
+        .setColor(settings.embedColor)
         .setAuthor({ name: `Recipes List`, iconURL: game.guild.iconURL() })
         .setDescription(objectRecipe ? objectRecipesDescription : uncraftRecipe ? uncraftingRecipesDescription : craftingRecipesDescription)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });

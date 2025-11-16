@@ -1,6 +1,7 @@
 {
   "commandPrefix": ".",
   "debug": false,
+  "embedColor": "1F8B4C",
   "spreadsheetID": "",
   "pixelsPerMeter": 25,
   "staminaUseRate": -0.01,
