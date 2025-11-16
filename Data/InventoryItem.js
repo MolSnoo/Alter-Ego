@@ -1,4 +1,6 @@
 ﻿const constants = include('Configs/constants.json');
+const itemManager = require('../Modules/itemManager.js');
+const parser = require('../Modules/parser.js');
 
 class InventoryItem {
     constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row) {
@@ -20,6 +22,21 @@ class InventoryItem {
         this.inventory = [];
         this.description = description;
         this.row = row;
+    }
+
+    decreaseUses() {
+        this.uses--;
+        if (this.uses === 0) {
+            const nextStage = this.prefab.nextStage;
+            const container = this.container !== null ? this.container : this.player;
+            const slot = this.container !== null ? this.slot :
+                this.equipmentSlot === "RIGHT HAND" || this.equipmentSlot === "LEFT HAND" ? "hands" : "equipment";
+            if (nextStage && !this.prefab.discreet)
+                container.setDescription(parser.removeItem(container.getDescription(), this, slot));
+            itemManager.replaceInventoryItem(this, nextStage);
+            if (nextStage && !nextStage.discreet)
+                container.setDescription(parser.addItem(container.getDescription(), this, slot));
+        }
     }
 
     insertItem(item, slot) {
@@ -60,6 +77,14 @@ class InventoryItem {
                 }
             }
         }
+    }
+
+    getDescription() {
+        return this.description;
+    }
+
+    setDescription(description) {
+        this.description = description;
     }
 
     descriptionCell() {

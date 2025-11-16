@@ -723,18 +723,8 @@ class Player {
             new Narration(game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
         }
 
-        if (!isNaN(item.uses)) {
-            item.uses--;
-
-            if (item.uses === 0) {
-                const nextStage = item.prefab.nextStage ? true : false;
-                if (nextStage && !item.prefab.discreet)
-                    this.description = parser.removeItem(this.description, item, "hands");
-                itemManager.replaceInventoryItem(item, item.prefab.nextStage);
-                if (nextStage && !item.prefab.discreet)
-                    this.description = parser.addItem(this.description, item, "hands");
-            }
-        }
+        if (!isNaN(item.uses))
+           item.decreaseUses();
 
         return;
     }
@@ -2083,6 +2073,14 @@ class Player {
     setOffline() {
         this.online = false;
         this.onlineInterval && clearTimeout(this.onlineInterval);
+    }
+
+    getDescription() {
+        return this.description;
+    }
+
+    setDescription(description) {
+        this.description = description;
     }
 
     descriptionCell() {
