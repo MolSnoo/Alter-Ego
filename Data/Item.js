@@ -1,4 +1,6 @@
 const constants = include('Configs/constants.json');
+const itemManager = require('../Modules/itemManager.js');
+const parser = require('../Modules/parser.js');
 
 class Item {
     constructor(prefab, identifier, location, accessible, containerName, quantity, uses, description, row) {
@@ -19,6 +21,21 @@ class Item {
         this.inventory = [];
         this.description = description;
         this.row = row;
+    }
+
+    decreaseUses(player) {
+        this.uses--;
+        if (this.uses === 0) {
+            const nextStage = this.prefab.nextStage;
+            const location = this.location;
+            const container = this.container;
+            const slot = this.slot;
+            const quantity = this.quantity;
+            let description = parser.removeItem(container.getDescription(), this, slot);
+            container.setDescription(parser.addItem(description, this, slot));
+            itemManager.destroyItem(this, this.quantity, true);
+            itemManager.instantiateItem(nextStage, location, container, slot, quantity, new Map(), player);
+        }
     }
 
     insertItem(item, slot) {
@@ -67,6 +84,14 @@ class Item {
 
     setInaccessible() {
         this.accessible = false;
+    }
+
+    getDescription() {
+        return this.description;
+    }
+
+    setDescription(description) {
+        this.description = description;
     }
 
     descriptionCell() {

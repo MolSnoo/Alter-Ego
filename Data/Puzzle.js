@@ -197,6 +197,14 @@ class Puzzle {
         return;
     }
 
+    getDescription() {
+        return this.alreadySolvedDescription;
+    }
+
+    setDescription(description) {
+        this.alreadySolvedDescription = description;
+    }
+
     correctCell() {
         return constants.puzzleSheetCorrectColumn + this.row;
     }

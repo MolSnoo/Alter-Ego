@@ -193,6 +193,14 @@ class Object {
         return { recipe: recipe, ingredients: ingredients };
     }
 
+    getDescription() {
+        return this.description;
+    }
+
+    setDescription(description) {
+        this.description = description;
+    }
+
     descriptionCell() {
         return constants.objectSheetDescriptionColumn + this.row;
     }
