@@ -124,7 +124,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     if (command === "solve") {
         if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return game.messageHandler.addReply(message, `"${input}" is not a valid solution.`);
-        puzzle.solve(bot, game, player, announcement, outcome, true, targetPlayer);
+        puzzle.solve(bot, game, player, announcement, outcome, true, [], targetPlayer);
         game.messageHandler.addGameMechanicMessage(message.channel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
