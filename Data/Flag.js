@@ -1,5 +1,6 @@
 const constants = include('Configs/constants.json');
 const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
+const scriptParser = require('../Modules/scriptParser.js');
 
 class Flag {
 	constructor(id, value, valueScript, commandSetsString, commandSets, row) {
@@ -9,6 +10,14 @@ class Flag {
 		this.commandSetsString = commandSetsString;
 		this.commandSets = commandSets;
 		this.row = row;
+	}
+
+	evaluate(player) {
+		try {
+			let value = scriptParser.evaluate(this.valueScript, this, player);
+			this.value = value;
+		}
+		catch (err) {}
 	}
 }
 

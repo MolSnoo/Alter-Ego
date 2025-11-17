@@ -125,16 +125,12 @@ module.exports.findInventoryItem = function (identifier, player, containerName, 
     );
 };
 
-module.exports.findFlag = function (id, evaluate = false) {
+module.exports.findFlag = function (id, evaluate = false, player) {
     if (id) id = id.toUpperCase().replace(/\'/g, '');
 
     const flag = game.flags.get(id);
     if (flag && flag.valueScript && evaluate) {
-        const scriptParser = require('./scriptParser.js');
-        try {
-            let value = scriptParser.evaluate(flag.valueScript, flag);
-            flag.value = value;
-        } catch (err) {}
+        flag.evaluate(player);
     }
     return flag ? flag.value : flag;
 };

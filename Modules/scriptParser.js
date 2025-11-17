@@ -53,6 +53,7 @@ const OPTIONS = {
 		'processRecipes',
 		'stop',
 		'findRecipe',
+		'decreaseUses',
 		'insertItem',
 		'removeItem',
 		'solve',
@@ -92,6 +93,7 @@ const OPTIONS = {
 		'die',
 		'removeFromWhispers',
 		'sendDescription',
+		'setDescription',
 		'notify',
 		'setOnline',
 		'setOffline'
