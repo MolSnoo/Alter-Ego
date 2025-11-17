@@ -35,6 +35,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         return game.messageHandler.addReply(message, `You need to specify what data to get. Usage:\n${exports.config.usage}`);
 
     if (args[0] === "all") {
+        var errors = [];
         await loader.loadRooms(game, false);
         await loader.loadObjects(game, false);
         await loader.loadPrefabs(game, false);
@@ -46,8 +47,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         await loader.loadPlayers(game, false);
         await loader.loadInventories(game, false);
         await loader.loadGestures(game, false);
+        await loader.loadFlags(game, false, errors);
 
-        var errors = [];
         for (let i = 0; i < game.rooms.length; i++) {
             let error = loader.checkRoom(game.rooms[i]);
             if (error instanceof Error) errors.push(error);
@@ -92,7 +93,6 @@ module.exports.run = async (bot, game, message, command, args) => {
             let error = loader.checkGesture(game.gestures[i]);
             if (error instanceof Error) errors.push(error);
         }
-        await loader.loadFlags(game, false, errors);
         if (errors.length > 0) {
             if (errors.length > 15) {
                 errors = errors.slice(0, 15);

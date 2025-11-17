@@ -357,8 +357,9 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             }
             for (let i = 0; i < game.puzzles.length; i++) {
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        let requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) {
+                        let requirement = game.prefabs.find(prefab => prefab.id === requirementString.substring(requirementString.indexOf(':') + 1).trim());
                         if (requirement) game.puzzles[i].requirements[j] = requirement;
                     }
                 }
@@ -765,7 +766,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                         unsolvedCommands[j] = unsolvedCommands[j].trim();
                     return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
                 };
-                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
+                const regex = new RegExp(/(\[((.*?)(?<!(?:(?:Inventory)?Item)|Prefab): (.*?))\],?)/);
                 if (regex.test(commandString)) {
                     while (regex.test(commandString)) {
                         const commandSet = RegExp.$2;
@@ -819,12 +820,15 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 if (parentObject) game.puzzles[i].parentObject = parentObject;
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
                     let requirement = null;
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
-                        if (requirement) game.puzzles[i].requirements[j] = requirement;
-                    }
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:"))
+                        requirement = game.prefabs.find(prefab => prefab.id === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                    else if (requirementString.startsWith("Event:"))
+                        requirement = game.events.find(event => event.name === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                    else if (requirementString.startsWith("Flag:"))
+                        requirement = game.flags.get(requirementString.substring(requirementString.indexOf(':') + 1).trim());
                     else
-                        requirement = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requirementsStrings[j] || game.puzzles[i].requirementsStrings[j] === `Puzzle: ${puzzle.name}`);
+                        requirement = game.puzzles.find(puzzle => puzzle.name === requirementString || requirementString === `Puzzle: ${puzzle.name}`);
                     if (requirement) game.puzzles[i].requirements[j] = requirement;
                 }
                 if (doErrorChecking) {
@@ -930,10 +934,15 @@ module.exports.checkPuzzle = function (puzzle) {
         }
     }
     for (let i = 0; i < puzzle.requirements.length; i++) {
-        if ((puzzle.requirementsStrings[i].startsWith("Item:") || puzzle.requirementsStrings[i].startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a prefab.`);
-        else if (!puzzle.requirementsStrings[i].startsWith("Item:") && !puzzle.requirementsStrings[i].startsWith("Prefab:") && !(puzzle.requirements[i] instanceof Puzzle))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a puzzle.`);
+        const requirementString = puzzle.requirementsStrings[i];
+        if ((requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a prefab.`);
+        else if (requirementString.startsWith("Event:") && !(puzzle.requirements[i] instanceof Event))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not an event.`);
+        else if (requirementString.startsWith("Flag:") && !(puzzle.requirements[i] instanceof Flag))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a flag.`);
+        else if ((!requirementString.includes(':') || requirementString.startsWith("Puzzle:")) && !(puzzle.requirements[i] instanceof Puzzle))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a puzzle.`);
     }
     return;
 };
@@ -1027,6 +1036,15 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 if (doErrorChecking) {
                     let error = exports.checkEvent(game.events[i], game);
                     if (error instanceof Error) errors.push(error);
+                }
+            }
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Event:")) {
+                        let requirement = game.events.find(event => event.name === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
                 }
             }
             if (errors.length > 0) {
@@ -1809,8 +1827,7 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
             const columnValueScript = 2;
             const columnCommands = 3;
 
-            if (game.flags instanceof Map) game.flags.clear();
-            game.flags = new Map();
+            game.flags.clear();
             if (!errors) errors = [];
             for (let i = 0; i < sheet.length; i++) {
                 let commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
@@ -1860,6 +1877,15 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
                 else game.flags.set(flag.id, flag);
             }
 
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Flag:")) {
+                        let requirement = game.flags.get(requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
+                }
+            }
             if (doErrorChecking && errors.length > 0) {
                 if (errors.length > 15) {
                     errors = errors.slice(0, 15);
