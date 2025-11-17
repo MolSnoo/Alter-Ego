@@ -112,7 +112,7 @@ async function sendFirstBootMessage() {
         + `the server and use the ${settings.commandPrefix}startgame command to add them as a Player so that you can `
         + `get a feel for Neo World Program gameplay.\n\n`
         + `For documentation and tutorials on how to use Alter Ego, check out the official Wiki:\n`
-        + `https://github.com/MolSnoo/Alter-Ego/wiki\n\n`
+        + `https://molsnoo.github.io/Alter-Ego\n\n`
         + `Good luck, and have fun!`
     );
 }
