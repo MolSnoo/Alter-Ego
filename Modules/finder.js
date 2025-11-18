@@ -125,12 +125,12 @@ module.exports.findInventoryItem = function (identifier, player, containerName, 
     );
 };
 
-module.exports.findFlag = function (id, evaluate = false, player) {
+module.exports.findFlag = function (id, evaluate = false) {
     if (id) id = id.toUpperCase().replace(/\'/g, '');
 
     const flag = game.flags.get(id);
     if (flag && flag.valueScript && evaluate) {
-        flag.evaluate(player);
+        flag.evaluate();
     }
     return flag ? flag.value : flag;
 };

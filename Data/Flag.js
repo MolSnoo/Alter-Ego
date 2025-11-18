@@ -12,9 +12,9 @@ class Flag {
 		this.row = row;
 	}
 
-	evaluate(player) {
+	evaluate() {
 		try {
-			let value = scriptParser.evaluate(this.valueScript, this, player);
+			let value = scriptParser.evaluate(this.valueScript, this);
 			this.value = value;
 		}
 		catch (err) {}
