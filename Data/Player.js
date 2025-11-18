@@ -10,9 +10,11 @@ const Object = include(`${constants.dataDir}/Object.js`);
 const Prefab = include(`${constants.dataDir}/Prefab.js`);
 const Item = include(`${constants.dataDir}/Item.js`);
 const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
+const Event = include(`${constants.dataDir}/Event.js`);
 const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 const Status = include(`${constants.dataDir}/Status.js`);
 const Gesture = include(`${constants.dataDir}/Gesture.js`);
+const Flag = include(`${constants.dataDir}/Flag.js`);
 const Narration = include(`${constants.dataDir}/Narration.js`);
 const Die = include(`${constants.dataDir}/Die.js`);
 
@@ -1714,9 +1716,19 @@ class Player {
         let allRequirementsMet = true;
         let requiredItems = [];
         for (let i = 0; i < puzzle.requirements.length; i++) {
-            if (puzzle.requirements[i] instanceof Puzzle && !puzzle.requirements[i].solved) {
+            if (puzzle.requirements[i] instanceof Puzzle && !puzzle.requirements[i].solved ||
+                puzzle.requirements[i] instanceof Event && !puzzle.requirements[i].ongoing
+            ) {
                 allRequirementsMet = false;
                 break;
+            }
+            else if (puzzle.requirements[i] instanceof Flag) {
+                if (puzzle.requirements[i].valueScript !== "")
+                    puzzle.requirements[i].evaluate();
+                if (puzzle.requirements[i].value !== true) {
+                    allRequirementsMet = false;
+                    break;
+                }
             }
             else if (puzzle.requirements[i] instanceof Prefab) {
                 if (item !== null && item.prefab.id !== puzzle.requirements[i].id) {
