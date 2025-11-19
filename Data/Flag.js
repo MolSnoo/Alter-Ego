@@ -12,12 +12,16 @@ class Flag {
 		this.row = row;
 	}
 
-	evaluate() {
-		try {
-			let value = scriptParser.evaluate(this.valueScript, this);
-			this.value = value;
-		}
-		catch (err) {}
+	evaluate(valueScript = this.valueScript) {
+		return scriptParser.evaluate(valueScript, this);
+	}
+
+	setValue(value) {
+		this.value = value;
+	}
+
+	clearValue() {
+		this.value = null;
 	}
 }
 

@@ -1723,8 +1723,10 @@ class Player {
                 break;
             }
             else if (puzzle.requirements[i] instanceof Flag) {
-                if (puzzle.requirements[i].valueScript !== "")
-                    puzzle.requirements[i].evaluate();
+                if (puzzle.requirements[i].valueScript !== "") {
+                    const value = puzzle.requirements[i].evaluate();
+                    puzzle.requirements[i].setValue(value);
+                }
                 if (puzzle.requirements[i].value !== true) {
                     allRequirementsMet = false;
                     break;

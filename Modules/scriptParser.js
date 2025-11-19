@@ -99,7 +99,10 @@ const OPTIONS = {
 		'setDescription',
 		'notify',
 		'setOnline',
-		'setOffline'
+		'setOffline',
+		'evaluate',
+		'setValue',
+		'clearValue'
 	]
 };
 

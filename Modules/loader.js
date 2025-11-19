@@ -1907,9 +1907,8 @@ module.exports.checkFlag = function (flag, game) {
     if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
         return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
     if (flag.valueScript !== "") {
-        const scriptParser = require('./scriptParser.js');
         try {
-            let value = scriptParser.evaluate(flag.valueScript, flag);
+            const value = flag.evaluate(flag.valueScript, flag);
             flag.value = value;
         } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
     }
