@@ -1,4 +1,5 @@
 const finder = require('./finder.js');
+const helpers = require('./helpers.js');
 
 const acorn = require('acorn');
 
@@ -18,6 +19,7 @@ const OPTIONS = {
 		Math,
 		undefined,
 		finder,
+		helpers,
 		findRoom: finder.findRoom,
 		findObject: finder.findObject,
 		findPrefab: finder.findPrefab,
@@ -29,7 +31,8 @@ const OPTIONS = {
 		findLivingPlayer: finder.findLivingPlayer,
 		findDeadPlayer: finder.findDeadPlayer,
 		findInventoryItem: finder.findInventoryItem,
-		findFlag: finder.findFlag
+		findFlag: finder.findFlag,
+		getRandomString: helpers.getRandomString
 	},
 	allowedConstructors: {
 		Date
