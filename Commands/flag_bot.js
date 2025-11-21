@@ -29,7 +29,6 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, command, args, player, data) => {
 	const cmdString = command + " " + args.join(" ");
-	console.log(cmdString);
 	let input = args.join(" ");
 	if (command === "flag") {
 		if (args[0] === "set") command = "setflag";
