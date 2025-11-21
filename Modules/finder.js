@@ -1,4 +1,4 @@
-var game = include('game.json');
+var game = require('../game.json');
 
 module.exports.findRoom = function (name) {
     if (name) name = name.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
@@ -123,4 +123,15 @@ module.exports.findInventoryItem = function (identifier, player, containerName, 
         && (inventoryItem.identifier !== "" && inventoryItem.identifier === identifier || inventoryItem.prefab.id === identifier)
         && inventoryItem.quantity !== 0
     );
+};
+
+module.exports.findFlag = function (id, evaluate = false) {
+    if (id) id = id.toUpperCase().replace(/\'/g, '');
+
+    const flag = game.flags.get(id);
+    if (flag && flag.valueScript && evaluate) {
+        const value = flag.evaluate();
+        flag.setValue(value);
+    }
+    return flag ? flag.value : flag;
 };

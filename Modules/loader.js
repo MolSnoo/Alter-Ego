@@ -15,6 +15,7 @@ const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
 const Status = include(`${constants.dataDir}/Status.js`);
 const Player = include(`${constants.dataDir}/Player.js`);
 const Gesture = include(`${constants.dataDir}/Gesture.js`);
+const Flag = include(`${constants.dataDir}/Flag.js`);
 
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
 var moment = require('moment');
@@ -296,10 +297,10 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
                 const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : new Array("", "");
-                var equipCommands = commands[0] ? commands[0].split(',') : "";
+                var equipCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : "";
                 for (let j = 0; j < equipCommands.length; j++)
                     equipCommands[j] = equipCommands[j].trim();
-                var unequipCommands = commands[1] ? commands[1].split(',') : "";
+                var unequipCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : "";
                 for (let j = 0; j < unequipCommands.length; j++)
                     unequipCommands[j] = unequipCommands[j].trim();
                 // Create a list of inventory slots this prefab contains.
@@ -356,8 +357,9 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             }
             for (let i = 0; i < game.puzzles.length; i++) {
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        let requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) {
+                        let requirement = game.prefabs.find(prefab => prefab.id === requirementString.substring(requirementString.indexOf(':') + 1).trim());
                         if (requirement) game.puzzles[i].requirements[j] = requirement;
                     }
                 }
@@ -756,24 +758,24 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 let commandSets = [];
                 let getCommands = function (commandString) {
                     const commands = commandString.split('/');
-                    let solvedCommands = commands[0] ? commands[0].split(',') : [];
+                    let solvedCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
                     for (let j = 0; j < solvedCommands.length; j++)
                         solvedCommands[j] = solvedCommands[j].trim();
-                    let unsolvedCommands = commands[1] ? commands[1].split(',') : [];
+                    let unsolvedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
                     for (let j = 0; j < unsolvedCommands.length; j++)
                         unsolvedCommands[j] = unsolvedCommands[j].trim();
                     return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
                 };
-                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
-                if (regex.test(commandString)) {
-                    while (regex.test(commandString)) {
-                        const commandSet = RegExp.$2;
+                const regex = new RegExp(/(\[((.*?)(?<!(?:(?:Inventory)?Item)|Prefab): (.*?))\],?)/g);
+                if (!!commandString.match(regex)) {
+                    let match;
+                    while (match = regex.exec(commandString)) {
+                        const commandSet = match[2];
                         let outcomes = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
                         for (let j = 0; j < outcomes.length; j++)
                             outcomes[j] = outcomes[j].trim();
                         const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
                         commandSets.push({ outcomes: outcomes, solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
-                        commandString = commandString.replace(RegExp.$1, "").trim();
                     }
                 }
                 else {
@@ -818,12 +820,15 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 if (parentObject) game.puzzles[i].parentObject = parentObject;
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
                     let requirement = null;
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
-                        if (requirement) game.puzzles[i].requirements[j] = requirement;
-                    }
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:"))
+                        requirement = game.prefabs.find(prefab => prefab.id === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                    else if (requirementString.startsWith("Event:"))
+                        requirement = game.events.find(event => event.name === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                    else if (requirementString.startsWith("Flag:"))
+                        requirement = game.flags.get(requirementString.substring(requirementString.indexOf(':') + 1).trim());
                     else
-                        requirement = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requirementsStrings[j] || game.puzzles[i].requirementsStrings[j] === `Puzzle: ${puzzle.name}`);
+                        requirement = game.puzzles.find(puzzle => puzzle.name === requirementString || requirementString === `Puzzle: ${puzzle.name}`);
                     if (requirement) game.puzzles[i].requirements[j] = requirement;
                 }
                 if (doErrorChecking) {
@@ -929,10 +934,15 @@ module.exports.checkPuzzle = function (puzzle) {
         }
     }
     for (let i = 0; i < puzzle.requirements.length; i++) {
-        if ((puzzle.requirementsStrings[i].startsWith("Item:") || puzzle.requirementsStrings[i].startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a prefab.`);
-        else if (!puzzle.requirementsStrings[i].startsWith("Item:") && !puzzle.requirementsStrings[i].startsWith("Prefab:") && !(puzzle.requirements[i] instanceof Puzzle))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a puzzle.`);
+        const requirementString = puzzle.requirementsStrings[i];
+        if ((requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a prefab.`);
+        else if (requirementString.startsWith("Event:") && !(puzzle.requirements[i] instanceof Event))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not an event.`);
+        else if (requirementString.startsWith("Flag:") && !(puzzle.requirements[i] instanceof Flag))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a flag.`);
+        else if ((!requirementString.includes(':') || requirementString.startsWith("Puzzle:")) && !(puzzle.requirements[i] instanceof Puzzle))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a puzzle.`);
     }
     return;
 };
@@ -979,10 +989,10 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                     triggerTimes[j] = triggerTimes[j].trim();
                 const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : ["", ""];
-                var triggeredCommands = commands[0] ? commands[0].split(',') : [];
+                var triggeredCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
                 for (let j = 0; j < triggeredCommands.length; j++)
                     triggeredCommands[j] = triggeredCommands[j].trim();
-                var endedCommands = commands[1] ? commands[1].split(',') : [];
+                var endedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
                 for (let j = 0; j < endedCommands.length; j++)
                     endedCommands[j] = endedCommands[j].trim();
                 var effects = sheet[i][columnStatusEffects] ? sheet[i][columnStatusEffects].split(',') : [];
@@ -1026,6 +1036,15 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 if (doErrorChecking) {
                     let error = exports.checkEvent(game.events[i], game);
                     if (error instanceof Error) errors.push(error);
+                }
+            }
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Event:")) {
+                        let requirement = game.events.find(event => event.name === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
                 }
             }
             if (errors.length > 0) {
@@ -1319,7 +1338,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var member = null;
                 var spectateChannel = null;
                 if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
-                    member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    try {
+                        member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    } catch (error) {}
                     spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
@@ -1357,24 +1378,26 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 if (player.alive) {
                     game.players_alive.push(player);
 
-                    // Parse statuses and inflict the player with them.
-                    const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                    for (let j = 0; j < game.statusEffects.length; j++) {
-                        for (let k = 0; k < statusList.length; k++) {
-                            const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
-                            if (game.statusEffects[j].name === statusName) {
-                                const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
-                                currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                    if (player.member !== null || player.talent === "NPC") {
+                        // Parse statuses and inflict the player with them.
+                        const currentPlayer = game.players_alive[game.players_alive.length - 1];
+                        for (let j = 0; j < game.statusEffects.length; j++) {
+                            for (let k = 0; k < statusList.length; k++) {
+                                const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
+                                if (game.statusEffects[j].name === statusName) {
+                                    const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
+                                    const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                    currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                                }
                             }
                         }
-                    }
 
-                    if (currentPlayer.location instanceof Room) {
-                        for (let k = 0; k < game.rooms.length; k++) {
-                            if (game.rooms[k].name === currentPlayer.location.name) {
-                                game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
-                                break;
+                        if (currentPlayer.location instanceof Room) {
+                            for (let k = 0; k < game.rooms.length; k++) {
+                                if (game.rooms[k].name === currentPlayer.location.name) {
+                                    game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1789,5 +1812,106 @@ module.exports.checkGesture = function (gesture) {
         return new Error(`Couldn't load gesture on row ${gesture.row}. No description was given.`);
     if (gesture.narration === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
+    return;
+};
+
+// Flags always undergo error checking. So, doErrorChecking simply determines if loadFlags trims the error messages itself.
+// Pass the currently existing errors 
+module.exports.loadFlags = function (game, doErrorChecking, errors) {
+    return new Promise((resolve, reject) => {
+        sheets.getData(constants.flagSheetDataCells, function (response) {
+            const sheet = response.data.values ? response.data.values : [];
+            // These constants are the column numbers corresponding to that data on the spreadsheet.
+            const columnID = 0;
+            const columnValue = 1;
+            const columnValueScript = 2;
+            const columnCommands = 3;
+
+            game.flags.clear();
+            if (!errors) errors = [];
+            for (let i = 0; i < sheet.length; i++) {
+                let commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
+                let commandSets = [];
+                let getCommands = function (commandString) {
+                    const commands = commandString.split('/');
+                    let setCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
+                    for (let j = 0; j < setCommands.length; j++)
+                        setCommands[j] = setCommands[j].trim();
+                    let clearedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
+                    for (let j = 0; j < clearedCommands.length; j++)
+                        clearedCommands[j] = clearedCommands[j].trim();
+                    return { setCommands: setCommands, clearedCommands: clearedCommands };
+                };
+                const regex = new RegExp(/(\[((.*?): (.*?))\],?)/g);
+                if (!!commandString.match(regex)) {
+                    let match;
+                    while (match = regex.exec(commandString)) {
+                        const commandSet = match[2];
+                        let values = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
+                        for (let j = 0; j < values.length; j++)
+                            values[j] = values[j].trim();
+                        const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
+                        commandSets.push({ values: values, setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
+                    }
+                }
+                else {
+                    const commands = getCommands(sheet[i][columnCommands] ? sheet[i][columnCommands] : "");
+                    commandSets.push({ values: [], setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
+                }
+                let value = sheet[i][columnValue] ? sheet[i][columnValue].trim() : null;
+                if (!isNaN(parseFloat(value))) value = parseFloat(value);
+                else if (value === "TRUE") value = true;
+                else if (value === "FALSE") value = false;
+                
+                let flag = new Flag(
+                    sheet[i][columnID] ? sheet[i][columnID].toUpperCase().replace(/[\'"“”`]/g, '').trim() : "",
+                    value,
+                    sheet[i][columnValueScript] ? sheet[i][columnValueScript].trim() : "",
+                    sheet[i][columnCommands] ? sheet[i][columnCommands].trim() : "",
+                    commandSets,
+                    i + 2
+                );
+                
+                let error = exports.checkFlag(flag, game);
+                if (error instanceof Error) errors.push(error);
+                else game.flags.set(flag.id, flag);
+            }
+
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Flag:")) {
+                        let requirement = game.flags.get(requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
+                }
+            }
+            if (doErrorChecking && errors.length > 0) {
+                if (errors.length > 15) {
+                    errors = errors.slice(0, 15);
+                    errors.push(new Error("Too many errors."));
+                }
+                let errorMessage = errors.join('\n');
+                reject(errorMessage);
+            }
+            resolve(game);
+        });
+    });
+};
+
+module.exports.checkFlag = function (flag, game) {
+    if (flag.id === "" || flag.id === null || flag.id === undefined)
+        return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
+    if (!!game.flags.get(flag.id) && game.flags.get(flag.id).row !== flag.row)
+        return new Error(`Couldn't get flag on row ${flag.row}. Another flag with this ID already exists.`);
+    if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
+        return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
+    if (flag.valueScript !== "") {
+        try {
+            const value = flag.evaluate(flag.valueScript, flag);
+            flag.value = value;
+        } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
+    }
+
     return;
 };

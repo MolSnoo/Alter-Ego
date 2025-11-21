@@ -20,6 +20,10 @@ run it if it was.
 This is a simple [Boolean value](https://en.wikipedia.org/wiki/Boolean_data_type). If this is `true`, Alter Ego will
 start in debug mode. If this is `false`, it will start normally.
 
+### embedColor
+
+This is a string that determines the color of embed messages sent by Alter Ego. String should be in the format of a 24-bit hexadecimal number without a hash symbol, e.g. `1F8B4C`
+
 ## Other game data (settings.json)
 
 ### pixelsPerMeter
@@ -112,6 +116,16 @@ to be streaming. The number of players online will be appended and updated perio
 
 All of the settings in this section will be uploaded to the Players sheet when the startgame timer ends. They can be
 changed to suit each individual player on the spreadsheet itself before all game data is loaded for the first time.
+
+### defaultPronouns
+
+This is the default [pronoun string](../data_structures/player.md#pronoun-string) that each player will have. The 
+default is `neutral`. Once it is on the spreadsheet, it should be edited to suit each player.
+
+### defaultVoice
+
+This is the default [original voice string](../data_structures/player.md#original-voice-string) that each player will 
+have. The default is `a neutral voice`. Once it is on the spreadsheet, it should be edited to suit each player.
 
 ### defaultStats
 

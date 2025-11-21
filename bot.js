@@ -131,6 +131,7 @@ bot.on('clientReady', async () => {
         let firstBootMessage = await serverManager.validateServerConfig(game.guild);
         game.commandChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.commandChannel);
         game.logChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.logChannel);
+        game.flags = new Map();
         console.log(`${bot.user.username} is online on 1 server.`);
         if (firstBootMessage && game.commandChannel) sendFirstBootMessage();
         loadCommands();

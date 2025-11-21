@@ -36,7 +36,7 @@ class Puzzle {
         this.accessible = false;
     }
 
-    async solve(bot, game, player, message, outcome, doSolvedCommands, targetPlayer = null) {
+    async solve(bot, game, player, message, outcome, doSolvedCommands, requiredItems = [], targetPlayer = null) {
         // Mark it as solved.
         this.solved = true;
         // Set the outcome.
@@ -56,6 +56,11 @@ class Puzzle {
             // Post log message.
             const time = new Date().toLocaleTimeString();
             game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
+        }
+
+        for (const requiredItem of requiredItems) {
+            if (!isNaN(requiredItem.uses))
+                requiredItem.decreaseUses(player);
         }
 
         if (doSolvedCommands === true) {
@@ -195,6 +200,14 @@ class Puzzle {
             if (misc.message) new Narration(game, player, player.location, message).send();
         }
         return;
+    }
+
+    getDescription() {
+        return this.alreadySolvedDescription;
+    }
+
+    setDescription(description) {
+        this.alreadySolvedDescription = description;
     }
 
     correctCell() {

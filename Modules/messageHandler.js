@@ -144,7 +144,7 @@ module.exports.addRoomDescription = async (
                     : game.guild.iconURL()
             )
             .setTitle(location.name)
-            .setColor("1F8B4C")
+            .setColor(settings.embedColor)
             .setDescription(descriptionText)
             .addFields([
                 { name: "Occupants", value: constructedString },
