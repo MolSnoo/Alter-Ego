@@ -1,7 +1,7 @@
 const settings = include("Configs/settings.json");
 const constants = include("Configs/constants.json");
 const serverconfig = include("Configs/serverconfig.json");
-const { discord, TextDisplayBuilder, MessageFlags} = require("discord.js");
+const { discord, TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags} = require("discord.js");
 const PriorityQueue = include(`${constants.dataDir}/PriorityQueue.js`);
 
 module.exports.queue = new PriorityQueue();
@@ -135,33 +135,44 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
             } asleep.`;
         }
         
-        const embed = new discord.EmbedBuilder()
-        .setThumbnail(
-            location.iconURL !== ""
-                ? location.iconURL
-                : settings.defaultRoomIconURL !== ""
-                ? settings.defaultRoomIconURL
-                : game.guild.iconURL()
-        )
-        .setTitle(location.name)
-        .setColor(settings.embedColor)
-        .setDescription(descriptionText)
-        .addFields([
-            { name: "Occupants", value: constructedString },
-            {
-                name: `${
-                    settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()
-                }`,
-                value: defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText,
-            },
-        ]);
+        const components = [
+            new ContainerBuilder()
+            .setAccentColor(Number(`0x${settings.embedColor}`))
+            .addSectionComponents(
+                new SectionBuilder()
+                .setThumbnailAccessory(
+                    new ThumbnailBuilder()
+                    .setURL(
+                        location.iconURL !== ""
+                        ? location.iconURL
+                        : settings.defaultRoomIconURL !== ""
+                        ? settings.defaultRoomIconURL
+                        : game.guild.iconURL()
+                    )
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder().setContent("_ _"),
+                    new TextDisplayBuilder().setContent(`**${location.name}**`),
+                    new TextDisplayBuilder().setContent("_ _")
+                )
+            ),
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false),
+            new TextDisplayBuilder().setContent(descriptionText),
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false),
+            new TextDisplayBuilder().setContent("**Occupants**"),
+            new TextDisplayBuilder().setContent(constructedString),
+            new TextDisplayBuilder().setContent(`**${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}**`),
+            new TextDisplayBuilder().setContent(defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText),
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+        ];
 
         if (player.talent !== "NPC") {
             module.exports.queue.enqueue(
                 {
                     fire: async () =>
                         await player.member.send({
-                            embeds: [embed],
+                            components: components,
+                            flags: MessageFlags.IsComponentsV2
                         }),
                 },
                 "tell"
@@ -172,7 +183,8 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
                 {
                     fire: async () =>
                         await player.spectateChannel.send({
-                            embeds: [embed],
+                            components: components,
+                            flags: MessageFlags.IsComponentsV2
                         }),
                 },
                 "spectator"
