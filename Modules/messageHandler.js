@@ -1,7 +1,7 @@
 const settings = include("Configs/settings.json");
 const constants = include("Configs/constants.json");
 const serverconfig = include("Configs/serverconfig.json");
-const discord = require("discord.js");
+const { discord, TextDisplayBuilder, MessageFlags} = require("discord.js");
 const PriorityQueue = include(`${constants.dataDir}/PriorityQueue.js`);
 
 module.exports.queue = new PriorityQueue();
@@ -24,13 +24,14 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
                     !player.hasAttribute("no sight") &&
                     !player.hasAttribute("unconscious") &&
                     player.spectateChannel !== null
-                )
+                ) {
                     module.exports.queue.enqueue(
                         {
                             fire: async () => await player.spectateChannel.send(messageText),
                         },
                         "spectator"
                     );
+                }
             });
         }
     }
@@ -51,39 +52,42 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
                     !player.hasAttribute("no sight") &&
                     !player.hasAttribute("unconscious") &&
                     player.spectateChannel !== null
-                )
+                ) {
                     module.exports.queue.enqueue(
                         {
                             fire: async () => await player.spectateChannel.send(spectateMessageText),
                         },
                         "spectator"
                     );
+                }
             });
         }
     }
 };
 
 module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
-    if (player.talent !== "NPC")
+    if (player.talent !== "NPC") {
         module.exports.queue.enqueue(
             {
                 fire: async () => await player.member.send(messageText),
             },
             "tell"
         );
-    if (addSpectate && player.spectateChannel !== null)
+    }
+    if (addSpectate && player.spectateChannel !== null) {
         module.exports.queue.enqueue(
             {
                 fire: async () => await player.spectateChannel.send(messageText),
             },
             "spectator"
         );
+    }
 };
 
 module.exports.addDirectNarrationWithAttachments = async (player, messageText, attachments, addSpectate = true) => {
     const files = attachments.map((attachment) => attachment.url);
 
-    if (player.talent !== "NPC")
+    if (player.talent !== "NPC") {
         module.exports.queue.enqueue(
             {
                 fire: async () =>
@@ -94,7 +98,8 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
             },
             "tell"
         );
-    if (addSpectate && player.spectateChannel !== null)
+    }
+    if (addSpectate && player.spectateChannel !== null) {
         module.exports.queue.enqueue(
             {
                 fire: async () =>
@@ -105,16 +110,10 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
             },
             "spectator"
         );
+    }
 };
 
-module.exports.addRoomDescription = async (
-    game,
-    player,
-    location,
-    descriptionText,
-    defaultDropObjectText,
-    addSpectate = true
-) => {
+module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
     if (player.talent !== "NPC" || (addSpectate && player.spectateChannel !== null)) {
         let constructedString;
         const generatedString = location.generate_occupantsString(
@@ -130,33 +129,34 @@ module.exports.addRoomDescription = async (
         else if (generatedString.length <= 1000) constructedString = `You see ${generatedString} in this room.`;
         else constructedString = "Too many players in this room.";
 
-        if (generatedSleepingString !== "")
+        if (generatedSleepingString !== "") {
             constructedString += `\n${generatedSleepingString} ${
                 generatedSleepingString.includes(" and ") ? "are" : "is"
             } asleep.`;
-
+        }
+        
         const embed = new discord.EmbedBuilder()
-            .setThumbnail(
-                location.iconURL !== ""
-                    ? location.iconURL
-                    : settings.defaultRoomIconURL !== ""
-                    ? settings.defaultRoomIconURL
-                    : game.guild.iconURL()
-            )
-            .setTitle(location.name)
-            .setColor(settings.embedColor)
-            .setDescription(descriptionText)
-            .addFields([
-                { name: "Occupants", value: constructedString },
-                {
-                    name: `${
-                        settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()
-                    }`,
-                    value: defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText,
-                },
-            ]);
+        .setThumbnail(
+            location.iconURL !== ""
+                ? location.iconURL
+                : settings.defaultRoomIconURL !== ""
+                ? settings.defaultRoomIconURL
+                : game.guild.iconURL()
+        )
+        .setTitle(location.name)
+        .setColor(settings.embedColor)
+        .setDescription(descriptionText)
+        .addFields([
+            { name: "Occupants", value: constructedString },
+            {
+                name: `${
+                    settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()
+                }`,
+                value: defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText,
+            },
+        ]);
 
-        if (player.talent !== "NPC")
+        if (player.talent !== "NPC") {
             module.exports.queue.enqueue(
                 {
                     fire: async () =>
@@ -166,7 +166,8 @@ module.exports.addRoomDescription = async (
                 },
                 "tell"
             );
-        if (addSpectate && player.spectateChannel !== null)
+        }
+        if (addSpectate && player.spectateChannel !== null) {
             module.exports.queue.enqueue(
                 {
                     fire: async () =>
@@ -176,6 +177,7 @@ module.exports.addRoomDescription = async (
                 },
                 "spectator"
             );
+        }
     }
 };
 
@@ -216,9 +218,7 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
     if (player.spectateChannel !== null) {
         const messageText =
             whisper && whisper.players.length > 1
-                ? `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speaker.displayName)}):*\n${
-                      message.content || ""
-                  }`
+                ? `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speaker.displayName)}):*\n${message.content || ""}`
                 : whisper
                 ? `*(Whispered):*\n${message.content || ""}`
                 : message.content || "";
