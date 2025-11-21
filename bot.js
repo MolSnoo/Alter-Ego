@@ -1,27 +1,25 @@
 'use strict';
-global.include = require('app-root-path').require;
+const settings = require('./Configs/settings.json');
+const constants = require('./Configs/constants.json');
+const credentials = require('./Configs/credentials.json');
+const serverconfig = require('./Configs/serverconfig.json');
+const serverManager = require('./Modules/serverManager.js');
+const updateHandler = require('./Modules/updateHandler.js');
+const messageHandler = require('./Modules/messageHandler.js');
+const commandHandler = require('./Modules/commandHandler.js');
+const dialogHandler = require('./Modules/dialogHandler.js');
+const saver = require('./Modules/saver.js');
 
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const credentials = include('Configs/credentials.json');
-const serverconfig = include('Configs/serverconfig.json');
-const serverManager = include(`${constants.modulesDir}/serverManager.js`);
-const updateHandler = include(`${constants.modulesDir}/updateHandler.js`);
-const messageHandler = include(`${constants.modulesDir}/messageHandler.js`);
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
-const saver = include(`${constants.modulesDir}/saver.js`);
-
-const Event = include(`${constants.dataDir}/Event.js`);
+const Event = require('./Data/Event.js');
 
 const fs = require('fs');
 const fetch = require('node-fetch');
-var moment = require('moment');
+let moment = require('moment');
 moment().format();
 const discord = require('discord.js');
-const { ActivityType, ChannelType } = require('./node_modules/discord-api-types/v10');
+const {ActivityType, ChannelType} = require('./node_modules/discord-api-types/v10');
+
 const bot = new discord.Client({
-    retryLimit: Infinity,
     partials: [
         discord.Partials.User,
         discord.Partials.Channel,
@@ -42,12 +40,15 @@ const bot = new discord.Client({
     ]
 });
 
-var game = include(`game.json`);
+/* @type {Game} */
+var game = require('./game.json');
+
 game.messageHandler = messageHandler;
 
 bot.commands = new discord.Collection();
 bot.configs = new discord.Collection();
 bot.commandLog = [];
+
 function loadCommands() {
     const commandsDir = `./${constants.commandsDir}/`;
     fs.readdir(commandsDir, (err, files) => {
@@ -86,19 +87,38 @@ function getActivityType(type) {
 }
 
 function updateStatus() {
-    var numPlayersOnline = game.players_alive.reduce(function (total, player) {
+    let numPlayersOnline = game.players_alive.reduce(function (total, player) {
         return total + (player.online ? 1 : 0);
     }, 0);
-    var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
+    let onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
 
     if (settings.debug)
-        bot.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: getActivityType(settings.debugModeActivity.type) }] });
+        bot.user.setPresence({
+            status: "dnd",
+            activities: [{
+                name: settings.debugModeActivity.string + onlineString,
+                type: getActivityType(settings.debugModeActivity.type)
+            }]
+        });
     else {
         bot.user.setStatus("online");
         if (game.inProgress && !game.canJoin)
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: getActivityType(settings.gameInProgressActivity.type), url: settings.gameInProgressActivity.url }] });
+            bot.user.setPresence({
+                status: "online",
+                activities: [{
+                    name: settings.gameInProgressActivity.string + onlineString,
+                    type: getActivityType(settings.gameInProgressActivity.type),
+                    url: settings.gameInProgressActivity.url
+                }]
+            });
         else
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: getActivityType(settings.onlineActivity.type) }] });
+            bot.user.setPresence({
+                status: "online",
+                activities: [{
+                    name: settings.onlineActivity.string,
+                    type: getActivityType(settings.onlineActivity.type)
+                }]
+            });
     }
 }
 
@@ -119,7 +139,7 @@ async function sendFirstBootMessage() {
 
 async function checkVersion() {
     const masterPackage = await fetch('https://raw.githubusercontent.com/MolSnoo/Alter-Ego/master/package.json').then(response => response.json()).catch();
-    const localPackage = include('package.json');
+    const localPackage = require('./package.json');
     if (masterPackage.version !== localPackage.version && !localPackage.version.endsWith("d"))
         game.commandChannel.send(`This version of Alter Ego is out of date. Please update using Docker or download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
@@ -137,8 +157,7 @@ bot.on('clientReady', async () => {
         updateStatus();
         checkVersion();
         updateHandler.autoUpdate();
-    }
-    else {
+    } else {
         console.log("Error: Bot must be on one and only one server.");
         return process.exit(2);
     }

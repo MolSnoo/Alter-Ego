@@ -1,6 +1,6 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const itemManager = require('../Modules/itemManager.js');
 
 module.exports.config = {
     name: "instantiate_moderator",

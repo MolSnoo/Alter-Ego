@@ -1,5 +1,5 @@
-const constants = include('Configs/constants.json');
-const finder = include(`${constants.modulesDir}/finder.js`);
+const constants = require('../Configs/constants.json');
+const finder = require('./finder.js');
 
 const DOMParser = require('@xmldom/xmldom').DOMParser;
 const XMLSerializer = require('@xmldom/xmldom').XMLSerializer;
@@ -65,7 +65,7 @@ module.exports.parseDescription = function (description, container, player, doEr
 
     if (document) {
         // Include game data for variable functionality.
-        var game = include('game.json');
+        var game = require('../game.json');
         // Find any conditionals.
         var conditionals = document.getElementsByTagName('if');
         let conditionalsToRemove = [];

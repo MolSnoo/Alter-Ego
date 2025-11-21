@@ -1,4 +1,4 @@
-const settings = include('Configs/settings.json');
+const settings = require('../Configs/settings.json');
 
 var moment = require('moment');
 
