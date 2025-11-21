@@ -598,16 +598,16 @@ class Player {
             const room = game.rooms.find(room => room === player.location);
                             
             // Determine if any occupants in the room have the status applied to them.
-            room.occupants?.filter(occupant => occupant.name !== player.name).forEach(occupant => {
+            room?.occupants?.filter(occupant => occupant.name !== player.name && !occupant.hasAttribute("unconscious")).forEach(occupant => {
                 // If an occupant in the room doesn't have the status, inflict it on them.
                 if(!occupant.statusString.includes(statusToInflict.name)){
                     // Inflict the status on any un-inflicted occupants.
-                    occupant.inflict(game, statusToInflict, notify, doCures, narrate, item, duration);
+                    occupant.inflict(game, statusToInflict, occupant.talent !== "NPC", doCures, narrate, item, duration);
                 }
             });
 
         });
-    }   
+    } 
     
     generate_statusList(includeHidden, includeDurations) {
         var statusList = "";
