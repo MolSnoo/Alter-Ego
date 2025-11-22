@@ -25,7 +25,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     settings.defaultRoomIconURL = input;
 
-    const json = JSON.stringify(settings);
+    const json = JSON.stringify(settings, null, "  ");
     await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated the default room icon.`);

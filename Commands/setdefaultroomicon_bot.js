@@ -22,7 +22,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 
     settings.defaultRoomIconURL = input;
 
-    const json = JSON.stringify(settings);
+    const json = JSON.stringify(settings, null, "  ");
     await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
     return;
