@@ -26,15 +26,15 @@ module.exports.config = {
         + `${settings.commandPrefix}load gestures\n`
         + `${settings.commandPrefix}load flags`,
     usableBy: "Moderator",
-    aliases: ["load", "reload", "gethousedata"],
+    aliases: ["load", "reload", "las", "lar", "gethousedata"],
     requiresGame: false
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0)
+    if (command !== "las" && command !== "lar" && args.length === 0)
         return game.messageHandler.addReply(message, `You need to specify what data to get. Usage:\n${exports.config.usage}`);
 
-    if (args[0] === "all") {
+    if (command === "las" || command === "lar" || args[0] === "all") {
         var errors = [];
         await loader.loadRooms(game, false);
         await loader.loadObjects(game, false);
@@ -143,7 +143,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.messageHandler.addGameMechanicMessage(message.channel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
             }
 
-            if (args[1] && args[1] === "start") {
+            if (command === "las" || args[1] && args[1] === "start") {
                 game.inProgress = true;
                 game.canJoin = false;
                 if (!settings.debug)
@@ -151,7 +151,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 for (let i = 0; i < game.players_alive.length; i++)
                     game.players_alive[i].sendDescription(game, game.players_alive[i].location.description, game.players_alive[i].location);
             }
-            else if (args[1] && args[1] === "resume") {
+            else if (command === "lar" || args[1] && args[1] === "resume") {
                 game.inProgress = true;
                 game.canJoin = false;
                 if (!settings.debug)
