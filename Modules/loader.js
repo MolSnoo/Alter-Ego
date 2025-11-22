@@ -57,7 +57,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                             i + j + 2
                         ));
                 }
-                var channel = game.guild.channels.cache.find((channel) => channel.name === sheet[i][columnRoomName]);
+                let channel = game.guild.channels.cache.find((channel) => channel.name === sheet[i][columnRoomName]);
                 if (channel === null || channel === undefined) {
                     const roomCategories = serverconfig.roomCategories.split(",");
                     for (let j = 0; j < roomCategories.length; j++) {
