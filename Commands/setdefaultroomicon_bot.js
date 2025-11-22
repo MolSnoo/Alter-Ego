@@ -1,4 +1,4 @@
-const serverconfig = include('Configs/serverconfig.json');
+const settings = include('Configs/settings.json');
 
 const fs = require('fs');
 
@@ -20,8 +20,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (!iconURLSyntax.test(input) && input !== "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
-    let json = JSON.stringify(serverconfig);
-    await fs.writeFileSync('Configs/serverconfig.json', json, 'utf8');
+    settings.defaultRoomIconURL = input;
+
+    const json = JSON.stringify(settings);
+    await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
     return;
 };

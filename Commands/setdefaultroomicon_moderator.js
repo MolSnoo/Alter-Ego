@@ -1,5 +1,4 @@
 const settings = include('Configs/settings.json');
-const serverconfig = include('Configs/serverconfig.json');
 
 const fs = require('fs');
 
@@ -24,8 +23,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else if (!iconURLSyntax.test(input) && input !== "") return game.messageHandler.addReply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
-    let json = JSON.stringify(serverconfig);
-    await fs.writeFileSync('Configs/serverconfig.json', json, 'utf8');
+    settings.defaultRoomIconURL = input;
+
+    const json = JSON.stringify(settings);
+    await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated the default room icon.`);
 
