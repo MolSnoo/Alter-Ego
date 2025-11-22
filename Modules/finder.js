@@ -1,22 +1,22 @@
 var game = require('../game.json');
 
 module.exports.findRoom = function (name) {
-    if (name) name = name.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
+    if (name) name = name.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
 
     return game.rooms.find(room => room.name === name);
 };
 
 module.exports.findRooms = function (name) {
     if (name) {
-        name = name.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
+        name = name.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
         return game.rooms.filter(room => room.name.includes(name));
     }
     else return game.rooms;
 };
 
 module.exports.findObject = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '');
-    if (location) location = location.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
+    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
+    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
 
     if (location)
         return game.objects.find(object => object.name === name && object.location.name === location);
@@ -24,8 +24,8 @@ module.exports.findObject = function (name, location) {
 };
 
 module.exports.findObjects = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '');
-    if (location) location = location.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
+    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
+    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
 
     if (name && location) return game.objects.filter(object => object.name.includes(name) && object.location.name === location);
     else if (location) return game.objects.filter(object => object.location.name === location);
@@ -34,14 +34,14 @@ module.exports.findObjects = function (name, location) {
 };
 
 module.exports.findPrefab = function (id) {
-    if (id) id = id.toUpperCase().replace(/\'/g, '');
+    if (id) id = id.toUpperCase().replace(/\'/g, '').trim();
 
     return game.prefabs.find(prefab => prefab.id === id);
 };
 
 module.exports.findPrefabs = function (id) {
     if (id) {
-        id = id.toUpperCase().replace(/\'/g, '');
+        id = id.toUpperCase().replace(/\'/g, '').trim();
         return game.prefabs.filter(prefab => prefab.id.includes(id) || prefab.name.includes(id) || prefab.pluralName.includes(id));
     }
     else return game.prefabs;
@@ -50,22 +50,22 @@ module.exports.findPrefabs = function (id) {
 module.exports.findRecipes = function (type, ingredients, products) {
     if (type) type = type.toLowerCase();
     if (ingredients) {
-        ingredients.forEach(ingredient => ingredient = ingredient.toUpperCase().replace(/\'/g, '').trim());
+        ingredients.forEach((ingredient, i) => ingredients[i] = ingredient.toUpperCase().replace(/\'/g, '').trim());
         ingredients.sort();
     }
     if (products) {
-        products.forEach(product => product = product.toUpperCase().replace(/\'/g, '').trim());
+        products.forEach((product, i) => products[i] = product.toUpperCase().replace(/\'/g, '').trim());
         products.sort();
     }
+    const typeMatch = (recipe) => {
+        return type === "crafting" && recipe.objectTag === "" ? true : type === "processing" && recipe.objectTag !== "" ? true : false;
+    };
 
     if (type && ingredients && products)
         return game.recipes.filter(recipe => {
                 const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
                 const recipeProducts = recipe.products.map(product => product.id);
-
-                type === "crafting" ? recipe.objectTag === ""
-                : type === "processing" ? recipe.objectTag !== ""
-                : true
+                return typeMatch(recipe)
                 && ingredients.every(ingredient => recipeIngredients.includes(ingredient))
                 && products.every(product => recipeProducts.includes(product))
             }
@@ -74,58 +74,45 @@ module.exports.findRecipes = function (type, ingredients, products) {
         return game.recipes.filter(recipe => {
                 const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
                 const recipeProducts = recipe.products.map(product => product.id);
-
-                ingredients.every(ingredient => recipeIngredients.includes(ingredient))
+                return ingredients.every(ingredient => recipeIngredients.includes(ingredient))
                 && products.every(product => recipeProducts.includes(product))
             }
         );
     else if (type && ingredients)
         return game.recipes.filter(recipe => {
                 const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
-
-                type === "crafting" ? recipe.objectTag === ""
-                : type === "processing" ? recipe.objectTag !== ""
-                : true
+                return typeMatch(recipe)
                 && ingredients.every(ingredient => recipeIngredients.includes(ingredient))
             }
         );
     else if (ingredients)
         return game.recipes.filter(recipe => {
                 const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
-
-                ingredients.every(ingredient => recipeIngredients.includes(ingredient))
+                return ingredients.every(ingredient => recipeIngredients.includes(ingredient))
             }
         );
     else if (type && products)
         return game.recipes.filter(recipe => {
                 const recipeProducts = recipe.products.map(product => product.id);
-
-                type === "crafting" ? recipe.objectTag === ""
-                : type === "processing" ? recipe.objectTag !== ""
-                : true
+                return typeMatch(recipe)
                 && products.every(product => recipeProducts.includes(product))
             }
         );
     else if (products)
         return game.recipes.filter(recipe => {
                 const recipeProducts = recipe.products.map(product => product.id);
-
-                products.every(product => recipeProducts.includes(product))
+                return products.every(product => recipeProducts.includes(product))
             }
         );
     else if (type)
-        return game.recipes.filter(recipe =>
-            type === "crafting" ? recipe.objectTag === ""
-            : type === "processing" ? recipe.objectTag !== ""
-            : true
-        );
+        return game.recipes.filter(recipe => typeMatch(recipe));
     else return game.recipes;
 };
 
 module.exports.findItem = function (identifier, location, containerName) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '');
-    if (location) location = location.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
-    if (containerName && containerName.includes(':')) containerName = containerName.substring(0, containerName.indexOf(':')) + containerName.substring(containerName.indexOf(':')).toUpperCase().replace(/\'/g, '');
+    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
+    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
+    if (containerName && containerName.includes(':')) containerName = containerName.substring(0, containerName.indexOf(':')) + containerName.substring(containerName.indexOf(':')).toUpperCase().replace(/\'/g, '').trim();
 
     if (location && containerName)
         return game.items.find(item =>
@@ -143,10 +130,10 @@ module.exports.findItem = function (identifier, location, containerName) {
 };
 
 module.exports.findItems = function (identifier, location, containerName, slot) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '');
-    if (location) location = location.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
-    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '');
-    if (slot) slot = slot.toUpperCase().replace(/\'/g, '');
+    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
+    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
+    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '').trim();
+    if (slot) slot = slot.toUpperCase().replace(/\'/g, '').trim();
 
     if (identifier && location && containerName && slot)
         return game.items.filter(item =>
@@ -201,8 +188,8 @@ module.exports.findItems = function (identifier, location, containerName, slot) 
 };
 
 module.exports.findPuzzle = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '');
-    if (location) location = location.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
+    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
+    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
 
     if (location)
         return game.puzzles.find(puzzle => puzzle.name === name && puzzle.location.name === location);
@@ -210,8 +197,8 @@ module.exports.findPuzzle = function (name, location) {
 };
 
 module.exports.findPuzzles = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '');
-    if (location) location = location.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
+    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
+    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
 
     if (name && location) return game.puzzles.filter(puzzle => puzzle.name.includes(name) && puzzle.location.name === location);
     else if (location) return game.puzzles.filter(puzzle => puzzle.location.name === location);
@@ -220,80 +207,80 @@ module.exports.findPuzzles = function (name, location) {
 };
 
 module.exports.findEvent = function (name) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '');
+    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
 
     return game.events.find(event => event.name === name);
 };
 
 module.exports.findEvents = function (name) {
     if (name) {
-        name = name.toUpperCase().replace(/\'/g, '');
+        name = name.toUpperCase().replace(/\'/g, '').trim();
         return game.events.filter(event => event.name.includes(name));
     }
     else return game.events;
 };
 
 module.exports.findStatusEffect = function (name) {
-    if (name) name = name.toLowerCase();
+    if (name) name = name.toLowerCase().trim();
 
     return game.statusEffects.find(statusEffect => statusEffect.name === name);
 };
 
 module.exports.findStatusEffects = function (name) {
     if (name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase().trim();
         return game.statusEffects.filter(statusEffect => statusEffect.name.includes(name));
     }
     else return game.statusEffects;
 };
 
 module.exports.findPlayer = function (name) {
-    if (name) name = name.toLowerCase();
+    if (name) name = name.toLowerCase().trim();
 
     return game.players.find(player => player.name.toLowerCase() === name);
 };
 
 module.exports.findPlayers = function (name) {
     if (name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase().trim();
         return game.players.filter(player => player.name.toLowerCase().includes(name) || player.displayName.toLowerCase().includes(name));
     }
     else return game.players;
 };
 
 module.exports.findLivingPlayer = function (name) {
-    if (name) name = name.toLowerCase();
+    if (name) name = name.toLowerCase().trim();
 
     return game.players_alive.find(player => player.name.toLowerCase() === name);
 };
 
 module.exports.findLivingPlayers = function (name) {
     if (name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase().trim();
         return game.players_alive.filter(player => player.name.toLowerCase().includes(name) || player.displayName.toLowerCase().includes(name));
     }
     else return game.players_alive;
 };
 
 module.exports.findDeadPlayer = function (name) {
-    if (name) name = name.toLowerCase();
+    if (name) name = name.toLowerCase().trim();
 
     return game.players_dead.find(player => player.name.toLowerCase() === name);
 };
 
 module.exports.findDeadPlayers = function (name) {
     if (name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase().trim();
         return game.players_dead.filter(player => player.name.toLowerCase().includes(name) || player.displayName.toLowerCase().includes(name));
     }
     else return game.players_dead;
 };
 
 module.exports.findInventoryItem = function (identifier, player, containerName, equipmentSlot) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '');
-    if (player) player = player.toLowerCase();
-    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '');
-    if (equipmentSlot) equipmentSlot = equipmentSlot.toUpperCase().replace(/\'/g, '');
+    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
+    if (player) player = player.toLowerCase().trim();
+    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '').trim();
+    if (equipmentSlot) equipmentSlot = equipmentSlot.toUpperCase().replace(/\'/g, '').trim();
 
     if (player && containerName && equipmentSlot)
         return game.inventoryItems.find(inventoryItem =>
@@ -335,11 +322,11 @@ module.exports.findInventoryItem = function (identifier, player, containerName, 
 };
 
 module.exports.findInventoryItems = function (identifier, player, containerName, slot, equipmentSlot) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '');
-    if (player) player = player.toLowerCase();
-    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '');
-    if (slot) slot = slot.toUpperCase().replace(/\'/g, '');
-    if (equipmentSlot) equipmentSlot = equipmentSlot.toUpperCase().replace(/\'/g, '');
+    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
+    if (player) player = player.toLowerCase().trim();
+    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '').trim();
+    if (slot) slot = slot.toUpperCase().replace(/\'/g, '').trim();
+    if (equipmentSlot) equipmentSlot = equipmentSlot.toUpperCase().replace(/\'/g, '').trim();
 
     if (identifier && player && containerName && slot)
         return game.inventoryItems.filter(inventoryItem =>
@@ -426,14 +413,14 @@ module.exports.findInventoryItems = function (identifier, player, containerName,
 
 module.exports.findGestures = function (name) {
     if (name) {
-        name = name.toLowerCase().replace(/\'/g, '');
+        name = name.toLowerCase().replace(/\'/g, '').trim();
         return game.gestures.filter(gesture => gesture.name.includes(name));
     }
     else return game.gestures;
 }
 
 module.exports.findFlag = function (id, evaluate = false) {
-    if (id) id = id.toUpperCase().replace(/[\'"“”`]/g, '');
+    if (id) id = id.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 
     const flag = game.flags.get(id);
     if (flag && flag.valueScript && evaluate) {
@@ -444,9 +431,9 @@ module.exports.findFlag = function (id, evaluate = false) {
 };
 
 module.exports.findFlags = function (id) {
-    if (id) id = id.toUpperCase().replace(/[\'"“”`]/g, '');
+    if (id) id = id.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 
     const flags = [...game.flags.values()];
-    if (id) return flags.filter(flag => flag.id.contains(id));
+    if (id) return flags.filter(flag => flag.id.includes(id));
     else return flags;
 };

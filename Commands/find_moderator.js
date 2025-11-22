@@ -20,23 +20,59 @@ module.exports.run = async (bot, game, message, command, args) => {
 
 	const dataTypeRegex = /^((?<Room>rooms?)|(?<Object>objects?)|(?<Prefab>prefabs?)|(?<Recipe>recipes?)|(?<Item>items?)|(?<Puzzle>puzzles?)|(?<Event>events?)|(?<Status>status(?:es)? ?(?:effects?)?)|(?<Player>players?)|(?<InventoryItem>inventory(?: ?items?)?)|(?<Gesture>gestures?)|(?<Flag>flags?))(?<search>.*)/i;
 	const dataTypeMatch = input.match(dataTypeRegex);
-	if (dataTypeMatch.groups) {
+	if (dataTypeMatch?.groups) {
+		const originalInput = input;
+		if (dataTypeMatch.groups.search) input = input.substring(input.indexOf(dataTypeMatch.groups.search)).trim();
 		let results = [];
 		let fields;
 		if (dataTypeMatch.groups.Room) {
 			if (!dataTypeMatch.groups.search) results = finder.findRooms();
+			else results = finder.findRooms(dataTypeMatch.groups.search);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Object) {
 			if (!dataTypeMatch.groups.search) results = finder.findObjects();
+			else {
+				let name, location;
+				const locationRegex = /((?:^| )at (?<location>.+?$))/i;
+				const locationMatch = input.match(locationRegex);
+				if (locationMatch?.groups?.location) {
+					location = locationMatch.groups.location;
+					input = input.substring(0, input.indexOf(locationMatch[0])).trim();
+				}
+				if (input !== '') name = input;
+				results = finder.findObjects(name, location);
+			}
 			fields = { row: 'Row', name: 'Name', location: 'Location' };
 		}
 		else if (dataTypeMatch.groups.Prefab) {
 			if (!dataTypeMatch.groups.search) results = finder.findPrefabs();
+			else results = finder.findPrefabs(dataTypeMatch.groups.search);
 			fields = { row: 'Row', id: 'ID' };
 		}
 		else if (dataTypeMatch.groups.Recipe) {
 			if (!dataTypeMatch.groups.search) results = finder.findRecipes();
+			else {
+				let type, ingredients, products;
+				const typeRegex = /(?<type>^crafting|processing)/i;
+				const typeMatch = input.match(typeRegex);
+				if (typeMatch?.groups?.type) {
+					type = typeMatch.groups.type;
+					input = input.substring(typeMatch.groups.type.length).trim();
+				}
+				const productsRegex = /(producing (?<products>.+?)$)/i;
+				const productsMatch = input.match(productsRegex);
+				if (productsMatch?.groups?.products) {
+					products = productsMatch.groups.products.split(',');
+					input = input.substring(0, input.indexOf(productsMatch[0])).trim();
+				}
+				const ingredientsRegex = /((?:using )?(?<ingredients>.+?)$)/i;
+				const ingredientsMatch = input.match(ingredientsRegex);
+				if (ingredientsMatch?.groups?.ingredients) {
+					ingredients = ingredientsMatch.groups.ingredients.split(',');
+				}
+				results = finder.findRecipes(type, ingredients, products);
+			}
 			fields = { row: 'Row', ingredients: 'Ingredients', products: 'Products' };
 		}
 		else if (dataTypeMatch.groups.Item) {
@@ -45,18 +81,32 @@ module.exports.run = async (bot, game, message, command, args) => {
 		}
 		else if (dataTypeMatch.groups.Puzzle) {
 			if (!dataTypeMatch.groups.search) results = finder.findPuzzles();
+			else {
+				let name, location;
+				const locationRegex = /((?:^| )at (?<location>.+?$))/i;
+				const locationMatch = input.match(locationRegex);
+				if (locationMatch?.groups?.location) {
+					location = locationMatch.groups.location;
+					input = input.substring(0, input.indexOf(locationMatch[0])).trim();
+				}
+				if (input !== '') name = input;
+				results = finder.findPuzzles(name, location);
+			}
 			fields = { row: 'Row', name: 'Name', location: 'Location' };
 		}
 		else if (dataTypeMatch.groups.Event) {
 			if (!dataTypeMatch.groups.search) results = finder.findEvents();
+			else results = finder.findEvents(dataTypeMatch.groups.search);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Status) {
 			if (!dataTypeMatch.groups.search) results = finder.findStatusEffects();
+			else results = finder.findStatusEffects(dataTypeMatch.groups.search);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Player) {
 			if (!dataTypeMatch.groups.search) results = finder.findPlayers();
+			else results = finder.findPlayers(dataTypeMatch.groups.search);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.InventoryItem) {
@@ -65,13 +115,15 @@ module.exports.run = async (bot, game, message, command, args) => {
 		}
 		else if (dataTypeMatch.groups.Gesture) {
 			if (!dataTypeMatch.groups.search) results = finder.findGestures();
+			else results = finder.findGestures(dataTypeMatch.groups.search);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Flag) {
 			if (!dataTypeMatch.groups.search) results = finder.findFlags();
+			else results = finder.findFlags(dataTypeMatch.groups.search);
 			fields = { row: 'Row', id: 'ID' };
 		}
-		else return game.messageHandler.addReply(message, `Couldn't find a valid data type in "${input}". Usage:\n${exports.config.usage}`);
+		else return game.messageHandler.addReply(message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${exports.config.usage}`);
 		
 		if (results.length === 0)
 			return game.messageHandler.addGameMechanicMessage(message.channel, `Found 0 results.`);
@@ -137,7 +189,7 @@ function createPages(fields, results) {
 		// If the new row would cause the current page to exceed 15 entries per page or Discord's message character limit of 2000, make a new page.
 		// Here, rowLength is multiplied by the number of rows in the current page plus 3: one new row, one divider per row, plus a top and bottom border.
 		const rowLength = calculateRowLength(widestEntryLength);
-		if (page.length >= 15 || rowLength * (2 * page.length + 3) > 2000 - 50) {
+		if (page.length >= 15 || rowLength >= 90 || rowLength * (2 * page.length + 3) > 2000 - 50) {
 			pages.push(page);
 			pageNo++;
 			page = [];
