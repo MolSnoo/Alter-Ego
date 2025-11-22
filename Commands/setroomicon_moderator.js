@@ -29,7 +29,14 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     var input = args.join(" ");
-    if (!iconURLSyntax.test(input)) return game.messageHandler.addReply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    if (input.length === 0) {
+        if (message.attachments.size === 0)
+            return game.messageHandler.addReply(message, `You must provide a display icon, either as a URL or a file with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+        else {
+            input = message.attachments.first().url;
+        }
+    }
+    else if (!iconURLSyntax.test(input)) return game.messageHandler.addReply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
     room.iconURL = input;
     game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated the icon for ${room.name}.`);
