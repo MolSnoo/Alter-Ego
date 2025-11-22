@@ -76,20 +76,12 @@ module.exports.run = async (bot, game, message, command, args) => {
 		if (results.length === 0)
 			return game.messageHandler.addGameMechanicMessage(message.channel, `Found 0 results.`);
 		// Divide the results into pages.
-		let pages = [];
+		const pages = createPages(fields, results);
 		let page = 0;
-		for (let i = 0, pageNo = 0; i < results.length; i++) {
-			// Divide the results into groups of 9.
-			if (i % 9 === 0) {
-				pages.push([]);
-				if (i !== 0) pageNo++;
-			}
-			pages[pageNo].push(results[i]);
-		}
 
 		const resultCountString = `Found ${results.length} result` + (results.length === 1 ? '' : 's') + `.`;
 		let pageString = pages.length > 1 ? ` Showing page ${page + 1}/${pages.length}.\n` : '\n';
-		let resultsDisplay = '```' + displayResults(fields, page, pages) + '```';
+		let resultsDisplay = '```' + table(pages[page]) + '```';
 		message.channel.send(resultCountString + pageString + resultsDisplay).then(msg => {
 			if (pages.length > 1) {
 				msg.react('⏪').then(() => {
@@ -107,7 +99,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 						if (page === 0) return;
 						page--;
 						pageString = ` Showing page ${page + 1}/${pages.length}.\n`;
-						resultsDisplay = '```' + displayResults(fields, page, pages) + '```';
+						resultsDisplay = '```' + table(pages[page]) + '```';
 						msg.edit(resultCountString + pageString + resultsDisplay);
 					});
 
@@ -117,7 +109,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 						if (page === pages.length - 1) return;
 						page++;
 						pageString = ` Showing page ${page + 1}/${pages.length}.\n`;
-						resultsDisplay = '```' + displayResults(fields, page, pages) + '```';
+						resultsDisplay = '```' + table(pages[page]) + '```';
 						msg.edit(resultCountString + pageString + resultsDisplay);
 					});
             	});
@@ -127,24 +119,65 @@ module.exports.run = async (bot, game, message, command, args) => {
 	else game.messageHandler.addReply(message, `Couldn't find "${input}". Usage:\n${exports.config.usage}`);
 };
 
-function displayResults(fields, page, pages) {
-	let data = [];
-	// Add the header.
+function createPages(fields, results) {
+	// Divide the results into pages.
+	let pages = [];
+	let page = [];
 	let header = [];
-	Object.values(fields).forEach(value => header.push(value));
-	data.push(header);
+	let headerEntryLength = [];
+	Object.values(fields).forEach(value => {
+		header.push(value);
+		headerEntryLength.push(value.length);
+	});
+	page.push(header);
 
-	for (let entry of pages[page]) {
+	let widestEntryLength = [...headerEntryLength];
+	
+	for (let i = 0, pageNo = 0; i < results.length; i++) {
+		// If the new row would cause the current page to exceed 15 entries per page or Discord's message character limit of 2000, make a new page.
+		// Here, rowLength is multiplied by the number of rows in the current page plus 3: one new row, one divider per row, plus a top and bottom border.
+		const rowLength = calculateRowLength(widestEntryLength);
+		if (page.length >= 15 || rowLength * (2 * page.length + 3) > 2000 - 50) {
+			pages.push(page);
+			pageNo++;
+			page = [];
+			page.push(header);
+			widestEntryLength = [...headerEntryLength];
+		}
+		// Create a new row.
 		let row = [];
-		Object.keys(fields).forEach(key => {
-			if (key === 'location') row.push(entry.location.name);
-			else if (key === 'player') row.push(entry.player.name);
-			else if (key === 'id' && Object.hasOwn(entry, 'prefab')) row.push(entry.identifier !== '' ? entry.identifier : entry.prefab.id);
-			else if (key === 'ingredients') row.push(entry.ingredients.map(ingredient => ingredient.id).join(','));
-			else if (key === 'products') row.push(entry.products.map(product => product.id).join(','));
-			else row.push(entry[key]);
+		Object.keys(fields).forEach((key, j) => {
+			// Some fields require special access to get a string value. Handle those here.
+			let cellContents = "";
+			if (key === 'location')
+				cellContents = results[i].location.name;
+			else if (key === 'player')
+				cellContents = results[i].player.name;
+			else if (key === 'id' && Object.hasOwn(results[i], 'prefab'))
+				cellContents = results[i].identifier !== '' ? results[i].identifier : results[i].prefab.id;
+			else if (key === 'ingredients')
+				cellContents = results[i].ingredients.map(ingredient => ingredient.id).join(',');
+			else if (key === 'products')
+				cellContents = results[i].products.map(product => product.id).join(',');
+			else
+				cellContents = results[i][key];
+			// If the cellContents would make this the widest entry for this column, update the widestEntryLength.
+			if (cellContents.length > widestEntryLength[j])
+				widestEntryLength[j] = cellContents.length;
+			row.push(cellContents);
 		});
-		data.push(row);
+		page.push(row);
 	}
-	return table(data);
+	pages.push(page);
+	return pages;
+}
+
+function calculateRowLength(widestEntryLength) {
+	const cellPadding = 2;
+	const cellBorders = widestEntryLength.length + 1;
+	const newLine = 1;
+	let rowLength = 0;
+	for (const entry of widestEntryLength)
+		rowLength += entry + cellPadding;
+	return rowLength + cellBorders + newLine;
 }
