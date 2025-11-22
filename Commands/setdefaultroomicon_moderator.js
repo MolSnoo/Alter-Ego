@@ -8,8 +8,8 @@ module.exports.config = {
     description: "Sets a room's icon.",
     details: "Sets the icon that will display when the given room's information is displayed. The icon given must be an attachment or URL with a .jpg, "
         + ".jpeg, .png, .gif, .webp, or .avif extension. To reset a room's icon, simply do not specify a new icon.",
-    usage: `${settings.commandPrefix}setroomicon living-room https://media.discordapp.net/attachments/1290826220367249489/1441259427411001455/sLPkDhP.png\n`
-        + `${settings.commandPrefix}setroomicon kitchen`,
+    usage: `${settings.commandPrefix}setdefaultroomicon https://media.discordapp.net/attachments/1290826220367249489/1441259427411001455/sLPkDhP.png\n`
+        + `${settings.commandPrefix}setdefaultroomicon`,
     usableBy: "Moderator",
     aliases: ["setdefaultroomicon"]
 };
