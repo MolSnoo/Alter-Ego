@@ -10,9 +10,9 @@ module.exports.config = {
 		+ 'String values must be surrounded by quotation marks. If you want to set the flag\'s value script, '
 		+ 'surround your input with `` `tics` ``. This script will immediately be evaluated, '
 		+ 'and the flag\'s value will be set accordingly. Whether the flag\'s value or value script '
-		+ 'is set, the flag\'s set commands will be executed.\n\n'
+		+ 'is set, the flag\'s set commands will be executed, unless the flag was set by another flag.\n\n'
         + '-**clear**: Clears the flag value. This will replace the flag\'s current value with `null`. '
-		+ 'When this is cleared, the flag\'s cleared commands will be executed.',
+		+ 'When this is cleared, the flag\'s cleared commands will be executed unless the flag was cleared by another flag.',
     usage: `${settings.commandPrefix}flag set COLD SEASON FLAG true\n`
 		+ `${settings.commandPrefix}setflag HOT SEASON FLAG False\n`
 		+ `${settings.commandPrefix}flag set TV PROGRAMMING 4\n`
@@ -89,7 +89,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 				value = flag.evaluate(valueScript);
 				if (newFlag) game.flags.set(flagId, flag);
 				flag.valueScript = valueScript;
-				flag.setValue(value);
+				flag.setValue(value, true, bot, game);
 			}
 			catch (err) {
 				return game.messageHandler.addReply(message, `The specified script returned an error. ${err}`);
@@ -97,7 +97,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 		}
 		else {
 			if (newFlag) game.flags.set(flagId, flag);
-			flag.setValue(value);
+			flag.setValue(value, true, bot, game);
 		}
 
 		const valueDisplay = 
@@ -111,7 +111,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 		let flag = game.flags.get(flagId);
 		if (!flag) return game.messageHandler.addReply(message, `Couldn't find flag "${input}".`);
 
-		flag.clearValue();
+		flag.clearValue(true, bot, game);
 		game.messageHandler.addGameMechanicMessage(message.channel, `Successfully cleared flag ${flag.id}.`);
 	}
 };

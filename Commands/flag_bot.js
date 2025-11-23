@@ -40,6 +40,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 	if (args.length === 0)
 		return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
+	// If we're going to set or clear another flag, make sure it won't set or clear other flags with its commands.
+	let doCommands = false;
+	if (data && !data.hasOwnProperty("valueScript")) doCommands = true;
 	// The value, if it exists, is the easiest to find at the beginning. Look for that first.
 	let valueScript;
 	let value;
@@ -91,7 +94,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 				value = flag.evaluate(valueScript);
 				if (newFlag) game.flags.set(flagId, flag);
 				flag.valueScript = valueScript;
-				flag.setValue(value);
+				flag.setValue(value, doCommands, bot, game, player);
 			}
 			catch (err) {
 				return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
@@ -99,7 +102,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 		}
 		else {
 			if (newFlag) game.flags.set(flagId, flag);
-			flag.setValue(value);
+			flag.setValue(value, doCommands, bot, game, player);
 		}
 	}
 	else if (command === "clearflag") {
@@ -107,6 +110,6 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 		let flag = game.flags.get(flagId);
 		if (!flag) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
 
-		flag.clearValue();
+		flag.clearValue(doCommands, bot, game, player);
 	}
 };
