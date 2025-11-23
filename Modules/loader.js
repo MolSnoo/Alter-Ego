@@ -22,7 +22,7 @@ moment().format();
 
 module.exports.loadRooms = function (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.roomSheetDataCells, function (response) {
+        sheets.getData(constants.roomSheetDataCells, async function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
@@ -57,7 +57,28 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                             i + j + 2
                         ));
                 }
-                const channel = game.guild.channels.cache.find(channel => channel.name === sheet[i][columnRoomName]);
+                let channel = game.guild.channels.cache.find((channel) => channel.name === sheet[i][columnRoomName]);
+                if (channel === null || channel === undefined) {
+                    const roomCategories = serverconfig.roomCategories.split(",");
+                    for (let j = 0; j < roomCategories.length; j++) {
+                        const roomCategory = game.guild.channels.cache.find(
+                            (channel) => channel.id === roomCategories[j].trim()
+                        );
+                        if (roomCategory === null || roomCategory === undefined)
+                            continue;
+                        const roomCategorySize = game.guild.channels.cache.filter(
+                            (channel) => channel.parent && channel.parentId === roomCategories[j].trim()
+                        ).size;
+                        if (roomCategorySize < 50) {
+                            channel = await game.guild.channels.create({
+                                name: sheet[i][columnRoomName],
+                                type: ChannelType.GuildText,
+                                parent: roomCategory,
+                            });
+                            break;
+                        }
+                    }
+                }
                 var tags = sheet[i][columnTags] ? sheet[i][columnTags].trim().split(',') : [];
                 for (let j = 0; j < tags.length; j++)
                     tags[j] = tags[j].trim();
@@ -114,7 +135,7 @@ module.exports.checkRoom = function (room) {
     if (room.name.length > 100)
         return new Error(`Couldn't load room on row ${room.row}. The room name exceeds 100 characters in length.`);
     if (room.channel === null || room.channel === undefined)
-        return new Error(`Couldn't load room "${room.name}". There is no corresponding channel on the server.`);
+        return new Error(`Couldn't load room "${room.name}". There is no corresponding channel on the server, and a channel to accomodate the room could not be automatically created.`);
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
         return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
