@@ -76,8 +76,42 @@ module.exports.run = async (bot, game, message, command, args) => {
 			fields = { row: 'Row', ingredients: 'Ingredients', products: 'Products' };
 		}
 		else if (dataTypeMatch.groups.Item) {
-			if (!dataTypeMatch.groups.search) results = finder.findItems();
-			fields = { row: 'Row', id: 'ID', location: 'Location', containerName: 'Container' };
+			if (!dataTypeMatch.groups.search) {
+				results = finder.findItems();
+				fields = { row: 'Row', id: 'ID', location: 'Location', containerName: 'Container' };
+			}
+			else {
+				let id, location, containerName, slot;
+				const locationRegex = /(?:^|.* )(at (?<location>.+?$))/i;
+				const locationMatch = input.match(locationRegex);
+				if (locationMatch?.groups?.location) {
+					location = locationMatch.groups.location;
+					input = input.substring(0, input.indexOf(locationMatch[1])).trim();
+				}
+				const containerSlotRegex = /(\w+? (?<slot>\S+?) of (?<container>.+))/i;
+				const containerRegex = /(?:^|.* )((?:in|on|under|behind|beneath|above|among|with) (?<container>.+))/i;
+				const containerSlotMatch = input.match(containerSlotRegex);
+				const containerMatch = input.match(containerRegex);
+				if (containerSlotMatch?.groups?.slot && containerSlotMatch?.groups?.container) {
+					slot = containerSlotMatch.groups.slot;
+					containerName = containerSlotMatch.groups.container;
+					input = input.substring(0, input.indexOf(containerSlotMatch[0])).trim();
+				}
+				else if (containerMatch?.groups?.container) {
+					containerName = containerMatch.groups.container;
+					input = input.substring(0, input.indexOf(containerMatch[1])).trim();
+				}
+				if (input !== '') id = input;
+				results = finder.findItems(id, location, containerName, slot);
+				fields = { row: 'Row', id: 'ID' };
+				// If the user specified a location and a containerName, don't include the location.
+				// That way, they're more likely to see the entire containerName, which is searched, not an exact match.
+				const locationField = { location: 'Location' };
+				const containerField = { containerName: 'Container' };
+				if (location && containerName)
+					fields = Object.assign(fields, containerField);
+				else Object.assign(fields, locationField, containerField);
+			}
 		}
 		else if (dataTypeMatch.groups.Puzzle) {
 			if (!dataTypeMatch.groups.search) results = finder.findPuzzles();

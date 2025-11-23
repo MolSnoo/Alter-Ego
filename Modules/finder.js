@@ -157,6 +157,14 @@ module.exports.findItems = function (identifier, location, containerName, slot) 
             && item.slot === slot
             && item.quantity !== 0
         );
+    else if (containerName && slot)
+        return game.items.filter(item =>
+            (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
+                || item.container.name.includes(containerName)
+                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            && item.slot === slot
+            && item.quantity !== 0
+        );
     else if (identifier && location && containerName)
         return game.items.filter(item =>
             (item.identifier !== "" && item.identifier.includes(identifier)
@@ -173,6 +181,13 @@ module.exports.findItems = function (identifier, location, containerName, slot) 
         return game.items.filter(item =>
             item.location.name === location
             && (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
+                || item.container.name.includes(containerName)
+                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            && item.quantity !== 0
+        );
+    else if (containerName)
+        return game.items.filter(item =>
+            (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
                 || item.container.name.includes(containerName)
                 || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
             && item.quantity !== 0
