@@ -177,6 +177,7 @@ function createPages(fields, results) {
 	let page = [];
 	let header = [];
 	let headerEntryLength = [];
+	const cellCharacterLimit = Math.floor(16 * Object.keys(fields).length ** 2 - 123 * Object.keys(fields).length + 262);
 	Object.values(fields).forEach(value => {
 		header.push(value);
 		headerEntryLength.push(value.length);
@@ -186,16 +187,6 @@ function createPages(fields, results) {
 	let widestEntryLength = [...headerEntryLength];
 	
 	for (let i = 0, pageNo = 0; i < results.length; i++) {
-		// If the new row would cause the current page to exceed 15 entries per page or Discord's message character limit of 2000, make a new page.
-		// Here, rowLength is multiplied by the number of rows in the current page plus 3: one new row, one divider per row, plus a top and bottom border.
-		const rowLength = calculateRowLength(widestEntryLength);
-		if (page.length >= 15 || rowLength >= 90 || rowLength * (2 * page.length + 3) > 2000 - 50) {
-			pages.push(page);
-			pageNo++;
-			page = [];
-			page.push(header);
-			widestEntryLength = [...headerEntryLength];
-		}
 		// Create a new row.
 		let row = [];
 		Object.keys(fields).forEach((key, j) => {
@@ -213,11 +204,26 @@ function createPages(fields, results) {
 				cellContents = results[i].products.map(product => product.id).join(',');
 			else
 				cellContents = results[i][key];
+			// If the cellContents exceed the preset character limit, truncate it.
+			if (cellContents.length >= cellCharacterLimit)
+				cellContents = cellContents.substring(0, cellCharacterLimit) + '…';
 			// If the cellContents would make this the widest entry for this column, update the widestEntryLength.
 			if (cellContents.length > widestEntryLength[j])
 				widestEntryLength[j] = cellContents.length;
 			row.push(cellContents);
 		});
+		// If the new row would cause the current page to exceed 15 entries per page or Discord's message character limit of 2000, make a new page.
+		// Here, rowLength is multiplied by the number of rows in the current page plus 3: one new row, one divider per row, plus a top and bottom border.
+		const rowLength = calculateRowLength(widestEntryLength);
+		if (page.length >= 15 || rowLength * (2 * page.length + 3) > 2000 - 50) {
+			pages.push(page);
+			pageNo++;
+			page = [];
+			page.push(header);
+			for (let k = 0; k < widestEntryLength; k++) {
+				if (widestEntryLength[k] < headerEntryLength[k]) widestEntryLength[k] = headerEntryLength[k];
+			}
+		}
 		page.push(row);
 	}
 	pages.push(page);
