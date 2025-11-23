@@ -28,7 +28,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     args.splice(0, 1);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?\\.(jpg|jpeg|png|gif|webp|avif))(\\?.*)?$');
-    let input = args.join(" ");
+    let input = args.join(" ").replace(iconURLSyntax, '$1');
     if (input.length === 0) {
         if (message.attachments.size !== 0)
             input = message.attachments.first().url.replace(iconURLSyntax, '$1');
