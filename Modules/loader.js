@@ -722,6 +722,8 @@ module.exports.checkItem = function (item, game) {
         return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
         return new Error(`Couldn't load item on row ${item.row}. The location given is not a room.`);
+    if (item.containerName === "")
+        return new Error(`Couldn't load item on row ${item.row}. No container was given.`);
     if (item.containerName.startsWith("Object:") && !(item.container instanceof Object))
         return new Error(`Couldn't load item on row ${item.row}. The container given is not an object.`);
     if (item.containerName.startsWith("Item:") && !(item.container instanceof Item))
@@ -731,7 +733,7 @@ module.exports.checkItem = function (item, game) {
     if (item.containerName !== "" && !item.containerName.startsWith("Object:") && !item.containerName.startsWith("Item:") && !item.containerName.startsWith("Puzzle:"))
         return new Error(`Couldn't load item on row ${item.row}. The given container type is invalid.`);
     if (item.container instanceof Item && item.container.inventory.length === 0)
-        return new Error(`Couldn't load item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+        return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
     if (item.container instanceof Item) {
         if (item.slot === "") return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but a prefab inventory slot name was not given.`);
         let foundSlot = false;
