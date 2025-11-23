@@ -136,9 +136,9 @@ module.exports.checkRoom = function (room) {
         return new Error(`Couldn't load room on row ${room.row}. The room name exceeds 100 characters in length.`);
     if (room.channel === null || room.channel === undefined)
         return new Error(`Couldn't load room "${room.name}". There is no corresponding channel on the server, and a channel to accomodate the room could not be automatically created.`);
-    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png|gif))$');
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
-        return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .png, or .gif extension.`);
+        return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
     for (let i = 0; i < room.exit.length; i++) {
         let exit = room.exit[i];
         if (exit.name === "" || exit.name === null || exit.name === undefined)
@@ -315,7 +315,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 for (let j = 0; j < coveredEquipmentSlots.length; j++)
                     coveredEquipmentSlots[j] = coveredEquipmentSlots[j].trim();
                 // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
-                const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : new Array("", "");
                 var equipCommands = commands[0] ? commands[0].split(',') : "";
                 for (let j = 0; j < equipCommands.length; j++)
@@ -773,7 +773,7 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requirements.length; j++)
                     requirements[j] = requirements[j].trim();
-                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
+                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
                 let commandSets = [];
                 let getCommands = function (commandString) {
                     const commands = commandString.split('/');
@@ -998,7 +998,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
                 for (let j = 0; j < triggerTimes.length; j++)
                     triggerTimes[j] = triggerTimes[j].trim();
-                const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : ["", ""];
                 var triggeredCommands = commands[0] ? commands[0].split(',') : [];
                 for (let j = 0; j < triggeredCommands.length; j++)
@@ -1340,7 +1340,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var member = null;
                 var spectateChannel = null;
                 if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
-                    member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    try {
+                        member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    } catch (error) {}
                     spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
@@ -1378,24 +1380,26 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 if (player.alive) {
                     game.players_alive.push(player);
 
-                    // Parse statuses and inflict the player with them.
-                    const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                    for (let j = 0; j < game.statusEffects.length; j++) {
-                        for (let k = 0; k < statusList.length; k++) {
-                            const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
-                            if (game.statusEffects[j].name === statusName) {
-                                const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
-                                currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                    if (player.member !== null || player.talent === "NPC") {
+                        // Parse statuses and inflict the player with them.
+                        const currentPlayer = game.players_alive[game.players_alive.length - 1];
+                        for (let j = 0; j < game.statusEffects.length; j++) {
+                            for (let k = 0; k < statusList.length; k++) {
+                                const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
+                                if (game.statusEffects[j].name === statusName) {
+                                    const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
+                                    const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                    currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                                }
                             }
                         }
-                    }
 
-                    if (currentPlayer.location instanceof Room) {
-                        for (let k = 0; k < game.rooms.length; k++) {
-                            if (game.rooms[k].name === currentPlayer.location.name) {
-                                game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
-                                break;
+                        if (currentPlayer.location instanceof Room) {
+                            for (let k = 0; k < game.rooms.length; k++) {
+                                if (game.rooms[k].name === currentPlayer.location.name) {
+                                    game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1435,9 +1439,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
 module.exports.checkPlayer = function (player) {
     if (player.talent !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
-    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png))$');
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
     if (player.talent === "NPC" && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
-        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg or .png extension.`);
+        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg, .jpeg, .png, .webp, or .avif extension.`);
     if (player.talent !== "NPC" && (player.member === null || player.member === undefined))
         return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
     if (player.name === "" || player.name === null || player.name === undefined)
