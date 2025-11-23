@@ -15,13 +15,13 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, command, args) => {
-    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
-    var input = args.join(" ");
+    const iconURLSyntax = RegExp('(http(s?)://.*?\\.(jpg|jpeg|png|gif|webp|avif))(\\?.*)?$');
+    let input = args.join(" ");
     if (input.length === 0) {
         if (message.attachments.size !== 0)
-            input = message.attachments.first().url;
+            input = message.attachments.first().url.replace(iconURLSyntax, '$1');
     }
-    else if (!iconURLSyntax.test(input) && input !== "") return game.messageHandler.addReply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    if (!iconURLSyntax.test(input) && input !== "") return game.messageHandler.addReply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
     settings.defaultRoomIconURL = input;
 
