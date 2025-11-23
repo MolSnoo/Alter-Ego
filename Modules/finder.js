@@ -131,7 +131,7 @@ module.exports.findFlag = function (id, evaluate = false) {
     const flag = game.flags.get(id);
     if (flag && flag.valueScript && evaluate) {
         const value = flag.evaluate();
-        flag.setValue(value);
+        flag.setValue(value, false);
     }
     return flag ? flag.value : flag;
 };

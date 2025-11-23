@@ -1725,7 +1725,7 @@ class Player {
             else if (puzzle.requirements[i] instanceof Flag) {
                 if (puzzle.requirements[i].valueScript !== "") {
                     const value = puzzle.requirements[i].evaluate();
-                    puzzle.requirements[i].setValue(value);
+                    puzzle.requirements[i].setValue(value, true, bot, game, this);
                 }
                 if (puzzle.requirements[i].value !== true) {
                     allRequirementsMet = false;
