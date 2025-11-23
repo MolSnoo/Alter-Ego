@@ -20,6 +20,7 @@
   "homepage": "https://github.com/MolSnoo/Alter-Ego",
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
+    "acorn": "^8.15.0",
     "app-root-path": "^2.2.1",
     "discord.js": "^14.24.0",
     "googleapis": "^164.1.0",
