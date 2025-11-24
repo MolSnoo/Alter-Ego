@@ -8,6 +8,7 @@ module.exports.config = {
 		+ 'will be created with the specified name. The specified value must be a boolean, number, or string. '
 		+ 'String values must be surrounded by quotation marks. If a string contains "player", and the command was '
 		+ 'executed because of a player\'s actions, it will be replaced with their display name. '
+		+ 'To add or subtract from the flag\'s current number value, prefix the number to add or subtract with `+=` or `-=`. '
 		+ 'If you want to set the flag\'s value script, surround your input with `` `tics` ``. This script will immediately '
 		+ 'be evaluated, and the flag\'s value will be set accordingly. Whether the flag\'s value or value script '
 		+ 'is set, the flag\'s set commands will be executed, unless the flag was set by another flag.\n\n'
@@ -17,6 +18,8 @@ module.exports.config = {
 		+ `setflag HOT SEASON FLAG False\n`
 		+ `flag set TV PROGRAMMING 4\n`
 		+ `setflag INDOOR TEMPERATURE {THERMOSTAT}\n`
+		+ `flag set TV PROGRAMMING += 1\n`
+		+ `setflag INDOOR TEMPERATURE -= 4.1\n`
 		+ `flag set SOUP OF THE DAY "French Onion"\n`
 		+ `setflag BLOOD SPLATTER “player WAS HERE”\n`
 		+ `flag set PRECIPITATION \`\` \`findEvent('RAIN').ongoing === true || findEvent('SNOW').ongoing === true\` \`\`\n`
@@ -46,9 +49,11 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 	// The value, if it exists, is the easiest to find at the beginning. Look for that first.
 	let valueScript;
 	let value;
+	let update;
 	if (command === "setflag") {
 		const scriptMatch = input.match(/(?<!"|“)`(.*)`(?!"|”)/);
 		const stringMatch = input.match(/(?<!`)(?:"|“)(.*)(?:"|”)(?!`)/);
+		const addSubtractMatch = input.match(/(\+=|-=) ?(-?\d+(?:.\d+)?)/);
 		if (scriptMatch && scriptMatch.length === 2) {
 			valueScript = scriptMatch[1];
 			input = input.substring(0, input.indexOf(scriptMatch[0]));
@@ -57,6 +62,11 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 			value = stringMatch[1];
 			if (player) value = value.replace(/player/g, player.displayName);
 			input = input.substring(0, input.indexOf(stringMatch[0]));
+		}
+		else if (addSubtractMatch && addSubtractMatch.length === 3) {
+			update = addSubtractMatch[1] === "-=" ? "subtract" : "add";
+			value = parseFloat(addSubtractMatch[2]);
+			input = input.substring(0, input.indexOf(addSubtractMatch[0]))
 		}
 		else if (!isNaN(parseFloat(args[args.length - 1]))) {
 			value = parseFloat(args[args.length - 1]);
@@ -101,7 +111,15 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 			}
 		}
 		else {
-			if (newFlag) game.flags.set(flagId, flag);
+			if (newFlag) {
+				if (update) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't update the value of a flag that doesn't exist.`);
+				game.flags.set(flagId, flag);
+			}
+			else if (update) {
+				if (typeof flag.value !== "number") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Can't add or subtract to a flag whose value is not a number.`);
+				if (update === "subtract") value = flag.value - value;
+				else if (update === "add") value = flag.value + value;
+			}
 			flag.setValue(value, doCommands, bot, game, player);
 		}
 	}
