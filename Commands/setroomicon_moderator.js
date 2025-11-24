@@ -16,19 +16,21 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
         return game.messageHandler.addReply(message, `You need to specify a room. Usage:\n${exports.config.usage}`);
 
+    let input = args.join(" ");
+    let parsedInput = input.replace(/ /g, "-").toLowerCase();
+
     let room = null;
     for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === args[0].toLowerCase()) {
+        if (game.rooms[i].name === parsedInput || parsedInput.startsWith(game.rooms[i].name + '-')) {
             room = game.rooms[i];
+            input = input.substring(game.rooms[i].name.length).trim();
             break;
         }
     }
-    if (room === null) return game.messageHandler.addReply(message, `Room "${args[0]}" not found.`);
-
-    args.splice(0, 1);
+    if (room === null) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?\\.(jpg|jpeg|png|gif|webp|avif))(\\?.*)?$');
-    let input = args.join(" ").replace(iconURLSyntax, '$1');
+    input = input.replace(iconURLSyntax, '$1');
     if (input.length === 0) {
         if (message.attachments.size !== 0)
             input = message.attachments.first().url.replace(iconURLSyntax, '$1');
