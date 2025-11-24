@@ -14,19 +14,22 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (args.length === 0)
         return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
+    let input = args.join(" ");
+    let parsedInput = input.replace(/ /g, "-").toLowerCase();
+
     let room = null;
     for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === args[0].toLowerCase()) {
+        if (game.rooms[i].name === parsedInput || parsedInput.startsWith(game.rooms[i].name + '-')) {
             room = game.rooms[i];
+            input = input.substring(game.rooms[i].name.length).trim();
             break;
         }
     }
+
     if (room === null)
         return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Room "${args[0]}" not found.`);
 
-    args.splice(0, 1);
-
-    var input = args.join(" ").replace(/(?<=http(s?))@(?=.*?(jpg|jpeg|png|gif|webp|avif))/g, ':').replace(/(?<=http(s?):.*?)\\(?=.*?(jpg|jpeg|png|gif|webp|avif))/g, '/');
+    input = input.replace(iconURLSyntax, '$1').replace(/(?<=http(s?))@(?=.*?(jpg|jpeg|png|gif|webp|avif))/g, ':').replace(/(?<=http(s?):.*?)\\(?=.*?(jpg|jpeg|png|gif|webp|avif))/g, '/');
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (!iconURLSyntax.test(input)) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
