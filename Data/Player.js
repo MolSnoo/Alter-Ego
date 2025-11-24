@@ -2072,7 +2072,8 @@ class Player {
         this.online = true;
         if (this.onlineInterval)
             clearTimeout(this.onlineInterval);
-        this.onlineInterval = setTimeout(() => {this.setOffline()}, 60000 * constants.offlineStatusInterval);
+        let self = this;
+        this.onlineInterval = setTimeout(() => {self.setOffline()}, 60000 * constants.offlineStatusInterval);
     }
 
     setOffline() {
