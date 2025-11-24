@@ -25,6 +25,10 @@ start in debug mode. If this is `false`, it will start normally.
 
 This is a string that determines the color of embed messages sent by Alter Ego. String should be in the format of a 24-bit hexadecimal number without a hash symbol, e.g. `1F8B4C`
 
+### SHOW_ONLINE
+
+This is a boolean that determines if the list of online players will be shown in the bot's status. If this is `true`, Alter Ego will show the number of active players in its status. If this is `false`, Alter Ego will not show the number of active players in its status. For high-stakes roleplay, consider setting this to `false` so that players are not clued in on activity behind the scenes that they should not know about.
+
 ## Other game data
 
 ### PIXELS_PER_M
