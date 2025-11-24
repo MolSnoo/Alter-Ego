@@ -14,10 +14,6 @@ Items using the [craft](../commands/player_commands.md#craft) [command](../comma
 **Processing** is the act of transforming one or more Items into zero or more Items using an [Object](object.md). Every
 Recipe is either a crafting-type Recipe or a processing-type Recipe, but not both.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 Recipes have relatively few attributes. Their behavior is entirely static, incapable of changing. These attributes
@@ -29,8 +25,8 @@ point.
 
 ### Ingredients
 
-* Spreadsheet label: **Ingredient Prefab(s)**
-* Class
+- Spreadsheet label: **Ingredient Prefab(s)**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Prefab](prefab.md)>
   `this.ingredients`
 
@@ -41,14 +37,14 @@ depending on the Recipe's type.
 
 Crafting-type Recipes:
 
-* Must have exactly two ingredients and
-* Can have two of the same Prefab as ingredients.
+- Must have exactly two ingredients and
+- Can have two of the same Prefab as ingredients.
 
 Processing-type Recipes:
 
-* Must have at least one ingredient,
-* Can have infinitely many ingredients, and
-* Must not have more than one of the same Prefab as ingredients.
+- Must have at least one ingredient,
+- Can have infinitely many ingredients, and
+- Must not have more than one of the same Prefab as ingredients.
 
 Note that the final rule only applies due to the way Items with the same Prefab ID are concatenated with
 the [quantity attribute](item.md#quantity). If the Items are on two different rows of the spreadsheet due to having some
@@ -59,8 +55,8 @@ same Prefab as ingredients should be avoided.
 
 ### Uncraftable
 
-* Spreadsheet label: **Uncraftable?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Uncraftable?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.uncraftable`
 
 This is a Boolean value indicating whether or not this Recipe can be reversed. If this is `true`, then
@@ -73,8 +69,8 @@ Crafting-type Recipes with two products cannot be uncraftable.
 
 ### Object Tag
 
-* Spreadsheet label: **Requires Object with Tag**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Requires Object with Tag**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.objectTag`
 
 This is a simple phrase that determines which Objects can be used to process this Recipe, if any. There are no rules for
@@ -83,27 +79,27 @@ determines the type of each Recipe. If an Object tag is given, it will be a proc
 given, it will be a crafting-type Recipe.
 
 The tag should match exactly the [Recipe tag](object.md#recipe-tag) of any Objects that can be used to process this
-Recipe. For example, a Recipe with the Object tag "blender" can only be processed by an Object with the Recipe tag 
+Recipe. For example, a Recipe with the Object tag "blender" can only be processed by an Object with the Recipe tag
 "blender" when it is activated.
 
 ### Duration
 
-* Spreadsheet label: **Wait Duration**
-* Class attribute: [Duration](https://momentjs.com/docs/#/durations/) `this.duration`
+- Spreadsheet label: **Wait Duration**
+- Class attribute: [Duration](https://momentjs.com/docs/#/durations/) `this.duration`
 
 This is a string which determines how long the Recipe will take to process before it is completed. This can only be
 given for processing-type Recipes. This should consist of a whole number (no decimals) with a letter immediately
 following it, with no space between them. There is a fixed set of predefined units that correspond with each letter.
 They are as follows:
-| Letter | Unit    |
+| Letter | Unit |
 | ------ | ------- |
-| s      | seconds |
-| m      | minutes |
-| h      | hours   |
-| d      | days    |
-| w      | weeks   |
-| M      | months  |
-| y      | years   |
+| s | seconds |
+| m | minutes |
+| h | hours |
+| d | days |
+| w | weeks |
+| M | months |
+| y | years |
 
 So, a Recipe that should take 30 seconds to process should have a duration of `30s`, one that should take 15 minutes
 should have a duration of `15m`, one that should take 2 hours should have a duration of `2h`, one that should take 1.5
@@ -111,8 +107,8 @@ days should have a duration of `36h`, and so on.
 
 ### Products
 
-* Spreadsheet label: **Produces**
-* Class
+- Spreadsheet label: **Produces**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Prefab](prefab.md)>
   `this.products`
 
@@ -122,21 +118,21 @@ completion of the Recipe. There are different sets of rules for products, depend
 
 Crafting-type Recipes:
 
-* Must not have more than two products and
-* Can have two of the same Prefab as products.
+- Must not have more than two products and
+- Can have two of the same Prefab as products.
 
 Processing-type Recipes:
 
-* Can have any number of products and
-* Can have multiple of the same Prefab as products.
+- Can have any number of products and
+- Can have multiple of the same Prefab as products.
 
 Note that although processing-type Recipes with multiple of the same Prefab as ingredients are typically not allowed,
 the same does not apply to products. A processing-type Recipe can produce as many of the same Prefab as desired.
 
 ### Initiated Description
 
-* Spreadsheet label: **Message When Initiated**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Message When Initiated**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.initiatedDescription`
 
 This is a description that indicates when a Recipe has begun being processed. When a Player activates an Object that can
@@ -151,8 +147,8 @@ Crafting-type Recipes will never use this text because they are completed instan
 
 ### Completed Description
 
-* Spreadsheet label: **Message When Completed**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Message When Completed**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.completedDescription`
 
 This is a description that indicates when a Recipe has finished being processed. When a Player crafts two Inventory
@@ -163,8 +159,8 @@ does refer to the Recipe itself.
 
 ### Uncrafted Description
 
-* Spreadsheet label: **Message When Uncrafted**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Message When Uncrafted**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.uncraftedDescription`
 
 When a Player uncrafts an Inventory Item, they will receive a parsed version of this string. Because uncraftable Recipes
@@ -172,7 +168,7 @@ cannot have an Object tag, the `this` keyword will always refer to the Recipe it
 
 ### Row
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.row`
 
 This is an internal attribute, but it can also be found on the spreadsheet. This is the row number of the Recipe.
@@ -184,9 +180,9 @@ the [craft Player method](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b1
 Whether the action is initiated [by a Player](../commands/player_commands.md#craft)
 or [by a moderator](../commands/moderator_commands.md#craft), the rules are the same:
 
-* The Player must have [Equipment Slots](equipment_slot.md) named "RIGHT HAND" and "LEFT HAND".
-* The Player must have two Inventory Items, one equipped to their RIGHT HAND and one equipped to their LEFT HAND.
-* There must be a crafting-type Recipe whose ingredients are the Prefabs underlying the Player's two held Inventory
+- The Player must have [Equipment Slots](equipment_slot.md) named "RIGHT HAND" and "LEFT HAND".
+- The Player must have two Inventory Items, one equipped to their RIGHT HAND and one equipped to their LEFT HAND.
+- There must be a crafting-type Recipe whose ingredients are the Prefabs underlying the Player's two held Inventory
   Items.
 
 If all of the above requirements are met, the Player will craft the two Inventory Items together.
@@ -220,10 +216,10 @@ Uncrafting is a simplified reversal of the crafting mechanic. It makes use of
 the [uncraft Player method](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Player.js#L1644).
 Whether the action is initiated by a Player or by a moderator, the rules are the same:
 
-* The Player must have Equipment Slots named "RIGHT HAND" and "LEFT HAND".
-* The Player must have one Inventory Item equipped to their RIGHT HAND or LEFT HAND.
-* The Player's other hand must be empty.
-* There must be a crafting-type Recipe whose only product is the Prefab underlying the Player held Inventory Item.
+- The Player must have Equipment Slots named "RIGHT HAND" and "LEFT HAND".
+- The Player must have one Inventory Item equipped to their RIGHT HAND or LEFT HAND.
+- The Player's other hand must be empty.
+- There must be a crafting-type Recipe whose only product is the Prefab underlying the Player held Inventory Item.
 
 If all of the above requirements are met, the Player will uncraft their held Inventory Item.
 
@@ -241,10 +237,11 @@ Alter Ego will then send the Player the Recipe's uncrafted description.
 If either of the ingredients are non-discreet, Alter Ego will narrate the Player uncrafting them. If only one of them is
 discreet, then the Narration will be as follows:
 
-* `[Player displayName] removes [ingredient 1 singleContainingPhrase] from [ingredient 2 singleContainingPhrase].`
+- `[Player displayName] removes [ingredient 1 singleContainingPhrase] from [ingredient 2 singleContainingPhrase].`
 
 If both ingredients are non-discreet, then the Narration will instead be:
-* `[Player displayName] separates [product singleContainingPhrase] into [ingredient 1 singleContainingPhrase] and [ingredient 2 singleContainingPhrase].`
+
+- `[Player displayName] separates [product singleContainingPhrase] into [ingredient 1 singleContainingPhrase] and [ingredient 2 singleContainingPhrase].`
 
 ## Processing
 
@@ -255,11 +252,11 @@ Recipes can be processed in an Object as long as that Object is [activated](obje
 a [Recipe tag](object.md#recipe-tag) that matches the Recipe's Object tag, regardless of how the Object was activated.
 There are four ways an Object can be activated:
 
-* By a Player using the [use player command](../commands/player_commands.md#use),
-* By a moderator using the [object moderator command](../commands/moderator_commands.md#object),
-* By a Puzzle or Event's solved/unsolved or triggered/ended commands using
+- By a Player using the [use player command](../commands/player_commands.md#use),
+- By a moderator using the [object moderator command](../commands/moderator_commands.md#object),
+- By a Puzzle or Event's solved/unsolved or triggered/ended commands using
   the [object bot command](../commands/bot_commands.md#object), or
-* By being loaded from the spreadsheet with its activation state being set to `true`.
+- By being loaded from the spreadsheet with its activation state being set to `true`.
 
 While an Object with a Recipe tag is activated, Alter Ego will attempt every second
 to [find a Recipe](https://github.com/MolSnoo/Alter-Ego/blob/8432696144b167993d299b8ddec5958e10fc649d/Data/Object.js#L140)
