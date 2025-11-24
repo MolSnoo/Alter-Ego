@@ -85,21 +85,38 @@ function getActivityType(type) {
     }
 }
 
-function updateStatus() {
-    var numPlayersOnline = game.players_alive.reduce(function (total, player) {
-        return total + (player.online ? 1 : 0);
-    }, 0);
-    var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
-
-    if (settings.debug)
-        bot.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: getActivityType(settings.debugModeActivity.type) }] });
-    else {
-        bot.user.setStatus("online");
-        if (game.inProgress && !game.canJoin)
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: getActivityType(settings.gameInProgressActivity.type), url: settings.gameInProgressActivity.url }] });
-        else
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: getActivityType(settings.onlineActivity.type) }] });
+function updatePresence() {
+    let onlinePlayers = 0;
+    for (let player of game.players_alive) {
+        if (player.online) onlinePlayers++;
     }
+
+    const statusSuffix = onlinePlayers === 1 ? " player online" : " players online";
+    const onlineSuffix = ` - ${onlinePlayers}${statusSuffix}`;
+
+    let presence = {
+        status: settings.debug ? "dnd" : "online",
+        activities: [
+            {
+                name:
+                    (settings.debug
+                        ? settings.debugModeActivity.string
+                        : game.inProgress && !game.canJoin
+                        ? settings.gameInProgressActivity.string
+                        : settings.onlineActivity.string) + (game.inProgress && !game.canJoin && settings.showOnline ? onlineSuffix : ""),
+                type: getActivityType(
+                    settings.debug
+                        ? settings.debugModeActivity.type
+                        : game.inProgress && !game.canJoin
+                        ? settings.gameInProgressActivity.type
+                        : settings.onlineActivity.type
+                ),
+                url: game.inProgress && !game.canJoin ? settings.gameInProgressActivity.url : null,
+            },
+        ],
+    };
+
+    bot.user.setPresence(presence);
 }
 
 async function sendFirstBootMessage() {
@@ -134,7 +151,7 @@ bot.on('clientReady', async () => {
         console.log(`${bot.user.username} is online on 1 server.`);
         if (firstBootMessage && game.commandChannel) sendFirstBootMessage();
         loadCommands();
-        updateStatus();
+        updatePresence();
         checkVersion();
         updateHandler.autoUpdate();
     }
@@ -153,9 +170,9 @@ bot.on('clientReady', async () => {
         game.messageHandler.sendQueuedMessages();
     }, constants.messageQueueInterval * 1000);
 
-    // Run online players check periodically.
+    // Update bot presence periodically.
     setInterval(() => {
-        updateStatus();
+        updatePresence();
     }, constants.onlinePlayersStatusInterval * 1000);
 
     // Check for any events that are supposed to trigger at this time of day.
