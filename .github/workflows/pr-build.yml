@@ -7,9 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Build the Docker image
         with:
           fetch-depth: 0
+
+      - name: Build the Docker image
         run: docker build . --tag "alter-ego:$(date +%s)"
 
   mdbook:
