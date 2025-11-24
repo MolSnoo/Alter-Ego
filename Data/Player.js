@@ -2070,19 +2070,15 @@ class Player {
 
     setOnline() {
         this.online = true;
-
-        // Clear the existing timeout if necessary
-        this.onlineInterval && clearTimeout(this.onlineInterval);
-        // Set the timeout to the number of minutes in the settings
-        let player = this;
-        this.onlineInterval = setTimeout(function () {
-            player.setOffline();
-        }, 1000 * 60 * constants.offlineStatusInterval);
+        if (this.onlineInterval)
+            clearTimeout(this.onlineInterval);
+        this.onlineInterval = setTimeout(() => {this.setOffline()}, 60000 * constants.offlineStatusInterval);
     }
 
     setOffline() {
         this.online = false;
-        this.onlineInterval && clearTimeout(this.onlineInterval);
+        if (this.onlineInterval)
+            clearTimeout(this.onlineInterval);
     }
 
     descriptionCell() {
