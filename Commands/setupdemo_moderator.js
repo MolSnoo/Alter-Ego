@@ -1,8 +1,8 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const saver = include(`${constants.modulesDir}/saver.js`);
-const serverManager = include(`${constants.modulesDir}/serverManager.js`);
+const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const serverconfig = require('../Configs/serverconfig.json');
+const saver = require('../Modules/saver.js');
+const serverManager = require('../Modules/serverManager.js');
 
 const { ChannelType } = require("../node_modules/discord-api-types/v10");
 

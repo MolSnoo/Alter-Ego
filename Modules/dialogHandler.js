@@ -1,4 +1,4 @@
-﻿const serverconfig = include('Configs/serverconfig.json');
+﻿const serverconfig = require('../Configs/serverconfig.json');
 
 module.exports.execute = async (bot, game, message, deletable, player = null, originalDisplayName = "") => {
     return new Promise(async (resolve) => {

@@ -1,4 +1,4 @@
-const serverconfig = include('Configs/serverconfig.json');
+const serverconfig = require('../Configs/serverconfig.json');
 
 const fs = require('fs');
 const { ChannelType } = require("../node_modules/discord-api-types/v10");

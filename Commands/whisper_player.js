@@ -1,7 +1,7 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+﻿const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
 
-const Whisper = include(`${constants.dataDir}/Whisper.js`);
+const Whisper = require('../Data/Whisper.js');
 
 module.exports.config = {
     name: "whisper_player",

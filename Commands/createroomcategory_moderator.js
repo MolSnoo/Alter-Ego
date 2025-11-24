@@ -1,6 +1,6 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverManager = include(`${constants.modulesDir}/serverManager.js`);
+const settings = require('../Configs/settings.json');
+const constants = require('../Configs/constants.json');
+const serverManager = require('../Modules/serverManager.js');
 
 module.exports.config = {
     name: "createroomcategory_moderator",

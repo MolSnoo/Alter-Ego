@@ -1,5 +1,5 @@
-﻿const settings = include('Configs/settings.json');
-const serverconfig = include('Configs/serverconfig.json');
+﻿const settings = require('../Configs/settings.json');
+const serverconfig = require('../Configs/serverconfig.json');
 
 module.exports.config = {
     name: "endgame_moderator",
