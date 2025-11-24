@@ -88,7 +88,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 					location = locationMatch.groups.location;
 					input = input.substring(0, input.indexOf(locationMatch[1])).trim();
 				}
-				const containerSlotRegex = /(\w+? (?<slot>\S+?) of (?<container>.+))/i;
+				const containerSlotRegex = /([^\s]+? (?<slot>.+?) of (?<container>.+))/i;
 				const containerRegex = /(?:^|.* )((?:in|on|under|behind|beneath|above|among|with) (?<container>.+))/i;
 				const containerSlotMatch = input.match(containerSlotRegex);
 				const containerMatch = input.match(containerRegex);

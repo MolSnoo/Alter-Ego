@@ -135,70 +135,72 @@ module.exports.findItems = function (identifier, location, containerName, slot) 
     if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '').trim();
     if (slot) slot = slot.toUpperCase().replace(/\'/g, '').trim();
 
+    const identifierMatches = (item, name) => {
+        return item.hasOwnProperty("identifier") && item.identifier !== "" && item.identifier.includes(name)
+            || item.hasOwnProperty("prefab") && item.prefab.id.includes(name)
+            || item.name.includes(name)
+            || item.hasOwnProperty("pluralName") && item.pluralName !== "" && item.pluralName.includes(name);
+    };
+
     if (identifier && location && containerName && slot)
         return game.items.filter(item =>
-            (item.identifier !== "" && item.identifier.includes(identifier)
-                || item.prefab.id.includes(identifier)
-                || item.name.includes(identifier)
-                || item.pluralName.includes(identifier))
+            identifierMatches(item, identifier)
             && item.location.name === location
-            && (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
-                || item.container.name.includes(containerName)
-                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            && identifierMatches(item.container, containerName)
+            && item.slot === slot
+            && item.quantity !== 0
+        );
+    else if (identifier && containerName && slot)
+        return game.items.filter(item =>
+            identifierMatches(item, identifier)
+            && identifierMatches(item.container, containerName)
             && item.slot === slot
             && item.quantity !== 0
         );
     else if (location && containerName && slot)
         return game.items.filter(item =>
             item.location.name === location
-            && (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
-                || item.container.name.includes(containerName)
-                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            && identifierMatches(item.container, containerName)
             && item.slot === slot
             && item.quantity !== 0
         );
     else if (containerName && slot)
         return game.items.filter(item =>
-            (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
-                || item.container.name.includes(containerName)
-                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            identifierMatches(item.container, containerName)
             && item.slot === slot
             && item.quantity !== 0
         );
     else if (identifier && location && containerName)
         return game.items.filter(item =>
-            (item.identifier !== "" && item.identifier.includes(identifier)
-                || item.prefab.id.includes(identifier)
-                || item.name.includes(identifier)
-                || item.pluralName.includes(identifier))
+            identifierMatches(item, identifier)
             && item.location.name === location
-            && (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
-                || item.container.name.includes(containerName)
-                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            && identifierMatches(item.container, containerName)
+            && item.quantity !== 0
+        );
+    else if (identifier && containerName)
+        return game.items.filter(item =>
+            identifierMatches(item, identifier)
+            && identifierMatches(item.container, containerName)
             && item.quantity !== 0
         );
     else if (location && containerName)
         return game.items.filter(item =>
             item.location.name === location
-            && (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
-                || item.container.name.includes(containerName)
-                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            && identifierMatches(item.container, containerName)
             && item.quantity !== 0
         );
     else if (containerName)
         return game.items.filter(item =>
-            (item.container.hasOwnProperty("identifier") && item.container.identifier !== "" && item.container.identifier.includes(containerName)
-                || item.container.name.includes(containerName)
-                || item.container.hasOwnProperty("pluralName") && item.container.pluralName !== "" && item.container.pluralName.includes(containerName))
+            identifierMatches(item.container, containerName)
             && item.quantity !== 0
         );
     else if (identifier && location)
-        return game.items.filter(item => (item.identifier !== "" && item.identifier.includes(identifier) || item.prefab.id.includes(identifier) || item.name.includes(identifier) || item.pluralName.includes(identifier))
+        return game.items.filter(item => identifierMatches(item, identifier)
             && item.location.name === location
             && item.quantity !== 0
         );
     else if (location) return game.items.filter(item => item.location.name === location && item.quantity !== 0);
-    else if (identifier) return game.items.filter(item => (item.identifier !== "" && item.identifier.includes(identifier) || item.prefab.id.includes(identifier) || item.name.includes(identifier) || item.pluralName.includes(identifier)) && item.quantity !== 0);
+    else if (identifier) return game.items.filter(item => identifierMatches(item, identifier) && item.quantity !== 0);
     else return game.items.filter(item => item.quantity !== 0)
 };
 
