@@ -144,8 +144,54 @@ module.exports.run = async (bot, game, message, command, args) => {
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.InventoryItem) {
-			if (!dataTypeMatch.groups.search) results = finder.findInventoryItems();
-			fields = { row: 'Row', player: 'Player', id: 'ID', containerName: 'Container' };
+			if (!dataTypeMatch.groups.search) {
+				results = finder.findInventoryItems();
+				fields = { row: 'Row', player: 'Player', id: 'ID', containerName: 'Container' };
+			}
+			else {
+				let id, player, containerName, slot, equipmentSlot;
+				const containerSlotRegex = /((?:in|on|under|behind|beneath|above|among|with) (?:(?<player>[^\s]+?)'s )?(?<slot>.+?) of (?<container>.+))/i;
+				const equipmentSlotRegex = /(?:^|.* )((?:in|on) (?:(?<player>[^\s]+?)'s )?(?<equipmentSlot>(?:right|left) hand|[^\s]+))$/i;
+				const containerRegex = /(?:^|.* )((?:in|on|under|behind|beneath|above|among|with) (?:(?<player>[^\s]+?)'s )?(?<container>.+))/i;
+				const containerSlotMatch = input.match(containerSlotRegex);
+				const equipmentSlotMatch = input.match(equipmentSlotRegex);
+				const containerMatch = input.match(containerRegex);
+				if (containerSlotMatch?.groups?.slot && containerSlotMatch?.groups?.container) {
+					slot = containerSlotMatch.groups.slot;
+					containerName = containerSlotMatch.groups.container;
+					if (containerSlotMatch.groups.player) player = containerSlotMatch.groups.player;
+					input = input.substring(0, input.indexOf(containerSlotMatch[0])).trim();
+				}
+				else if (equipmentSlotMatch?.groups?.equipmentSlot) {
+					equipmentSlot = equipmentSlotMatch.groups.equipmentSlot;
+					if (equipmentSlotMatch.groups.player) player = equipmentSlotMatch.groups.player;
+					input = input.substring(0, input.indexOf(equipmentSlotMatch[0])).trim();
+				}
+				else if (containerMatch?.groups?.container) {
+					containerName = containerMatch.groups.container;
+					if (containerMatch.groups.player) player = containerMatch.groups.player;
+					input = input.substring(0, input.indexOf(containerMatch[0])).trim();
+				}
+				const playerRegex = /((?<player>[^\s]+?)'s)/i;
+				const playerMatch = input.match(playerRegex);
+				if (!player && playerMatch?.groups?.player) {
+					player = playerMatch.groups.player;
+					input = input.substring(playerMatch[0].length).trim();
+				}
+				if (input !== '') id = input;
+				results = finder.findInventoryItems(id, player, containerName, slot, equipmentSlot);
+				fields = { row: 'Row', id: 'ID' };
+				// Exclude unneeded fields.
+				const playerField = { player: 'Player' };
+				const equipmentSlotField = { equipmentSlot: 'Equip. Slot' };
+				const containerField = { containerName: 'Container' };
+				if (player && (equipmentSlot || containerName))
+					fields = Object.assign(fields, containerField);
+				else if (equipmentSlot)
+					fields = Object.assign(fields, playerField, containerField);
+				else Object.assign(fields, playerField, equipmentSlotField, containerField);
+			}
+			
 		}
 		else if (dataTypeMatch.groups.Gesture) {
 			if (!dataTypeMatch.groups.search) results = finder.findGestures();

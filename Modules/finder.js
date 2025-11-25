@@ -345,16 +345,29 @@ module.exports.findInventoryItems = function (identifier, player, containerName,
     if (slot) slot = slot.toUpperCase().replace(/\'/g, '').trim();
     if (equipmentSlot) equipmentSlot = equipmentSlot.toUpperCase().replace(/\'/g, '').trim();
 
+    const identifierMatches = (item, name) => {
+        return item.identifier !== "" && item.identifier.includes(name)
+            || item.prefab.id.includes(name)
+            || item.name.includes(name)
+            || item.pluralName !== "" && item.pluralName.includes(name);
+    };
+
     if (identifier && player && containerName && slot)
         return game.inventoryItems.filter(inventoryItem =>
             inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier.includes(identifier)
-                || inventoryItem.prefab.id.includes(identifier) || inventoryItem.name.includes(identifier) || inventoryItem.pluralName.includes(identifier))
+            && identifierMatches(inventoryItem, identifier)
             && inventoryItem.player.name.toLowerCase() === player
             && inventoryItem.container !== null
-                && (inventoryItem.container.identifier.includes(containerName)
-                || inventoryItem.container.name.includes(containerName)
-                || inventoryItem.container.pluralName.includes(containerName))
+            && identifierMatches(inventoryItem.container, containerName)
+            && inventoryItem.slot === slot
+            && inventoryItem.quantity !== 0
+        );
+    if (identifier && containerName && slot)
+        return game.inventoryItems.filter(inventoryItem =>
+            inventoryItem.prefab !== null
+            && identifierMatches(inventoryItem, identifier)
+            && inventoryItem.container !== null
+            && identifierMatches(inventoryItem.container, containerName)
             && inventoryItem.slot === slot
             && inventoryItem.quantity !== 0
         );
@@ -363,22 +376,33 @@ module.exports.findInventoryItems = function (identifier, player, containerName,
             inventoryItem.prefab !== null
             && inventoryItem.player.name.toLowerCase() === player
             && inventoryItem.container !== null
-                && (inventoryItem.container.identifier.includes(containerName)
-                || inventoryItem.container.name.includes(containerName)
-                || inventoryItem.container.pluralName.includes(containerName))
+            && identifierMatches(inventoryItem.container, containerName)
+            && inventoryItem.slot === slot
+            && inventoryItem.quantity !== 0
+        );
+    else if (containerName && slot)
+        return game.inventoryItems.filter(inventoryItem =>
+            inventoryItem.prefab !== null
+            && inventoryItem.container !== null
+            && identifierMatches(inventoryItem.container, containerName)
             && inventoryItem.slot === slot
             && inventoryItem.quantity !== 0
         );
     else if (identifier && player && containerName)
         return game.inventoryItems.filter(inventoryItem =>
             inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier.includes(identifier)
-                || inventoryItem.prefab.id.includes(identifier) || inventoryItem.name.includes(identifier) || inventoryItem.pluralName.includes(identifier))
+            && identifierMatches(inventoryItem, identifier)
             && inventoryItem.player.name.toLowerCase() === player
             && inventoryItem.container !== null
-                && (inventoryItem.container.identifier.includes(containerName)
-                || inventoryItem.container.name.includes(containerName)
-                || inventoryItem.container.pluralName.includes(containerName))
+            && identifierMatches(inventoryItem.container, containerName)
+            && inventoryItem.quantity !== 0
+        );
+    else if (identifier && containerName)
+        return game.inventoryItems.filter(inventoryItem =>
+            inventoryItem.prefab !== null
+            && identifierMatches(inventoryItem, identifier)
+            && inventoryItem.container !== null
+            && identifierMatches(inventoryItem.container, containerName)
             && inventoryItem.quantity !== 0
         );
     else if (player && containerName)
@@ -386,17 +410,36 @@ module.exports.findInventoryItems = function (identifier, player, containerName,
             inventoryItem.prefab !== null
             && inventoryItem.player.name.toLowerCase() === player
             && inventoryItem.container !== null
-                && (inventoryItem.container.identifier.includes(containerName)
-                || inventoryItem.container.name.includes(containerName)
-                || inventoryItem.container.pluralName.includes(containerName))
+            && identifierMatches(inventoryItem.container, containerName)
+            && inventoryItem.quantity !== 0
+        );
+    else if (containerName)
+        return game.inventoryItems.filter(inventoryItem =>
+            inventoryItem.prefab !== null
+            && inventoryItem.container !== null
+            && identifierMatches(inventoryItem.container, containerName)
             && inventoryItem.quantity !== 0
         );
     else if (identifier && player)
         return game.inventoryItems.filter(inventoryItem =>
             inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier.includes(identifier)
-                || inventoryItem.prefab.id.includes(identifier) || inventoryItem.name.includes(identifier) || inventoryItem.pluralName.includes(identifier))
+            && identifierMatches(inventoryItem, identifier)
             && inventoryItem.player.name.toLowerCase() === player
+            && inventoryItem.quantity !== 0
+        );
+    else if (identifier && player && equipmentSlot)
+        return game.inventoryItems.filter(inventoryItem =>
+            inventoryItem.prefab !== null
+            && identifierMatches(inventoryItem, identifier)
+            && inventoryItem.player.name.toLowerCase() === player
+            && inventoryItem.equipmentSlot === equipmentSlot
+            && inventoryItem.quantity !== 0
+        );
+    else if (identifier && equipmentSlot)
+        return game.inventoryItems.filter(inventoryItem =>
+            inventoryItem.prefab !== null
+            && identifierMatches(inventoryItem, identifier)
+            && inventoryItem.equipmentSlot === equipmentSlot
             && inventoryItem.quantity !== 0
         );
     else if (player && equipmentSlot)
@@ -421,8 +464,7 @@ module.exports.findInventoryItems = function (identifier, player, containerName,
     else if (identifier)
         return game.inventoryItems.filter(inventoryItem =>
             inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier.includes(identifier)
-                || inventoryItem.prefab.id.includes(identifier) || inventoryItem.name.includes(identifier) || inventoryItem.pluralName.includes(identifier))
+            && identifierMatches(inventoryItem, identifier)
             && inventoryItem.quantity !== 0
         );
     else return game.inventoryItems.filter(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0);
