@@ -193,6 +193,58 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
     }
 };
 
+module.exports.addCommandHelp = async (channel, command, thumbnailURL) => {
+    const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
+    const title = `**${commandName} Command Help**`;
+    let aliasString = "";
+    for (const alias of command.aliases)
+        aliasString += `\`${settings.commandPrefix}${alias}\` `;
+
+    const components = [
+        new ContainerBuilder()
+        .setAccentColor(Number(`0x${settings.embedColor}`))
+        .addSectionComponents(
+            new SectionBuilder()
+            .setThumbnailAccessory(
+                new ThumbnailBuilder().setURL(thumbnailURL)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(title),
+                new TextDisplayBuilder().setContent(command.description)
+            )
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent("**Aliases**")
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(aliasString)
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent("**Examples**")
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(command.usage)
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent("**Description**")
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(command.details)
+        )
+    ];
+
+    module.exports.queue.enqueue(
+        {
+            fire: async () =>
+                await channel.send({
+                    components: components,
+                    flags: MessageFlags.IsComponentsV2
+                })
+        },
+        channel.parent !== undefined && channel.id === serverconfig.commandChannel ? "mod" : "mechanic"
+    );
+};
+
 module.exports.addLogMessage = async (logChannel, messageText) => {
     module.exports.queue.enqueue(
         {

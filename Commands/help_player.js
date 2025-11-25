@@ -72,23 +72,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     else {
         let command = roleCommands.find(command => command.aliases.includes(args[0]));
         if (!command) return game.messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
-
-        const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
-        let embed = new discord.EmbedBuilder()
-            .setColor(settings.embedColor)
-            .setAuthor({ name: `${commandName} Command Help`, iconURL: game.guild.iconURL() })
-            .setDescription(command.description);
-
-        let aliasString = "";
-        for (let i = 0; i < command.aliases.length; i++)
-            aliasString += `\`${settings.commandPrefix}${command.aliases[i]}\` `;
-        embed.addFields([
-            { name: "Aliases", value: aliasString },
-            { name: "Examples", value: command.usage },
-            { name: "Description", value: command.details }
-        ]);
-
-        message.channel.send({ embeds: [embed] });
+        game.messageHandler.addCommandHelp(message.author, command, game.guild.members.me.avatarURL() || game.guild.members.me.user.avatarURL());
     }
 
     return;
@@ -99,7 +83,7 @@ function createEmbed(game, page, pages) {
     const roleName = role ? role.name : "Player";
     let embed = new discord.EmbedBuilder()
         .setColor(settings.embedColor)
-        .setAuthor({ name: `${game.guild.members.me.displayName} Help`, iconURL: game.guild.iconURL() })
+        .setAuthor({ name: `${game.guild.members.me.displayName} Help`, iconURL: game.guild.members.me.avatarURL() || game.guild.members.me.user.avatarURL() })
         .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 
