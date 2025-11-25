@@ -1,12 +1,51 @@
+const settings = require('../Configs/settings.json');
+
 const finder = require('../Modules/finder.js');
 
 const { table } = require('table');
 
 module.exports.config = {
     name: "find_moderator",
-    description: " ",
-    details: '',
-    usage: ``,
+    description: "Search in-game data.",
+    details: 'Search in-game data and display results with row numbers. You can search for any entry on the spreadsheet, but you must specify which kind of data to find. '
+		+ 'With no arguments, all entries of that data type will be displayed. Results will be divided into pages, with no more than 15 entries per page, '
+		+ 'or however many will fit in one Discord message. To narrow down the results, you can add a search query. Queries are case-insensitive, '
+		+ 'and any entries which contain the search query will be displayed. To examine an entry in more detail, use the view command.\n\n'
+		+ 'It is also possible to add specifiers to your search for certain data types. Objects, Items, and Puzzles can be filtered by location '
+		+ 'by ending your search query with "at" followed by the name of a Room. Recipes can be filtered by type by starting your search with '
+		+ '"crafting", "uncraftable", or "processing".  It is also possible to filter Recipes by comma-separated lists of ingredients and products. '
+		+ 'To filter by ingredients, prefix the list with "using"; to filter by products, prefix the list with "producing". '
+		+ 'When using specifiers, it is not actually necessary to provide a search query; the results will simply be all entries that match the specified criteria.\n\n'
+		+ 'Items and Inventory Items can be filtered by container name and slot, by entering "[preposition] ([slot name] of) [container name]". '
+		+ 'The container name is also a search query, so any container whose name, plural name, Prefab ID, or container identifier contains the given string '
+		+ 'will be displayed; the same is not true for the slot, however. It is also possible to filter Inventory Items by Equipment Slot and Player. '
+		+ 'To filter by Equipment Slot, enter "in" or "on", followed by the name of an Equipment Slot. To filter by Player, enter their name followed by `\'s`, '
+		+ 'directly after the preposition, if there is one. Keep in mind that it is not possible to filter by Equipment Slot and container at the same time.',
+    usage: `${settings.commandPrefix}find room dorm 201\n`
+		+ `${settings.commandPrefix}search rooms stoke-hall\n`
+		+ `${settings.commandPrefix}find object desk\n`
+		+ `${settings.commandPrefix}search objects at chancellors office\n`
+		+ `${settings.commandPrefix}find prefab FRIED RICE\n`
+		+ `${settings.commandPrefix}search items THIGH HIGH\n`
+		+ `${settings.commandPrefix}find item life preserver at beach\n`
+		+ `${settings.commandPrefix}search items in trash can\n`
+		+ `${settings.commandPrefix}find items on PREP STATIONS at dining-hall-kitchen\n`
+		+ `${settings.commandPrefix}search items COLORED PENCILS in MAIN POUCH of BACKPACK at school store\n`
+		+ `${settings.commandPrefix}find recipes uncraftable\n`
+		+ `${settings.commandPrefix}search recipes crafting producing glass of orange juice\n`
+		+ `${settings.commandPrefix}find recipes processing using MILK, RAW EGG producing PANCAKE BATTER, EGGSHELL\n`
+		+ `${settings.commandPrefix}search puzzles LOCK\n`
+		+ `${settings.commandPrefix}find puzzle COMPUTER at infirmary\n`
+		+ `${settings.commandPrefix}search events snow\n`
+		+ `${settings.commandPrefix}find status effects medicated\n`
+		+ `${settings.commandPrefix}search players an individual wearing a\n`
+		+ `${settings.commandPrefix}find inventory items on JACKET\n`
+		+ `${settings.commandPrefix}search inventoryitems in RIGHT POCKET of DEFAULT PANTS\n`
+		+ `${settings.commandPrefix}find inventoryitem in phoebe's right hand\n`
+		+ `${settings.commandPrefix}search inventory item in julie's main pocket of luna purse\n`
+		+ `${settings.commandPrefix}find inventoryitem lillie's blue flannel\n`
+		+ `${settings.commandPrefix}search gestures smile\n`
+		+ `${settings.commandPrefix}find flag SEASON FLAG`,
     usableBy: "Moderator",
     aliases: ["find", "search"],
     requiresGame: true
@@ -54,7 +93,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 			if (!dataTypeMatch.groups.search) results = finder.findRecipes();
 			else {
 				let type, ingredients, products;
-				const typeRegex = /(?<type>^crafting|processing)/i;
+				const typeRegex = /(?<type>^crafting|uncraftable|processing)/i;
 				const typeMatch = input.match(typeRegex);
 				if (typeMatch?.groups?.type) {
 					type = typeMatch.groups.type;
@@ -187,9 +226,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 				const containerField = { containerName: 'Container' };
 				if (player && (equipmentSlot || containerName))
 					fields = Object.assign(fields, containerField);
+				else if (player)
+					fields = Object.assign(fields, equipmentSlotField, containerField);
 				else if (equipmentSlot)
 					fields = Object.assign(fields, playerField, containerField);
-				else Object.assign(fields, playerField, equipmentSlotField, containerField);
+				else fields = Object.assign(fields, playerField, equipmentSlotField, containerField);
 			}
 			
 		}
@@ -257,7 +298,12 @@ function createPages(fields, results) {
 	let page = [];
 	let header = [];
 	let headerEntryLength = [];
-	const cellCharacterLimit = Math.floor(16 * Object.keys(fields).length ** 2 - 123 * Object.keys(fields).length + 262);
+	const fieldCount = Object.keys(fields).length;
+	const cellCharacterLimit = 
+		fieldCount <= 2 ? 80
+		: fieldCount === 3 ? 37
+		: fieldCount === 4 ? 26
+		: 20;
 	Object.values(fields).forEach(value => {
 		header.push(value);
 		headerEntryLength.push(value.length);
@@ -283,7 +329,7 @@ function createPages(fields, results) {
 			else if (key === 'products')
 				cellContents = results[i].products.map(product => product.id).join(',');
 			else
-				cellContents = results[i][key];
+				cellContents = String(results[i][key]);
 			// If the cellContents exceed the preset character limit, truncate it.
 			if (cellContents.length >= cellCharacterLimit)
 				cellContents = cellContents.substring(0, cellCharacterLimit) + '…';

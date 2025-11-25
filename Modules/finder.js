@@ -58,7 +58,10 @@ module.exports.findRecipes = function (type, ingredients, products) {
         products.sort();
     }
     const typeMatch = (recipe) => {
-        return type === "crafting" && recipe.objectTag === "" ? true : type === "processing" && recipe.objectTag !== "" ? true : false;
+        return type === "processing" && recipe.objectTag !== "" ? true
+        : type === "crafting" && recipe.objectTag === "" ? true
+        : type === "uncraftable" && recipe.uncraftable ? true
+        : false;
     };
 
     if (type && ingredients && products)
