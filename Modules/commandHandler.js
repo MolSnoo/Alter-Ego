@@ -26,7 +26,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     else if (isPlayer) roleCommands = bot.configs.filter(config => config.usableBy === "Player");
     else if (isEligible) roleCommands = bot.configs.filter(config => config.usableBy === "Eligible");
 
-    let commandConfig = roleCommands.find(command => command.aliases.includes(commandSplit[0]));
+    let commandConfig = roleCommands.find(command => command.aliases.includes(commandSplit[0].toLowerCase()));
     if (!commandConfig) return false;
     let commandFile = bot.commands.get(commandConfig.name);
     if (!commandFile) return false;
