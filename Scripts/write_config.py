@@ -49,7 +49,7 @@ def write():
     set_key(settings, "s", "COMMAND_PREFIX", "commandPrefix")
     set_key(settings, "b", "DEBUG_MODE", "debug")
     set_key(settings, "s", "EMBED_COLOR", "embedColor")
-    set_key(settings, "s", "SHOW_ONLINE", "showOnline")
+    set_key(settings, "b", "SHOW_ONLINE", "showOnline")
     set_key(settings, "s", "SPREADSHEET_ID", "spreadsheetID")
     set_key(settings, "i", "PIXELS_PER_M", "pixelsPerMeter")
     set_key(settings, "f", "STAMINA_USE_RATE", "staminaUseRate")
