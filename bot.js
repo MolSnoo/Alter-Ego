@@ -137,6 +137,13 @@ bot.on('clientReady', async () => {
         updateStatus();
         checkVersion();
         updateHandler.autoUpdate();
+        setTimeout(() => {
+            if (settings.autoLoad) {
+                let loadcmd = bot.commands.get("load_moderator");
+                if (loadcmd)
+                    loadcmd.run(bot, game, {channel: game.commandChannel}, null, ["all", "resume"]);
+            }
+        }, 0)
     }
     else {
         console.log("Error: Bot must be on one and only one server.");
