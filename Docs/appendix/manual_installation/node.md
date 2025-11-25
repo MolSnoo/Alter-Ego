@@ -3,10 +3,6 @@
 Installation of Alter Ego is rather complicated. In order to create an environment in which Alter Ego can facilitate a
 game, many steps need to be taken. This page will explain them in detail.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Step 1: Download Alter Ego
 
 First, you need to download Alter Ego itself. If you already have Git, you can clone the repository by entering
@@ -160,7 +156,7 @@ Assuming you've done this correctly, you should arrive at a page that looks like
 ## Step 9: Create a service account
 
 In order to allow Alter Ego to make changes to the spreadsheet, you'll need to create a service account for it to use.
-To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the 
+To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the
 **Create credentials** button and select **Service account**. You should be brought to a page like this:
 
 ![](../../images/xETtI3t.png)
@@ -174,7 +170,7 @@ the service account, and then click on the **Keys** tab, so that it brings you t
 ![](../../images/XRC8QSC.png)
 
 Click the **Add Key** button and select **Create new key**. Make sure the key type is JSON, then click **Create**. This
-will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the 
+will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the
 **Service Accounts** page.
 
 ## Step 10: Share the spreadsheet
@@ -202,7 +198,7 @@ Alter-Ego
 │...
 ```
 
-Copy all `.json` files into the Configs directory, then rename them by removing the "default_" before the name of the
+Copy all `.json` files into the Configs directory, then rename them by removing the "default\_" before the name of the
 file. For instance `default_settings.json` becomes `settings.json`
 
 Your folders should now look something like this:

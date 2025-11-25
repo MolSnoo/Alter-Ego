@@ -8,21 +8,10 @@ create-missing = false
 
 [preprocessor]
 
-[preprocessor.admonish]
-command = "mdbook-admonish"
-assets_version = "3.1.0" # do not edit: managed by `mdbook-admonish install`
-
-[preprocessor.toc]
-command = "mdbook-toc"
-renderer = ["html"]
-max-level = 3
-
 [output]
 
 [output.html]
 mathjax-support = true
-additional-css = ["./mdbook-admonish.css"]
 git-repository-url = "https://github.com/MolSnoo/Alter-Ego"
-git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/MolSnoo/Alter-Ego/edit/master/{path}"
 site-url = "https://molsnoo.github.io/Alter-Ego"

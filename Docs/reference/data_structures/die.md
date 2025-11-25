@@ -6,19 +6,15 @@ Players cannot directly interact with Dice, and their very presence is hidden fr
 circumstances in which a Player will see the results of a Die roll directly. Currently, there are only two cases where
 Players can initiate a Die roll of their own volition:
 
-* A Die roll is initiated when a Player uses the [steal command](../commands/player_commands.md#steal). The roll is
+- A Die roll is initiated when a Player uses the [steal command](../commands/player_commands.md#steal). The roll is
   modified by their [dexterity stat](../data_structures/player.md#dexterity) and whether or not they have the
   [`thief` behavior attribute](../data_structures/status.md#thief).
-* A Die roll is initiated when a Player solves a [`probability`-type](../data_structures/puzzle.md#probability) or [
+- A Die roll is initiated when a Player solves a [`probability`-type](../data_structures/puzzle.md#probability) or [
   `stat probability`-type](../data_structures/puzzle.md#stat-probability) Puzzle. The roll is modified by the stat used,
   if applicable. The result is then used to determine which solution is used to solve the Puzzle.
 
 Dice are predominantly used by [moderators](../../moderator_guide/moderating.md) in order to determine the result of a
 given Player's action. This is done with the [roll command](../commands/moderator_commands.md#roll).
-
-## Table of Contents
-
-<!-- toc -->
 
 ## Parameters
 
@@ -51,9 +47,9 @@ Stat roll modifier = floor(floor( ( (s - 10) / 3) / 2 ) + (a - i) / a)
 
 In this formula are several variables:
 
-* \\(s\\) is the attacker's specified stat.
-* \\(a\\) is the [diceMax setting](../settings/docker_settings.md#dice_max).
-* \\(i\\) is the [diceMin setting](../settings/docker_settings.md#dice_min).
+- \\(s\\) is the attacker's specified stat.
+- \\(a\\) is the [diceMax setting](../settings/docker_settings.md#dice_max).
+- \\(i\\) is the [diceMin setting](../settings/docker_settings.md#dice_min).
 
 ## Attributes
 
@@ -61,21 +57,21 @@ Dice have few attributes.
 
 ### Minimum
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.min`
 
 This is the minimum possible value for the base Die roll. This equals the diceMin setting.
 
 ### Maximum
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.max`
 
 This is the maximum possible value for the base Die roll. This equals the diceMax setting.
 
 ### Base Roll
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.baseRoll`
 
 This is the initial result of the Die roll before any modifiers are applied. This is calculated by generating a random
@@ -86,7 +82,7 @@ minimum or maximum value, with nothing in-between.
 
 ### Modifier
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.modifier`
 
 This is the value that is added or subtracted from the base roll to determine the final result. The modifier begins with
@@ -114,7 +110,7 @@ added to Die's modifier. This is the final value of the Die's modifier.
 
 ### Modifier String
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.modifierString`
 
 This is a comma-separated list of all of the factors which were used to calculate the Die's final modifier, along with
@@ -122,7 +118,7 @@ the values that each factor added.
 
 ### Result
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.result`
 
 This is the final result of the Die roll, equal to the base roll plus the modifier.

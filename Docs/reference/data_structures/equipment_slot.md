@@ -19,17 +19,13 @@ name of the Equipment Slot it's equipped to. This behavior is to allow Equipment
 inventory without causing errors. In order to define one of these dummy Inventory Items, its Prefab on the sheet should
 be listed as `NULL`.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 Equipment Slots have very few attributes.
 
 ### Name
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.name`
 
 This is the name of the Equipment Slot, which is inherited from the [Equipment Slot](inventory_item.md#equipment-slot)
@@ -44,14 +40,14 @@ spreadsheet. Reversing their order or giving the Player a LEFT HAND with no RIGH
 
 ### Equipped Item
 
-* Class attribute: [Inventory Item](inventory_item.md) `this.equippedItem`
+- Class attribute: [Inventory Item](inventory_item.md) `this.equippedItem`
 
 This is the Inventory Item currently equipped to this Equipment Slot. If the Inventory Item has a `NULL` Prefab -
 indicating that nothing is currently equipped, then this is `null`.
 
 ### Items
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Inventory Item](inventory_item.md)>
   `this.items`
 
@@ -60,7 +56,7 @@ equipped to it, any Inventory Items contained within it, any Inventory Items con
 
 ### Row
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.row`
 
 This is the row number of the Inventory Item equipped to this Equipment Slot.
