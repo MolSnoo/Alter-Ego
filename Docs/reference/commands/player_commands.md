@@ -10,10 +10,6 @@ a [Status Effect](../data_structures/status.md) which disables the command they'
 Players cannot use commands when [edit mode](../../moderator_guide/edit_mode.md) is enabled. If Alter Ego accepts the
 Player's command and it was sent in a Room channel, the message in which the command was issued will be deleted.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## craft
 
 Crafts two items in your inventory together.
@@ -674,5 +670,3 @@ messages posted in the new channel, but everyone in the room will be notified th
 other. You can select as many players as you want as long as they're in the same room as you. When one of you leaves the
 room, they will be removed from the channel. If everyone leaves the room, the whisper channel will be deleted. You are
 required to use this when discussing the game with other players. Do not use DMs.
-
-
