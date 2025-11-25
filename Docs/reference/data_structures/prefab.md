@@ -9,10 +9,6 @@ the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/save
 Prefabs sheet. As a result, the Prefabs sheet can be freely edited
 without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 Due to the versatility of functions that different items can have, Prefabs have many attributes. Note that if an
@@ -23,8 +19,8 @@ spreadsheet. External attributes will be given in the "Spreadsheet label" bullet
 
 ### ID
 
-* Spreadsheet label: **Prefab ID**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Prefab ID**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.id`
 
 This is a unique identifier for the Prefab. All letters should be capitalized, and spaces are allowed. Though different
@@ -32,8 +28,8 @@ Prefabs can have many attributes in common, no two Prefabs can have the same ID.
 
 ### Single Name
 
-* Spreadsheet label: **Prefab Name**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Prefab Name**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.name`
 
 This is the name used to refer to a singular instance of an Item or Inventory Item using this Prefab.
@@ -42,8 +38,8 @@ what they will need to enter to refer to it. All letters should be capitalized, 
 
 ### Plural Name
 
-* Spreadsheet label: **Prefab Name**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Prefab Name**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pluralName`
 
 This is the optional name used to refer to plural instances of Items or Inventory Items using this Prefab. Note that
@@ -53,8 +49,8 @@ would be the same as its single name.
 
 ### Single Containing Phrase
 
-* Spreadsheet label: **Containing Phrase**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Containing Phrase**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.singleContainingPhrase`
 
 This is the phrase that will be inserted in/removed from [item tags](../../moderator_guide/writing_descriptions.md#item)
@@ -67,8 +63,8 @@ the Prefab's single name.
 
 ### Plural Containing Phrase
 
-* Spreadsheet label: **Containing Phrase**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Containing Phrase**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pluralContainingPhrase`
 
 This is the optional phrase that will be used in an item list when it contains multiple instances of Prefabs with the
@@ -79,8 +75,8 @@ plural containing phrase would be the same as its single containing phrase, one 
 
 ### Discreet
 
-* Spreadsheet label: **Discreet?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Discreet?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.discreet`
 
 This is a simple Boolean value indicating whether interactions with Items and Inventory Items using this Prefab will
@@ -91,8 +87,8 @@ moved to either of the Player's hands, it will be added to the "hands" item list
 
 ### Size
 
-* Spreadsheet label: **Size**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Size**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.size`
 
 This is a whole number representing how large the Prefab is. It is not associated with any particular unit of
@@ -102,8 +98,8 @@ it should be non-negative.
 
 ### Weight
 
-* Spreadsheet label: **Weight**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Weight**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.weight`
 
 This is a whole number representing roughly how much the Prefab weighs in kilograms. This number determines whether a
@@ -113,8 +109,8 @@ and [Inventory Item](inventory_item.md#weight) weights.
 
 ### Usable
 
-* Spreadsheet label: **Usable?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Usable?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.usable`
 
 This is another Boolean value indicating whether Inventory Items using this Prefab can be used to inflict/cure one or
@@ -125,8 +121,8 @@ that it has no effect.
 
 ### Use Verb
 
-* Spreadsheet label: **Use Verb**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Use Verb**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.verb`
 
 This is the phrase that will be used in the Narration when a Player uses an Inventory Item with this Prefab. Usage of an
@@ -137,7 +133,7 @@ Inventory Item will always be narrated, and will use the following format:
 See the following table for some examples of the resulting Narration:
 
 | Player displayName           | Single Containing Phrase | Use Verb             | Narration                                            |
-|------------------------------|--------------------------|----------------------|------------------------------------------------------|
+| ---------------------------- | ------------------------ | -------------------- | ---------------------------------------------------- |
 | Veronica                     | FOOD                     | eats                 | Veronica eats FOOD.                                  |
 | Faye                         | a bottle of WATER        | drinks               | Faye drinks a bottle of WATER.                       |
 | An individual wearing a MASK | a TOWEL                  | dries off with       | An individual wearing a MASK dries off with a TOWEL. |
@@ -145,8 +141,8 @@ See the following table for some examples of the resulting Narration:
 
 ### Uses
 
-* Spreadsheet label: **Uses**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Uses**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.uses`
 
 This is a whole number indicating how many times a single instance of this Prefab can be used. For more details, see the
@@ -154,8 +150,8 @@ sections about [Item uses](item.md#uses) and [Inventory Item uses](inventory_ite
 
 ### Effects Strings
 
-* Spreadsheet label: **Gives Status Effect(s)**
-* Class
+- Spreadsheet label: **Gives Status Effect(s)**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.effectsStrings`
 
@@ -164,7 +160,7 @@ when used.
 
 ### Effects
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](status.md)>
   `this.effects`
 
@@ -173,8 +169,8 @@ This is an internal attribute which contains references to each of the Status Ef
 
 ### Cures Strings
 
-* Spreadsheet label: **Cures Status Effect(s)**
-* Class
+- Spreadsheet label: **Cures Status Effect(s)**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.curesStrings`
 
@@ -198,7 +194,7 @@ they should be listed in reverse order. In the above example, the cures string s
 
 ### Cures
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](status.md)>
   `this.cures`
 
@@ -207,8 +203,8 @@ This is an internal attribute which contains references to each of the Status Ef
 
 ### Next Stage Name
 
-* Spreadsheet label: **Turns Into**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Turns Into**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.nextStageName`
 
 This is the ID of the Prefab Inventory Items using this Prefab will turn into once its number of uses reaches 0. Prefabs
@@ -218,15 +214,15 @@ is blank, Inventory Items using it will simply disappear from the Player's inven
 
 ### Next Stage
 
-* Class attribute: [Prefab](prefab.md) `this.nextStage`
+- Class attribute: [Prefab](prefab.md) `this.nextStage`
 
 This is an internal attribute which simply contains a reference to the actual Prefab object whose ID matches
 `this.nextStageName`. If no next stage name is given, this will be `null` instead.
 
 ### Equippable
 
-* Spreadsheet label: **Equippable?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Equippable?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.equippable`
 
 This is another Boolean value indicating whether Inventory Items using this Prefab can be equipped to one of the
@@ -239,8 +235,8 @@ will always be sent to the Room the Player is in.
 
 ### Equipment Slots
 
-* Spreadsheet label: **Restrict to Equip. Slots**
-* Class
+- Spreadsheet label: **Restrict to Equip. Slots**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.equipmentSlots`
 
@@ -254,8 +250,8 @@ whether or not it is listed here.
 
 ### Covered Equipment Slots
 
-* Spreadsheet label: **Covers Equip. Slots**
-* Class
+- Spreadsheet label: **Covers Equip. Slots**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.coveredEquipmentSlots`
 
@@ -267,8 +263,8 @@ added to the Player description's equipment item list again.
 
 ### Equipped Commands
 
-* Spreadsheet label: **When Equipped / Unequipped**
-* Class
+- Spreadsheet label: **When Equipped / Unequipped**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.equipCommands`
 
@@ -279,8 +275,8 @@ can be omitted from the cell.
 
 ### Unequipped Commands
 
-* Spreadsheet label: **When Equipped / Unequipped**
-* Class
+- Spreadsheet label: **When Equipped / Unequipped**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.unequipCommands`
 
@@ -291,8 +287,8 @@ character in the cell, with the unequipped commands following it.
 
 ### Inventory
 
-* Spreadsheet label: **Contains Inventory Slots**
-* Class
+- Spreadsheet label: **Contains Inventory Slots**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
   `this.inventory`
 
@@ -324,8 +320,8 @@ Items/Inventory Items.**
 
 ### Preposition
 
-* Spreadsheet label: **Preposition**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Preposition**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.preposition`
 
 This attribute is similar to the [preposition attribute in the Object class](object.md#preposition). However, it does
@@ -339,8 +335,8 @@ Ego will send "Seamus puts a MALLET in the GUITAR CASE."
 
 ### Description
 
-* Spreadsheet label: **Description**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Description**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.description`
 
 This is the description of the Prefab. When a Player inspects an instance of this Prefab, they will receive a parsed
@@ -352,7 +348,7 @@ information.
 
 ### Row
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.row`
 
 This is an internal attribute, but it can also be found on the spreadsheet. This is the row number of the Prefab.

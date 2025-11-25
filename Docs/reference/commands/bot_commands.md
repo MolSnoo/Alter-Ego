@@ -13,18 +13,14 @@ but this isn't always the case.
 
 These arguments are:
 
-* `player`
-    * The command will act on the Player who caused the command to be executed. For Prefabs, this is the Player who
+- `player`
+    - The command will act on the Player who caused the command to be executed. For Prefabs, this is the Player who
       equipped/unequipped the Inventory Item. For Puzzles, this is the Player who solved/unsolved the Puzzle.
-* `room`
-    * The command will act on all Players in the same Room as the Player who caused the command to be executed.
+- `room`
+    - The command will act on all Players in the same Room as the Player who caused the command to be executed.
       Alternatively, for Events, this is all Players in all Rooms affected by the Event.
-* `all`
-    * The command will act on all living Players, except for NPCs and Players with the Headmaster role.
-
-## Table of Contents
-
-<!-- toc -->
+- `all`
+    - The command will act on all living Players, except for NPCs and Players with the Headmaster role.
 
 ## destroy
 

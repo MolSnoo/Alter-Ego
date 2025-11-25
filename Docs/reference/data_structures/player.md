@@ -10,10 +10,6 @@ however it is not associated with a Discord account; it can only be controlled b
 It should be noted that when Player data is loaded, so too are [Inventory Items](inventory_item.md). Inventory Items can
 be loaded without loading Player data, but not vice versa.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 In order to provide a wide array of functionality, Players have many attributes. Note that if an attribute is
@@ -24,8 +20,8 @@ spreadsheet. External attributes will be given in the "Spreadsheet label" bullet
 
 ### ID
 
-* Spreadsheet label: **Discord ID**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Discord ID**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.id`
 
 For full Players, this is the [unique ID](https://discord.js.org/docs/packages/discord.js/main/Snowflake:TypeAlias)
@@ -44,15 +40,15 @@ and [spectate channels](player.md#spectate-channel).
 
 ### Member
 
-* Class attribute: [GuildMember](https://discord.js.org/docs/packages/discord.js/main/GuildMember:Class) `this.member`
+- Class attribute: [GuildMember](https://discord.js.org/docs/packages/discord.js/main/GuildMember:Class) `this.member`
 
 This is an internal attribute which contains a reference to the guild member whose Discord ID matches the Player ID. For
 NPCs, this is `null`.
 
 ### Name
 
-* Spreadsheet label: **Name**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Name**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.name`
 
 This is the name of the Player. Because this is also used as the name of the Player's spectate channel, it is subject to
@@ -63,7 +59,7 @@ letter is capitalized, and the rest is in lowercase. However, this is not a requ
 
 ### Display Name
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.displayName`
 
 This internal attribute is the string which Alter Ego uses to refer to the Player during most gameplay scenarios. It is
@@ -77,7 +73,7 @@ loading Player data during gameplay, as any Players with different display names
 
 ### Display Icon
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.displayIcon`
 
 This is an internal attribute which contains an image URL that will be used as an avatar when the Player uses
@@ -96,8 +92,8 @@ channel by sending a message to it; it will only appear in spectate channels whe
 
 ### Talent
 
-* Spreadsheet label: **Talent**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Talent**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.talent`
 
 This is primarily a relic from older versions of Alter Ego which used this attribute to produce behavior that has since
@@ -114,8 +110,8 @@ argument is used in the [move](../commands/moderator_commands.md#move) [command]
 
 ### Pronoun String
 
-* Spreadsheet label: **Pronouns**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Pronouns**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronounString`
 
 This is a string which determines what set of third person
@@ -124,36 +120,36 @@ Player by default. This must adhere to a strict format:
 `subjective/objective/dependent possessive/independent possessive/reflexive/plural`, although there are shorthands for
 the three most common pronoun sets:
 
-* `male` is shorthand for `he/him/his/his/himself/false`.
-* `female` is shorthand for `she/her/her/hers/herself/false`.
-* `neutral` is shorthand for `they/them/their/theirs/themself/true`.
+- `male` is shorthand for `he/him/his/his/himself/false`.
+- `female` is shorthand for `she/her/her/hers/herself/false`.
+- `neutral` is shorthand for `they/them/their/theirs/themself/true`.
 
 There are several parts to this format. They are as follows:
 
-* The subjective pronoun is used to refer to the Player as the subject of a verb. For example, "**She** speaks."
-* The objective pronoun is used to refer to the Player as an object of a verb. For example, "I saw **him**."
-* The dependent possessive pronoun is used to refer to the Player as the owner of something which is the object of the
+- The subjective pronoun is used to refer to the Player as the subject of a verb. For example, "**She** speaks."
+- The objective pronoun is used to refer to the Player as an object of a verb. For example, "I saw **him**."
+- The dependent possessive pronoun is used to refer to the Player as the owner of something which is the object of the
   verb. For example, "That's **their** room."
-* The independent possessive pronoun is used to refer to the Player as the owner of something which is the subject of
+- The independent possessive pronoun is used to refer to the Player as the owner of something which is the subject of
   the verb. For example, "The car is **hers**."
-* The reflexive pronoun is used to refer to the Player when they are the object of a verb where they are also the
+- The reflexive pronoun is used to refer to the Player when they are the object of a verb where they are also the
   subject. For example, "They wash **themself**."
-* The plural variable determines whether this set of pronouns pluralizes verbs. If this is `true`, then verbs will take
+- The plural variable determines whether this set of pronouns pluralizes verbs. If this is `true`, then verbs will take
   the form they use with plural pronouns. For example, "They **are** here. They **have** money. They **smell** strange."
-  If this is `false`, then verbs will take the form they use with singular pronouns. For example, "He **is** here. She 
+  If this is `false`, then verbs will take the form they use with singular pronouns. For example, "He **is** here. She
   **has** money. It **smells** strange."
 
 As long as this format is followed, any set of pronouns can be used. For example, a Player who uses _it_ pronouns would
 have the pronoun string `it/it/its/its/itself/false`.
 
-A Player cannot have more than one pronoun set at a time. For example, a Player who uses both *he* and *they* pronouns
-interchangeably can be referred to with *he* or *they* by Alter Ego, but not both. It cannot alternate between them at
+A Player cannot have more than one pronoun set at a time. For example, a Player who uses both _he_ and _they_ pronouns
+interchangeably can be referred to with _he_ or _they_ by Alter Ego, but not both. It cannot alternate between them at
 will. However, this is relatively minor, as Player pronouns are seldom used in built-in Narrations. Descriptions, custom
 Narrations, and dialog can all be written with alternating pronouns.
 
 ### Original Pronouns
 
-* Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+- Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   `this.originalPronouns`
 
 This internal attribute is an object containing variables that contain each of the Player's default pronouns. This is
@@ -163,7 +159,7 @@ Please see the following class attribute for more info.
 
 ### Pronouns
 
-* Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+- Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   `this.pronouns`
 
 This internal attribute is an object containing variables that contain each of the Player's current pronouns. This is
@@ -183,14 +179,14 @@ This essentially groups what would be multiple class attributes into one. They a
 
 #### Subjective
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.sbj`
 
 This is the Player's subjective pronoun.
 
 #### Capital Subjective
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.Sbj`
 
 This is the Player's subjective pronoun, except the first letter is capitalized. This is useful at the beginning of a
@@ -198,87 +194,87 @@ sentence when writing descriptions that use the Player's pronouns as variables.
 
 #### Objective
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.obj`
 
 This is the Player's objective pronoun.
 
 #### Capital Objective
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.Obj`
 
 This is the Player's objective pronoun, except the first letter is capitalized.
 
 #### Dependent Possessive
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.dpos`
 
 This is the Player's dependent possessive pronoun.
 
 #### Capital Dependent Possessive
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.Dpos`
 
 This is the Player's dependent possessive pronoun, except the first letter is capitalized.
 
 #### Independent Possessive
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.ipos`
 
 This is the Player's independent possessive pronoun.
 
 #### Capital Independent Possessive
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.Ipos`
 
 This is the Player's independent possessive pronoun, except the first letter is capitalized.
 
 #### Reflexive
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.ref`
 
 This is the Player's reflexive pronoun.
 
 #### Capital Reflexive
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pronouns.Ref`
 
 This is the Player's reflexive pronoun, except the first letter is capitalized.
 
 #### Plural
 
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.pronouns.plural`
 
 This is a Boolean value indicating whether this pronoun set pluralizes verbs.
 
 ### Original Voice String
 
-* Spreadsheet label: **Voice**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Voice**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.originalVoiceString`
 
 This is a phrase that will be used in Narrations when the Player speaks while their identity is obscured in some way.
 All Narrations which use this are written with the assumption that this string will begin with "a" or "an" and end
 with "voice". Here are some examples with the Player's voice string in bold:
 
-* You hear **a bitter voice** in the room say "...What are you looking at?".
-* You hear **a brash voice** from a nearby room shout "HEY! IS ANYONE IN THERE!?".
-* You overhear an individual wearing a PLAGUE DOCTOR MASK, with **a crisp voice** you recognize to be Kyra's, whisper 
+- You hear **a bitter voice** in the room say "...What are you looking at?".
+- You hear **a brash voice** from a nearby room shout "HEY! IS ANYONE IN THERE!?".
+- You overhear an individual wearing a PLAGUE DOCTOR MASK, with **a crisp voice** you recognize to be Kyra's, whisper
   "Yes, everything is going according to plan.".
-* **A deep modulated voice** coming from Amy's WALKIE TALKIE says "That is correct. I am hidden somewhere in this
+- **A deep modulated voice** coming from Amy's WALKIE TALKIE says "That is correct. I am hidden somewhere in this
   facility.".
 
 ### Voice String
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.voiceString`
 
 This internal attribute contains the Player's current voice descriptor. This is primarily what is used in Narrations.
@@ -294,7 +290,7 @@ mimicked Player.
 
 ### Stats
 
-* Spreadsheet label: **Stats**
+- Spreadsheet label: **Stats**
 
 This is an external attribute. It only exists to group the Player's stats together under one label. A Player's stats are
 used in a variety of situations. Common applications of all of them include their ability to
@@ -303,8 +299,8 @@ in [Die rolls](die.md). Here, their individual properties and applications will 
 
 ### Default Strength
 
-* Spreadsheet label: **Str**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Str**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.defaultStrength`
 
 This is the Player's default strength stat. This quantifies the Player's physical strength. It must be a whole number
@@ -312,7 +308,7 @@ from 1 - 10.
 
 ### Strength
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.strength`
 
 This internal attribute is the Player's current strength stat. By default, this equals their default strength, however
@@ -330,7 +326,7 @@ The result is rounded down to the nearest whole number.
 In effect, each strength stat value corresponds with a predetermined max carry weight, as shown in this chart:
 
 | Strength Value | Max Carry Weight (kg) | Max Carry Weight (lb) |
-|----------------|-----------------------|-----------------------|
+| -------------- | --------------------- | --------------------- |
 | 1              | 21                    | 46                    |
 | 2              | 25                    | 55                    |
 | 3              | 32                    | 70                    |
@@ -349,8 +345,8 @@ dodge the Player's attack.
 
 ### Default Intelligence
 
-* Spreadsheet label: **Int**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Int**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.defaultIntelligence`
 
 This is the Player's default intelligence stat. This quantifies the Player's logical intelligence. It must be a whole
@@ -358,7 +354,7 @@ number from 1 - 10.
 
 ### Intelligence
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.intelligence`
 
 This internal attribute is the Player's current intelligence stat. By default, this equals their default intelligence,
@@ -386,8 +382,8 @@ is entirely up to the moderator's discretion when writing descriptions.
 
 ### Default Dexterity
 
-* Spreadsheet label: **Dex**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Dex**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.defaultDexterity`
 
 This is the Player's default dexterity stat. This quantifies the Player's skill and speed when using their hands or
@@ -395,7 +391,7 @@ body. It must be a whole number from 1 - 10.
 
 ### Dexterity
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.dexterity`
 
 This internal attribute is the Player's current dexterity stat. By default, this equals their default dexterity, however
@@ -414,8 +410,8 @@ the attacker will be more likely to have a low attack roll, and vice versa.
 
 ### Default Speed
 
-* Spreadsheet label: **Spd**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Spd**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.defaultSpeed`
 
 This is the Player's default speed stat. This quantifies the Player's walking and running speed. It must be a whole
@@ -423,7 +419,7 @@ number from 1 - 10.
 
 ### Speed
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.speed`
 
 This internal attribute is the Player's current speed stat. By default, this equals their default speed, however it can
@@ -449,9 +445,9 @@ quadratic, not linear. It is as follows:
 
 In this formula are several variables:
 
-* \\(x\\) is the Player's speed stat.
-* \\(r\\) is \\(1\\) if the Player is walking and \\(2\\) if the Player is running.
-* \\(w\\) is a fraction which represents slowdown based on the [combined weight](player.md#carry-weight) of all of the
+- \\(x\\) is the Player's speed stat.
+- \\(r\\) is \\(1\\) if the Player is walking and \\(2\\) if the Player is running.
+- \\(w\\) is a fraction which represents slowdown based on the [combined weight](player.md#carry-weight) of all of the
   Player's Inventory Items. The formula to calculate this, where \\(c\\) is the Player's carry weight, is \\(w =
   \frac{15}{c}\\). However, the calculated value is clamped between \\( \frac{1}{4} \\) and \\(1\\).
 
@@ -492,8 +488,8 @@ in meters per millisecond:
 
 ### Default Stamina
 
-* Spreadsheet label: **Sta**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Sta**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.defaultStamina`
 
 This is the Player's default speed stat. This quantifies the Player's physical endurance. It must be a whole number from
@@ -501,7 +497,7 @@ This is the Player's default speed stat. This quantifies the Player's physical e
 
 ### Max Stamina
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.maxStamina`
 
 This internal attribute is the Player's current maximum stamina stat. By default, this equals their default stamina,
@@ -512,7 +508,7 @@ Effect. The higher this is, the longer the Player can move without resting.
 
 ### Stamina
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.stamina`
 
 This internal attribute is the Player's current stamina stat. By default, this equals their maximum stamina, however it
@@ -526,10 +522,10 @@ L\\), is calculated using the following formula:
 
 In this formula are several variables:
 
-* \\(d\\) is the flat distance in meters the Player has moved in the past 100 milliseconds.
-* \\(m\\) is \\(1\\) if the Player is walking and \\(3\\) if the Player is running.
-* \\(u\\) is the [staminaUseRate setting](../settings/docker_settings.md#stamina_use_rate).
-* \\(s\\) is the slope of the Player's movement, calculated by dividing the number of meters they've risen in meters by
+- \\(d\\) is the flat distance in meters the Player has moved in the past 100 milliseconds.
+- \\(m\\) is \\(1\\) if the Player is walking and \\(3\\) if the Player is running.
+- \\(u\\) is the [staminaUseRate setting](../settings/docker_settings.md#stamina_use_rate).
+- \\(s\\) is the slope of the Player's movement, calculated by dividing the number of meters they've risen in meters by
   the flat distance in meters they've moved in the past 100 milliseconds.
 
 However, there is an alternative calculation method. If the flat distance between the Player's position and the Exit's
@@ -552,8 +548,8 @@ of their max stamina.
 
 ### Alive
 
-* Spreadsheet label: **Alive?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Alive?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.alive`
 
 This indicates whether the player is alive or not. If this is `true`, then the Player is alive, and can interact with
@@ -564,14 +560,14 @@ interacted with, all of their data is inaccessible.
 
 ### Location
 
-* Spreadsheet label: **Location**
-* Class attribute: [Room](room.md) `this.location`
+- Spreadsheet label: **Location**
+- Class attribute: [Room](room.md) `this.location`
 
 This is the Room that the Player is currently in. This must match the Room's name exactly on the spreadsheet.
 
 ### Position
 
-* Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+- Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   `this.pos`
 
 This internal attribute is an object containing variables that contain each of the Player's current coordinates. This is
@@ -595,29 +591,29 @@ This essentially groups what would be multiple class attributes into one. They a
 
 #### X
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.pos.x`
 
 This is the Player's current X coordinate.
 
 #### Y
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.pos.y`
 
 This is the Player's current Y coordinate.
 
 #### Z
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.pos.z`
 
 This is the Player's current Z coordinate.
 
 ### Hiding Spot
 
-* Spreadsheet label: **Hiding Spot**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Hiding Spot**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.hidingSpot`
 
 This is a string which contains the name of the Object the Player is currently hiding in. Since this is just a string,
@@ -626,7 +622,7 @@ Player is not currently hidden, this should be left blank.
 
 ### Status
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effect](status.md)>
   `this.status`
 
@@ -635,8 +631,8 @@ Status Effect is inflicted or cured, the Player's stats are recalculated.
 
 ### Status String
 
-* Spreadsheet label: **Status Effects**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Status Effects**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.statusString`
 
 This string is a comma-separated list of the names of all Status Effects that the Player currently has, including those
@@ -659,8 +655,8 @@ gameplay.
 
 ### Description
 
-* Spreadsheet label: **Description**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Description**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.description`
 
 This is the description of the Player. When another Player inspects this Player, they will receive a parsed version of
@@ -691,54 +687,54 @@ cannot simply use the Player's description in a variable tag without modificatio
 
 Within the `desc` tags of the Player's description, there are five sections:
 
-* `<s>You examine <var v="container.displayName" />.</s>`
-  * This refers to the Player by their current display name. This should never be changed.
+- `<s>You examine <var v="container.displayName" />.</s>`
+    - This refers to the Player by their current display name. This should never be changed.
 
-* `<if cond="container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /> <if cond="container.pronouns.plural">are</if><if cond="!container.pronouns.plural">is</if> [HEIGHT], but <var v="container.pronouns.dpos" /> face is concealed.</s></if>`
-  * This section describes the Player with very little detail in order to avoid revealing their identity when they
-    have the `concealed` behavior attribute.
-  * The `concealed` behavior attribute automatically changes the Player's pronouns to the `neutral` set. Consequently,
-    this section could be written as
-    `<if cond="container.hasAttribute('concealed')"><s>They are [HEIGHT], but their face is concealed.</s></if>` for
-    simplicity's sake. However, doing so removes the possibility of using the setpronouns command after the Player is
-    inflicted with the `concealed` behavior attribute. It can still be used, but the new pronouns will not be
-    reflected in the Player's description.
+- `<if cond="container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /> <if cond="container.pronouns.plural">are</if><if cond="!container.pronouns.plural">is</if> [HEIGHT], but <var v="container.pronouns.dpos" /> face is concealed.</s></if>`
+    - This section describes the Player with very little detail in order to avoid revealing their identity when they
+      have the `concealed` behavior attribute.
+    - The `concealed` behavior attribute automatically changes the Player's pronouns to the `neutral` set. Consequently,
+      this section could be written as
+      `<if cond="container.hasAttribute('concealed')"><s>They are [HEIGHT], but their face is concealed.</s></if>` for
+      simplicity's sake. However, doing so removes the possibility of using the setpronouns command after the Player is
+      inflicted with the `concealed` behavior attribute. It can still be used, but the new pronouns will not be
+      reflected in the Player's description.
 
-* `<if cond="!container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /><if cond="container.pronouns.plural">'re</if><if cond="!container.pronouns.plural">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if>`
-  * This section describes the Player in more detail. It's used when the Player doesn't have the `concealed` behavior
-    attribute.
-  * Because the Player's pronouns do not automatically change unless they are inflicted with the `concealed` behavior
-    attribute, this section could be written without making use of the Player's pronouns in `var` tags. Instead, the
-    Player's pronouns could be written as plain text. This would allow a Player who uses multiple pronouns interchangeably
-    to be referred to with alternating pronouns, for example. However, this would hamper the use of the setpronouns
-    command for the Player unless additional logic checking is added.
-  * In this section, the Player can be described in much more detail than the default description allows for, and detail
-    can be added throughout the course of the game if the Player's appearance changes in significant ways. However, Player
-    descriptions should ideally be kept as short as possible so as to not overwhelm Players with too much irrelevant
-    information.
-  * An example of this section that makes use of static pronouns, extra detail, and extra conditionals, might look like
-    this:
-    `<if cond="!container.hasAttribute('concealed')"><s>It's a fairly young individual of average height with very pale skin.</s> <s>He's quite scrawny and frail-looking, with a very small chest.</s> <s>She has black eyes and short, red hair with bangs falling a little into her face and shoulder-length fringes on both sides, with the rest of its hair <if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') !== undefined">done up in two buns held together with a pair of black ribbons</if><if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') === undefined">coming down to about the shoulders</if>.</s> <s>He looks easy enough to get along with, if a little nervous.</s></if>`
+- `<if cond="!container.hasAttribute('concealed')"><s><var v="container.pronouns.Sbj" /><if cond="container.pronouns.plural">'re</if><if cond="!container.pronouns.plural">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if>`
+    - This section describes the Player in more detail. It's used when the Player doesn't have the `concealed` behavior
+      attribute.
+    - Because the Player's pronouns do not automatically change unless they are inflicted with the `concealed` behavior
+      attribute, this section could be written without making use of the Player's pronouns in `var` tags. Instead, the
+      Player's pronouns could be written as plain text. This would allow a Player who uses multiple pronouns interchangeably
+      to be referred to with alternating pronouns, for example. However, this would hamper the use of the setpronouns
+      command for the Player unless additional logic checking is added.
+    - In this section, the Player can be described in much more detail than the default description allows for, and detail
+      can be added throughout the course of the game if the Player's appearance changes in significant ways. However, Player
+      descriptions should ideally be kept as short as possible so as to not overwhelm Players with too much irrelevant
+      information.
+    - An example of this section that makes use of static pronouns, extra detail, and extra conditionals, might look like
+      this:
+      `<if cond="!container.hasAttribute('concealed')"><s>It's a fairly young individual of average height with very pale skin.</s> <s>He's quite scrawny and frail-looking, with a very small chest.</s> <s>She has black eyes and short, red hair with bangs falling a little into her face and shoulder-length fringes on both sides, with the rest of its hair <if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') !== undefined">done up in two buns held together with a pair of black ribbons</if><if cond="findInventoryItem('BLAKES RIBBONS', container.name, '', 'HAT') === undefined">coming down to about the shoulders</if>.</s> <s>He looks easy enough to get along with, if a little nervous.</s></if>`
 
-* `<s><var v="container.pronouns.Sbj" /> wear<if cond="!container.pronouns.plural">s</if> <il name="equipment"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s>`
-  * This sentence lists all Inventory Items that the Player currently has [equipped](equipment_slot.md), except for those
-    equipped to their "RIGHT HAND" and "LEFT HAND" Equipment Slots and those whose Equipment Slot
-    is [covered](prefab.md#covered-equipment-slots) by another equipped Inventory Item.
-  * If the Player's equipped Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
-    manually updated with the [single containing phrases](prefab.md#single-containing-phrase) of the respective Inventory
-    Items in `item` tags.
-  * If nothing is listed in the `il` tag, this sentence will not appear in the parsed description.
-  * Because this sentence appears regardless of whether or not the Player has the `concealed` behavior attribute,
-    `var` tags should be used to reference the Player's pronouns. They should not be replaced with static pronouns.
+- `<s><var v="container.pronouns.Sbj" /> wear<if cond="!container.pronouns.plural">s</if> <il name="equipment"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s>`
+    - This sentence lists all Inventory Items that the Player currently has [equipped](equipment_slot.md), except for those
+      equipped to their "RIGHT HAND" and "LEFT HAND" Equipment Slots and those whose Equipment Slot
+      is [covered](prefab.md#covered-equipment-slots) by another equipped Inventory Item.
+    - If the Player's equipped Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
+      manually updated with the [single containing phrases](prefab.md#single-containing-phrase) of the respective Inventory
+      Items in `item` tags.
+    - If nothing is listed in the `il` tag, this sentence will not appear in the parsed description.
+    - Because this sentence appears regardless of whether or not the Player has the `concealed` behavior attribute,
+      `var` tags should be used to reference the Player's pronouns. They should not be replaced with static pronouns.
 
-* `<s>You see <var v="container.pronouns.obj" /> carrying <il name="hands"></il>.</s>`
-  * This sentence lists all [non-discreet](prefab.md#discreet) Inventory Items that the Player currently has equipped
-    to their "RIGHT HAND" or "LEFT HAND" Equipment Slots.
-  * If the Player's held Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
-    manually updated with the single containing phrases of the respective Inventory Items in `item` tags.
-  * If nothing is listed in the `il` tag, this sentence will not appear in the parsed description.
-  * Because this sentence appears regardless of whether or not the Player has the `concealed` behavior attribute,
-    `var` tags should be used to reference the Player's pronouns. They should not be replaced with static pronouns.
+- `<s>You see <var v="container.pronouns.obj" /> carrying <il name="hands"></il>.</s>`
+    - This sentence lists all [non-discreet](prefab.md#discreet) Inventory Items that the Player currently has equipped
+      to their "RIGHT HAND" or "LEFT HAND" Equipment Slots.
+    - If the Player's held Inventory Items are manually changed on the spreadsheet, the contents of the `il` tag must be
+      manually updated with the single containing phrases of the respective Inventory Items in `item` tags.
+    - If nothing is listed in the `il` tag, this sentence will not appear in the parsed description.
+    - Because this sentence appears regardless of whether or not the Player has the `concealed` behavior attribute,
+      `var` tags should be used to reference the Player's pronouns. They should not be replaced with static pronouns.
 
 Additional information can be added to the Player's description as needed. However, when doing so, precautions should be
 taken to ensure that it does not conflict with the effects of the `concealed` behavior attribute. If additional sections
@@ -749,7 +745,7 @@ with additional detail that makes use of static pronouns where possible might lo
 
 ### Inventory
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Equipment Slot](equipment_slot.md)>
   `this.inventory`
 
@@ -758,7 +754,7 @@ on [Equipment Slots](equipment_slot.md) for more information.
 
 ### Spectate Channel
 
-* Class attribute: [TextChannel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class)
+- Class attribute: [TextChannel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class)
   `this.spectateChannel`
 
 This is an internal attribute. When Player data is loaded, Alter Ego will attempt to find the channel in
@@ -780,7 +776,7 @@ channel.
 
 ### Max Carry Weight
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.maxCarryWeight`
 
 This internal attribute is the maximum weight the Player can currently carry in kilograms. How it is calculated is
@@ -794,7 +790,7 @@ themself in any Items that would exceed this value, although they will not be no
 
 ### Carry Weight
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.carryWeight`
 
 This internal attribute is the combined [weight](inventory_item.md#weight) of all of the Player's Inventory Items. This
@@ -803,14 +799,14 @@ be [when moving](player.md#speed).
 
 ### Row
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.row`
 
 This is an internal attribute, but it can also be found on the spreadsheet. This is the row number of the Player.
 
 ### Is Moving
 
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.isMoving`
 
 This internal attribute indicates whether the Player is currently in the process of moving or not. If this is `true`,
@@ -824,7 +820,7 @@ dies, they will stop moving, and all class attributes associated with movement w
 
 ### Move Timer
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.moveTimer`
 
 This internal attribute uses the [setInterval method](https://developer.mozilla.org/en-US/docs/Web/API/setInterval) to
@@ -839,7 +835,7 @@ Player's movement will no longer continue. When Player data is loaded, this is `
 
 ### Remaining Time
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.remainingTime`
 
 This internal attribute is the number of milliseconds remaining until the Player is done moving to the Exit they're
@@ -847,7 +843,7 @@ currently moving to. If the Player stops moving for any reason, this is set to `
 
 ### Move Queue
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.moveQueue`
 
@@ -864,7 +860,7 @@ Player instantaneously. As such, NPCs cannot have queued movements.
 
 ### Reached Half Stamina
 
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.reachedHalfStamina`
 
 This internal attribute indicates whether or not the Player has depleted half of their stamina while moving. When the
@@ -874,7 +870,7 @@ reloaded, where it is set to `false` by default.
 
 ### Interval
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.interval`
 
 This internal attribute uses the setInterval method to handle stamina regeneration. Every 30 seconds, Alter Ego checks
@@ -883,7 +879,7 @@ if the Player is moving. If they aren't, and if their current stamina is less th
 
 ### Online
 
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.online`
 
 This internal attribute determines whether or not the Player is included in the count of online Players in Alter
@@ -893,7 +889,7 @@ in-game. NPCs are never considered online.
 
 ### Online Interval
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.onlineInterval`
 
 This internal attribute uses the [setTimeout method](https://developer.mozilla.org/en-US/docs/Web/API/setTimeout) to
