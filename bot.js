@@ -137,13 +137,14 @@ bot.on('clientReady', async () => {
         updateStatus();
         checkVersion();
         updateHandler.autoUpdate();
-        setTimeout(() => {
-            if (settings.autoLoad) {
+        if (settings.autoLoad) {
+            // bot.commands seems to need time to "settle". the below snippet breaks if run synchronously
+            setTimeout(() => {
                 let loadcmd = bot.commands.get("load_moderator");
                 if (loadcmd)
-                    loadcmd.run(bot, game, {channel: game.commandChannel}, null, ["all", "resume"]);
-            }
-        }, 0)
+                    loadcmd.run(bot, game, { channel: game.commandChannel }, null, ["all", "resume"]);
+            }, 0);
+        }
     }
     else {
         console.log("Error: Bot must be on one and only one server.");
