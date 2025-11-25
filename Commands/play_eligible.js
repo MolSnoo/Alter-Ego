@@ -11,7 +11,8 @@ module.exports.config = {
     details: "Adds you to the list of players for the current game.",
     usage: `${settings.commandPrefix}play`,
     usableBy: "Eligible",
-    aliases: ["play"]
+    aliases: ["play"],
+    requiresGame: true
 };
 
 module.exports.run = async (bot, game, message, args) => {

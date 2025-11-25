@@ -104,12 +104,13 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
         return false;
     }
     else if (isEligible) {
-        if (!game.inProgress) {
+        if (commandConfig.requiresGame && !game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
-        if ((settings.debug && message.channel.id === serverconfig.testingChannel)
-            || (!settings.debug && message.channel.id === serverconfig.generalChannel)) {
+        if (message.channel.type === ChannelType.DM
+            || settings.debug && message.channel.id === serverconfig.testingChannel
+            || !settings.debug && message.channel.id === serverconfig.generalChannel) {
             commandFile.run(bot, game, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
             entry = {
                 timestamp: new Date(),
