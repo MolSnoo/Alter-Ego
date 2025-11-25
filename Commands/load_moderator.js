@@ -23,7 +23,8 @@ module.exports.config = {
         + `${settings.commandPrefix}load status effects\n`
         + `${settings.commandPrefix}load players\n`
         + `${settings.commandPrefix}load inventories\n`
-        + `${settings.commandPrefix}load gestures`,
+        + `${settings.commandPrefix}load gestures\n`
+        + `${settings.commandPrefix}load flags`,
     usableBy: "Moderator",
     aliases: ["load", "reload", "gethousedata"],
     requiresGame: false
@@ -91,6 +92,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             let error = loader.checkGesture(game.gestures[i]);
             if (error instanceof Error) errors.push(error);
         }
+        await loader.loadFlags(game, false, errors);
         if (errors.length > 0) {
             if (errors.length > 15) {
                 errors = errors.slice(0, 15);
@@ -111,6 +113,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 printData(game.players);
                 printData(game.inventoryItems);
                 printData(game.gestures);
+                printData(game.flags);
             }
 
             game.messageHandler.addGameMechanicMessage(message.channel,
@@ -123,8 +126,9 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.events.length + " events, " +
                 game.statusEffects.length + " status effects, " +
                 game.players.length + " players, " +
-                game.inventoryItems.length + " inventory items, and " +
-                game.gestures.length + " gestures retrieved."
+                game.inventoryItems.length + " inventory items, " +
+                game.gestures.length + " gestures, and " +
+                game.flags.size + " flags retrieved."
             );
 
             const privatePlayers = [];
@@ -293,11 +297,28 @@ module.exports.run = async (bot, game, message, command, args) => {
             game.messageHandler.addGameMechanicMessage(message.channel, err);
         }
     }
+    else if (args[0] === "flags") {
+        try {
+            await loader.loadFlags(game, true);
+            if (settings.debug) printData(game.flags);
+            game.messageHandler.addGameMechanicMessage(message.channel, game.flags.size + " flags retrieved.");
+        }
+        catch (err) {
+            game.messageHandler.addGameMechanicMessage(message.channel, err);
+        }
+    }
 };
 
 function printData(data) {
-    for (var i = 0; i < data.length; i++) {
-        console.log(data[i]);
+    if (data instanceof Array) {
+        for (var i = 0; i < data.length; i++) {
+            console.log(data[i]);
+        }
+    }
+    else if (data instanceof Map) {
+        data.forEach(entry => {
+            console.log(entry);
+        });
     }
 }
 
