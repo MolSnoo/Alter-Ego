@@ -374,13 +374,8 @@ class Player {
         var status = null;
         if (statusName instanceof Status) status = statusName;
         else {
-            for (let i = 0; i < game.statusEffects.length; i++) {
-                if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
-                    status = game.statusEffects[i];
-                    break;
-                }
-            }
-            if (status === null) return `Couldn't find status effect "${statusName}".`;
+            status = game.statusEffects_by_name.get(statusName);
+            if (status === undefined) return `Couldn't find status effect "${statusName}".`;
         }
 
         if (notify === null || notify === undefined) notify = true;
