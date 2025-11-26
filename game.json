@@ -29,6 +29,7 @@
   "events_by_name": null,
   "whispers": [],
   "statusEffects": [],
+  "statusEffects_by_name": null,
   "inventoryItems": [],
   "gestures": [],
   "gestures_by_name": null,

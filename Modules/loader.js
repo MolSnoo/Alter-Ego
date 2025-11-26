@@ -63,17 +63,17 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                 var tags = sheet[i][columnTags] ? sheet[i][columnTags].trim().split(',') : [];
                 for (let j = 0; j < tags.length; j++)
                     tags[j] = tags[j].trim();
-                game.rooms.push(
-                    new Room(
-                        sheet[i][columnRoomName] ? sheet[i][columnRoomName].trim() : "",
-                        channel,
-                        tags,
-                        sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
-                        exits,
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 2
-                    )
+                let room = new Room(
+                    sheet[i][columnRoomName] ? sheet[i][columnRoomName].trim() : "",
+                    channel,
+                    tags,
+                    sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
+                    exits,
+                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                    i + 2
                 );
+                game.rooms.push(room);
+                game.rooms_by_name.set(room.name, room);
             }
             var errors = [];
             // Now go through and make the dest for each exit an actual Room object.
@@ -92,7 +92,6 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         game.rooms[i].addPlayer(game, game.players_alive[j], null, null, false);
                     }
                 }
-                game.rooms_by_name.set(game.rooms[i].name, game.rooms[i])
             }
             if (errors.length > 0) {
                 if (errors.length > 15) {
@@ -313,33 +312,33 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                     inventorySlots[j] = { name: inventorySlot[0].trim(), capacity: parseInt(inventorySlot[1]), takenSpace: 0, weight: 0, item: [] };
                 }
 
-                game.prefabs.push(
-                    new Prefab(
-                        sheet[i][columnID] ? sheet[i][columnID].trim() : "",
-                        name[0] ? name[0].trim() : "",
-                        name[1] ? name[1].trim() : "",
-                        containingPhrase[0] ? containingPhrase[0].trim() : "",
-                        containingPhrase[1] ? containingPhrase[1].trim() : "",
-                        sheet[i][columnDiscreet] ? sheet[i][columnDiscreet].trim() === "TRUE" : false,
-                        parseInt(sheet[i][columnSize]),
-                        parseInt(sheet[i][columnWeight]),
-                        sheet[i][columnUsable] ? sheet[i][columnUsable].trim() === "TRUE" : false,
-                        sheet[i][columnUseVerb] ? sheet[i][columnUseVerb].trim() : "",
-                        parseInt(sheet[i][columnUses]),
-                        effects,
-                        cures,
-                        sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
-                        sheet[i][columnEquippable] ? sheet[i][columnEquippable].trim() === "TRUE" : false,
-                        equipmentSlots,
-                        coveredEquipmentSlots,
-                        equipCommands,
-                        unequipCommands,
-                        inventorySlots,
-                        sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 2
-                    )
+                let prefab = new Prefab(
+                    sheet[i][columnID] ? sheet[i][columnID].trim() : "",
+                    name[0] ? name[0].trim() : "",
+                    name[1] ? name[1].trim() : "",
+                    containingPhrase[0] ? containingPhrase[0].trim() : "",
+                    containingPhrase[1] ? containingPhrase[1].trim() : "",
+                    sheet[i][columnDiscreet] ? sheet[i][columnDiscreet].trim() === "TRUE" : false,
+                    parseInt(sheet[i][columnSize]),
+                    parseInt(sheet[i][columnWeight]),
+                    sheet[i][columnUsable] ? sheet[i][columnUsable].trim() === "TRUE" : false,
+                    sheet[i][columnUseVerb] ? sheet[i][columnUseVerb].trim() : "",
+                    parseInt(sheet[i][columnUses]),
+                    effects,
+                    cures,
+                    sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
+                    sheet[i][columnEquippable] ? sheet[i][columnEquippable].trim() === "TRUE" : false,
+                    equipmentSlots,
+                    coveredEquipmentSlots,
+                    equipCommands,
+                    unequipCommands,
+                    inventorySlots,
+                    sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
+                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                    i + 2
                 );
+                game.prefabs.push(prefab);
+                game.prefabs_by_id.set(prefab.id, prefab);
             }
             var errors = [];
             for (let i = 0; i < game.prefabs.length; i++) {
@@ -357,7 +356,6 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                     let error = exports.checkPrefab(game.prefabs[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
-                game.prefabs_by_id.set(game.prefabs[i].id, game.prefabs[i])
             }
             for (let i = 0; i < game.puzzles.length; i++) {
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
@@ -997,27 +995,28 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var refreshes = sheet[i][columnRefreshedEffects] ? sheet[i][columnRefreshedEffects].split(',') : [];
                 for (let j = 0; j < refreshes.length; j++)
                     refreshes[j] = refreshes[j].trim();
-                game.events.push(
-                    new Event(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        sheet[i][columnOngoing] ? sheet[i][columnOngoing].trim() === "TRUE" : false,
-                        durationString,
-                        duration,
-                        sheet[i][columnTimeRemaining] ? sheet[i][columnTimeRemaining] : "",
-                        timeRemaining,
-                        sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt] : "",
-                        triggerTimes,
-                        sheet[i][columnRoomTag] ? sheet[i][columnRoomTag].trim() : "",
-                        sheet[i][columnCommands] ? sheet[i][columnCommands] : "",
-                        triggeredCommands,
-                        endedCommands,
-                        effects,
-                        refreshes,
-                        sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration].trim() : "",
-                        sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration].trim() : "",
-                        i + 2
-                    )
+
+                let event = new Event(
+                    sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                    sheet[i][columnOngoing] ? sheet[i][columnOngoing].trim() === "TRUE" : false,
+                    durationString,
+                    duration,
+                    sheet[i][columnTimeRemaining] ? sheet[i][columnTimeRemaining] : "",
+                    timeRemaining,
+                    sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt] : "",
+                    triggerTimes,
+                    sheet[i][columnRoomTag] ? sheet[i][columnRoomTag].trim() : "",
+                    sheet[i][columnCommands] ? sheet[i][columnCommands] : "",
+                    triggeredCommands,
+                    endedCommands,
+                    effects,
+                    refreshes,
+                    sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration].trim() : "",
+                    sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration].trim() : "",
+                    i + 2
                 );
+                game.events.push(event);
+                game.events_by_name.set(event.name, event);
             }
             var errors = [];
             for (let i = 0; i < game.events.length; i++) {
@@ -1033,7 +1032,6 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                     let error = exports.checkEvent(game.events[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
-                game.events_by_name.set(game.events[i].name, game.events[i])
             }
             if (errors.length > 0) {
                 if (errors.length > 15) {
@@ -1099,6 +1097,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnCuredDescription = 13;
 
             game.statusEffects.length = 0;
+            game.statusEffects_by_name = new Map();
             for (let i = 0; i < sheet.length; i++) {
                 const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
                 let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
@@ -1151,24 +1150,25 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
 
                     modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
                 }
-                game.statusEffects.push(
-                    new Status(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        duration,
-                        sheet[i][columnFatal] ? sheet[i][columnFatal].trim() === "TRUE" : false,
-                        sheet[i][columnVisible] ? sheet[i][columnVisible].trim() === "TRUE" : false,
-                        overriders,
-                        cures,
-                        sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : null,
-                        sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus].trim() : null,
-                        sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition].trim() : null,
-                        modifiers,
-                        sheet[i][columnAttributes] ? sheet[i][columnAttributes].trim() : "",
-                        sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription].trim() : "",
-                        sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription].trim() : "",
-                        i + 2
-                    )
+
+                let status = new Status(
+                    sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                    duration,
+                    sheet[i][columnFatal] ? sheet[i][columnFatal].trim() === "TRUE" : false,
+                    sheet[i][columnVisible] ? sheet[i][columnVisible].trim() === "TRUE" : false,
+                    overriders,
+                    cures,
+                    sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : null,
+                    sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus].trim() : null,
+                    sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition].trim() : null,
+                    modifiers,
+                    sheet[i][columnAttributes] ? sheet[i][columnAttributes].trim() : "",
+                    sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription].trim() : "",
+                    sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription].trim() : "",
+                    i + 2
                 );
+                game.statusEffects.push(status);
+                game.statusEffects_by_name.set(status.name, status);
             }
             // Now go through and make the nextStage and curedCondition an actual Status object.
             var errors = [];
@@ -1762,16 +1762,16 @@ module.exports.loadGestures = function (game, doErrorChecking) {
                 var disabledStatuses = sheet[i][columnDontAllowIf] ? sheet[i][columnDontAllowIf].split(',') : [];
                 for (let j = 0; j < disabledStatuses.length; j++)
                     disabledStatuses[j] = disabledStatuses[j].trim();
-                game.gestures.push(
-                    new Gesture(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        requires,
-                        disabledStatuses,
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        sheet[i][columnNarration] ? sheet[i][columnNarration].trim() : "",
-                        i + 2
-                    )
+                let gesture = new Gesture(
+                    sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                    requires,
+                    disabledStatuses,
+                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                    sheet[i][columnNarration] ? sheet[i][columnNarration].trim() : "",
+                    i + 2
                 );
+                game.gestures.push(gesture);
+                game.gestures_by_name.set(gesture.name, gesture);
             }
             // Now go through and make the disabledStatuses actual Status objects.
             var errors = [];
@@ -1784,7 +1784,6 @@ module.exports.loadGestures = function (game, doErrorChecking) {
                     let error = exports.checkGesture(game.gestures[i]);
                     if (error instanceof Error) errors.push(error);
                 }
-                game.gestures_by_name.set(game.gestures[i].name, game.gestures[i])
             }
             if (errors.length > 0) {
                 if (errors.length > 15) {
