@@ -63,20 +63,14 @@ module.exports.findStatusEffect = function (name) {
 };
 
 module.exports.findPlayer = function (name) {
-    if (name) name = name.toLowerCase();
-
     return game.players_by_name.get(name);
 };
 
 module.exports.findLivingPlayer = function (name) {
-    if (name) name = name.toLowerCase();
-
     return game.players_alive_by_name.get(name);
 };
 
 module.exports.findDeadPlayer = function (name) {
-    if (name) name = name.toLowerCase();
-
     return game.players_dead_by_name.get(name);
 };
 
