@@ -1369,12 +1369,12 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 player.setPronouns(player.pronouns, player.pronounString);
                 game.players.push(player);
                 game.players_by_name.set(player.name, player);
-                game.players_by_snowflake.set(player.member.id, player);
+                game.players_by_snowflake.set(player.id, player);
 
                 if (player.alive) {
                     game.players_alive.push(player);
                     game.players_alive_by_name.set(player.name, player);
-                    game.players_alive_by_snowflake.set(player.member.id, player);
+                    game.players_alive_by_snowflake.set(player.id, player);
 
                     if (player.member !== null || player.talent === "NPC") {
                         // Parse statuses and inflict the player with them.
@@ -1403,7 +1403,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 else {
                     game.players_dead.push(player);
                     game.players_dead_by_name.set(player.name, player);
-                    game.players_dead_by_snowflake.set(player.member.id, player);
+                    game.players_dead_by_snowflake.set(player.id, player);
                 }
             }
 

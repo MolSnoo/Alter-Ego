@@ -55,10 +55,10 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.players.push(player);
     game.players_by_name.set(player.name, player);
-    game.players_by_snowflake.set(player.member.id, player);
+    game.players_by_snowflake.set(player.id, player);
     game.players_alive.push(player);
     game.players_alive_by_name.set(player.name, player);
-    game.players_alive_by_snowflake.set(player.member.id, player);
+    game.players_alive_by_snowflake.set(player.id, player);
     member.roles.add(serverconfig.playerRole);
 
     var playerCells = [];
