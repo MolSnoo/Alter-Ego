@@ -21,14 +21,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     const status = player.getAttributeStatusEffects("enable text");
     if (status.length === 0) return game.messageHandler.addReply(message, `You do not have a device with which to send a text message.`);
 
-    var recipient = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            recipient = game.players_alive[i];
-            break;
-        }
-    }
-    if (recipient === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
+    let recipient = game.players_alive_by_name.get(args[0]);
+    if (recipient === undefined) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
     if (recipient.name === player.name) return game.messageHandler.addReply(message, `You cannot send a message to yourself.`);
     args.splice(0, 1);
 

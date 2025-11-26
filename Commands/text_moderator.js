@@ -20,26 +20,14 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args.length < 2)
         return game.messageHandler.addReply(message, `You need to specify a sender, a recipient, and a message. Usage:\n${exports.config.usage}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
-            player = game.players_alive[i];
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
-            return game.messageHandler.addReply(message, `You cannot text for a player that isn't an NPC.`);
-    }
-    if (player === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
+    let player = game.players_alive_by_name.get(args[0]);
+    if (player === undefined) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
+    if (player.talent !== "NPC")
+        return game.messageHandler.addReply(message, `You cannot text for a player that isn't an NPC.`);
     args.splice(0, 1);
 
-    var recipient = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            recipient = game.players_alive[i];
-            break;
-        }
-    }
-    if (recipient === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
+    let recipient = game.players_alive_by_name.get(args[0]);
+    if (recipient === undefined) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
     if (recipient.name === player.name) return game.messageHandler.addReply(message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
     args.splice(0, 1);
 

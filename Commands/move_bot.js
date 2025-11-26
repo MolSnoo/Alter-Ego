@@ -51,14 +51,8 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         args.splice(0, 1);
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                break;
-            }
-        }
-        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        player = game.players_alive_by_name.get(args[0]);
+        if (player === undefined) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }

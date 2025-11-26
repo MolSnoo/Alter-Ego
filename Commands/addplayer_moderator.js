@@ -30,10 +30,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     const member = await game.guild.members.fetch(mentionedMember.id);
     if (!member) return game.messageHandler.addReply(message, `Couldn't find "${args[0]}" in the server. If the user you want isn't appearing in Discord's suggestions, type @ and enter their full username.`);
 
-    for (let i = 0; i < game.players.length; i++) {
-        if (member.id === game.players[i].id)
-            return message.reply("That user is already playing.");
-    }
+    if (game.players_by_snowflake.has(member.id))
+        return message.reply("That user is already playing.");
 
     var player = new Player(
         member.id,

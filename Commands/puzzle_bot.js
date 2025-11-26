@@ -75,13 +75,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
     else {
         player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-                player = game.players_alive[i];
-                args.splice(args.length - 1, 1);
-                input = args.join(" ");
-                break;
-            }
+        if (game.players_alive_by_name.has(args[args.length - 1])) {
+            player = game.players_alive_by_name.get(args[args.length - 1]);
+            args.splice(args.length - 1, 1);
+            input = args.join(" ");
         }
     }
 

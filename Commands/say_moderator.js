@@ -28,14 +28,11 @@ module.exports.run = async (bot, game, message, command, args) => {
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
 
-    var player = null;
+    let player = null;
     var room = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
-            player = game.players_alive[i];
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
+    if (game.players_alive_by_name.has(args[0])) {
+        player = game.players_alive_by_name.get(args[0]);
+        if (player.talent !== "NPC")
             return game.messageHandler.addReply(message, `You cannot speak for a player that isn't an NPC.`);
     }
     if (player !== null) {

@@ -29,14 +29,8 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (args[0].toLowerCase() !== "player") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                args.splice(0, 1);
-                break;
-            }
-        }
-        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
+        player = game.players_alive_by_name.get(args[0])
+        if (player === undefined) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
     }
     else if (args[0].toLowerCase() === "player" && player === null)
         return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
@@ -50,11 +44,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
     else {
         if (args.length === 1) {
-            for (let i = 0; i < game.players.length; i++) {
-                if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name !== player.name) {
-                    player.voiceString = game.players[i].name;
-                    return;
-                }
+            if (game.players_by_name.has(args[0]) && game.players_by_name.get(args[0]).name !== player.name) {
+                player.voiceString = game.players_by_name.get(args[0]).name;
+                return;
             }
         }
         player.voiceString = input;

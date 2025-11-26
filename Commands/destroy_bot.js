@@ -197,16 +197,17 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 break;
             }
             else {
-                let found = false;
-                for (let j = 0; j < game.players_alive.length; j++) {
-                    if (args[i].toLowerCase() === `${game.players_alive[j].name.toLowerCase()}'s`) {
-                        found = true;
-                        players.push(game.players_alive[j]);
-                        args.splice(i, 1);
-                        break;
-                    }
+                let playerName = args[i].toLowerCase();
+                if (playerName.endsWith("'s")) {
+                    playerName = playerName.slice(0, -2);
                 }
-                if (found) break;
+
+                const player = game.players_alive_by_name.get(playerName);
+                if (player) {
+                    players.push(player);
+                    args.splice(i, 1);
+                    break;
+                }
             }
         }
         if (players.length === 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a room or player in your input.`);

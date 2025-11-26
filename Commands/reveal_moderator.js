@@ -19,13 +19,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     // Get all listed players first.
     var players = [];
-    for (let i = 0; i < game.players_dead.length; i++) {
-        for (let j = 0; j < args.length; j++) {
-            if (args[j].toLowerCase() === game.players_dead[i].name.toLowerCase()) {
-                players.push(game.players_dead[i]);
-                args.splice(j, 1);
-                break;
-            }
+    for (let i = 0; i < args.length; i++) {
+        let name = args[i];
+        if (game.players_dead_by_name.has(name)) {
+            players.push(game.players_dead_by_name.get(name));
+            args.splice(i, 1);
         }
     }
     if (args.length > 0) {

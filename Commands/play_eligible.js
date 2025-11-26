@@ -15,10 +15,8 @@ module.exports.config = {
 };
 
 module.exports.run = async (bot, game, message, args) => {
-    for (let i = 0; i < game.players.length; i++) {
-        if (message.author.id === game.players[i].id)
-            return message.reply("You are already playing.");
-    }
+    if (game.players_by_snowflake.has(message.author.id))
+        return message.reply("You are already playing.");
     if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
 
     const member = await game.guild.members.fetch(message.author.id);
