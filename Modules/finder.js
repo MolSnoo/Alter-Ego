@@ -3,7 +3,7 @@ var game = include('game.json');
 module.exports.findRoom = function (name) {
     if (name) name = name.toLowerCase().replace(/\'/g, '').replace(/ /g, '-');
 
-    return game.rooms.find(room => room.name === name);
+    return game.rooms_by_name.get(name);
 };
 
 module.exports.findObject = function (name, location) {
@@ -18,7 +18,7 @@ module.exports.findObject = function (name, location) {
 module.exports.findPrefab = function (id) {
     if (id) id = id.toUpperCase().replace(/\'/g, '');
 
-    return game.prefabs.find(prefab => prefab.id === id);
+    return game.prefabs_by_name.get(id);
 };
 
 module.exports.findItem = function (identifier, location, containerName) {
@@ -53,7 +53,7 @@ module.exports.findPuzzle = function (name, location) {
 module.exports.findEvent = function (name) {
     if (name) name = name.toUpperCase().replace(/\'/g, '');
 
-    return game.events.find(event => event.name === name);
+    return game.events_by_name.get(name);
 };
 
 module.exports.findStatusEffect = function (name) {
@@ -65,19 +65,19 @@ module.exports.findStatusEffect = function (name) {
 module.exports.findPlayer = function (name) {
     if (name) name = name.toLowerCase();
 
-    return game.players.find(player => player.name.toLowerCase() === name);
+    return game.players_by_name.get(name);
 };
 
 module.exports.findLivingPlayer = function (name) {
     if (name) name = name.toLowerCase();
 
-    return game.players_alive.find(player => player.name.toLowerCase() === name);
+    return game.players_alive_by_name.get(name);
 };
 
 module.exports.findDeadPlayer = function (name) {
     if (name) name = name.toLowerCase();
 
-    return game.players_dead.find(player => player.name.toLowerCase() === name);
+    return game.players_dead_by_name.get(name);
 };
 
 module.exports.findInventoryItem = function (identifier, player, containerName, equipmentSlot) {
