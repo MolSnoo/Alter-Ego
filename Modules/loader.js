@@ -16,6 +16,7 @@ const Status = include(`${constants.dataDir}/Status.js`);
 const Player = include(`${constants.dataDir}/Player.js`);
 const Gesture = include(`${constants.dataDir}/Gesture.js`);
 
+const CaseInsensitiveMap = include(`${constants.dataDir}/CaseInsensitiveMap.js`);
 const { ChannelType } = require('../node_modules/discord-api-types/v10');
 var moment = require('moment');
 moment().format();
@@ -1310,9 +1311,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             game.players.length = 0;
             game.players_alive.length = 0;
             game.players_dead.length = 0;
-            game.players_by_name = new Map();
-            game.players_alive_by_name = new Map();
-            game.players_dead_by_name = new Map();
+            game.players_by_name = new CaseInsensitiveMap();
+            game.players_alive_by_name = new CaseInsensitiveMap();
+            game.players_dead_by_name = new CaseInsensitiveMap();
             game.players_by_snowflake = new Map();
             game.players_alive_by_snowflake = new Map();
             game.players_dead_by_snowflake = new Map();
