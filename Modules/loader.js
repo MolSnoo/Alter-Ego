@@ -38,6 +38,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             const columnDescription = 10;
 
             game.rooms.length = 0;
+            game.rooms_by_name = new Map();
             for (let i = 0, j = 0; i < sheet.length; i = i + j) {
                 var exits = [];
                 for (j = 0; i + j < sheet.length && (j === 0 || sheet[i + j][columnRoomName] === ""); j++) {
@@ -90,6 +91,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                         game.rooms[i].addPlayer(game, game.players_alive[j], null, null, false);
                     }
                 }
+                game.rooms_by_name.set(game.rooms[i].name, game.rooms[i])
             }
             if (errors.length > 0) {
                 if (errors.length > 15) {
@@ -272,6 +274,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             const columnDescription = 18;
 
             game.prefabs.length = 0;
+            game.prefabs_by_id = new Map();
             for (let i = 0; i < sheet.length; i++) {
                 // Separate name and plural name.
                 const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
@@ -353,6 +356,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                     let error = exports.checkPrefab(game.prefabs[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
+                game.prefabs_by_id.set(game.prefabs[i].id, game.prefabs[i])
             }
             for (let i = 0; i < game.puzzles.length; i++) {
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
@@ -963,6 +967,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
             const columnEndedNarration = 10;
 
             game.events.length = 0;
+            game.events_by_name = new Map();
             for (let i = 0; i < sheet.length; i++) {
                 const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
                 let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
@@ -1027,6 +1032,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                     let error = exports.checkEvent(game.events[i], game);
                     if (error instanceof Error) errors.push(error);
                 }
+                game.events_by_name.set(game.events[i].name, game.events[i])
             }
             if (errors.length > 0) {
                 if (errors.length > 15) {
@@ -1304,6 +1310,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             game.players.length = 0;
             game.players_alive.length = 0;
             game.players_dead.length = 0;
+            game.players_by_name = new map();
 
             for (let i = 0; i < sheet.length; i++) {
                 const stats = {
@@ -1355,6 +1362,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 player.setPronouns(player.originalPronouns, player.pronounString);
                 player.setPronouns(player.pronouns, player.pronounString);
                 game.players.push(player);
+                game.players_by_name.set(player.name, player)
 
                 if (player.alive) {
                     game.players_alive.push(player);
@@ -1734,6 +1742,7 @@ module.exports.loadGestures = function (game, doErrorChecking) {
             const columnNarration = 4;
 
             game.gestures.length = 0;
+            game.gestures_by_name = new Map();
             for (let i = 0; i < sheet.length; i++) {
                 var requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requires.length; j++)
@@ -1763,6 +1772,7 @@ module.exports.loadGestures = function (game, doErrorChecking) {
                     let error = exports.checkGesture(game.gestures[i]);
                     if (error instanceof Error) errors.push(error);
                 }
+                game.gestures_by_name.set(game.gestures[i].name, game.gestures[i])
             }
             if (errors.length > 0) {
                 if (errors.length > 15) {
