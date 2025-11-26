@@ -2012,6 +2012,8 @@ class Player {
 
         // Move player to dead list.
         game.players_dead.push(this);
+        game.players_dead_by_name.set(this.name, this);
+        game.players_dead_by_snowflake.set(this.member.id, this);
         // Then remove them from living list.
         for (let i = 0; i < game.players_alive.length; i++) {
             if (game.players_alive[i].name === this.name) {
@@ -2019,6 +2021,8 @@ class Player {
                 break;
             }
         }
+        game.players_alive_by_name.delete(this.name);
+        game.players_alive_by_snowflake.delete(this.member.id);
 
         game.messageHandler.addDirectNarration(this, "You have died. When your body is discovered, you will be given the Dead role. Until then, please do not speak on the server or to other players.");
         
