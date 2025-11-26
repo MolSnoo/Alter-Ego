@@ -44,8 +44,14 @@ module.exports.run = async (bot, game, message, command, args) => {
         bot.user.setStatus("online");
     }
     game.players = [];
+    game.players_by_name.clear();
+    game.players_by_snowflake.clear();
     game.players_alive = [];
+    game.players_alive_by_name.clear();
+    game.players_alive_by_snowflake.clear();
     game.players_dead = [];
+    game.players_dead_by_name.clear();
+    game.players_dead_by_snowflake.clear();
 
     var channel;
     if (settings.debug) channel = game.guild.channels.cache.get(serverconfig.testingChannel);
