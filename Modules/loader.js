@@ -39,7 +39,7 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             const columnDescription = 10;
 
             game.rooms.length = 0;
-            game.rooms_by_name = new Map();
+            game.rooms_by_name = new CaseInsensitiveMap();
             for (let i = 0, j = 0; i < sheet.length; i = i + j) {
                 var exits = [];
                 for (j = 0; i + j < sheet.length && (j === 0 || sheet[i + j][columnRoomName] === ""); j++) {
@@ -274,7 +274,7 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             const columnDescription = 18;
 
             game.prefabs.length = 0;
-            game.prefabs_by_id = new Map();
+            game.prefabs_by_id = new CaseInsensitiveMap();
             for (let i = 0; i < sheet.length; i++) {
                 // Separate name and plural name.
                 const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
@@ -966,7 +966,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
             const columnEndedNarration = 10;
 
             game.events.length = 0;
-            game.events_by_name = new Map();
+            game.events_by_name = new CaseInsensitiveMap();
             for (let i = 0; i < sheet.length; i++) {
                 const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
                 let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
@@ -1097,7 +1097,7 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             const columnCuredDescription = 13;
 
             game.statusEffects.length = 0;
-            game.statusEffects_by_name = new Map();
+            game.statusEffects_by_name = new CaseInsensitiveMap();
             for (let i = 0; i < sheet.length; i++) {
                 const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
                 let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
@@ -1314,9 +1314,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             game.players_by_name = new CaseInsensitiveMap();
             game.players_alive_by_name = new CaseInsensitiveMap();
             game.players_dead_by_name = new CaseInsensitiveMap();
-            game.players_by_snowflake = new Map();
-            game.players_alive_by_snowflake = new Map();
-            game.players_dead_by_snowflake = new Map();
+            game.players_by_snowflake = new CaseInsensitiveMap();
+            game.players_alive_by_snowflake = new CaseInsensitiveMap();
+            game.players_dead_by_snowflake = new CaseInsensitiveMap();
 
             for (let i = 0; i < sheet.length; i++) {
                 const stats = {
@@ -1754,7 +1754,7 @@ module.exports.loadGestures = function (game, doErrorChecking) {
             const columnNarration = 4;
 
             game.gestures.length = 0;
-            game.gestures_by_name = new Map();
+            game.gestures_by_name = new CaseInsensitiveMap();
             for (let i = 0; i < sheet.length; i++) {
                 var requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requires.length; j++)
