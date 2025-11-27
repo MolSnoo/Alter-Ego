@@ -69,9 +69,8 @@ module.exports.run = async (bot, game, message, command, args) => {
 };
 
 function getPlayer(game, name) {
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === name)
-            return game.players_alive[i];
+    if (game.players_alive_by_name.has(name)) {
+        return game.players_alive_by_name.get(name);
     }
     return name;
 }

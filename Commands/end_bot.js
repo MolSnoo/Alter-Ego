@@ -20,14 +20,8 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var event = null;
-    for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].name === parsedInput) {
-            event = game.events[i];
-            break;
-        }
-    }
-    if (event === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
+    let event = game.events_by_name.get(parsedInput);
+    if (event === undefined) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
     if (!event.ongoing) return;
 
     var doEndedCommands = false;

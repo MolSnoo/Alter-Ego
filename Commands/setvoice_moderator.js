@@ -29,15 +29,9 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
         return game.messageHandler.addReply(message, `You need to specify a player. Usage:\n${exports.config.usage}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    let player = game.players_alive_by_name.get(args[0]);
+    if (player === undefined) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
     var input = args.join(" ");
     if (input === "" || input === null || input === undefined) {
@@ -49,13 +43,12 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else {
         if (args.length === 1) {
-            for (let i = 0; i < game.players.length; i++) {
-                if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name !== player.name) {
-                    player.voiceString = game.players[i].name;
-                    return game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${game.players[i].name}.`);
-                }
-                else if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name === player.name)
-                    return game.messageHandler.addReply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${settings.commandPrefix}setvoice ${player.name}`);
+            if (game.players_by_name.has(args[0]) && game.players_by_name.get(args[0]).name !== player.name) {
+                player.voiceString = game.players_by_name.get(args[0]).name;
+                return game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${game.players_by_name.get(args[0]).name}.`);
+            }
+            else if (game.players_by_name.has(args[0]) && game.players_by_name.get(args[0]).name === player.name) {
+                return game.messageHandler.addReply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${settings.commandPrefix}setvoice ${player.name}`);
             }
         }
         player.voiceString = input;

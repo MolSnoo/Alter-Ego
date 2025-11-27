@@ -19,26 +19,14 @@ module.exports.run = async (bot, game, message, command, args) => {
         return game.messageHandler.addReply(message, `You need to specify two players and an item. Usage:\n${exports.config.usage}`);
 
     // First, find the giver.
-    var giver = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
-            giver = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (giver === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    var giver = game.players_alive_by_name.get(args[0].toLowerCase().replace(/'s/g, ""));
+    if (giver === undefined) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
     // Next, find the recipient.
-    var recipient = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase().replace(/'s/g, "")) {
-            recipient = game.players_alive[i];
-            args.splice(args.length - 1, 1);
-            break;
-        }
-    }
-    if (recipient === null) return game.messageHandler.addReply(message, `Player "${args[args.length - 1]}" not found.`);
+    var recipient = game.players_alive_by_name.get(args[args.length - 1].toLowerCase.replace(/'s/g, ""));
+    if (recipient === undefined) return game.messageHandler.addReply(message, `Player "${args[args.length - 1]}" not found.`);
+    args.splice(args.length - 1, 1);
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);
 
     if (giver.name === recipient.name) return game.messageHandler.addReply(message, `${giver.name} cannot give an item to ${giver.originalPronouns.ref}.`);

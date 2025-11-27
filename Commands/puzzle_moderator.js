@@ -66,14 +66,11 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     // Now find the player, who should be the last argument.
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(args.length - 1, 1);
-            input = args.join(" ");
-            break;
-        }
+    let player = null;
+    if (game.players_alive_by_name.has(args[args.length - 1])) {
+        player = game.players_alive_by_name.get(args[args.length - 1]);
+        args.splice(args.length - 1, 1);
+        input = args.join(" ");
     }
 
     // If a player wasn't specified, check if a room name was.

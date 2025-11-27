@@ -62,12 +62,9 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
             let speakerVoiceString = player.voiceString;
             let speakerRecognitionName = player.name;
             if (player.voiceString !== player.originalVoiceString) {
-                for (let i = 0; i < game.players.length; i++) {
-                    if (player.voiceString === game.players[i].name) {
-                        speakerVoiceString = game.players[i].originalVoiceString;
-                        speakerRecognitionName = game.players[i].name;
-                        break;
-                    }
+                if (game.players_by_name.has(player.voiceString)) {
+                    speakerVoiceString = game.players_by_name.get(player.voiceString).originalVoiceString;
+                    speakerRecognitionName = game.players_by_name.get(player.voiceString).name;
                 }
                 // If the player's voice descriptor is different but doesn't match the name of another player,
                 // set their recognition name to unknown so that other players won't recognize their voice.

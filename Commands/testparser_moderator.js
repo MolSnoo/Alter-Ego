@@ -52,15 +52,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     player.setPronouns(player.pronouns, player.pronounString);
 
     if (args[1] && args[1] !== "formatted") {
-        let found = false;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[1].toLowerCase()) {
-                player = game.players_alive[i];
-                found = true;
-                break;
-            }
-        }
-        if (!found) return game.messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
+        player = game.players_alive_by_name.get(args[1]);
+        if (player === undefined) return game.messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
     }
 
     if (args[0] === "parse") {

@@ -30,10 +30,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     const member = await game.guild.members.fetch(mentionedMember.id);
     if (!member) return game.messageHandler.addReply(message, `Couldn't find "${args[0]}" in the server. If the user you want isn't appearing in Discord's suggestions, type @ and enter their full username.`);
 
-    for (let i = 0; i < game.players.length; i++) {
-        if (member.id === game.players[i].id)
-            return message.reply("That user is already playing.");
-    }
+    if (game.players_by_snowflake.has(member.id))
+        return message.reply("That user is already playing.");
 
     var player = new Player(
         member.id,
@@ -54,7 +52,11 @@ module.exports.run = async (bot, game, message, command, args) => {
     );
 
     game.players.push(player);
+    game.players_by_name.set(player.name, player);
+    game.players_by_snowflake.set(player.id, player);
     game.players_alive.push(player);
+    game.players_alive_by_name.set(player.name, player);
+    game.players_alive_by_snowflake.set(player.id, player);
     member.roles.add(serverconfig.playerRole);
 
     var playerCells = [];

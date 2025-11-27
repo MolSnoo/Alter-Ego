@@ -21,15 +21,9 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0)
         return game.messageHandler.addReply(message, `You need to specify a player. Usage:\n${exports.config.usage}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    let player = game.players_alive_by_name.get(args[0]);
+    if (player === undefined) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
     if (player.statusString.includes("hidden") && command === "unhide") {
         player.cure(game, "hidden", true, false, true);

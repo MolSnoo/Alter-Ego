@@ -23,14 +23,8 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     var input = args.join(" ");
     var parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === parsedInput) {
-            room = game.rooms[i];
-            break;
-        }
-    }
-    if (room === null) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
+    let room = game.rooms_by_name.get(parsedInput);
+    if (room === undefined) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = sort_occupantsString(room.occupants);

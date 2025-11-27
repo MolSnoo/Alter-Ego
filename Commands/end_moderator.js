@@ -18,14 +18,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var event = null;
-    for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].name === parsedInput) {
-            event = game.events[i];
-            break;
-        }
-    }
-    if (event === null) return game.messageHandler.addReply(message, `Couldn't find event "${input}".`);
+    let event = game.events_by_name.get(parsedInput);
+    if (event === undefined) return game.messageHandler.addReply(message, `Couldn't find event "${input}".`);
     if (!event.ongoing) return game.messageHandler.addReply(message, `${event.name} is not currently ongoing.`);
 
     await event.end(bot, game, true);
