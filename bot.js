@@ -4,6 +4,12 @@ import settings from './Configs/settings.json' with { type: 'json' };
 import constants from './Configs/constants.json' with { type: 'json' };
 import credentials from './Configs/credentials.json' with { type: 'json' };
 import serverconfig from './Configs/serverconfig.json' with { type: 'json' };
+
+import BotContext from './Data/BotContext.js';
+import GuildContext from './Data/GuildContext.js';
+import GameSettings from './Data/GameSettings.js';
+import Game from './Data/Game.js';
+
 import { validateServerConfig } from './Modules/serverManager.js';
 import { default as autoUpdate } from './Modules/updateHandler.js';
 import * as messageHandler from './Modules/messageHandler.js';
@@ -19,8 +25,7 @@ import moment from 'moment';
 moment().format();
 import { Client, Collection, ActivityType, ChannelType, GatewayIntentBits, Partials} from 'discord.js';
 
-const bot = new Client({
-    retryLimit: Infinity,
+const client = new Client({
     partials: [
         Partials.User,
         Partials.Channel,
@@ -91,13 +96,13 @@ function updateStatus() {
     var onlineString = " - " + numPlayersOnline + " player" + (numPlayersOnline !== 1 ? "s" : "") + " online";
 
     if (settings.debug)
-        bot.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: getActivityType(settings.debugModeActivity.type) }] });
+        client.user.setPresence({ status: "dnd", activities: [{ name: settings.debugModeActivity.string + onlineString, type: getActivityType(settings.debugModeActivity.type) }] });
     else {
-        bot.user.setStatus("online");
+        client.user.setStatus("online");
         if (game.inProgress && !game.canJoin)
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: getActivityType(settings.gameInProgressActivity.type), url: settings.gameInProgressActivity.url }] });
+            client.user.setPresence({ status: "online", activities: [{ name: settings.gameInProgressActivity.string + onlineString, type: getActivityType(settings.gameInProgressActivity.type), url: settings.gameInProgressActivity.url }] });
         else
-            bot.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: getActivityType(settings.onlineActivity.type) }] });
+            client.user.setPresence({ status: "online", activities: [{ name: settings.onlineActivity.string, type: getActivityType(settings.onlineActivity.type) }] });
     }
 }
 
@@ -123,15 +128,15 @@ async function checkVersion() {
         game.commandChannel.send(`This version of Alter Ego is out of date. Please update using Docker or download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
 
-bot.on('clientReady', async () => {
-    if (bot.guilds.cache.size === 1) {
-        //messageHandler.clientID = bot.user.id;
-        game.guild = bot.guilds.cache.first();
+client.on('clientReady', async () => {
+    if (client.guilds.cache.size === 1) {
+        //messageHandler.clientID = client.user.id;
+        game.guild = client.guilds.cache.first();
         let firstBootMessage = await validateServerConfig(game.guild);
         game.commandChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.commandChannel);
         game.logChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.logChannel);
         game.flags = new Map();
-        console.log(`${bot.user.username} is online on 1 server.`);
+        console.log(`${client.user.username} is online on 1 server.`);
         if (firstBootMessage && game.commandChannel) sendFirstBootMessage();
         //loadCommands();
         updateStatus();
@@ -177,9 +182,9 @@ bot.on('clientReady', async () => {
     }, 60000);
 });
 
-bot.on('messageCreate', async message => {
+client.on('messageCreate', async message => {
     // Prevent bot from responding to its own messages.
-    if (message.author === bot.user) return;
+    if (message.author === client.user) return;
     if (settings.debug && message.channel.type === ChannelType.DM) console.log(message.author.username + ': "' + message.content + '"');
 
     // If the message begins with the command prefix, attempt to run a command.
@@ -193,7 +198,7 @@ bot.on('messageCreate', async message => {
     }
 });
 
-bot.on('messageUpdate', async (messageOld, messageNew) => {
+client.on('messageUpdate', async (messageOld, messageNew) => {
     if (messageOld.partial || messageNew.partial || messageOld.author.bot || messageOld.content === messageNew.content) return;
 
     if (messageOld && game.inProgress && (serverconfig.roomCategories.includes(messageOld.channel.parentId) || messageOld.channel.parentId === serverconfig.whisperCategory || messageOld.channel.id === serverconfig.announcementChannel)) {
@@ -205,4 +210,4 @@ process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);
 });
 
-bot.login(credentials.discord.token);
+client.login(credentials.discord.token);
