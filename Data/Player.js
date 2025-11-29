@@ -1,28 +1,28 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const parser = include(`${constants.modulesDir}/parser.js`);
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
-const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import constants from '../Configs/constants.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import * as parser from '../Modules/parser.js';
+import { default as executeCommand } from '../Modules/commandHandler.js';
+import * as itemManager from '../Modules/itemManager.js';
 
-const Room = include(`${constants.dataDir}/Room.js`);
-const Object = include(`${constants.dataDir}/Object.js`);
-const Prefab = include(`${constants.dataDir}/Prefab.js`);
-const Item = include(`${constants.dataDir}/Item.js`);
-const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
-const Event = include(`${constants.dataDir}/Event.js`);
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
-const Status = include(`${constants.dataDir}/Status.js`);
-const Gesture = include(`${constants.dataDir}/Gesture.js`);
-const Flag = include(`${constants.dataDir}/Flag.js`);
-const Narration = include(`${constants.dataDir}/Narration.js`);
-const Die = include(`${constants.dataDir}/Die.js`);
+import Room from './Room.js';
+import Object from './Object.js';
+import Prefab from './Prefab.js';
+import Item from './Item.js';
+import Puzzle from './Puzzle.js';
+import Event from './Event.js';
+import InventoryItem from './InventoryItem.js';
+import Status from './Status.js';
+import Gesture from './Gesture.js';
+import Flag from './Flag.js';
+import Narration from './Narration.js';
+import Die from './Die.js';
 
-var moment = require('moment');
-var timer = require('moment-timer');
+import moment from 'moment';
+import 'moment-timer';
 moment().format();
 
-class Player {
+export default class Player {
     constructor(id, member, name, displayName, talent, pronounString, originalVoiceString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row) {
         this.id = id;
         this.member = member;
@@ -1242,7 +1242,7 @@ class Player {
                 await sleep(seconds);
             }
             else {
-                commandHandler.execute(command, bot, game, null, this, createdItem);
+                executeCommand(command, bot, game, null, this, createdItem);
             }
         }
         return;
@@ -1326,7 +1326,7 @@ class Player {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(command, bot, game, null, this, item);
+                    executeCommand(command, bot, game, null, this, item);
                 }
             }
         }
@@ -1443,7 +1443,7 @@ class Player {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(command, bot, game, null, this, createdItem);
+                    executeCommand(command, bot, game, null, this, createdItem);
                 }
             }
         }
@@ -1526,7 +1526,7 @@ class Player {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(command, bot, game, null, this, item);
+                    executeCommand(command, bot, game, null, this, item);
                 }
             }
         }
@@ -2112,8 +2112,6 @@ class Player {
         return constants.playerSheetDescriptionColumn + this.row;
     }
 }
-
-module.exports = Player;
 
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));

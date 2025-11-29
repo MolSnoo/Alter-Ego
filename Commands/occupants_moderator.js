@@ -1,6 +1,6 @@
-const settings = include('Configs/settings.json');
+import settings from '../Configs/settings.json' with { type: 'json' };
 
-var moment = require('moment');
+import moment from 'moment';
 
 module.exports.config = {
     name: "occupants_moderator",

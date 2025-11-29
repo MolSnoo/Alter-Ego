@@ -1,16 +1,14 @@
-const settings = include("Configs/settings.json");
-const constants = include("Configs/constants.json");
-const serverconfig = include("Configs/serverconfig.json");
-const { discord, TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags} = require("discord.js");
-const PriorityQueue = include(`${constants.dataDir}/PriorityQueue.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } from 'discord.js';
+import PriorityQueue from '../Data/PriorityQueue.js';
 
-module.exports.queue = new PriorityQueue();
-module.exports.cache = [];
-module.exports.clientID = null;
+export let queue = new PriorityQueue();
+export let cache = [];
 
-module.exports.addNarration = async (room, messageText, addSpectate = true, speaker = null) => {
+export async function addNarration (room, messageText, addSpectate = true, speaker = null) {
     if (messageText !== "") {
-        module.exports.queue.enqueue(
+        queue.enqueue(
             {
                 fire: async () => await room.channel.send(messageText),
             },
@@ -25,7 +23,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
                     !player.hasAttribute("unconscious") &&
                     player.spectateChannel !== null
                 ) {
-                    module.exports.queue.enqueue(
+                    queue.enqueue(
                         {
                             fire: async () => await player.spectateChannel.send(messageText),
                         },
@@ -35,11 +33,11 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
             });
         }
     }
-};
+}
 
-module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate = true) => {
+export async function addNarrationToWhisper (whisper, messageText, addSpectate = true) {
     if (messageText !== "") {
-        module.exports.queue.enqueue(
+        queue.enqueue(
             {
                 fire: async () => await whisper.channel.send(messageText),
             },
@@ -53,7 +51,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
                     !player.hasAttribute("unconscious") &&
                     player.spectateChannel !== null
                 ) {
-                    module.exports.queue.enqueue(
+                    queue.enqueue(
                         {
                             fire: async () => await player.spectateChannel.send(spectateMessageText),
                         },
@@ -63,11 +61,11 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
             });
         }
     }
-};
+}
 
-module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
+export async function addDirectNarration (player, messageText, addSpectate = true) {
     if (player.talent !== "NPC") {
-        module.exports.queue.enqueue(
+        queue.enqueue(
             {
                 fire: async () => await player.member.send(messageText),
             },
@@ -75,20 +73,20 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
         );
     }
     if (addSpectate && player.spectateChannel !== null) {
-        module.exports.queue.enqueue(
+        queue.enqueue(
             {
                 fire: async () => await player.spectateChannel.send(messageText),
             },
             "spectator"
         );
     }
-};
+}
 
-module.exports.addDirectNarrationWithAttachments = async (player, messageText, attachments, addSpectate = true) => {
+export async function addDirectNarrationWithAttachments (player, messageText, attachments, addSpectate = true) {
     const files = attachments.map((attachment) => attachment.url);
 
     if (player.talent !== "NPC") {
-        module.exports.queue.enqueue(
+        queue.enqueue(
             {
                 fire: async () =>
                     await player.member.send({
@@ -100,7 +98,7 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
         );
     }
     if (addSpectate && player.spectateChannel !== null) {
-        module.exports.queue.enqueue(
+        queue.enqueue(
             {
                 fire: async () =>
                     await player.spectateChannel.send({
@@ -111,9 +109,9 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
             "spectator"
         );
     }
-};
+}
 
-module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
+export async function addRoomDescription (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) {
     if (player.talent !== "NPC" || (addSpectate && player.spectateChannel !== null)) {
         let constructedString;
         const generatedString = location.generate_occupantsString(
@@ -167,7 +165,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
         ];
 
         if (player.talent !== "NPC") {
-            module.exports.queue.enqueue(
+            queue.enqueue(
                 {
                     fire: async () =>
                         await player.member.send({
@@ -179,7 +177,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
             );
         }
         if (addSpectate && player.spectateChannel !== null) {
-            module.exports.queue.enqueue(
+            queue.enqueue(
                 {
                     fire: async () =>
                         await player.spectateChannel.send({
@@ -191,9 +189,9 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
             );
         }
     }
-};
+}
 
-module.exports.addCommandHelp = async (channel, command, thumbnailURL) => {
+export async function addCommandHelp (channel, command, thumbnailURL) {
     const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
     const title = `**${commandName} Command Help**`;
     let aliasString = "";
@@ -233,7 +231,7 @@ module.exports.addCommandHelp = async (channel, command, thumbnailURL) => {
         )
     ];
 
-    module.exports.queue.enqueue(
+    queue.enqueue(
         {
             fire: async () =>
                 await channel.send({
@@ -243,28 +241,28 @@ module.exports.addCommandHelp = async (channel, command, thumbnailURL) => {
         },
         channel.parent !== undefined && channel.id === serverconfig.commandChannel ? "mod" : "mechanic"
     );
-};
+}
 
-module.exports.addLogMessage = async (logChannel, messageText) => {
-    module.exports.queue.enqueue(
+export async function addLogMessage (logChannel, messageText) {
+    queue.enqueue(
         {
             fire: async () => await logChannel.send(messageText),
         },
         "log"
     );
-};
+}
 
-module.exports.addGameMechanicMessage = (channel, messageText) => {
-    module.exports.queue.enqueue(
+export function addGameMechanicMessage (channel, messageText) {
+    queue.enqueue(
         {
             fire: async () => await channel.send(messageText),
         },
         channel.parent !== undefined && channel.id === serverconfig.commandChannel ? "mod" : "mechanic"
     );
-};
+}
 
-module.exports.addReply = async (message, messageText) => {
-    module.exports.queue.enqueue(
+export async function addReply (message, messageText) {
+    queue.enqueue(
         {
             fire: async () => {
                 if (message.channel.parent !== undefined && message.channel.id === serverconfig.commandChannel) {
@@ -276,9 +274,9 @@ module.exports.addReply = async (message, messageText) => {
         },
         message.channel.parent !== undefined && message.channel.id === serverconfig.commandChannel ? "mod" : "mechanic"
     );
-};
+}
 
-module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whisper = null, displayName = null) => {
+export async function addSpectatedPlayerMessage (player, speaker, message, whisper = null, displayName = null) {
     if (player.spectateChannel !== null) {
         const messageText =
             whisper && whisper.players.length > 1
@@ -288,13 +286,13 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
                 : message.content || "";
 
         const webhooks = await player.spectateChannel.fetchWebhooks();
-        let webhook = webhooks.find((wh) => wh.owner.id === module.exports.clientID);
+        let webhook = webhooks.find((wh) => wh.owner.id === message.client.user.id);
         if ((webhook === null) | (webhook === undefined))
             webhook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
 
         const files = message.attachments.map((attachment) => attachment.url);
 
-        module.exports.queue.enqueue(
+        queue.enqueue(
             {
                 fire: async () => {
                     let msg = await webhook.send({
@@ -308,17 +306,17 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
                         embeds: message.embeds,
                         files: files,
                     });
-                    const cachedMessage = module.exports.cache.find((entry) => entry.id === message.id);
+                    const cachedMessage = cache.find((entry) => entry.id === message.id);
                     if (cachedMessage) cachedMessage.related.push({ message: msg.id, webhook: webhook.id });
                 },
             },
             "spectator"
         );
     }
-};
+}
 
-module.exports.editSpectatorMessage = async (messageOld, messageNew) => {
-    const cachedMessage = module.exports.cache.find((entry) => entry.id === messageOld.id);
+export async function editSpectatorMessage (messageOld, messageNew) {
+    const cachedMessage = cache.find((entry) => entry.id === messageOld.id);
     if (!cachedMessage) return;
     cachedMessage.related.forEach(async (related) => {
         const webHook = await messageOld.client.fetchWebhook(related.webHook);
@@ -332,19 +330,19 @@ module.exports.editSpectatorMessage = async (messageOld, messageNew) => {
             webHook.editMessage(related.message, { content: messageText });
         }
     });
-};
+}
 
-module.exports.sendQueuedMessages = async () => {
-    while (module.exports.queue.size() > 0) {
-        const message = module.exports.queue.dequeue();
+export async function sendQueuedMessages () {
+    while (queue.size() > 0) {
+        const message = queue.dequeue();
         try {
             await message.fire();
         } catch (error) {
             console.error("Messange Handler encountered exception sending message:", error);
         }
     }
-};
+}
 
-module.exports.clearQueue = async () => {
-    module.exports.queue = new PriorityQueue();
-};
+export async function clearQueue () {
+    queue = new PriorityQueue();
+}

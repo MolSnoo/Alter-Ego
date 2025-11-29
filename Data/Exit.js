@@ -1,6 +1,6 @@
-const constants = include('Configs/constants.json');
+import constants from '../Configs/constants.json' with { type: 'json' };
 
-class Exit {
+export default class Exit {
     constructor(name, pos, unlocked, dest, link, description, row) {
         this.name = name;
         this.pos = pos;
@@ -23,5 +23,3 @@ class Exit {
         return constants.roomSheetDescriptionColumn + this.row;
     }
 }
-
-module.exports = Exit;

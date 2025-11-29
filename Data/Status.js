@@ -1,6 +1,6 @@
-﻿const constants = include('Configs/constants.json');
+﻿import constants from '../Configs/constants.json' with { type: 'json' };
 
-class Status {
+export default class Status {
     constructor(name, duration, fatal, visible, overriders, cures, nextStage, duplicatedStatus, curedCondition, statModifiers, attributes, inflictedDescription, curedDescription, row) {
         this.name = name;
         this.duration = duration;
@@ -28,5 +28,3 @@ class Status {
         return constants.statusSheetCuredColumn + this.row;
     }
 }
-
-module.exports = Status;

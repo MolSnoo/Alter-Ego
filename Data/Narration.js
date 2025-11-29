@@ -1,4 +1,4 @@
-﻿class Narration {
+﻿export default class Narration {
     constructor(game, player, location, message) {
         this.game = game;
         this.player = player;
@@ -61,5 +61,3 @@
         return;
     }
 }
-
-module.exports = Narration;

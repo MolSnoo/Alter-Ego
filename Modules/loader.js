@@ -1,29 +1,29 @@
-﻿const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+﻿import constants from '../Configs/constants.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { getData as getSheetData } from './sheets.js';
 
-const Exit = include(`${constants.dataDir}/Exit.js`);
-const Room = include(`${constants.dataDir}/Room.js`);
-const Object = include(`${constants.dataDir}/Object.js`);
-const Prefab = include(`${constants.dataDir}/Prefab.js`);
-const Recipe = include(`${constants.dataDir}/Recipe.js`);
-const Item = include(`${constants.dataDir}/Item.js`);
-const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
-const Event = include(`${constants.dataDir}/Event.js`);
-const EquipmentSlot = include(`${constants.dataDir}/EquipmentSlot.js`);
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
-const Status = include(`${constants.dataDir}/Status.js`);
-const Player = include(`${constants.dataDir}/Player.js`);
-const Gesture = include(`${constants.dataDir}/Gesture.js`);
-const Flag = include(`${constants.dataDir}/Flag.js`);
+import Exit from '../Data/Exit.js';
+import Room from '../Data/Room.js';
+import Object from '../Data/Object.js';
+import Prefab from '../Data/Prefab.js';
+import Recipe from '../Data/Recipe.js';
+import Item from '../Data/Item.js';
+import Puzzle from '../Data/Puzzle.js';
+import Event from '../Data/Event.js';
+import EquipmentSlot from '../Data/EquipmentSlot.js';
+import InventoryItem from '../Data/InventoryItem.js';
+import Status from '../Data/Status.js';
+import Player from '../Data/Player.js';
+import Gesture from '../Data/Gesture.js';
+import Flag from '../Data/Flag.js';
 
-const { ChannelType } = require('../node_modules/discord-api-types/v10');
-var moment = require('moment');
+import { ChannelType } from 'discord.js';
+import moment from 'moment';
 moment().format();
 
-module.exports.loadRooms = function (game, doErrorChecking) {
+export function loadRooms (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.roomSheetDataCells, async function (response) {
+        getSheetData(constants.roomSheetDataCells, async function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
@@ -124,9 +124,9 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkRoom = function (room) {
+export function checkRoom (room) {
     if (room.name === "" || room.name === null || room.name === undefined)
         return new Error(`Couldn't load room on row ${room.row}. No room name was given.`);
     if (room.name.toLowerCase() !== room.name)
@@ -168,9 +168,9 @@ module.exports.checkRoom = function (room) {
             return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.name}"  does not have an exit that links back to it.`);
     }
     return;
-};
+}
 
-module.exports.loadObjects = function (game, doErrorChecking) {
+export function loadObjects (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear all recipe intervals so they don't continue after these objects are unloaded.
         for (let i = 0; i < game.objects.length; i++) {
@@ -180,7 +180,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                 game.objects[i].process.timer.stop();
         }
 
-        sheets.getData(constants.objectSheetDataCells, function (response) {
+        getSheetData(constants.objectSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -249,9 +249,9 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkObject = function (object) {
+export function checkObject (object) {
     if (object.name === "" || object.name === null || object.name === undefined)
         return new Error(`Couldn't load object on row ${object.row}. No object name was given.`);
     if (!(object.location instanceof Room))
@@ -266,11 +266,11 @@ module.exports.checkObject = function (object) {
     if (isNaN(object.hidingSpotCapacity))
         return new Error(`Couldn't load object on row ${object.row}. The hiding spot capacity given is not a number.`);
     return;
-};
+}
 
-module.exports.loadPrefabs = function (game, doErrorChecking) {
+export function loadPrefabs (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.prefabSheetDataCells, function (response) {
+        getSheetData(constants.prefabSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -396,9 +396,9 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkPrefab = function (prefab, game) {
+export function checkPrefab (prefab, game) {
     if (prefab.id === "" || prefab.id === null || prefab.id === undefined)
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab ID was given.`);
     if (game.prefabs.filter(other => other.id === prefab.id && other.row < prefab.row).length > 0)
@@ -430,11 +430,11 @@ module.exports.checkPrefab = function (prefab, game) {
     if (prefab.inventory.length !== 0 && prefab.preposition === "")
         return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
     return;
-};
+}
 
-module.exports.loadRecipes = function (game, doErrorChecking) {
+export function loadRecipes (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.recipeSheetDataCells, function (response) {
+        getSheetData(constants.recipeSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
@@ -514,9 +514,9 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkRecipe = function (recipe) {
+export function checkRecipe (recipe) {
     if (recipe.ingredients.length === 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
     for (let i = 0; i < recipe.ingredients.length; i++) {
@@ -539,11 +539,11 @@ module.exports.checkRecipe = function (recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with an object tag cannot be uncraftable.`)
     if (recipe.products.length > 1 && recipe.uncraftable)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than one product cannot be uncraftable.`)
-};
+}
 
-module.exports.loadItems = function (game, doErrorChecking) {
+export function loadItems (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.itemSheetDataCells, function (response) {
+        getSheetData(constants.itemSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
@@ -705,9 +705,9 @@ module.exports.loadItems = function (game, doErrorChecking) {
             resolve(game);
         });
     }); 
-};
+}
 
-module.exports.checkItem = function (item, game) {
+export function checkItem (item, game) {
     if (!(item.prefab instanceof Prefab))
         return new Error(`Couldn't load item on row ${item.row}. The prefab given is not a prefab.`);
     if (item.inventory.length > 0 && item.identifier === "")
@@ -747,11 +747,11 @@ module.exports.checkItem = function (item, game) {
         if (!foundSlot) return new Error(`Couldn't load item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
     }
     return;
-};
+}
 
-module.exports.loadPuzzles = function (game, doErrorChecking) {
+export function loadPuzzles (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.puzzleSheetDataCells, function (response) {
+        getSheetData(constants.puzzleSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -878,9 +878,9 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkPuzzle = function (puzzle) {
+export function checkPuzzle (puzzle) {
     if (puzzle.name === "" || puzzle.name === null || puzzle.name === undefined)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. No puzzle name was given.`);
     if (!(puzzle.location instanceof Room))
@@ -968,9 +968,9 @@ module.exports.checkPuzzle = function (puzzle) {
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a puzzle.`);
     }
     return;
-};
+}
 
-module.exports.loadEvents = function (game, doErrorChecking) {
+export function loadEvents (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear timers for all events first.
         for (let i = 0; i < game.events.length; i++) {
@@ -980,7 +980,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 game.events[i].effectsTimer.stop();
         }
 
-        sheets.getData(constants.eventSheetDataCells, function (response) {
+        getSheetData(constants.eventSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -1081,9 +1081,9 @@ module.exports.loadEvents = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkEvent = function (event, game) {
+export function checkEvent (event, game) {
     if (event.name === "" || event.name === null || event.name === undefined)
         return new Error(`Couldn't load event on row ${event.row}. No event name was given.`);
     if (game.events.filter(other => other.name === event.name && other.row < event.row).length > 0)
@@ -1112,11 +1112,11 @@ module.exports.checkEvent = function (event, game) {
             return new Error(`Couldn't load event on row ${event.row}. "${event.refreshes[i]}" in refreshing status effects is not a status effect.`);
     }
     return;
-};
+}
 
-module.exports.loadStatusEffects = function (game, doErrorChecking) {
+export function loadStatusEffects (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.statusSheetDataCells, function (response) {
+        getSheetData(constants.statusSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -1270,9 +1270,9 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkStatusEffect = function (status) {
+export function checkStatusEffect (status) {
     if (status.name === "" || status.name === null || status.name === undefined)
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect name was given.`);
     if (status.duration !== null && !status.duration.isValid())
@@ -1304,9 +1304,9 @@ module.exports.checkStatusEffect = function (status) {
     if (status.curedCondition !== null && !(status.curedCondition instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Cured condition "${status.curedCondition}" is not a status effect.`);
     return;
-};
+}
 
-module.exports.loadPlayers = function (game, doErrorChecking) {
+export function loadPlayers (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear all player status effects and movement timers first.
         for (let i = 0; i < game.players.length; i++) {
@@ -1324,7 +1324,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getData(constants.playerSheetDataCells, async function (response) {
+        getSheetData(constants.playerSheetDataCells, async function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -1455,9 +1455,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkPlayer = function (player) {
+export function checkPlayer (player) {
     if (player.talent !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
@@ -1496,11 +1496,11 @@ module.exports.checkPlayer = function (player) {
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
     return;
-};
+}
 
-module.exports.loadInventories = function (game, doErrorChecking) {
+export function loadInventories (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.inventorySheetDataCells, function (response) {
+        getSheetData(constants.inventorySheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;
@@ -1720,9 +1720,9 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkInventoryItem = function (item, game) {
+export function checkInventoryItem (item, game) {
     if (item.player === "")
         return new Error(`Couldn't load inventory item on row ${item.row}. No player name was given.`);
     if (!(item.player instanceof Player))
@@ -1762,11 +1762,11 @@ module.exports.checkInventoryItem = function (item, game) {
         }
     }
     return;
-};
+}
 
-module.exports.loadGestures = function (game, doErrorChecking) {
+export function loadGestures (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.gestureSheetDataCells, function (response) {
+        getSheetData(constants.gestureSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -1817,9 +1817,9 @@ module.exports.loadGestures = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkGesture = function (gesture) {
+export function checkGesture (gesture) {
     if (gesture.name === "" || gesture.name === null || gesture.name === undefined)
         return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture name was given.`);
     for (let i = 0; i < gesture.requires.length; i++) {
@@ -1836,13 +1836,13 @@ module.exports.checkGesture = function (gesture) {
     if (gesture.narration === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
     return;
-};
+}
 
 // Flags always undergo error checking. So, doErrorChecking simply determines if loadFlags trims the error messages itself.
 // Pass the currently existing errors 
-module.exports.loadFlags = function (game, doErrorChecking, errors) {
+export function loadFlags (game, doErrorChecking, errors) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.flagSheetDataCells, function (response) {
+        getSheetData(constants.flagSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -1920,9 +1920,9 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkFlag = function (flag, game) {
+export function checkFlag (flag, game) {
     if (flag.id === "" || flag.id === null || flag.id === undefined)
         return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
     if (!!game.flags.get(flag.id) && game.flags.get(flag.id).row !== flag.row)
@@ -1937,4 +1937,4 @@ module.exports.checkFlag = function (flag, game) {
     }
 
     return;
-};
+}

@@ -1,9 +1,8 @@
-﻿const settings = include('Configs/settings.json');
-const serverconfig = include('Configs/serverconfig.json');
-const discord = require('discord.js');
-const { ChannelType } = require('../node_modules/discord-api-types/v10');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { ChannelType, Collection } from 'discord.js';
 
-module.exports.execute = async (command, bot, game, message, player, data) => {
+export default async function execute (command, bot, game, message, player, data) {
     var isBot = isModerator = isPlayer = isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
@@ -20,7 +19,7 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     const commandSplit = command.split(" ");
     const args = commandSplit.slice(1);
 
-    var roleCommands = new discord.Collection();
+    var roleCommands = new Collection();
     if (isBot) roleCommands = bot.configs.filter(config => config.usableBy === "Bot");
     else if (isModerator) roleCommands = bot.configs.filter(config => config.usableBy === "Moderator");
     else if (isPlayer) roleCommands = bot.configs.filter(config => config.usableBy === "Player");
@@ -124,4 +123,4 @@ module.exports.execute = async (command, bot, game, message, player, data) => {
     }
 
     return false;
-};
+}

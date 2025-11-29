@@ -1,9 +1,8 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { default as handleDialog } from '../Modules/dialogHandler.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
 module.exports.config = {
     name: "say_moderator",
@@ -62,7 +61,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             embeds: message.embeds,
             files: files
         }).then(message => {
-            dialogHandler.execute(bot, game, message, true, player, displayName)
+            handleDialog(bot, game, message, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;

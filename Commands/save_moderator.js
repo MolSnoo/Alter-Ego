@@ -1,6 +1,5 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const saver = include(`${constants.modulesDir}/saver.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import { saveGame } from '../Modules/saver.js';
 
 module.exports.config = {
     name: "save_moderator",
@@ -16,7 +15,7 @@ module.exports.config = {
 
 module.exports.run = async (bot, game, message, command, args) => {
     try {
-        await saver.saveGame();
+        await saveGame();
         game.messageHandler.addGameMechanicMessage(message.channel, "Successfully saved game data to the spreadsheet.");
     }
     catch (err) {

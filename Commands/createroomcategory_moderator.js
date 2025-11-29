@@ -1,6 +1,5 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverManager = include(`${constants.modulesDir}/serverManager.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 
 module.exports.config = {
     name: "createroomcategory_moderator",
@@ -24,13 +23,13 @@ module.exports.run = async (bot, game, message, command, args) => {
     var input = args.join(" ");
     var channel = game.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
     if (channel) {
-        let response = await serverManager.registerRoomCategory(channel);
+        let response = await registerRoomCategory(channel);
         game.messageHandler.addGameMechanicMessage(message.channel, response);
     }
     else {
         try {
-            channel = await serverManager.createCategory(game.guild, input);
-            let response = await serverManager.registerRoomCategory(channel);
+            channel = await createCategory(game.guild, input);
+            let response = await registerRoomCategory(channel);
             game.messageHandler.addGameMechanicMessage(message.channel, response);
         }
         catch (err) {

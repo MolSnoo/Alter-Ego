@@ -1,12 +1,12 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import constants from '../Configs/constants.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
-const { ChannelType } = require("../node_modules/discord-api-types/v10");
+import { ChannelType } from 'discord.js';
 
-class Whisper {
+export default class Whisper {
     constructor(players, location) {
         this.players = players;
         this.location = location;
@@ -132,5 +132,3 @@ class Whisper {
         return;
     }
 }
-
-module.exports = Whisper;

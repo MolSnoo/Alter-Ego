@@ -1,13 +1,11 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const parser = include(`${constants.modulesDir}/parser.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
 
-const fs = require('fs');
-const os = require('os');
+import fs from 'fs';
+import { EOL } from 'os';
 
-const Player = include(`${constants.dataDir}/Player.js`);
+import Player from '../Data/Player.js';
 
-let game = include('game.json');
+import game from '../game.json' with { type: 'json' };
 
 module.exports.config = {
     name: "testspeeds_moderator",

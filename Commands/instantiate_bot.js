@@ -1,5 +1,4 @@
-const constants = include('Configs/constants.json');
-const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
 
 module.exports.config = {
     name: "instantiate_bot",
@@ -177,9 +176,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
             for (let i = 0; i < quantity; i++)
-                itemManager.instantiateItem(prefab, room, container, slotName, 1, proceduralSelections, player);
+                instantiateItem(prefab, room, container, slotName, 1, proceduralSelections, player);
         }
-        else itemManager.instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections, player);
+        else instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections, player);
     }
     else {
         var players = [];
@@ -310,9 +309,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
             if (prefab.inventory.length > 0) {
                 for (let i = 0; i < quantity; i++)
-                    itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, proceduralSelections, bot);
+                    instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, proceduralSelections, bot);
             }
-            else itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections, bot);
+            else instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections, bot);
         }
     }
 

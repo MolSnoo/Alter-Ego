@@ -3,6 +3,7 @@
   "version": "1.10.1",
   "description": "An in-depth, multiplayer text adventure role-playing game for Discord.",
   "main": "bot.js",
+  "type":"module",
   "scripts": {
     "run": "node bot.js",
     "start": "node bot.js",

@@ -1,10 +1,10 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const playerdefaults = include('Configs/playerdefaults.json');
-const serverconfig = include('Configs/serverconfig.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import constants from '../Configs/constants.json' with { type: 'json' };
+import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { appendRows } from '../Modules/sheets.js';
 
-const Player = include(`${constants.dataDir}/Player.js`);
+import Player from '../Data/Player.js';
 
 module.exports.config = {
     name: "addplayer_moderator",
@@ -88,8 +88,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     try {
-        await sheets.appendRows(constants.playerSheetDataCells, playerCells);
-        await sheets.appendRows(constants.inventorySheetDataCells, inventoryCells);
+        await appendRows(constants.playerSheetDataCells, playerCells);
+        await appendRows(constants.inventorySheetDataCells, inventoryCells);
 
         const successMessage = `<@${member.id}> has been added to the game. `
             + "After making any desired changes to the players and inventory items sheets, be sure to load players before disabling edit mode.";

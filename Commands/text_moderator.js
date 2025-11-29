@@ -1,6 +1,5 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const messageHandler = include(`${constants.modulesDir}/messageHandler.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import * as messageHandler from '../Modules/messageHandler.js';
 
 module.exports.config = {
     name: "text_moderator",

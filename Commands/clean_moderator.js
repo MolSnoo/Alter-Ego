@@ -1,6 +1,5 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const saver = include(`${constants.modulesDir}/saver.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import { saveGame } from '../Modules/saver.js';
 
 module.exports.config = {
     name: "clean_moderator",
@@ -39,7 +38,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     try {
         // Pass deletedItemsCount and deletedInventoryItemsCount so the saver knows how many blank rows to append at the end.
-        await saver.saveGame(deletedItemsCount, deletedInventoryItemsCount);
+        await saveGame(deletedItemsCount, deletedInventoryItemsCount);
         game.messageHandler.addGameMechanicMessage(message.channel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
     }
     catch (err) {

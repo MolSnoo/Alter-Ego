@@ -1,5 +1,5 @@
-﻿const settings = include('Configs/settings.json');
-const serverconfig = include('Configs/serverconfig.json');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
 
 module.exports.config = {
     name: "move_moderator",

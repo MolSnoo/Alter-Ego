@@ -1,7 +1,7 @@
-const finder = require('./finder.js');
-const helpers = require('./helpers.js');
+import * as finder from './finder.js';
+import * as helpers from './helpers.js';
 
-const acorn = require('acorn');
+import { parse as parseScript } from 'acorn';
 
 const OPTIONS = {
 	sourceType: 'script',
@@ -131,7 +131,7 @@ const UNARY_OPS = {
 };
 
 // Safely evaluate a single JS-like expression string with restrictions.
-module.exports.evaluate = function (scriptText, container, player) {
+export default function evaluate (scriptText, container, player) {
 	// Group together the container and player into a context object.
 	const context = {container, player};
 	// Add the allowedGlobals to the context object.
@@ -147,11 +147,11 @@ module.exports.evaluate = function (scriptText, container, player) {
 	if (evaluatedValue !== null && typeof evaluatedValue !== "string" && typeof evaluatedValue !== "number" && typeof evaluatedValue !== "boolean")
 		throw new Error(`Value of evaluated script is not a string, number, boolean, or null`);
 	return evaluatedValue;
-};
+}
 
 function parseExpression(scriptText) {
 	// Parse a single expression.
-	const script = acorn.parse(scriptText, OPTIONS);
+	const script = parseScript(scriptText, OPTIONS);
 	if (!script || !script.body || script.body.length !== 1 || script.body[0].type !== 'ExpressionStatement')
 		throw new Error('Only single expressions are allowed');
 	const expr = script.body[0].expression;

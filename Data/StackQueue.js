@@ -1,4 +1,4 @@
-class StackQueue {
+export default class StackQueue {
     constructor() {
         this.inStack = [];
         this.outStack = [];
@@ -21,5 +21,3 @@ class StackQueue {
         return this.outStack.pop();
     }
 }
-
-module.exports = StackQueue;

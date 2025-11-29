@@ -1,12 +1,13 @@
-const constants = include('Configs/constants.json');
+import constants from '../Configs/constants.json' with { type: 'json' };
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
+import Narration from '../Data/Narration.js';
 
-var moment = require('moment');
-var timer = require('moment-timer');
+import moment from 'moment';
+import 'moment-timer';
 moment().format();
 
-class Object {
+export default class Object {
     constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row) {
         this.name = name;
         this.location = location;
@@ -95,7 +96,7 @@ class Object {
 
     processRecipes(object) {
         if (object.activated) {
-            var game = include('game.json');
+            const game = require('../game.json');
             const result = object.findRecipe(game);
             if (object.process.recipe === null && object.process.duration === null && result.recipe === null && object.autoDeactivate) {
                 object.process.duration = new moment.duration(1, 'm');
@@ -140,9 +141,8 @@ class Object {
     findRecipe(game) {
         // Get all the items contained within this object.
         var items = game.items.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Object && item.container.row === this.row && item.quantity > 0);
-        const itemManager = include(`${constants.modulesDir}/itemManager.js`);
         for (let i = 0; i < items.length; i++)
-            itemManager.getChildItems(items, items[i]);
+            getChildItems(items, items[i]);
         items.sort(function (a, b) {
             if (a.prefab.id < b.prefab.id) return -1;
             if (a.prefab.id > b.prefab.id) return 1;
@@ -238,7 +238,6 @@ function process(game, object, player) {
         }
     }
     if (stillThere) {
-        const itemManager = include(`${constants.modulesDir}/itemManager.js`);
         // If there is only one ingredient in this, remember its quantity.
         const quantity = object.process.ingredients.length === 1 ? object.process.ingredients[0].quantity : 1;
         // Destroy the ingredients.
@@ -250,7 +249,7 @@ function process(game, object, player) {
                     break;
                 }
             }
-            if (destroy && object.process.ingredients[i].quantity > 0) itemManager.destroyItem(object.process.ingredients[i], quantity, true);
+            if (destroy && object.process.ingredients[i].quantity > 0) destroyItem(object.process.ingredients[i], quantity, true);
         }
         // Instantiate the products.
         for (let i = 0; i < object.process.recipe.products.length; i++) {
@@ -261,7 +260,7 @@ function process(game, object, player) {
                 if (remainingIngredients[j].productIndex === i && remainingIngredients[j].decreaseUses) {
                     instantiate = false;
                     ingredient.uses--;
-                    if (ingredient.uses === 0) itemManager.destroyItem(ingredient, ingredient.quantity, true);
+                    if (ingredient.uses === 0) destroyItem(ingredient, ingredient.quantity, true);
                     break;
                 }
                 else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
@@ -273,7 +272,7 @@ function process(game, object, player) {
                     break;
                 }
             }
-            if (instantiate) itemManager.instantiateItem(product, object.location, object, "", quantity, new Map());
+            if (instantiate) instantiateItem(product, object.location, object, "", quantity, new Map());
         }
         if (player && player.alive && player.location.name === object.location.name) player.sendDescription(game, object.process.recipe.completedDescription, object);
     }
@@ -287,5 +286,3 @@ function process(game, object, player) {
         object.process.ingredients.length = 0;
     }
 }
-
-module.exports = Object;

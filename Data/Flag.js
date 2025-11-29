@@ -1,8 +1,7 @@
-const constants = include('Configs/constants.json');
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
-const scriptParser = require('../Modules/scriptParser.js');
+import { default as executeCommand } from '../Modules/commandHandler.js';
+import { default as evaluateScript } from '../Modules/scriptParser.js';
 
-class Flag {
+export default class Flag {
 	constructor(id, value, valueScript, commandSetsString, commandSets, row) {
 		this.id = id;
 		this.value = value;
@@ -13,7 +12,7 @@ class Flag {
 	}
 
 	evaluate(valueScript = this.valueScript) {
-		return scriptParser.evaluate(valueScript, this);
+		return evaluateScript(valueScript, this);
 	}
 
 	async setValue(value, doSetCommands, bot, game, player) {
@@ -58,7 +57,7 @@ class Flag {
                 }
                 else {
                     let command = commandSet[i];
-                    commandHandler.execute(command, bot, game, null, player, this);
+                    executeCommand(command, bot, game, null, player, this);
                 }
             }
         }
@@ -104,14 +103,12 @@ class Flag {
                 }
                 else {
                     let command = commandSet[i];
-                    commandHandler.execute(command, bot, game, null, player, this);
+                    executeCommand(command, bot, game, null, player, this);
                 }
             }
         }
 	}
 }
-
-module.exports = Flag;
 
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));

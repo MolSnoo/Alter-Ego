@@ -1,6 +1,5 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
 
 module.exports.config = {
     name: "instantiate_moderator",
@@ -177,9 +176,9 @@ module.exports.run = async (bot, game, message, command, args) => {
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
             for (let i = 0; i < quantity; i++)
-                itemManager.instantiateItem(prefab, room, container, slotName, 1, proceduralSelections);
+                instantiateItem(prefab, room, container, slotName, 1, proceduralSelections);
         }
-        else itemManager.instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections);
+        else instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections);
 
         game.messageHandler.addGameMechanicMessage(message.channel, "Successfully instantiated item.");
     }
@@ -288,9 +287,9 @@ module.exports.run = async (bot, game, message, command, args) => {
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
             for (let i = 0; i < quantity; i++)
-                itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, proceduralSelections, bot);
+                instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, proceduralSelections, bot);
         }
-        else itemManager.instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections, bot);
+        else instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections, bot);
 
         game.messageHandler.addGameMechanicMessage(message.channel, "Successfully instantiated inventory item.");
     }

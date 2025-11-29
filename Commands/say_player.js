@@ -1,8 +1,7 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import { default as handleDialog } from '../Modules/dialogHandler.js';
 
-const { ChannelType } = require("../node_modules/discord-api-types/v10");
+import { ChannelType } from 'discord.js';
 
 module.exports.config = {
     name: "say_player",
@@ -47,7 +46,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             embeds: message.embeds,
             files: files
         }).then(msg => {
-            dialogHandler.execute(bot, game, msg, true, player, displayName)
+            handleDialog(bot, game, msg, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;

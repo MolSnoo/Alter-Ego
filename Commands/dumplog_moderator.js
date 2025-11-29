@@ -1,7 +1,7 @@
-const settings = include('Configs/settings.json');
-const {format: prettyFormat} = require('pretty-format');
-const zlib = require('zlib');
-const fs = require('fs');
+import settings from '../Configs/settings.json' with { type: 'json' };
+import prettyFormat from 'pretty-format';
+import zlib from 'zlib';
+import fs from 'fs';
 
 module.exports.config = {
     name: "dumplog_moderator",

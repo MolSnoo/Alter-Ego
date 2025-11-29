@@ -1,6 +1,6 @@
-﻿const constants = include('Configs/constants.json');
+﻿import constants from '../Configs/constants.json' with { type: 'json' };
 
-class Prefab {
+export default class Prefab {
     constructor(id, name, pluralName, singleContainingPhrase, pluralContainingPhrase, discreet, size, weight, usable, verb, uses, effectsStrings, curesStrings, nextStageName, equippable, equipmentSlots, coveredEquipmentSlots, equipCommands, unequipCommands, inventory, preposition, description, row) {
         this.id = id;
         this.name = name;
@@ -34,5 +34,3 @@ class Prefab {
         return constants.prefabSheetDescriptionColumn + this.row;
     }
 }
-
-module.exports = Prefab;

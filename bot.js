@@ -1,56 +1,55 @@
 'use strict';
-global.include = require('app-root-path').require;
 
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const credentials = include('Configs/credentials.json');
-const serverconfig = include('Configs/serverconfig.json');
-const serverManager = include(`${constants.modulesDir}/serverManager.js`);
-const updateHandler = include(`${constants.modulesDir}/updateHandler.js`);
-const messageHandler = include(`${constants.modulesDir}/messageHandler.js`);
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
-const saver = include(`${constants.modulesDir}/saver.js`);
+import settings from './Configs/settings.json' with { type: 'json' };
+import constants from './Configs/constants.json' with { type: 'json' };
+import credentials from './Configs/credentials.json' with { type: 'json' };
+import serverconfig from './Configs/serverconfig.json' with { type: 'json' };
+import { validateServerConfig } from './Modules/serverManager.js';
+import { default as autoUpdate } from './Modules/updateHandler.js';
+import * as messageHandler from './Modules/messageHandler.js';
+import { default as executeCommand } from './Modules/commandHandler.js';
+import { default as handleDialog } from './Modules/dialogHandler.js';
+import { saveGame } from './Modules/saver.js';
 
-const Event = include(`${constants.dataDir}/Event.js`);
+import Event from './Data/Event.js';
 
-const fs = require('fs');
-const fetch = require('node-fetch');
-var moment = require('moment');
+import { readdir } from 'fs';
+import fetch from 'node-fetch';
+import moment from 'moment';
 moment().format();
-const discord = require('discord.js');
-const { ActivityType, ChannelType } = require('./node_modules/discord-api-types/v10');
-const bot = new discord.Client({
+import { Client, Collection, ActivityType, ChannelType, GatewayIntentBits, Partials} from 'discord.js';
+
+const bot = new Client({
     retryLimit: Infinity,
     partials: [
-        discord.Partials.User,
-        discord.Partials.Channel,
-        discord.Partials.GuildMember,
-        discord.Partials.Message,
-        discord.Partials.Reaction
+        Partials.User,
+        Partials.Channel,
+        Partials.GuildMember,
+        Partials.Message,
+        Partials.Reaction
     ],
     intents: [
-        discord.GatewayIntentBits.Guilds,
-        discord.GatewayIntentBits.GuildMembers,
-        discord.GatewayIntentBits.GuildWebhooks,
-        discord.GatewayIntentBits.GuildPresences,
-        discord.GatewayIntentBits.GuildMessages,
-        discord.GatewayIntentBits.GuildMessageReactions,
-        discord.GatewayIntentBits.MessageContent,
-        discord.GatewayIntentBits.DirectMessages,
-        discord.GatewayIntentBits.DirectMessageReactions
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildWebhooks,
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.DirectMessageReactions
     ]
 });
 
-var game = include(`game.json`);
+import game from './game.json' with { type: 'json' };
 game.messageHandler = messageHandler;
 
-bot.commands = new discord.Collection();
-bot.configs = new discord.Collection();
+bot.commands = new Collection();
+bot.configs = new Collection();
 bot.commandLog = [];
 function loadCommands() {
     const commandsDir = `./${constants.commandsDir}/`;
-    fs.readdir(commandsDir, (err, files) => {
+    readdir(commandsDir, (err, files) => {
         if (err) console.log(err);
 
         let commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
@@ -119,25 +118,25 @@ async function sendFirstBootMessage() {
 
 async function checkVersion() {
     const masterPackage = await fetch('https://raw.githubusercontent.com/MolSnoo/Alter-Ego/master/package.json').then(response => response.json()).catch();
-    const localPackage = include('package.json');
+    const localPackage = require('./package.json');
     if (masterPackage.version !== localPackage.version && !localPackage.version.endsWith("d"))
         game.commandChannel.send(`This version of Alter Ego is out of date. Please update using Docker or download the latest version from https://github.com/MolSnoo/Alter-Ego at your earliest convenience.`);
 }
 
 bot.on('clientReady', async () => {
     if (bot.guilds.cache.size === 1) {
-        messageHandler.clientID = bot.user.id;
+        //messageHandler.clientID = bot.user.id;
         game.guild = bot.guilds.cache.first();
-        let firstBootMessage = await serverManager.validateServerConfig(game.guild);
+        let firstBootMessage = await validateServerConfig(game.guild);
         game.commandChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.commandChannel);
         game.logChannel = game.guild.channels.cache.find(channel => channel.id === serverconfig.logChannel);
         game.flags = new Map();
         console.log(`${bot.user.username} is online on 1 server.`);
         if (firstBootMessage && game.commandChannel) sendFirstBootMessage();
-        loadCommands();
+        //loadCommands();
         updateStatus();
-        checkVersion();
-        updateHandler.autoUpdate();
+        //checkVersion();
+        autoUpdate();
     }
     else {
         console.log("Error: Bot must be on one and only one server.");
@@ -146,7 +145,7 @@ bot.on('clientReady', async () => {
 
     // Save data periodically.
     setInterval(() => {
-        if (game.inProgress && !game.editMode) saver.saveGame();
+        if (game.inProgress && !game.editMode) saveGame();
     }, settings.autoSaveInterval * 1000);
 
     // Send messages in message queue periodically.
@@ -187,10 +186,10 @@ bot.on('messageCreate', async message => {
     // If the command is run successfully, the message will be deleted.
     if (message.content.startsWith(settings.commandPrefix)) {
         const command = message.content.substring(settings.commandPrefix.length);
-        var isCommand = await commandHandler.execute(command, bot, game, message);
+        var isCommand = await executeCommand(command, bot, game, message);
     }
     if (message && !isCommand && game.inProgress && (serverconfig.roomCategories.includes(message.channel.parentId) || message.channel.parentId === serverconfig.whisperCategory || message.channel.id === serverconfig.announcementChannel)) {
-        await dialogHandler.execute(bot, game, message, true);
+        await handleDialog(bot, game, message, true);
     }
 });
 

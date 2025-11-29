@@ -1,6 +1,5 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const loader = include(`${constants.modulesDir}/loader.js`);
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import * as loader from ('../Modules/loader.js');
 
 module.exports.config = {
     name: "load_moderator",

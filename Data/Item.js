@@ -1,8 +1,8 @@
-const constants = include('Configs/constants.json');
-const itemManager = require('../Modules/itemManager.js');
-const parser = require('../Modules/parser.js');
+import constants from '../Configs/constants.json' with { type: 'json' };
+import { instantiateItem, destroyItem } from '../Modules/itemManager.js';
+import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
 
-class Item {
+export default class Item {
     constructor(prefab, identifier, location, accessible, containerName, quantity, uses, description, row) {
         this.prefab = prefab;
         this.identifier = identifier;
@@ -31,10 +31,10 @@ class Item {
             const container = this.container;
             const slot = this.slot;
             const quantity = this.quantity;
-            let description = parser.removeItem(container.getDescription(), this, slot);
-            container.setDescription(parser.addItem(description, this, slot));
-            itemManager.destroyItem(this, this.quantity, true);
-            itemManager.instantiateItem(nextStage, location, container, slot, quantity, new Map(), player);
+            let description = removeItemFromDescription(container.getDescription(), this, slot);
+            container.setDescription(addItemToDescription(description, this, slot));
+            destroyItem(this, this.quantity, true);
+            instantiateItem(nextStage, location, container, slot, quantity, new Map(), player);
         }
     }
 
@@ -98,5 +98,3 @@ class Item {
         return constants.itemSheetDescriptionColumn + this.row;
     }
 }
-
-module.exports = Item;

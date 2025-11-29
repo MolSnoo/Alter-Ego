@@ -1,7 +1,6 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
 module.exports.config = {
     name: "inspect_player",

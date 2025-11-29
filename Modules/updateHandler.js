@@ -1,12 +1,12 @@
-const constants = include('Configs/constants.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+import constants from '../Configs/constants.json' with { type: 'json' };
+import * as sheets from './sheets.js';
 
-const fs = require('fs');
+import fs from 'fs';
 
-module.exports.autoUpdate = async () => {
+export default async function autoUpdate () {
     await v1_9Update();
     await v1_10Update();
-};
+}
 
 async function v1_10Update() {
     // Update constants file. This shouldn't be necessary if Docker is used.

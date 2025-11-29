@@ -1,4 +1,4 @@
-class Gesture {
+export default class Gesture {
     constructor(name, requires, disabledStatusesStrings, description, narration, row) {
         this.name = name;
         this.requires = requires;
@@ -12,5 +12,3 @@ class Gesture {
         this.target = null;
     }
 }
-
-module.exports = Gesture;

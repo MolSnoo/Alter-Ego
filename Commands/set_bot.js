@@ -1,5 +1,4 @@
-﻿const constants = include('Configs/constants.json');
-const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+﻿import { getChildItems } from '../Modules/itemManager.js';
 
 module.exports.config = {
     name: "set_bot",
@@ -101,7 +100,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 let items = game.items.filter(item => item.location.name === object.location.name && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && !item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
-                    itemManager.getChildItems(childItems, items[i]);
+                    getChildItems(childItems, items[i]);
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
@@ -115,7 +114,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 let items = game.items.filter(item => item.location.name === puzzle.location.name && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && !item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
-                    itemManager.getChildItems(childItems, items[i]);
+                    getChildItems(childItems, items[i]);
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
@@ -131,7 +130,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 let items = game.items.filter(item => item.location.name === object.location.name && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
-                    itemManager.getChildItems(childItems, items[i]);
+                    getChildItems(childItems, items[i]);
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)
@@ -145,7 +144,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 let items = game.items.filter(item => item.location.name === puzzle.location.name && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
-                    itemManager.getChildItems(childItems, items[i]);
+                    getChildItems(childItems, items[i]);
                 items = items.concat(childItems);
 
                 for (let i = 0; i < items.length; i++)

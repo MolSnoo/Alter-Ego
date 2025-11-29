@@ -1,4 +1,4 @@
-﻿const settings = include('Configs/settings.json');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
 
 module.exports.config = {
     name: "dead_moderator",

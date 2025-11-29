@@ -1,14 +1,14 @@
-const constants = include('Configs/constants.json');
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
-const parser = include(`${constants.modulesDir}/parser.js`);
+import constants from '../Configs/constants.json' with { type: 'json' };
+import { default as executeCommand } from '../Modules/commandHandler.js';
+import { parseDescription } from '../Modules/parser.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
-var moment = require('moment');
-var timer = require('moment-timer');
+import moment from 'moment';
+import 'moment-timer';
 moment().format();
 
-class Event {
+export default class Event {
     constructor(name, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
         this.name = name;
         this.ongoing = ongoing;
@@ -58,7 +58,7 @@ class Event {
         if (this.triggeredNarration !== "") {
             for (let i = 0; i < game.rooms.length; i++) {
                 if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                    new Narration(game, null, game.rooms[i], parser.parseDescription(this.triggeredNarration, this, null, false)).send();
+                    new Narration(game, null, game.rooms[i], parseDescription(this.triggeredNarration, this, null, false)).send();
             }
         }
 
@@ -73,7 +73,7 @@ class Event {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(this.triggeredCommands[i], bot, game, null, null, this);
+                    executeCommand(this.triggeredCommands[i], bot, game, null, null, this);
                 }
             }
         }
@@ -111,7 +111,7 @@ class Event {
         if (this.endedNarration !== "") {
             for (let i = 0; i < game.rooms.length; i++) {
                 if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                    new Narration(game, null, game.rooms[i], parser.parseDescription(this.endedNarration, this, null, false)).send();
+                    new Narration(game, null, game.rooms[i], parseDescription(this.endedNarration, this, null, false)).send();
             }
         }
 
@@ -126,7 +126,7 @@ class Event {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(this.endedCommands[i], bot, game, null, null, this);
+                    executeCommand(this.endedCommands[i], bot, game, null, null, this);
                 }
             }
         }
@@ -200,8 +200,6 @@ class Event {
         return constants.eventSheetEndedColumn + this.row;
     }
 }
-
-module.exports = Event;
 
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));

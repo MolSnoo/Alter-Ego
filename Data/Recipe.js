@@ -1,6 +1,6 @@
-const constants = include('Configs/constants.json');
+import constants from '../Configs/constants.json' with { type: 'json' };
 
-class Recipe {
+export default class Recipe {
     constructor(ingredients, uncraftable, objectTag, duration, products, initiatedDescription, completedDescription, uncraftedDescription, row) {
         this.ingredients = ingredients;
         this.uncraftable = uncraftable;
@@ -23,5 +23,3 @@ class Recipe {
         return constants.recipeSheetUncraftedColumn + this.row;
     }
 }
-
-module.exports = Recipe;

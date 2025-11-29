@@ -1,9 +1,8 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const playerdefaults = include('Configs/playerdefaults.json');
-const serverconfig = include('Configs/serverconfig.json');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
 
-const Player = include(`${constants.dataDir}/Player.js`);
+import Player from '../Data/Player.js';
 
 module.exports.config = {
     name: "play_eligible",

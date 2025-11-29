@@ -1,9 +1,7 @@
-const constants = include('Configs/constants.json');
-const finder = include(`${constants.modulesDir}/finder.js`);
-const scriptParser = require('./scriptParser.js');
+import * as finder from './finder.js';
+import { default as evaluateScript } from './scriptParser.js';
 
-const DOMParser = require('@xmldom/xmldom').DOMParser;
-const XMLSerializer = require('@xmldom/xmldom').XMLSerializer;
+import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
 
 class Clause {
     constructor(node, isItem, itemNo, itemQuantity) {
@@ -53,7 +51,7 @@ class Item {
     }
 }
 
-module.exports.parseDescription = function (description, container, player, doErrorChecking) {
+export function parseDescription (description, container, player, doErrorChecking) {
     // First, split the description into a DOMParser document.
     var document = createDocument(description);
     // Check for any warnings and errors. If they exist, store them.
@@ -72,7 +70,7 @@ module.exports.parseDescription = function (description, container, player, doEr
             let conditional = conditionals[i].getAttribute('cond');
             if (conditional !== null && conditional !== undefined) {
                 try {
-                    if (scriptParser.evaluate(conditional, container, player) === false)
+                    if (evaluateScript(conditional, container, player) === false)
                         conditionalsToRemove.push(conditionals[i]);
                 }
                 catch (err) {
@@ -111,7 +109,7 @@ module.exports.parseDescription = function (description, container, player, doEr
             let varAttribute = variables[i].getAttribute('v');
             if (varAttribute !== null && varAttribute !== undefined) {
                 try {
-                    let variableText = scriptParser.evaluate(varAttribute, container, player);
+                    let variableText = evaluateScript(varAttribute, container, player);
                     if (variableText === undefined || variableText === "undefined")
                         errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
                     variableStrings.push({ element: variables[i], attribute: variableText });
@@ -150,9 +148,9 @@ module.exports.parseDescription = function (description, container, player, doEr
         return { text: newDescription, warnings: warnings, errors: errors };
     else
         return newDescription;
-};
+}
 
-module.exports.addItem = function (description, item, slot, addedQuantity) {
+export function addItem (description, item, slot, addedQuantity) {
     if (!addedQuantity) addedQuantity = 1;
     // First, split the description into a DOMParser document.
     var document = createDocument(description).document;
@@ -222,9 +220,9 @@ module.exports.addItem = function (description, item, slot, addedQuantity) {
     }
 
     return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-};
+}
 
-module.exports.removeItem = function (description, item, slot, removedQuantity, document) {
+export function removeItem (description, item, slot, removedQuantity, document) {
     if (removedQuantity === null || removedQuantity === undefined) removedQuantity = 1;
     var returnDocument = false;
     if (document)
@@ -294,9 +292,9 @@ module.exports.removeItem = function (description, item, slot, removedQuantity, 
 
     if (returnDocument) return document;
     else return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-};
+}
 
-module.exports.generateProceduralOutput = function (description, proceduralSelections, player) {
+export function generateProceduralOutput (description, proceduralSelections, player) {
     var document = createDocument(description).document;
 
     if (document) {
@@ -369,7 +367,7 @@ module.exports.generateProceduralOutput = function (description, proceduralSelec
     }
 
     return stringify(document).replace(/<\/?procedural\s?[^>]*>/g, '').replace(/<\/?poss\s?[^>]*>/g, '').replace(/<s>\s*<\/s>/g, '').replace(/<\/([^>]+?)> +<\/desc>/g, "</$1></desc>").replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
-};
+}
 
 function keepProcedural(chance) {
     return Math.random() * 100 < chance;

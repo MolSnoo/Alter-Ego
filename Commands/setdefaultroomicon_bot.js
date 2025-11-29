@@ -1,6 +1,6 @@
-const settings = include('Configs/settings.json');
+import settings from '../Configs/settings.json' with { type: 'json' };
 
-const fs = require('fs');
+import fs from 'fs';
 
 module.exports.config = {
     name: "setdefaultroomicon_bot",

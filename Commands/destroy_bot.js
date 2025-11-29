@@ -1,5 +1,4 @@
-const constants = include('Configs/constants.json');
-const itemManager = include(`${constants.modulesDir}/itemManager.js`);
+import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
 
 module.exports.config = {
     name: "destroy_bot",
@@ -159,7 +158,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         if (destroyAll) {
             if (parsedInput !== "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" at ${room.name}`);
             for (let i = 0; i < containerItems.length; i++)
-                itemManager.destroyItem(containerItems[i], containerItems[i].quantity, true);
+                destroyItem(containerItems[i], containerItems[i].quantity, true);
         }
         else {
             // Find the item if it hasn't been found already.
@@ -173,7 +172,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             }
             if (item === null) return;
 
-            itemManager.destroyItem(item, item.quantity, true);
+            destroyItem(item, item.quantity, true);
         }
     }
     else {
@@ -277,7 +276,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 
                 if (destroyAll) {
                     for (let i = 0; i < containerItems.length; i++)
-                        itemManager.destroyInventoryItem(containerItems[i], containerItems[i].quantity, bot, true);
+                        destroyInventoryItem(containerItems[i], containerItems[i].quantity, bot, true);
                     gotoNext = true;
                 }
                 else {
@@ -313,13 +312,13 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                     }
                 }
                 if (item !== null && equipmentSlotName !== "") {
-                    itemManager.destroyInventoryItem(item, item.quantity, bot, true);
+                    destroyInventoryItem(item, item.quantity, bot, true);
                     gotoNext = true;
                 }
             }
             if (gotoNext) continue;
 
-            if (item !== null) itemManager.destroyInventoryItem(item, item.quantity, bot, true);
+            if (item !== null) destroyInventoryItem(item, item.quantity, bot, true);
             else return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" in ${player.name}'s inventory.`);
         }
     }

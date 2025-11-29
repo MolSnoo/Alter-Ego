@@ -1,4 +1,4 @@
-const Flag = require('../Data/Flag.js');
+import Flag from '../Data/Flag.js';
 
 module.exports.config = {
     name: "flag_bot",

@@ -1,5 +1,5 @@
-const settings = include('Configs/settings.json');
-const discord = require('discord.js');
+import settings from '../Configs/settings.json' with { type: 'json' };
+import { EmbedBuilder } from 'discord.js';
 
 module.exports.config = {
     name: "recipes_player",
@@ -255,7 +255,7 @@ function productsMatch(items, products) {
 function createEmbed(game, page, pages) {
     let objectRecipe = pages[page][0].objects.length > 0;
     let uncraftRecipe = pages[page][0].uncraftable;
-    let embed = new discord.EmbedBuilder()
+    let embed = new EmbedBuilder()
         .setColor(settings.embedColor)
         .setAuthor({ name: `Recipes List`, iconURL: game.guild.iconURL() })
         .setDescription(objectRecipe ? objectRecipesDescription : uncraftRecipe ? uncraftingRecipesDescription : craftingRecipesDescription)

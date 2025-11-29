@@ -1,8 +1,8 @@
-﻿const constants = include('Configs/constants.json');
-const itemManager = require('../Modules/itemManager.js');
-const parser = require('../Modules/parser.js');
+﻿import constants from '../Configs/constants.json' with { type: 'json' };
+import { replaceInventoryItem } from '../Modules/itemManager.js';
+import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
 
-class InventoryItem {
+export default class InventoryItem {
     constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row) {
         this.player = player;
         this.prefab = prefab;
@@ -32,10 +32,10 @@ class InventoryItem {
             const slot = this.container !== null ? this.slot :
                 this.equipmentSlot === "RIGHT HAND" || this.equipmentSlot === "LEFT HAND" ? "hands" : "equipment";
             if (nextStage && !this.prefab.discreet)
-                container.setDescription(parser.removeItem(container.getDescription(), this, slot));
-            itemManager.replaceInventoryItem(this, nextStage);
+                container.setDescription(removeItemFromDescription(container.getDescription(), this, slot));
+            replaceInventoryItem(this, nextStage);
             if (nextStage && !nextStage.discreet)
-                container.setDescription(parser.addItem(container.getDescription(), this, slot));
+                container.setDescription(addItemToDescription(container.getDescription(), this, slot));
         }
     }
 
@@ -91,5 +91,3 @@ class InventoryItem {
         return constants.inventorySheetDescriptionColumn + this.row;
     }
 }
-
-module.exports = InventoryItem;

@@ -1,7 +1,6 @@
-const constants = include('Configs/constants.json');
-const StackQueue = include(`${constants.dataDir}/StackQueue.js`);
+import StackQueue from './StackQueue.js';
 
-class PriorityQueue {
+export default class PriorityQueue {
     constructor() {
         this.queues = {
             mod: new StackQueue(),
@@ -32,5 +31,3 @@ class PriorityQueue {
         return this.priorityOrder.reduce((total, priority) => total + this.queues[priority].length, 0);
     }
 }
-
-module.exports = PriorityQueue;

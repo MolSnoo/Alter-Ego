@@ -1,7 +1,7 @@
-const constants = include('Configs/constants.json');
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import constants from '../Configs/constants.json' with { type: 'json' };
+import Narration from '../Data/Narration.js';
 
-class Room {
+export default class Room {
     constructor(name, channel, tags, iconURL, exit, description, row) {
         this.name = name;
         this.channel = channel;
@@ -116,5 +116,3 @@ class Room {
         return constants.roomSheetDescriptionColumn + this.row;
     }
 }
-
-module.exports = Room;

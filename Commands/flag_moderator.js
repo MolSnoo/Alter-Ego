@@ -1,5 +1,5 @@
-const settings = include('Configs/settings.json');
-const Flag = require('../Data/Flag.js');
+import settings from '../Configs/settings.json' with { type: 'json' };
+import Flag from '../Data/Flag.js';
 
 module.exports.config = {
     name: "flag_moderator",

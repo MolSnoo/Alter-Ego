@@ -1,6 +1,6 @@
-﻿const settings = include('Configs/settings.json');
-const serverconfig = include('Configs/serverconfig.json');
-const discord = require('discord.js');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { EmbedBuilder } from 'discord.js';
 
 module.exports.config = {
     name: "help_player",
@@ -81,7 +81,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 function createEmbed(game, page, pages) {
     const role = game.guild.roles.cache.get(serverconfig.playerRole);
     const roleName = role ? role.name : "Player";
-    let embed = new discord.EmbedBuilder()
+    let embed = new EmbedBuilder()
         .setColor(settings.embedColor)
         .setAuthor({ name: `${game.guild.members.me.displayName} Help`, iconURL: game.guild.members.me.avatarURL() || game.guild.members.me.user.avatarURL() })
         .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)

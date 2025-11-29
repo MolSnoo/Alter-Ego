@@ -1,7 +1,6 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+import settings from '../Configs/settings.json' with { type: 'json' };
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
 module.exports.config = {
     name: "object_moderator",
@@ -44,14 +43,14 @@ module.exports.run = async (bot, game, message, command, args) => {
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";
     var index = input.indexOf('"');
-    if (index === -1) index = input.indexOf('“');
+    if (index === -1) index = input.indexOf('ï¿½');
     if (index !== -1) {
         announcement = input.substring(index + 1);
         // Remove the announcement from the list of arguments.
         input = input.substring(0, index - 1);
         args = input.split(" ");
         // Now clean up the announcement text.
-        if (announcement.endsWith('"') || announcement.endsWith('”'))
+        if (announcement.endsWith('"') || announcement.endsWith('ï¿½'))
             announcement = announcement.substring(0, announcement.length - 1);
         if (!announcement.endsWith('.') && !announcement.endsWith('!'))
             announcement += '.';

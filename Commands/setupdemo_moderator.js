@@ -1,10 +1,9 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const saver = include(`${constants.modulesDir}/saver.js`);
-const serverManager = include(`${constants.modulesDir}/serverManager.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { setupdemo } from '../Modules/saver.js';
+import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 
-const { ChannelType } = require("../node_modules/discord-api-types/v10");
+import { ChannelType } from 'discord.js';
 
 module.exports.config = {
     name: "setupdemo_moderator",
@@ -29,15 +28,15 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (game.inProgress) return game.messageHandler.addReply(message, `You can't use this command while a game is in progress.`);
 
     try {
-        var roomValues = await saver.setupdemo();
+        var roomValues = await setupdemo();
 
         // Ensure that a room category exists.
         let roomCategories = serverconfig.roomCategories.split(",");
         let roomCategory = null;
         if (roomCategories.length === 0 || roomCategories.length === 1 && roomCategories[0] === "") {
             try {
-                roomCategory = await serverManager.createCategory(game.guild, "Rooms");
-                await serverManager.registerRoomCategory(roomCategory);
+                roomCategory = await createCategory(game.guild, "Rooms");
+                await registerRoomCategory(roomCategory);
             }
             catch (err) {
                 game.messageHandler.addGameMechanicMessage(message.channel, err);

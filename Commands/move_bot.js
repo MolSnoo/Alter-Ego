@@ -1,4 +1,4 @@
-﻿const serverconfig = include('Configs/serverconfig.json');
+﻿import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
 
 module.exports.config = {
     name: "move_bot",

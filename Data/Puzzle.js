@@ -1,9 +1,9 @@
-﻿const constants = include('Configs/constants.json');
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
+﻿import constants from '../Configs/constants.json' with { type: 'json' };
+import { default as executeCommand } from '../Modules/commandHandler.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
-class Puzzle {
+export default class Puzzle {
     constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row) {
         this.name = name;
         this.solved = solved;
@@ -102,7 +102,7 @@ class Puzzle {
                             }
                         }
                     }
-                    commandHandler.execute(command, bot, game, null, targetPlayer ? targetPlayer : player, this);
+                    executeCommand(command, bot, game, null, targetPlayer ? targetPlayer : player, this);
                 }
             }
         }
@@ -153,7 +153,7 @@ class Puzzle {
                     await sleep(seconds);
                 }
                 else {
-                    commandHandler.execute(commandSet[i], bot, game, null, player, this);
+                    executeCommand(commandSet[i], bot, game, null, player, this);
                 }
             }
         }
@@ -230,8 +230,6 @@ class Puzzle {
         return constants.puzzleSheetRequirementsNotMetColumn + this.row;
     }
 }
-
-module.exports = Puzzle;
 
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));

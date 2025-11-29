@@ -1,8 +1,8 @@
-const settings = require('../Configs/settings.json');
+import settings from '../Configs/settings.json' with { type: 'json' };
 
-const finder = require('../Modules/finder.js');
+import * as finder from '../Modules/finder.js';
 
-const { table } = require('table');
+import { table } from 'table';
 
 module.exports.config = {
     name: "find_moderator",

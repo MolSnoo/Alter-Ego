@@ -1,5 +1,5 @@
-﻿const settings = include('Configs/settings.json');
-const discord = require('discord.js');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import { EmbedBuilder } from 'discord.js';
 
 module.exports.config = {
     name: "gesture_player",
@@ -192,7 +192,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 };
 
 function createEmbed(game, page, pages) {
-    let embed = new discord.EmbedBuilder()
+    let embed = new EmbedBuilder()
         .setColor(settings.embedColor)
         .setAuthor({ name: `Gestures List`, iconURL: game.guild.iconURL() })
         .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)

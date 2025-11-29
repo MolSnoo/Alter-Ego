@@ -1,6 +1,5 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const saver = include(`${constants.modulesDir}/saver.js`);
+import settings from '../Configs/settings.json' with { type: 'json' };
+import { saveGame } from '../Modules/saver.js';
 
 module.exports.config = {
     name: "editmode_moderator",
@@ -22,7 +21,7 @@ module.exports.config = {
 module.exports.run = async (bot, game, message, command, args) => {
     if (args.length === 0 && game.editMode === false || args.length > 0 && args[0].toLowerCase() === "on") {
         try {
-            await saver.saveGame();
+            await saveGame();
             game.editMode = true;
             for (let i = 0; i < game.players_alive.length; i++) {
                 game.players_alive[i].isMoving = false;

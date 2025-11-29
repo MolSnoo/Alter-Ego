@@ -1,10 +1,9 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-var game = include('game.json');
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import game from '../game.json' with { type: 'json' };
 
-const Status = include(`${constants.dataDir}/Status.js`);
+import Status from './Status.js';
 
-class Die {
+export default class Die {
     constructor(stat, attacker, defender) {
         this.min = settings.diceMin;
         this.max = settings.diceMax;
@@ -102,5 +101,3 @@ class Die {
         return { number: modifier, strings: modifierStrings };
     }
 }
-
-module.exports = Die;

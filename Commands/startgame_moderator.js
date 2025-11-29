@@ -1,8 +1,8 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const playerdefaults = include('Configs/playerdefaults.json');
-const serverconfig = include('Configs/serverconfig.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+﻿import settings from '../Configs/settings.json' with { type: 'json' };
+import constants from '../Configs/constants.json' with { type: 'json' };
+import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { updateData as updateSheetData } from '../Modules/sheets.js';
 
 module.exports.config = {
     name: "startgame_moderator",
@@ -98,8 +98,8 @@ module.exports.run = async (bot, game, message, command, args) => {
                 inventoryCells.push(row);
             }
         }
-        sheets.updateData(constants.playerSheetDataCells, playerCells);
-        sheets.updateData(constants.inventorySheetDataCells, inventoryCells);
+        updateSheetData(constants.playerSheetDataCells, playerCells);
+        updateSheetData(constants.inventorySheetDataCells, inventoryCells);
         game.inProgress = false;
     }, time);
 
