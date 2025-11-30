@@ -25,7 +25,6 @@ export default class GameSettings {
 	/**
 	 * @param {string} commandPrefix 
 	 * @param {boolean} debug 
-	 * @param {string} embedColor 
 	 * @param {string} spreadsheetID 
 	 * @param {number} pixelsPerMeter 
 	 * @param {number} staminaUseRate 
@@ -36,6 +35,8 @@ export default class GameSettings {
 	 * @param {string} defaultDropObject 
 	 * @param {string} defaultRoomIconURL 
 	 * @param {boolean} autoDeleteWhisperChannels 
+	 * @param {string} embedColor 
+	 * @param {boolean} showOnlinePlayerCount
 	 * @param {Activity} onlineActivity 
 	 * @param {Activity} debugModeActivity 
 	 * @param {Activity} gameInProgressActivity 
@@ -43,7 +44,6 @@ export default class GameSettings {
 	constructor(
 		commandPrefix,
 		debug,
-		embedColor,
 		spreadsheetID,
 		pixelsPerMeter,
 		staminaUseRate,
@@ -54,13 +54,14 @@ export default class GameSettings {
 		defaultDropObject,
 		defaultRoomIconURL,
 		autoDeleteWhisperChannels,
+		embedColor,
+		showOnlinePlayerCount,
 		onlineActivity,
 		debugModeActivity,
 		gameInProgressActivity
 	) {
 		this.commandPrefix = commandPrefix;
 		this.debug = debug;
-		this.embedColor = embedColor;
 		this.spreadsheetID = spreadsheetID;
 		this.pixelsPerMeter = pixelsPerMeter;
 		this.staminaUseRate = staminaUseRate;
@@ -71,6 +72,8 @@ export default class GameSettings {
 		this.defaultDropObject = defaultDropObject;
 		this.defaultRoomIconURL = defaultRoomIconURL;
 		this.autoDeleteWhisperChannels = autoDeleteWhisperChannels;
+		this.embedColor = embedColor;
+		this.showOnlinePlayerCount = showOnlinePlayerCount;
 		this.onlineActivity = onlineActivity;
 		this.debugModeActivity = debugModeActivity;
 		this.gameInProgressActivity = gameInProgressActivity

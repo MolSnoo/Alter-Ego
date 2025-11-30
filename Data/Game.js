@@ -1,6 +1,6 @@
-import BotContext from './BotContext.js';
-import GameSettings from './GameSettings.js';
-import GuildContext from './GuildContext.js';
+import BotContext from '../Classes/BotContext.js';
+import GameSettings from '../Classes/GameSettings.js';
+import GuildContext from '../Classes/GuildContext.js';
 import Room from './Room.js';
 import { default as Fixture } from './Object.js';
 import Prefab from './Prefab.js';
@@ -14,6 +14,9 @@ import InventoryItem from './InventoryItem.js';
 import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Whisper from './Whisper.js';
+import { saveGame } from '../Modules/saver.js';
+import moment from 'moment';
+moment().format();
 
 /**
  * @class Game
@@ -24,6 +27,11 @@ import Whisper from './Whisper.js';
  * @param {GameSettings} settings - The settings for the game.
  */
 export default class Game {
+	/** @type NodeJS.Timeout */
+	#autoSaveInterval;
+	/** @type NodeJS.Timeout */
+	#eventTriggerInterval;
+
 	/**
 	 * @param {BotContext} botContext 
 	 * @param {GuildContext} guildContext 
@@ -71,5 +79,32 @@ export default class Game {
 		this.flags = new Map();
 		/** @type {Array<Whisper>} */
 		this.whispers = [];
+
+		// Save data to the sheet periodically.
+		this.#autoSaveInterval = setInterval(
+			() => { if (this.inProgress && !this.editMode) saveGame(); },
+			this.settings.autoSaveInterval * 1000
+		);
+		// Check for any Events that are supposed to trigger at this time of day.
+		this.#eventTriggerInterval = setInterval(() => {
+			if (this.inProgress) {
+				const now = moment();
+				this.events.forEach(event => {
+					if (!event.ongoing) {
+						for (let triggerTime of event.triggerTimes) {
+							const time = moment(triggerTime, Event.formats);
+							if (now.month() === time.month()
+								&& now.weekday() === time.weekday()
+								&& now.date() === time.date()
+								&& now.hour() === time.hour()
+								&& now.minute() === time.minute()) {
+									event.trigger(this.botContext, this, true);
+									break;
+							}
+						}
+					}
+				});
+			}
+		}, 60 * 1000);
 	}
 }

@@ -1,4 +1,4 @@
-import { CategoryChannel, Guild, Role, TextChannel } from "discord.js";
+import { Guild, Role, TextChannel } from "discord.js";
 
 /**
  * @class GuildContext
@@ -10,9 +10,9 @@ import { CategoryChannel, Guild, Role, TextChannel } from "discord.js";
  * @param {TextChannel} announcementChannel 
  * @param {TextChannel} testingChannel 
  * @param {TextChannel} generalChannel 
- * @param {Array<CategoryChannel>} roomCategories 
- * @param {CategoryChannel} whisperCategory 
- * @param {CategoryChannel} spectateCategory 
+ * @param {Array<string>} roomCategories 
+ * @param {string} whisperCategory 
+ * @param {string} spectateCategory 
  * @param {Role} testerRole 
  * @param {Role} eligibleRole 
  * @param {Role} playerRole 
@@ -29,9 +29,9 @@ export default class GuildContext {
 	 * @param {TextChannel} announcementChannel 
 	 * @param {TextChannel} testingChannel 
 	 * @param {TextChannel} generalChannel 
-	 * @param {Array<CategoryChannel>} roomCategories 
-	 * @param {CategoryChannel} whisperCategory 
-	 * @param {CategoryChannel} spectateCategory 
+	 * @param {Array<string>} roomCategories 
+	 * @param {string} whisperCategory 
+	 * @param {string} spectateCategory 
 	 * @param {Role} testerRole 
 	 * @param {Role} eligibleRole 
 	 * @param {Role} playerRole 

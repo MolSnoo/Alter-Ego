@@ -1,7 +1,7 @@
 import settings from '../Configs/settings.json' with { type: 'json' };
 import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
 import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } from 'discord.js';
-import PriorityQueue from '../Data/PriorityQueue.js';
+import PriorityQueue from '../Classes/PriorityQueue.js';
 
 export let queue = new PriorityQueue();
 export let cache = [];
@@ -287,7 +287,7 @@ export async function addSpectatedPlayerMessage (player, speaker, message, whisp
 
         const webhooks = await player.spectateChannel.fetchWebhooks();
         let webhook = webhooks.find((wh) => wh.owner.id === message.client.user.id);
-        if ((webhook === null) | (webhook === undefined))
+        if ((webhook === null) || (webhook === undefined))
             webhook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
 
         const files = message.attachments.map((attachment) => attachment.url);

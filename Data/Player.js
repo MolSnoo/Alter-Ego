@@ -2085,19 +2085,21 @@ export default class Player {
 
     setOnline() {
         this.online = true;
-
-        // Clear the existing timeout if necessary
-        this.onlineInterval && clearTimeout(this.onlineInterval);
-        // Set the timeout to the number of minutes in the settings
+        // Clear the existing timeout.
+        if (this.onlineInterval)
+            clearTimeout(this.onlineInterval);
+        // Set the player as offline after 15 minutes of inactivity.
         let player = this;
-        this.onlineInterval = setTimeout(function () {
-            player.setOffline();
-        }, 1000 * 60 * constants.offlineStatusInterval);
+        this.onlineInterval = setTimeout(
+            () => player.setOffline(),
+            15 * 60000
+        );
     }
 
     setOffline() {
         this.online = false;
-        this.onlineInterval && clearTimeout(this.onlineInterval);
+        if (this.onlineInterval)
+            clearTimeout(this.onlineInterval);
     }
 
     getDescription() {
