@@ -1,27 +1,41 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
-
 import Player from '../Data/Player.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "play_eligible",
     description: "Joins a game.",
     details: "Adds you to the list of players for the current game.",
-    usage: `${settings.commandPrefix}play`,
     usableBy: "Eligible",
     aliases: ["play"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}play`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     for (let i = 0; i < game.players.length; i++) {
         if (message.author.id === game.players[i].id)
             return message.reply("You are already playing.");
     }
     if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
 
-    const member = await game.guild.members.fetch(message.author.id);
+    const member = await game.guildContext.guild.members.fetch(message.author.id);
 
     var player = new Player(
         message.author.id,
@@ -44,8 +58,8 @@ module.exports.run = async (bot, game, message, args) => {
     player.setPronouns(player.pronouns, player.pronounString);
     game.players.push(player);
     game.players_alive.push(player);
-    member.roles.add(serverconfig.playerRole);
+    member.roles.add(game.guildContext.playerRole);
     message.channel.send(`<@${message.author.id}> joined the game!`);
 
     return;
-};
+}

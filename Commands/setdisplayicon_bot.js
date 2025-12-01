@@ -1,4 +1,14 @@
-module.exports.config = {
+import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @type {CommandConfig} */
+export const config = {
     name: "setdisplayicon_bot",
     description: "Sets a player's display icon.",
     details: "Sets the icon that will display when the given player's dialog appears in spectator channels. It will also appear in Room channels when the "
@@ -8,17 +18,32 @@ module.exports.config = {
         + "their new display icon afterwards as well. Note that this command will not change the player's avatar when they send messages to Room channels "
         + "normally. If you use \"player\" in place of a player's name, then the player who triggered the command will have their display icon changed. "
         + "To reset a player's display icon to their Discord avatar, simply do not specify a new display icon.",
-    usage: `setdisplayicon kyra https://cdn.discordapp.com/attachments/697623260736651335/912103115241697301/mm.png\n`
-        + `setdisplayicon player https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png\n`
-        + `setdisplayicon player`,
     usableBy: "Bot",
-    aliases: ["setdisplayicon"]
+    aliases: ["setdisplayicon"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `setdisplayicon kyra https://cdn.discordapp.com/attachments/697623260736651335/912103115241697301/mm.png\n`
+        + `setdisplayicon player https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png\n`
+        + `setdisplayicon player`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} [player] 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0)
-        return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (args[0].toLowerCase() !== "player") {
         for (let i = 0; i < game.players_alive.length; i++) {
@@ -27,10 +52,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 break;
             }
         }
-        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
+        if (player === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
     }
     else if (args[0].toLowerCase() === "player" && player === null)
-        return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
+        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
 
     args.splice(0, 1);
 
@@ -40,9 +65,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         if (player.talent === "NPC") input = player.id;
         else input = null;
     }
-    else if (!iconURLSyntax.test(input)) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
+    else if (!iconURLSyntax.test(input)) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
 
     player.displayIcon = input;
 
     return;
-};
+}

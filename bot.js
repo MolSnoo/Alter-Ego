@@ -53,8 +53,14 @@ let gameSettings;
 /** @type {Game} */
 let game;
 
-let commands = new Collection();
-let commandConfigs = new Collection();
+/** @type {Collection<string, BotCommand>} */
+let botCommands = new Collection();
+/** @type {Collection<string, ModeratorCommand>} */
+let moderatorCommands = new Collection();
+/** @type {Collection<string, PlayerCommand>} */
+let playerCommands = new Collection();
+/** @type {Collection<string, EligibleCommand>} */
+let eligibleCommands = new Collection();
 async function loadCommands() {
     const commandsDir = `./Commands/`;
     readdir(commandsDir, (err, files) => {
@@ -69,21 +75,18 @@ async function loadCommands() {
         commandFiles.forEach(file => {
             import(`${commandsDir}${file}`).then(commandProps => {
                 const config = commandProps.config;
-                let command;
                 if (config.usableBy === "Bot")
-                    command = new BotCommand(config, commandProps.execute);
+                    botCommands.set(config.name, new BotCommand(config, commandProps.usage, commandProps.execute));
                 else if (config.usableBy === "Moderator")
-                    command = new ModeratorCommand(config, commandProps.execute);
+                    moderatorCommands.set(config.name, new ModeratorCommand(config, commandProps.usage, commandProps.execute));
                 else if (config.usableBy === "Player")
-                    command = new PlayerCommand(config, commandProps.execute);
+                    playerCommands.set(config.name, new PlayerCommand(config, commandProps.usage, commandProps.execute));
                 else if (config.usableBy === "Eligible")
-                    command = new EligibleCommand(config, commandProps.execute);
+                    eligibleCommands.set(config.name, new EligibleCommand(config, commandProps.usage, commandProps.execute));
                 else {
                     console.log(`Error: Invalid command at ${commandsDir}${file}`);
                     return process.exit(1);
                 }
-                commands.set(config.name, command);
-                commandConfigs.set(config.name, config);
             });
         });
     });
@@ -254,7 +257,7 @@ client.on('clientReady', async () => {
     await autoUpdate();
     loadGameSettings();
     game = new Game(botContext, guildContext, gameSettings);
-    botContext = new BotContext(client, commands, commandConfigs, game);
+    botContext = new BotContext(client, botCommands, moderatorCommands, playerCommands, eligibleCommands, game);
     botContext.updatePresence();
     if (doSendFirstBootMessage) sendFirstBootMessage();
 });

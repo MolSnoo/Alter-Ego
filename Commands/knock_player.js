@@ -1,22 +1,41 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
-
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 import Narration from '../Data/Narration.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "knock_player",
     description: "Knocks on a door.",
     details: "Knocks on a door in the room you're in.",
-    usage: `${settings.commandPrefix}knock door 1`,
     usableBy: "Player",
-    aliases: ["knock"]
+    aliases: ["knock"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}knock door 1`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify an exit. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable knock");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -28,7 +47,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return game.messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";
@@ -65,7 +84,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
-};
+}

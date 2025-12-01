@@ -1,6 +1,10 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "setpronouns_moderator",
     description: "Sets a player's pronouns.",
     details: "Sets the pronouns that will be used in the given player's description and other places where pronouns are used. This will not change "
@@ -9,21 +13,34 @@ module.exports.config = {
         + "thus overwriting the ones that were set manually. However, this command can be used to overwrite their new pronouns afterwards as well. "
         + "Temporary custom pronoun sets can be applied with this method. They must adhere to the following format: "
         + "`subjective/objective/dependent possessive/independent possessive/reflexive/plural`.",
-    usage: `${settings.commandPrefix}setpronouns sadie female\n`
-        + `${settings.commandPrefix}setpronouns roma neutral\n`
-        + `${settings.commandPrefix}setpronouns platt male\n`
-        + `${settings.commandPrefix}setpronouns monokuma it/it/its/its/itself/false\n`
-        + `${settings.commandPrefix}setpronouns sadie she/her/her/hers/herself/false\n`
-        + `${settings.commandPrefix}setpronouns roma they/them/their/theirs/themself/true\n`
-        + `${settings.commandPrefix}setpronouns platt he/him/his/his/himself/false`,
     usableBy: "Moderator",
     aliases: ["setpronouns"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}setpronouns sadie female\n`
+        + `${settings.commandPrefix}setpronouns roma neutral\n`
+        + `${settings.commandPrefix}setpronouns platt male\n`
+        + `${settings.commandPrefix}setpronouns monokuma it/it/its/its/itself/false\n`
+        + `${settings.commandPrefix}setpronouns sadie she/her/her/hers/herself/false\n`
+        + `${settings.commandPrefix}setpronouns roma they/them/their/theirs/themself/true\n`
+        + `${settings.commandPrefix}setpronouns platt he/him/his/his/himself/false`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length !== 2)
-        return game.messageHandler.addReply(message, `You need to specify a player and a pronoun set. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a player and a pronoun set. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -33,7 +50,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ").toLowerCase();
     player.setPronouns(player.pronouns, input);
@@ -67,11 +84,11 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     if (correct === false) {
-        game.messageHandler.addGameMechanicMessage(message.channel, errorMessage);
+        messageHandler.addGameMechanicMessage(message.channel, errorMessage);
         // Revert the player's pronouns.
         player.setPronouns(player.pronouns, player.pronounString);
     }
-    else game.messageHandler.addGameMechanicMessage(message.channel, `Successfully set ${player.name}'s pronouns.`);
+    else messageHandler.addGameMechanicMessage(message.channel, `Successfully set ${player.name}'s pronouns.`);
 
     return;
-};
+}

@@ -1,24 +1,41 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
 import Whisper from '../Data/Whisper.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "hide_moderator",
     description: "Hides a player in the given object.",
     details: `Forcibly hides a player in the specified object. They will be able to hide in the specified object `
         + `even if it is attached to a lock-type puzzle that is unsolved, and even if the hiding spot is beyond its `
         + `capacity. To force them out of hiding, use the unhide command.`,
-    usage: `${settings.commandPrefix}hide nero beds\n`
-        + `${settings.commandPrefix}hide cleo bleachers\n`
-        + `${settings.commandPrefix}unhide scarlet`,
     usableBy: "Moderator",
     aliases: ["hide", "unhide"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}hide nero beds\n`
+        + `${settings.commandPrefix}hide cleo bleachers\n`
+        + `${settings.commandPrefix}unhide scarlet`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify a player. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -28,20 +45,20 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     if (player.statusString.includes("hidden") && command === "unhide") {
         player.cure(game, "hidden", true, false, true);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully brought ${player.name} out of hiding.`);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully brought ${player.name} out of hiding.`);
     }
     else if (player.statusString.includes("hidden"))
-        return game.messageHandler.addReply(message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${settings.commandPrefix}unhide ${player.name}".`);
+        return messageHandler.addReply(message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${game.settings.commandPrefix}unhide ${player.name}".`);
     else if (command === "unhide")
-        return game.messageHandler.addReply(message, `${player.name} is not currently hidden.`);
+        return messageHandler.addReply(message, `${player.name} is not currently hidden.`);
     // Player is currently not hidden and the hide command is being used.
     else {
         if (args.length === 0)
-            return game.messageHandler.addReply(message, `You need to specify an object. Usage:\n${exports.config.usage}`);
+            return messageHandler.addReply(message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
 
         var input = args.join(" ");
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -55,9 +72,9 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
             else if (objects[i].name === parsedInput)
-                return game.messageHandler.addReply(message, `${objects[i].name} is not a hiding spot.`);
+                return messageHandler.addReply(message, `${objects[i].name} is not a hiding spot.`);
         }
-        if (object === null) return game.messageHandler.addReply(message, `Couldn't find object "${input}".`);
+        if (object === null) return messageHandler.addReply(message, `Couldn't find object "${input}".`);
 
         // Check to see if the hiding spot is already taken.
         var hiddenPlayers = [];
@@ -111,9 +128,9 @@ module.exports.run = async (bot, game, message, command, args) => {
             game.whispers.push(whisper);
         }
 
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully hid ${player.name} in the ${object.name}.`);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully hid ${player.name} in the ${object.name}.`);
         // Log message is sent when status is inflicted.
     }
 
     return;
-};
+}

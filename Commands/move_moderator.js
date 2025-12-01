@@ -1,31 +1,47 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
-import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "move_moderator",
     description: "Moves the given player(s) to the specified room or exit.",
     details: 'Forcibly moves the specified players to the specified room or exit. If you use "living" or "all" in place of the players, '
         + 'it will move all living players to the specified room (skipping over players who are already in that room as well as players with the Headmaster role). '
         + 'All of the same things that happen when a player moves to a room of their own volition apply, however you can move players to non-adjacent rooms this way. '
         + 'The bot will not announce which exit the player leaves through or which entrance they enter from when a player is moved to a non-adjacent room.',
-    usage: `${settings.commandPrefix}move joshua door 2\n`
-        + `${settings.commandPrefix}move val amber devyn trial grounds\n`
-        + `${settings.commandPrefix}move living diner\n`
-        + `${settings.commandPrefix}move all elevator`,
     usableBy: "Moderator",
     aliases: ["move", "go", "enter", "walk", "m"],
     requiresGame: true
 };
 
-module.exports.run = async(bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}move joshua door 2\n`
+        + `${settings.commandPrefix}move val amber devyn trial grounds\n`
+        + `${settings.commandPrefix}move living diner\n`
+        + `${settings.commandPrefix}move all elevator`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify at least one player and a room. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
     if (args[0] === "all" || args[0] === "living") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === serverconfig.headmasterRole))
+            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);
@@ -62,7 +78,7 @@ module.exports.run = async(bot, game, message, command, args) => {
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
         for (let i = 1; i < players.length; i++) {
-            if (players[i].location !== currentRoom) return game.messageHandler.addReply(message, "All listed players must be in the same room to use an exit name.");
+            if (players[i].location !== currentRoom) return messageHandler.addReply(message, "All listed players must be in the same room to use an exit name.");
         }
         input = args.join(" ").toUpperCase();
         for (let i = 0; i < currentRoom.exit.length; i++) {
@@ -94,14 +110,14 @@ module.exports.run = async(bot, game, message, command, args) => {
     if (args.length > 0) {
         if (desiredRoom === null && exit === null) {
             const roomName = args.join(" ");
-            return game.messageHandler.addReply(message, `Couldn't find room or exit "${roomName}".`);
+            return messageHandler.addReply(message, `Couldn't find room or exit "${roomName}".`);
         }
         else {
             const missingPlayers = args.join(", ");
-            return game.messageHandler.addReply(message, `Couldn't find player(s): ${missingPlayers}.`);
+            return messageHandler.addReply(message, `Couldn't find player(s): ${missingPlayers}.`);
         }
     }
-    if (players.length === 0) return game.messageHandler.addReply(message, "You need to specify at least one player.");
+    if (players.length === 0) return messageHandler.addReply(message, "You need to specify at least one player.");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -140,14 +156,14 @@ module.exports.run = async(bot, game, message, command, args) => {
             players[i].moveQueue.length = 0;
             // Solve the exit puzzle, if applicable.
             if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
-                exitPuzzle.solve(bot, game, players[i], "", players[i].name, true);
+                exitPuzzle.solve(game.botContext, game, players[i], "", players[i].name, true);
             // Move the player.
             currentRoom.removePlayer(game, players[i], exit, exitMessage);
             desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
         }
     }
 
-    game.messageHandler.addGameMechanicMessage(message.channel, `The listed players have been moved to ${desiredRoom.channel}.`);
+    messageHandler.addGameMechanicMessage(message.channel, `The listed players have been moved to ${desiredRoom.channel}.`);
 
     // Create a list of players moved for the log message.
     var playerList = players[0].name;
@@ -161,7 +177,7 @@ module.exports.run = async(bot, game, message, command, args) => {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
+    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
 
     return;
-};
+}

@@ -1,10 +1,13 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 import constants from '../Configs/constants.json' with { type: 'json' };
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
 import { updateData as updateSheetData } from '../Modules/sheets.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "startgame_moderator",
     description: "Starts a game.",
     details: 'Starts a new game. You must specify a timer using either hours (h) or minutes (m). '
@@ -12,14 +15,27 @@ module.exports.config = {
         + 'at which point they will be given the Player role. When the timer reaches 0, '
         + 'all of the players will be uploaded to the Players spreadsheet. '
         + 'After making any needed modifications, use ".load all start" to begin the game.',
-    usage: `${settings.commandPrefix}startgame 24h\n`
-        + `${settings.commandPrefix}start 0.25m`,
     usableBy: "Moderator",
     aliases: ["startgame", "start"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}startgame 24h\n`
+        + `${settings.commandPrefix}start 0.25m`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0) return message.reply("remember to specify how long players have to join!");
     if (game.inProgress) return message.reply("there is already a game running.");
     
@@ -28,8 +44,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
 
     var channel;
-    if (settings.debug) channel = game.guild.channels.cache.get(serverconfig.testingChannel);
-    else channel = game.guild.channels.cache.get(serverconfig.generalChannel);
+    if (game.settings.debug) channel = game.guildContext.guild.channels.cache.get(game.guildContext.testingChannel);
+    else channel = game.guildContext.guild.channels.cache.get(game.guildContext.generalChannel);
 
     var time;
     var halfTime;
@@ -48,12 +64,12 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     game.halfTimer = setTimeout(function () {
-        channel.send(`${timeInt / 2} ${interval} remaining to join the game. Use ${settings.commandPrefix}play to join!`);
+        channel.send(`${timeInt / 2} ${interval} remaining to join the game. Use ${game.settings.commandPrefix}play to join!`);
     }, halfTime);
 
     game.endTimer = setTimeout(function () {
         game.canJoin = false;
-        const playerRole = game.guild.roles.cache.find(role => role.id === serverconfig.playerRole);
+        const playerRole = game.guildContext.playerRole;
         channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
 
         game.players.sort(function (a, b) {
@@ -105,11 +121,11 @@ module.exports.run = async (bot, game, message, command, args) => {
 
     game.inProgress = true;
     game.canJoin = true;
-    let announcement = `${message.member.displayName} has started a game. You have ${timeInt} ${interval} to join the game with ${settings.commandPrefix}play.`;
+    let announcement = `${message.member.displayName} has started a game. You have ${timeInt} ${interval} to join the game with ${game.settings.commandPrefix}play.`;
     channel.send(announcement);
 
-    if (settings.debug) message.channel.send("Started game in debug mode.");
+    if (game.settings.debug) message.channel.send("Started game in debug mode.");
     else message.channel.send("Started game.");
 
     return;
-};
+}

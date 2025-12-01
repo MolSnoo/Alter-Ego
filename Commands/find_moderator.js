@@ -1,10 +1,14 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
 import * as finder from '../Modules/finder.js';
 
 import { table } from 'table';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "find_moderator",
     description: "Search in-game data.",
     details: 'Search in-game data and display results with row numbers. You can search for any entry on the spreadsheet, but you must specify which kind of data to find. '
@@ -21,7 +25,17 @@ module.exports.config = {
 		+ 'will be displayed; the same is not true for the slot, however. It is also possible to filter Inventory Items by Equipment Slot and Player. '
 		+ 'To filter by Equipment Slot, enter "in" or "on", followed by the name of an Equipment Slot. To filter by Player, enter their name followed by `\'s`, '
 		+ 'directly after the preposition, if there is one. Keep in mind that it is not possible to filter by Equipment Slot and container at the same time.',
-    usage: `${settings.commandPrefix}find room dorm 201\n`
+    usableBy: "Moderator",
+    aliases: ["find", "search"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}find room dorm 201\n`
 		+ `${settings.commandPrefix}search rooms stoke-hall\n`
 		+ `${settings.commandPrefix}find object desk\n`
 		+ `${settings.commandPrefix}search objects at chancellors office\n`
@@ -45,17 +59,20 @@ module.exports.config = {
 		+ `${settings.commandPrefix}search inventory item in julie's main pocket of luna purse\n`
 		+ `${settings.commandPrefix}find inventoryitem lillie's blue flannel\n`
 		+ `${settings.commandPrefix}search gestures smile\n`
-		+ `${settings.commandPrefix}find flag SEASON FLAG`,
-    usableBy: "Moderator",
-    aliases: ["find", "search"],
-    requiresGame: true
-};
+		+ `${settings.commandPrefix}find flag SEASON FLAG`;
+}
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
 	let input = args.join(' ');
 
 	if (args.length === 0)
-		return game.messageHandler.addReply(message, `You need to specify what kind of data to find. Usage:\n${exports.config.usage}`);
+		return messageHandler.addReply(message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
 
 	const dataTypeRegex = /^((?<Room>rooms?)|(?<Object>objects?)|(?<Prefab>prefabs?)|(?<Recipe>recipes?)|(?<Item>items?)|(?<Puzzle>puzzles?)|(?<Event>events?)|(?<Status>status(?:es)? ?(?:effects?)?)|(?<Player>players?)|(?<InventoryItem>inventory(?: ?items?)?)|(?<Gesture>gestures?)|(?<Flag>flags?))(?<search>.*)/i;
 	const dataTypeMatch = input.match(dataTypeRegex);
@@ -244,10 +261,10 @@ module.exports.run = async (bot, game, message, command, args) => {
 			else results = finder.findFlags(dataTypeMatch.groups.search);
 			fields = { row: 'Row', id: 'ID' };
 		}
-		else return game.messageHandler.addReply(message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${exports.config.usage}`);
+		else return messageHandler.addReply(message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
 		
 		if (results.length === 0)
-			return game.messageHandler.addGameMechanicMessage(message.channel, `Found 0 results.`);
+			return messageHandler.addGameMechanicMessage(message.channel, `Found 0 results.`);
 		// Divide the results into pages.
 		const pages = createPages(fields, results);
 		let page = 0;
@@ -268,7 +285,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
 					backwards.on("collect", () => {
 						const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏪');
-						if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
+						if (reaction) reaction.users.cache.forEach(user => { if (user.id !== game.botContext.client.user.id) reaction.users.remove(user.id); });
 						if (page === 0) return;
 						page--;
 						pageString = ` Showing page ${page + 1}/${pages.length}.\n`;
@@ -278,7 +295,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
 					forwards.on("collect", () => {
 						const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏩');
-						if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
+						if (reaction) reaction.users.cache.forEach(user => { if (user.id !== game.botContext.client.user.id) reaction.users.remove(user.id); });
 						if (page === pages.length - 1) return;
 						page++;
 						pageString = ` Showing page ${page + 1}/${pages.length}.\n`;
@@ -289,8 +306,8 @@ module.exports.run = async (bot, game, message, command, args) => {
 			}
 		});
 	}
-	else game.messageHandler.addReply(message, `Couldn't find "${input}". Usage:\n${exports.config.usage}`);
-};
+	else messageHandler.addReply(message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
+}
 
 function createPages(fields, results) {
 	// Divide the results into pages.

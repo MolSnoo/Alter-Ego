@@ -1,6 +1,11 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "steal_player",
     description: "Steals an item from another player.",
     details: "Attempts to steal an item from another player in the room. You must specify one of the player's equipped items to steal from. "
@@ -11,22 +16,37 @@ module.exports.config = {
         + "will notice you taking it whether you successfully steal it or not, and so will everyone else in the room. "
         + "Your dexterity stat has a significant impact on how successful you are at stealing an item. "
         + "Various status effects affect the outcome as well. For example, if the player you're stealing from is unconscious, they won't notice you stealing their items no matter what.",
-    usage: `${settings.commandPrefix}steal from faye's pants\n`
+    usableBy: "Player",
+    aliases: ["steal", "pickpocket"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}steal from faye's pants\n`
         + `${settings.commandPrefix}pickpocket from veronicas jacket\n`
         + `${settings.commandPrefix}steal micah's right pocket of pants\n`
         + `${settings.commandPrefix}pickpocket devyns left pocket of pants\n`
         + `${settings.commandPrefix}steal from an individual wearing a mask's cloak\n`
-        + `${settings.commandPrefix}pickpocket an individual wearing a buckets side pouch of backpack`,
-    usableBy: "Player",
-    aliases: ["steal", "pickpocket"]
-};
+        + `${settings.commandPrefix}pickpocket an individual wearing a buckets side pouch of backpack`;
+}
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a player and one of their equipped items. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a player and one of their equipped items. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable steal");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -46,7 +66,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return game.messageHandler.addReply(message, "You do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === "") return messageHandler.addReply(message, "You do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     if (args[0].toUpperCase() === "FROM") args.splice(0, 1);
     var input = args.join(' ');
@@ -59,16 +79,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(possessive) && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot steal from themselves.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't steal from yourself.");
+            if (occupant.name === player.name) return messageHandler.addReply(message, "You can't steal from yourself.");
 
             victim = occupant;
             parsedInput = parsedInput.substring(possessive.length).trim();
             break;
         }
         else if (parsedInput.startsWith(possessive) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
-            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
     }
-    if (victim === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
+    if (victim === null) return messageHandler.addReply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // parsedInput should be the equipped item and possibly a slot name. Get the names of those.
     var newArgs = parsedInput.split(" OF ");
@@ -89,8 +109,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             if (coveringItems.length === 0) container = inventory[i];
         }
     }
-    if (container === null) return game.messageHandler.addReply(message, `Couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
-    if (container.inventory.length === 0) return game.messageHandler.addReply(message, `${victim.displayName}'s ${container.name} cannot hold items.`);
+    if (container === null) return messageHandler.addReply(message, `Couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
+    if (container.inventory.length === 0) return messageHandler.addReply(message, `${victim.displayName}'s ${container.name} cannot hold items.`);
 
     // If no slot name was specified, pick one.
     var slotNo = -1;
@@ -103,7 +123,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 break;
             }
         }
-        if (slotNo === -1) return game.messageHandler.addReply(message, `Couldn't find "${slotName}" of ${container.name}.`);
+        if (slotNo === -1) return messageHandler.addReply(message, `Couldn't find "${slotName}" of ${container.name}.`);
     }
     // If there are no items in that slot, tell the player.
     if (container.inventory[slotNo].item.length === 0) {
@@ -116,9 +136,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // Post log message.
     const time = new Date().toLocaleTimeString();
     if (result.successful)
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} stole ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} stole ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
     else
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${container.inventory[slotNo].name} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
 
     return;
-};
+}

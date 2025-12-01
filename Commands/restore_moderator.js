@@ -1,18 +1,35 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "restore_moderator",
     description: "Restores a player's stamina.",
     details: "Sets the given player's stamina to its maximum value. Note that this does not automatically cure the weary status effect.",
-    usage: `${settings.commandPrefix}restore flint`,
     usableBy: "Moderator",
     aliases: ["restore"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}restore flint`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify a player. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -21,10 +38,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     player.stamina = player.maxStamina;
-    game.messageHandler.addGameMechanicMessage(message.channel, `Fully restored ${player.name}'s stamina.`);
+    messageHandler.addGameMechanicMessage(message.channel, `Fully restored ${player.name}'s stamina.`);
 
     return;
-};
+}

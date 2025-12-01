@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
+import GameSettings from "./GameSettings.js";
 
 /**
  * @class PlayerCommand
@@ -8,15 +9,18 @@ import Player from "../Data/Player.js";
  * @implements {IPlayerCommand}
  * @constructor
  * @param {CommandConfig} config 
+ * @param {(settings: GameSettings) => string} usage 
  * @param {(game: Game, message: Message, command: string, args: string[], player?: Player) => Promise<void>} execute 
  */
 export default class PlayerCommand {
 	/**
 	 * @param {CommandConfig} config 
+	 * @param {(settings: GameSettings) => string} usage 
 	 * @param {(game: Game, message: Message, command: string, args: string[], player?: Player) => Promise<void>} execute 
 	 */
-	constructor(config, execute) {
+	constructor(config, usage, execute) {
 		this.config = config;
+		this.usage = usage;
 		this.execute = execute;
 	}
 }

@@ -1,6 +1,14 @@
-import Flag from '../Data/Flag.js';
+import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "flag_bot",
     description: "Set and clear flags.",
     details: 'Set and clear flags.\n\n'
@@ -13,7 +21,17 @@ module.exports.config = {
 		+ 'is set, the flag\'s set commands will be executed, unless the flag was set by another flag.\n\n'
         + '-**clear**: Clears the flag value. This will replace the flag\'s current value with `null`. '
 		+ 'When this is cleared, the flag\'s cleared commands will be executed, unless the flag was cleared by another flag.',
-    usage: `flag set COLD SEASON FLAG true\n`
+    usableBy: "Bot",
+    aliases: ["flag", "setflag", "clearflag"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `flag set COLD SEASON FLAG true\n`
 		+ `setflag HOT SEASON FLAG False\n`
 		+ `flag set TV PROGRAMMING 4\n`
 		+ `setflag INDOOR TEMPERATURE {THERMOSTAT}\n`
@@ -22,12 +40,17 @@ module.exports.config = {
 		+ `flag set PRECIPITATION \`\` \`findEvent('RAIN').ongoing === true || findEvent('SNOW').ongoing === true\` \`\`\n`
 		+ `setflag RANDOM ANIMAL \`\` \`getRandomString(['dog', 'cat', 'mouse', 'owl', 'bear'])\` \`\`\n`
 		+ `flag clear BLOOD SPLATTER\n`
-		+ `clearflag TV PROGRAMMING\n`,
-    usableBy: "Bot",
-    aliases: ["flag", "setflag", "clearflag"]
-};
+		+ `clearflag TV PROGRAMMING\n`;
+}
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {Game} game 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} [player] 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ */
+export async function execute (game, command, args, player, callee) {
 	const cmdString = command + " " + args.join(" ");
 	let input = args.join(" ");
 	if (command === "flag") {
@@ -38,11 +61,11 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 	}
 
 	if (args.length === 0)
-		return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+		return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
 	// If we're going to set or clear another flag, make sure it won't set or clear other flags with its commands.
 	let doCommands = false;
-	if (data && !data.hasOwnProperty("valueScript")) doCommands = true;
+	if (callee && !callee.hasOwnProperty("valueScript")) doCommands = true;
 	// The value, if it exists, is the easiest to find at the beginning. Look for that first.
 	let valueScript;
 	let value;
@@ -70,7 +93,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 				input = input.substring(0, input.toLowerCase().lastIndexOf(lastArg));
 		}
 		if (valueScript === undefined && value === undefined)
-			return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
+			return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
 
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
@@ -94,22 +117,22 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 				value = flag.evaluate(valueScript);
 				if (newFlag) game.flags.set(flagId, flag);
 				flag.valueScript = valueScript;
-				flag.setValue(value, doCommands, bot, game, player);
+				flag.setValue(value, doCommands, game.botContext, game, player);
 			}
 			catch (err) {
-				return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
+				return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
 			}
 		}
 		else {
 			if (newFlag) game.flags.set(flagId, flag);
-			flag.setValue(value, doCommands, bot, game, player);
+			flag.setValue(value, doCommands, game.botContext, game, player);
 		}
 	}
 	else if (command === "clearflag") {
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
-		if (!flag) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
+		if (!flag) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
 
-		flag.clearValue(doCommands, bot, game, player);
+		flag.clearValue(doCommands, game.botContext, game, player);
 	}
-};
+}

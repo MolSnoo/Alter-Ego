@@ -1,20 +1,40 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "inventory_player",
     description: "Lists the items in your inventory.",
     details: "Shows you what items you currently have. Your inventory will be sent to you via DMs.",
-    usage: `${settings.commandPrefix}inventory`,
     usableBy: "Player",
-    aliases: ["inventory", "i"]
+    aliases: ["inventory", "i"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}inventory`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable inventory");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     const inventoryString = player.viewInventory("Your", false);
     player.notify(game, inventoryString);
 
     return;
-};
+}

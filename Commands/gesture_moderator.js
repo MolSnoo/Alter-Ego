@@ -1,7 +1,11 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 import { EmbedBuilder } from 'discord.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "gesture_moderator",
     description: "Performs a gesture for the given player.",
     details: `Makes the given player perform one of a set of predefined gestures. Everybody in the room with them will see them do this gesture. `
@@ -9,15 +13,28 @@ module.exports.config = {
         + `A gesture can only be performed with one target at a time. Gestures can be made impossible if the given player is inflicted with certain Status Effects. `
         + `For example, if they are concealed, they cannot smile, frown, etc. as nobody would be able to see it. `
         + `To see a list of all possible gestures, send \`${settings.commandPrefix}gesture list\`.`,
-    usage: `${settings.commandPrefix}gesture astrid smile\n`
-        + `${settings.commandPrefix}gesture akira point at door 1\n`
-        + `${settings.commandPrefix}gesture holly wave johnny`,
     usableBy: "Moderator",
     aliases: ["gesture"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}gesture astrid smile\n`
+        + `${settings.commandPrefix}gesture akira point at door 1\n`
+        + `${settings.commandPrefix}gesture holly wave johnny`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     var input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
     if (input === "list") {
@@ -51,7 +68,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
                 backwards.on("collect", () => {
                     const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏪');
-                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== game.botContext.client.user.id) reaction.users.remove(user.id); });
                     if (page === 0) return;
                     page--;
                     embed = createEmbed(game, page, pages);
@@ -60,7 +77,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
                 forwards.on("collect", () => {
                     const reaction = msg.reactions.cache.find(reaction => reaction.emoji.name === '⏩');
-                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== bot.user.id) reaction.users.remove(user.id); });
+                    if (reaction) reaction.users.cache.forEach(user => { if (user.id !== game.botContext.client.user.id) reaction.users.remove(user.id); });
                     if (page === pages.length - 1) return;
                     page++;
                     embed = createEmbed(game, page, pages);
@@ -71,7 +88,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else {
         if (args.length < 2)
-            return game.messageHandler.addReply(message, `You need to specify a player and a gesture. Usage:\n${exports.config.usage}`);
+            return messageHandler.addReply(message, `You need to specify a player and a gesture. Usage:\n${usage(game.settings)}`);
 
         var player = null;
         for (let i = 0; i < game.players_alive.length; i++) {
@@ -82,7 +99,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
         }
-        if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+        if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
         var gesture = null;
         var targetType = "";
@@ -90,7 +107,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         for (let i = 0; i < game.gestures.length; i++) {
             if (game.gestures[i].name.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
-                    return game.messageHandler.addReply(message, `You need to specify a target for that gesture.`);
+                    return messageHandler.addReply(message, `You need to specify a target for that gesture.`);
                 gesture = game.gestures[i];
                 break;
             }
@@ -135,7 +152,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                                 let occupant = player.location.occupants[k];
                                 if (occupant.name.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
                                     // Player cannot gesture toward themselves.
-                                    if (occupant.name === player.name) return game.messageHandler.addReply(message, `${player.name} can't gesture toward ${player.originalPronouns.ref}.`);
+                                    if (occupant.name === player.name) return messageHandler.addReply(message, `${player.name} can't gesture toward ${player.originalPronouns.ref}.`);
                                     targetType = "Player";
                                     target = occupant;
                                     break;
@@ -160,35 +177,35 @@ module.exports.run = async (bot, game, message, command, args) => {
                 }
             }
         }
-        if (gesture === null) return game.messageHandler.addReply(message, `Couldn't find gesture "${input}". For a list of gestures, send \`${settings.commandPrefix}gesture list\`.`);
+        if (gesture === null) return messageHandler.addReply(message, `Couldn't find gesture "${input}". For a list of gestures, send \`${settings.commandPrefix}gesture list\`.`);
         input = input.substring(gesture.name.toLowerCase().replace(/\'/g, "").length).trim();
         if (input !== "" && gesture.requires.length === 0)
-            return game.messageHandler.addReply(message, `That gesture doesn't take a target.`);
+            return messageHandler.addReply(message, `That gesture doesn't take a target.`);
         if (target === null && gesture.requires.length > 0)
-            return game.messageHandler.addReply(message, `Couldn't find target "${input}" in the room with ${player.name}.`);
+            return messageHandler.addReply(message, `Couldn't find target "${input}" in the room with ${player.name}.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
             if (player.statusString.includes(gesture.disabledStatuses[i].name))
-                return game.messageHandler.addReply(message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? "are" : "is") + ` **${gesture.disabledStatuses[i].name}**.`);
+                return messageHandler.addReply(message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? "are" : "is") + ` **${gesture.disabledStatuses[i].name}**.`);
         }
 
         player.gesture(game, gesture, targetType, target);
         // Post log message. Message should vary based on target type.
         const time = new Date().toLocaleTimeString();
         if (targetType === "")
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} in ${player.location.channel}`);
         else if (targetType === "Exit" || targetType === "Object" || targetType === "Player")
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.name} in ${player.location.channel}`);
         else if (targetType === "Item" || targetType === "Inventory Item")
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
     }
 
     return;
-};
+}
 
 function createEmbed(game, page, pages) {
     let embed = new EmbedBuilder()
         .setColor(settings.embedColor)
-        .setAuthor({ name: `Gestures List`, iconURL: game.guild.iconURL() })
+        .setAuthor({ name: `Gestures List`, iconURL: game.guildContext.guild.iconURL() })
         .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 

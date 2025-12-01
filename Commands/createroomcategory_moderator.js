@@ -1,7 +1,11 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "createroomcategory_moderator",
     description: "Creates a room category.",
     details: "Creates a room category channel with the given name. The ID of the new category channel will "
@@ -9,33 +13,46 @@ module.exports.config = {
         + "with the given name already exists, but its ID hasn't been registered in the roomCategories setting, "
         + "it will automatically be added. Note that if you create a room category in Discord without using "
         + "this command, you will have to add its ID to the roomCategories setting manually.",
-    usage: `${settings.commandPrefix}createroomcategory Floor 1\n`
-        + `${settings.commandPrefix}register Floor 2`,
     usableBy: "Moderator",
     aliases: ["createroomcategory","register"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}createroomcategory Floor 1\n`
+        + `${settings.commandPrefix}register Floor 2`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to give a name to the new room category. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
 
     var input = args.join(" ");
-    var channel = game.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
+    var channel = game.guildContext.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
     if (channel) {
         let response = await registerRoomCategory(channel);
-        game.messageHandler.addGameMechanicMessage(message.channel, response);
+        messageHandler.addGameMechanicMessage(message.channel, response);
     }
     else {
         try {
-            channel = await createCategory(game.guild, input);
+            channel = await createCategory(game.guildContext.guild, input);
             let response = await registerRoomCategory(channel);
-            game.messageHandler.addGameMechanicMessage(message.channel, response);
+            messageHandler.addGameMechanicMessage(message.channel, response);
         }
         catch (err) {
-            game.messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(message.channel, err);
         }
     }
 
     return;
-};
+}

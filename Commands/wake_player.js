@@ -1,22 +1,42 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "wake_player",
     description: "Wakes you up.",
     details: "Wakes you up when you're asleep.",
-    usage: `${settings.commandPrefix}wake\n`
-        + `${settings.commandPrefix}awaken\n`
-        + `${settings.commandPrefix}wakeup`,
     usableBy: "Player",
-    aliases: ["wake", "awaken", "wakeup"]
+    aliases: ["wake", "awaken", "wakeup"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
-    const status = player.getAttributeStatusEffects("disable wake");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}wake\n`
+        + `${settings.commandPrefix}awaken\n`
+        + `${settings.commandPrefix}wakeup`;
+}
 
-    if (!player.statusString.includes("asleep")) return game.messageHandler.addReply(message, "You are not currently asleep.");
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
+    const status = player.getAttributeStatusEffects("disable wake");
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+
+    if (!player.statusString.includes("asleep")) return messageHandler.addReply(message, "You are not currently asleep.");
     player.cure(game, "asleep", true, true, true);
 
     return;
-};
+}

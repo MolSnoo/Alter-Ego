@@ -1,10 +1,13 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
-import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 import { default as handleDialog } from '../Modules/dialogHandler.js';
 
 import Narration from '../Data/Narration.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "say_moderator",
     description: "Sends a message.",
     details: 'Sends a message. A channel or player must be specified. Messages can be sent to any '
@@ -12,17 +15,30 @@ module.exports.config = {
         + '"see room" attribute can see it. If the name of a player is specified and that player has the talent "NPC", '
         + 'the player will speak in the channel of the room they\'re in. Their dialog will be treated just like that of '
         + 'any normal player\'s. The image URL set in the player\'s Discord ID will be used for the player\'s avatar.',
-    usage: `${settings.commandPrefix}say #park Hello. My name is Alter Ego.\n`
-        + `${settings.commandPrefix}say #general Thank you for speaking with me today.\n`
-        + `${settings.commandPrefix}say amy One appletini, coming right up.`,
     usableBy: "Moderator",
     aliases: ["say"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}say #park Hello. My name is Alter Ego.\n`
+        + `${settings.commandPrefix}say #general Thank you for speaking with me today.\n`
+        + `${settings.commandPrefix}say amy One appletini, coming right up.`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a channel or player and something to say. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
@@ -35,12 +51,12 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
         if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
-            return game.messageHandler.addReply(message, `You cannot speak for a player that isn't an NPC.`);
+            return messageHandler.addReply(message, `You cannot speak for a player that isn't an NPC.`);
     }
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
         let webHooks = await player.location.channel.fetchWebhooks();
-        let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
+        let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
@@ -61,14 +77,14 @@ module.exports.run = async (bot, game, message, command, args) => {
             embeds: message.embeds,
             files: files
         }).then(message => {
-            handleDialog(bot, game, message, true, player, displayName)
+            handleDialog(game.botContext, game, message, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;
                 });
         });
     }
-    else if (channel !== undefined && serverconfig.roomCategories.includes(channel.parentId)) {
+    else if (channel !== undefined && game.guildContext.roomCategories.includes(channel.parentId)) {
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].name === channel.name) {
                 room = game.rooms[i];
@@ -80,7 +96,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else if (channel !== undefined)
         channel.send(string);
-    else game.messageHandler.addReply(message, `Couldn't find a player or channel in your input. Usage:\n${exports.config.usage}`);
+    else messageHandler.addReply(message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 
     return;
-};
+}

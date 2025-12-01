@@ -1,7 +1,11 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 import { saveGame } from '../Modules/saver.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "editmode_moderator",
     description: "Toggles edit mode for editing the spreadsheet.",
     details: "Toggles edit mode on or off, allowing you to make edits to the spreadsheet. When edit mode is turned on, "
@@ -10,15 +14,28 @@ module.exports.config = {
         + "is enabled, so use it sparingly. Data will be saved to the spreadsheet before edit mode is enabled, so be sure "
         + "to wait until the confirmation message has been sent before making any edits. When you are finished making edits, "
         + "be sure to load the updated spreadsheet data before disabling edit mode.",
-    usage: `${settings.commandPrefix}editmode\n`
-        + `${settings.commandPrefix}editmode on\n`
-        + `${settings.commandPrefix}editmode off`,
     usableBy: "Moderator",
     aliases: ["editmode"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}editmode\n`
+        + `${settings.commandPrefix}editmode on\n`
+        + `${settings.commandPrefix}editmode off`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0 && game.editMode === false || args.length > 0 && args[0].toLowerCase() === "on") {
         try {
             await saveGame();
@@ -29,24 +46,24 @@ module.exports.run = async (bot, game, message, command, args) => {
                 game.players_alive[i].remainingTime = 0;
                 game.players_alive[i].moveQueue.length = 0;
                 if (!game.players_alive[i].hasAttribute('unconscious'))
-                    game.messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
+                    messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
             }
-            game.messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been enabled.");
+            messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been enabled.");
         }
         catch (err) {
             console.log(err);
-            return game.messageHandler.addGameMechanicMessage(message.channel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+            return messageHandler.addGameMechanicMessage(message.channel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
         }
     }
     else if (args.length === 0 && game.editMode === true || args.length > 0 && args[0].toLowerCase() === "off") {
         game.editMode = false;
         for (let i = 0; i < game.players_alive.length; i++) {
             if (!game.players_alive[i].hasAttribute('unconscious'))
-                game.messageHandler.addDirectNarration(game.players_alive[i], "Edit mode has been disabled. You are free to resume normal gameplay.", false);
+                messageHandler.addDirectNarration(game.players_alive[i], "Edit mode has been disabled. You are free to resume normal gameplay.", false);
         }
-        game.messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been disabled.");
+        messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been disabled.");
     }
-    else game.messageHandler.addReply(message, `Couldn't understand input "${args[0]}". Usage:\n${exports.config.usage}`);
+    else messageHandler.addReply(message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
 
     return;
-};
+}

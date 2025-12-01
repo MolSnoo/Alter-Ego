@@ -1,4 +1,14 @@
-module.exports.config = {
+import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @type {CommandConfig} */
+export const config = {
     name: "kill_bot",
     description: "Makes a player dead.",
     details: "Moves the listed players from the living list to the dead list. "
@@ -9,18 +19,33 @@ module.exports.config = {
         + "and give them the Dead role. If you use \"player\" in place of a list of players, then the player who "
         + "triggered the command will be killed. If the \"room\" argument is used instead, then all players in the "
         + "room will be killed.",
-    usage: `kill natalie\n`
-        + `die shiori corin terry andrew aria\n`
-        + `kill player\n`
-        + `die room`,
     usableBy: "Bot",
-    aliases: ["kill", "die"]
+    aliases: ["kill", "die"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `kill natalie\n`
+        + `die shiori corin terry andrew aria\n`
+        + `kill player\n`
+        + `die room`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} [player] 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". No players were specified.`);
+        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No players were specified.`);
         return;
     }
 
@@ -28,10 +53,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     var players = [];
     if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
-    else if (args[0].toLowerCase() === "room" && data !== null && data.hasOwnProperty("ongoing")) {
+    else if (args[0].toLowerCase() === "room" && callee !== null && callee.hasOwnProperty("ongoing")) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
         for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].tags.includes(data.roomTag) && game.rooms[i].occupants.length > 0)
+            if (game.rooms[i].tags.includes(callee.roomTag) && game.rooms[i].occupants.length > 0)
                 players = players.concat(game.rooms[i].occupants);
         }
     }
@@ -50,7 +75,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         }
         if (args.length > 0) {
             const missingPlayers = args.join(", ");
-            return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player(s): ${missingPlayers}.`);
+            return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player(s): ${missingPlayers}.`);
         }
     }
 
@@ -58,4 +83,4 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         players[i].die(game);
 
     return;
-};
+}

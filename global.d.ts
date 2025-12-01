@@ -5,6 +5,7 @@ import type Game from "./Data/Game.js";
 import type InventoryItem from "./Data/InventoryItem.js";
 import type Player from "./Data/Player.js";
 import type Puzzle from "./Data/Puzzle.js";
+import type GameSettings from "./Classes/GameSettings.js";
 
 export {};
 
@@ -26,7 +27,6 @@ declare global {
 	 * @property {string} name - The name of the command.
 	 * @property {string} description - A brief description of what the command does.
 	 * @property {string} details - Detailed information about the command.
-	 * @property {string} usage - Examples of the command's usage.
 	 * @property {string} usableBy - The role that can use the command.
 	 * @property {string[]} aliases - Alternative names for the command.
 	 * @property {boolean} requiresGame - Indicates whether the command requires an ongoing game to be executed.
@@ -35,7 +35,6 @@ declare global {
 		name: string;
 		description: string;
 		details: string;
-		usage: string;
 		usableBy: string;
 		aliases: string[];
 		requiresGame: boolean;
@@ -44,9 +43,11 @@ declare global {
 	/**
 	 * Represents an abstract command with its configuration.
 	 * @property {CommandConfig} config - The specific configuration of the command.
+	 * @property {(settings: GameSettings) => string} usage - Examples of the command's usage.
 	 */
 	interface Command {
 		config: CommandConfig;
+		usage: (settings: GameSettings) => string;
 	}
 
 	interface IBotCommand extends Command {

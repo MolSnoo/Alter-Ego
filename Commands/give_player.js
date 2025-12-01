@@ -1,24 +1,44 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 
 import Narration from '../Data/Narration.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "give_player",
     description: "Gives an item to another player.",
     details: "Transfers an item from your inventory to another player in the room. The item selected must be in one of your hands. "
         + "The receiving player must also have a free hand, or else they will not be able to receive the item. If a particularly large item "
         + "(a chainsaw, for example) is given, people in the room with you will see you giving it to the recipient.",
-    usage: `${settings.commandPrefix}give keiko moldy bread`,
     usableBy: "Player",
-    aliases: ["give", "g"]
+    aliases: ["give", "g"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}give keiko moldy bread`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a player and an item. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable give");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -32,16 +52,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         const occupant = player.location.occupants[i];
         if (parsedInput.startsWith(occupant.displayName.toUpperCase() + ' ') && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot give to themselves.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, "You can't give to yourself.");
+            if (occupant.name === player.name) return messageHandler.addReply(message, "You can't give to yourself.");
 
             recipient = occupant;
             parsedInput = parsedInput.substring(occupant.displayName.length + 1).trim();
             break;
         }
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
-            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
     }
-    if (recipient === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
+    if (recipient === null) return messageHandler.addReply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // Check to make sure that the recipient has a free hand.
     var recipientHand = "";
@@ -58,7 +78,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (recipient.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (recipientHand === "") return game.messageHandler.addReply(message, `${recipient.displayName} does not have a free hand to receive an item.`);
+    if (recipientHand === "") return messageHandler.addReply(message, `${recipient.displayName} does not have a free hand to receive an item.`);
 
     // Find the item in the player's inventory.
     var item = null;
@@ -80,19 +100,19 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
+    if (item === null) return messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
 
     if (item.weight > recipient.maxCarryWeight) {
         player.notify(game, `You try to give ${recipient.displayName} ${item.singleContainingPhrase}, but it is too heavy for ${recipient.pronouns.obj}.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to give ${item.singleContainingPhrase} to ${recipient.displayName}, but it is too heavy for ${recipient.pronouns.obj} to lift.`).send();
         return;
     }
-    else if (recipient.carryWeight + item.weight > recipient.maxCarryWeight) return game.messageHandler.addGameMechanicMessage(message.channel, `you try to give ${recipient.displayName} ${item.singleContainingPhrase}, but ${recipient.pronouns.sbj} ` + (recipient.pronouns.plural ? `are` : `is`) + ` carrying too much weight.`);
+    else if (recipient.carryWeight + item.weight > recipient.maxCarryWeight) return messageHandler.addGameMechanicMessage(message.channel, `you try to give ${recipient.displayName} ${item.singleContainingPhrase}, but ${recipient.pronouns.sbj} ` + (recipient.pronouns.plural ? `are` : `is`) + ` carrying too much weight.`);
 
     player.give(game, item, giverHand, recipient, recipientHand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${player.location.channel}`);
 
     return;
-};
+}

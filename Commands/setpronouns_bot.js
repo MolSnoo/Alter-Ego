@@ -1,4 +1,14 @@
-module.exports.config = {
+import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @type {CommandConfig} */
+export const config = {
     name: "setpronouns_bot",
     description: "Sets a player's pronouns.",
     details: "Sets the pronouns that will be used in the given player's description and other places where pronouns are used. This will not change "
@@ -8,21 +18,36 @@ module.exports.config = {
         + "Temporary custom pronoun sets can be applied with this method. They must adhere to the following format: "
         + "`subjective\objective\dependent possessive\independent possessive\reflexive\plural`. If you use \"player\" in place of a player's name, "
         + "then the player who triggered the command will have their pronouns set.",
-    usage: `setpronouns sadie female\n`
+    usableBy: "Bot",
+    aliases: ["setpronouns"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `setpronouns sadie female\n`
         + `setpronouns roma neutral\n`
         + `setpronouns platt male\n`
         + `setpronouns monokuma it\it\its\its\itself\false\n`
         + `setpronouns player she\her\her\hers\herself\false\n`
         + `setpronouns player they\them\their\theirs\themself\true\n`
-        + `setpronouns player he\him\his\his\himself\false`,
-    usableBy: "Bot",
-    aliases: ["setpronouns"]
-};
+        + `setpronouns player he\him\his\his\himself\false`;
+}
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {Game} game 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} [player] 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length !== 2)
-        return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to specify a player and a pronoun set. Usage:\n${exports.config.usage}`);
+        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to specify a player and a pronoun set. Usage:\n${exports.config.usage}`);
 
     if (args[0].toLowerCase() !== "player") {
         for (let i = 0; i < game.players_alive.length; i++) {
@@ -31,10 +56,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
                 break;
             }
         }
-        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
+        if (player === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
     }
     else if (args[0].toLowerCase() === "player" && player === null)
-        return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
+        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
 
     args.splice(0, 1);
 
@@ -70,10 +95,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
 
     if (correct === false) {
-        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}".\n${errorMessage}`);
+        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}".\n${errorMessage}`);
         // Revert the player's pronouns.
         player.setPronouns(player.pronouns, player.pronounString);
     }
 
     return;
-};
+}

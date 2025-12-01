@@ -1,7 +1,12 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 import { EmbedBuilder } from 'discord.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "recipes_player",
     description: "Lists all recipes available to you.",
     details: "Lists all recipes you can carry out with the items in your inventory and items in the room. If you supply the name of an item in your inventory, "
@@ -13,20 +18,35 @@ module.exports.config = {
         + "If it worked, you'll receive a message indicating that the process has begun, and another message when it finishes. "
         + "You won't receive a message if the object was already activated when all of the ingredients were put in, but the recipe "
         + "will still be carried out so long as all of the ingredients are in place.",
-    usage: `${settings.commandPrefix}recipes\n`
-        + `${settings.commandPrefix}recipes glass\n`
-        + `${settings.commandPrefix}recipes pot of rice`,
     usableBy: "Player",
-    aliases: ["recipes"]
+    aliases: ["recipes"],
+    requiresGame: true
 };
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}recipes\n`
+        + `${settings.commandPrefix}recipes glass\n`
+        + `${settings.commandPrefix}recipes pot of rice`;
+}
 
 var uncraftingRecipesDescription = "";
 var craftingRecipesDescription = "";
 var objectRecipesDescription = "";
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable recipes");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var recipes = [];
     if (args.length > 0) {
@@ -42,7 +62,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 break;
             }
         }
-        if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${input}" in your inventory.`);
+        if (item === null) return messageHandler.addReply(message, `Couldn't find item "${input}" in your inventory.`);
 
         for (let i = 0; i < game.recipes.length; i++) {
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {
@@ -69,11 +89,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return game.messageHandler.addReply(message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
+        if (recipes.length === 0) return messageHandler.addReply(message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
 
-        craftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}craft\` command with your ${item.name} as an ingredient. The other ingredient may not be available in this room, or you may need to create it yourself.`;
-        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}uncraft\` command with your ${item.name} as an ingredient.`;
-        objectRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}use\` command on an object after dropping your ${item.name} and any other required ingredients into it. The other ingredients may not be available in this room, or you may need to create them yourself. `;
+        craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command with your ${item.name} as an ingredient. The other ingredient may not be available in this room, or you may need to create it yourself.`;
+        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command with your ${item.name} as an ingredient.`;
+        objectRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}use\` command on an object after dropping your ${item.name} and any other required ingredients into it. The other ingredients may not be available in this room, or you may need to create them yourself. `;
         objectRecipesDescription += `If there is no object listed in all uppercase, then you cannot carry out this recipe in the room you're currently in and must find a suitable object elsewhere.`;
     }
     else {
@@ -151,11 +171,11 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return game.messageHandler.addReply(message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
+        if (recipes.length === 0) return messageHandler.addReply(message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
 
-        craftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
-        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;
-        objectRecipesDescription = `These are recipes you can carry out using the \`${settings.commandPrefix}use\` command on an object after dropping all of the ingredients into it. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
+        craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
+        uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;
+        objectRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}use\` command on an object after dropping all of the ingredients into it. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
     }
 
     // Create a rich embed for the Recipes.
@@ -228,7 +248,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     });
 
     return;
-};
+}
 
 function ingredientsMatch(items, ingredients) {
     if (items.length !== ingredients.length) return false;
@@ -256,8 +276,8 @@ function createEmbed(game, page, pages) {
     let objectRecipe = pages[page][0].objects.length > 0;
     let uncraftRecipe = pages[page][0].uncraftable;
     let embed = new EmbedBuilder()
-        .setColor(settings.embedColor)
-        .setAuthor({ name: `Recipes List`, iconURL: game.guild.iconURL() })
+        .setColor(game.settings.embedColor)
+        .setAuthor({ name: `Recipes List`, iconURL: game.guildContext.guild.iconURL() })
         .setDescription(objectRecipe ? objectRecipesDescription : uncraftRecipe ? uncraftingRecipesDescription : craftingRecipesDescription)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 

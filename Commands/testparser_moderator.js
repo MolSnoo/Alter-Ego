@@ -1,4 +1,7 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import { parseDescription, addItem, removeItem } from '../Modules/parser.js';
 
@@ -9,9 +12,8 @@ import Item from '../Data/Item.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 
-import game from '../game.json' with { type: 'json' };
-
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "testparser_moderator",
     description: "Tests the parsing module on your descriptions.",
     details: `Tests the parsing algorithm responsible for interpreting and editing descriptions. `
@@ -24,22 +26,35 @@ module.exports.config = {
         + `-**add**: Goes through each object, item, puzzle, player, and inventory item description with item containers and adds random items.\n`
         + `-**remove**: Goes through each room, object, item, puzzle, player, and inventory item description with items and removes each item `
         + `in the list. In "formatted" mode, items will be removed in every possible order. However, it will only remove up to 4 items in a description.`,
-    usage: `${settings.commandPrefix}testparser parse\n`
+    usableBy: "Moderator",
+    aliases: ["testparser"],
+    requiresGame: false
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}testparser parse\n`
         + `${settings.commandPrefix}testparser parse nero\n`
         + `${settings.commandPrefix}testparser add\n`
         + `${settings.commandPrefix}testparser add vivian\n`
         + `${settings.commandPrefix}testparser add formatted\n`
         + `${settings.commandPrefix}testparser remove\n`
         + `${settings.commandPrefix}testparser remove aria\n`
-        + `${settings.commandPrefix}testparser remove formatted`,
-    usableBy: "Moderator",
-    aliases: ["testparser"],
-    requiresGame: false
-};
+        + `${settings.commandPrefix}testparser remove formatted`;
+}
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify what function to test. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify what function to test. Usage:\n${usage(game.settings)}`);
 
     const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
@@ -59,11 +74,11 @@ module.exports.run = async (bot, game, message, command, args) => {
                 break;
             }
         }
-        if (!found) return game.messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
+        if (!found) return messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
     }
 
     if (args[0] === "parse") {
-        const result = await testparse(file, player);
+        const result = await testparse(game, file, player);
         let warnings = [];
         for (let i = 0; i < result.warnings.length; i++) {
             for (let j = 0; j < result.warnings[i].warnings.length; j++) {
@@ -78,7 +93,7 @@ module.exports.run = async (bot, game, message, command, args) => {
                 warnings = warnings.slice(0, warnings.length - 1);  
             if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
+            messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
         }
         let errors = [];
         for (let i = 0; i < result.errors.length; i++) {
@@ -94,18 +109,18 @@ module.exports.run = async (bot, game, message, command, args) => {
                 errors = errors.slice(0, errors.length - 1);
             if (tooManyErrors)
                 errors.push("Too many errors.");
-            game.messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
+            messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
         }
     }
     else if (args[0] === "add") {
         let formatted = false;
         if (args[1] && args[1] === "formatted") formatted = true;
-        await testadd(file, formatted, player);
+        await testadd(game, file, formatted, player);
     }
     else if (args[0] === "remove") {
         let formatted = false;
         if (args[1] && args[1] === "formatted") formatted = true;
-        const result = await testremove(file, formatted, player);
+        const result = await testremove(game, file, formatted, player);
         let warnings = [];
         for (let i = 0; i < result.length; i++)
             warnings.push(`Warning on ${result[i].cell}: ${result[i].text}`);
@@ -115,10 +130,10 @@ module.exports.run = async (bot, game, message, command, args) => {
                 warnings = warnings.slice(0, warnings.length - 1);  
             if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            game.messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
+            messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
         }
     }
-    else return game.messageHandler.addReply(message, 'Function not found. You need to use "parse", "add", or "remove".');
+    else return messageHandler.addReply(message, 'Function not found. You need to use "parse", "add", or "remove".');
 
     message.channel.send({
         content: "Text parsed.",
@@ -133,7 +148,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     return;
 };
 
-testparse = async (file, player) => {
+async function testparse (game, file, player) {
     var warnings = [];
     var errors = [];
 
@@ -505,9 +520,9 @@ testparse = async (file, player) => {
     }
 
     return { warnings: warnings, errors: errors };
-};
+}
 
-testadd = async (file, formatted, player) => {
+async function testadd (game, file, formatted, player) {
     // Skip over rooms because you can't add items to them.
 
     // Get objects first.
@@ -721,9 +736,9 @@ testadd = async (file, formatted, player) => {
     }
 
     return;
-};
+}
 
-testremove = async (file, formatted, player) => {
+async function testremove (game, file, formatted, player) {
     var warnings = [];
     // Get rooms first.
     {
@@ -1122,7 +1137,7 @@ testremove = async (file, formatted, player) => {
     }
     
     return warnings;
-};
+}
 
 function permute(array) {
     if (array.length < 2) return array;

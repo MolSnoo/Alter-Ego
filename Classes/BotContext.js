@@ -1,14 +1,20 @@
 import { ActivityType, Client, Collection } from "discord.js";
 import Game from "../Data/Game.js";
 import { sendQueuedMessages } from "../Modules/messageHandler.js";
+import BotCommand from "./BotCommand.js";
+import ModeratorCommand from "./ModeratorCommand.js";
+import PlayerCommand from "./PlayerCommand.js";
+import EligibleCommand from "./EligibleCommand.js";
 
 /**
  * @class BotContext
  * @classdesc Represents the bot as a singleton.
  * @constructor
  * @param {Client} client - The Discord Client associated with the bot.
- * @param {Collection<string, Command>} commands - All commands the bot recognizes.
- * @param {Collection<string, CommandConfig>} commandConfigs - The configs for each command.
+ * @param {Collection<string, BotCommand>} botCommands - All commands usable by the bot itself.
+ * @param {Collection<string, ModeratorCommand>} moderatorCommands - All commands usable by moderators.
+ * @param {Collection<string, PlayerCommand>} playerCommands - All commands usable by players.
+ * @param {Collection<string, EligibleCommand>} eligibleCommands - All commands usable by members with the eligible role.
  * @param {Game} game - The game the bot is managing.
  */
 export default class BotContext {
@@ -22,17 +28,21 @@ export default class BotContext {
 
 	/**
 	 * @param {Client} client 
-	 * @param {Collection<string, Command>} commands 
-	 * @param {Collection<string, CommandConfig>} commandConfigs 
+	 * @param {Collection<string, BotCommand>} botCommands 
+	 * @param {Collection<string, ModeratorCommand>} moderatorCommands
+	 * @param {Collection<string, PlayerCommand>} playerCommands
+	 * @param {Collection<string, EligibleCommand>} eligibleCommands 
 	 * @param {Game} game
 	 */
-	constructor(client, commands, commandConfigs, game) {
+	constructor(client, botCommands, moderatorCommands, playerCommands, eligibleCommands, game) {
 		if (BotContext.instance) {
 			return BotContext.instance;
 		}
 		this.client = client;
-		this.commands = commands;
-		this.commandConfigs = commandConfigs;
+		this.botCommands = botCommands;
+		this.moderatorCommands = moderatorCommands;
+		this.playerCommands = playerCommands;
+		this.eligibleCommands = eligibleCommands;
 		this.game = game;
 		/** @type {Array<CommandLogEntry>} */
 		this.commandLog = [];

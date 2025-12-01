@@ -1,6 +1,15 @@
+import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
 import Narration from '../Data/Narration.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "object_bot",
     description: "Activates or deactivates an object.",
     details: 'Activates or deactivates an object. You may specify a player to activate/deactivate the object. If you do, '
@@ -11,19 +20,34 @@ module.exports.config = {
         + 'you specify can be activated/deactivated. This is useful if you have multiple objects with the same name '
         + 'spread across the map. This command can only be used for objects with a recipe tag. If there is a puzzle with '
         + 'the same name as the object whose state is supposed to be the same as the object, use the puzzle command to update it as well.',
-    usage: `object activate blender\n`
+    usableBy: "Bot",
+    aliases: ["object", "activate", "deactivate"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `object activate blender\n`
         + `object deactivate microwave\n`
         + `activate keurig kyra\n`
         + `deactivate oven noko\n`
         + `object activate fireplace log cabin\n`
         + `object deactivate fountain flower garden\n`
         + `activate freezer zoran "Zoran plugs in the FREEZER."\n`
-        + `deactivate washer 1 laundry room "WASHER 1 turns off"`,
-    usableBy: "Bot",
-    aliases: ["object", "activate", "deactivate"]
-};
+        + `deactivate washer 1 laundry room "WASHER 1 turns off"`;
+}
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {Game} game 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} [player] 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     var input = cmdString;
     if (command === "object") {
@@ -34,9 +58,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
+    if (command !== "activate" && command !== "deactivate") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
     if (args.length === 0) {
-        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -104,8 +128,8 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         }
     }
     if (object === null && player === null && room === null && objects.length > 0) object = objects[0];
-    else if (object === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
-    if (object.recipeTag === "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". ${object.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (object === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
+    if (object.recipeTag === "") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${object.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
@@ -115,13 +139,13 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (command === "activate") {
         object.activate(game, player, narrate);
         // Post log message.
-        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
         object.deactivate(game, player, narrate);
         // Post log message.
-        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
     }
 
     return;
-};
+}
