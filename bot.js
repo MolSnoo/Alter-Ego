@@ -63,7 +63,7 @@ let playerCommands = new Collection();
 let eligibleCommands = new Collection();
 async function loadCommands() {
     const commandsDir = `./Commands/`;
-    readdir(commandsDir, (err, files) => {
+    readdir(commandsDir, async (err, files) => {
         if (err) console.log(err);
 
         let commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
@@ -72,8 +72,8 @@ async function loadCommands() {
             return process.exit(1);
         }
 
-        commandFiles.forEach(file => {
-            import(`${commandsDir}${file}`).then(commandProps => {
+        await Promise.all(commandFiles.map(async file => {
+            await import(`${commandsDir}${file}`).then(commandProps => {
                 const config = commandProps.config;
                 if (config.usableBy === "Bot")
                     botCommands.set(config.name, new BotCommand(config, commandProps.usage, commandProps.execute));
@@ -88,10 +88,10 @@ async function loadCommands() {
                     return process.exit(1);
                 }
             });
+        })).then(() => {
+            console.log(`Loaded ${botCommands.size + moderatorCommands.size + playerCommands.size + eligibleCommands.size} commands.`);
         });
     });
-
-    console.log(`Loaded all commands.`);
 }
 
 /** @returns {Promise<boolean>} */
@@ -256,8 +256,9 @@ client.on('clientReady', async () => {
     await checkVersion();
     await autoUpdate();
     loadGameSettings();
-    game = new Game(botContext, guildContext, gameSettings);
+    game = new Game(guildContext, gameSettings);
     botContext = new BotContext(client, botCommands, moderatorCommands, playerCommands, eligibleCommands, game);
+    game.setBotContext();
     botContext.updatePresence();
     if (doSendFirstBootMessage) sendFirstBootMessage();
 });
@@ -272,7 +273,7 @@ client.on('messageCreate', async message => {
     let isCommand;
     if (message.content.startsWith(game.settings.commandPrefix)) {
         const command = message.content.substring(game.settings.commandPrefix.length);
-        isCommand = await executeCommand(command, botContext, game, message);
+        isCommand = await executeCommand(command, game, message);
     }
     if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress
         && (game.guildContext.roomCategories.includes(message.channel.parentId)

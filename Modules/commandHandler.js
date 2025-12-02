@@ -1,122 +1,150 @@
-﻿import settings from '../Configs/settings.json' with { type: 'json' };
-import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
-import { ChannelType, Collection } from 'discord.js';
+﻿import { ChannelType, Message } from 'discord.js';
+import Event from '../Data/Event.js';
+import Flag from '../Data/Flag.js';
+import Game from '../Data/Game.js';
+import InventoryItem from '../Data/InventoryItem.js';
+import Player from '../Data/Player.js';
+import Puzzle from '../Data/Puzzle.js';
+import * as messageHandler from './messageHandler.js';
 
-export default async function execute (command, bot, game, message, player, data) {
-    var isBot = isModerator = isPlayer = isEligible = false;
+/**
+ * Finds the right command file for the user and executes it.
+ * @param {string} commandStr - The full text of the command issued.
+ * @param {Game} game - The game in which the command is being executed.
+ * @param {Message} [message] - The message in which the command was issued, if applicable.
+ * @param {Player} [player] - The player who issued the command, or caused it to be executed, if applicable.
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable.
+ * @returns {Promise<boolean>} Whether the command was successfully executed.
+ */
+export default async function execute (commandStr, game, message, player, callee) {
+    let isBot = false, isModerator = false, isPlayer = false, isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
-    else if ((message.channel.id === serverconfig.commandChannel || command.startsWith('delete')) && message.member.roles.cache.find(role => role.id === serverconfig.moderatorRole)) isModerator = true;
+    else if ((message.channel.id === game.guildContext.commandChannel.id || commandStr.startsWith('delete'))
+        && message.member.roles.resolve(game.guildContext.moderatorRole))
+            isModerator = true;
     else {
         // Don't attempt to find the member who sent this message if it was sent by a webhook.
-        if (message.webhookId !== null) return;
-        let member = await game.guild.members.fetch(message.author.id);
-        if (member && member.roles.cache.find(role => role.id === serverconfig.playerRole)) isPlayer = true;
-        else if (member && settings.debug && member.roles.cache.find(role => role.id === serverconfig.testerRole)) isEligible = true;
-        else if (member && !settings.debug && member.roles.cache.find(role => role.id === serverconfig.eligibleRole)) isEligible = true;
+        if (message.webhookId !== null) return false;
+        let member = game.guildContext.guild.members.resolve(message.author.id);
+        if (member && member.roles.resolve(game.guildContext.playerRole)) isPlayer = true;
+        else if (member && game.settings.debug && member.roles.resolve(game.guildContext.testerRole)) isEligible = true;
+        else if (member && !game.settings.debug && member.roles.resolve(game.guildContext.eligibleRole)) isEligible = true;
     }
 
-    const commandSplit = command.split(" ");
+    const commandSplit = commandStr.split(" ");
+    const commandAlias = commandSplit[0].toLocaleLowerCase();
     const args = commandSplit.slice(1);
 
-    var roleCommands = new Collection();
-    if (isBot) roleCommands = bot.configs.filter(config => config.usableBy === "Bot");
-    else if (isModerator) roleCommands = bot.configs.filter(config => config.usableBy === "Moderator");
-    else if (isPlayer) roleCommands = bot.configs.filter(config => config.usableBy === "Player");
-    else if (isEligible) roleCommands = bot.configs.filter(config => config.usableBy === "Eligible");
+    // Find the command by the alias used.
+    let botCommand;
+    let moderatorCommand;
+    let playerCommand;
+    let eligibleCommand;
+    if (isBot) botCommand = game.botContext.botCommands.find(command => command.config.aliases.includes(commandAlias));
+    else if (isModerator) moderatorCommand = game.botContext.moderatorCommands.find(command => command.config.aliases.includes(commandAlias));
+    else if (isPlayer) playerCommand = game.botContext.playerCommands.find(command => command.config.aliases.includes(commandAlias));
+    else if (isEligible) eligibleCommand = game.botContext.eligibleCommands.find(command => command.config.aliases.includes(commandAlias));
 
-    let commandConfig = roleCommands.find(command => command.aliases.includes(commandSplit[0]));
-    if (!commandConfig) return false;
-    let commandFile = bot.commands.get(commandConfig.name);
-    if (!commandFile) return false;
-    const commandName = commandConfig.name.substring(0, commandConfig.name.indexOf('_'));
+    if (!botCommand && !moderatorCommand && !playerCommand && !botCommand) return false;
+    const getCommandName = (command) => command.config.name.substring(0, command.config.name.indexOf('_'));
 
-    var entry = null;
-    if (bot.commandLog.length >= 10000) {
-        bot.commandLog.shift();
+    // If the commandLog is at its maximum capacity, remove the oldest entry.
+    /** @type {CommandLogEntry} */
+    let entry;
+    if (game.botContext.commandLog.length >= 10000) {
+        game.botContext.commandLog.shift();
     }
 
+    // Execute the command based on who issued it.
     if (isBot) {
-        commandFile.run(bot, game, commandSplit[0], args, player, data);
+        botCommand.execute(game, commandAlias, args, player, callee);
         entry = {
             timestamp: new Date(),
-            author: bot.user.username,
-            content: command
+            author: game.botContext.client.user.username,
+            content: commandStr
         };
-        bot.commandLog.push(entry);
+        game.botContext.commandLog.push(entry);
         return true;
     }
     else if (isModerator) {
-        if (commandConfig.requiresGame && !game.inProgress) {
+        if (moderatorCommand.config.requiresGame && !game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
-        commandFile.run(bot, game, message, commandSplit[0], args);
+        moderatorCommand.execute(game, message, commandAlias, args);
         entry = {
             timestamp: new Date(),
             author: message.author.username,
             content: message.content
         };
-        bot.commandLog.push(entry);
+        game.botContext.commandLog.push(entry);
         return true;
     }
     else if (isPlayer) {
-        if (!game.inProgress) {
+        if (playerCommand.config.requiresGame && !game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
-        if (message.channel.type === ChannelType.DM || serverconfig.roomCategories.includes(message.channel.parentId)) {
-            player = null;
-            for (let i = 0; i < game.players_alive.length; i++) {
-                if (game.players_alive[i].id === message.author.id) {
-                    player = game.players_alive[i];
+        if (message.channel.type === ChannelType.DM
+            || message.channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(message.channel.parentId)) {
+            for (const livingPlayer of game.players_alive) {
+                if (livingPlayer.id === message.author.id) {
+                    player = livingPlayer;
                     break;
                 }
             }
-            if (player === null) {
-                game.messageHandler.addReply(message, "You are not on the list of living players.");
+            if (!player) {
+                messageHandler.addReply(message, "You are not on the list of living players.");
                 return false;
             }
+            const commandName = getCommandName(playerCommand);
             const status = player.getAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
-                if (player.statusString.includes("heated")) game.messageHandler.addReply(message, "The situation is **heated**. Moderator intervention is required.");
-                else game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+                if (player.statusString.includes("heated")) messageHandler.addReply(message, "The situation is **heated**. Moderator intervention is required.");
+                else messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
                 return false;
             }
             if (game.editMode && commandName !== "say") {
-                game.messageHandler.addReply(message, "You cannot do that because edit mode is currently enabled.");
+                messageHandler.addReply(message, "You cannot do that because edit mode is currently enabled.");
                 return false;
             }
 
             player.setOnline();
 
-            commandFile.run(bot, game, message, commandSplit[0], args, player).then(() => { if (!settings.debug && commandName !== "say" && message.channel.type !== ChannelType.DM) message.delete().catch(); });
+            playerCommand.execute(game, message, commandAlias, args, player).then(() => {
+                if (!game.settings.debug && commandName !== "say" && message.channel.type !== ChannelType.DM)
+                    message.delete().catch();
+            });
             
             entry = {
                 timestamp: new Date(),
                 author: player.name,
                 content: message.content
             };
-            bot.commandLog.push(entry);
+            game.botContext.commandLog.push(entry);
             return true;
         }
         return false;
     }
     else if (isEligible) {
-        if (commandConfig.requiresGame && !game.inProgress) {
+        if (eligibleCommand.config.requiresGame && !game.inProgress) {
             message.reply("There is no game currently running.");
             return false;
         }
         if (message.channel.type === ChannelType.DM
-            || settings.debug && message.channel.id === serverconfig.testingChannel
-            || !settings.debug && message.channel.id === serverconfig.generalChannel) {
-            commandFile.run(bot, game, message, args).then(() => { if (!settings.debug) message.delete().catch(); });
+            || game.settings.debug && message.channel.id === game.guildContext.testingChannel.id
+            || !game.settings.debug && message.channel.id === game.guildContext.generalChannel.id) {
+            eligibleCommand.execute(game, message, commandAlias, args).then(() => {
+                if (!game.settings.debug)
+                    message.delete().catch();
+            });
             entry = {
                 timestamp: new Date(),
                 author: message.author.username,
                 content: message.content
             };
-            bot.commandLog.push(entry);
+            game.botContext.commandLog.push(entry);
             return true;
         }
         return false;

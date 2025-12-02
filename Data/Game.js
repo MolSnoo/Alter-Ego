@@ -22,7 +22,6 @@ moment().format();
  * @class Game
  * @classdesc Represents a game managed by the bot.
  * @constructor
- * @param {BotContext} botContext - The bot managing the game.
  * @param {GuildContext} guildContext - The guild this game is occurring in.
  * @param {GameSettings} settings - The settings for the game.
  */
@@ -32,13 +31,17 @@ export default class Game {
 	/** @type NodeJS.Timeout */
 	#eventTriggerInterval;
 
+	/** 
+	 * The bot managing the game.
+	 * @type {BotContext} 
+	 */
+	botContext;
+
 	/**
-	 * @param {BotContext} botContext 
 	 * @param {GuildContext} guildContext 
 	 * @param {GameSettings} settings 
 	 */
-	constructor(botContext, guildContext, settings) {
-		this.botContext = botContext;
+	constructor(guildContext, settings) {
 		this.guildContext = guildContext;
 		this.settings = settings;
 		this.inProgress = false;
@@ -106,5 +109,9 @@ export default class Game {
 				});
 			}
 		}, 60 * 1000);
+	}
+
+	setBotContext() {
+		this.botContext = BotContext.instance;
 	}
 }

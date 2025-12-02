@@ -38,11 +38,17 @@ export default class BotContext {
 		if (BotContext.instance) {
 			return BotContext.instance;
 		}
+		/** @readonly */
 		this.client = client;
+		/** @readonly */
 		this.botCommands = botCommands;
+		/** @readonly */
 		this.moderatorCommands = moderatorCommands;
+		/** @readonly */
 		this.playerCommands = playerCommands;
+		/** @readonly */
 		this.eligibleCommands = eligibleCommands;
+		/** @readonly */
 		this.game = game;
 		/** @type {Array<CommandLogEntry>} */
 		this.commandLog = [];
