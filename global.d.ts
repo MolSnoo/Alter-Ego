@@ -77,4 +77,45 @@ declare global {
 		author: string;
 		content: string;
 	}
+
+	/**
+	 * Represents a stripped down Item/InventoryItem for use in the parser module.
+	 * @property {string} name - The name of the item.
+	 * @property {string} [pluralName] - The plural name of the item.
+	 * @property {number} quantity - The quantity of the item.
+	 * @property {string} singleContainingPhrase - The phrase used when referring to a single item.
+	 * @property {string} pluralContainingPhrase - The phrase used when referring to multiple items.
+	 */
+	interface PseudoItem {
+		name: string,
+		pluralName: string,
+		quantity: number,
+		singleContainingPhrase: string,
+		pluralContainingPhrase: string
+	}
+	
+	/**
+	 * Represents a simplified player object for use in the parser module.
+	 * @property {string} [name] - The name of the player.
+	 * @property {string} [talent] - The talent of the player.
+	 * @property {number} [strength] - The strength stat of the player.
+	 * @property {number} [intelligence] - The intelligence stat of the player.
+	 * @property {number} [dexterity] - The dexterity stat of the player.
+	 * @property {number} [speed] - The speed stat of the player.
+	 * @property {number} [stamina] - The stamina stat of the player.
+	 */
+	interface PseudoPlayer {
+		name: string;
+		talent: string;
+		strength: number;
+		intelligence: number;
+		dexterity: number;
+		speed: number;
+		stamina: number;
+	}
+
+	interface Possibility {
+		index: number;
+		chance: number;
+	}
 }

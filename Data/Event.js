@@ -58,7 +58,7 @@ export default class Event {
         if (this.triggeredNarration !== "") {
             for (let i = 0; i < game.rooms.length; i++) {
                 if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                    new Narration(game, null, game.rooms[i], parseDescription(this.triggeredNarration, this, null, false)).send();
+                    new Narration(game, null, game.rooms[i], parseDescription(this.triggeredNarration, this, null)).send();
             }
         }
 
@@ -111,7 +111,7 @@ export default class Event {
         if (this.endedNarration !== "") {
             for (let i = 0; i < game.rooms.length; i++) {
                 if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                    new Narration(game, null, game.rooms[i], parseDescription(this.endedNarration, this, null, false)).send();
+                    new Narration(game, null, game.rooms[i], parseDescription(this.endedNarration, this, null)).send();
             }
         }
 

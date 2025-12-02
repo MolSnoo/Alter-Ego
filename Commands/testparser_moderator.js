@@ -3,7 +3,7 @@ import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import { parseDescription, addItem, removeItem } from '../Modules/parser.js';
+import { parseDescription, parseDescriptionWithErrors, addItem, removeItem } from '../Modules/parser.js';
 
 import fs from 'fs';
 import { EOL } from 'os';
@@ -163,7 +163,7 @@ async function testparse (game, file, player) {
             for (let j = 0; j < game.rooms[i].exit.length; j++) {
                 text += "      ";
                 text += game.rooms[i].exit[j].name + EOL;
-                const parsedDescription = parseDescription(game.rooms[i].exit[j].description, game.rooms[i], player, true);
+                const parsedDescription = parseDescriptionWithErrors(game.rooms[i].exit[j].description, game.rooms[i], player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.rooms[i].exit[j].descriptionCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: game.rooms[i].exit[j].descriptionCell(), errors: parsedDescription.errors });
 
@@ -186,7 +186,7 @@ async function testparse (game, file, player) {
             text += "   ";
             text += game.objects[i].name + EOL;
 
-            const parsedDescription = parseDescription(game.objects[i].description, game.objects[i], player, true);
+            const parsedDescription = parseDescriptionWithErrors(game.objects[i].description, game.objects[i], player);
             if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.objects[i].descriptionCell(), warnings: parsedDescription.warnings });
             if (parsedDescription.errors.length !== 0) errors.push({ cell: game.objects[i].descriptionCell(), errors: parsedDescription.errors });
 
@@ -207,7 +207,7 @@ async function testparse (game, file, player) {
             text += "   ";
             text += game.prefabs[i].id + EOL;
 
-            const parsedDescription = parseDescription(game.prefabs[i].description, game.prefabs[i], player, true);
+            const parsedDescription = parseDescriptionWithErrors(game.prefabs[i].description, game.prefabs[i], player);
             if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.prefabs[i].descriptionCell(), warnings: parsedDescription.warnings });
             if (parsedDescription.errors.length !== 0) errors.push({ cell: game.prefabs[i].descriptionCell(), errors: parsedDescription.errors });
 
@@ -233,7 +233,7 @@ async function testparse (game, file, player) {
             if (game.recipes[i].initiatedDescription !== "") {
                 text += "      MESSAGE WHEN INITIATED:" + EOL;
 
-                const parsedDescription = parseDescription(game.recipes[i].initiatedDescription, taggedObject ? taggedObject : game.recipes[i], player, true);
+                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].initiatedDescription, taggedObject ? taggedObject : game.recipes[i], player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].initiatedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].initiatedCell(), errors: parsedDescription.errors });
 
@@ -248,7 +248,7 @@ async function testparse (game, file, player) {
             if (game.recipes[i].completedDescription !== "") {
                 text += "      MESSAGE WHEN COMPLETED:" + EOL;
 
-                const parsedDescription = parseDescription(game.recipes[i].completedDescription, taggedObject ? taggedObject : game.recipes[i], player, true);
+                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].completedDescription, taggedObject ? taggedObject : game.recipes[i], player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].completedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].completedCell(), errors: parsedDescription.errors });
 
@@ -263,7 +263,7 @@ async function testparse (game, file, player) {
             if (game.recipes[i].uncraftedDescription !== "") {
                 text += "      MESSAGE WHEN UNCRAFTED:" + EOL;
 
-                const parsedDescription = parseDescription(game.recipes[i].uncraftedDescription, game.recipes[i], player, true);
+                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].uncraftedDescription, game.recipes[i], player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].uncraftedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].uncraftedCell(), errors: parsedDescription.errors });
 
@@ -285,7 +285,7 @@ async function testparse (game, file, player) {
             text += "   ";
             text += game.items[i].name + EOL;
 
-            const parsedDescription = parseDescription(game.items[i].description, game.items[i], player, true);
+            const parsedDescription = parseDescriptionWithErrors(game.items[i].description, game.items[i], player);
             if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.items[i].descriptionCell(), warnings: parsedDescription.warnings });
             if (parsedDescription.errors.length !== 0) errors.push({ cell: game.items[i].descriptionCell(), errors: parsedDescription.errors });
 
@@ -311,7 +311,7 @@ async function testparse (game, file, player) {
             if (puzzle.correctDescription !== "") {
                 text += "      CORRECT ANSWER:" + EOL;
 
-                const parsedDescription = parseDescription(puzzle.correctDescription, puzzle, player, true);
+                const parsedDescription = parseDescriptionWithErrors(puzzle.correctDescription, puzzle, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.correctCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.correctCell(), errors: parsedDescription.errors });
 
@@ -326,7 +326,7 @@ async function testparse (game, file, player) {
             if (puzzle.alreadySolvedDescription !== "") {
                 text += "      ALREADY SOLVED:" + EOL;
 
-                const parsedDescription = parseDescription(puzzle.alreadySolvedDescription, puzzle, player, true);
+                const parsedDescription = parseDescriptionWithErrors(puzzle.alreadySolvedDescription, puzzle, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.alreadySolvedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.alreadySolvedCell(), errors: parsedDescription.errors });
 
@@ -341,7 +341,7 @@ async function testparse (game, file, player) {
             if (puzzle.incorrectDescription !== "") {
                 text += "      INCORRECT ANSWER:" + EOL;
 
-                const parsedDescription = parseDescription(puzzle.incorrectDescription, puzzle, player, true);
+                const parsedDescription = parseDescriptionWithErrors(puzzle.incorrectDescription, puzzle, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.incorrectCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.incorrectCell(), errors: parsedDescription.errors });
 
@@ -356,7 +356,7 @@ async function testparse (game, file, player) {
             if (puzzle.noMoreAttemptsDescription !== "") {
                 text += "      NO MORE ATTEMPTS:" + EOL;
 
-                const parsedDescription = parseDescription(puzzle.noMoreAttemptsDescription, puzzle, player, true);
+                const parsedDescription = parseDescriptionWithErrors(puzzle.noMoreAttemptsDescription, puzzle, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.noMoreAttemptsCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.noMoreAttemptsCell(), errors: parsedDescription.errors });
 
@@ -371,7 +371,7 @@ async function testparse (game, file, player) {
             if (puzzle.requirementsNotMetDescription !== "") {
                 text += "      REQUIREMENTS NOT MET:" + EOL;
 
-                const parsedDescription = parseDescription(puzzle.requirementsNotMetDescription, puzzle, player, true);
+                const parsedDescription = parseDescriptionWithErrors(puzzle.requirementsNotMetDescription, puzzle, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.requirementsNotMetCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.requirementsNotMetCell(), errors: parsedDescription.errors });
 
@@ -400,7 +400,7 @@ async function testparse (game, file, player) {
             if (event.triggeredNarration !== "") {
                 text += "      MESSAGE WHEN TRIGGERED:" + EOL;
 
-                const parsedDescription = parseDescription(event.triggeredNarration, event, null, true);
+                const parsedDescription = parseDescriptionWithErrors(event.triggeredNarration, event, null);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: event.triggeredCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: event.triggeredCell(), errors: parsedDescription.errors });
 
@@ -415,7 +415,7 @@ async function testparse (game, file, player) {
             if (event.endedNarration !== "") {
                 text += "      MESSAGE WHEN ENDED:" + EOL;
 
-                const parsedDescription = parseDescription(event.endedNarration, event, null, true);
+                const parsedDescription = parseDescriptionWithErrors(event.endedNarration, event, null);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: event.endedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: event.endedCell(), errors: parsedDescription.errors });
 
@@ -444,7 +444,7 @@ async function testparse (game, file, player) {
             if (status.inflictedDescription !== "") {
                 text += "      MESSAGE WHEN INFLICTED:" + EOL;
 
-                const parsedDescription = parseDescription(status.inflictedDescription, status, player, true);
+                const parsedDescription = parseDescriptionWithErrors(status.inflictedDescription, status, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: status.inflictedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: status.inflictedCell(), errors: parsedDescription.errors });
 
@@ -459,7 +459,7 @@ async function testparse (game, file, player) {
             if (status.curedDescription !== "") {
                 text += "      MESSAGE WHEN CURED:" + EOL;
 
-                const parsedDescription = parseDescription(status.curedDescription, status, player, true);
+                const parsedDescription = parseDescriptionWithErrors(status.curedDescription, status, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: status.curedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: status.curedCell(), errors: parsedDescription.errors });
 
@@ -483,7 +483,7 @@ async function testparse (game, file, player) {
             text += "   ";
             text += game.players[i].name + EOL;
 
-            const parsedDescription = parseDescription(game.players[i].description, game.players[i], player, true);
+            const parsedDescription = parseDescriptionWithErrors(game.players[i].description, game.players[i], player);
             if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.players[i].descriptionCell(), warnings: parsedDescription.warnings });
             if (parsedDescription.errors.length !== 0) errors.push({ cell: game.players[i].descriptionCell(), errors: parsedDescription.errors });
 
@@ -505,7 +505,7 @@ async function testparse (game, file, player) {
                 text += "   ";
                 text += game.inventoryItems[i].name + EOL;
 
-                const parsedDescription = parseDescription(game.inventoryItems[i].description, game.inventoryItems[i], player, true);
+                const parsedDescription = parseDescriptionWithErrors(game.inventoryItems[i].description, game.inventoryItems[i], player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.inventoryItems[i].descriptionCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: game.inventoryItems[i].descriptionCell(), errors: parsedDescription.errors });
 

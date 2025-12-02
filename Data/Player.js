@@ -1991,7 +1991,7 @@ export default class Player {
         var newGesture = new Gesture(gesture.name, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row);
         newGesture.targetType = targetType;
         newGesture.target = target;
-        new Narration(game, this, this.location, parser.parseDescription(newGesture.narration, newGesture, this, false)).send();
+        new Narration(game, this, this.location, parser.parseDescription(newGesture.narration, newGesture, this)).send();
 
         return;
     }

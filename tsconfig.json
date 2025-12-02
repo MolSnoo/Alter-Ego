@@ -10,13 +10,14 @@
         "esModuleInterop": true,
         "target": "esnext",
         "types": [
-            "node",
-            "node-fetch"
+            "node"
         ],
         // For nodejs:
         "lib": [
-            "esnext"
+            "esnext",
+            "dom"
         ],
+        "noEmit": true,
         "allowJs": true,
         "checkJs": true,
         "resolveJsonModule": true,
