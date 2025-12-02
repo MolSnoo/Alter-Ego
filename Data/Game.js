@@ -49,32 +49,32 @@ export default class Game {
 		this.endTimer = null;
 		this.heated = false;
 		this.editMode = false;
-		/** @type {Map<string, Room>} */
-		this.rooms = new Map();
+		/** @type {Array<Room>} */
+		this.rooms = [];
 		/** @type {Array<Fixture>} */
 		this.objects = [];
-		/** @type {Map<string, Prefab>} */
-		this.prefabs = new Map();
+		/** @type {Array<Prefab>} */
+		this.prefabs = [];
 		/** @type {Array<Recipe>} */
 		this.recipes = [];
 		/** @type {Array<Item>} */
 		this.items = [];
 		/** @type {Array<Puzzle>} */
 		this.puzzles = [];
-		/** @type {Map<string, Event>} */
-		this.events = new Map();
-		/** @type {Map<string, Status>} */
-		this.statusEffects = new Map();
-		/** @type {Map<string, Player>} */
-		this.players = new Map();
-		/** @type {Map<string, Player>} */
-		this.players_alive = new Map();
-		/** @type {Map<string, Player>} */
-		this.players_dead = new Map();
+		/** @type {Array<Event>} */
+		this.events = [];
+		/** @type {Array<Status>} */
+		this.statusEffects = [];
+		/** @type {Array<Player>} */
+		this.players = [];
+		/** @type {Array<Player>} */
+		this.players_alive = [];
+		/** @type {Array<Player>} */
+		this.players_dead = [];
 		/** @type {Array<InventoryItem>} */
 		this.inventoryItems = [];
-		/** @type {Map<string, Gesture>} */
-		this.gestures = new Map();
+		/** @type {Array<Gesture>} */
+		this.gestures = [];
 		/** @type {Map<string, Flag>} */
 		this.flags = new Map();
 		/** @type {Array<Whisper>} */
