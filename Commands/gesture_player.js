@@ -14,7 +14,7 @@ export const config = {
         + `Certain gestures may require a target to perform them. For example, a gesture might require you specify an Exit, an Object, another Player, etc. `
         + `A gesture can only be performed with one target at a time. Gestures can be made impossible if you are inflicted with certain Status Effects. `
         + `For example, if you are concealed, you cannot smile, frown, etc. as nobody would be able to see it. `
-        + `To see a list of all possible gestures, send \`${settings.commandPrefix}gesture list\`.`,
+        + `To see a list of all possible gestures, send use "list".`,
     usableBy: "Player",
     aliases: ["gesture"],
     requiresGame: true

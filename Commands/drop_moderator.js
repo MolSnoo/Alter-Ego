@@ -10,7 +10,7 @@ export const config = {
     details: "Forcibly drops an item for a player. The item must be in either of the player's hands. You can specify "
         + "where in the room to drop the item into by putting the name of an object or item in the room after the item. "
         + "If you want to discard the item in an item with multiple inventory slots, you can specify which slot to put it in. "
-        + `If no object or item is specified, they will drop it on the ${settings.defaultDropObject}. This can be changed in the settings file. `
+        + `If no object or item is specified, they will drop it on the floor. This can be changed in the settings file. `
         + "Only objects and item in the same room as the player can be specified.",
     usableBy: "Moderator",
     aliases: ["drop", "discard", "d"],

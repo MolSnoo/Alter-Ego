@@ -9,7 +9,7 @@ import Die from '../Data/Die.js';
 export const config = {
     name: "roll_moderator",
     description: "Rolls a die.",
-    details: `Rolls a d${settings.diceMax}. If a stat and a player are specified, calculates the result plus the modifier of `
+    details: `Rolls a die. If a stat and a player are specified, calculates the result plus the modifier of `
         + "the player's specified stat. If two players are specified, any status effects the second player has which affect the "
         + "first player will be applied to the first player, whose stats will be recalculated before their stat modifier is applied. "
         + "Additionally, if a strength roll is performed using two players, the second player's dexterity stat will be inverted and "

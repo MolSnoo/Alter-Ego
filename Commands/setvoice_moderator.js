@@ -8,7 +8,7 @@ export const config = {
     name: "setvoice_moderator",
     description: "Sets a player's voice.",
     details: `Sets a player's voice descriptor that will be used when the player uses the `
-        + `${settings.commandPrefix}say command or speaks in a room with a player who can't view the room channel. `
+        + `say command or speaks in a room with a player who can't view the room channel. `
         + `This will not change their voice descriptor on the spreadsheet, and when player data is reloaded, `
         + `their voice descriptor will be reverted to what appears on the spreadsheet. You can also supply another `
         + `player's name instead of a voice descriptor. In this case, the first player's voice will sound exactly like `
@@ -72,7 +72,7 @@ export async function execute (game, message, command, args) {
                     return messageHandler.addGameMechanicMessage(message.channel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${game.players[i].name}.`);
                 }
                 else if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name === player.name)
-                    return messageHandler.addReply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${settings.commandPrefix}setvoice ${player.name}`);
+                    return messageHandler.addReply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${game.settings.commandPrefix}setvoice ${player.name}`);
             }
         }
         player.voiceString = input;

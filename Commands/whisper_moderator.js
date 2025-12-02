@@ -14,9 +14,9 @@ export const config = {
         + "posted in the new channel, but everyone in the room will be notified that they've begun whispering to each other. "
         + "You can select as many players as you want as long as they're all in the same room. When a player in the whisper "
         + "leaves the room, they will be removed from the channel. If everyone leaves the room, the whisper channel will be "
-        + (settings.autoDeleteWhisperChannels ? "deleted" : "archived") + ". If one of the players listed has the talent "
-        + "\"NPC\", the remaining string after the list of players will be sent in the whisper channel. Once the channel is "
-        + "created, NPC players can only speak in the whisper using this command and the list of players in the whisper.",
+        + "deleted or archived. If one of the players listed has the talent \"NPC\", the remaining string "
+        + "after the list of players will be sent in the whisper channel. Once the channel is created, "
+        + "NPC players can only speak in the whisper using this command and the list of players in the whisper.",
     usableBy: "Moderator",
     aliases: ["whisper"],
     requiresGame: true
@@ -99,7 +99,7 @@ export async function execute (game, message, command, args) {
             }
             if (matchedUsers === recipients.length) {
                 if (npc !== null) {
-                    await sendMessage(game.botContext, game, message, string, npc, game.whispers[i]);
+                    await sendMessage(game, message, string, npc, game.whispers[i]);
                     return;
                 }
                 else return messageHandler.addReply(message, "Whisper group already exists.");
@@ -113,12 +113,12 @@ export async function execute (game, message, command, args) {
     game.whispers.push(whisper);
 
     if (npc !== null)
-        await sendMessage(game.botContext, game, message, string, npc, whisper);
+        await sendMessage(game, message, string, npc, whisper);
 
     return;
 }
 
-async function sendMessage (game.botContext, game, message, string, player, whisper) {
+async function sendMessage (game, message, string, player, whisper) {
     // Create a webhook for this channel if necessary, or grab the existing one.
     let webHooks = await whisper.channel.fetchWebhooks();
     let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);

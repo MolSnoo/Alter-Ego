@@ -11,7 +11,7 @@ export const config = {
     details: "Separates an item in one of your hands into its component parts, assuming they can be separated. "
         + "This will produce two items, so you will need a free hand in order to use this command. "
         + "If there is no crafting recipe for its components that allows them to be separated again, the item cannot be uncrafted. "
-        + `If you want to re-assemble them, use the \`${settings.commandPrefix}craft\` command.`,
+        + `If you want to re-assemble them, use the craft command.`,
     usableBy: "Player",
     aliases: ["uncraft", "dismantle", "disassemble"],
     requiresGame: true

@@ -18,7 +18,7 @@ export const config = {
         + 'you can specify that you want to inspect your item by adding "my" before the item name. '
         + 'You can even inspect visible items in another player\'s inventory by adding "[player name]\'s" before the item name. No one will '
         + 'see you do this, however you will receive slightly less info when inspecting another player\'s items. '
-        + `You can use "${settings.commandPrefix}inspect room" to get the description of the room you're currently in.`,
+        + `You can use "room" to get the description of the room you're currently in.`,
     usableBy: "Player",
     aliases: ["inspect", "investigate", "examine", "look", "x"],
     requiresGame: true

@@ -9,7 +9,7 @@ export const config = {
     name: "save_moderator",
     description: "Saves the game data to the spreadsheet.",
     details: "Manually saves the game data to the spreadsheet. Ordinarily, game data is automatically saved "
-        + `to the spreadsheet every ${settings.autoSaveInterval} seconds, as defined in the settings file. `
+        + `to the spreadsheet periodically, as defined in the settings file. `
         + "However, this command allows you to save at any time, even when edit mode is enabled.",
     usableBy: "Moderator",
     aliases: ["save"],

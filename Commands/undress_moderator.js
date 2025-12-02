@@ -8,7 +8,7 @@ export const config = {
     name: "undress_moderator",
     description: "Unequips and drops all items for a player.",
     details: "Unequips all items the given player has equipped and drops them into a container of your choosing. If no container is chosen, then items will be "
-        + `dropped on the ${settings.defaultDropObject}. The given container must have a large enough capacity to hold all of the items in the given player's `
+        + `dropped on the floor. The given container must have a large enough capacity to hold all of the items in the given player's `
         + "inventory. This command will also drop any items in their hands.",
     usableBy: "Moderator",
     aliases: ["undress"],
@@ -118,8 +118,8 @@ export async function execute (game, message, command, args) {
     }
     else {
         if (parsedInput !== "") return messageHandler.addReply(message, `Couldn't find "${parsedInput}" to drop item into.`);
-        const defaultDropOpject = objects.find(object => object.name === settings.defaultDropObject);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(message, `There is no default drop object "${settings.defaultDropObject}" in ${player.location.name}.`);
+        const defaultDropOpject = objects.find(object => object.name === game.settings.defaultDropObject);
+        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(message, `There is no default drop object "${game.settings.defaultDropObject}" in ${player.location.name}.`);
         container = defaultDropOpject;
     }
 

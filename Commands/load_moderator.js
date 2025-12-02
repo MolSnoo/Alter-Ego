@@ -2,7 +2,7 @@
 import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import * as loader from ('../Modules/loader.js');
+import * as loader from '../Modules/loader.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -117,7 +117,7 @@ export async function execute (game, message, command, args) {
             messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
         }
         else {
-            if (settings.debug) {
+            if (game.settings.debug) {
                 printData(game.rooms);
                 printData(game.objects);
                 printData(game.prefabs);
@@ -162,16 +162,16 @@ export async function execute (game, message, command, args) {
             if (command === "las" || args[1] && args[1] === "start") {
                 game.inProgress = true;
                 game.canJoin = false;
-                if (!settings.debug)
-                    game.botContext.client.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
+                if (!game.settings.debug)
+                    game.botContext.updatePresence();
                 for (let i = 0; i < game.players_alive.length; i++)
                     game.players_alive[i].sendDescription(game, game.players_alive[i].location.description, game.players_alive[i].location);
             }
             else if (command === "lar" || args[1] && args[1] === "resume") {
                 game.inProgress = true;
                 game.canJoin = false;
-                if (!settings.debug)
-                    game.botContext.client.user.setActivity(settings.gameInProgressActivity.string, { type: settings.gameInProgressActivity.type, url: settings.gameInProgressActivity.url });
+                if (!game.settings.debug)
+                    game.botContext.updatePresence();
             }
 
             // Start event timers.
@@ -186,7 +186,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "rooms") {
         try {
             await loader.loadRooms(game, true);
-            if (settings.debug) printData(game.rooms);
+            if (game.settings.debug) printData(game.rooms);
             messageHandler.addGameMechanicMessage(message.channel, game.rooms.length + " rooms retrieved.");
         }
         catch (err) {
@@ -196,7 +196,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "objects") {
         try {
             await loader.loadObjects(game, true);
-            if (settings.debug) printData(game.objects);
+            if (game.settings.debug) printData(game.objects);
             messageHandler.addGameMechanicMessage(message.channel, game.objects.length + " objects retrieved.");
         }
         catch (err) {
@@ -206,7 +206,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "prefabs") {
         try {
             await loader.loadPrefabs(game, true);
-            if (settings.debug) printData(game.prefabs);
+            if (game.settings.debug) printData(game.prefabs);
             messageHandler.addGameMechanicMessage(message.channel, game.prefabs.length + " prefabs retrieved.");
         }
         catch (err) {
@@ -216,7 +216,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "recipes") {
         try {
             await loader.loadRecipes(game, true);
-            if (settings.debug) printData(game.recipes);
+            if (game.settings.debug) printData(game.recipes);
             messageHandler.addGameMechanicMessage(message.channel, game.recipes.length + " recipes retrieved.");
         }
         catch (err) {
@@ -226,7 +226,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "items") {
         try {
             await loader.loadItems(game, true);
-            if (settings.debug) printData(game.items);
+            if (game.settings.debug) printData(game.items);
             messageHandler.addGameMechanicMessage(message.channel, game.items.length + " items retrieved.");
         }
         catch (err) {
@@ -236,7 +236,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "puzzles") {
         try {
             await loader.loadPuzzles(game, true);
-            if (settings.debug) printData(game.puzzles);
+            if (game.settings.debug) printData(game.puzzles);
             messageHandler.addGameMechanicMessage(message.channel, game.puzzles.length + " puzzles retrieved.");
         }
         catch (err) {
@@ -246,7 +246,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "events") {
         try {
             await loader.loadEvents(game, true);
-            if (settings.debug) printData(game.events);
+            if (game.settings.debug) printData(game.events);
             messageHandler.addGameMechanicMessage(message.channel, game.events.length + " events retrieved.");
 
             // Start event timers.
@@ -264,7 +264,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "statuses" || args[0] === "effects" || args[0] === "status" && args[1] === "effects") {
         try {
             await loader.loadStatusEffects(game, true);
-            if (settings.debug) printData(game.statusEffects);
+            if (game.settings.debug) printData(game.statusEffects);
             messageHandler.addGameMechanicMessage(message.channel, game.statusEffects.length + " status effects retrieved.");
         }
         catch (err) {
@@ -274,7 +274,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "players") {
         try {
             await loader.loadPlayers(game, true);
-            if (settings.debug) printData(game.players);
+            if (game.settings.debug) printData(game.players);
             messageHandler.addGameMechanicMessage(message.channel, game.players.length + " players retrieved.");
         }
         catch (err) {
@@ -296,7 +296,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "inventories") {
         try {
             await loader.loadInventories(game, true);
-            if (settings.debug) printData(game.inventoryItems);
+            if (game.settings.debug) printData(game.inventoryItems);
             messageHandler.addGameMechanicMessage(message.channel, game.inventoryItems.length + " inventory items retrieved.");
         }
         catch (err) {
@@ -306,7 +306,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "gestures") {
         try {
             await loader.loadGestures(game, true);
-            if (settings.debug) printData(game.gestures);
+            if (game.settings.debug) printData(game.gestures);
             messageHandler.addGameMechanicMessage(message.channel, game.gestures.length + " gestures retrieved.");
         }
         catch (err) {
@@ -316,7 +316,7 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "flags") {
         try {
             await loader.loadFlags(game, true);
-            if (settings.debug) printData(game.flags);
+            if (game.settings.debug) printData(game.flags);
             messageHandler.addGameMechanicMessage(message.channel, game.flags.size + " flags retrieved.");
         }
         catch (err) {

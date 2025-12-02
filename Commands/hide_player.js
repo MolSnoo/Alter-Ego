@@ -13,7 +13,7 @@ export const config = {
         + `when other players enter the room, they won't see you on the user list. When players speak in the room that you're hiding in, `
         + `you will hear what they say. Under normal circumstances, a whisper channel will be created for you to speak in. Most players `
         + `will be unable to hear what you say in this channel. However, if you want to speak so that everyone can hear you (while having `
-        + `your identity remain a secret), use the \`${settings.commandPrefix}say\` command. If someone hides in the same hiding spot as you, ` 
+        + `your identity remain a secret), use the say command. If someone hides in the same hiding spot as you, ` 
         + `you will be placed in a whisper channel together. If someone inspects or tries to hide in the object you're hiding in, `
         + `your position will be revealed. If you wish to come out of hiding on your own, use the unhide command.`,
     usableBy: "Player",

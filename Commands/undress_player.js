@@ -9,7 +9,7 @@ export const config = {
     name: "undress_player",
     description: "Unequips and drops all items.",
     details: "Unequips all items you have equipped and drops them into a container of your choosing. If no container is chosen, then items will be "
-        + `dropped on the ${settings.defaultDropObject}. The given container must have a large enough capacity to hold all of the items in your `
+        + `dropped on the floor. The given container must have a large enough capacity to hold all of the items in your `
         + "inventory. This command will also drop any items in your hands.",
     usableBy: "Player",
     aliases: ["undress"],

@@ -16,9 +16,9 @@ export const config = {
         + "By default, it will generate 2 rooms, 8 objects, 14 prefabs, 3 recipes, 3 items, 1 puzzle, 1 event, "
         + "13 status effects, and 6 gestures. If the channels for the demo game's rooms don't exist, they will be "
         + "created automatically. It will not create any players for you. Once this command is used you can use "
-        + `the ${settings.commandPrefix}startgame command to add players, or manually add them on the spreadsheet. `
+        + `the startgame command to add players, or manually add them on the spreadsheet. `
         + "It is recommended that you have at least one other Discord account to use as a player. "
-        + `Once the spreadsheet has been fully populated, you can use ${settings.commandPrefix}load all start `
+        + `Once the spreadsheet has been fully populated, you can use load all start `
         + "to begin the demo. **If there is already data on the spreadsheet, it will be overwritten. Only use "
         + "this command if the spreadsheet is currently blank.**",
     usableBy: "Moderator",
@@ -47,7 +47,7 @@ export async function execute (game, message, command, args) {
         var roomValues = await setupdemo();
 
         // Ensure that a room category exists.
-        let roomCategories = game.guildContext.roomCategories.split(",");
+        let roomCategories = game.guildContext.roomCategories;
         let roomCategory = null;
         if (roomCategories.length === 0 || roomCategories.length === 1 && roomCategories[0] === "") {
             try {
@@ -75,8 +75,8 @@ export async function execute (game, message, command, args) {
 
             messageHandler.addGameMechanicMessage(message.channel,
                 "The spreadsheet was populated with demo data. Once you've populated the Players sheet, either manually or with the "
-                + `${settings.commandPrefix}startgame command in conjuction with the ${settings.commandPrefix}play command, `
-                + `use ${settings.commandPrefix}load all start to begin the demo.`
+                + `${game.settings.commandPrefix}startgame command in conjuction with the ${game.settings.commandPrefix}play command, `
+                + `use ${game.settings.commandPrefix}load all start to begin the demo.`
             );
         }
         else return messageHandler.addGameMechanicMessage(message.channel, "The spreadsheet was populated with demo data, but there was an error finding a room category to contain the new room channels.");
