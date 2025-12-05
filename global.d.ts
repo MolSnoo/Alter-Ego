@@ -1,4 +1,4 @@
-import type { ActivitiesOptions, ActivityType, Message } from "discord.js";
+import type { ActivitiesOptions, ActivityType, Message, Snowflake } from "discord.js";
 import type Event from "./Data/Event.js";
 import type Flag from "./Data/Flag.js";
 import type Game from "./Data/Game.js";
@@ -6,6 +6,9 @@ import type InventoryItem from "./Data/InventoryItem.js";
 import type Player from "./Data/Player.js";
 import type Puzzle from "./Data/Puzzle.js";
 import type GameSettings from "./Classes/GameSettings.js";
+import type Recipe from "./Data/Recipe.js";
+import type Item from "./Data/Item.js";
+import type { Duration } from "moment";
 
 export {};
 
@@ -20,6 +23,26 @@ declare global {
 		name: string;
 		type: ActivityType;
 		url?: string;
+	}
+
+	/**
+	 * A cached dialog message.
+	 * @property {Snowflake} messageId - The ID of the original dialog message.
+	 * @property {SpectatedDialogMessage[]} spectateMirrors - All messages that have mirrored this dialog in spectate channels.
+	 */
+	interface CachedDialog {
+		messageId: Snowflake;
+		spectateMirrors: SpectatedDialogMessage[];
+	}
+
+	/**
+	 * A dialog message that has been mirrored in a spectate channel.
+	 * @property {Snowflake} messageId - The ID of the mirrored dialog message.
+	 * @property {Snowflake} webhookId - The ID of the webhook used to send the mirrored message to the spectate channel.
+	 */
+	interface SpectatedDialogMessage {
+		messageId: Snowflake;
+		webhookId: Snowflake;
 	}
 
 	/**
@@ -79,19 +102,195 @@ declare global {
 	}
 
 	/**
+     * Represents a 3D position.
+     * @property x - X coordinate
+     * @property y - Y coordinate
+     * @property z - Z coordinate
+     */
+    interface Pos {
+
+        x: number;
+        y: number;
+        z: number;
+    }
+
+	/**
+     * @property recipe - The recipe being processed.
+     * @property ingredients - The ingredients used in the recipe.
+     * @property duration - The duration of the recipe.
+     * @property timer - The timer used to track the duration of the recipe.
+     */
+    interface Process {
+        recipe?: Recipe;
+        ingredients: Item[];
+        duration?: Duration;
+        timer?: any;
+    }
+
+	/**
+	 * @property recipe - The recipe found.
+	 * @property ingredients - The ingredients used in the recipe.
+	 */
+	interface FindRecipeResult {
+		recipe: Recipe | null;
+		ingredients: Item[];
+	}
+
+	/**
+	 * @property ingredientIndex - The index of the ingredient in the ingredients array.
+	 * @property productIndex - The index of the product in the products array.
+	 * @property decreaseUses - Whether to decrease the uses of the ingredient.
+	 * @property nextStage - Whether to move to the next stage of the product.
+	 */
+	interface RemainingIngredient {
+		ingredientIndex: number;
+		productIndex: number;
+		decreaseUses: boolean;
+		nextStage: boolean;
+	}
+
+	/**
+     * A player's third-person pronouns.
+     * @property sbj - The subjective pronoun.
+     * @property Sbj - The subjective pronoun with first letter capitalized.
+     * @property obj - The objective pronoun.
+     * @property Obj - The objective pronoun with first letter capitalized.
+     * @property dpos - The dependent possessive pronoun.
+     * @property Dpos - The dependent possessive pronoun with first letter capitalized.
+     * @property ipos - The independent possessive pronoun.
+     * @property Ipos - The independent possessive pronoun with first letter capitalized.
+     * @property ref - The reflexive pronoun.
+     * @property Ref - The reflexive pronoun with first letter capitalized.
+     * @property plural - Whether this set of pronouns turns verbs into their plural form.
+     */
+    interface Pronouns {
+        sbj?: string;
+        Sbj?: string;
+        obj?: string;
+        Obj?: string;
+        dpos?: string;
+        Dpos?: string;
+        ipos?: string;
+        Ipos?: string;
+        ref?: string;
+        Ref?: string;
+        plural?: boolean;
+    }
+
+	/**
+     * Represents a player's stats.
+     * @property {number} strength - Physical strength.
+     * @property {number} intelligence - Intelligence or perception.
+     * @property {number} dexterity - Agility or dexterity.
+     * @property {number} speed - Movement speed.
+     * @property {number} stamina - Physical stamina.
+     */
+    interface Stats {
+        strength: number;
+        intelligence: number;
+        dexterity: number;
+        speed: number;
+        stamina: number;
+    }
+
+	/**
+	 * @property {boolean} modifiesSelf - Whether the stat modifier modifies the player's own stat.
+	 * @property {string} stat - The stat to modify.
+	 * @property {boolean} assignValue - Whether it assigns the value or adds to it.
+	 * @property {number} value - The value to assign or add.
+	 */
+	interface StatModifier {
+		modifiesSelf: boolean;
+		stat: string;
+		assignValue: boolean;
+		value: number;
+	}
+
+	/**
+	 * @property {string} itemName - The name of the item attempted to be stolen.
+	 * @property {boolean} successful - Whether the steal attempt was successful.
+	 */
+	interface StealResult {
+		itemName: string;
+		successful: boolean;
+	}
+
+	/**
+	 * @property {InventoryItem|null} product1 - The first product of the crafting result, or null if none.
+	 * @property {InventoryItem|null} product2 - The second product of the crafting result, or null if none.
+	 */
+	interface CraftingResult {
+		product1: InventoryItem | null;
+		product2: InventoryItem | null;
+	}
+
+	/**
+	 * @property {InventoryItem|null} ingredient1 - The first ingredient recovered from uncrafting, or null if none.
+	 * @property {InventoryItem|null} ingredient2 - The second ingredient recovered from uncrafting, or null if none.
+	 */	
+	interface UncraftingResult {
+		ingredient1: InventoryItem | null;
+		ingredient2: InventoryItem | null;
+	}
+
+	/**
+     * @property {string} command - The command alias that was used
+     * @property {string} input - The combined arguments of the command
+     * @property {Message} [message] - The message that triggered the command
+     * @property {Player} [targetPlayer] - The player targeted by the command
+     */
+	interface Misc {
+        command: string;
+        input: string;
+        message?: Message;
+        targetPlayer?: Player;
+    }
+
+	/**
+     * @property outcomes - Strings indicating which puzzle solutions will execute the commands in this command set.
+     * @property solvedCommands - Bot commands that will be executed when the puzzle is solved.
+     * @property unsolvedCommands - Bot commands that will be executed when the puzzle is unsolved.
+     */
+    interface PuzzleCommandSet {
+        outcomes: string[];
+        solvedCommands: string[];
+        unsolvedCommands: string[];
+    }
+
+	/**
+     * @property values - Strings indicating which flag values will execute the commands in this command set.
+     * @property setCommands - Bot commands that will be executed when the flag is set.
+     * @property clearedCommands - Bot commands that will be executed when the flag is cleared.
+     */
+    interface FlagCommandSet {
+        values: string[];
+        setCommands: string[];
+        clearedCommands: string[];
+    }
+
+	/**
+	 * @property {number} number - The total modifier value.
+	 * @property {string[]} strings - The modifier strings.
+	 */
+	interface ModifierResult {
+		number: number;
+		strings: string[];
+	}
+
+	/**
 	 * Represents a stripped down Item/InventoryItem for use in the parser module.
-	 * @property {string} name - The name of the item.
+	 * @property {string} [name] - The name of the item.
 	 * @property {string} [pluralName] - The plural name of the item.
-	 * @property {number} quantity - The quantity of the item.
-	 * @property {string} singleContainingPhrase - The phrase used when referring to a single item.
-	 * @property {string} pluralContainingPhrase - The phrase used when referring to multiple items.
+	 * @property {number} [quantity] - The quantity of the item.
+	 * @property {string} [singleContainingPhrase] - The phrase used when referring to a single item.
+	 * @property {string} [pluralContainingPhrase] - The phrase used when referring to multiple items.
 	 */
 	interface PseudoItem {
-		name: string,
-		pluralName: string,
-		quantity: number,
-		singleContainingPhrase: string,
-		pluralContainingPhrase: string
+		name?: string,
+		pluralName?: string,
+		quantity?: number,
+		singleContainingPhrase?: string,
+		pluralContainingPhrase?: string
 	}
 	
 	/**
@@ -105,13 +304,13 @@ declare global {
 	 * @property {number} [stamina] - The stamina stat of the player.
 	 */
 	interface PseudoPlayer {
-		name: string;
-		talent: string;
-		strength: number;
-		intelligence: number;
-		dexterity: number;
-		speed: number;
-		stamina: number;
+		name?: string;
+		talent?: string;
+		strength?: number;
+		intelligence?: number;
+		dexterity?: number;
+		speed?: number;
+		stamina?: number;
 	}
 
 	interface Possibility {

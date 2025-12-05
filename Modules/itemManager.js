@@ -112,7 +112,7 @@ export function instantiateInventoryItem (prefab, player, equipmentSlot, contain
     }
     // Item is being equipped.
     else {
-        player.fastEquip(game, createdItem, equipmentSlot, bot, notify);
+        player.directEquip(game, createdItem, equipmentSlot, bot, notify);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -210,9 +210,9 @@ export function destroyInventoryItem (item, quantity, bot, getChildren) {
             this.destroyInventoryItem(childItems[i], childItems[i].quantity, bot, false);
     }
 
-    // If the item is equipped, simply unequip it. The fastEquip method will destroy it.
+    // If the item is equipped, simply unequip it. The directUnequip method will destroy it.
     if (item.container === null) {
-        item.player.fastUnequip(game, item, bot);
+        item.player.directUnequip(game, item, bot);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();

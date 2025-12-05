@@ -7,13 +7,10 @@ import GameSettings from "./GameSettings.js";
  * @class PlayerCommand
  * @classdesc A command usable by a player.
  * @implements {IPlayerCommand}
- * @constructor
- * @param {CommandConfig} config 
- * @param {(settings: GameSettings) => string} usage 
- * @param {(game: Game, message: Message, command: string, args: string[], player?: Player) => Promise<void>} execute 
  */
 export default class PlayerCommand {
 	/**
+	 * @constructor
 	 * @param {CommandConfig} config 
 	 * @param {(settings: GameSettings) => string} usage 
 	 * @param {(game: Game, message: Message, command: string, args: string[], player?: Player) => Promise<void>} execute 

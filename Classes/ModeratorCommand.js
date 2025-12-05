@@ -6,13 +6,10 @@ import GameSettings from "./GameSettings.js";
  * @class ModeratorCommand
  * @classdesc A command usable by a moderator.
  * @implements {IModeratorCommand}
- * @constructor
- * @param {CommandConfig} config 
- * @param {(settings: GameSettings) => string} usage 
- * @param {(game: Game, message: Message, command: string, args: string[]) => Promise<void>} execute 
  */
 export default class ModeratorCommand {
 	/**
+	 * @constructor
 	 * @param {CommandConfig} config 
 	 * @param {(settings: GameSettings) => string} usage 
 	 * @param {(game: Game, message: Message, command: string, args: string[]) => Promise<void>} execute 

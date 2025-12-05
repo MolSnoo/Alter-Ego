@@ -9,55 +9,89 @@ import EligibleCommand from "./EligibleCommand.js";
 /**
  * @class BotContext
  * @classdesc Represents the bot as a singleton.
- * @constructor
- * @param {Client} client - The Discord Client associated with the bot.
- * @param {Collection<string, BotCommand>} botCommands - All commands usable by the bot itself.
- * @param {Collection<string, ModeratorCommand>} moderatorCommands - All commands usable by moderators.
- * @param {Collection<string, PlayerCommand>} playerCommands - All commands usable by players.
- * @param {Collection<string, EligibleCommand>} eligibleCommands - All commands usable by members with the eligible role.
- * @param {Game} game - The game the bot is managing.
  */
 export default class BotContext {
-	/** @type {BotContext} */
+	/**
+	 * The single instance of the bot that can exist.
+	 * @type {BotContext}
+	 */
 	static instance;
-
-	/** @type NodeJS.Timeout */
+	/** 
+	 * The Discord Client associated with the bot.
+	 * @readonly
+	 * @type {Client}
+	 */
+	client;
+	/** 
+	 * All commands usable by the bot itself.
+	 * @readonly
+	 * @type {Collection<string, BotCommand>}
+	 */
+	botCommands;
+	/**
+	 * All commands usable by moderators.
+	 * @readonly
+	 * @type {Collection<string, ModeratorCommand>}
+	 */
+	moderatorCommands;
+	/**
+	 * All commands usable by players.
+	 * @readonly
+	 * @type {Collection<string, PlayerCommand>}
+	 */
+	playerCommands;
+	/**
+	 * All commands usable by members with the eligible role.
+	 * @readonly
+	 * @type {Collection<string, EligibleCommand>}
+	 */
+	eligibleCommands;
+	/**
+	 * The game the bot is managing.
+	 * @readonly
+	 * @type {Game}
+	 */
+	game;
+	/**
+	 * An array of the most recently-issued commands. Used by the dumplog command for debugging purposes.
+	 * @type {Array<CommandLogEntry>}
+	 */
+	commandLog;
+	/**
+	 * A timeout which sends a queued message every quarter of a second.
+	 * @type {NodeJS.Timeout}
+	 */
 	#queuedMessageSendInterval;
-	/** @type NodeJS.Timeout */
+	/**
+	 * A timeout which updates the client user's presence ever 30 seconds.
+	 * @type NodeJS.Timeout
+	 */
 	#presenceUpdateInterval;
 
 	/**
-	 * @param {Client} client 
-	 * @param {Collection<string, BotCommand>} botCommands 
-	 * @param {Collection<string, ModeratorCommand>} moderatorCommands
-	 * @param {Collection<string, PlayerCommand>} playerCommands
-	 * @param {Collection<string, EligibleCommand>} eligibleCommands 
-	 * @param {Game} game
+	 * @constructor
+	 * @param {Client} client - The Discord Client associated with the bot.
+	 * @param {Collection<string, BotCommand>} botCommands - All commands usable by the bot itself.
+	 * @param {Collection<string, ModeratorCommand>} moderatorCommands - All commands usable by moderators.
+	 * @param {Collection<string, PlayerCommand>} playerCommands - All commands usable by players.
+	 * @param {Collection<string, EligibleCommand>} eligibleCommands - All commands usable by members with the eligible role.
+	 * @param {Game} game - The game the bot is managing.
 	 */
 	constructor(client, botCommands, moderatorCommands, playerCommands, eligibleCommands, game) {
 		if (BotContext.instance) {
 			return BotContext.instance;
 		}
-		/** @readonly */
 		this.client = client;
-		/** @readonly */
 		this.botCommands = botCommands;
-		/** @readonly */
 		this.moderatorCommands = moderatorCommands;
-		/** @readonly */
 		this.playerCommands = playerCommands;
-		/** @readonly */
 		this.eligibleCommands = eligibleCommands;
-		/** @readonly */
 		this.game = game;
-		/** @type {Array<CommandLogEntry>} */
 		this.commandLog = [];
-		// Send messages in message queue every quarter of a second.
 		this.#queuedMessageSendInterval = setInterval(
 			() => sendQueuedMessages(),
 			0.25 * 1000
 		);
-		// Update user presence every 30 seconds.
 		this.#presenceUpdateInterval = setInterval(
 			() => this.updatePresence(),
 			30 * 1000
@@ -66,6 +100,9 @@ export default class BotContext {
 		BotContext.instance = this;
 	}
 
+	/**
+	 * Updates the client user's presence.
+	 */
 	updatePresence() {
 		let onlineSuffix = '';
 		if (this.game.settings.showOnlinePlayerCount && this.game.inProgress && !this.game.canJoin) {

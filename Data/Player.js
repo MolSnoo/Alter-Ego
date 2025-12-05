@@ -1,35 +1,286 @@
-import settings from '../Configs/settings.json' with { type: 'json' };
-import constants from '../Configs/constants.json' with { type: 'json' };
-import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
-import * as parser from '../Modules/parser.js';
-import { default as executeCommand } from '../Modules/commandHandler.js';
-import * as itemManager from '../Modules/itemManager.js';
-
+import Game from './Game.js';
+import GameEntity from './GameEntity.js';
+import Exit from './Exit.js';
 import Room from './Room.js';
-import Object from './Object.js';
+import { default as Fixture } from './Object.js';
 import Prefab from './Prefab.js';
+import Recipe from './Recipe.js';
 import Item from './Item.js';
+import ItemContainer from './ItemContainer.js';
 import Puzzle from './Puzzle.js';
 import Event from './Event.js';
+import EquipmentSlot from './EquipmentSlot.js';
 import InventoryItem from './InventoryItem.js';
+import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
 import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
 
+import * as parser from '../Modules/parser.js';
+import { default as executeCommand } from '../Modules/commandHandler.js';
+import * as itemManager from '../Modules/itemManager.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+
+import { GuildMember, Message, TextChannel } from 'discord.js';
 import moment from 'moment';
 import 'moment-timer';
+
 moment().format();
 
-export default class Player {
-    constructor(id, member, name, displayName, talent, pronounString, originalVoiceString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row) {
+/**
+ * @class Player
+ * @classdesc Represents a player in the game.
+ * @extends ItemContainer
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html
+ */
+export default class Player extends ItemContainer {
+    /**
+     * The Discord ID of the player, or the avatar URL for an NPC.
+     * @type {string}
+     */
+    id;
+    /**
+     * member - The Discord member object of the player.
+     * @type {GuildMember | null} 
+     */
+    member;
+    /**
+     * The name of the player.
+     * @type {string}
+     */
+    name;
+    /**
+     * The name that will be displayed in most public gameplay narrations in lieu of the player's actual name.
+     * @type {string}
+     */
+    displayName;
+    /**
+     * An image URL that will be used as an avatar when the player's dialog is sent through a webhook. If this is not set, the member's displayAvatar will be used instead.
+     * @type {string}
+     */
+    displayIcon;
+    /**
+     * A title that can be used in descriptions. If this is set to "NPC", the player will be marked as an NPC.
+     * @type {string}
+     */
+    title;
+    /**
+     * A title that can be used in descriptions. If this is set to "NPC", the player will be marked as an NPC. Will eventually be removed.
+     * @deprecated
+     * @type {string}
+     */
+    talent;
+    /**
+     * The player's third person personal pronouns. 
+     * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#pronoun-string
+     * @type {string}
+     */
+    pronounString;
+    /**
+     * The player's default pronouns.
+     * @type {Pronouns}
+     */
+    originalPronouns;
+    /**
+     * The player's current pronouns. If the player is inflicted with a status effect that has the `concealed`
+     * behavior attribute, this is automatically changed to they/them.
+     * @type {Pronouns}
+     */
+    pronouns;
+    /**
+     * A phrase that will be used to describe the player's voice to other players when their identity is obscured in some way.
+     * This should begin with "a" or "an" and end with "voice".
+     * @type {string}
+     */
+    originalVoiceString;
+    /**
+     * The player's current voice string.
+     * If this is the name of another player, the player's voice will be indistinguishable from theirs.
+     * @type {string}
+     */
+    voiceString;
+    /**
+     * The player's default strength stat.
+     * @type {number}
+     */
+    defaultStrength;
+    /**
+     * The player's current strength stat.
+     * @type {number}
+     */
+    strength;
+    /**
+     * The player's default intelligence stat.
+     * @type {number}
+     */
+    defaultIntelligence;
+    /**
+     * The player's current intelligence stat.
+     * @type {number}
+     */
+    intelligence;
+    /**
+     * The player's default dexterity stat.
+     * @type {number}
+     */
+    defaultDexterity;
+    /**
+     * The player's current dexterity stat.
+     * @type {number}
+     */
+    dexterity;
+    /**
+     * The player's default speed stat.
+     * @type {number}
+     */
+    defaultSpeed;
+    /**
+     * The player's current speed stat.
+     * @type {number}
+     */
+    speed;
+    /**
+     * The player's default stamina stat.
+     * @type {number}
+     */
+    defaultStamina;
+    /**
+     * The player's current maximum stamina stat.
+     * @type {number}
+     */
+    maxStamina;
+    /**
+     * The amount of stamina the player currently has left.
+     * When this reaches 0, the player will be inflicted with the `weary` status effect.
+     * @type {number}
+     */
+    stamina;
+    /**
+     * Whether the player is alive or not.
+     * @type {boolean}
+     */
+    alive;
+    /**
+     * The room the player is currently in.
+     * @type {Room}
+     */
+    location;
+    /**
+     * The player's current position in 3D space.
+     * @type {Pos}
+     */
+    pos;
+    /**
+     * The name of the object the player is currently hiding in. The object doesn't actually have to exist.
+     * @type {string}
+     */
+    hidingSpot;
+    /**
+     * All status effects the player currently has.
+     * Every time a status is inflicted or cured, the player's stats are recalculated.
+     * @type {Status[]}
+     */
+    status;
+    /**
+     * A comma-separated list of the names of all status effects the player currently has, including those that aren't visible.
+     * Also contains a string representation of the {@link Status.remaining|remaining time} of the status.
+     * @type {string}
+     */
+    statusString;
+    /**
+     * All of the player's {@link EquipmentSlot | equipment slots}.
+     * @type {EquipmentSlot[]}
+     */
+    inventory;
+    /**
+     * The spectate channel of the player.
+     * @type {TextChannel | null}
+     */
+    spectateChannel;
+    /**
+     * The maximum weight of inventory items that the player can carry in kilograms.
+     * @type {number}
+     */
+    maxCarryWeight;
+    /**
+     * The combined weight of all inventory items the player is currently carrying.
+     * @type {number}
+     */
+    carryWeight;
+    /**
+     * Whether the player is currently moving or not.
+     * @type {boolean}
+     */
+    isMoving;
+    /**
+     * A timeout that updates the player's position and stamina every 100 milliseconds while the player is moving.
+     * @type {NodeJS.Timeout | null}
+     */
+    moveTimer;
+    /**
+     * How many milliseconds until the player is done moving to the exit they're currently moving to.
+     * @type {number}
+     */
+    remainingTime;
+    /**
+     * A list of all movements the player wishes to make in sequential order.
+     * When the player finishes moving to one destination, they will begin moving to the next one in the queue, if it exists.
+     * @type {string[]}
+     */
+    moveQueue;
+    /**
+     * Whether or not the player has depleted half of their stamina while moving.
+     * The first time they do, they will be warned that they're starting to become tired.
+     * @type {boolean}
+     */
+    #reachedHalfStamina;
+    /**
+     * A timeout that regenerates the player's stamina every 30 seconds while they're not moving.
+     * @type {NodeJS.Timeout}
+     */
+    #staminaRegenerationInterval;
+    /**
+     * Whether or not the player is considered online.
+     * This is automatically set to `false` after 15 minutes of inactivity.
+     * @type {boolean}
+     */
+    online;
+    /**
+     * A timeout that sets the player as offline after 15 minutes of inactivity.
+     * @type {NodeJS.Timeout}
+     */
+    #onlineInterval;
+
+    /**
+     * @param {string} id - The Discord ID of the player, or the avatar URL for an NPC.
+     * @param {GuildMember | null} member - The Discord member object of the player.
+     * @param {string} name - The name of the player.
+     * @param {string} displayName - The name that will be displayed in most public gameplay narrations in lieu of the player's actual name.
+     * @param {string} title - The player's title.
+     * @param {string} pronounString - The player's third person personal pronouns. For formatting, see {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#pronoun-string}
+     * @param {string} originalVoiceString - A phrase that will be used to describe the player's voice to other players when their identity is obscured in some way. This should begin with "a" or "an" and end with "voice".
+     * @param {Stats} stats - The stats of the player. For more details, see {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#stats}
+     * @param {boolean} alive - Whether the player is alive or not.
+     * @param {Room} location - The room the player is currently in.
+     * @param {string} hidingSpot - The name of the object the player is currently hiding in. The object doesn't actually have to exist.
+     * @param {Status[]} status - All status effects the player currently has.
+     * @param {string} description - The description of the player. Can contain two item lists: hands and equipment.
+     * @param {EquipmentSlot[]} inventory - All of the player's {@link EquipmentSlot | equipment slots}.
+     * @param {TextChannel | null} spectateChannel - The spectate channel of the player.
+     * @param {number} row - The row of the player.
+     * @param {Game} game - The game this belongs to.
+     */
+    constructor(id, member, name, displayName, title, pronounString, originalVoiceString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row, game) {
+        super(game, row, description);
         this.id = id;
         this.member = member;
         this.name = name;
         this.displayName = displayName;
         this.displayIcon = null;
-        this.talent = talent;
+        this.title = title;
+        this.talent = title;
         this.pronounString = pronounString;
         this.originalPronouns = {
             sbj: null, Sbj: null,
@@ -73,23 +324,31 @@ export default class Player {
         this.spectateChannel = spectateChannel;
         this.maxCarryWeight = this.getMaxCarryWeight();
         this.carryWeight = 0;
-        this.row = row;
 
         this.isMoving = false;
         this.moveTimer = null;
         this.remainingTime = 0;
         this.moveQueue = [];
 
-        this.reachedHalfStamina = false;
+        /** @private */
+        this.#reachedHalfStamina = false;
         let player = this;
-        this.interval = setInterval(function () {
+        /** @private */
+        this.#staminaRegenerationInterval = setInterval(function () {
             if (!player.isMoving) player.regenerateStamina();
         }, 30000);
 
         this.online = false;
-        this.onlineInterval = null;
+        /** @private */
+        this.#onlineInterval = null;
     }
 
+    /**
+     * Sets the pronouns of the player.
+     * Modifies whichever pronoun set is passed into it.
+     * @param {Pronouns} pronouns - A set of pronouns
+     * @param {string} pronounString - A string representation of a set of pronouns.
+     */
     setPronouns(pronouns, pronounString) {
         if (pronounString === "male") {
             pronouns.sbj = "he";
@@ -132,7 +391,7 @@ export default class Player {
         }
         // If none of the standard pronouns are given, let the user define their own.
         else {
-            var pronounSet = pronounString.split('/');
+            const pronounSet = pronounString.split('/');
             if (pronounSet.length === 6) {
                 pronouns.sbj = pronounSet[0].trim();
                 pronouns.Sbj = pronouns.sbj.charAt(0).toUpperCase() + pronouns.sbj.substring(1);
@@ -149,22 +408,30 @@ export default class Player {
         }
     }
 
-    queueMovement(bot, game, isRunning, destination) {
+    /**
+     * Starts moving the player to the next destination in their move queue.
+     * @param {boolean} isRunning - Whether the player is running.
+     * @param {string} destination - The destination the user supplied.
+     */
+    queueMovement(isRunning, destination) {
         const currentRoom = this.location;
-        var adjacent = false;
-        var exit = null;
-        var exitMessage = "";
-        var desiredRoom = null;
-        var entrance = null;
-        var entranceMessage = "";
+        let adjacent = false;
+        /** @type {Exit} */
+        let exit = null;
+        let exitMessage = "";
+        /** @type {Room} */
+        let desiredRoom = null;
+        /** @type {Exit} */
+        let entrance = null;
+        let entranceMessage = "";
         const appendString = this.createMoveAppendString();
 
-        // If the player has the headmaster role, they can move to any room they please.
-        if (this.member.roles.cache.find(role => role.id === serverconfig.headmasterRole)) {
+        // If the player has the free movement role, they can move to any room they please.
+        if (this.member.roles.resolve(this.game.guildContext.freeMovementRole)) {
             adjacent = true;
-            for (let i = 0; i < game.rooms.length; i++) {
-                if (game.rooms[i].name === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
-                    desiredRoom = game.rooms[i];
+            for (let i = 0; i < this.game.rooms.length; i++) {
+                if (this.game.rooms[i].id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
+                    desiredRoom = this.game.rooms[i];
                     exitMessage = `${this.displayName} suddenly disappears${appendString}`;
                     entranceMessage = `${this.displayName} suddenly appears${appendString}`;
                     break;
@@ -174,7 +441,7 @@ export default class Player {
         // Otherwise, check that the desired room is adjacent to the current room.
         else {
             for (let i = 0; i < currentRoom.exit.length; i++) {
-                if (currentRoom.exit[i].dest.name === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
+                if (currentRoom.exit[i].dest.id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
                     || currentRoom.exit[i].name === destination.toUpperCase()) {
                     adjacent = true;
                     exit = currentRoom.exit[i];
@@ -195,39 +462,51 @@ export default class Player {
         }
         if (!adjacent) {
             this.moveQueue.length = 0;
-            return this.notify(game, `There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
+            return this.notify(`There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
         }
 
         if (desiredRoom) {
             if (exit)
-                this.move(bot, game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
+                this.move(isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
             else {
-                currentRoom.removePlayer(game, this, exit, exitMessage);
-                desiredRoom.addPlayer(game, this, entrance, entranceMessage, true);
+                currentRoom.removePlayer(this, exit, exitMessage);
+                desiredRoom.addPlayer(this, entrance, entranceMessage, true);
 
                 // Post log message.
                 const time = new Date().toLocaleTimeString();
-                game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} moved to ${desiredRoom.channel}`);
+                messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} moved to ${desiredRoom.channel}`);
             }
         }
         else {
             this.moveQueue.length = 0;
-            return this.notify(game, `There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
+            return this.notify(`There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
         }
     }
 
-    move(bot, game, isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
+    /**
+     * Moves the player to the desired room.
+     * @param {boolean} isRunning - Whether the player is running.
+     * @param {Room} currentRoom - The room the player is currently in.
+     * @param {Room} desiredRoom - The room the player will be moved to.
+     * @param {Exit} exit - The exit the player will leave their current room through.
+     * @param {Exit} entrance - The exit the player will enter the desired room from.
+     * @param {string} exitMessage - The message that will be sent in their current room when they exit.
+     * @param {string} entranceMessage - The message that will be sent in their desired room when they enter.
+     */
+    move(isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
         const time = this.calculateMoveTime(exit, isRunning);
         this.remainingTime = time;
         this.isMoving = true;
         const verb = isRunning ? "running" : "walking";
-        if (time > 1000) new Narration(game, this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
+        if (time > 1000) new Narration(this.game, this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
+        /** @type {Pos} */
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
         let player = this;
         this.moveTimer = setInterval(function () {
+            const settings = player.game.settings;
             let subtractedTime = 100;
-            if (game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
+            if (this.game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
             if (time >= subtractedTime) player.remainingTime -= subtractedTime;
             // Get the current coordinates based on what percentage of the duration has passed.
             const elapsedTime = time - player.remainingTime;
@@ -240,7 +519,7 @@ export default class Player {
             let rise = (y - player.pos.y) / settings.pixelsPerMeter;
             // Calculate the amount of stamina the player has lost traveling this distance.
             const staminaUseMultiplier = isRunning ? 3 : 1;
-            var lostStamina;
+            let lostStamina;
             // If distance is 0, we'll treat it like a staircase.
             if (distance === 0 && rise !== 0) {
                 const uphill = rise > 0 ? true : false;
@@ -257,52 +536,58 @@ export default class Player {
             player.pos.z = z;
             if (!player.hasAttribute('no stamina decrease')) player.stamina = player.stamina + lostStamina;
             // If player reaches half of their stamina, give them a warning.
-            // Be sure to check player.reachedHalfStamina so that this message is only sent once.
-            if (player.stamina <= player.maxStamina / 2 && !player.reachedHalfStamina) {
-                player.reachedHalfStamina = true;
-                player.notify(game, `You're starting to get tired! You might want to stop moving and rest soon.`);
+            // Be sure to check player.#reachedHalfStamina so that this message is only sent once.
+            if (player.stamina <= player.maxStamina / 2 && !player.#reachedHalfStamina) {
+                player.#reachedHalfStamina = true;
+                player.notify(`You're starting to get tired! You might want to stop moving and rest soon.`);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
                 clearInterval(player.moveTimer);
                 player.stamina = 0;
-                player.inflict(game, "weary", true, true, true);
+                player.inflict("weary", true, true, true);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
                 player.isMoving = false;
-                const exitPuzzle = game.puzzles.find(puzzle => puzzle.location.name === player.location.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
+                const exitPuzzle = player.game.puzzles.find(puzzle => puzzle.location.id === player.location.id && puzzle.name === exit.name && puzzle.type === "restricted exit");
                 const exitPuzzlePassable = exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(player.name);
                 if (exit.unlocked || exitPuzzlePassable) {
                     if (exitPuzzlePassable)
-                        exitPuzzle.solve(bot, game, player, "", player.name, true);
-                    currentRoom.removePlayer(game, player, exit, exitMessage);
-                    desiredRoom.addPlayer(game, player, entrance, entranceMessage, true);
+                        exitPuzzle.solve(player, "", player.name, true);
+                    currentRoom.removePlayer(player, exit, exitMessage);
+                    desiredRoom.addPlayer(player, entrance, entranceMessage, true);
 
                     // Post log message.
                     const time = new Date().toLocaleTimeString();
                     const verb = isRunning ? "ran" : "moved";
-                    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
+                    messageHandler.addLogMessage(player.game.guildContext.logChannel, `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
 
                     player.moveQueue.splice(0, 1);
                     if (player.moveQueue.length > 0)
-                        player.queueMovement(bot, game, isRunning, player.moveQueue[0].trim());
+                        player.queueMovement(isRunning, player.moveQueue[0].trim());
                 }
                 else {
-                    new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
+                    new Narration(player.game, player, player.location, `${player.displayName} stops moving.`).send();
                     player.pos.x = exit.pos.x;
                     player.pos.y = exit.pos.y;
                     player.pos.z = exit.pos.z;
-                    player.notify(game, `${exit.name} is locked.`);
+                    player.notify(`${exit.name} is locked.`);
                     player.moveQueue.length = 0;
                 }
             }
         }, 100);
     }
 
+    /**
+     * Calculates the time it takes to move the player to the desired exit.
+     * @param {Exit} exit
+     * @param {boolean} isRunning
+     * @returns {number} The number of milliseconds it will take to move to the desired exit.
+     */
     calculateMoveTime(exit, isRunning) {
         let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
-        distance = distance / settings.pixelsPerMeter;
+        distance = distance / this.game.settings.pixelsPerMeter;
         // The formula to calculate the rate is a quadratic function.
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat multiplied by 2 or 1, depending on if the player is running or not.
         const speedMultiplier = isRunning ? 2 : 1;
@@ -312,8 +597,8 @@ export default class Player {
         const slowdown = Math.min(Math.max(15.0 / this.carryWeight, 0.25), 1.0);
         rate = rate * slowdown;
         // Slope should affect the rate.
-        const rise = (exit.pos.y - this.pos.y) / settings.pixelsPerMeter;
-        var time = 0;
+        const rise = (exit.pos.y - this.pos.y) / this.game.settings.pixelsPerMeter;
+        let time = 0;
         // If distance is 0, we'll treat it like a staircase and just use the rise to calculate the time.
         if (distance === 0 && rise !== 0) {
             const uphill = rise > 0 ? true : false;
@@ -339,10 +624,14 @@ export default class Player {
         return time;
     }
 
+    /**
+     * Resets the player's stamina to its maximum value.
+     */
     regenerateStamina() {
         if (this.stamina < this.maxStamina) {
-            // Recover 1/20th of the player's max stamina per cycle.
-            const staminaAmount = this.maxStamina / 20;
+            // Recover 1/20th of the player's max stamina per cycle, times the heatedSlowdownRate if applicable.
+            let staminaAmount = this.maxStamina / 20;
+            if (this.game.heated) staminaAmount *= this.game.settings.heatedSlowdownRate;
             const newStamina = this.stamina + staminaAmount;
             // Make sure not to exceed the max stamina for this player.
             if (newStamina > this.maxStamina)
@@ -350,19 +639,23 @@ export default class Player {
             else
                 this.stamina = newStamina;
         }
-        return;
     }
 
+    /**
+     * Creates a string of non-discreet inventory items in the player's hands.
+     * @returns {string}
+     */
     createMoveAppendString() {
-        var nonDiscreetItems = new Array();
+        /** @type {string[]} */
+        let nonDiscreetItems = [];
         for (let slot = 0; slot < this.inventory.length; slot++) {
-            if ((this.inventory[slot].name === "RIGHT HAND" || this.inventory[slot].name === "LEFT HAND") &&
+            if ((this.inventory[slot].id === "RIGHT HAND" || this.inventory[slot].id === "LEFT HAND") &&
                 this.inventory[slot].equippedItem !== null &&
                 this.inventory[slot].equippedItem.prefab.discreet === false)
                 nonDiscreetItems.push(this.inventory[slot].equippedItem.singleContainingPhrase);
         }
 
-        var appendString = "";
+        let appendString = "";
         if (nonDiscreetItems.length === 0)
             appendString = ".";
         else if (nonDiscreetItems.length === 1)
@@ -373,53 +666,60 @@ export default class Player {
         return appendString;
     }
 
-    inflict(game, statusName, notify, doCures, narrate, item, duration) {
-        var status = null;
-        if (statusName instanceof Status) status = statusName;
+    /**
+     * Inflicts the player with a status effect.
+     * @param {string | Status} statusId - The ID of the status to inflict, or the status object itself.
+     * @param {boolean} [notify=true] - Whether or not to send the player the status's inflictedDescription. Defaults to true.
+     * @param {boolean} [doCures=true] - Whether or not the status's cures should actually be cured. Defaults to true.
+     * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being inflicted. Defaults to true.
+     * @param {InventoryItem | PseudoItem} [item] - The inventory item that caused the status to be inflicted, if applicable.
+     * @param {import('moment').Duration} [duration] - A custom duration that overrides the status's default duration.
+     * @returns {string} A message indicating whether the status was successfully inflicted, or if not, why it wasn't.
+     */
+    inflict(statusId, notify = true, doCures = true, narrate = true, item, duration = null) {
+        /** @type {Status} */
+        let status = null;
+        if (statusId instanceof Status) status = statusId;
         else {
-            for (let i = 0; i < game.statusEffects.length; i++) {
-                if (game.statusEffects[i].name.toLowerCase() === statusName.toLowerCase()) {
-                    status = game.statusEffects[i];
+            for (let i = 0; i < this.game.statusEffects.length; i++) {
+                if (this.game.statusEffects[i].id.toLowerCase() === statusId.toLowerCase()) {
+                    status = this.game.statusEffects[i];
                     break;
                 }
             }
-            if (status === null) return `Couldn't find status effect "${statusName}".`;
+            if (status === null) return `Couldn't find status effect "${statusId}".`;
         }
-
-        if (notify === null || notify === undefined) notify = true;
-        if (doCures === null || doCures === undefined) doCures = true;
-        if (narrate === null || narrate === undefined) narrate = true;
-        if (duration === undefined) duration = null;
 
         for (let i = 0; i < status.overriders.length; i++) {
-            if (this.status.map(statusEffect => statusEffect.name).includes(status.overriders[i].name))
-                return `Couldn't inflict status effect "${statusName}" because ${this.name} is already ${status.overriders[i].name}.`;
+            if (this.status.map(statusEffect => statusEffect.id).includes(status.overriders[i].id))
+                return `Couldn't inflict status effect "${statusId}" because ${this.name} is already ${status.overriders[i].id}.`;
         }
 
-        if (this.status.map(statusEffect => statusEffect.name).includes(statusName)) {
+        if (statusId instanceof Status) statusId = status.id;
+        if (this.status.map(statusEffect => statusEffect.id).includes(statusId)) {
             if (status.duplicatedStatus !== null) {
-                this.cure(game, statusName, false, false, false);
-                this.inflict(game, status.duplicatedStatus.name, true, false, true);
-                return `Status was duplicated, so inflicted ${status.duplicatedStatus.name} instead.`;
+                this.cure(statusId, false, false, false);
+                this.inflict(status.duplicatedStatus.id, true, false, true);
+                return `Status was duplicated, so inflicted ${status.duplicatedStatus.id} instead.`;
             }
             else return "Specified player already has that status effect.";
         }
 
-        if (status.cures !== "" && doCures) {
+        if (status.cures.length > 0 && doCures) {
             for (let i = 0; i < status.cures.length; i++)
-                this.cure(game, status.cures[i].name, false, false, false);
+                this.cure(status.cures[i].id, false, false, false);
         }
 
         // Apply the effects of any attributes that require immediate action.
-        if (status.name === "heated")
-            game.heated = true;
+        if (status.id === "heated")
+            this.game.heated = true;
         if (status.attributes.includes("no channel")) {
             this.location.leaveChannel(this);
-            this.removeFromWhispers(game, `${this.name} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.name}.`);
+            this.removeFromWhispers(`${this.displayName} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.id}.`);
         }
-        if (status.attributes.includes("no hearing")) this.removeFromWhispers(game, `${this.displayName} can no longer hear.`);
+        if (status.attributes.includes("no hearing")) this.removeFromWhispers(`${this.displayName} can no longer hear.`);
         if (status.attributes.includes("hidden")) {
-            if (narrate) new Narration(game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
+            if (narrate) new Narration(this.game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.name !== this.name));
         }
         if (status.attributes.includes("concealed")) {
@@ -438,11 +738,11 @@ export default class Player {
         }
 
         // Announce when a player falls asleep or unconscious.
-        if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} falls asleep.`).send();
-        else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} blacks out.`).send();
-        else if (status.attributes.includes("unconscious") && narrate) new Narration(game, this, this.location, `${this.displayName} goes unconscious.`).send();
+        if (status.id === "asleep" && narrate) new Narration(this.game, this, this.location, `${this.displayName} falls asleep.`).send();
+        else if (status.id === "blacked out" && narrate) new Narration(this.game, this, this.location, `${this.displayName} blacks out.`).send();
+        else if (status.attributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        status = new Status(status.name, status.duration, status.fatal, status.visible, status.overriders, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row);
+        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overriders, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row, this.game);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -450,26 +750,26 @@ export default class Player {
             else status.remaining = status.duration.clone();
 
             let player = this;
-            status.timer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
+            status.timer = moment.duration(1000).timer({ start: true, loop: true }, function () {
                 let subtractedTime = 1000;
-                if (game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
+                if (player.game.heated) subtractedTime = player.game.settings.heatedSlowdownRate * subtractedTime;
                 status.remaining.subtract(subtractedTime, 'ms');
                 player.statusString = player.generate_statusList(true, true);
 
                 if (status.remaining.asMilliseconds() <= 0) {
                     if (status.nextStage) {
-                        player.cure(game, status.name, false, false, true);
-                        const response = player.inflict(game, status.nextStage.name, true, false, true);
+                        player.cure(status.id, false, false, true);
+                        const response = player.inflict(status.nextStage.id, true, false, true);
                         if (response.startsWith(`Couldn't inflict status effect`))
-                            player.sendDescription(game, status.curedDescription, status);
+                            player.sendDescription(status.curedDescription, status);
                     }
                     else {
                         if (status.fatal) {
                             status.timer.stop();
-                            player.die(game);
+                            player.die();
                         }
                         else {
-                            player.cure(game, status.name, true, true, true);
+                            player.cure(status.id, true, true, true);
                         }
                     }
                 }
@@ -481,22 +781,32 @@ export default class Player {
 
         // Inform player what happened.
         if (notify)
-            this.sendDescription(game, status.inflictedDescription, status);
+            this.sendDescription(status.inflictedDescription, status);
 
         this.statusString = this.generate_statusList(true, true);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} became ${status.name} in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
 
         return "Status successfully added.";
     }
 
-    cure(game, statusName, notify, doCuredCondition, narrate, item) {
-        var status = null;
-        var statusIndex = -1;
+    /**
+     * Removes a status effect from the player.
+     * @param {string} statusId
+     * @param {boolean} [notify=true] - Whether or not to send the player the status's curedDescription. Defaults to true.
+     * @param {boolean} [doCuredCondition=true] - Whether or not to turn the status into its curedCondition. Defaults to true.
+     * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being cured. Defaults to true.
+     * @param {InventoryItem | PseudoItem} [item] - The inventory item that caused the status to be cured, if applicable.
+     * @returns {string} A message indicating whether the status was successfully cured, or if not, why it wasn't.
+     */
+    cure(statusId, notify = true, doCuredCondition = true, narrate = true, item) {
+        /** @type {Status} */
+        let status = null;
+        let statusIndex = -1;
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].name.toLowerCase() === statusName.toLowerCase()) {
+            if (this.status[i].id.toLowerCase() === statusId.toLowerCase()) {
                 status = this.status[i];
                 statusIndex = i;
                 break;
@@ -504,49 +814,46 @@ export default class Player {
         }
         if (status === null) return "Specified player doesn't have that status effect.";
 
-        if (notify === null || notify === undefined) notify = true;
-        if (doCuredCondition === null || doCuredCondition === undefined) doCuredCondition = true;
-
         if (status.attributes.includes("no channel") && this.getAttributeStatusEffects("no channel").length - 1 === 0)
             this.location.joinChannel(this);
         if (status.attributes.includes("hidden")) {
-            if (narrate) new Narration(game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
-            this.removeFromWhispers(game, `${this.displayName} comes out of the ${this.hidingSpot}.`);
+            if (narrate) new Narration(this.game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
+            this.removeFromWhispers(`${this.displayName} comes out of the ${this.hidingSpot}.`);
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") || occupant.name === this.name));
             this.hidingSpot = "";
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
-            if (this.talent === "NPC") this.displayIcon = this.id;
+            if (this.title === "NPC") this.displayIcon = this.id;
             else this.displayIcon = null;
             if (item === null || item === undefined) item = { name: "MASK" };
-            if (narrate) new Narration(game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
+            if (narrate) new Narration(this.game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
             this.setPronouns(this.pronouns, this.pronounString);
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         }
 
         // Announce when a player awakens.
-        if (status.name === "asleep" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.name === "blacked out" && narrate) new Narration(game, this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.attributes.includes("unconscious") && narrate) new Narration(game, this, this.location, `${this.displayName} regains consciousness.`).send();
+        if (status.id === "asleep" && narrate) new Narration(this.game, this, this.location, `${this.displayName} wakes up.`).send();
+        else if (status.id === "blacked out" && narrate) new Narration(this.game, this, this.location, `${this.displayName} wakes up.`).send();
+        else if (status.attributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} regains consciousness.`).send();
 
-        var returnMessage = "Successfully removed status effect.";
+        let returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(game, status.curedCondition.name, false, false, true);
-            returnMessage += ` Player is now ${status.curedCondition.name}.`;
+            this.inflict(status.curedCondition.id, false, false, true);
+            returnMessage += ` Player is now ${status.curedCondition.id}.`;
         }
 
         // Inform player what happened.
         if (notify) {
-            this.sendDescription(game, status.curedDescription, status);
+            this.sendDescription(status.curedDescription, status);
             // If the player is waking up, send them the description of the room they wake up in.
-            if (status.name === "asleep")
-                this.sendDescription(game, this.location.description, this.location);
+            if (status.id === "asleep")
+                this.sendDescription(this.location.description, this.location);
         }
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} has been cured of ${status.name} in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
 
         // Stop the timer.
         if (status.timer !== null)
@@ -556,25 +863,31 @@ export default class Player {
 
         this.statusString = this.generate_statusList(true, true);
 
-        if (status.name === "heated") {
+        if (status.id === "heated") {
             let noMoreHeated = true;
-            for (let i = 0; i < game.players_alive.length; i++) {
-                if (game.players_alive[i].statusString.includes("heated")) {
+            for (let i = 0; i < this.game.players_alive.length; i++) {
+                if (this.game.players_alive[i].statusString.includes("heated")) {
                     noMoreHeated = false;
                     break;
                 }
             }
-            if (noMoreHeated) game.heated = false;
+            if (noMoreHeated) this.game.heated = false;
         }
 
         return returnMessage;
     }
     
+    /**
+     * Creates a list of the player's status effects.
+     * @param {boolean} includeHidden - Whether or not to include status effects that aren't visible.
+     * @param {boolean} includeDurations - Whether or not to display the remaining time before the status effect expires.
+     * @returns {string}
+     */
     generate_statusList(includeHidden, includeDurations) {
-        var statusList = "";
+        let statusList = "";
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].visible || includeHidden) {
-                statusList += this.status[i].name;
+                statusList += this.status[i].id;
                 if (includeDurations && this.status[i].remaining !== null) {
                     const days = Math.floor(this.status[i].remaining.asDays());
                     const hours = this.status[i].remaining.hours();
@@ -598,8 +911,13 @@ export default class Player {
         return statusList.substring(0, statusList.lastIndexOf(", "));
     }
 
+    /**
+     * Returns true if the player has a status with the specified behavior attribute.
+     * @param {string} attribute - The name of the behavior attribute.
+     * @returns {boolean}
+     */
     hasAttribute(attribute) {
-        var hasAttribute = false;
+        let hasAttribute = false;
         for (let i = 0; i < this.status.length; i++) {         
             if (this.status[i].attributes.includes(attribute)) {
                 hasAttribute = true;
@@ -609,8 +927,14 @@ export default class Player {
         return hasAttribute;
     }
 
+    /**
+     * Returns list of status effects the player has with the specified behavior attribute.
+     * @param {string} attribute - The name of the behavior attribute.
+     * @returns {Status[]}
+     */
     getAttributeStatusEffects(attribute) {
-        var statusEffects = [];
+        /** @type {Status[]} */
+        let statusEffects = [];
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].attributes.includes(attribute))
                 statusEffects.push(this.status[i]);
@@ -618,18 +942,26 @@ export default class Player {
         return statusEffects;
     }
 
+    /**
+     * Calculates the player's stats based on their current status effects.
+     */
     recalculateStats() {
-        var strength = this.defaultStrength;
-        var intelligence = this.defaultIntelligence;
-        var dexterity = this.defaultDexterity;
-        var speed = this.defaultSpeed;
-        var stamina = this.defaultStamina;
+        const strength = this.defaultStrength;
+        const intelligence = this.defaultIntelligence;
+        const dexterity = this.defaultDexterity;
+        const speed = this.defaultSpeed;
+        const stamina = this.defaultStamina;
 
-        var strModifiers = [];
-        var intModifiers = [];
-        var dexModifiers = [];
-        var spdModifiers = [];
-        var staModifiers = [];
+        /** @type {StatModifier[]} */
+        let strModifiers = [];
+        /** @type {StatModifier[]} */
+        let intModifiers = [];
+        /** @type {StatModifier[]} */
+        let dexModifiers = [];
+        /** @type {StatModifier[]} */
+        let spdModifiers = [];
+        /** @type {StatModifier[]} */
+        let staModifiers = [];
 
         for (let i = 0; i < this.status.length; i++) {
             for (let j = 0; j < this.status[i].statModifiers.length; j++) {
@@ -666,8 +998,14 @@ export default class Player {
         this.stamina = staminaRatio * this.maxStamina;
     }
 
+    /**
+     * Calculates stat after applying stat modifiers.
+     * @param {number} stat - The current stat value.
+     * @param {StatModifier[]} modifiers - The modifiers to apply.
+     * @returns {number}
+     */
     recalculateStat(stat, modifiers) {
-        var assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
+        let assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
         if (assignModifiers.length !== 0) return assignModifiers[0].value;
 
         for (let i = 0; i < modifiers.length; i++)
@@ -677,30 +1015,46 @@ export default class Player {
         return stat;
     }
 
+    /**
+     * Calculates dice roll modifier based on the specified stat value.
+     * @param {number} stat - The stat value.
+     * @returns {number}
+     */
     getStatModifier(stat) {
         const statMax = 10;
-        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (settings.diceMax - settings.diceMin) / settings.diceMax);
+        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (this.game.settings.diceMax - this.game.settings.diceMin) / this.game.settings.diceMax);
         return modifier;
     }
 
+    /**
+     * Calculates the player's maximum carry weight in kilograms.
+     * @returns {number}
+     */
     getMaxCarryWeight() {
         return Math.floor(1.783 * Math.pow(this.strength, 2) - 2 * this.strength + 22);
     }
 
-    use(game, item, target = this, message = "") {
+    /**
+     * Uses the player's inventory item.
+     * @param {InventoryItem} item - The inventory item to use.
+     * @param {Player} [target] - The player the inventory item is to be used on. Defaults to the player using it.
+     * @param {string} [narration=""] - The message to be narrated in the room.
+     * @returns {string} A message indicating whether the inventory item was successfully used, or if not, why it wasn't.
+     */
+    use(item, target = this, narration = "") {
         if (item.uses === 0) return "That item has no uses left.";
         if (!item.prefab.usable) return "That item has no programmed use on its own, but you may be able to use it some other way.";
         let hasEffect = false;
         let hasCure = false;
         if (item.prefab.effects.length !== 0) {
             for (let i = 0; i < item.prefab.effects.length; i++) {
-                if (!target.statusString.includes(item.prefab.effects[i].name) || item.prefab.effects[i].duplicatedStatus !== null)
+                if (!target.statusString.includes(item.prefab.effects[i].id) || item.prefab.effects[i].duplicatedStatus !== null)
                     hasEffect = true;
             }
         }
         if (item.prefab.cures.length !== 0) {
             for (let i = 0; i < item.prefab.cures.length; i++) {
-                if (target.statusString.includes(item.prefab.cures[i].name))
+                if (target.statusString.includes(item.prefab.cures[i].id))
                     hasCure = true;
             }
         }
@@ -708,22 +1062,22 @@ export default class Player {
 
         if (item.prefab.effects.length !== 0) {
             for (let i = 0; i < item.prefab.effects.length; i++)
-                target.inflict(game, item.prefab.effects[i].name, true, true, true, item);
+                target.inflict(item.prefab.effects[i].id, true, true, true, item);
         }
 
         if (item.prefab.cures.length !== 0) {
             // If the item cures multiple status effects, don't update the spreadsheet until curing the last one.
             for (let i = 0; i < item.prefab.cures.length; i++)
-                target.cure(game, item.prefab.cures[i].name, true, true, true, item);
+                target.cure(item.prefab.cures[i].id, true, true, true, item);
         }
 
-        if (message !== "")
-            new Narration(game, this, this.location, message).send();
-        else if (target.name !== this.name && message === "")
-            new Narration(game, this, this.location, `${this.displayName} uses ${item.singleContainingPhrase} on ${target.displayName}.`).send();
+        if (narration !== "")
+            new Narration(this.game, this, this.location, narration).send();
+        else if (target.name !== this.name && narration === "")
+            new Narration(this.game, this, this.location, `${this.displayName} uses ${item.singleContainingPhrase} on ${target.displayName}.`).send();
         else {
             const verb = item.prefab.verb ? item.prefab.verb : "uses";
-            new Narration(game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
         }
 
         if (!isNaN(item.uses))
@@ -732,18 +1086,26 @@ export default class Player {
         return;
     }
 
-    take(game, item, hand, container, slotName, notify = true) {
+    /**
+     * Takes an item and puts it in the player's inventory.
+     * @param {Item} item - The item to take.
+     * @param {string} hand - The ID of the hand equipment slot to put the item in.
+     * @param {Puzzle|Fixture|Item|Room} container - The item's current container.
+     * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} the item is currently in.
+     * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
+     */
+    take(item, hand, container, slotId, notify = true) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
             item.quantity--;
 
         if (container instanceof Puzzle)
             container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item);
-        else if (container instanceof Object)
+        else if (container instanceof Fixture)
             container.description = parser.removeItem(container.description, item);
         else if (container instanceof Item) {
-            container.removeItem(item, slotName, 1);
-            container.description = parser.removeItem(container.description, item, slotName);
+            container.removeItem(item, slotId, 1);
+            container.description = parser.removeItem(container.description, item, slotId);
         }
         else if (container instanceof Room) {
             container.description = parser.removeItem(container.description, item);
@@ -751,16 +1113,17 @@ export default class Player {
                 container.exit[i].description = parser.removeItem(container.exit[i].description, item);
         }
 
-        // Get the row number of the EquipmentSlot that the item will go into.
-        var rowNumber = 0;
-        for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === hand) {
+        // Get the slot and row number of the EquipmentSlot that the item will go into.
+        let slot = 0;
+        let rowNumber = 0;
+        for (slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].id === hand) {
                 rowNumber = this.inventory[slot].row;
                 break;
             }
         }
 
-        var createdItem = itemManager.convertItem(item, this, hand, 1);
+        let createdItem = itemManager.convertItem(item, this, hand, 1);
         createdItem.containerName = "";
         createdItem.container = null;
         createdItem.row = rowNumber;
@@ -770,28 +1133,30 @@ export default class Player {
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(createdItem);
         // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].row === createdItem.row) {
-                game.inventoryItems.splice(i, 1, createdItem);
+        for (let i = 0; i < this.game.inventoryItems.length; i++) {
+            if (this.game.inventoryItems[i].row === createdItem.row) {
+                this.game.inventoryItems.splice(i, 1, createdItem);
                 break;
             }
         }
         // Create a list of all the child items.
-        var items = [];
+        /** @type {Array<Item|InventoryItem>} */
+        let items = [];
         itemManager.getChildItems(items, createdItem);
 
         // Now that the item has been converted, we can update the quantities of child items.
-        var oldChildItems = [];
+        /** @type {Array<Item|InventoryItem>} */
+        let oldChildItems = [];
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(game, this, items, slot);
+        itemManager.insertInventoryItems(this.game, this, items, slot);
 
         this.carryWeight += createdItem.weight;
-        if (notify) this.notify(game, `You take ${createdItem.singleContainingPhrase}.`);
+        if (notify) this.notify(`You take ${createdItem.singleContainingPhrase}.`);
         if (!createdItem.prefab.discreet) {
-            new Narration(game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
             // Add the new item to the player's hands item list.
             this.description = parser.addItem(this.description, createdItem, "hands");
         }
@@ -799,38 +1164,46 @@ export default class Player {
         return;
     }
 
-    steal(game, hand, victim, container, slotNo) {
+    /**
+     * Attempts to steal an inventory item from another player.
+     * @param {string} hand - The ID of the hand equipment slot to put the inventory item in.
+     * @param {Player} victim - The player to steal from.
+     * @param {InventoryItem} container - An inventory item belonging to the victim that the player will attempt to steal from.
+     * @param {number} slotNo - The index of the {@link InventorySlot|inventory slot} that the player will attempt to steal from.
+     * @returns {StealResult}
+     */
+    steal(hand, victim, container, slotNo) {
         // There might be multiple of the same item, so we need to make an array where each item's index is inserted as many times as its quantity.
-        var actualItems = [];
-        for (let i = 0; i < container.inventory[slotNo].item.length; i++) {
-            const item = container.inventory[slotNo].item[i];
+        let actualItems = [];
+        for (let i = 0; i < container.inventory[slotNo].items.length; i++) {
+            const item = container.inventory[slotNo].items[i];
             for (let j = 0; j < item.quantity; j++)
                 actualItems.push(i);
         }
         const actualItemsIndex = Math.floor(Math.random() * actualItems.length);
         const index = actualItems[actualItemsIndex];
-        var item = container.inventory[slotNo].item[index];
+        let item = container.inventory[slotNo].items[index];
 
         // Determine how successful the player is.
-        const failMax = Math.floor((settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
-        const partialMax = Math.floor(2 * (settings.diceMax - settings.diceMin) / 3) + settings.diceMin;
-        var dieRoll = new Die("dex", this, victim);
-        if (this.hasAttribute("thief")) dieRoll.result = settings.diceMax;
+        const failMax = Math.floor((this.game.settings.diceMax - this.game.settings.diceMin) / 3) + this.game.settings.diceMin;
+        const partialMax = Math.floor(2 * (this.game.settings.diceMax - this.game.settings.diceMin) / 3) + this.game.settings.diceMin;
+        let dieRoll = new Die(this.game, "dex", this, victim);
+        if (this.hasAttribute("thief")) dieRoll.result = this.game.settings.diceMax;
         if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
         // Player didn't fail.
-        if (dieRoll.result > failMax) {
+        if (dieRoll.result > failMax && item instanceof InventoryItem) {
             // Reduce quantity if the quantity is finite.
             if (!isNaN(item.quantity))
                 item.quantity--;
 
-            container.removeItem(item, container.inventory[slotNo].name, 1);
-            container.description = parser.removeItem(container.description, item, container.inventory[slotNo].name);
+            container.removeItem(item, container.inventory[slotNo].id, 1);
+            container.description = parser.removeItem(container.description, item, container.inventory[slotNo].id);
 
             // Remove the item from its EquipmentSlot.
             for (let slot = 0; slot < victim.inventory.length; slot++) {
                 let foundItem = false;
-                if (victim.inventory[slot].name === item.equipmentSlot) {
+                if (victim.inventory[slot].id === item.equipmentSlot) {
                     for (let i = 0; i < victim.inventory[slot].items.length; i++) {
                         if (victim.inventory[slot].items[i].row === item.row) {
                             foundItem = true;
@@ -841,16 +1214,17 @@ export default class Player {
                 }
                 if (foundItem) break;
             }
-            // Get the row number of the EquipmentSlot that the item will go into.
-            var rowNumber = 0;
-            for (var slot = 0; slot < this.inventory.length; slot++) {
-                if (this.inventory[slot].name === hand) {
+            // Get the slot and row number of the EquipmentSlot that the item will go into.
+            let slot = 0;
+            let rowNumber = 0;
+            for (slot = 0; slot < this.inventory.length; slot++) {
+                if (this.inventory[slot].id === hand) {
                     rowNumber = this.inventory[slot].row;
                     break;
                 }
             }
 
-            var createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
+            let createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
             createdItem.containerName = "";
             createdItem.container = null;
             createdItem.row = rowNumber;
@@ -860,48 +1234,50 @@ export default class Player {
             this.inventory[slot].items.length = 0;
             this.inventory[slot].items.push(createdItem);
             // Replace the null entry in the inventoryItems list.
-            for (let i = 0; i < game.inventoryItems.length; i++) {
-                if (game.inventoryItems[i].row === createdItem.row) {
-                    game.inventoryItems.splice(i, 1, createdItem);
+            for (let i = 0; i < this.game.inventoryItems.length; i++) {
+                if (this.game.inventoryItems[i].row === createdItem.row) {
+                    this.game.inventoryItems.splice(i, 1, createdItem);
                     break;
                 }
             }
             // Create a list of all the child items.
-            var items = [];
+            /** @type {Array<Item|InventoryItem>} */
+            let items = [];
             itemManager.getChildItems(items, createdItem);
 
             // Now that the item has been converted, we can update the quantities of child items.
-            var oldChildItems = [];
+            /** @type {Array<Item|InventoryItem>} */
+            let oldChildItems = [];
             itemManager.getChildItems(oldChildItems, item);
             for (let i = 0; i < oldChildItems.length; i++)
                 oldChildItems[i].quantity = 0;
 
-            itemManager.insertInventoryItems(game, this, items, slot);
+            itemManager.insertInventoryItems(this.game, this, items, slot);
 
             victim.carryWeight -= createdItem.weight;
             this.carryWeight += createdItem.weight;
             // Decide what messages to send.
             if (dieRoll.result > partialMax || victim.hasAttribute("unconscious")) {
                 if (container.inventory.length === 1)
-                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
                 else
-                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].id} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
             }
             else {
                 if (container.inventory.length === 1) {
-                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.notify(game, `${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
                 }
                 else {
-                    this.notify(game, `You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.notify(game, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}!`);
+                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].id} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
+                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].id} of your ${container.name}!`);
                 }
             }
             if (!createdItem.prefab.discreet) {
                 if (container.inventory.length === 1)
-                    new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
+                    new Narration(this.game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
                 else
-                    new Narration(game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}.`).send();
+                    new Narration(this.game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slotNo].id} of ${victim.displayName}'s ${container.name}.`).send();
 
                 // Add the new item to the player's hands item list.
                 this.description = parser.addItem(this.description, createdItem, "hands");
@@ -912,60 +1288,70 @@ export default class Player {
         // Player failed to steal the item.
         else {
             if (container.inventory.length === 1) {
-                this.notify(game, `You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.notify(game, `${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
+                this.notify(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
             }
             else {
-                this.notify(game, `You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.notify(game, `${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].name} of your ${container.name}, but you notice in time!`);
+                this.notify(`You try to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].id} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${container.inventory[slotNo].id} of your ${container.name}, but you notice in time!`);
             }
 
             return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
         }
     }
 
-    drop(game, item, hand, container, slotName, notify = true) {
+    /**
+     * Drops an inventory item and puts it in the specified container in the room.
+     * @param {InventoryItem} item - The inventory item to drop.
+     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {Puzzle|Fixture|Item} container - The container to put the item in.
+     * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to put the item in.
+     * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
+     */
+    drop(item, hand, container, slotId, notify = true) {
         // Unequip the item from the player's hand.
-        this.unequip(game, item, hand, null);
+        this.unequip(item, hand, null);
 
         // Convert the InventoryItem to an Item.
-        var createdItem = itemManager.convertInventoryItem(item, this, container, slotName, 1);
+        let createdItem = itemManager.convertInventoryItem(item, this, container, slotId, 1);
         createdItem.container = container;
-        createdItem.slot = slotName;
+        createdItem.slot = slotId;
 
         // These two variables are needed at the end, but since we're checking the data type of the container anyway, set them now.
-        var containerName = "";
-        var preposition = "in";
+        let containerName = "";
+        let preposition = "in";
         // Update the container's description.
         if (container instanceof Puzzle) {
             container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, item);
             containerName = container.parentObject ? container.parentObject.name : container.name;
             preposition = container.parentObject ? container.parentObject.preposition : "in";
         }
-        else if (container instanceof Object) {
+        else if (container instanceof Fixture) {
             container.description = parser.addItem(container.description, item);
             containerName = container.name;
             preposition = container.preposition;
         }
         else if (container instanceof Item) {
-            container.insertItem(createdItem, slotName);
-            container.description = parser.addItem(container.description, item, slotName);
+            container.insertItem(createdItem, slotId);
+            container.description = parser.addItem(container.description, item, slotId);
             containerName = container.name;
             preposition = container.prefab ? container.prefab.preposition : "in";
         }
 
         // Create a list of all the child items.
-        var items = [];
+        /** @type {Item[]} */
+        let items = [];
         items.push(createdItem);
         itemManager.getChildItems(items, createdItem);
 
         // Now that the item has been converted, we can update the quantities of child items.
         // We need a recursive function for this.
+        /** @param {InventoryItem} item */
         let deleteChildQuantities = function (item) {
             for (let slot = 0; slot < item.inventory.length; slot++) {
-                for (let i = 0; i < item.inventory[slot].item.length; i++) {
-                    deleteChildQuantities(item.inventory[slot].item[i]);
-                    item.inventory[slot].item[i].quantity = 0;
+                for (let i = 0; i < item.inventory[slot].items.length; i++) {
+                    deleteChildQuantities(item.inventory[slot].items[i]);
+                    item.inventory[slot].items[i].quantity = 0;
                 }
             }
             return;
@@ -973,12 +1359,12 @@ export default class Player {
         deleteChildQuantities(item);
         item.quantity = 0;
         
-        itemManager.insertItems(game, this.location, items);
+        itemManager.insertItems(this.game, this.location, items);
 
         this.carryWeight -= item.weight;
-        if (notify) this.notify(game, `You discard ${item.singleContainingPhrase}.`);
+        if (notify) this.notify(`You discard ${item.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
-            new Narration(game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, item, "hands");
         }
@@ -986,20 +1372,28 @@ export default class Player {
         return;
     }
 
-    give(game, item, hand, recipient, recipientHand) {
+    /**
+     * Gives an inventory item to another player.
+     * @param {InventoryItem} item - The inventory item to give.
+     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {Player} recipient - The player to give the inventory item to.
+     * @param {string} recipientHand - The ID of the hand equipment slot of the recipient to put the item in.
+     */
+    give(item, hand, recipient, recipientHand) {
         // Unequip the item from the player's hand.
-        this.unequip(game, item, hand, null);
+        this.unequip(item, hand, null);
 
-        // Get the row number of the EquipmentSlot that the item will go into.
-        var rowNumber = 0;
-        for (var slot = 0; slot < recipient.inventory.length; slot++) {
-            if (recipient.inventory[slot].name === recipientHand) {
+        // Get the slot and row number of the EquipmentSlot that the item will go into.
+        let slot = 0;
+        let rowNumber = 0;
+        for (slot = 0; slot < recipient.inventory.length; slot++) {
+            if (recipient.inventory[slot].id === recipientHand) {
                 rowNumber = recipient.inventory[slot].row;
                 break;
             }
         }
 
-        var createdItem = itemManager.copyInventoryItem(item, recipient, recipientHand, 1);
+        let createdItem = itemManager.copyInventoryItem(item, recipient, recipientHand, 1);
         createdItem.containerName = "";
         createdItem.container = null;
         createdItem.row = rowNumber;
@@ -1009,31 +1403,33 @@ export default class Player {
         recipient.inventory[slot].items.length = 0;
         recipient.inventory[slot].items.push(createdItem);
         // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].row === createdItem.row) {
-                game.inventoryItems.splice(i, 1, createdItem);
+        for (let i = 0; i < this.game.inventoryItems.length; i++) {
+            if (this.game.inventoryItems[i].row === createdItem.row) {
+                this.game.inventoryItems.splice(i, 1, createdItem);
                 break;
             }
         }
         // Create a list of all the child items.
-        var items = [];
+        /** @type {InventoryItem[]} */
+        let items = [];
         itemManager.getChildItems(items, createdItem);
 
         // Now that the item has been converted, we can update the quantities of child items.
-        var oldChildItems = [];
+        /** @type {InventoryItem[]} */
+        let oldChildItems = [];
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(game, recipient, items, slot);
+        itemManager.insertInventoryItems(this.game, recipient, items, slot);
 
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
-        this.notify(game, `You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
-        recipient.notify(game, `${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
+        this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
+        recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
-            new Narration(game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, createdItem, "hands");
             // Add the item to the recipient's hands item list.
@@ -1043,42 +1439,52 @@ export default class Player {
         return;
     }
 
-    stash(game, item, hand, container, slotName) {
+    /**
+     * Moves an inventory item from the player's hand into a container in their inventory.
+     * @param {InventoryItem} item - The inventory item to stash. 
+     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {InventoryItem} container - The container to stash the inventory item in.
+     * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to stash the inventory item in.
+     */
+    stash(item, hand, container, slotId) {
         // Unequip the item from the player's hand.
-        this.unequip(game, item, hand, null);
+        this.unequip(item, hand, null);
 
         // Get the slot number of the EquipmentSlot that the item will go into.
-        for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === container.equipmentSlot)
+        let slot = 0;
+        for (slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].id === container.equipmentSlot)
                 break;
         }
 
-        var createdItem = itemManager.copyInventoryItem(item, this, this.inventory[slot].name, 1);
-        createdItem.containerName = container.identifier + '/' + slotName;
+        let createdItem = itemManager.copyInventoryItem(item, this, this.inventory[slot].id, 1);
+        createdItem.containerName = container.identifier + '/' + slotId;
         createdItem.container = container;
-        createdItem.slot = slotName;
+        createdItem.slot = slotId;
 
         // Update container.
-        container.insertItem(createdItem, slotName);
-        container.description = parser.addItem(container.description, createdItem, slotName);
+        container.insertItem(createdItem, slotId);
+        container.description = parser.addItem(container.description, createdItem, slotId);
 
         // Create a list of all the child items.
-        var items = [];
+        /** @type {InventoryItem[]} */
+        let items = [];
         items.push(createdItem);
         itemManager.getChildItems(items, createdItem);
 
         // Now that the item has been converted, we can update the quantities of child items.
-        var oldChildItems = [];
+        /** @type {InventoryItem[]} */
+        let oldChildItems = [];
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(game, this, items, slot);
+        itemManager.insertInventoryItems(this.game, this, items, slot);
 
-        this.notify(game, `You stash ${createdItem.singleContainingPhrase}.`);
+        this.notify(`You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
-            var preposition = container.prefab ? container.prefab.preposition : "in";
-            new Narration(game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
+            let preposition = container.prefab ? container.prefab.preposition : "in";
+            new Narration(this.game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, item, "hands");
         }
@@ -1086,18 +1492,25 @@ export default class Player {
         return;
     }
 
-    unstash(game, item, hand, container, slotName) {
+    /**
+     * Moves an inventory item from a container in the player's inventory to the player's hand.
+     * @param {InventoryItem} item - The inventory item to unstash. 
+     * @param {string} hand - The ID of the hand equipment slot to put the inventory item in.
+     * @param {InventoryItem} container - The inventory item's current container.
+     * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} the inventory item is currently in.
+     */
+    unstash(item, hand, container, slotId) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
             item.quantity--;
 
-        container.removeItem(item, slotName, 1);
-        container.description = parser.removeItem(container.description, item, slotName);
+        container.removeItem(item, slotId, 1);
+        container.description = parser.removeItem(container.description, item, slotId);
 
         // Remove the item from its EquipmentSlot.
         for (let slot = 0; slot < this.inventory.length; slot++) {
             let foundItem = false;
-            if (this.inventory[slot].name === item.equipmentSlot) {
+            if (this.inventory[slot].id === item.equipmentSlot) {
                 for (let i = 0; i < this.inventory[slot].items.length; i++) {
                     if (this.inventory[slot].items[i].row === item.row) {
                         foundItem = true;
@@ -1108,16 +1521,17 @@ export default class Player {
             }
             if (foundItem) break;
         }
-        // Get the row number of the EquipmentSlot that the item will go into.
-        var rowNumber = 0;
-        for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === hand) {
+        // Get the slot and row number of the EquipmentSlot that the item will go into.
+        let slot = 0;
+        let rowNumber = 0;
+        for (slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].id === hand) {
                 rowNumber = this.inventory[slot].row;
                 break;
             }
         }
 
-        var createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
+        let createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
         createdItem.containerName = "";
         createdItem.container = null;
         createdItem.row = rowNumber;
@@ -1127,27 +1541,29 @@ export default class Player {
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(createdItem);
         // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].row === createdItem.row) {
-                game.inventoryItems.splice(i, 1, createdItem);
+        for (let i = 0; i < this.game.inventoryItems.length; i++) {
+            if (this.game.inventoryItems[i].row === createdItem.row) {
+                this.game.inventoryItems.splice(i, 1, createdItem);
                 break;
             }
         }
         // Create a list of all the child items.
-        var items = [];
+        /** @type {InventoryItem[]} */
+        let items = [];
         itemManager.getChildItems(items, createdItem);
 
         // Now that the item has been converted, we can update the quantities of child items.
-        var oldChildItems = [];
+        /** @type {InventoryItem[]} */
+        let oldChildItems = [];
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(game, this, items, slot);
+        itemManager.insertInventoryItems(this.game, this, items, slot);
         
-        this.notify(game, `You take ${item.singleContainingPhrase} out of the ${container.name}.`);
+        this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
-            new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
             this.description = parser.addItem(this.description, item, "hands");
         }
@@ -1155,53 +1571,63 @@ export default class Player {
         return;
     }
 
-    async equip(game, item, slotName, hand, bot, notify = true) {
+    /**
+     * Moves an inventory item from the player's hand to one of their {@link EquipmentSlot|equipment slots}.
+     * @param {InventoryItem} item - The inventory item to equip.
+     * @param {string} slotId - The ID of the equipment slot to equip the inventory item to. 
+     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
+     */
+    async equip(item, slotId, hand, notify = true) {
         // Unequip the item from the player's hand.
-        this.unequip(game, item, hand, null);
+        this.unequip(item, hand, null);
 
-        // Get the row number of the EquipmentSlot that the item will go into.
-        var rowNumber = 0;
-        for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === slotName) {
+        // Get the slot and row number of the EquipmentSlot that the item will go into.
+        let slot = 0;
+        let rowNumber = 0;
+        for (slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].id === slotId) {
                 rowNumber = this.inventory[slot].row;
                 break;
             }
         }
 
-        var createdItem = itemManager.copyInventoryItem(item, this, slotName, 1);
+        let createdItem = itemManager.copyInventoryItem(item, this, slotId, 1);
         createdItem.row = rowNumber;
 
-        // Equip the item to the player's hand.
+        // Equip the item to the player's equipment slot.
         this.inventory[slot].equippedItem = createdItem;
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(createdItem);
         // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].row === createdItem.row) {
-                game.inventoryItems.splice(i, 1, createdItem);
+        for (let i = 0; i < this.game.inventoryItems.length; i++) {
+            if (this.game.inventoryItems[i].row === createdItem.row) {
+                this.game.inventoryItems.splice(i, 1, createdItem);
                 break;
             }
         }
         // Create a list of all the child items.
-        var items = [];
+        /** @type {InventoryItem[]} */
+        let items = [];
         itemManager.getChildItems(items, createdItem);
 
         // Update the quantities of child items.
-        var oldChildItems = [];
+        /** @type {InventoryItem[]} */
+        let oldChildItems = [];
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
         item.quantity = 0;
 
-        itemManager.insertInventoryItems(game, this, items, slot);
+        itemManager.insertInventoryItems(this.game, this, items, slot);
 
-        if (notify) this.notify(game, `You equip the ${createdItem.name}.`);
-        new Narration(game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
+        if (notify) this.notify(`You equip the ${createdItem.name}.`);
+        new Narration(this.game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
         // Remove mention of any equipped items that this item covers.
         for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
             const coveredEquipmentSlot = createdItem.prefab.coveredEquipmentSlots[i];
             for (let j = 0; j < this.inventory.length; j++) {
-                if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
                     // Preserve quantity.
                     const quantity = this.inventory[j].equippedItem.quantity;
                     this.inventory[j].equippedItem.quantity = 0;
@@ -1216,7 +1642,7 @@ export default class Player {
             this.description = parser.removeItem(this.description, item, "hands");
 
         // Check to make sure that this item isn't covered by something else the player has equipped.
-        var isCovered = false;
+        let isCovered = false;
         for (let i = 0; i < this.inventory.length; i++) {
             if (this.inventory[i].equippedItem !== null) {
                 for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
@@ -1236,23 +1662,31 @@ export default class Player {
             const command = createdItem.prefab.equipCommands[i];
             if (command.startsWith("wait")) {
                 let args = command.split(" ");
-                if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                 const seconds = parseInt(args[1]);
-                if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                 await sleep(seconds);
             }
             else {
-                executeCommand(command, bot, game, null, this, createdItem);
+                executeCommand(command, this.game, null, this, createdItem);
             }
         }
         return;
     }
 
-    async fastEquip(game, item, slotName, bot, notify = true) {
-        // Get the row number of the EquipmentSlot that the item will go into.
-        var rowNumber = 0;
-        for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === slotName) {
+    /**
+     * Equips an inventory item to any of the player's {@link EquipmentSlot|equipment slots}.
+     * This should only be used for newly created inventory items.
+     * @param {InventoryItem} item - The inventory item to equip.
+     * @param {string} slotId - The ID of the equipment slot to equip the inventory item to. 
+     * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
+     */
+    async directEquip(item, slotId, notify = true) {
+        // Get the slot and row number of the EquipmentSlot that the item will go into.
+        let slot = 0;
+        let rowNumber = 0;
+        for (slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].id === slotId) {
                 rowNumber = this.inventory[slot].row;
                 break;
             }
@@ -1264,31 +1698,31 @@ export default class Player {
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(item);
         // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].row === item.row) {
-                game.inventoryItems.splice(i, 1, item);
+        for (let i = 0; i < this.game.inventoryItems.length; i++) {
+            if (this.game.inventoryItems[i].row === item.row) {
+                this.game.inventoryItems.splice(i, 1, item);
                 break;
             }
         }
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            if (notify) this.notify(game, `You take ${item.singleContainingPhrase}.`);
+            if (notify) this.notify(`You take ${item.singleContainingPhrase}.`);
             if (!item.prefab.discreet && notify) {
-                new Narration(game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
+                new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
                 this.description = parser.addItem(this.description, item, "hands");
             }
         }
         else {
             if (notify) {
-                this.notify(game, `You equip the ${item.name}.`);
-                new Narration(game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+                this.notify(`You equip the ${item.name}.`);
+                new Narration(this.game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             }
             // Remove mention of any equipped items that this item covers.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
                 const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
                 for (let j = 0; j < this.inventory.length; j++) {
-                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                    if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
                         // Preserve quantity.
                         const quantity = this.inventory[j].equippedItem.quantity;
                         this.inventory[j].equippedItem.quantity = 0;
@@ -1300,7 +1734,7 @@ export default class Player {
             }
 
             // Check to make sure that this item isn't covered by something else the player has equipped.
-            var isCovered = false;
+            let isCovered = false;
             for (let i = 0; i < this.inventory.length; i++) {
                 if (this.inventory[i].equippedItem !== null) {
                     for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
@@ -1320,24 +1754,32 @@ export default class Player {
                 const command = item.prefab.equipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
-                    executeCommand(command, bot, game, null, this, item);
+                    executeCommand(command, this.game, null, this, item);
                 }
             }
         }
         return;
     }
 
-    async unequip(game, item, slotName, hand, bot, notify = true) {
-        // Get the row number of the EquipmentSlot that the item is being unequipped from.
-        var rowNumber = 0;
-        for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === slotName) {
+    /**
+     * Moves an inventory item from a player's {@link EquipmentSlot|equipment slot} to their hand.
+     * @param {InventoryItem} item - The inventory item to unequip.
+     * @param {string} slotId - The ID of the equipment slot the inventory item is currently equipped to. 
+     * @param {string} hand - The ID of the hand equipment slot to put the inventory item in.
+     * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
+     */
+    async unequip(item, slotId, hand, notify = true) {
+        // Get the slot and row number of the EquipmentSlot that the item is being unequipped from.
+        let slot = 0;
+        let rowNumber = 0;
+        for (slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].id === slotId) {
                 rowNumber = this.inventory[slot].row;
                 break;
             }
@@ -1348,20 +1790,21 @@ export default class Player {
             this,
             null,
             "",
-            slotName,
+            slotId,
             "",
             null,
             null,
             "",
-            rowNumber
+            rowNumber,
+            this.game
         );
         this.inventory[slot].equippedItem = null;
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(nullItem);
         // Replace the equipped item's entry in the inventoryItems list.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].row === item.row) {
-                game.inventoryItems.splice(i, 1, nullItem);
+        for (let i = 0; i < this.game.inventoryItems.length; i++) {
+            if (this.game.inventoryItems[i].row === item.row) {
+                this.game.inventoryItems.splice(i, 1, nullItem);
                 break;
             }
         }
@@ -1371,13 +1814,13 @@ export default class Player {
             // Get the row number of the EquipmentSlot that the item will go into.
             rowNumber = 0;
             for (slot = 0; slot < this.inventory.length; slot++) {
-                if (this.inventory[slot].name === hand) {
+                if (this.inventory[slot].id === hand) {
                     rowNumber = this.inventory[slot].row;
                     break;
                 }
             }
 
-            var createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
+            let createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
             createdItem.row = rowNumber;
 
             // Equip the item to the player's hand.
@@ -1385,27 +1828,29 @@ export default class Player {
             this.inventory[slot].items.length = 0;
             this.inventory[slot].items.push(createdItem);
             // Replace the null entry in the inventoryItems list.
-            for (let i = 0; i < game.inventoryItems.length; i++) {
-                if (game.inventoryItems[i].row === createdItem.row) {
-                    game.inventoryItems.splice(i, 1, createdItem);
+            for (let i = 0; i < this.game.inventoryItems.length; i++) {
+                if (this.game.inventoryItems[i].row === createdItem.row) {
+                    this.game.inventoryItems.splice(i, 1, createdItem);
                     break;
                 }
             }
             // Create a list of all the child items.
-            var items = [];
+            /** @type {InventoryItem[]} */
+            let items = [];
             itemManager.getChildItems(items, createdItem);
 
             // Update the quantities of child items.
-            var oldChildItems = [];
+            /** @type {InventoryItem[]} */
+            let oldChildItems = [];
             itemManager.getChildItems(oldChildItems, item);
             for (let i = 0; i < oldChildItems.length; i++)
                 oldChildItems[i].quantity = 0;
             item.quantity = 0;
 
-            itemManager.insertInventoryItems(game, this, items, slot);
+            itemManager.insertInventoryItems(this.game, this, items, slot);
 
-            if (notify) this.notify(game, `You unequip the ${createdItem.name}.`);
-            new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
+            if (notify) this.notify(`You unequip the ${createdItem.name}.`);
+            new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
             // Add mention of this item to the player's hands item list.
@@ -1415,16 +1860,16 @@ export default class Player {
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
                 const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
                 for (let j = 0; j < this.inventory.length; j++) {
-                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                    if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
                         // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
-                        const coveringItems = game.inventoryItems.filter(item =>
+                        const coveringItems = this.game.inventoryItems.filter(item =>
                             item.player.name === this.name &&
                             item.prefab !== null &&
                             item.equipmentSlot !== "RIGHT HAND" &&
                             item.equipmentSlot !== "LEFT HAND" &&
                             item.containerName === "" &&
                             item.container === null &&
-                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].name)
+                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].id)
                         );
                         if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
                         break;
@@ -1437,24 +1882,30 @@ export default class Player {
                 const command = createdItem.prefab.unequipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
-                    executeCommand(command, bot, game, null, this, createdItem);
+                    executeCommand(command, this.game, null, this, createdItem);
                 }
             }
         }
         return;
     }
 
-    async fastUnequip(game, item, bot) {
+    /**
+     * Unequips an inventory item from a player's {@link EquipmentSlot|equipment slot} without moving it to their hand.
+     * This should only be used for inventory items that are about to be destroyed.
+     * @param {InventoryItem} item - The inventory item to unequip.
+     */
+    async directUnequip(item) {
         // Get the row number of the EquipmentSlot that the item is being unequipped from.
-        var rowNumber = 0;
-        for (var slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === item.equipmentSlot) {
+        let slot = 0;
+        let rowNumber = 0;
+        for (slot = 0; slot < this.inventory.length; slot++) {
+            if (this.inventory[slot].id === item.equipmentSlot) {
                 rowNumber = this.inventory[slot].row;
                 break;
             }
@@ -1470,16 +1921,17 @@ export default class Player {
             null,
             null,
             "",
-            rowNumber
+            rowNumber,
+            this.game
         );
         this.inventory[slot].equippedItem = null;
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(nullItem);
         this.carryWeight -= item.weight * item.quantity;
         // Replace the equipped item's entry in the inventoryItems list.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].row === item.row) {
-                game.inventoryItems.splice(i, 1, nullItem);
+        for (let i = 0; i < this.game.inventoryItems.length; i++) {
+            if (this.game.inventoryItems[i].row === item.row) {
+                this.game.inventoryItems.splice(i, 1, nullItem);
                 break;
             }
         }
@@ -1490,24 +1942,24 @@ export default class Player {
                 this.description = parser.removeItem(this.description, item, "hands");
         }
         else {
-            this.notify(game, `You unequip the ${item.name}.`);
-            new Narration(game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
+            this.notify(`You unequip the ${item.name}.`);
+            new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.description = parser.removeItem(this.description, item, "equipment");
             // Find any items that were covered by this item and add them to the equipment item list.
             for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
                 const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
                 for (let j = 0; j < this.inventory.length; j++) {
-                    if (this.inventory[j].name === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
+                    if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
                         // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
-                        const coveringItems = game.inventoryItems.filter(item =>
+                        const coveringItems = this.game.inventoryItems.filter(item =>
                             item.player.name === this.name &&
                             item.prefab !== null &&
                             item.equipmentSlot !== "RIGHT HAND" &&
                             item.equipmentSlot !== "LEFT HAND" &&
                             item.containerName === "" &&
                             item.container === null &&
-                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].name)
+                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].id)
                         );
                         if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
                         break;
@@ -1520,37 +1972,49 @@ export default class Player {
                 const command = item.prefab.unequipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
-                    executeCommand(command, bot, game, null, this, item);
+                    executeCommand(command, this.game, null, this, item);
                 }
             }
         }
         return;
     }
 
+    /**
+     * Displays the player's inventory.
+     * @param {string} possessive - A string indicating whose inventory this is. Either "Your" or `${player.name}'s`.
+     * @param {boolean} useID - Whether or not to use the identifier or prefab IDs of the player's inventory items. If this is false, the inventory item's name will be used instead.
+     * @returns {string} A string representation of the player's inventory.
+     */
     viewInventory(possessive, useID) {
-        var itemString = `__${possessive} inventory:__\n`;
+        let itemString = `__${possessive} inventory:__\n`;
         for (let slot = 0; slot < this.inventory.length; slot++) {
-            itemString += `${this.inventory[slot].name}: `;
+            itemString += `${this.inventory[slot].id}: `;
             const equippedItem = this.inventory[slot].equippedItem;
             if (equippedItem === null) itemString += `[ ]\n`;
             else {
                 itemString += `[${useID ? equippedItem.identifier ? equippedItem.identifier : equippedItem.prefab.id : equippedItem.name}]\n`;
+                /** 
+                 * Generates a display of an inventory item's children.
+                 * @param {string} itemString - A string representation of the inventory item's name.
+                 * @param {InventoryItem} item - The inventory item whose child items are being listed.
+                 */
                 let listChildItems = function (itemString, item) {
                     // If item is capable of holding other items, show what items it has inside.
                     if (item.inventory.length > 0) {
                         for (let i = 0; i < item.inventory.length; i++) {
-                            var parentItemIndexes = [];
-                            itemString += `    ${item.inventory[i].name}: `;
-                            if (item.inventory[i].item.length === 0) itemString += `[ ]`;
+                            /** @type {number[]} */
+                            let parentItemIndexes = [];
+                            itemString += `    ${item.inventory[i].id}: `;
+                            if (item.inventory[i].items.length === 0) itemString += `[ ]`;
                             else {
-                                for (let j = 0; j < item.inventory[i].item.length; j++) {
-                                    const childItem = item.inventory[i].item[j];
+                                for (let j = 0; j < item.inventory[i].items.length; j++) {
+                                    const childItem = item.inventory[i].items[j];
                                     if (childItem.quantity === 1) itemString += `[${useID ? childItem.identifier ? childItem.identifier : childItem.prefab.id : childItem.name}] `;
                                     else if (useID) itemString += `[${childItem.quantity} ${childItem.identifier ? childItem.identifier : childItem.prefab.id}] `;
                                     else {
@@ -1561,7 +2025,7 @@ export default class Player {
                                 }
                                 for (let j = 0; j < parentItemIndexes.length; j++) {
                                     itemString += `\n`;
-                                    itemString = listChildItems(itemString, item.inventory[i].item[parentItemIndexes[j]]);
+                                    itemString = listChildItems(itemString, item.inventory[i].items[parentItemIndexes[j]]);
                                 }
                             }
                             if (itemString[itemString.length - 1] !== '\n') itemString += '\n';
@@ -1576,14 +2040,23 @@ export default class Player {
         return itemString.replace(/\n{2,}/g, '\n');
     }
 
-    craft(game, item1, item2, recipe) {
-        var product1 = recipe.products[0];
-        var product2 = recipe.products[1];
+    /**
+     * Crafts two ingredients into one or two products according to a recipe.
+     * @param {InventoryItem} item1 - The first ingredient.
+     * @param {InventoryItem} item2 - The second ingredient.
+     * @param {Recipe} recipe - The recipe that describes how these ingredients are crafted.
+     * @returns {CraftingResult} The resulting product(s).
+     */
+    craft(item1, item2, recipe) {
+        let product1 = recipe.products[0];
+        let product2 = recipe.products[1];
         // First, check if either of the ingredients are also products.
         // If they are, simply decrease their uses.
         // If their uses would become 0, change the product to its next stage, if it has one.
-        var item1Uses = null;
-        var item2Uses = null;
+        /** @type {number} */
+        let item1Uses = null;
+        /** @type {number} */
+        let item2Uses = null;
         if (product1 && item1.prefab.id === product1.id) {
             if (item1.uses - 1 === 0) product1 = product1.nextStage;
             else if (!isNaN(item1.uses)) item1Uses = item1.uses - 1;
@@ -1610,7 +2083,7 @@ export default class Player {
         if (item2Uses !== null)
             item2.uses = item2Uses;
 
-        this.sendDescription(game, recipe.completedDescription, recipe);
+        this.sendDescription(recipe.completedDescription, recipe);
         // Decide if this should be narrated or not.
         if (product1 && !product1.discreet || product2 && !product2.discreet) {
             let productPhrase = "";
@@ -1628,24 +2101,30 @@ export default class Player {
             else if (product1Phrase !== "") productPhrase = product1Phrase;
             else if (product2Phrase !== "") productPhrase = product2Phrase;
 
-            if (productPhrase !== "") new Narration(game, this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
+            if (productPhrase !== "") new Narration(this.game, this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
         }
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
     
-    uncraft(game, item, recipe, bot) {
+    /**
+     * Reverses a crafting recipe to convert a single product into two ingredients.
+     * @param {InventoryItem} item - The product to uncraft.
+     * @param {Recipe} recipe - The recipe that describes how this product is crafted.
+     * @returns {UncraftingResult} The resulting ingredients.
+     */
+    uncraft(item, recipe) {
         // If only one ingredient is discreet, the first ingredient should be the discreet one.
         // This will result in more natural sounding narrations.
         const oneDiscreet = !recipe.ingredients[0].discreet && recipe.ingredients[1].discreet || recipe.ingredients[0].discreet && !recipe.ingredients[1].discreet;
-        var ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
-        var ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
+        let ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
+        let ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
 
-        var rightHand = null;
-        var leftHand = null;
+        let rightHand = null;
+        let leftHand = null;
         for (let slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].name === "RIGHT HAND") rightHand = this.inventory[slot];
-            else if (this.inventory[slot].name === "LEFT HAND") leftHand = this.inventory[slot];
+            if (this.inventory[slot].id === "RIGHT HAND") rightHand = this.inventory[slot];
+            else if (this.inventory[slot].id === "LEFT HAND") leftHand = this.inventory[slot];
         }
 
         const originalItemPhrase = item.singleContainingPhrase;
@@ -1661,11 +2140,10 @@ export default class Player {
             "",
             1,
             new Map(),
-            bot,
             false
-        )
+        );
 
-        this.sendDescription(game, recipe.uncraftedDescription, recipe);
+        this.sendDescription(recipe.uncraftedDescription, recipe);
         if (!itemDiscreet || !ingredient1.discreet || !ingredient2.discreet) {
             let itemPhrase = item.singleContainingPhrase;
             let ingredientPhrase = "";
@@ -1694,15 +2172,21 @@ export default class Player {
 
             if (ingredientPhrase !== "") {
                 ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
-                new Narration(game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
+                new Narration(this.game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
             }
         }
 
         return { ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null, ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null };
     }
 
-    hasItem(game, id) {
-        return game.inventoryItems.find(item =>
+    /**
+     * Returns the player's inventory item whose prefab ID matches the given ID, if it exists.
+     * @private
+     * @param {string} id - The prefab ID to search for.
+     * @returns {InventoryItem}
+     */
+    findItem(id) {
+        return this.game.inventoryItems.find(item =>
             item.player.name === this.name &&
             item.prefab !== null &&
             item.quantity > 0 &&
@@ -1710,35 +2194,55 @@ export default class Player {
         );
     }
 
-    attemptPuzzle(bot, game, puzzle, item, password, command, misc) {
+    /**
+     * Returns true if the player has an inventory item with the given prefab ID.
+     * @param {string} id - The prefab ID to search for. 
+     * @returns {boolean}
+     */
+    hasItem(id) {
+        return !!this.findItem(id);
+    }
+
+    /**
+     * Attempts to solve a puzzle.
+     * @param {Puzzle} puzzle - The puzzle to attempt.
+     * @param {Item|InventoryItem} item - The item instance required to attempt the puzzle.
+     * @param {string} password - The password the player entered to attempt the puzzle.
+     * @param {string} command - The command alias that was used to attempt the puzzle.
+     * @param {string} input - The combined arguments of the command.
+     * @param {Message} [message] - The message that triggered the puzzle attempt.
+     * @param {Player} [targetPlayer] - The player who will be treated as the initiating player in subsequent bot command executions called by the puzzle's solved commands, if applicable.
+     * @returns {string|void} A message to show to the player indicating why their attempt failed.
+     */
+    attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer) {
         const puzzleName = puzzle.parentObject ? puzzle.parentObject.name : puzzle.name;
         // Make sure all the requirements are met.
         let allRequirementsMet = true;
         let requiredItems = [];
-        for (let i = 0; i < puzzle.requirements.length; i++) {
-            if (puzzle.requirements[i] instanceof Puzzle && !puzzle.requirements[i].solved ||
-                puzzle.requirements[i] instanceof Event && !puzzle.requirements[i].ongoing
+        for (const requirement of puzzle.requirements) {
+            if (requirement instanceof Puzzle && !requirement.solved ||
+                requirement instanceof Event && !requirement.ongoing
             ) {
                 allRequirementsMet = false;
                 break;
             }
-            else if (puzzle.requirements[i] instanceof Flag) {
-                if (puzzle.requirements[i].valueScript !== "") {
-                    const value = puzzle.requirements[i].evaluate();
-                    puzzle.requirements[i].setValue(value, true, bot, game, this);
+            else if (requirement instanceof Flag) {
+                if (requirement.valueScript !== "") {
+                    const value = requirement.evaluate();
+                    requirement.setValue(value, true, this);
                 }
-                if (puzzle.requirements[i].value !== true) {
+                if (requirement.value !== true) {
                     allRequirementsMet = false;
                     break;
                 }
             }
-            else if (puzzle.requirements[i] instanceof Prefab) {
-                if (item !== null && item.prefab.id !== puzzle.requirements[i].id) {
+            else if (requirement instanceof Prefab) {
+                if (item !== null && item.prefab.id !== requirement.id) {
                     allRequirementsMet = false;
                     break;
                 }
                 else if (item === null) {
-                    const requiredItem = this.hasItem(game, puzzle.requirements[i].id);
+                    const requiredItem = this.findItem(requirement.id);
                     if (!requiredItem) {
                         allRequirementsMet = false;
                         break;
@@ -1752,19 +2256,19 @@ export default class Player {
             puzzle.setAccessible();
         else if (!allRequirementsMet && puzzle.accessible)
             puzzle.setInaccessible();
-        if (puzzle.accessible || (puzzle.type === "weight" || puzzle.type === "container") && (misc.command === "take" || misc.command === "drop")) {
+        if (puzzle.accessible || (puzzle.type === "weight" || puzzle.type === "container") && (command === "take" || command === "drop")) {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
-                this.sendDescription(game, puzzle.noMoreAttemptsDescription, puzzle);
-                new Narration(game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
+                this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
+                new Narration(this.game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
 
                 return;
             }
 
             // Make sure all of the requirements are met before proceeding.
-            var hasRequiredItem = false;
-            var requiredItemName = "";
-            var requirementsMet = false;
+            let hasRequiredItem = false;
+            let requiredItemName = "";
+            let requirementsMet = false;
             const regex = /((Inventory)?Item|Prefab):/g;
             if (regex.test(puzzle.solutions.join(',')) && puzzle.type !== "container") {
                 for (let i = 0; i < puzzle.solutions.length; i++) {
@@ -1776,7 +2280,7 @@ export default class Player {
                             break;
                         }
                         else if (item === null) {
-                            const requiredItem = this.hasItem(game, solution.substring(solution.indexOf(':') + 1).trim())
+                            const requiredItem = this.findItem(solution.substring(solution.indexOf(':') + 1).trim());
                             if (requiredItem) {
                                 hasRequiredItem = true;
                                 requiredItemName = solution;
@@ -1791,71 +2295,73 @@ export default class Player {
             }
             else hasRequiredItem = true;
 
-            if (puzzle.solved || hasRequiredItem || puzzle.type === "media" || (puzzle.type === "weight" || puzzle.type === "container") && (misc.command === "take" || misc.command === "drop")) requirementsMet = true;
+            if (puzzle.solved || hasRequiredItem || puzzle.type === "media"
+                || (puzzle.type === "weight"|| puzzle.type === "container") && (command === "take" || command === "drop"))
+                    requirementsMet = true;
 
             // Puzzle is solvable.
             if (requirementsMet) {
                 if (puzzle.type === "password") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         if (password === "") return "you need to enter a password.";
-                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, password, true, requiredItems);
-                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, password, true, requiredItems);
+                        else puzzle.fail(this, `${this.displayName} uses the ${puzzleName}.`);
                     }
                 }
                 else if (puzzle.type === "interact" || puzzle.type === "matrix") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
-                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true, requiredItems);
+                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
+                    else puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true, requiredItems);
                 }
                 else if (puzzle.type === "toggle") {
                     if (puzzle.solved && hasRequiredItem) {
                         let message = null;
                         if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
-                        puzzle.unsolve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, message, true);
+                        puzzle.unsolve(this, `${this.displayName} uses the ${puzzleName}.`, message, true);
                     }
-                    else if (puzzle.solved) puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
-                    else puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true, requiredItems);
+                    else if (puzzle.solved) puzzle.requirementsNotMet(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, command, input, message);
+                    else puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true, requiredItems);
                 }
                 else if (puzzle.type === "combination lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
                         if (command === "unlock") return `${puzzleName} is already unlocked.`;
                         if (command !== "lock" && (password === "" || puzzle.solutions.includes(password)))
-                            puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzleName}.`);
+                            puzzle.alreadySolved(this, `${this.displayName} opens the ${puzzleName}.`);
                         // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
+                        else puzzle.unsolve(this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
                     }
                     // The lock is locked.
                     else {
                         if (command === "lock") return `${puzzleName} is already locked.`;
                         if (password === "") return "you need to enter a combination.";
-                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, password, true, requiredItems);
-                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to unlock the ${puzzleName}.`);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} unlocks the ${puzzleName}.`, password, true, requiredItems);
+                        else puzzle.fail(this, `${this.displayName} attempts and fails to unlock the ${puzzleName}.`);
                     }
                 }
                 else if (puzzle.type === "key lock") {
                     // The lock is currently unlocked.
                     if (puzzle.solved) {
                         if (command === "unlock") return `${puzzleName} is already unlocked.`;
-                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(bot, game, this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
-                        else if (command === "lock") puzzle.requirementsNotMet(game, this, `${this.displayName} attempts and fails to lock the ${puzzleName}.`);
-                        else puzzle.alreadySolved(game, this, `${this.displayName} opens the ${puzzleName}.`);
+                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
+                        else if (command === "lock") puzzle.requirementsNotMet(this, `${this.displayName} attempts and fails to lock the ${puzzleName}.`, command, input, message);
+                        else puzzle.alreadySolved(this, `${this.displayName} opens the ${puzzleName}.`);
                     }
                     // The lock is locked.
                     else {
                         if (command === "lock") return `${puzzleName} is already locked.`;
-                        puzzle.solve(bot, game, this, `${this.displayName} unlocks the ${puzzleName}.`, requiredItemName, true, requiredItems);
+                        puzzle.solve(this, `${this.displayName} unlocks the ${puzzleName}.`, requiredItemName, true, requiredItems);
                     }
                 }
                 else if (puzzle.type === "probability") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         const outcome = puzzle.solutions[Math.floor(Math.random() * puzzle.solutions.length)];
-                        puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true, requiredItems);
+                        puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, outcome, true, requiredItems);
                     }
                 }
                 else if (puzzle.type.endsWith("probability")) {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         let stat = "";
                         if (puzzle.type === "str probability" || puzzle.type === "strength probability") stat = "str";
@@ -1864,42 +2370,44 @@ export default class Player {
                         else if (puzzle.type === "spd probability" || puzzle.type === "speed probability") stat = "spd";
                         else if (puzzle.type === "sta probability" || puzzle.type === "stamina probability") stat = "sta";
 
-                        const dieRoll = new Die(stat, this);
+                        const dieRoll = new Die(this.game, stat, this);
                         // Get the ratio of the result as part of the maximum roll, each relative to the minimum roll.
                         const ratio = (dieRoll.result - dieRoll.min) / (dieRoll.max - dieRoll.min);
                         // Clamp the result so that it can be used to choose an item in the array of solutions.
                         const clampedRatio = Math.min(Math.max(ratio, 0), 0.999);
                         const outcome = puzzle.solutions[Math.floor(clampedRatio * puzzle.solutions.length)];
-                        puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, outcome, true, requiredItems);
+                        puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, outcome, true, requiredItems);
                     }
                 }
                 else if (puzzle.type === "channels") {
                     if (puzzle.solved) {
-                        if (password === "") puzzle.unsolve(bot, game, this, `${this.displayName} turns off the ${puzzleName}.`, `You turn off the ${puzzleName}.`, true);
-                        else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} changes the channel on the ${puzzleName}.`, password, true, requiredItems);
-                        else puzzle.fail(game, this, `${this.displayName} attempts and fails to change the channel on the ${puzzleName}.`);
+                        if (password === "") puzzle.unsolve(this, `${this.displayName} turns off the ${puzzleName}.`, `You turn off the ${puzzleName}.`, true);
+                        else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} changes the channel on the ${puzzleName}.`, password, true, requiredItems);
+                        else puzzle.fail(this, `${this.displayName} attempts and fails to change the channel on the ${puzzleName}.`);
                     }
                     else {
                         if (!puzzle.solutions.includes(password)) password = puzzle.outcome ? puzzle.outcome : "";
-                        puzzle.solve(bot, game, this, `${this.displayName} turns on the ${puzzleName}.`, password, true, requiredItems);
+                        puzzle.solve(this, `${this.displayName} turns on the ${puzzleName}.`, password, true, requiredItems);
                     }
                 }
                 else if (puzzle.type === "weight") {
                     if (puzzle.solved) {
-                        if (!puzzle.solutions.includes(password)) puzzle.unsolve(bot, game, this, "", null, true);
+                        if (!puzzle.solutions.includes(password)) puzzle.unsolve(this, "", null, true);
                     }
                     else {
-                        if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, "", password, true, requiredItems);
-                        else puzzle.fail(game, this, "");
+                        if (puzzle.solutions.includes(password)) puzzle.solve(this, "", password, true, requiredItems);
+                        else puzzle.fail(this, "");
                     }
                 }
                 else if (puzzle.type === "container") {
                     if (puzzle.solved) {
-                        puzzle.unsolve(bot, game, this, "", null, true);
+                        puzzle.unsolve(this, "", null, true);
                     }
+                    const containedItems = password.split(',');
+                    /** @param {string} solution */
                     let itemsMatch = function (solution) {
                         let requiredItems = solution.split('+');
-                        if (requiredItems.length !== password.length) return false;
+                        if (requiredItems.length !== containedItems.length) return false;
                         for (let i = 0; i < requiredItems.length; i++)
                             requiredItems[i] = requiredItems[i].substring(requiredItems[i].indexOf(':') + 1).trim();
                         requiredItems.sort(function (a, b) {
@@ -1907,8 +2415,8 @@ export default class Player {
                             if (a > b) return 1;
                             return 0;
                         });
-                        for (let i = 0; i < password.length; i++)
-                            if (password[i].prefab.id !== requiredItems[i]) return false;
+                        for (let i = 0; i < containedItems.length; i++)
+                            if (containedItems[i] !== requiredItems[i]) return false;
                         return true;
                     };
                     let outcome = "";
@@ -1918,25 +2426,25 @@ export default class Player {
                             break;
                         }
                     }
-                    if (outcome !== "") puzzle.solve(bot, game, this, "", outcome, true, requiredItems);
-                    else puzzle.fail(game, this, "");
+                    if (outcome !== "") puzzle.solve(this, "", outcome, true, requiredItems);
+                    else puzzle.fail(this, "");
                 }
                 else if (puzzle.type === "switch") {
-                    if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}, but nothing happens.`);
-                    else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true, requiredItems);
-                    else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
+                    if (puzzle.outcome === password) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}, but nothing happens.`);
+                    else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true, requiredItems);
+                    else puzzle.fail(this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
                 }
                 else if (puzzle.type === "option") {
-                    if (puzzle.solved && password === "") puzzle.unsolve(bot, game, this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for the ${puzzleName}.`, true);
-                    if (puzzle.outcome === password) puzzle.alreadySolved(game, this, `${this.displayName} sets the ${puzzleName}, but nothing changes.`);
-                    else if (puzzle.solutions.includes(password)) puzzle.solve(bot, game, this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true, requiredItems);
-                    else puzzle.fail(game, this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
+                    if (puzzle.solved && password === "") puzzle.unsolve(this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for the ${puzzleName}.`, true);
+                    if (puzzle.outcome === password) puzzle.alreadySolved(this, `${this.displayName} sets the ${puzzleName}, but nothing changes.`);
+                    else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true, requiredItems);
+                    else puzzle.fail(this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
                 }
                 else if (puzzle.type === "media") {
                     if (puzzle.solved && item === null) {
                         let message = null;
                         if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
-                        puzzle.unsolve(bot, game,this, `${this.displayName} presses eject on the ${puzzleName}.`, message, true);
+                        puzzle.unsolve(this, `${this.displayName} presses eject on the ${puzzleName}.`, message, true);
                     }
                     else if (puzzle.solved && item !== null)
                         return `you cannot insert ${item.singleContainingPhrase} into the ${puzzleName} as something is already inside it. Eject it first by sending \`.use ${puzzleName}\`.`;
@@ -1951,64 +2459,68 @@ export default class Player {
                                 break;
                             }
                         }
-                        if (hasRequiredItem) puzzle.solve(bot, game, this, `${this.displayName} inserts ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}.`, solution, true, requiredItems);
-                        else puzzle.fail(game, this, `${this.displayName} attempts to insert ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}, but it doesn't fit.`);
+                        if (hasRequiredItem) puzzle.solve(this, `${this.displayName} inserts ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}.`, solution, true, requiredItems);
+                        else puzzle.fail(this, `${this.displayName} attempts to insert ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}, but it doesn't fit.`);
                     }
-                    else puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
+                    else puzzle.requirementsNotMet(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, command, input, message);
                 }
                 else if (puzzle.type === "player") {
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
-                        if (puzzle.solutions.includes(this.name)) puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, this.name, true, requiredItems);
-                        else puzzle.fail(game, this, `${this.displayName} uses the ${puzzleName}.`);
+                        if (puzzle.solutions.includes(this.name)) puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, this.name, true, requiredItems);
+                        else puzzle.fail(this, `${this.displayName} uses the ${puzzleName}.`);
                     }
                 }
                 else if (puzzle.type === "room player") {
                     let solution = "";
-                    if (misc.targetPlayer) {
+                    if (targetPlayer) {
                         for (let i = 0; i < puzzle.solutions.length; i++) {
-                            if (puzzle.solutions[i].toLowerCase() === misc.targetPlayer.displayName.toLowerCase()) {
+                            if (puzzle.solutions[i].toLowerCase() === targetPlayer.displayName.toLowerCase()) {
                                 solution = puzzle.solutions[i];
                                 break;
                             }
                         }
                     }
-                    if (puzzle.solved) puzzle.alreadySolved(game, this, `${this.displayName} uses the ${puzzleName}.`);
-                    else if (solution !== "") puzzle.solve(bot, game, this, `${this.displayName} uses the ${puzzleName}.`, solution, true, requiredItems, misc.targetPlayer);
-                    else puzzle.fail(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
+                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
+                    else if (solution !== "") puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, solution, true, requiredItems, targetPlayer);
+                    else puzzle.fail(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
                 }
             }
             // The player is missing an item needed to solve the puzzle.
-            else return puzzle.requirementsNotMet(game, this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, misc);
+            else return puzzle.requirementsNotMet(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, command, input, message);
         }
         // The puzzle isn't accessible.
-        else return puzzle.requirementsNotMet(game, this, `${this.displayName} uses the ${puzzleName}.`, misc);
-
-        return;
+        else return puzzle.requirementsNotMet(this, `${this.displayName} uses the ${puzzleName}.`, command, input, message);
     }
 
-    gesture(game, gesture, targetType, target) {
-        var newGesture = new Gesture(gesture.name, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row);
+    /** Performs a gesture. 
+     * @param {Gesture} gesture - The gesture to perform.
+     * @param {string} targetType - The type of entity to target.
+     * @param {Exit|Fixture|Item|Player|InventoryItem|null} target - The entity to target.
+     */
+    gesture(gesture, targetType, target) {
+        let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
         newGesture.targetType = targetType;
         newGesture.target = target;
-        new Narration(game, this, this.location, parser.parseDescription(newGesture.narration, newGesture, this)).send();
-
-        return;
+        new Narration(this.game, this, this.location, parser.parseDescription(newGesture.narration, newGesture, this)).send();
     }
 
-    die(game) {
+    /**
+     * Kills the player.
+     */
+    die() {
         // Remove player from their current channel.
         this.location.leaveChannel(this);
         this.location.occupants.splice(this.location.occupants.indexOf(this), 1);
         this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
-        this.removeFromWhispers(game, `${this.displayName} dies.`);
+        this.removeFromWhispers(`${this.displayName} dies.`);
         if (!this.hasAttribute("hidden")) {
-            new Narration(game, this, this.location, `${this.displayName} dies.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} dies.`).send();
         }
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} died in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} died in ${this.location.channel}`);
 
         // Update various data.
         this.alive = false;
@@ -2026,27 +2538,30 @@ export default class Player {
         this.status.length = 0;
 
         // Move player to dead list.
-        game.players_dead.push(this);
+        this.game.players_dead.push(this);
         // Then remove them from living list.
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name === this.name) {
-                game.players_alive.splice(i, 1);
+        for (let i = 0; i < this.game.players_alive.length; i++) {
+            if (this.game.players_alive[i].name === this.name) {
+                this.game.players_alive.splice(i, 1);
                 break;
             }
         }
 
-        game.messageHandler.addDirectNarration(this, "You have died. When your body is discovered, you will be given the Dead role. Until then, please do not speak on the server or to other players.");
-        
-        return;
+        messageHandler.addDirectNarration(this, `You have died. When your body is discovered, you will be given the ${this.game.guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`);
     }
 
-    removeFromWhispers(game, message) {
-        var deleteWhisperIndexes = new Array();
-        for (let i = 0; i < game.whispers.length; i++) {
-            for (let j = 0; j < game.whispers[i].players.length; j++) {
-                if (game.whispers[i].players[j].name === this.name) {
+    /**
+     * Removes the player from all whispers they're in.
+     * @param {string} narration - The text of the narration to send in the whisper channel when the player is removed.
+     */
+    removeFromWhispers(narration) {
+        /** @type {number[]} */
+        let deleteWhisperIndexes = [];
+        for (let i = 0; i < this.game.whispers.length; i++) {
+            for (let j = 0; j < this.game.whispers[i].players.length; j++) {
+                if (this.game.whispers[i].players[j].name === this.name) {
                     // Remove player from the whisper.
-                    const deleteWhisper = game.whispers[i].removePlayer(game, j, message);
+                    const deleteWhisper = this.game.whispers[i].removePlayer(j, narration);
                     if (deleteWhisper) deleteWhisperIndexes.push(i);
                     break;
                 }
@@ -2057,32 +2572,42 @@ export default class Player {
         // Now delete each one.
         for (let i = 0; i < deleteWhisperIndexes.length; i++) {
             const index = deleteWhisperIndexes[i];
-            game.whispers[index].delete(game, index);
+            this.game.whispers[index].delete(index);
         }
-
-        return;
     }
 
-    sendDescription(game, description, container) {
-        if (description)
+    /**
+     * Parses a description and sends it to the player.
+     * @param {string} description - The description to parse and send.
+     * @param {GameEntity} container - The game entity the description belongs to.
+     */
+    sendDescription(description, container) {
+        if (description) {
             if (!this.hasAttribute("unconscious") && (container && container instanceof Room)) {
-                var defaultDropObjectString = "";
-                var defaultDropObject = game.objects.find(object => object.name === settings.defaultDropObject && object.location.name === container.name);
+                let defaultDropObjectString = "";
+                let defaultDropObject = this.game.objects.find(object => object.name === this.game.settings.defaultDropObject && object.location.id === container.id);
                 if (defaultDropObject)
                     defaultDropObjectString = parser.parseDescription(defaultDropObject.description, defaultDropObject, this);
-                game.messageHandler.addRoomDescription(game, this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
+                messageHandler.addRoomDescription(this.game, this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
             }
             else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
-                game.messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
-        return;
+                messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
+        }
     }
 
-    notify(game, message, addSpectate = true) {
-        if (!this.hasAttribute("unconscious") && this.talent !== "NPC")
-            game.messageHandler.addDirectNarration(this, message, addSpectate);
-        return;
+    /**
+     * Sends a direct message to the player. Sends nothing if the player is unconscious or an NPC.
+     * @param {string} messageText - The content of the message to send.
+     * @param {boolean} [addSpectate=true] - Whether or not to mirror this message in the player's spectateChannel. Defaults to true.
+     */
+    notify(messageText, addSpectate = true) {
+        if (!this.hasAttribute("unconscious") && this.title !== "NPC")
+            messageHandler.addDirectNarration(this, messageText, addSpectate);
     }
 
+    /**
+     * Sets the player as online and initiates a timer that will mark them as offline after 15 minutes of inactivity.
+     */
     setOnline() {
         this.online = true;
         // Clear the existing timeout.
@@ -2096,25 +2621,24 @@ export default class Player {
         );
     }
 
+    /**
+     * Sets the player as offline.
+     */
     setOffline() {
         this.online = false;
         if (this.onlineInterval)
             clearTimeout(this.onlineInterval);
     }
 
-    getDescription() {
-        return this.description;
-    }
-
-    setDescription(description) {
-        this.description = description;
-    }
-
+    /** @returns {string} */
     descriptionCell() {
-        return constants.playerSheetDescriptionColumn + this.row;
+        return this.game.constants.playerSheetDescriptionColumn + this.row;
     }
 }
 
+/**
+ * @param {number} seconds 
+ */
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

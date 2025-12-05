@@ -1,4 +1,5 @@
 import BotContext from '../Classes/BotContext.js';
+import GameConstants from '../Classes/GameConstants.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import Room from './Room.js';
@@ -21,67 +22,180 @@ moment().format();
 /**
  * @class Game
  * @classdesc Represents a game managed by the bot.
- * @constructor
- * @param {GuildContext} guildContext - The guild this game is occurring in.
- * @param {GameSettings} settings - The settings for the game.
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/game.html
  */
 export default class Game {
-	/** @type NodeJS.Timeout */
-	#autoSaveInterval;
-	/** @type NodeJS.Timeout */
-	#eventTriggerInterval;
-
+	/**
+	 * The guild in which the game is occurring and all of the parts of the guild frequently accessed by the bot.
+	 * @type {GuildContext}
+	 */
+	guildContext;
 	/** 
 	 * The bot managing the game.
 	 * @type {BotContext} 
 	 */
 	botContext;
+	/**
+	 * All of the settings for the game.
+	 * @type {GameSettings}
+	 */
+	settings;
+	/** 
+	 * A collection of constants used to refer to cell ranges on the spreadsheet. 
+	 * @type {GameConstants}
+	*/
+	constants;
+	/**
+	 * Whether or not the game is currently in progress.
+	 * @type {boolean}
+	 */
+	inProgress;
+	/**
+	 * Whether or not members with the eligible role can join the game with the play command.
+	 * @type {boolean}
+	 */
+	canJoin;
+	/** 
+	 * A timer used by the startgame command to announce when half of the time allotted for players to join the game has elapsed.
+	 * @type {NodeJS.Timeout}
+	 */
+	halfTimer;
+	/**
+	 * A timer used by the startgame command. When this expires, all of the players who joined the game are saved to the spreadsheet. 
+	 * @type {NodeJS.Timeout}
+	 * */
+	endTimer;
+	/**
+	 * Whether or not there is currently at least one player with the `heated` status in the game.
+	 * @type {boolean}
+	 */
+	heated;
+	/**
+	 * Whether or not edit mode is currently enabled.
+	 * @type {boolean}
+	 */
+	editMode;
+	/** 
+	 * An array of all rooms in the game.
+	 * @type {Room[]}
+	 */
+	rooms;
+	/** 
+	 * An array of all fixtures in the game.
+	 * @type {Fixture[]}
+	 */
+	objects;
+	/**
+	 * An array of all prefabs in the game.
+	 * @type {Prefab[]}
+	 */
+	prefabs;
+	/** 
+	 * An array of all recipes in the game.
+	 * @type {Recipe[]}
+	 */
+	recipes;
+	/** 
+	 * An array of all room items in the game.
+	 * @type {Item[]}
+	 */
+	items;
+	/** 
+	 * An array of all puzzles in the game.
+	 * @type {Puzzle[]} 
+	 */
+	puzzles;
+	/** 
+	 * An array of all events in the game.
+	 * @type {Event[]}
+	 */
+	events;
+	/**
+	 * An array of all status effects in the game. 
+	 * @type {Status[]} 
+	 */
+	statusEffects;
+	/**
+	 * An array of all players in the game. 
+	 * @type {Player[]} 
+	 */
+	players;
+	/** 
+	 * An array of all living players in the game.
+	 * @type {Player[]}
+	 */
+	players_alive;
+	/**
+	 * An array of all dead players in the game. 
+	 * @type {Player[]}
+	 */
+	players_dead;
+	/**
+	 * An array of all inventory items in the game. 
+	 * @type {InventoryItem[]}
+	 */
+	inventoryItems;
+	/** 
+	 * An array of all gestures in the game.
+	 * @type {Gesture[]}
+	 */
+	gestures;
+	/** 
+	 * A map of all flags in the game, where the key is the flag's ID.
+	 * @type {Map<string, Flag>} */
+	flags;
+	/** 
+	 * An array of all whispers in the game. These are not saved to the sheet.
+	 * @type {Whisper[]}
+	 */
+	whispers;
+	/** 
+	 * A cache of dialog messages to allow edits to dialog messages to be reflected in spectate channels.
+	 * @type {CachedDialog[]}
+	 */
+	dialogCache;
+	/** 
+	 * A timeout that saves the game data to the spreadsheet periodically.
+	 * @type NodeJS.Timeout
+	 */
+	#autoSaveInterval;
+	/** 
+	 * A timeout that checks for events that should be triggered every minute.
+	 * @type NodeJS.Timeout
+	 */
+	#eventTriggerInterval;
 
 	/**
-	 * @param {GuildContext} guildContext 
-	 * @param {GameSettings} settings 
+	 * @constructor
+	 * @param {GuildContext} guildContext - The guild this game is occurring in.
+	 * @param {GameSettings} settings - The settings for the game.
 	 */
 	constructor(guildContext, settings) {
 		this.guildContext = guildContext;
 		this.settings = settings;
+		this.constants = new GameConstants();
 		this.inProgress = false;
 		this.canJoin = false;
-		/** @type {NodeJS.Timeout|null} */
 		this.halfTimer = null;
-		/** @type {NodeJS.Timeout|null} */
 		this.endTimer = null;
 		this.heated = false;
 		this.editMode = false;
-		/** @type {Array<Room>} */
 		this.rooms = [];
-		/** @type {Array<Fixture>} */
 		this.objects = [];
-		/** @type {Array<Prefab>} */
 		this.prefabs = [];
-		/** @type {Array<Recipe>} */
 		this.recipes = [];
-		/** @type {Array<Item>} */
 		this.items = [];
-		/** @type {Array<Puzzle>} */
 		this.puzzles = [];
-		/** @type {Array<Event>} */
 		this.events = [];
-		/** @type {Array<Status>} */
 		this.statusEffects = [];
-		/** @type {Array<Player>} */
 		this.players = [];
-		/** @type {Array<Player>} */
 		this.players_alive = [];
-		/** @type {Array<Player>} */
 		this.players_dead = [];
-		/** @type {Array<InventoryItem>} */
 		this.inventoryItems = [];
-		/** @type {Array<Gesture>} */
 		this.gestures = [];
-		/** @type {Map<string, Flag>} */
 		this.flags = new Map();
-		/** @type {Array<Whisper>} */
 		this.whispers = [];
+		this.dialogCache = [];
 
 		// Save data to the sheet periodically.
 		this.#autoSaveInterval = setInterval(
@@ -101,7 +215,7 @@ export default class Game {
 								&& now.date() === time.date()
 								&& now.hour() === time.hour()
 								&& now.minute() === time.minute()) {
-									event.trigger(this.botContext, this, true);
+									event.trigger(true);
 									break;
 							}
 						}
