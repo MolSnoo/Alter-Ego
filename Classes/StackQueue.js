@@ -1,19 +1,19 @@
 /**
  * @class StackQueue
- * @classdesc Double-stack queue system for use by the priority queue, used by the message handler.
+ * @classdesc Double-stack queue system for use in the priority queue, used by the message handler.
  * @constructor
  */
 export default class StackQueue {
     /** 
-     * Incoming stack for queued message entries.
+     * Incoming stack for queued message entries. When messages are dequeued and the outStack is empty, this stack is flipped and emptied into the outStack.
      * @type {Array<MessageQueueEntry>}
      */
     inStack;
     /**
-     * Outgoing stack for queued message entries.
+     * Outgoing stack for queued message entries. Messages are dequeued from this outgoing stack, drawing from inStack if necessary. 
      * @type {Array<MessageQueueEntry>}
      */
-    outstack;
+    outStack;
     /**
      * Length of StackQueue
      * @type {number}
@@ -27,6 +27,7 @@ export default class StackQueue {
     }
 
     /**
+     * Pushes a MessageQueueEntry into the queue. O(1) operation.
      * @param {MessageQueueEntry} value
      */
     enqueue(value) {
@@ -35,6 +36,7 @@ export default class StackQueue {
     }
 
     /**
+     * Pops a MessageQueueEntry from the queue. O(1) operation if outStack.length > 0, otherwise O(n).
      * @returns {MessageQueueEntry | undefined}
      */
     dequeue() {

@@ -7,7 +7,7 @@ import StackQueue from './StackQueue.js';
  */
 export default class PriorityQueue {
     /** 
-     * Incoming stack for queued message entries.
+     * Separate StackQueues to represent each different priority level.
      * @type {{ mod: StackQueue, tell: StackQueue, mechanic: StackQueue, log: StackQueue, spectator: StackQueue }}
      */
     queues;
@@ -29,6 +29,7 @@ export default class PriorityQueue {
     }
 
     /**
+     * Enqueues a given MessageQueueEntry on a StackQueue of the given priority. If the given priority doesn't exist, this function will silently swallow MessageQueueEntry. O(1) operation.
      * @param {MessageQueueEntry} message
      * @param {string} priority
      */
@@ -39,6 +40,8 @@ export default class PriorityQueue {
     }
 
     /**
+     * Dequeues a MessageQueueEntry in order of priority. Operation is O(n) relative to the number of priorities to find a queue with a non-zero length,
+     * as well as O(n) relative to the number of messages in a given queue if the queue's outStack length is 0, and O(1) otherwise.
      * @returns {MessageQueueEntry | undefined}
      */
     dequeue() {
@@ -52,6 +55,7 @@ export default class PriorityQueue {
     }
 
     /**
+     * Reports the size of the PriorityQueue. O(n) operation relative to the number of priorities.
      * @returns {number}
      */
     size() {
