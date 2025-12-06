@@ -1,5 +1,6 @@
 ﻿import Game from './Game.js';
 import GameEntity from './GameEntity.js';
+import Timer from '../Classes/Timer.js';
 
 /**
  * @class Status
@@ -88,7 +89,7 @@ export default class Status extends GameEntity {
     curedDescription;
     /** 
      * A timer counting down every second until the status expires.
-     * @type {import("../Classes/Timer.js")} 
+     * @type {Timer} 
      */
     timer;
 
