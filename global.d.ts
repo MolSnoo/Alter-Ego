@@ -8,7 +8,7 @@ import type Puzzle from "./Data/Puzzle.js";
 import type GameSettings from "./Classes/GameSettings.js";
 import type Recipe from "./Data/Recipe.js";
 import type Item from "./Data/Item.js";
-import type { Duration } from "moment";
+import type { Duration } from "dayjs/plugin/duration.js";
 
 export {};
 

@@ -5,9 +5,8 @@ import Status from './Status.js';
 import { default as executeCommand } from '../Modules/commandHandler.js';
 import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
-import moment from 'moment';
-import timer from 'moment-timer';
-moment().format();
+import dayjs from 'dayjs';
+dayjs().format();
 
 /**
  * @class Event
@@ -39,7 +38,7 @@ export default class Event extends GameEntity {
     durationString;
     /**
      * The duration object of the event.
-     * @type {import('moment').Duration}
+     * @type {import('dayjs/plugin/duration.js').Duration}
      */
     duration;
     /**
@@ -49,7 +48,7 @@ export default class Event extends GameEntity {
     remainingString;
     /**
      * The remaining time of the event.
-     * @type {import('moment').Duration}
+     * @type {import('dayjs/plugin/duration.js').Duration}
      */
     remaining;
     /**
@@ -117,21 +116,21 @@ export default class Event extends GameEntity {
      * A timer counting down from the event's initial duration every second. When it reaches 0, the event ends, and this becomes `null`.
      * @type {timer | null} 
      */
-    timer;
+    timer; // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
     /** 
      * A timer that inflicts and refreshes status effects every second whil the event is ongoing.
      * @type {timer | null}
      */
-    effectsTimer;
+    effectsTimer;// TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
 
     /**
      * @constructor
      * @param {string} id - The unique ID of the event.
      * @param {boolean} ongoing - Whether the event is ongoing.
      * @param {string} durationString - The string representation of how long the event lasts after being triggered.
-     * @param {import('moment').Duration} duration - The duration object of the event.
+     * @param {import('dayjs/plugin/duration.js').Duration} duration - The duration object of the event.
      * @param {string} remainingString - The string representation of the remaining time of the event.
-     * @param {import('moment').Duration} remaining - The remaining time of the event.
+     * @param {import('dayjs/plugin/duration.js').Duration} remaining - The remaining time of the event.
      * @param {string} triggerTimesString - The string representation of what times the event will be automatically triggered. Refer to this link for accepted formats: {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string}
      * @param {string[]} triggerTimes - What times the event will be automatically triggered.
      * @param {string} roomTag - The keyword or phrase assigned to the event that allows it to affect rooms.
@@ -285,7 +284,7 @@ export default class Event extends GameEntity {
         if (this.remaining === null)
             this.remaining = this.duration.clone();
         let event = this;
-        this.timer = moment.duration(1000).timer({ start: true, loop: true }, async function () {
+        this.timer = dayjs.duration(1000).timer({ start: true, loop: true }, async function () {  // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
             event.remaining.subtract(1000, 'ms');
 
             const days = Math.floor(event.remaining.asDays());
@@ -310,7 +309,7 @@ export default class Event extends GameEntity {
 
     #startEffectsTimer() {
         let event = this;
-        this.effectsTimer = moment.duration(1000).timer({ start: true, loop: true }, function () {
+        this.effectsTimer = dayjs.duration(1000).timer({ start: true, loop: true }, function () {// TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
             for (let i = 0; i < event.game.rooms.length; i++) {
                 if (event.game.rooms[i].tags.includes(event.roomTag)) {
                     for (let j = 0; j < event.game.rooms[i].occupants.length; j++) {
