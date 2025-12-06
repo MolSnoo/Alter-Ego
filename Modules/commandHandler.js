@@ -95,18 +95,18 @@ export default async function execute (commandStr, game, message, player, callee
                 }
             }
             if (!player) {
-                messageHandler.addReply(message, "You are not on the list of living players.");
+                messageHandler.addReply(game, message, "You are not on the list of living players.");
                 return false;
             }
             const commandName = getCommandName(playerCommand);
             const status = player.getAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
-                if (player.statusString.includes("heated")) messageHandler.addReply(message, "The situation is **heated**. Moderator intervention is required.");
-                else messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+                if (player.statusString.includes("heated")) messageHandler.addReply(game, message, "The situation is **heated**. Moderator intervention is required.");
+                else messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
                 return false;
             }
             if (game.editMode && commandName !== "say") {
-                messageHandler.addReply(message, "You cannot do that because edit mode is currently enabled.");
+                messageHandler.addReply(game, message, "You cannot do that because edit mode is currently enabled.");
                 return false;
             }
 

@@ -61,7 +61,7 @@ export default class Whisper {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game.guildContext.logChannel, `${time} - ${playerListString} began whispering in ${this.location.channel}`);
+        addLogMessage(this.game, `${time} - ${playerListString} began whispering in ${this.location.channel}`);
     }
 
     /**

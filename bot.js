@@ -277,9 +277,9 @@ client.on('messageCreate', async message => {
     }
     if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress
         && (game.guildContext.roomCategories.includes(message.channel.parentId)
-            || message.channel.parentId === game.guildContext.whisperCategory
+            || message.channel.parentId === game.guildContext.whisperCategoryId
             || message.channel.id === game.guildContext.announcementChannel.id)) {
-        await handleDialog(botContext, game, message, true);
+        await handleDialog(game, message, true);
     }
 });
 
@@ -288,9 +288,9 @@ client.on('messageUpdate', async (messageOld, messageNew) => {
 
     if (messageOld.channel.type !== ChannelType.DM && game.inProgress
         && (game.guildContext.roomCategories.includes(messageOld.channel.parentId)
-            || messageOld.channel.parentId === game.guildContext.whisperCategory
+            || messageOld.channel.parentId === game.guildContext.whisperCategoryId
             || messageOld.channel.id === game.guildContext.announcementChannel.id)) {
-        editSpectatorMessage(messageOld, messageNew);
+        editSpectatorMessage(game, messageOld, messageNew);
     }
 });
 

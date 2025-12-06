@@ -1,6 +1,5 @@
 import { ActivityType, Client, Collection } from "discord.js";
 import Game from "../Data/Game.js";
-import { sendQueuedMessages } from "../Modules/messageHandler.js";
 import BotCommand from "./BotCommand.js";
 import ModeratorCommand from "./ModeratorCommand.js";
 import PlayerCommand from "./PlayerCommand.js";
@@ -58,12 +57,7 @@ export default class BotContext {
 	 */
 	commandLog;
 	/**
-	 * A timeout which sends a queued message every quarter of a second.
-	 * @type {NodeJS.Timeout}
-	 */
-	#queuedMessageSendInterval;
-	/**
-	 * A timeout which updates the client user's presence ever 30 seconds.
+	 * A timeout which updates the client user's presence every 30 seconds.
 	 * @type NodeJS.Timeout
 	 */
 	#presenceUpdateInterval;
@@ -88,10 +82,6 @@ export default class BotContext {
 		this.eligibleCommands = eligibleCommands;
 		this.game = game;
 		this.commandLog = [];
-		this.#queuedMessageSendInterval = setInterval(
-			() => sendQueuedMessages(),
-			0.25 * 1000
-		);
 		this.#presenceUpdateInterval = setInterval(
 			() => this.updatePresence(),
 			30 * 1000

@@ -212,7 +212,7 @@ export default class Puzzle extends ItemContainer {
         if (player !== null) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            addLogMessage(this.game.guildContext.logChannel, `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
+            addLogMessage(this.game, `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
         }
 
         for (const requiredItem of requiredItems) {
@@ -242,9 +242,9 @@ export default class Puzzle extends ItemContainer {
             for (let i = 0; i < commandSet.length; i++) {
                 if (commandSet[i].startsWith("wait")) {
                     let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -288,7 +288,7 @@ export default class Puzzle extends ItemContainer {
         if (player !== null) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            addLogMessage(this.game.guildContext.logChannel, `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
+            addLogMessage(this.game, `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
         }
 
         if (doUnsolvedCommands === true) {
@@ -313,9 +313,9 @@ export default class Puzzle extends ItemContainer {
             for (let i = 0; i < commandSet.length; i++) {
                 if (commandSet[i].startsWith("wait")) {
                     let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -349,7 +349,7 @@ export default class Puzzle extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game.guildContext.logChannel, `${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
+        addLogMessage(this.game, `${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
 
         return;
     }
@@ -377,7 +377,7 @@ export default class Puzzle extends ItemContainer {
     requirementsNotMet(player, narration, command, input, message) {
         // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
         if (this.requirementsNotMetDescription === "" && message)
-            addReply(message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+            addReply(this.game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
         // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
         else {
             player.sendDescription(this.requirementsNotMetDescription, this);

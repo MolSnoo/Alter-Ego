@@ -81,7 +81,7 @@ export default class Flag extends GameEntity {
 			typeof this.value === "boolean" ? `\`${this.value}\`` :
 			this.value;
 		const time = new Date().toLocaleTimeString();
-		addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.id} was set with value ${valueDisplay}`);
+		addLogMessage(this.game, `${time} - ${this.id} was set with value ${valueDisplay}`);
 
 		if (doSetCommands === true) {
             // Find commandSet.
@@ -106,9 +106,9 @@ export default class Flag extends GameEntity {
             for (let i = 0; i < commandSet.length; i++) {
                 if (commandSet[i].startsWith("wait")) {
                     let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -131,7 +131,7 @@ export default class Flag extends GameEntity {
 
 		// Post log message.
 		const time = new Date().toLocaleTimeString();
-		addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.id} was cleared`);	
+		addLogMessage(this.game, `${time} - ${this.id} was cleared`);	
 
 		if (doClearedCommands === true) {
             // Find commandSet.
@@ -156,9 +156,9 @@ export default class Flag extends GameEntity {
             for (let i = 0; i < commandSet.length; i++) {
                 if (commandSet[i].startsWith("wait")) {
                     let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {

@@ -474,7 +474,7 @@ export default class Player extends ItemContainer {
 
                 // Post log message.
                 const time = new Date().toLocaleTimeString();
-                messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} moved to ${desiredRoom.channel}`);
+                messageHandler.addLogMessage(this.game, `${time} - ${this.name} moved to ${desiredRoom.channel}`);
             }
         }
         else {
@@ -561,7 +561,7 @@ export default class Player extends ItemContainer {
                     // Post log message.
                     const time = new Date().toLocaleTimeString();
                     const verb = isRunning ? "ran" : "moved";
-                    messageHandler.addLogMessage(player.game.guildContext.logChannel, `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
+                    messageHandler.addLogMessage(player.game, `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
 
                     player.moveQueue.splice(0, 1);
                     if (player.moveQueue.length > 0)
@@ -787,7 +787,7 @@ export default class Player extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.game, `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
 
         return "Status successfully added.";
     }
@@ -853,7 +853,7 @@ export default class Player extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.game, `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
 
         // Stop the timer.
         if (status.timer !== null)
@@ -1662,9 +1662,9 @@ export default class Player extends ItemContainer {
             const command = createdItem.prefab.equipCommands[i];
             if (command.startsWith("wait")) {
                 let args = command.split(" ");
-                if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                 const seconds = parseInt(args[1]);
-                if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                 await sleep(seconds);
             }
             else {
@@ -1754,9 +1754,9 @@ export default class Player extends ItemContainer {
                 const command = item.prefab.equipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -1882,9 +1882,9 @@ export default class Player extends ItemContainer {
                 const command = createdItem.prefab.unequipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -1972,9 +1972,9 @@ export default class Player extends ItemContainer {
                 const command = item.prefab.unequipCommands[i];
                 if (command.startsWith("wait")) {
                     let args = command.split(" ");
-                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -2520,7 +2520,7 @@ export default class Player extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.name} died in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.game, `${time} - ${this.name} died in ${this.location.channel}`);
 
         // Update various data.
         this.alive = false;
@@ -2588,7 +2588,7 @@ export default class Player extends ItemContainer {
                 let defaultDropObject = this.game.objects.find(object => object.name === this.game.settings.defaultDropObject && object.location.id === container.id);
                 if (defaultDropObject)
                     defaultDropObjectString = parser.parseDescription(defaultDropObject.description, defaultDropObject, this);
-                messageHandler.addRoomDescription(this.game, this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
+                messageHandler.addRoomDescription(this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
             }
             else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
                 messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));

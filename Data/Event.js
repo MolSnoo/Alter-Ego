@@ -208,9 +208,9 @@ export default class Event extends GameEntity {
             for (let i = 0; i < this.triggeredCommands.length; i++) {
                 if (this.triggeredCommands[i].startsWith("wait")) {
                     let args = this.triggeredCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -227,7 +227,7 @@ export default class Event extends GameEntity {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.id} was triggered.`);
+        addLogMessage(this.game, `${time} - ${this.id} was triggered.`);
     }
 
     /**
@@ -263,9 +263,9 @@ export default class Event extends GameEntity {
             for (let i = 0; i < this.endedCommands.length; i++) {
                 if (this.endedCommands[i].startsWith("wait")) {
                     let args = this.endedCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
+                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
                     const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
+                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
                     await sleep(seconds);
                 }
                 else {
@@ -276,7 +276,7 @@ export default class Event extends GameEntity {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.id} was ended.`);
+        addLogMessage(this.game, `${time} - ${this.id} was ended.`);
 
         return;
     }

@@ -204,7 +204,7 @@ export default class Room extends GameEntity {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
+        addLogMessage(this.game, `${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
     }
 
     /**
@@ -217,7 +217,7 @@ export default class Room extends GameEntity {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game.guildContext.logChannel, `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
+        addLogMessage(this.game, `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
     }
 
     /** @returns {string} */

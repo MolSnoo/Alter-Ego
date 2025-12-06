@@ -2,6 +2,7 @@ import BotContext from '../Classes/BotContext.js';
 import GameConstants from '../Classes/GameConstants.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
+import PriorityQueue from '../Classes/PriorityQueue.js';
 import Room from './Room.js';
 import { default as Fixture } from './Object.js';
 import Prefab from './Prefab.js';
@@ -16,6 +17,7 @@ import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Whisper from './Whisper.js';
 import { saveGame } from '../Modules/saver.js';
+import { sendQueuedMessages } from '../Modules/messageHandler.js';
 import moment from 'moment';
 moment().format();
 
@@ -149,11 +151,21 @@ export default class Game {
 	 * @type {Whisper[]}
 	 */
 	whispers;
+	/**
+	 * A queue of messages to be sent by the messageHandler.
+	 * @type {PriorityQueue}
+	 */
+	messageQueue;
 	/** 
 	 * A cache of dialog messages to allow edits to dialog messages to be reflected in spectate channels.
 	 * @type {CachedDialog[]}
 	 */
 	dialogCache;
+	/**
+	 * A timeout which sends queued messages every quarter of a second.
+	 * @type {NodeJS.Timeout}
+	 */
+	#queuedMessageSendInterval;
 	/** 
 	 * A timeout that saves the game data to the spreadsheet periodically.
 	 * @type NodeJS.Timeout
@@ -195,14 +207,20 @@ export default class Game {
 		this.gestures = [];
 		this.flags = new Map();
 		this.whispers = [];
+		this.messageQueue = new PriorityQueue();
 		this.dialogCache = [];
 
+		// Send the messages in the queue every quarter of a second.
+		this.#queuedMessageSendInterval = setInterval(
+			() => sendQueuedMessages(this),
+			0.25 * 1000
+		);
 		// Save data to the sheet periodically.
 		this.#autoSaveInterval = setInterval(
 			() => { if (this.inProgress && !this.editMode) saveGame(); },
 			this.settings.autoSaveInterval * 1000
 		);
-		// Check for any Events that are supposed to trigger at this time of day.
+		// Check for any events that are supposed to trigger at this time of day.
 		this.#eventTriggerInterval = setInterval(() => {
 			if (this.inProgress) {
 				const now = moment();
