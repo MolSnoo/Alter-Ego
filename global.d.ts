@@ -102,6 +102,13 @@ declare global {
 	}
 
 	/**
+	 * Represents a queue entry for a message waiting to be sent in one of the priority queue's stack queues.
+	 */
+	interface MessageQueueEntry {
+		fire: () => Promise<void>;
+	}
+
+	/**
      * Represents a 3D position.
      * @property x - X coordinate
      * @property y - Y coordinate
