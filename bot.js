@@ -24,8 +24,8 @@ import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChann
 import { readdir, readFileSync } from 'fs';
 
 import dayjs from 'dayjs';
-const duration = require("dayjs/plugin/duration");
-const weekday = require("dayjs/plugin/weekday");
+import duration from 'dayjs/plugin/duration.js';
+import weekday from 'dayjs/plugin/weekday.js';
 dayjs.extend(duration);
 dayjs.extend(weekday);
 
