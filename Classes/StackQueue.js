@@ -53,4 +53,12 @@ export default class StackQueue {
             }
         }
     }
+
+    /**
+     * Clears the inStack and outStack of the StackQueue.
+     */
+    clear() {
+        this.inStack.length = 0;
+        this.outStack.length = 0;
+    }
 }

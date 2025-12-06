@@ -6,26 +6,23 @@ import StackQueue from './StackQueue.js';
  * @constructor
  */
 export default class PriorityQueue {
-    /** 
-     * Separate StackQueues to represent each different priority level.
-     * @type {{ mod: StackQueue, tell: StackQueue, mechanic: StackQueue, log: StackQueue, spectator: StackQueue }}
-     */
-    queues;
     /**
      * Order of queues given as an array of strings.
      * @type {Array<string>}
      */
     priorityOrder;
+    /** 
+     * Separate StackQueues to represent each different priority level.
+     * @type {Map<string, StackQueue>}
+     */
+    queues;
 
     constructor() {
-        this.queues = {
-            mod: new StackQueue(),
-            tell: new StackQueue(), 
-            mechanic: new StackQueue(),
-            log: new StackQueue(),
-            spectator: new StackQueue()
-        };
         this.priorityOrder = ['mod', 'tell', 'mechanic', 'log', 'spectator'];
+        this.queues = new Map();
+        for (let i = 0; i < this.priorityOrder.length; i++) {
+            this.queues.set(this.priorityOrder[i], new StackQueue());
+        }
     }
 
     /**
@@ -34,8 +31,8 @@ export default class PriorityQueue {
      * @param {string} priority
      */
     enqueue(message, priority) {
-        if (this.queues[priority]) {
-            this.queues[priority].enqueue(message);
+        if (this.queues.has(priority)) {
+            this.queues.get(priority).enqueue(message);
         }
     }
 
@@ -47,8 +44,8 @@ export default class PriorityQueue {
     dequeue() {
         if (this.size() > 0) {
             for (const priority of this.priorityOrder) {
-                if (this.queues[priority].length > 0) {
-                    return this.queues[priority].dequeue();
+                if (this.queues.get(priority).length > 0) {
+                    return this.queues.get(priority).dequeue();
                 }
             }
         }
@@ -60,5 +57,14 @@ export default class PriorityQueue {
      */
     size() {
         return this.priorityOrder.reduce((total, priority) => total + this.queues[priority].length, 0);
+    }
+
+    /**
+     * Clears the inStack and outStack of each StackQueue managed by the PriorityQueue.
+     */
+    clear() {
+        for (let i = 0; i < this.priorityOrder.length; i++) {
+            this.queues[this.priorityOrder[i]].clear();
+        }
     }
 }
