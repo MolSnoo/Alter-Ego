@@ -1,9 +1,12 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "object_moderator",
     description: "Activates or deactivates an object.",
     details: 'Activates or deactivates an object. You may specify a player to activate/deactivate the object. If you do, '
@@ -14,20 +17,33 @@ module.exports.config = {
         + 'you specify can be activated/deactivated. This is useful if you have multiple objects with the same name '
         + 'spread across the map. This command can only be used for objects with a recipe tag. If there is a puzzle with '
         + 'the same name as the object whose state is supposed to be the same as the object, use the puzzle command to update it as well.',
-    usage: `${settings.commandPrefix}object activate blender\n`
+    usableBy: "Moderator",
+    aliases: ["object", "activate", "deactivate"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}object activate blender\n`
         + `${settings.commandPrefix}object deactivate microwave\n`
         + `${settings.commandPrefix}activate keurig kyra\n`
         + `${settings.commandPrefix}deactivate oven noko\n`
         + `${settings.commandPrefix}object activate fireplace log cabin\n`
         + `${settings.commandPrefix}object deactivate fountain flower garden\n`
         + `${settings.commandPrefix}activate freezer zoran "Zoran plugs in the FREEZER."\n`
-        + `${settings.commandPrefix}deactivate washer 1 laundry room "WASHER 1 turns off"`,
-    usableBy: "Moderator",
-    aliases: ["object", "activate", "deactivate"],
-    requiresGame: true
-};
+        + `${settings.commandPrefix}deactivate washer 1 laundry room "WASHER 1 turns off"`;
+}
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     var input = command + " " + args.join(" ");
     if (command === "object") {
         if (args[0] === "activate") command = "activate";
@@ -37,21 +53,21 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return game.messageHandler.addReply(message, 'Invalid command given. Use "activate" or "deactivate".');
+    if (command !== "activate" && command !== "deactivate") return messageHandler.addReply(message, 'Invalid command given. Use "activate" or "deactivate".');
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";
     var index = input.indexOf('"');
-    if (index === -1) index = input.indexOf('“');
+    if (index === -1) index = input.indexOf('ï¿½');
     if (index !== -1) {
         announcement = input.substring(index + 1);
         // Remove the announcement from the list of arguments.
         input = input.substring(0, index - 1);
         args = input.split(" ");
         // Now clean up the announcement text.
-        if (announcement.endsWith('"') || announcement.endsWith('”'))
+        if (announcement.endsWith('"') || announcement.endsWith('ï¿½'))
             announcement = announcement.substring(0, announcement.length - 1);
         if (!announcement.endsWith('.') && !announcement.endsWith('!'))
             announcement += '.';
@@ -98,8 +114,8 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (object === null && player === null && room === null && objects.length > 0) object = objects[0];
-    else if (object === null) return game.messageHandler.addReply(message, `Couldn't find object "${input}".`);
-    if (object.recipeTag === "") return game.messageHandler.addReply(message, `${object.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (object === null) return messageHandler.addReply(message, `Couldn't find object "${input}".`);
+    if (object.recipeTag === "") return messageHandler.addReply(message, `${object.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
@@ -108,16 +124,16 @@ module.exports.run = async (bot, game, message, command, args) => {
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {
         object.activate(game, player, narrate);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully activated ${object.name}.`);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully activated ${object.name}.`);
         // Post log message.
-        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
         object.deactivate(game, player, narrate);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully deactivated ${object.name}.`);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully deactivated ${object.name}.`);
         // Post log message.
-        if (player) game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
     }
 
     return;
-};
+}

@@ -1,10 +1,10 @@
-const constants = include('Configs/constants.json');
-const demodata = include('Configs/demodata.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+import constants from '../Configs/constants.json' with { type: 'json' };
+import demodata from '../Configs/demodata.json' with { type: 'json' };
+import { batchUpdateData as batchUpdateSheetData } from "./sheets.js";
 
-var game = include('game.json');
+import game from '../game.json' with { type: 'json' };
 
-module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventoryItemsCount = 0) {
+export async function saveGame (deletedItemsCount = 0, deletedInventoryItemsCount = 0) {
     return new Promise(async (resolve, reject) => {
         var data = [];
 
@@ -184,16 +184,16 @@ module.exports.saveGame = async function (deletedItemsCount = 0, deletedInventor
         data.push({ range: constants.flagSheetDataCells, values: flagValues });
 
         try {
-            await sheets.batchUpdateData(data);
+            await batchUpdateSheetData(data);
             resolve();
         }
         catch (err) {
             reject(err);
         }
     });
-};
+}
 
-module.exports.setupdemo = async function () {
+export async function setupdemo () {
     return new Promise (async (resolve, reject) =>  {
         var data = [];
 
@@ -218,11 +218,11 @@ module.exports.setupdemo = async function () {
         data.push({ range: constants.gestureSheetDataCells, values: gestureValues });
 
         try {
-            await sheets.batchUpdateData(data);
+            await batchUpdateSheetData(data);
             resolve(roomValues);
         }
         catch (err) {
             reject(err);
         }
     });
-};
+}

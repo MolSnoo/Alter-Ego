@@ -1,21 +1,37 @@
-﻿const settings = include('Configs/settings.json');
-const serverconfig = include('Configs/serverconfig.json');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "reveal_moderator",
     description: "Gives a player the Dead role.",
     details: "Removes the Player role from the listed players and gives them the Dead role. "
         + "All listed players must be dead.",
-    usage: `${settings.commandPrefix}reveal chris\n`
-        + `${settings.commandPrefix}reveal micah joshua amber devyn veronica\n`,
     usableBy: "Moderator",
     aliases: ["reveal"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}reveal chris\n`
+        + `${settings.commandPrefix}reveal micah joshua amber devyn veronica\n`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify at least one player. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
@@ -30,17 +46,17 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return game.messageHandler.addReply(message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
+        return messageHandler.addReply(message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++) {
         if (players[i].talent !== "NPC") {
-            players[i].member.roles.remove(serverconfig.playerRole);
-            players[i].member.roles.add(serverconfig.deadRole);
+            players[i].member.roles.remove(game.guildContext.playerRole);
+            players[i].member.roles.add(game.guildContext.deadRole);
         }
     }
 
-    game.messageHandler.addGameMechanicMessage(message.channel, "Listed players have been given the Dead role.");
+    messageHandler.addGameMechanicMessage(message.channel, "Listed players have been given the Dead role.");
 
     return;
-};
+}

@@ -1,24 +1,44 @@
-const settings = include('Configs/settings.json');
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "equip_player",
     description: "Equips an item.",
     details: "Equips an item currently in your hand. You can specify which equipment slot you want to equip the item to, if you want. "
         + "However, some items can only be equipped to certain equipment slots (for example, a mask can only be equipped to the FACE slot). "
         + "People in the room will see you equip an item, regardless of its size.",
-    usage: `${settings.commandPrefix}equip mask\n`
-        + `${settings.commandPrefix}wear coat\n`
-        + `${settings.commandPrefix}equip sweater to shirt`,
     usableBy: "Player",
-    aliases: ["equip", "wear", "e"]
+    aliases: ["equip", "wear", "e"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}equip mask\n`
+        + `${settings.commandPrefix}wear coat\n`
+        + `${settings.commandPrefix}equip sweater to shirt`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify an item. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable equip");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -43,8 +63,8 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
-    if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return game.messageHandler.addReply(message, `${itemName} is not equippable.`);
+    if (item === null) return messageHandler.addReply(message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
+    if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return messageHandler.addReply(message, `${itemName} is not equippable.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
@@ -60,16 +80,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     break;
                 }
             }
-            if (!acceptableSlot) return game.messageHandler.addReply(message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
-            if (player.inventory[i].equippedItem !== null) return game.messageHandler.addReply(message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
+            if (!acceptableSlot) return messageHandler.addReply(message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
+            if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
         }
     }
-    if (!foundSlot) return game.messageHandler.addReply(message, `Couldn't find equipment slot "${slotName}".`);
+    if (!foundSlot) return messageHandler.addReply(message, `Couldn't find equipment slot "${slotName}".`);
 
-    player.equip(game, item, slotName, hand, bot);
+    player.equip(game, item, slotName, hand, game.botContext);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
 
     return;
-};
+}

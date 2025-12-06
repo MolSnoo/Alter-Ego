@@ -1,6 +1,11 @@
-﻿const settings = include('Configs/settings.json');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "run_player",
     description: "Runs to another room.",
     details: 'Moves you to another room by running. This functions the same as the move command, however you will move twice as quickly and lose stamina '
@@ -9,25 +14,40 @@ module.exports.config = {
         + 'It is recommended that you open the new channel immediately so that you can start seeing messages as soon as you\'re added. '
         + 'The room description will be sent to you via DMs. You can create a queue of movements to perform such that upon entering one room, you will immediately '
         + 'start running to the next one. To do this, separate each destination with `>`.',
-    usage: `${settings.commandPrefix}run hall 1\n`
+    usableBy: "Player",
+    aliases: ["run"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}run hall 1\n`
         + `${settings.commandPrefix}run botanical garden\n`
         + `${settings.commandPrefix}run hall 1 > hall 2 > hall 3 > hall 4\n`
-        + `${settings.commandPrefix}run lobby>path 3>path 1>park>path 7>botanical garden`,
-    usableBy: "Player",
-    aliases: ["run"]
-};
+        + `${settings.commandPrefix}run lobby>path 3>path 1>park>path 7>botanical garden`;
+}
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify a room. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable run");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
-    if (player.isMoving) return game.messageHandler.addReply(message, `You cannot do that because you are already moving.`);
+    if (player.isMoving) return messageHandler.addReply(message, `You cannot do that because you are already moving.`);
 
     player.moveQueue = args.join(" ").split(">");
-    player.queueMovement(bot, game, true, player.moveQueue[0].trim());
+    player.queueMovement(game.botContext, game, true, player.moveQueue[0].trim());
 
     return;
-};
+}

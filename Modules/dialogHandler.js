@@ -1,6 +1,6 @@
-﻿const serverconfig = include('Configs/serverconfig.json');
+﻿import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
 
-module.exports.execute = async (bot, game, message, deletable, player = null, originalDisplayName = "") => {
+export default async function execute (bot, game, message, deletable, player = null, originalDisplayName = "") {
     return new Promise(async (resolve) => {
         // Determine if the speaker is a moderator first.
         var isModerator = false;
@@ -504,4 +504,4 @@ module.exports.execute = async (bot, game, message, deletable, player = null, or
 
         resolve();
     });
-};
+}

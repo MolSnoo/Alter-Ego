@@ -1,11 +1,11 @@
-﻿const { google } = require('googleapis');
-const credentials = include('Configs/credentials.json');
-var sheets = google.sheets({ version: 'v4' });
+﻿import { google } from 'googleapis';
+const sheets = google.sheets({ version: 'v4' });
 
-const settings = include('Configs/settings.json');
+import settings from '../Configs/settings.json' with { type: 'json' };
+import credentials from '../Configs/credentials.json' with { type: 'json' };
 const spreadsheetID = settings.spreadsheetID;
 
-module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
+export function getData (sheetrange, dataOperation, spreadsheetId) {
     if (!spreadsheetId) spreadsheetId = spreadsheetID;
     const request = {
         // The ID of the spreadsheet to retrieve data from.
@@ -31,9 +31,9 @@ module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
         if (dataOperation)
             dataOperation(response);
     }).catch(err => console.error(err));
-};
+}
 
-module.exports.getDataWithProperties = function (sheetrange, dataOperation, spreadsheetId) {
+export function getDataWithProperties (sheetrange, dataOperation, spreadsheetId) {
     if (!spreadsheetId) spreadsheetId = spreadsheetID;
     const request = {
         spreadsheetId: spreadsheetId,
@@ -49,9 +49,9 @@ module.exports.getDataWithProperties = function (sheetrange, dataOperation, spre
         if (dataOperation)
             dataOperation(response);
     }).catch(err => console.error(err));
-};
+}
 
-module.exports.updateData = function (sheetrange, data, dataOperation) {
+export function updateData (sheetrange, data, dataOperation) {
     const request = {
         spreadsheetId: spreadsheetID,
 
@@ -70,9 +70,9 @@ module.exports.updateData = function (sheetrange, data, dataOperation) {
         if (dataOperation)
             dataOperation(response);
     }).catch(err => console.error(err));
-};
+}
 
-module.exports.batchUpdateData = function (data, dataOperation) {
+export function batchUpdateData (data, dataOperation) {
     const request = {
         spreadsheetId: spreadsheetID,
 
@@ -92,9 +92,9 @@ module.exports.batchUpdateData = function (data, dataOperation) {
             resolve();
         }).catch(err => reject(err));
     });
-};
+}
 
-module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
+export function batchUpdate (requests, dataOperation, spreadsheetId) {
     if (!spreadsheetId) spreadsheetId = spreadsheetID;
     const request = {
         spreadsheetId: spreadsheetId,
@@ -116,9 +116,9 @@ module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
             resolve();
         }).catch(err => reject(console.error(err)));
     });
-};
+}
 
-module.exports.appendRows = function (sheetrange, data, dataOperation) {
+export function appendRows (sheetrange, data, dataOperation) {
     const request = {
         spreadsheetId: spreadsheetID,
 
@@ -142,7 +142,7 @@ module.exports.appendRows = function (sheetrange, data, dataOperation) {
             resolve();
         }).catch(err => reject(err));
     });
-};
+}
 
 function authorize() {
     return new google.auth.JWT({

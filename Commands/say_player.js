@@ -1,32 +1,49 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message, ChannelType } from "discord.js";
+import { default as handleDialog } from '../Modules/dialogHandler.js';
 
-const { ChannelType } = require("../node_modules/discord-api-types/v10");
-
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "say_player",
     description: "Sends your message to the room you're in.",
     details: "Sends your message to the channel of the room you're currently in. This command is "
         + "only available to players with certain status effects.",
-    usage: `${settings.commandPrefix}say What happened?\n`
-        + `${settings.commandPrefix}speak Did someone turn out the lights?`,
     usableBy: "Player",
-    aliases: ["say", "speak"]
+    aliases: ["say", "speak"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}say What happened?\n`
+        + `${settings.commandPrefix}speak Did someone turn out the lights?`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify something to say. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("enable say");
-    if (status.length === 0) return game.messageHandler.addReply(message, `You have no reason to use the say command. Speak in the room channel instead.`);
+    if (status.length === 0) return messageHandler.addReply(message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
     var input = args.join(" ");
     if (!input.startsWith("(")) {
         // Create a webhook for this channel if necessary, or grab the existing one.
         let webHooks = await player.location.channel.fetchWebhooks();
-        let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
+        let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
@@ -47,7 +64,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             embeds: message.embeds,
             files: files
         }).then(msg => {
-            dialogHandler.execute(bot, game, msg, true, player, displayName)
+            handleDialog(game.botContext, game, msg, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;
@@ -58,4 +75,4 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     }
     
     return;
-};
+}

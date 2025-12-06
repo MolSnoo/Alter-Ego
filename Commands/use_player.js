@@ -1,6 +1,11 @@
-﻿const settings = include('Configs/settings.json');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "use_player",
     description: "Uses an item in your inventory or an object in a room.",
     details: "Uses an item from your inventory. Not all items have programmed uses. Those that do will inflict you "
@@ -14,7 +19,17 @@ module.exports.config = {
         + "Anything after the name of the object will be treated as a password or combination. "
         + "Passwords and combinations are case-sensitive. If the object is a lock of some kind, you can relock it using the lock command. "
         + "Other objects may require a puzzle to be solved before they do anything special.",
-    usage: `${settings.commandPrefix}use first aid kit\n`
+    usableBy: "Player",
+    aliases: ["use", "unlock", "lock", "type", "activate", "flip", "push", "press", "ingest", "consume", "swallow", "eat", "drink"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}use first aid kit\n`
         + `${settings.commandPrefix}eat food\n`
         + `${settings.commandPrefix}use old key chest\n`
         + `${settings.commandPrefix}use lighter candle\n`
@@ -23,17 +38,22 @@ module.exports.config = {
         + `${settings.commandPrefix}unlock locker 1 12-22-11\n`
         + `${settings.commandPrefix}press button\n`
         + `${settings.commandPrefix}flip lever\n`
-        + `${settings.commandPrefix}use blender`,
-    usableBy: "Player",
-    aliases: ["use", "unlock", "lock", "type", "activate", "flip", "push", "press", "ingest", "consume", "swallow", "eat", "drink"]
-};
+        + `${settings.commandPrefix}use blender`;
+}
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify an object. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable use");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -89,7 +109,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
         if (puzzle !== null) {
             // Make sure the player can only solve the puzzle if it's a child puzzle of the object they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
@@ -119,19 +139,19 @@ module.exports.run = async (bot, game, message, command, args, player) => {
     // If there is an object, do the required behavior.
     if (object !== null && object.recipeTag !== "" && object.activatable) {
         // Make sure the player can only activate the object if it's the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
 
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (object.activated) {
             object.deactivate(game, player, narrate);
             // Post log message.
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
         }
         else {
             object.activate(game, player, narrate);
             // Post log message.
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
         }
     }
 
@@ -143,9 +163,9 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             message: message,
             targetPlayer: targetPlayer
         };
-        const response = player.attemptPuzzle(bot, game, puzzle, item, password, command, misc);
+        const response = player.attemptPuzzle(game.botContext, game, puzzle, item, password, command, misc);
         if (response === "" || !response) return;
-        else return game.messageHandler.addReply(message, response);
+        else return messageHandler.addReply(message, response);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
@@ -154,10 +174,10 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
-        else return game.messageHandler.addReply(message, response);
+        else return messageHandler.addReply(message, response);
     }
-    else if (object === null) return game.messageHandler.addReply(message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
-};
+    else if (object === null) return messageHandler.addReply(message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+}

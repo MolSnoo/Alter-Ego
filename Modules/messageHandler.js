@@ -1,16 +1,20 @@
-const settings = include("Configs/settings.json");
-const constants = include("Configs/constants.json");
-const serverconfig = include("Configs/serverconfig.json");
-const { discord, TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags} = require("discord.js");
-const PriorityQueue = include(`${constants.dataDir}/PriorityQueue.js`);
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, Message, ChannelType, Attachment, TextChannel } from 'discord.js';
+import PriorityQueue from '../Classes/PriorityQueue.js';
+import Player from '../Data/Player.js';
+import Whisper from '../Data/Whisper.js';
+import Game from '../Data/Game.js';
+import Room from '../Data/Room.js';
 
-module.exports.queue = new PriorityQueue();
-module.exports.cache = [];
-module.exports.clientID = null;
-
-module.exports.addNarration = async (room, messageText, addSpectate = true, speaker = null) => {
+/**
+ * Narrates a message to a room.
+ * @param {Room} room - The room to send the message to.
+ * @param {string} messageText - The message to send.
+ * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
+ * @param {Player} [speaker] - The player who originally spoke the dialog, if applicable.
+ */
+export async function addNarration (room, messageText, addSpectate = true, speaker = null) {
     if (messageText !== "") {
-        module.exports.queue.enqueue(
+        room.game.messageQueue.enqueue(
             {
                 fire: async () => await room.channel.send(messageText),
             },
@@ -25,7 +29,7 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
                     !player.hasAttribute("unconscious") &&
                     player.spectateChannel !== null
                 ) {
-                    module.exports.queue.enqueue(
+                    room.game.messageQueue.enqueue(
                         {
                             fire: async () => await player.spectateChannel.send(messageText),
                         },
@@ -35,11 +39,17 @@ module.exports.addNarration = async (room, messageText, addSpectate = true, spea
             });
         }
     }
-};
+}
 
-module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate = true) => {
+/**
+ * Narrates a message to a whisper.
+ * @param {Whisper} whisper - The whisper to send the message to. 
+ * @param {string} messageText - The message to send. 
+ * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
+ */
+export async function addNarrationToWhisper (whisper, messageText, addSpectate = true) {
     if (messageText !== "") {
-        module.exports.queue.enqueue(
+        whisper.game.messageQueue.enqueue(
             {
                 fire: async () => await whisper.channel.send(messageText),
             },
@@ -53,7 +63,7 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
                     !player.hasAttribute("unconscious") &&
                     player.spectateChannel !== null
                 ) {
-                    module.exports.queue.enqueue(
+                    whisper.game.messageQueue.enqueue(
                         {
                             fire: async () => await player.spectateChannel.send(spectateMessageText),
                         },
@@ -63,11 +73,17 @@ module.exports.addNarrationToWhisper = async (whisper, messageText, addSpectate 
             });
         }
     }
-};
+}
 
-module.exports.addDirectNarration = async (player, messageText, addSpectate = true) => {
-    if (player.talent !== "NPC") {
-        module.exports.queue.enqueue(
+/**
+ * Narrates a message directly to a player.
+ * @param {Player} player - The player to send the message to.
+ * @param {string} messageText - The message to send.
+ * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
+ */
+export async function addDirectNarration (player, messageText, addSpectate = true) {
+    if (player.title !== "NPC") {
+        player.game.messageQueue.enqueue(
             {
                 fire: async () => await player.member.send(messageText),
             },
@@ -75,20 +91,27 @@ module.exports.addDirectNarration = async (player, messageText, addSpectate = tr
         );
     }
     if (addSpectate && player.spectateChannel !== null) {
-        module.exports.queue.enqueue(
+        player.game.messageQueue.enqueue(
             {
                 fire: async () => await player.spectateChannel.send(messageText),
             },
             "spectator"
         );
     }
-};
+}
 
-module.exports.addDirectNarrationWithAttachments = async (player, messageText, attachments, addSpectate = true) => {
+/**
+ * Narrates a message directly to a player with attached files.
+ * @param {Player} player - The player to send the message to.
+ * @param {string} messageText - The message to send.
+ * @param {Attachment[]} attachments - The attachments to send.
+ * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
+ */
+export async function addDirectNarrationWithAttachments (player, messageText, attachments, addSpectate = true) {
     const files = attachments.map((attachment) => attachment.url);
 
-    if (player.talent !== "NPC") {
-        module.exports.queue.enqueue(
+    if (player.title !== "NPC") {
+        player.game.messageQueue.enqueue(
             {
                 fire: async () =>
                     await player.member.send({
@@ -100,7 +123,7 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
         );
     }
     if (addSpectate && player.spectateChannel !== null) {
-        module.exports.queue.enqueue(
+        player.game.messageQueue.enqueue(
             {
                 fire: async () =>
                     await player.spectateChannel.send({
@@ -111,11 +134,19 @@ module.exports.addDirectNarrationWithAttachments = async (player, messageText, a
             "spectator"
         );
     }
-};
+}
 
-module.exports.addRoomDescription = async (game, player, location, descriptionText, defaultDropObjectText, addSpectate = true) => {
-    if (player.talent !== "NPC" || (addSpectate && player.spectateChannel !== null)) {
-        let constructedString;
+/**
+ * Sends the room description to a player as an array of Discord Components.
+ * @param {Player} player - The player to send the message to.
+ * @param {Room} location - The room whose description is being sent. 
+ * @param {string} descriptionText - The description of the room to send. 
+ * @param {string} defaultDropObjectText - The description of the default drop object in this room. 
+ * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
+ */
+export async function addRoomDescription (player, location, descriptionText, defaultDropObjectText, addSpectate = true) {
+    if (player.title !== "NPC" || (addSpectate && player.spectateChannel !== null)) {
+        let constructedString = "";
         const generatedString = location.generate_occupantsString(
             location.occupants.filter((occupant) => !occupant.hasAttribute("hidden") && occupant.name !== player.name)
         );
@@ -135,9 +166,10 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
             } asleep.`;
         }
         
+        const game = location.game;
         const components = [
             new ContainerBuilder()
-            .setAccentColor(Number(`0x${settings.embedColor}`))
+            .setAccentColor(Number(`0x${game.settings.embedColor}`))
             .addSectionComponents(
                 new SectionBuilder()
                 .setThumbnailAccessory(
@@ -145,14 +177,14 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
                     .setURL(
                         location.iconURL !== ""
                         ? location.iconURL
-                        : settings.defaultRoomIconURL !== ""
-                        ? settings.defaultRoomIconURL
-                        : game.guild.iconURL()
+                        : game.settings.defaultRoomIconURL !== ""
+                        ? game.settings.defaultRoomIconURL
+                        : location.game.guildContext.guild.iconURL()
                     )
                 )
                 .addTextDisplayComponents(
                     new TextDisplayBuilder().setContent("_ _"),
-                    new TextDisplayBuilder().setContent(`**${location.name}**`),
+                    new TextDisplayBuilder().setContent(`**${location.id}**`),
                     new TextDisplayBuilder().setContent("_ _")
                 )
             ),
@@ -161,13 +193,13 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
             new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false),
             new TextDisplayBuilder().setContent("**Occupants**"),
             new TextDisplayBuilder().setContent(constructedString),
-            new TextDisplayBuilder().setContent(`**${settings.defaultDropObject.charAt(0) + settings.defaultDropObject.substring(1).toLowerCase()}**`),
+            new TextDisplayBuilder().setContent(`**${game.settings.defaultDropObject.charAt(0) + game.settings.defaultDropObject.substring(1).toLowerCase()}**`),
             new TextDisplayBuilder().setContent(defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText),
             new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
         ];
 
-        if (player.talent !== "NPC") {
-            module.exports.queue.enqueue(
+        if (player.title !== "NPC") {
+            location.game.messageQueue.enqueue(
                 {
                     fire: async () =>
                         await player.member.send({
@@ -179,7 +211,7 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
             );
         }
         if (addSpectate && player.spectateChannel !== null) {
-            module.exports.queue.enqueue(
+            location.game.messageQueue.enqueue(
                 {
                     fire: async () =>
                         await player.spectateChannel.send({
@@ -191,26 +223,35 @@ module.exports.addRoomDescription = async (game, player, location, descriptionTe
             );
         }
     }
-};
+}
 
-module.exports.addCommandHelp = async (channel, command, thumbnailURL) => {
-    const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
+/**
+ * Sends the help menu for a command as an array of Discord Components.
+ * @param {Game} game - The game context in which this help menu is being sent.
+ * @param {TextChannel} channel - The channel to send the help menu to.
+ * @param {Command} command - The command to display the help menu for.
+ */
+export async function addCommandHelp (game, channel, command) {
+    const commandName = command.config.name.charAt(0).toUpperCase() + command.config.name.substring(1, command.config.name.indexOf('_'));
     const title = `**${commandName} Command Help**`;
     let aliasString = "";
-    for (const alias of command.aliases)
-        aliasString += `\`${settings.commandPrefix}${alias}\` `;
+    for (const alias of command.config.aliases)
+        aliasString += `\`${game.settings.commandPrefix}${alias}\` `;
 
     const components = [
         new ContainerBuilder()
-        .setAccentColor(Number(`0x${settings.embedColor}`))
+        .setAccentColor(Number(`0x${game.settings.embedColor}`))
         .addSectionComponents(
             new SectionBuilder()
             .setThumbnailAccessory(
-                new ThumbnailBuilder().setURL(thumbnailURL)
+                new ThumbnailBuilder().setURL(
+                    game.guildContext.guild.members.me.avatarURL()
+                    || game.guildContext.guild.members.me.user.avatarURL()
+                )
             )
             .addTextDisplayComponents(
                 new TextDisplayBuilder().setContent(title),
-                new TextDisplayBuilder().setContent(command.description)
+                new TextDisplayBuilder().setContent(command.config.description)
             )
         )
         .addTextDisplayComponents(
@@ -223,17 +264,17 @@ module.exports.addCommandHelp = async (channel, command, thumbnailURL) => {
             new TextDisplayBuilder().setContent("**Examples**")
         )
         .addTextDisplayComponents(
-            new TextDisplayBuilder().setContent(command.usage)
+            new TextDisplayBuilder().setContent(command.usage(game.settings))
         )
         .addTextDisplayComponents(
             new TextDisplayBuilder().setContent("**Description**")
         )
         .addTextDisplayComponents(
-            new TextDisplayBuilder().setContent(command.details)
+            new TextDisplayBuilder().setContent(command.config.details)
         )
     ];
 
-    module.exports.queue.enqueue(
+    game.messageQueue.enqueue(
         {
             fire: async () =>
                 await channel.send({
@@ -241,44 +282,69 @@ module.exports.addCommandHelp = async (channel, command, thumbnailURL) => {
                     flags: MessageFlags.IsComponentsV2
                 })
         },
-        channel.parent !== undefined && channel.id === serverconfig.commandChannel ? "mod" : "mechanic"
+        channel.parent !== undefined && channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
-};
+}
 
-module.exports.addLogMessage = async (logChannel, messageText) => {
-    module.exports.queue.enqueue(
+/**
+ * Sends a message to the game's log channel.
+ * @param {Game} game - The game in which to send a log message.
+ * @param {string} messageText - The message to send.
+ */
+export async function addLogMessage (game, messageText) {
+    game.messageQueue.enqueue(
         {
-            fire: async () => await logChannel.send(messageText),
+            fire: async () => await game.guildContext.logChannel.send(messageText),
         },
         "log"
     );
-};
+}
 
-module.exports.addGameMechanicMessage = (channel, messageText) => {
-    module.exports.queue.enqueue(
+/**
+ * Sends a standard message indicating the outcome of a game mechanic in the specified channel.
+ * @param {Game} game - The game in which this mechanic is occurring.
+ * @param {TextChannel} channel - The channel to send the message to.
+ * @param {string} messageText - The message to send.
+ */
+export function addGameMechanicMessage (game, channel, messageText) {
+    game.messageQueue.enqueue(
         {
             fire: async () => await channel.send(messageText),
         },
-        channel.parent !== undefined && channel.id === serverconfig.commandChannel ? "mod" : "mechanic"
+        channel.parent !== undefined && channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
-};
+}
 
-module.exports.addReply = async (message, messageText) => {
-    module.exports.queue.enqueue(
+/**
+ * Replies to a message. This is usually done when a user has sent a message with an error.
+ * @param {Game} game - The game this message was sent in.
+ * @param {Message} message - The message to reply to.
+ * @param {string} messageText - The text to send in response.
+ */
+export async function addReply (game, message, messageText) {
+    game.messageQueue.enqueue(
         {
             fire: async () => {
-                if (message.channel.parent !== undefined && message.channel.id === serverconfig.commandChannel) {
-                    await message.reply(messageText);
+                if (message.channel.type === ChannelType.GuildText && message.channel.id === game.guildContext.commandChannel.id) {
+                    return await message.reply(messageText);
                 } else {
-                    await message.author.send(messageText);
+                    return await message.author.send(messageText);
                 }
             },
         },
-        message.channel.parent !== undefined && message.channel.id === serverconfig.commandChannel ? "mod" : "mechanic"
+        message.channel.type === ChannelType.GuildText && message.channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
-};
+}
 
-module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whisper = null, displayName = null) => {
+/**
+ * Mirrors a dialog message in a spectate channel.
+ * @param {Player} player - The player whose spectate channel this message is being sent to.
+ * @param {Player} speaker - The player who originally sent the dialog message.
+ * @param {Message} message - The message in which this dialog originated.
+ * @param {Whisper} [whisper] - The whisper the dialog was sent in, if applicable.
+ * @param {string} [displayName] - The displayName to use for the mirrored webhook message. If none is specified, the speaker's current displayName will be used.
+ */
+export async function addSpectatedPlayerMessage (player, speaker, message, whisper = null, displayName = null) {
     if (player.spectateChannel !== null) {
         const messageText =
             whisper && whisper.players.length > 1
@@ -288,16 +354,16 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
                 : message.content || "";
 
         const webhooks = await player.spectateChannel.fetchWebhooks();
-        let webhook = webhooks.find((wh) => wh.owner.id === module.exports.clientID);
-        if ((webhook === null) | (webhook === undefined))
+        let webhook = webhooks.find((wh) => wh.owner.id === message.client.user.id);
+        if ((webhook === null) || (webhook === undefined))
             webhook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
 
         const files = message.attachments.map((attachment) => attachment.url);
 
-        module.exports.queue.enqueue(
+        player.game.messageQueue.enqueue(
             {
                 fire: async () => {
-                    let msg = await webhook.send({
+                    const webhookMessage = await webhook.send({
                         content: messageText,
                         username: displayName ? displayName : speaker.displayName,
                         avatarURL: speaker.displayIcon
@@ -308,43 +374,56 @@ module.exports.addSpectatedPlayerMessage = async (player, speaker, message, whis
                         embeds: message.embeds,
                         files: files,
                     });
-                    const cachedMessage = module.exports.cache.find((entry) => entry.id === message.id);
-                    if (cachedMessage) cachedMessage.related.push({ message: msg.id, webhook: webhook.id });
+                    const cachedMessage = speaker.game.dialogCache.find((entry) => entry.messageId === message.id);
+                    if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
+                    return webhookMessage;
                 },
             },
             "spectator"
         );
     }
-};
+}
 
-module.exports.editSpectatorMessage = async (messageOld, messageNew) => {
-    const cachedMessage = module.exports.cache.find((entry) => entry.id === messageOld.id);
+/**
+ * Edits spectate messages when the dialog they mirror is edited.
+ * @param {Game} game - The game this dialog belongs to.
+ * @param {Message|import('discord.js').PartialMessage} messageOld - The original message being edited.
+ * @param {Message} messageNew - The new message after being edited.
+ */
+export async function editSpectatorMessage (game, messageOld, messageNew) {
+    const cachedMessage = game.dialogCache.find((entry) => entry.messageId === messageOld.id);
     if (!cachedMessage) return;
-    cachedMessage.related.forEach(async (related) => {
-        const webHook = await messageOld.client.fetchWebhook(related.webHook);
-        if (webHook) {
+    cachedMessage.spectateMirrors.forEach(async (mirror) => {
+        const webhook = await messageOld.client.fetchWebhook(mirror.webhookId);
+        if (webhook) {
             let messageText = messageNew.content;
-            if (messageOld.channel.parentId === serverconfig.whisperCategory) {
-                const relatedMessage = await webHook.fetchMessage(related.message);
+            if (messageOld.channel.type === ChannelType.GuildText && messageOld.channel.parentId === game.guildContext.whisperCategoryId) {
+                const relatedMessage = await webhook.fetchMessage(mirror.messageId);
                 const regexGroups = relatedMessage.content.match(new RegExp(/(\*\(Whispered(?:.*)\):\*\n)(.*)/m));
                 if (regexGroups) messageText = regexGroups[1] + messageNew.content;
             }
-            webHook.editMessage(related.message, { content: messageText });
+            webhook.editMessage(mirror.messageId, { content: messageText });
         }
     });
-};
+}
 
-module.exports.sendQueuedMessages = async () => {
-    while (module.exports.queue.size() > 0) {
-        const message = module.exports.queue.dequeue();
+/**
+ * @param {Game} game - The game whose message queue should have its messages sent.
+ */
+export async function sendQueuedMessages (game) {
+    while (game.messageQueue.size() > 0) {
+        const message = game.messageQueue.dequeue();
         try {
             await message.fire();
         } catch (error) {
             console.error("Messange Handler encountered exception sending message:", error);
         }
     }
-};
+}
 
-module.exports.clearQueue = async () => {
-    module.exports.queue = new PriorityQueue();
-};
+/**
+ * @param {Game} game - The game whose message queue should be emptied. 
+ */
+export async function clearQueue (game) {
+    game.messageQueue.clear();
+}

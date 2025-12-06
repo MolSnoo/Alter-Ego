@@ -1,6 +1,10 @@
-﻿const settings = include('Configs/settings.json');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "kill_moderator",
     description: "Makes a player dead.",
     details: "Moves the listed players from the living list to the dead list. "
@@ -9,16 +13,29 @@ module.exports.config = {
         + "unless they are manually added to the spreadsheet. A dead player will retain the Player role. "
         + "When a dead player's body is officially discovered, use the reveal command to remove the Player role "
         + "and give them the Dead role.",
-    usage: `${settings.commandPrefix}kill chris\n`
-        + `${settings.commandPrefix}die micah joshua amber devyn veronica`,
     usableBy: "Moderator",
     aliases: ["kill", "die"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}kill chris\n`
+        + `${settings.commandPrefix}die micah joshua amber devyn veronica`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify at least one player. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
@@ -33,13 +50,13 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return game.messageHandler.addReply(message, `Couldn't find player(s): ${missingPlayers}.`);
+        return messageHandler.addReply(message, `Couldn't find player(s): ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++)
         players[i].die(game);
 
-    game.messageHandler.addGameMechanicMessage(message.channel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
+    messageHandler.addGameMechanicMessage(message.channel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
 
     return;
-};
+}
