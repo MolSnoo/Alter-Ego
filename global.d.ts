@@ -329,15 +329,4 @@ declare global {
 		loop: boolean;
 		start: boolean;
 	}
-
-	interface Timer {
-		timerDuration: number;
-		attributes: TimerAttributes;
-		callback: Function;
-		started: boolean;
-		stopped: boolean;
-		timer: NodeJS.Timeout|null;
-		startTick: number|null;
-		endTick: number|null;
-	}
 }

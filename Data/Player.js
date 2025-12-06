@@ -23,6 +23,8 @@ import { default as executeCommand } from '../Modules/commandHandler.js';
 import * as itemManager from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
+import Timer from '../Classes/Timer.js';
+
 import { GuildMember, Message, TextChannel } from 'discord.js';
 import dayjs from 'dayjs';
 
@@ -749,7 +751,7 @@ export default class Player extends ItemContainer {
             else status.remaining = status.duration.clone();
 
             let player = this;
-            status.timer = dayjs.duration(1000).timer({ start: true, loop: true }, function () { // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+            status.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
                 let subtractedTime = 1000;
                 if (player.game.heated) subtractedTime = player.game.settings.heatedSlowdownRate * subtractedTime;
                 status.remaining.subtract(subtractedTime, 'ms');

@@ -88,9 +88,9 @@ export default class Status extends GameEntity {
     curedDescription;
     /** 
      * A timer counting down every second until the status expires.
-     * @type {timer} 
+     * @type {import("../Classes/Timer.js")} 
      */
-    timer; // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+    timer;
 
     /**
      * @constructor

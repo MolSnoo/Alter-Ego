@@ -175,9 +175,9 @@ export function loadObjects (game, doErrorChecking) {
         // Clear all recipe intervals so they don't continue after these objects are unloaded.
         for (let i = 0; i < game.objects.length; i++) {
             if (game.objects[i].recipeInterval !== null)
-                game.objects[i].recipeInterval.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                game.objects[i].recipeInterval.stop();
             if (game.objects[i].process.timer !== null)
-                game.objects[i].process.timer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                game.objects[i].process.timer.stop();
         }
 
         getSheetData(constants.objectSheetDataCells, function (response) {
@@ -975,9 +975,9 @@ export function loadEvents (game, doErrorChecking) {
         // Clear timers for all events first.
         for (let i = 0; i < game.events.length; i++) {
             if (game.events[i].timer !== null)
-                game.events[i].timer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                game.events[i].timer.stop();
             if (game.events[i].effectsTimer !== null)
-                game.events[i].effectsTimer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                game.events[i].effectsTimer.stop();
         }
 
         getSheetData(constants.eventSheetDataCells, function (response) {
@@ -1312,7 +1312,7 @@ export function loadPlayers (game, doErrorChecking) {
         for (let i = 0; i < game.players.length; i++) {
             for (let j = 0; j < game.players[i].status.length; j++) {
                 if (game.players[i].status[j].hasOwnProperty("timer") && game.players[i].status[j].timer !== null)
-                    game.players[i].status[j].timer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                    game.players[i].status[j].timer.stop();
             }
             game.players[i].isMoving = false;
             clearInterval(game.players[i].moveTimer);

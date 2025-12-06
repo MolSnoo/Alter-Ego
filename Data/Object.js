@@ -8,6 +8,7 @@ import Puzzle from './Puzzle.js';
 import Recipe from './Recipe.js';
 import Room from './Room.js';
 import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
+import Timer from '../Classes/Timer.js';
 import dayjs from 'dayjs';
 dayjs().format();
 
@@ -80,9 +81,9 @@ export default class Object extends ItemContainer {
     process;
     /** 
      * A timer that checks for recipes that the object can process every second.
-     * @type {timer}
+     * @type {Timer}
      */
-    recipeInterval; // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+    recipeInterval;
 
     /**
      * @constructor
@@ -116,7 +117,7 @@ export default class Object extends ItemContainer {
 
         this.process = { recipe: null, ingredients: [], duration: null, timer: null };
         let object = this;
-        this.recipeInterval = this.recipeTag ? dayjs.duration(1000).timer({ start: true, loop: true }, function () { object.processRecipes(object); }) : null; // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+        this.recipeInterval = this.recipeTag ? new Timer(dayjs.duration(1000), { start: true, loop: true }, function () { object.processRecipes(object); }) : null;
     }
 
     /**
@@ -151,7 +152,7 @@ export default class Object extends ItemContainer {
             if (this.autoDeactivate) {
                 this.process.duration = dayjs.duration(1, 'm');
                 let object = this;
-                this.process.timer = dayjs.duration(1000).timer({ start: true, loop: true }, function () { // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                this.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
                     if (object.process.duration !== null) {
                         object.process.duration.subtract(1000, 'ms');
                         if (object.process.duration.asMilliseconds() <= 0)
@@ -168,7 +169,7 @@ export default class Object extends ItemContainer {
         this.process.duration = this.process.recipe.duration.clone();
 
         let object = this;
-        object.process.timer = dayjs.duration(1000).timer({ start: true, loop: true }, function () { // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+        object.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
             if (object.process.duration !== null) {
                 object.process.duration.subtract(1000, 'ms');
 
@@ -210,7 +211,7 @@ export default class Object extends ItemContainer {
             const result = object.findRecipe();
             if (object.process.recipe === null && object.process.duration === null && result.recipe === null && object.autoDeactivate) {
                 object.process.duration = dayjs.duration(1, 'm');
-                object.process.timer = dayjs.duration(1000).timer({ start: true, loop: true }, function () { // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                object.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
                     if (object.process.duration !== null) {
                         object.process.duration.subtract(1000, 'ms');
                         if (object.process.duration.asMilliseconds() <= 0)
@@ -234,7 +235,7 @@ export default class Object extends ItemContainer {
                 object.process.ingredients = result.ingredients;
                 object.process.duration = object.process.recipe.duration.clone();
 
-                this.process.timer = dayjs.duration(1000).timer({ start: true, loop: true }, function () { // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+                this.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
                     if (object.process.duration !== null) {
                         object.process.duration.subtract(1000, 'ms');
 

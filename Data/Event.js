@@ -5,6 +5,7 @@ import Status from './Status.js';
 import { default as executeCommand } from '../Modules/commandHandler.js';
 import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
+import Timer from '../Classes/Timer.js';
 import dayjs from 'dayjs';
 dayjs().format();
 
@@ -114,14 +115,14 @@ export default class Event extends GameEntity {
     endedNarration;
     /** 
      * A timer counting down from the event's initial duration every second. When it reaches 0, the event ends, and this becomes `null`.
-     * @type {timer | null} 
+     * @type {Timer | null} 
      */
-    timer; // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+    timer;
     /** 
      * A timer that inflicts and refreshes status effects every second whil the event is ongoing.
-     * @type {timer | null}
+     * @type {Timer | null}
      */
-    effectsTimer;// TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+    effectsTimer;
 
     /**
      * @constructor
@@ -284,7 +285,7 @@ export default class Event extends GameEntity {
         if (this.remaining === null)
             this.remaining = this.duration.clone();
         let event = this;
-        this.timer = dayjs.duration(1000).timer({ start: true, loop: true }, async function () {  // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+        this.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, async function () {
             event.remaining.subtract(1000, 'ms');
 
             const days = Math.floor(event.remaining.asDays());
@@ -309,7 +310,7 @@ export default class Event extends GameEntity {
 
     #startEffectsTimer() {
         let event = this;
-        this.effectsTimer = dayjs.duration(1000).timer({ start: true, loop: true }, function () {// TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
+        this.effectsTimer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
             for (let i = 0; i < event.game.rooms.length; i++) {
                 if (event.game.rooms[i].tags.includes(event.roomTag)) {
                     for (let j = 0; j < event.game.rooms[i].occupants.length; j++) {

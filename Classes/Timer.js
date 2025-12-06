@@ -1,11 +1,11 @@
-let $djs
+import dayjs from 'dayjs';
 
 /**
  * @class Timer
  * @classdesc API-compatible replacement for moment.js, adapted to day.js.
  * @constructor
  */
-class Timer {
+export default class Timer {
     /**
      * Timer duration in milliseconds.
      * @type {number}
@@ -47,12 +47,15 @@ class Timer {
      */
     endTick;
     /**
-     * @param {number} duration - Timer duration in milliseconds.
+     * @param {number|import("dayjs/plugin/duration.js").Duration} duration - Timer duration in milliseconds.
      * @param {TimerAttributes} attributes - Timer attributes.
      * @param {Function} [callback] - Timer callback function.
      */
     constructor(duration, attributes, callback) {
-        this.timerDuration = duration;
+        if (dayjs.isDuration(duration))
+            this.timerDuration = duration.milliseconds();
+        else 
+            this.timerDuration = duration;
         this.attributes = { ...{ loop: false, start: false }, ...attributes };
         this.callback = callback;
         this.started = false;
@@ -136,7 +139,7 @@ class Timer {
     /**
      * Set or get the timer duration.
      * @param {number|import('dayjs/plugin/duration.js').Duration} [duration] - New duration
-     * @param {string} [unit] - Time unit if duration is a number
+     * @param {import('dayjs/plugin/duration.js').DurationUnitType} [unit] - Time unit if duration is a number
      * @returns {boolean|void} Returns true if setting, nothing if getting
      */
     duration(duration, unit) {
@@ -145,8 +148,8 @@ class Timer {
 
             if (typeof duration === "number") {
                 // Convert based on unit if provided
-                if (unit && $djs && $djs.duration) {
-                    ms = $djs.duration(duration, unit).asMilliseconds();
+                if (unit) {
+                    ms = dayjs.duration(duration, unit).asMilliseconds();
                 } else {
                     ms = duration;
                 }
@@ -233,3 +236,4 @@ class Timer {
         }
     }
 }
+
