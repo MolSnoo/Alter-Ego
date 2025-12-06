@@ -425,5 +425,5 @@ export async function sendQueuedMessages (game) {
  * @param {Game} game - The game whose message queue should be emptied. 
  */
 export async function clearQueue (game) {
-    game.messageQueue = new PriorityQueue();
+    game.messageQueue.clear();
 }
