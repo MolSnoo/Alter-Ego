@@ -3,7 +3,7 @@ import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -63,7 +63,7 @@ export async function execute (game, message, command, args) {
     const moving = sort_occupantsString(room.occupants.filter(occupant => occupant.isMoving));
     var movingList = [];
     for (let i = 0; i < moving.length; i++) {
-        const remaining = new moment.duration(moving[i].remainingTime);
+        const remaining = dayjs.duration(moving[i].remainingTime);
 
         const days = Math.floor(remaining.asDays());
         const hours = remaining.hours();

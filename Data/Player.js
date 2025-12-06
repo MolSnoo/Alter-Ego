@@ -24,10 +24,9 @@ import * as itemManager from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 import { GuildMember, Message, TextChannel } from 'discord.js';
-import moment from 'moment';
-import 'moment-timer';
+import dayjs from 'dayjs';
 
-moment().format();
+dayjs().format();
 
 /**
  * @class Player
@@ -673,7 +672,7 @@ export default class Player extends ItemContainer {
      * @param {boolean} [doCures=true] - Whether or not the status's cures should actually be cured. Defaults to true.
      * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being inflicted. Defaults to true.
      * @param {InventoryItem | PseudoItem} [item] - The inventory item that caused the status to be inflicted, if applicable.
-     * @param {import('moment').Duration} [duration] - A custom duration that overrides the status's default duration.
+     * @param {import('dayjs/plugin/duration.js').Duration} [duration] - A custom duration that overrides the status's default duration.
      * @returns {string} A message indicating whether the status was successfully inflicted, or if not, why it wasn't.
      */
     inflict(statusId, notify = true, doCures = true, narrate = true, item, duration = null) {
@@ -750,7 +749,7 @@ export default class Player extends ItemContainer {
             else status.remaining = status.duration.clone();
 
             let player = this;
-            status.timer = moment.duration(1000).timer({ start: true, loop: true }, function () {
+            status.timer = dayjs.duration(1000).timer({ start: true, loop: true }, function () { // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
                 let subtractedTime = 1000;
                 if (player.game.heated) subtractedTime = player.game.settings.heatedSlowdownRate * subtractedTime;
                 status.remaining.subtract(subtractedTime, 'ms');

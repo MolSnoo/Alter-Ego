@@ -18,8 +18,8 @@ import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
 
 import { ChannelType } from 'discord.js';
-import moment from 'moment';
-moment().format();
+import dayjs from 'dayjs';
+dayjs().format();
 
 export function loadRooms (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
@@ -175,9 +175,9 @@ export function loadObjects (game, doErrorChecking) {
         // Clear all recipe intervals so they don't continue after these objects are unloaded.
         for (let i = 0; i < game.objects.length; i++) {
             if (game.objects[i].recipeInterval !== null)
-                game.objects[i].recipeInterval.stop();
+                game.objects[i].recipeInterval.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
             if (game.objects[i].process.timer !== null)
-                game.objects[i].process.timer.stop();
+                game.objects[i].process.timer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
         }
 
         getSheetData(constants.objectSheetDataCells, function (response) {
@@ -472,7 +472,7 @@ export function loadRecipes (game, doErrorChecking) {
                     durationInt = NaN;
                     durationUnit = NaN;
                 }
-                var duration = durationString ? moment.duration(durationInt, durationUnit) : moment.duration(0);
+                var duration = durationString ? dayjs.duration(durationInt, durationUnit) : dayjs.duration(0);
                 // Separate the products.
                 var products = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
                 // For each product, find its Prefab.
@@ -975,9 +975,9 @@ export function loadEvents (game, doErrorChecking) {
         // Clear timers for all events first.
         for (let i = 0; i < game.events.length; i++) {
             if (game.events[i].timer !== null)
-                game.events[i].timer.stop();
+                game.events[i].timer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
             if (game.events[i].effectsTimer !== null)
-                game.events[i].effectsTimer.stop();
+                game.events[i].effectsTimer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
         }
 
         getSheetData(constants.eventSheetDataCells, function (response) {
@@ -1005,8 +1005,8 @@ export function loadEvents (game, doErrorChecking) {
                     durationInt = NaN;
                     durationUnit = NaN;
                 }
-                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
-                var timeRemaining = sheet[i][columnTimeRemaining] ? moment.duration(sheet[i][columnTimeRemaining]) : null;
+                var duration = durationString ? dayjs.duration(durationInt, durationUnit) : null;
+                var timeRemaining = sheet[i][columnTimeRemaining] ? dayjs.duration(sheet[i][columnTimeRemaining]) : null;
                 var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
                 for (let j = 0; j < triggerTimes.length; j++)
                     triggerTimes[j] = triggerTimes[j].trim();
@@ -1097,9 +1097,9 @@ export function checkEvent (event, game) {
     if (event.ongoing && event.duration !== null && event.remaining === null)
         return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
     for (let i = 0; i < event.triggerTimes.length; i++) {
-        let triggerTime = moment(event.triggerTimes[i], Event.formats);
+        let triggerTime = dayjs(event.triggerTimes[i], Event.formats);
         if (!triggerTime.isValid()) {
-            let timeString = triggerTime.inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
+            let timeString = triggerTime.inspect().replace(/dayjs.invalid\(\/\* (.*)\*\/\)/g, '$1').trim(); // TODO: FIXME (broken by day.js migration, no .inspect() on dayjs objects)
             return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
         }
     }
@@ -1143,7 +1143,7 @@ export function loadStatusEffects (game, doErrorChecking) {
                     durationInt = NaN;
                     durationUnit = NaN;
                 }
-                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
+                var duration = durationString ? dayjs.duration(durationInt, durationUnit) : null;
                 var overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
                 for (let j = 0; j < overriders.length; j++)
                     overriders[j] = overriders[j].trim();
@@ -1312,7 +1312,7 @@ export function loadPlayers (game, doErrorChecking) {
         for (let i = 0; i < game.players.length; i++) {
             for (let j = 0; j < game.players[i].status.length; j++) {
                 if (game.players[i].status[j].hasOwnProperty("timer") && game.players[i].status[j].timer !== null)
-                    game.players[i].status[j].timer.stop();
+                    game.players[i].status[j].timer.stop(); // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
             }
             game.players[i].isMoving = false;
             clearInterval(game.players[i].moveTimer);
@@ -1409,7 +1409,7 @@ export function loadPlayers (game, doErrorChecking) {
                                 const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
                                 if (game.statusEffects[j].name === statusName) {
                                     const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                    const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                    const timeRemaining = statusRemaining ? dayjs.duration(statusRemaining) : null;
                                     currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
                                 }
                             }

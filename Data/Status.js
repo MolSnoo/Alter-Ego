@@ -1,6 +1,5 @@
 ﻿import Game from './Game.js';
 import GameEntity from './GameEntity.js';
-import timer from 'moment-timer';
 
 /**
  * @class Status
@@ -22,12 +21,12 @@ export default class Status extends GameEntity {
     name;
     /**
      * The duration representing how long it takes for the status to expire after it is inflicted. Accepted units: s, m, h, d, w, M, y. If there is none, this is `null`.
-     * @type {import('moment').Duration}
+     * @type {import('dayjs/plugin/duration.js').Duration}
      */
     duration;
     /** 
      * The amount of time remaining until the status expires. If the status has no duration, this is `null`.
-     * @type {import('moment').Duration} 
+     * @type {import('dayjs/plugin/duration.js').Duration} 
      */
     remaining;
     /**
@@ -91,12 +90,12 @@ export default class Status extends GameEntity {
      * A timer counting down every second until the status expires.
      * @type {timer} 
      */
-    timer;
+    timer; // TODO: FIXME (broken by day.js migration, no moment-timer replacement yet)
 
     /**
      * @constructor
      * @param {string} id - The unique ID of the status.
-     * @param {import('moment').Duration} duration - The duration representing how long it takes for the status to expire after it is inflicted. Accepted units: s, m, h, d, w, M, y.
+     * @param {import('dayjs/plugin/duration.js').Duration} duration - The duration representing how long it takes for the status to expire after it is inflicted. Accepted units: s, m, h, d, w, M, y.
      * @param {boolean} fatal - Whether the status kills an inflicted player when it expires. If the status has a nextStage, this is never checked.
      * @param {boolean} visible - Whether the status is visible to the player.
      * @param {Status[]} overriders - Statuses that prevent this status from being inflicted.

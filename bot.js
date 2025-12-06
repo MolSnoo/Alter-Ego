@@ -23,6 +23,12 @@ import { default as handleDialog } from './Modules/dialogHandler.js';
 import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChannel, Role} from 'discord.js';
 import { readdir, readFileSync } from 'fs';
 
+import dayjs from 'dayjs';
+const duration = require("dayjs/plugin/duration");
+const weekday = require("dayjs/plugin/weekday");
+dayjs.extend(duration);
+dayjs.extend(weekday);
+
 const client = new Client({
     partials: [
         Partials.User,

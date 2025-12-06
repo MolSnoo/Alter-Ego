@@ -18,8 +18,8 @@ import Flag from './Flag.js';
 import Whisper from './Whisper.js';
 import { saveGame } from '../Modules/saver.js';
 import { sendQueuedMessages } from '../Modules/messageHandler.js';
-import moment from 'moment';
-moment().format();
+import dayjs from 'dayjs';
+dayjs().format();
 
 /**
  * @class Game
@@ -223,11 +223,11 @@ export default class Game {
 		// Check for any events that are supposed to trigger at this time of day.
 		this.#eventTriggerInterval = setInterval(() => {
 			if (this.inProgress) {
-				const now = moment();
+				const now = dayjs();
 				this.events.forEach(event => {
 					if (!event.ongoing) {
 						for (let triggerTime of event.triggerTimes) {
-							const time = moment(triggerTime, Event.formats);
+							const time = dayjs(triggerTime, Event.formats);
 							if (now.month() === time.month()
 								&& now.weekday() === time.weekday()
 								&& now.date() === time.date()
