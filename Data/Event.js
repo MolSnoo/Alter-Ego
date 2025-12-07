@@ -316,13 +316,13 @@ export default class Event extends GameEntity {
                     for (let j = 0; j < event.game.rooms[i].occupants.length; j++) {
                         const occupant = event.game.rooms[i].occupants[j];
                         for (let k = 0; k < event.effects.length; k++) {
-                            if (!occupant.statusString.includes(event.effects[k].name))
+                            if (!occupant.statusString.includes(event.effects[k].id))
                                 occupant.inflict(event.effects[k], true, true, true);
                         }
                         for (let k = 0; k < event.refreshes.length; k++) {
                             let status = null;
                             for (let l = 0; l < occupant.status.length; l++) {
-                                if (occupant.status[l].name === event.refreshes[k].name) {
+                                if (occupant.status[l].id === event.refreshes[k].id) {
                                     status = occupant.status[l];
                                     break;
                                 }

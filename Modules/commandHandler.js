@@ -102,7 +102,7 @@ export default async function execute (commandStr, game, message, player, callee
             const status = player.getAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
                 if (player.statusString.includes("heated")) messageHandler.addReply(game, message, "The situation is **heated**. Moderator intervention is required.");
-                else messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+                else messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].id}**.`);
                 return false;
             }
             if (game.editMode && commandName !== "say") {

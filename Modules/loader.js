@@ -107,7 +107,7 @@ export function loadRooms (game, doErrorChecking) {
         // Also, add any occupants to the room.
         for (let i = 0; i < game.rooms.length; i++) {
             for (let j = 0; j < game.rooms[i].exit.length; j++) {
-                let dest = game.rooms.find(room => room.id === game.rooms[i].exit[j].destId && room.name !== "");
+                let dest = game.rooms.find(room => room.id === game.rooms[i].exit[j].destId && room.id !== "");
                 if (dest) game.rooms[i].exit[j].dest = dest;
             }
             if (doErrorChecking) {
@@ -137,7 +137,7 @@ export function loadRooms (game, doErrorChecking) {
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
 export function checkRoom (room) {
-    if (room.name === "" || room.name === null || room.name === undefined)
+    if (room.displayName === "" || room.displayName === null || room.displayName === undefined)
         return new Error(`Couldn't load room on row ${room.row}. No room name was given.`);
     if (room.id === "" || room.id === null || room.id === undefined)
         return new Error(`Couldn't load room on row ${room.row}. The room name resolved to a unique ID with an empty value.`);
@@ -175,7 +175,7 @@ export function checkRoom (room) {
             }
         }
         if (!matchingExit)
-            return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.name}"  does not have an exit that links back to it.`);
+            return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.displayName}"  does not have an exit that links back to it.`);
     }
 }
 
@@ -650,7 +650,7 @@ export function loadItems (game, doErrorChecking) {
         for (let i = 0; i < game.items.length; i++) {
             const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === game.items[i].prefabId);
             if (prefab) game.items[i].setPrefab(prefab);
-            const location = game.rooms.find(room => room.name !== "" && room.id === Room.generateValidId(game.items[i].locationId))
+            const location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.items[i].locationId))
             if (location) game.items[i].location = location;
             if (game.items[i].prefab instanceof Prefab) {
                 const prefab = game.items[i].prefab;
@@ -1580,7 +1580,7 @@ export function loadPlayers (game, doErrorChecking) {
             if (player.alive) {
                 game.players_alive.push(player);
 
-                if (player.member !== null || player.talent === "NPC") {
+                if (player.member !== null || player.title === "NPC") {
                     // Parse statuses and inflict the player with them.
                     const currentPlayer = game.players_alive[game.players_alive.length - 1];
                     for (let j = 0; j < game.statusEffects.length; j++) {

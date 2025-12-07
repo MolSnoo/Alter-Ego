@@ -19,10 +19,16 @@ export default class Room extends GameEntity {
      */
     id;
     /**
-     * The name of the room. Can contain uppercase letters and special characters. Not to be used for identification.
+     * The name of the room. Deprecated. Use `id` instead.
+     * @deprecated
      * @type {string}
      */
     name;
+    /**
+     * The name of the room for display purposes. Can contain uppercase letters and special characters. Not to be used for identification.
+     * @type {string}
+     */
+    displayName;
     /**
      * The channel associated with the room.
      * @type {TextChannel}
@@ -64,7 +70,7 @@ export default class Room extends GameEntity {
     /**
      * @constructor
      * @param {string} id - The unique ID of the room.
-     * @param {string} name - The name of the room. Can contain uppercase letters and special characters.
+     * @param {string} displayName - The name of the room for display purposes. Can contain uppercase letters and special characters.
      * @param {TextChannel} channel - The channel associated with the room.
      * @param {string[]} tags - The tags associated with the room. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/room.html#tags}
      * @param {string} iconURL - The URL of the icon associated with the room.
@@ -73,10 +79,11 @@ export default class Room extends GameEntity {
      * @param {number} row - The row number of the room in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, name, channel, tags, iconURL, exit, description, row, game) {
+    constructor(id, displayName, channel, tags, iconURL, exit, description, row, game) {
         super(game, row);
         this.id = id;
-        this.name = name;
+        this.displayName = displayName;
+        this.name = this.id;
         this.channel = channel;
         this.tags = tags;
         this.iconURL = iconURL;

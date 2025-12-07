@@ -184,7 +184,7 @@ export async function addRoomDescription (player, location, descriptionText, def
                 )
                 .addTextDisplayComponents(
                     new TextDisplayBuilder().setContent("_ _"),
-                    new TextDisplayBuilder().setContent(`**${location.id}**`),
+                    new TextDisplayBuilder().setContent(`**${location.displayName}**`),
                     new TextDisplayBuilder().setContent("_ _")
                 )
             ),
@@ -339,7 +339,7 @@ export async function addReply (game, message, messageText) {
 /**
  * Mirrors a dialog message in a spectate channel.
  * @param {Player} player - The player whose spectate channel this message is being sent to.
- * @param {Player} speaker - The player who originally sent the dialog message.
+ * @param {Player|PseudoPlayer} speaker - The player who originally sent the dialog message.
  * @param {Message} message - The message in which this dialog originated.
  * @param {Whisper} [whisper] - The whisper the dialog was sent in, if applicable.
  * @param {string} [displayName] - The displayName to use for the mirrored webhook message. If none is specified, the speaker's current displayName will be used.
