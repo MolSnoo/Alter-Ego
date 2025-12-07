@@ -163,6 +163,12 @@ export default class Player extends ItemContainer {
      */
     alive;
     /**
+     * The ID of the room the player was loaded into.
+     * @readonly
+     * @type {string}
+     */
+    locationId;
+    /**
      * The room the player is currently in.
      * @type {Room}
      */
@@ -257,13 +263,12 @@ export default class Player extends ItemContainer {
      * @param {string} id - The Discord ID of the player, or the avatar URL for an NPC.
      * @param {GuildMember | null} member - The Discord member object of the player.
      * @param {string} name - The name of the player.
-     * @param {string} displayName - The name that will be displayed in most public gameplay narrations in lieu of the player's actual name.
      * @param {string} title - The player's title.
      * @param {string} pronounString - The player's third person personal pronouns. For formatting, see {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#pronoun-string}
      * @param {string} originalVoiceString - A phrase that will be used to describe the player's voice to other players when their identity is obscured in some way. This should begin with "a" or "an" and end with "voice".
      * @param {Stats} stats - The stats of the player. For more details, see {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#stats}
      * @param {boolean} alive - Whether the player is alive or not.
-     * @param {Room} location - The room the player is currently in.
+     * @param {string} locationId - The ID of the room the player was loaded into.
      * @param {string} hidingSpot - The name of the object the player is currently hiding in. The object doesn't actually have to exist.
      * @param {Status[]} status - All status effects the player currently has.
      * @param {string} description - The description of the player. Can contain two item lists: hands and equipment.
@@ -272,12 +277,12 @@ export default class Player extends ItemContainer {
      * @param {number} row - The row of the player.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, member, name, displayName, title, pronounString, originalVoiceString, stats, alive, location, hidingSpot, status, description, inventory, spectateChannel, row, game) {
+    constructor(id, member, name, title, pronounString, originalVoiceString, stats, alive, locationId, hidingSpot, status, description, inventory, spectateChannel, row, game) {
         super(game, row, description);
         this.id = id;
         this.member = member;
         this.name = name;
-        this.displayName = displayName;
+        this.displayName = this.name;
         this.displayIcon = null;
         this.title = title;
         this.talent = title;
@@ -314,7 +319,7 @@ export default class Player extends ItemContainer {
         this.stamina = this.defaultStamina;
 
         this.alive = alive;
-        this.location = location;
+        this.locationId = locationId;
         this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
         this.status = status;
@@ -742,7 +747,7 @@ export default class Player extends ItemContainer {
         else if (status.id === "blacked out" && narrate) new Narration(this.game, this, this.location, `${this.displayName} blacks out.`).send();
         else if (status.attributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overriders, status.cures, status.nextStage, status.duplicatedStatus, status.curedCondition, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row, this.game);
+        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row, this.game);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -1787,7 +1792,7 @@ export default class Player extends ItemContainer {
 
         // Replace this inventory slot with a null item.
         const nullItem = new InventoryItem(
-            this,
+            this.name,
             null,
             "",
             slotId,
@@ -1798,6 +1803,7 @@ export default class Player extends ItemContainer {
             rowNumber,
             this.game
         );
+        nullItem.player = this;
         this.inventory[slot].equippedItem = null;
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(nullItem);
@@ -1913,7 +1919,7 @@ export default class Player extends ItemContainer {
 
         // Replace this inventory slot with a null item.
         const nullItem = new InventoryItem(
-            this,
+            this.name,
             null,
             "",
             item.equipmentSlot,
@@ -1924,6 +1930,7 @@ export default class Player extends ItemContainer {
             rowNumber,
             this.game
         );
+        nullItem.player = this;
         this.inventory[slot].equippedItem = null;
         this.inventory[slot].items.length = 0;
         this.inventory[slot].items.push(nullItem);

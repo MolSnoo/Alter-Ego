@@ -266,23 +266,23 @@ declare global {
     }
 
 	/**
-     * @property outcomes - Strings indicating which puzzle solutions will execute the commands in this command set.
+     * @property [outcomes] - Strings indicating which puzzle solutions will execute the commands in this command set.
      * @property solvedCommands - Bot commands that will be executed when the puzzle is solved.
      * @property unsolvedCommands - Bot commands that will be executed when the puzzle is unsolved.
      */
     interface PuzzleCommandSet {
-        outcomes: string[];
+        outcomes?: string[];
         solvedCommands: string[];
         unsolvedCommands: string[];
     }
 
 	/**
-     * @property values - Strings indicating which flag values will execute the commands in this command set.
+     * @property [values] - Strings indicating which flag values will execute the commands in this command set.
      * @property setCommands - Bot commands that will be executed when the flag is set.
      * @property clearedCommands - Bot commands that will be executed when the flag is cleared.
      */
     interface FlagCommandSet {
-        values: string[];
+        values?: string[];
         setCommands: string[];
         clearedCommands: string[];
     }

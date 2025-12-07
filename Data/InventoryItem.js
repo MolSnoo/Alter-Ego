@@ -2,7 +2,6 @@
 import InventorySlot from './InventorySlot.js';
 import ItemInstance from './ItemInstance.js';
 import Player from './Player.js';
-import Prefab from './Prefab.js';
 import { replaceInventoryItem } from '../Modules/itemManager.js';
 import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
 
@@ -13,6 +12,11 @@ import { addItem as addItemToDescription, removeItem as removeItemFromDescriptio
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/inventory_item.html
  */
 export default class InventoryItem extends ItemInstance {
+    /**
+     * The name of the player who has this inventory item.
+     * @type {string}
+     */
+    playerName;
     /**
      * The player who has this inventory item.
      * @type {Player}
@@ -42,8 +46,8 @@ export default class InventoryItem extends ItemInstance {
 
     /**
      * @constructor
-     * @param {Player} player - The player who has this inventory item.
-     * @param {Prefab} prefab - The prefab this inventory item is an instance of.
+     * @param {string} playerName - The name of the player who has this inventory item.
+     * @param {string} prefabId - The ID of the prefab this inventory item is an instance of.
      * @param {string} identifier - The unique identifier given to the inventory item if it is capable of containing other inventory items.
      * @param {string} equipmentSlot - The ID of the equipment slot the inventory item or its top-level container is equipped to.
      * @param {string} containerName - The identifier of the container the inventory item can be found in, and the ID of the {@link InventorySlot|inventory slot} it belongs to, separated by a forward slash.
@@ -53,9 +57,9 @@ export default class InventoryItem extends ItemInstance {
      * @param {number} row - The row number of the inventory inventory item in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row, game) {
-        super(game, row, description, prefab, identifier, containerName, quantity, uses);
-        this.player = player;
+    constructor(playerName, prefabId, identifier, equipmentSlot, containerName, quantity, uses, description, row, game) {
+        super(game, row, description, prefabId, identifier, containerName, quantity, uses);
+        this.playerName = playerName;
         this.equipmentSlot = equipmentSlot;
         this.foundEquipmentSlot = false;
         this.container = null;

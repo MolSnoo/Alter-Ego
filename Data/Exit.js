@@ -25,6 +25,11 @@ export default class Exit extends GameEntity {
      */
     unlocked;
     /**
+     * The ID of the room that the exit leads to.
+     * @type {string}
+     */
+    destId;
+    /**
      * The room that the exit leads to.
      * @type {Room}
      */
@@ -45,18 +50,18 @@ export default class Exit extends GameEntity {
      * @param {string} name - The name of the exit.
      * @param {Pos} pos - The position of the exit.
      * @param {boolean} unlocked - Whether or not the exit is unlocked.
-     * @param {Room} dest - The room that the exit leads to.
+     * @param {string} destId - The ID of the room that the exit leads to.
      * @param {string} link - The name of the exit in the destination room that this exit links to.
      * @param {string} description - The description of the room when a player enters from this exit.
      * @param {number} row - The row number of the exit in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(name, pos, unlocked, dest, link, description, row, game) {
+    constructor(name, pos, unlocked, destId, link, description, row, game) {
         super(game, row);
         this.name = name;
         this.pos = pos;
         this.unlocked = unlocked;
-        this.dest = dest;
+        this.destId = destId;
         this.link = link;
         this.description = description;
     }

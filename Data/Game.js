@@ -246,4 +246,13 @@ export default class Game {
 	setBotContext() {
 		this.botContext = BotContext.instance;
 	}
+
+	/**
+	 * Generate a name in all uppercase with no apostrophes or quotation marks.
+	 * @param {string} name
+	 * @returns {string} 
+	 */
+	static generateValidEntityName(name) {
+		return name.toUpperCase().replace(/[\'"“”`]/g, '').trim();
+	}
 }

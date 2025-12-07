@@ -3,7 +3,6 @@ import Game from './Game.js';
 import InventorySlot from './InventorySlot.js';
 import ItemInstance from './ItemInstance.js';
 import Player from './Player.js';
-import Prefab from './Prefab.js';
 import Puzzle from './Puzzle.js';
 import Room from './Room.js';
 import { instantiateItem, destroyItem } from '../Modules/itemManager.js';
@@ -16,6 +15,11 @@ import { addItem as addItemToDescription, removeItem as removeItemFromDescriptio
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/item.html
  */
 export default class Item extends ItemInstance {
+    /**
+     * The ID of the room the item can be found in.
+     * @type {string}
+     */
+    locationId;
     /**
      * The room the item can be found in.
      * @type {Room}
@@ -39,9 +43,9 @@ export default class Item extends ItemInstance {
 
     /**
      * @constructor
-     * @param {Prefab} prefab - The prefab this item is an instance of.
+     * @param {string} prefabId - The ID of the prefab this item is an instance of.
      * @param {string} identifier - The unique identifier given to the item if it is capable of containing other items.
-     * @param {Room} location - The room the item can be found in.
+     * @param {string} locationId - The room the item can be found in.
      * @param {boolean} accessible - Whether the item can be interacted with.
      * @param {string} containerName - The type and identifier/name of the container the item can be found in, and the ID of the {@link InventorySlot|inventory slot} it belongs to, separated by a forward slash.
      * @param {number} quantity - How many identical instances of this item are in the given container.
@@ -50,9 +54,9 @@ export default class Item extends ItemInstance {
      * @param {number} row - The row number of the item in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(prefab, identifier, location, accessible, containerName, quantity, uses, description, row, game) {
-        super(game, row, description, prefab, identifier, containerName, quantity, uses);
-        this.location = location;
+    constructor(prefabId, identifier, locationId, accessible, containerName, quantity, uses, description, row, game) {
+        super(game, row, description, prefabId, identifier, containerName, quantity, uses);
+        this.locationId = locationId;
         this.accessible = accessible;
         this.container = null;
         this.inventory = [];

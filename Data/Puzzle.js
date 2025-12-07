@@ -42,6 +42,11 @@ export default class Puzzle extends ItemContainer {
      */ 
     requiresMod;
     /**
+     * The ID of the location the puzzle is found in.
+     * @type {string}
+     */
+    locationId;
+    /**
      * The location the puzzle is found in. 
      * @type {Room} 
      */ 
@@ -129,7 +134,7 @@ export default class Puzzle extends ItemContainer {
      * @param {boolean} solved - Whether the puzzle is solved.
      * @param {string} outcome - String indicating which solution the puzzle has been solved with.
      * @param {boolean} requiresMod - Whether the puzzle requires a moderator to solve it.
-     * @param {Room} location - The location the puzzle is found in.
+     * @param {string} locationId - The ID of the location the puzzle is found in.
      * @param {string} parentObjectName - The name of the object associated with the puzzle.
      * @param {string} type - The type of puzzle. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type}
      * @param {boolean} accessible - Whether the puzzle can be interacted with.
@@ -146,13 +151,13 @@ export default class Puzzle extends ItemContainer {
      * @param {number} row - The row number of the puzzle in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
+    constructor(name, solved, outcome, requiresMod, locationId, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
         super(game, row, alreadySolvedDescription);
         this.name = name;
         this.solved = solved;
         this.outcome = outcome;
         this.requiresMod = requiresMod;
-        this.location = location;
+        this.locationId = locationId;
         this.parentObjectName = parentObjectName;
         this.parentObject = null;
         this.type = type;

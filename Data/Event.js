@@ -139,13 +139,13 @@ export default class Event extends GameEntity {
      * @param {string[]} triggeredCommands - The bot commands to be executed when the event is triggered.
      * @param {string[]} endedCommands - The bot commands to be executed when the event is ended.
      * @param {string[]} effectsStrings - String representations of status effects to be inflicted on occupants of affected rooms every second that the event is ongoing.
-     * @param {string[]} refreshStrings - String representations of status effects whose durations will be reset to full for all occupants of affected rooms every second that the event is ongoing.
+     * @param {string[]} refreshesStrings - String representations of status effects whose durations will be reset to full for all occupants of affected rooms every second that the event is ongoing.
      * @param {string} triggeredNarration - The narration to be sent to affected rooms when the event is triggered.
      * @param {string} endedNarration - The narration to be sent to affected rooms when the event is ended.
      * @param {number} row - The row of the event in the event sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row, game) {
+    constructor(id, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshesStrings, triggeredNarration, endedNarration, row, game) {
         super(game, row);
         this.id = id;
         this.name = id;
@@ -161,9 +161,9 @@ export default class Event extends GameEntity {
         this.triggeredCommands = triggeredCommands;
         this.endedCommands = endedCommands;
         this.effectsStrings = effectsStrings;
-        this.effects = [];
-        this.refreshesStrings = refreshStrings;
-        this.refreshes = [];
+        this.effects = new Array(this.effectsStrings.length);
+        this.refreshesStrings = refreshesStrings;
+        this.refreshes = new Array(this.refreshesStrings.length);
         this.triggeredNarration = triggeredNarration;
         this.endedNarration = endedNarration;
 
@@ -221,9 +221,9 @@ export default class Event extends GameEntity {
 
         // Begin the timer, if applicable.
         if (this.duration)
-            this.#startTimer();
+            this.startTimer();
         if (this.effects.length > 0 || this.refreshes.length > 0)
-            this.#startEffectsTimer();
+            this.startEffectsTimer();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -281,7 +281,7 @@ export default class Event extends GameEntity {
         return;
     }
 
-    async #startTimer() {
+    async startTimer() {
         if (this.remaining === null)
             this.remaining = this.duration.clone();
         let event = this;
@@ -308,7 +308,7 @@ export default class Event extends GameEntity {
         });
     }
 
-    #startEffectsTimer() {
+    startEffectsTimer() {
         let event = this;
         this.effectsTimer = moment.duration(1000).timer({ start: true, loop: true }, function () {
             for (let i = 0; i < event.game.rooms.length; i++) {

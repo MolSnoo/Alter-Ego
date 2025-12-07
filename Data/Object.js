@@ -25,6 +25,11 @@ export default class Object extends ItemContainer {
      */
     name;
     /**
+     * The name of the room the object is located in.
+     * @type {string}
+     */
+    locationName;
+    /**
      * The room the object is located in.
      * @type {Room}
      */
@@ -88,7 +93,7 @@ export default class Object extends ItemContainer {
     /**
      * @constructor
      * @param {string} name - The name of the object.
-     * @param {Room} location - The room the object is located in.
+     * @param {string} locationName - The name of the room the object is located in.
      * @param {boolean} accessible - Whether the object can be interacted with.
      * @param {string} childPuzzleName - The name of a puzzle that is associated with the object.
      * @param {string} recipeTag - A keyword or phrase assigned to an object's recipe that allows it to carry out recipes that require it.
@@ -101,10 +106,10 @@ export default class Object extends ItemContainer {
      * @param {number} row - The row number of the object in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(name, location, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row, game) {
+    constructor(name, locationName, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row, game) {
         super(game, row, description);
         this.name = name;
-        this.location = location;
+        this.locationName = locationName;
         this.accessible = accessible;
         this.childPuzzleName = childPuzzleName;
         this.childPuzzle = null;
