@@ -78,7 +78,7 @@ export default class Gesture extends GameEntity {
         this.name = id;
         this.requires = requires;
         this.disabledStatusesStrings = disabledStatusesStrings;
-        this.disabledStatuses = [];
+        this.disabledStatuses = new Array(this.disabledStatusesStrings.length);
         this.description = description;
         this.narration = narration;
 

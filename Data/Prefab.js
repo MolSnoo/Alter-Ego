@@ -183,9 +183,9 @@ export default class Prefab extends GameEntity {
         this.verb = verb;
         this.uses = uses;
         this.effectsStrings = effectsStrings;
-        this.effects = [];
+        this.effects = new Array(this.effectsStrings.length);
         this.curesStrings = curesStrings;
-        this.cures = [];
+        this.cures = new Array(this.curesStrings.length);
         this.nextStageId = nextStageId;
         this.nextStage = null;
         this.equippable = equippable;

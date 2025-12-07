@@ -41,25 +41,50 @@ export default class Status extends GameEntity {
      */
     visible;
     /**
+     * The IDs of statuses that prevent this status from being inflicted.
+     * @type {string[]}
+     */
+    overridersStrings;
+    /**
      * Statuses that prevent this status from being inflicted.
      * @type {Status[]}
      */
     overriders;
+    /**
+     * The IDs of statuses that cure this status when they are inflicted.
+     * @type {string[]}
+     */
+    curesStrings;
     /**
      * Statuses that cure this status when they are inflicted.
      * @type {Status[]}
      */
     cures;
     /**
+     * The ID of the status that will be inflicted on the player when this one expires.
+     * @type {string}
+     */
+    nextStageId;
+    /**
      * The status that will be inflicted on the player when this one expires.
      * @type {Status}
      */
     nextStage;
     /**
+     * The ID of the status that this Status will turn into if it is inflicted on a player who already has it.
+     * @type {string}
+     */
+    duplicatedStatusId;
+    /**
      * The status that this Status will turn into if it is inflicted on a player who already has it.
      * @type {Status}
      */
     duplicatedStatus;
+    /**
+     * The ID of the status that will be inflicted on the player if this one is cured.
+     * @type {string}
+     */
+    curedConditionId;
     /**
      * The status that will be inflicted on the player if this one is cured.
      * @type {Status}
@@ -99,11 +124,11 @@ export default class Status extends GameEntity {
      * @param {import('moment').Duration} duration - The duration representing how long it takes for the status to expire after it is inflicted. Accepted units: s, m, h, d, w, M, y.
      * @param {boolean} fatal - Whether the status kills an inflicted player when it expires. If the status has a nextStage, this is never checked.
      * @param {boolean} visible - Whether the status is visible to the player.
-     * @param {Status[]} overriders - Statuses that prevent this status from being inflicted.
-     * @param {Status[]} cures - Statuses that cure this status when they are inflicted.
-     * @param {Status | null} nextStage - The status that will be inflicted on the player when this one expires.
-     * @param {Status | null} duplicatedStatus - The status that this Status will turn into if it is inflicted on a player who already has it.
-     * @param {Status | null} curedCondition - The status that will be inflicted on the player if this one is cured.
+     * @param {string[]} overridersStrings - The IDs of statuses that prevent this status from being inflicted.
+     * @param {string[]} curesStrings - The IDs of statuses that cure this status when they are inflicted.
+     * @param {string} nextStageId - The ID of the status that will be inflicted on the player when this one expires.
+     * @param {string} duplicatedStatusId - The ID of the status that this Status will turn into if it is inflicted on a player who already has it.
+     * @param {string} curedConditionId - The ID of the status that will be inflicted on the player if this one is cured.
      * @param {StatModifier[]} statModifiers - Stat modifiers to apply to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#stat-modifiers}
      * @param {string[]} attributes - The behavior attributes this status applies to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes}
      * @param {string} inflictedDescription - The description of the status when a player is inflicted with it.
@@ -111,7 +136,7 @@ export default class Status extends GameEntity {
      * @param {number} row - The row number of the status in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, duration, fatal, visible, overriders, cures, nextStage, duplicatedStatus, curedCondition, statModifiers, attributes, inflictedDescription, curedDescription, row, game) {
+    constructor(id, duration, fatal, visible, overridersStrings, curesStrings, nextStageId, duplicatedStatusId, curedConditionId, statModifiers, attributes, inflictedDescription, curedDescription, row, game) {
         super(game, row);
         this.id = id;
         this.name = id;
@@ -119,11 +144,13 @@ export default class Status extends GameEntity {
         this.remaining = null;
         this.fatal = fatal;
         this.visible = visible;
-        this.overriders = overriders;
-        this.cures = cures;
-        this.nextStage = nextStage;
-        this.duplicatedStatus = duplicatedStatus;
-        this.curedCondition = curedCondition;
+        this.overridersStrings = overridersStrings;
+        this.overriders = new Array(this.overridersStrings.length);
+        this.curesStrings = curesStrings;
+        this.cures = new Array(this.curesStrings.length);
+        this.nextStageId = nextStageId;
+        this.duplicatedStatusId = duplicatedStatusId;
+        this.curedConditionId = curedConditionId;
         this.statModifiers = statModifiers;
         this.attributes = attributes;
         this.inflictedDescription = inflictedDescription;
@@ -136,7 +163,16 @@ export default class Status extends GameEntity {
     inflictedCell() {
         return this.game.constants.statusSheetInflictedColumn + this.row;
     }
+
     curedCell() {
         return this.game.constants.statusSheetCuredColumn + this.row;
+    }
+
+    /**
+     * Generate a name in all lowercase.
+     * @param {string} name 
+     */
+    static generateValidId(name) {
+        return name.toLowerCase().trim();
     }
 }
