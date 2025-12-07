@@ -1,9 +1,12 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
+import Narration from '../Data/Narration.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
-
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "inspect_player",
     description: "Learn more about an object, item, or player.",
     details: 'Tells you about an object, item, or player in the room you\'re in. '
@@ -15,8 +18,18 @@ module.exports.config = {
         + 'you can specify that you want to inspect your item by adding "my" before the item name. '
         + 'You can even inspect visible items in another player\'s inventory by adding "[player name]\'s" before the item name. No one will '
         + 'see you do this, however you will receive slightly less info when inspecting another player\'s items. '
-        + `You can use "${settings.commandPrefix}inspect room" to get the description of the room you're currently in.`,
-    usage: `${settings.commandPrefix}inspect desk\n`
+        + `You can use "room" to get the description of the room you're currently in.`,
+    usableBy: "Player",
+    aliases: ["inspect", "investigate", "examine", "look", "x"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}inspect desk\n`
         + `${settings.commandPrefix}examine knife\n`
         + `${settings.commandPrefix}look knife on desk\n`
         + `${settings.commandPrefix}x knife in main pouch of red backpack\n`
@@ -25,17 +38,22 @@ module.exports.config = {
         + `${settings.commandPrefix}examine an individual wearing a mask\n`
         + `${settings.commandPrefix}look marielle's glasses\n`
         + `${settings.commandPrefix}x an individual wearing a bucket's shirt\n`
-        + `${settings.commandPrefix}inspect room`,
-    usableBy: "Player",
-    aliases: ["inspect", "investigate", "examine", "look", "x"]
-};
+        + `${settings.commandPrefix}inspect room`;
+}
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify an object/item/player. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify an object/item/player. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable inspect");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -50,7 +68,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected the room in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected the room in ${player.location.channel}`);
 
         return;
     }
@@ -89,7 +107,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
     if (object !== null) {
         // Make sure the player can only inspect the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
         player.sendDescription(game, object.description, object);
 
@@ -129,7 +147,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${object.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ${object.name} in ${player.location.channel}`);
 
         return;
     }
@@ -195,7 +213,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 topContainer = topContainer.parentObject;
 
             if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-                return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+                return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         }
 
         let preposition = "in";
@@ -222,7 +240,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         const time = new Date().toLocaleTimeString();
         const identifier = item.identifier !== "" ? item.identifier : item.prefab.id;
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
 
         return;
     }
@@ -237,7 +255,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
 
             return;
         }
@@ -248,22 +266,22 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         let occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
-            return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
+            return messageHandler.addReply(message, `Couldn't find "${input}".`);
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
-            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, `You can't inspect yourself.`);
+            if (occupant.name === player.name) return messageHandler.addReply(message, `You can't inspect yourself.`);
             player.sendDescription(game, occupant.description, occupant);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ${occupant.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ${occupant.name} in ${player.location.channel}`);
 
             return;
         }
         else if (parsedInput.startsWith(possessive)) {
             // Don't let the player inspect their own items this way.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, `You can't inspect your own items this way. Use "my" instead of your name.`);
+            if (occupant.name === player.name) return messageHandler.addReply(message, `You can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
             const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
@@ -281,7 +299,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                         player.sendDescription(game, description, inventory[j]);
 
                         const time = new Date().toLocaleTimeString();
-                        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
+                        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
 
                         return;
                     }
@@ -290,5 +308,5 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
     }
 
-    return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
-};
+    return messageHandler.addReply(message, `Couldn't find "${input}".`);
+}

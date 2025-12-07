@@ -1,21 +1,38 @@
-const settings = include('Configs/settings.json');
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "stats_moderator",
     description: "Lists a given player's stats.",
     details: "Lists the given player's default and current stats, as well as the roll modifiers they have based on each current stat. "
         + "The maximum weight the player can carry will be listed, as well as how much weight they are currently carrying. "
         + "Additionally, the player's current maximum stamina will be listed, as this can differ if the player is inflicted with any "
         + "status effects that modify the stamina stat.",
-    usage: `${settings.commandPrefix}stats ayaka`,
     usableBy: "Moderator",
     aliases: ["stats"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}stats ayaka`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify a player. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -24,7 +41,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var statsString = `__${player.name}'s default stats:__\n`;
     statsString += `Str: ${player.defaultStrength}\n`;
@@ -45,7 +62,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     statsString += `Dex: ${player.dexterity} [` + (dexModifier > 0 ? '+' : '') + `${dexModifier}]\n`;
     statsString += `Spd: ${player.speed} [` + (spdModifier > 0 ? '+' : '') + `${spdModifier}]\n`;
     statsString += `Sta: ${Math.round(player.stamina * 100) / 100}/${player.maxStamina} [` + (staModifier > 0 ? '+' : '') + `${staModifier}]`;
-    game.messageHandler.addGameMechanicMessage(message.channel, statsString);
+    messageHandler.addGameMechanicMessage(message.channel, statsString);
 
     return;
-};
+}

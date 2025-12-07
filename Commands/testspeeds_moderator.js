@@ -1,15 +1,14 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const parser = include(`${constants.modulesDir}/parser.js`);
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import fs from 'fs';
+import { EOL } from 'os';
 
-const fs = require('fs');
-const os = require('os');
+import Player from '../Data/Player.js';
 
-const Player = include(`${constants.dataDir}/Player.js`);
-
-let game = include('game.json');
-
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "testspeeds_moderator",
     description: "Checks the move times between each exit.",
     details: 'Tests the amount of time it takes to move between every exit in the game. '
@@ -17,16 +16,29 @@ module.exports.config = {
         + 'An argument must be provided. If the "players" argument is given, then the move times will be calculated for each player in the game. '
         + 'Note that the weight of any items the players are carrying will affect their calculated speed. '
         + 'If the "stats" argument is given, then the move times will be calculated for hypothetical players with speed from 1-10.',
-    usage: `${settings.commandPrefix}testspeeds players\n`
-        + `${settings.commandPrefix}testspeeds stats`,
     usableBy: "Moderator",
     aliases: ["testspeeds"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}testspeeds players\n`
+        + `${settings.commandPrefix}testspeeds stats`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify what to test. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
 
     const file = "./speeds.txt";
     fs.writeFile(file, "", function (err) {
@@ -34,10 +46,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     });
 
     if (args[0] === "players")
-        await testplayers(file);
+        await testplayers(game, file);
     else if (args[0] === "stats")
-        await testspeeds(file);
-    else return game.messageHandler.addReply(message, 'Function not found. You need to use "players" or "stats".');
+        await testspeeds(game, file);
+    else return messageHandler.addReply(message, 'Function not found. You need to use "players" or "stats".');
 
     message.channel.send({
         content: "Speeds calculated.",
@@ -50,9 +62,9 @@ module.exports.run = async (bot, game, message, command, args) => {
     });
 
     return;
-};
+}
 
-testplayers = async (file) => {
+async function testplayers (game, file) {
     var text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
@@ -92,9 +104,9 @@ testplayers = async (file) => {
     await appendText(file, text);
 
     return;
-};
+}
 
-testspeeds = async (file) => {
+async function testspeeds (game, file) {
     var text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
@@ -126,11 +138,11 @@ testspeeds = async (file) => {
     await appendText(file, text);
 
     return;
-};
+}
 
 function appendText(file, text) {
     return new Promise((resolve) => {
-        fs.appendFile(file, text + os.EOL, function (err) {
+        fs.appendFile(file, text + EOL, function (err) {
             if (err) return console.log(err);
             resolve(file);
         });
