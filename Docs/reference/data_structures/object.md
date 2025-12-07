@@ -5,10 +5,6 @@ cannot be taken or moved by a [Player](player.md). Their primary purpose is to g
 Room. Note that these are not to be confused with
 JavaScript's [Object data type](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object).
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 Objects have relatively few attributes. Although their behavior is mostly static, they are capable of quite a few
@@ -19,8 +15,8 @@ spreadsheet. External attributes will be given in the "Spreadsheet label" bullet
 
 ### Name
 
-* Spreadsheet label: **Object Name**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Object Name**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.name`
 
 This is the name of the Object. All letters should be capitalized, and spaces are allowed. Note that multiple Objects
@@ -28,15 +24,15 @@ can have the same name, so long as they are in different Rooms.
 
 ### Location
 
-* Spreadsheet label: **Location**
-* Class attribute: [Room](room.md) `this.location`
+- Spreadsheet label: **Location**
+- Class attribute: [Room](room.md) `this.location`
 
 This is the Room the Object can be found in. This must match the Room's name exactly on the spreadsheet.
 
 ### Accessible
 
-* Spreadsheet label: **Accessible?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Accessible?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.accessible`
 
 This is a simple Boolean value indicating whether the Object can currently be interacted with or not. If this is `true`,
@@ -45,8 +41,8 @@ exist when a player tries to interact with it in any way.
 
 ### Child Puzzle Name
 
-* Spreadsheet label: **Child Puzzle**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Child Puzzle**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.childPuzzleName`
 
 This is the name of a [Puzzle](puzzle.md) that is associated with the Object, if any. The child Puzzle must be in the
@@ -60,7 +56,7 @@ simply be left blank on the spreadsheet.
 
 ### Child Puzzle
 
-* Class attribute: [Puzzle](puzzle.md) `this.childPuzzle`
+- Class attribute: [Puzzle](puzzle.md) `this.childPuzzle`
 
 This is an internal attribute which simply contains a reference to the actual Puzzle object whose name matches
 `this.childPuzzleName` and whose location is the same as the Object. If no child Puzzle name is given, this will be
@@ -68,8 +64,8 @@ This is an internal attribute which simply contains a reference to the actual Pu
 
 ### Recipe Tag
 
-* Spreadsheet label: **Recipe Tag**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Recipe Tag**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.recipeTag`
 
 This a keyword or phrase assigned to an Object that allows it to carry out [Recipes](recipe.md) that require that tag.
@@ -77,8 +73,8 @@ An Object can only have a single Recipe tag. There are no rules for how Recipe t
 
 ### Activatable
 
-* Spreadsheet label: **Activatable?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Activatable?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.activatable`
 
 This is another Boolean value indicating whether the Object can be activated or deactivated by a Player with
@@ -89,8 +85,8 @@ activated.
 
 ### Activated
 
-* Spreadsheet label: **Activated?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Activated?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.activated`
 
 This is another Boolean value indicating whether the Object is currently checking for and processing Recipes. If this is
@@ -104,8 +100,8 @@ deactivated.
 
 ### Automatically Deactivated
 
-* Spreadsheet label: **Deactivate Automatically?**
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Spreadsheet label: **Deactivate Automatically?**
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.autoDeactivate`
 
 This is another Boolean value indicating whether the Object will automatically deactivate after processing a Recipe. If
@@ -116,8 +112,8 @@ will continue checking for and processing Recipes after completing each one.
 
 ### Hiding Spot Capacity
 
-* Spreadsheet label: **Hiding Spot Capacity**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Hiding Spot Capacity**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.hidingSpotCapacity`
 
 This is a whole number indicating how many Players can hide in this Object simultaneously. If this is greater than 0,
@@ -127,8 +123,8 @@ hiding spot at all. For more information, see the article on [hiding]().
 
 ### Preposition
 
-* Spreadsheet label: **Preposition**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Preposition**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.preposition`
 
 This attribute is a string that performs two functions:
@@ -146,8 +142,8 @@ of "on top of" or just simply "on" would result in a better sentence.
 
 ### Description
 
-* Spreadsheet label: **Description**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Description**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.description`
 
 This is the description of the Object. When a Player inspects this Object, they will receive a parsed version of this
@@ -155,14 +151,14 @@ string. See the article on [writing descriptions](../../moderator_guide/writing_
 
 ### Row
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.row`
 
 This is an internal attribute, but it can also be found on the spreadsheet. This is the row number of the Object.
 
 ### Process
 
-* Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+- Class attribute: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
   `this.process`
 
 This is an internal attribute used to process Recipes. It has the following structure:
@@ -173,7 +169,7 @@ For more information on the moment data type, see the documentation for [Moment.
 
 ### Recipe Interval
 
-* Class attribute: [moment-timer](https://momentjs.com/docs/#/plugins/timer/) `this.recipeInterval`
+- Class attribute: [moment-timer](https://momentjs.com/docs/#/plugins/timer/) `this.recipeInterval`
 
 This is an internal attribute that allows Objects to check for and process Recipes every second. If the Object does not
 have a Recipe tag, then this will be `null`.

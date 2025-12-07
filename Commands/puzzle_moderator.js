@@ -1,6 +1,10 @@
-﻿const settings = include('Configs/settings.json');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "puzzle_moderator",
     description: "Solves or unsolves a puzzle.",
     details: 'Solves or unsolves a puzzle. You may specify an outcome, if the puzzle has more than one solution. '
@@ -12,7 +16,17 @@ module.exports.config = {
         + 'You can also use a room name instead of a player name. In that case, only puzzles in the room '
         + 'you specify can be solved/unsolved. This is useful if you have multiple puzzles with the same name '
         + 'spread across the map. This should generally only be used for puzzles which require moderator intervention.',
-    usage: `${settings.commandPrefix}puzzle solve button\n`
+    usableBy: "Moderator",
+    aliases: ["puzzle", "solve", "unsolve", "attempt"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}puzzle solve button\n`
         + `${settings.commandPrefix}puzzle unsolve keypad\n`
         + `${settings.commandPrefix}solve binder taylor\n`
         + `${settings.commandPrefix}unsolve lever colin\n`
@@ -22,13 +36,16 @@ module.exports.config = {
         + `${settings.commandPrefix}puzzle unsolve lock men's locker room\n`
         + `${settings.commandPrefix}solve paintings emily "Emily removes the PAINTINGS from the wall."\n`
         + `${settings.commandPrefix}unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"\n`
-        + `${settings.commandPrefix}puzzle attempt cyptex lock 05-25-99 scarlet`,
-    usableBy: "Moderator",
-    aliases: ["puzzle", "solve", "unsolve", "attempt"],
-    requiresGame: true
-};
+        + `${settings.commandPrefix}puzzle attempt cyptex lock 05-25-99 scarlet`;
+}
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     var input = command + " " + args.join(" ");
     if (command === "puzzle") {
         if (args[0] === "solve") command = "solve";
@@ -40,7 +57,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     else input = args.join(" ");
 
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";
@@ -99,7 +116,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    else if (puzzle === null) return game.messageHandler.addReply(message, `Couldn't find puzzle "${input}".`);
+    else if (puzzle === null) return messageHandler.addReply(message, `Couldn't find puzzle "${input}".`);
 
     var outcome = "";
     var targetPlayer = null;
@@ -123,25 +140,25 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return game.messageHandler.addReply(message, `"${input}" is not a valid solution.`);
-        puzzle.solve(bot, game, player, announcement, outcome, true, targetPlayer);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully solved ${puzzle.name}.`);
+        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addReply(message, `"${input}" is not a valid solution.`);
+        puzzle.solve(game.botContext, game, player, announcement, outcome, true, [], targetPlayer);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
-        puzzle.unsolve(bot, game, player, announcement, null, true);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully unsolved ${puzzle.name}.`);
+        puzzle.unsolve(game.botContext, game, player, announcement, null, true);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully unsolved ${puzzle.name}.`);
     }
     else if (command === "attempt") {
-        if (player === null) return game.messageHandler.addReply(message, `Cannot attempt a puzzle without a player.`);
+        if (player === null) return messageHandler.addReply(message, `Cannot attempt a puzzle without a player.`);
         const misc = {
             command: command,
             input: input,
             message: message,
             targetPlayer: targetPlayer
         };
-        player.attemptPuzzle(bot, game, puzzle, null, input, command, misc);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
+        player.attemptPuzzle(game.botContext, game, puzzle, null, input, command, misc);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 
     return;
-};
+}

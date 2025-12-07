@@ -3,10 +3,6 @@
 An Inventory Item is a data structure in the Neo World Program. It represents an item that is currently possessed by
 a [Player](player.md). It is an instance of a [Prefab](prefab.md), and is similar to an [Item](item.md).
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 Inventory Items themselves have relatively few attributes. However, being instances of Prefabs, they inherit many
@@ -17,16 +13,16 @@ exists on the spreadsheet. External attributes will be given in the "Spreadsheet
 
 ### Player
 
-* Spreadsheet label: **Player Name**
-* Class attribute: [Player](player.md) `this.player`
+- Spreadsheet label: **Player Name**
+- Class attribute: [Player](player.md) `this.player`
 
 This is the name of the Player whose inventory this Inventory Item is in. This must match the Player's name exactly on
 the spreadsheet.
 
 ### Prefab
 
-* Spreadsheet label: **Prefab**
-* Class attribute: [Prefab](prefab.md) `this.prefab`
+- Spreadsheet label: **Prefab**
+- Class attribute: [Prefab](prefab.md) `this.prefab`
 
 This is the ID of the Prefab this Inventory Item is an instance of. It gives the Inventory Item most of its properties.
 The class attribute, `this.prefab` is a reference to the actual Prefab object underlying the Inventory Item, making all
@@ -37,8 +33,8 @@ Equipment Slot with nothing equipped to it, this should be `NULL`.
 
 ### Identifier
 
-* Spreadsheet label: **Container Identifier**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Container Identifier**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.identifier`
 
 This is a unique name given to the Inventory Item if it is capable of containing other Inventory Items. This is
@@ -50,7 +46,7 @@ naming rules for identifiers. No two Items or Inventory Items can have the same 
 looks, see the following table:
 
 | Player Name | Prefab ID   | Container Identifier | Equipment Slot | Container                  | Quantity |
-|-------------|-------------|----------------------|----------------|----------------------------|----------|
+| ----------- | ----------- | -------------------- | -------------- | -------------------------- | -------- |
 | Astrid      | BLACK PARKA | BLACK PARKA 1        | RIGHT HAND     |                            | 1        |
 | Astrid      | BLACK PARKA | BLACK PARKA 2        | JACKET         |                            | 1        |
 | Astrid      | COIN        |                      | RIGHT HAND     | BLACK PARKA 1/RIGHT POCKET | 10       |
@@ -60,7 +56,7 @@ For Inventory Items that are not capable of containing Inventory Items, this can
 
 ### Single Name
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.name`
 
 This is an internal attribute which is a copy of the Prefab's single name. Its purpose is to make accessing the Prefab's
@@ -68,7 +64,7 @@ single name slightly easier.
 
 ### Plural Name
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pluralName`
 
 This is an internal attribute which is a copy of the Prefab's plural name. Its purpose is to make accessing the Prefab's
@@ -76,7 +72,7 @@ plural name slightly easier.
 
 ### Single Containing Phrase
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.singleContainingPhrase`
 
 This is an internal attribute which is a copy of the Prefab's single containing phrase. Its purpose is to make accessing
@@ -84,7 +80,7 @@ the Prefab's single containing phrase slightly easier.
 
 ### Plural Containing Phrase
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.pluralContainingPhrase`
 
 This is an internal attribute which is a copy of the Prefab's plural containing phrase. Its purpose is to make accessing
@@ -92,8 +88,8 @@ the Prefab's plural containing phrase slightly easier.
 
 ### Equipment Slot
 
-* Spreadsheet label: **Equipment Slot**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Equipment Slot**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.equipmentSlot`
 
 This is the name of the Equipment Slot that this Inventory Item belongs to, whether it is equipped to it or contained in
@@ -102,7 +98,7 @@ on [Equipment Slots](equipment_slot.md).
 
 ### Found Equipment Slot
 
-* Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- Class attribute: [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
   `this.foundEquipmentSlot`
 
 This is an internal attribute which is only used during the process of loading data from the spreadsheet to check if the
@@ -110,8 +106,8 @@ Equipment Slot given for an Inventory Item contained within another Inventory It
 
 ### Container Name
 
-* Spreadsheet label: **Container**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Container**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.containerName`
 
 This is a container identifier and slot of the container the Inventory Item can be found in. Unlike Items, Inventory
@@ -125,15 +121,15 @@ In order to properly specify an Inventory Item's container, the container's iden
 the [inventory slot](prefab.md#inventory) this Inventory Item is in, with both separated by a forward slash (`/`). The
 following are some examples of correct container names:
 
-* LAB COAT 1/RIGHT POCKET
-* LAB COAT 2/LEFT POCKET
-* PLASTIC BAG 34/PLASTIC BAG
+- LAB COAT 1/RIGHT POCKET
+- LAB COAT 2/LEFT POCKET
+- PLASTIC BAG 34/PLASTIC BAG
 
 If no container name is supplied, then this Inventory Item is equipped to the listed Equipment Slot.
 
 ### Container
 
-* Class attribute: [InventoryItem](inventory_item.md) `this.container`
+- Class attribute: [InventoryItem](inventory_item.md) `this.container`
 
 This is an internal attribute which simply contains a reference to the actual Inventory Item object in the Player's
 inventory whose container identifier matches that of `this.containerName`. If this Inventory Item is equipped to an
@@ -142,7 +138,7 @@ inventory, then this is `null`.
 
 ### Slot
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.slot`
 
 This is an internal attribute which simply contains the name of the inventory slot of the container Inventory Item that
@@ -150,8 +146,8 @@ this Inventory Item is in.
 
 ### Quantity
 
-* Spreadsheet label: **Quantity**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Quantity**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.quantity`
 
 This is a whole number indicating how many instances of this Inventory Item there are in the given container. So long as
@@ -162,8 +158,8 @@ unless they have the `NULL` Prefab - in that case, their quantity should be left
 
 ### Uses
 
-* Spreadsheet label: **Uses**
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Spreadsheet label: **Uses**
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.uses`
 
 This is a whole number indicating how many times this Inventory Item can be used with
@@ -179,13 +175,13 @@ its Prefab's [effects strings](prefab.md#effects-strings) and cure the Player of
 Prefab's [cures strings](prefab.md#cures-strings). Then, if it has a limited number of uses, its uses will be decreased
 by 1. If this happens and its uses is decreased to 0, one of two things will happen:
 
-* If the Inventory Item's Prefab has a [next stage](prefab.md#next-stage), then it will be destroyed and its next stage
+- If the Inventory Item's Prefab has a [next stage](prefab.md#next-stage), then it will be destroyed and its next stage
   will be instantiated in its place.
-* If the Inventory Item's Prefab has no next stage, it will simply be destroyed.
+- If the Inventory Item's Prefab has no next stage, it will simply be destroyed.
 
 ### Weight
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.weight`
 
 This is an internal attribute. It is a whole number inherited from the weight of Inventory Item's Prefab. If the
@@ -194,7 +190,7 @@ Inventory Item. This will also be added to the Player's [carry weight](player.md
 
 ### Inventory
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
   `this.inventory`
 
@@ -203,8 +199,8 @@ see the section about [Prefab inventories](prefab.md#inventory).
 
 ### Description
 
-* Spreadsheet label: **Description**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Description**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.description`
 
 This is the description of the Inventory Item. Note that this can be completely different from the description of the
@@ -215,7 +211,7 @@ list tags will be removed.
 
 ### Row
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.row`
 
 This is an internal attribute, but it can also be found on the spreadsheet. This is the row number of the Inventory

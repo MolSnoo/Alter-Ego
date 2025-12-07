@@ -1,13 +1,12 @@
-const constants = include('Configs/constants.json');
-const parser = include(`${constants.modulesDir}/parser.js`);
-var game = include('game.json');
+import * as parser from '../Modules/parser.js';
+import game from '../game.json' with { type: 'json' };
 
-const Object = include(`${constants.dataDir}/Object.js`);
-const Item = include(`${constants.dataDir}/Item.js`);
-const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
+import Object from '../Data/Object.js';
+import Item from '../Data/Item.js';
+import Puzzle from '../Data/Puzzle.js';
+import InventoryItem from '../Data/InventoryItem.js';
 
-module.exports.instantiateItem = function (prefab, location, container, slotName, quantity, proceduralSelections, player = null) {
+export function instantiateItem (prefab, location, container, slotName, quantity, proceduralSelections, player = null) {
     var containerName = "";
     if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
     else if (container instanceof Object) containerName = "Object: " + container.name;
@@ -63,9 +62,9 @@ module.exports.instantiateItem = function (prefab, location, container, slotName
     game.messageHandler.addLogMessage(game.logChannel, `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${location.channel}`);
 
     return;
-};
+}
 
-module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlot, container, slotName, quantity, proceduralSelections, bot, notify = true) {
+export function instantiateInventoryItem (prefab, player, equipmentSlot, container, slotName, quantity, proceduralSelections, bot, notify = true) {
     var createdItem = new InventoryItem(
         player,
         prefab,
@@ -113,7 +112,7 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
     }
     // Item is being equipped.
     else {
-        player.fastEquip(game, createdItem, equipmentSlot, bot, notify);
+        player.directEquip(game, createdItem, equipmentSlot, bot, notify);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -121,9 +120,9 @@ module.exports.instantiateInventoryItem = function (prefab, player, equipmentSlo
     }
 
     return;
-};
+}
 
-module.exports.replaceInventoryItem = function (item, newPrefab) {
+export function replaceInventoryItem (item, newPrefab) {
     if (newPrefab === null || newPrefab === undefined) {
         this.destroyInventoryItem(item, item.quantity, null, true);
         return;
@@ -158,9 +157,9 @@ module.exports.replaceInventoryItem = function (item, newPrefab) {
     item.description = newPrefab.description;
 
     return;
-};
+}
 
-module.exports.destroyItem = function (item, quantity, getChildren) {
+export function destroyItem (item, quantity, getChildren) {
     item.quantity -= quantity;
 
     var containerName = "";
@@ -201,9 +200,9 @@ module.exports.destroyItem = function (item, quantity, getChildren) {
     game.messageHandler.addLogMessage(game.logChannel, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.location.channel}`);
 
     return;
-};
+}
 
-module.exports.destroyInventoryItem = function (item, quantity, bot, getChildren) {
+export function destroyInventoryItem (item, quantity, bot, getChildren) {
     if (getChildren) {
         let childItems = [];
         this.getChildItems(childItems, item);
@@ -211,9 +210,9 @@ module.exports.destroyInventoryItem = function (item, quantity, bot, getChildren
             this.destroyInventoryItem(childItems[i], childItems[i].quantity, bot, false);
     }
 
-    // If the item is equipped, simply unequip it. The fastEquip method will destroy it.
+    // If the item is equipped, simply unequip it. The directUnequip method will destroy it.
     if (item.container === null) {
-        item.player.fastUnequip(game, item, bot);
+        item.player.directUnequip(game, item, bot);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -234,10 +233,10 @@ module.exports.destroyInventoryItem = function (item, quantity, bot, getChildren
     }
 
     return;
-};
+}
 
 // This recursive function is used to convert Items to InventoryItems.
-module.exports.convertItem = function (item, player, hand, quantity) {
+export function convertItem (item, player, hand, quantity) {
     // Make a copy of the Item as an InventoryItem.
     var createdItem = new InventoryItem(
         player,
@@ -275,16 +274,15 @@ module.exports.convertItem = function (item, player, hand, quantity) {
     }
 
     return createdItem;
-};
+}
 
-
-module.exports.copyInventoryItem = function (item, player, hand, quantity) {
+export function copyInventoryItem (item, player, hand, quantity) {
     // convertItem can also be used to copy Inventory Items, effectively making this function another name for convertItem.
     return this.convertItem(item, player, hand, quantity);
-};
+}
 
 // This recursive function is used to convert InventoryItems to Items.
-module.exports.convertInventoryItem = function (item, player, container, slotName, quantity) {
+export function convertInventoryItem (item, player, container, slotName, quantity) {
     var containerName = "";
     if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
     else if (container instanceof Object) containerName = "Object: " + container.name;
@@ -327,9 +325,9 @@ module.exports.convertInventoryItem = function (item, player, container, slotNam
     }
 
     return createdItem;
-};
+}
 
-module.exports.getChildItems = function (items, item) {
+export function getChildItems (items, item) {
     for (let i = 0; i < item.inventory.length; i++) {
         for (let j = 0; j < item.inventory[i].item.length; j++) {
             items.push(item.inventory[i].item[j]);
@@ -338,9 +336,9 @@ module.exports.getChildItems = function (items, item) {
     }
 
     return;
-};
+}
 
-module.exports.insertItems = function (game, location, items) {
+export function insertItems (game, location, items) {
     for (let i = 0; i < items.length; i++) {
         // Check if the player is putting this item back in original spot unmodified.
         const roomItems = game.items.filter(item => item.location.name === location.name);
@@ -439,9 +437,9 @@ module.exports.insertItems = function (game, location, items) {
     }
 
     return;
-};
+}
 
-module.exports.insertInventoryItems = function (game, player, items, slot) {
+export function insertInventoryItems (game, player, items, slot) {
     var lastNewItem = player.inventory[player.inventory.length - 1].equippedItem !== null ?
         player.inventory[player.inventory.length - 1].equippedItem :
         player.inventory[player.inventory.length - 1].items[0];
@@ -533,7 +531,7 @@ module.exports.insertInventoryItems = function (game, player, items, slot) {
     }
 
     return;
-};
+}
 
 function generateIdentifier(prefab) {
     var identifier = "";

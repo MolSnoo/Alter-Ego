@@ -1,6 +1,14 @@
-const settings = include('Configs/settings.json');
+import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "tag_bot",
     description: "Adds or removes a room's tags.",
     details: "-**add**/**addtag**: Adds a tag to the given room. Events that affect rooms with that tag will immediately "
@@ -8,15 +16,30 @@ module.exports.config = {
         + "-**remove**/**removetag**: Removes a tag from the given room. Events that affect rooms with that tag will immediately "
         + "stop applying to the given room, and any tag that gives a room special behavior will immediately stop functioning.\n\n"
         + "Note that unlike the moderator version of this command, you cannot add/remove multiple tags at once.",
-    usage: `${settings.commandPrefix}tag add kitchen video surveilled\n`
-        + `${settings.commandPrefix}tag remove kitchen audio surveilled\n`
-        + `${settings.commandPrefix}addtag vault soundproof\n`
-        + `${settings.commandPrefix}removetag freezer cold`,
     usableBy: "Bot",
-    aliases: ["tag", "addtag", "removetag"]
+    aliases: ["tag", "addtag", "removetag"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `tag add kitchen video surveilled\n`
+        + `tag remove kitchen audio surveilled\n`
+        + `addtag vault soundproof\n`
+        + `removetag freezer cold`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} [player] 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     var input = command + " " + args.join(" ");
     if (command === "tag") {
@@ -27,9 +50,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
     else input = args.join(" ");
 
-    if (command !== "addtag" && command !== "removetag") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
+    if (command !== "addtag" && command !== "removetag") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
     if (args.length < 2)
-        return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     input = args.join(" ");
     var parsedInput = input.replace(/ /g, "-").toLowerCase();
@@ -41,10 +64,10 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             break;
         }
     }
-    if (room === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (room === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     input = input.substring(room.name.length).trim();
-    if (input === "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+    if (input === "") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (command === "addtag") {
         if (!room.tags.includes(input.trim()))
@@ -56,4 +79,4 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
 
     return;
-};
+}

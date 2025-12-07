@@ -1,29 +1,29 @@
-﻿const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+﻿import constants from '../Configs/constants.json' with { type: 'json' };
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { getData as getSheetData } from './sheets.js';
 
-const Exit = include(`${constants.dataDir}/Exit.js`);
-const Room = include(`${constants.dataDir}/Room.js`);
-const Object = include(`${constants.dataDir}/Object.js`);
-const Prefab = include(`${constants.dataDir}/Prefab.js`);
-const Recipe = include(`${constants.dataDir}/Recipe.js`);
-const Item = include(`${constants.dataDir}/Item.js`);
-const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
-const Event = include(`${constants.dataDir}/Event.js`);
-const EquipmentSlot = include(`${constants.dataDir}/EquipmentSlot.js`);
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
-const Status = include(`${constants.dataDir}/Status.js`);
-const Player = include(`${constants.dataDir}/Player.js`);
-const Gesture = include(`${constants.dataDir}/Gesture.js`);
-const Flag = include(`${constants.dataDir}/Flag.js`);
+import Exit from '../Data/Exit.js';
+import Room from '../Data/Room.js';
+import Object from '../Data/Object.js';
+import Prefab from '../Data/Prefab.js';
+import Recipe from '../Data/Recipe.js';
+import Item from '../Data/Item.js';
+import Puzzle from '../Data/Puzzle.js';
+import Event from '../Data/Event.js';
+import EquipmentSlot from '../Data/EquipmentSlot.js';
+import InventoryItem from '../Data/InventoryItem.js';
+import Status from '../Data/Status.js';
+import Player from '../Data/Player.js';
+import Gesture from '../Data/Gesture.js';
+import Flag from '../Data/Flag.js';
 
-const { ChannelType } = require('../node_modules/discord-api-types/v10');
-var moment = require('moment');
+import { ChannelType } from 'discord.js';
+import moment from 'moment';
 moment().format();
 
-module.exports.loadRooms = function (game, doErrorChecking) {
+export function loadRooms (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.roomSheetDataCells, function (response) {
+        getSheetData(constants.roomSheetDataCells, async function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnRoomName = 0;
@@ -58,7 +58,28 @@ module.exports.loadRooms = function (game, doErrorChecking) {
                             i + j + 2
                         ));
                 }
-                const channel = game.guild.channels.cache.find(channel => channel.name === sheet[i][columnRoomName]);
+                let channel = game.guild.channels.cache.find((channel) => channel.name === sheet[i][columnRoomName]);
+                if (channel === null || channel === undefined) {
+                    const roomCategories = serverconfig.roomCategories.split(",");
+                    for (let j = 0; j < roomCategories.length; j++) {
+                        const roomCategory = game.guild.channels.cache.find(
+                            (channel) => channel.id === roomCategories[j].trim()
+                        );
+                        if (roomCategory === null || roomCategory === undefined)
+                            continue;
+                        const roomCategorySize = game.guild.channels.cache.filter(
+                            (channel) => channel.parent && channel.parentId === roomCategories[j].trim()
+                        ).size;
+                        if (roomCategorySize < 50) {
+                            channel = await game.guild.channels.create({
+                                name: sheet[i][columnRoomName],
+                                type: ChannelType.GuildText,
+                                parent: roomCategory,
+                            });
+                            break;
+                        }
+                    }
+                }
                 var tags = sheet[i][columnTags] ? sheet[i][columnTags].trim().split(',') : [];
                 for (let j = 0; j < tags.length; j++)
                     tags[j] = tags[j].trim();
@@ -103,9 +124,9 @@ module.exports.loadRooms = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkRoom = function (room) {
+export function checkRoom (room) {
     if (room.name === "" || room.name === null || room.name === undefined)
         return new Error(`Couldn't load room on row ${room.row}. No room name was given.`);
     if (room.name.toLowerCase() !== room.name)
@@ -115,10 +136,10 @@ module.exports.checkRoom = function (room) {
     if (room.name.length > 100)
         return new Error(`Couldn't load room on row ${room.row}. The room name exceeds 100 characters in length.`);
     if (room.channel === null || room.channel === undefined)
-        return new Error(`Couldn't load room "${room.name}". There is no corresponding channel on the server.`);
-    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png|gif))$');
+        return new Error(`Couldn't load room "${room.name}". There is no corresponding channel on the server, and a channel to accomodate the room could not be automatically created.`);
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
-        return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .png, or .gif extension.`);
+        return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
     for (let i = 0; i < room.exit.length; i++) {
         let exit = room.exit[i];
         if (exit.name === "" || exit.name === null || exit.name === undefined)
@@ -147,9 +168,9 @@ module.exports.checkRoom = function (room) {
             return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.name}"  does not have an exit that links back to it.`);
     }
     return;
-};
+}
 
-module.exports.loadObjects = function (game, doErrorChecking) {
+export function loadObjects (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear all recipe intervals so they don't continue after these objects are unloaded.
         for (let i = 0; i < game.objects.length; i++) {
@@ -159,7 +180,7 @@ module.exports.loadObjects = function (game, doErrorChecking) {
                 game.objects[i].process.timer.stop();
         }
 
-        sheets.getData(constants.objectSheetDataCells, function (response) {
+        getSheetData(constants.objectSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -228,9 +249,9 @@ module.exports.loadObjects = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkObject = function (object) {
+export function checkObject (object) {
     if (object.name === "" || object.name === null || object.name === undefined)
         return new Error(`Couldn't load object on row ${object.row}. No object name was given.`);
     if (!(object.location instanceof Room))
@@ -245,11 +266,11 @@ module.exports.checkObject = function (object) {
     if (isNaN(object.hidingSpotCapacity))
         return new Error(`Couldn't load object on row ${object.row}. The hiding spot capacity given is not a number.`);
     return;
-};
+}
 
-module.exports.loadPrefabs = function (game, doErrorChecking) {
+export function loadPrefabs (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.prefabSheetDataCells, function (response) {
+        getSheetData(constants.prefabSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -295,12 +316,12 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
                 for (let j = 0; j < coveredEquipmentSlots.length; j++)
                     coveredEquipmentSlots[j] = coveredEquipmentSlots[j].trim();
                 // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
-                const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : new Array("", "");
-                var equipCommands = commands[0] ? commands[0].split(',') : "";
+                var equipCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : "";
                 for (let j = 0; j < equipCommands.length; j++)
                     equipCommands[j] = equipCommands[j].trim();
-                var unequipCommands = commands[1] ? commands[1].split(',') : "";
+                var unequipCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : "";
                 for (let j = 0; j < unequipCommands.length; j++)
                     unequipCommands[j] = unequipCommands[j].trim();
                 // Create a list of inventory slots this prefab contains.
@@ -357,8 +378,9 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             }
             for (let i = 0; i < game.puzzles.length; i++) {
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        let requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) {
+                        let requirement = game.prefabs.find(prefab => prefab.id === requirementString.substring(requirementString.indexOf(':') + 1).trim());
                         if (requirement) game.puzzles[i].requirements[j] = requirement;
                     }
                 }
@@ -374,9 +396,9 @@ module.exports.loadPrefabs = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkPrefab = function (prefab, game) {
+export function checkPrefab (prefab, game) {
     if (prefab.id === "" || prefab.id === null || prefab.id === undefined)
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab ID was given.`);
     if (game.prefabs.filter(other => other.id === prefab.id && other.row < prefab.row).length > 0)
@@ -408,11 +430,11 @@ module.exports.checkPrefab = function (prefab, game) {
     if (prefab.inventory.length !== 0 && prefab.preposition === "")
         return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
     return;
-};
+}
 
-module.exports.loadRecipes = function (game, doErrorChecking) {
+export function loadRecipes (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.recipeSheetDataCells, function (response) {
+        getSheetData(constants.recipeSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnIngredients = 0;
@@ -492,9 +514,9 @@ module.exports.loadRecipes = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkRecipe = function (recipe) {
+export function checkRecipe (recipe) {
     if (recipe.ingredients.length === 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
     for (let i = 0; i < recipe.ingredients.length; i++) {
@@ -517,11 +539,11 @@ module.exports.checkRecipe = function (recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with an object tag cannot be uncraftable.`)
     if (recipe.products.length > 1 && recipe.uncraftable)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than one product cannot be uncraftable.`)
-};
+}
 
-module.exports.loadItems = function (game, doErrorChecking) {
+export function loadItems (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.itemSheetDataCells, function (response) {
+        getSheetData(constants.itemSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPrefab = 0;
@@ -683,9 +705,9 @@ module.exports.loadItems = function (game, doErrorChecking) {
             resolve(game);
         });
     }); 
-};
+}
 
-module.exports.checkItem = function (item, game) {
+export function checkItem (item, game) {
     if (!(item.prefab instanceof Prefab))
         return new Error(`Couldn't load item on row ${item.row}. The prefab given is not a prefab.`);
     if (item.inventory.length > 0 && item.identifier === "")
@@ -700,6 +722,8 @@ module.exports.checkItem = function (item, game) {
         return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
         return new Error(`Couldn't load item on row ${item.row}. The location given is not a room.`);
+    if (item.containerName === "")
+        return new Error(`Couldn't load item on row ${item.row}. No container was given.`);
     if (item.containerName.startsWith("Object:") && !(item.container instanceof Object))
         return new Error(`Couldn't load item on row ${item.row}. The container given is not an object.`);
     if (item.containerName.startsWith("Item:") && !(item.container instanceof Item))
@@ -709,7 +733,7 @@ module.exports.checkItem = function (item, game) {
     if (item.containerName !== "" && !item.containerName.startsWith("Object:") && !item.containerName.startsWith("Item:") && !item.containerName.startsWith("Puzzle:"))
         return new Error(`Couldn't load item on row ${item.row}. The given container type is invalid.`);
     if (item.container instanceof Item && item.container.inventory.length === 0)
-        return new Error(`Couldn't load item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+        return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
     if (item.container instanceof Item) {
         if (item.slot === "") return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but a prefab inventory slot name was not given.`);
         let foundSlot = false;
@@ -723,11 +747,11 @@ module.exports.checkItem = function (item, game) {
         if (!foundSlot) return new Error(`Couldn't load item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
     }
     return;
-};
+}
 
-module.exports.loadPuzzles = function (game, doErrorChecking) {
+export function loadPuzzles (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.puzzleSheetDataCells, function (response) {
+        getSheetData(constants.puzzleSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -753,28 +777,28 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
                 for (let j = 0; j < requirements.length; j++)
                     requirements[j] = requirements[j].trim();
-                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
+                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
                 let commandSets = [];
                 let getCommands = function (commandString) {
                     const commands = commandString.split('/');
-                    let solvedCommands = commands[0] ? commands[0].split(',') : [];
+                    let solvedCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
                     for (let j = 0; j < solvedCommands.length; j++)
                         solvedCommands[j] = solvedCommands[j].trim();
-                    let unsolvedCommands = commands[1] ? commands[1].split(',') : [];
+                    let unsolvedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
                     for (let j = 0; j < unsolvedCommands.length; j++)
                         unsolvedCommands[j] = unsolvedCommands[j].trim();
                     return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
                 };
-                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
-                if (regex.test(commandString)) {
-                    while (regex.test(commandString)) {
-                        const commandSet = RegExp.$2;
+                const regex = new RegExp(/(\[((.*?)(?<!(?:(?:Inventory)?Item)|Prefab): (.*?))\],?)/g);
+                if (!!commandString.match(regex)) {
+                    let match;
+                    while (match = regex.exec(commandString)) {
+                        const commandSet = match[2];
                         let outcomes = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
                         for (let j = 0; j < outcomes.length; j++)
                             outcomes[j] = outcomes[j].trim();
                         const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
                         commandSets.push({ outcomes: outcomes, solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
-                        commandString = commandString.replace(RegExp.$1, "").trim();
                     }
                 }
                 else {
@@ -819,12 +843,15 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
                 if (parentObject) game.puzzles[i].parentObject = parentObject;
                 for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
                     let requirement = null;
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
-                        if (requirement) game.puzzles[i].requirements[j] = requirement;
-                    }
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:"))
+                        requirement = game.prefabs.find(prefab => prefab.id === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                    else if (requirementString.startsWith("Event:"))
+                        requirement = game.events.find(event => event.name === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                    else if (requirementString.startsWith("Flag:"))
+                        requirement = game.flags.get(requirementString.substring(requirementString.indexOf(':') + 1).trim());
                     else
-                        requirement = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requirementsStrings[j] || game.puzzles[i].requirementsStrings[j] === `Puzzle: ${puzzle.name}`);
+                        requirement = game.puzzles.find(puzzle => puzzle.name === requirementString || requirementString === `Puzzle: ${puzzle.name}`);
                     if (requirement) game.puzzles[i].requirements[j] = requirement;
                 }
                 if (doErrorChecking) {
@@ -851,9 +878,9 @@ module.exports.loadPuzzles = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkPuzzle = function (puzzle) {
+export function checkPuzzle (puzzle) {
     if (puzzle.name === "" || puzzle.name === null || puzzle.name === undefined)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. No puzzle name was given.`);
     if (!(puzzle.location instanceof Room))
@@ -930,15 +957,20 @@ module.exports.checkPuzzle = function (puzzle) {
         }
     }
     for (let i = 0; i < puzzle.requirements.length; i++) {
-        if ((puzzle.requirementsStrings[i].startsWith("Item:") || puzzle.requirementsStrings[i].startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a prefab.`);
-        else if (!puzzle.requirementsStrings[i].startsWith("Item:") && !puzzle.requirementsStrings[i].startsWith("Prefab:") && !(puzzle.requirements[i] instanceof Puzzle))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a puzzle.`);
+        const requirementString = puzzle.requirementsStrings[i];
+        if ((requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a prefab.`);
+        else if (requirementString.startsWith("Event:") && !(puzzle.requirements[i] instanceof Event))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not an event.`);
+        else if (requirementString.startsWith("Flag:") && !(puzzle.requirements[i] instanceof Flag))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a flag.`);
+        else if ((!requirementString.includes(':') || requirementString.startsWith("Puzzle:")) && !(puzzle.requirements[i] instanceof Puzzle))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a puzzle.`);
     }
     return;
-};
+}
 
-module.exports.loadEvents = function (game, doErrorChecking) {
+export function loadEvents (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear timers for all events first.
         for (let i = 0; i < game.events.length; i++) {
@@ -948,7 +980,7 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 game.events[i].effectsTimer.stop();
         }
 
-        sheets.getData(constants.eventSheetDataCells, function (response) {
+        getSheetData(constants.eventSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -978,12 +1010,12 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                 var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
                 for (let j = 0; j < triggerTimes.length; j++)
                     triggerTimes[j] = triggerTimes[j].trim();
-                const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
+                const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
                 const commands = commandString ? commandString.split('/') : ["", ""];
-                var triggeredCommands = commands[0] ? commands[0].split(',') : [];
+                var triggeredCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
                 for (let j = 0; j < triggeredCommands.length; j++)
                     triggeredCommands[j] = triggeredCommands[j].trim();
-                var endedCommands = commands[1] ? commands[1].split(',') : [];
+                var endedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
                 for (let j = 0; j < endedCommands.length; j++)
                     endedCommands[j] = endedCommands[j].trim();
                 var effects = sheet[i][columnStatusEffects] ? sheet[i][columnStatusEffects].split(',') : [];
@@ -1029,6 +1061,15 @@ module.exports.loadEvents = function (game, doErrorChecking) {
                     if (error instanceof Error) errors.push(error);
                 }
             }
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Event:")) {
+                        let requirement = game.events.find(event => event.name === requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
+                }
+            }
             if (errors.length > 0) {
                 if (errors.length > 15) {
                     errors = errors.slice(0, 15);
@@ -1040,9 +1081,9 @@ module.exports.loadEvents = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkEvent = function (event, game) {
+export function checkEvent (event, game) {
     if (event.name === "" || event.name === null || event.name === undefined)
         return new Error(`Couldn't load event on row ${event.row}. No event name was given.`);
     if (game.events.filter(other => other.name === event.name && other.row < event.row).length > 0)
@@ -1071,11 +1112,11 @@ module.exports.checkEvent = function (event, game) {
             return new Error(`Couldn't load event on row ${event.row}. "${event.refreshes[i]}" in refreshing status effects is not a status effect.`);
     }
     return;
-};
+}
 
-module.exports.loadStatusEffects = function (game, doErrorChecking) {
+export function loadStatusEffects (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.statusSheetDataCells, function (response) {
+        getSheetData(constants.statusSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -1229,9 +1270,9 @@ module.exports.loadStatusEffects = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkStatusEffect = function (status) {
+export function checkStatusEffect (status) {
     if (status.name === "" || status.name === null || status.name === undefined)
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect name was given.`);
     if (status.duration !== null && !status.duration.isValid())
@@ -1263,9 +1304,9 @@ module.exports.checkStatusEffect = function (status) {
     if (status.curedCondition !== null && !(status.curedCondition instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Cured condition "${status.curedCondition}" is not a status effect.`);
     return;
-};
+}
 
-module.exports.loadPlayers = function (game, doErrorChecking) {
+export function loadPlayers (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
         // Clear all player status effects and movement timers first.
         for (let i = 0; i < game.players.length; i++) {
@@ -1283,7 +1324,7 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
         for (let i = 0; i < game.rooms.length; i++)
             game.rooms[i].occupants.length = 0;
 
-        sheets.getData(constants.playerSheetDataCells, async function (response) {
+        getSheetData(constants.playerSheetDataCells, async function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -1320,7 +1361,9 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 var member = null;
                 var spectateChannel = null;
                 if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
-                    member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    try {
+                        member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
+                    } catch (error) {}
                     spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
                     const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
                     if (!spectateChannel && noSpectateChannels < 50) {
@@ -1358,24 +1401,26 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
                 if (player.alive) {
                     game.players_alive.push(player);
 
-                    // Parse statuses and inflict the player with them.
-                    const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                    for (let j = 0; j < game.statusEffects.length; j++) {
-                        for (let k = 0; k < statusList.length; k++) {
-                            const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
-                            if (game.statusEffects[j].name === statusName) {
-                                const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
-                                currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                    if (player.member !== null || player.talent === "NPC") {
+                        // Parse statuses and inflict the player with them.
+                        const currentPlayer = game.players_alive[game.players_alive.length - 1];
+                        for (let j = 0; j < game.statusEffects.length; j++) {
+                            for (let k = 0; k < statusList.length; k++) {
+                                const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
+                                if (game.statusEffects[j].name === statusName) {
+                                    const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
+                                    const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                    currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
+                                }
                             }
                         }
-                    }
 
-                    if (currentPlayer.location instanceof Room) {
-                        for (let k = 0; k < game.rooms.length; k++) {
-                            if (game.rooms[k].name === currentPlayer.location.name) {
-                                game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
-                                break;
+                        if (currentPlayer.location instanceof Room) {
+                            for (let k = 0; k < game.rooms.length; k++) {
+                                if (game.rooms[k].name === currentPlayer.location.name) {
+                                    game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1410,14 +1455,14 @@ module.exports.loadPlayers = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkPlayer = function (player) {
+export function checkPlayer (player) {
     if (player.talent !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
-    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png))$');
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
     if (player.talent === "NPC" && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
-        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg or .png extension.`);
+        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg, .jpeg, .png, .webp, or .avif extension.`);
     if (player.talent !== "NPC" && (player.member === null || player.member === undefined))
         return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
     if (player.name === "" || player.name === null || player.name === undefined)
@@ -1451,11 +1496,11 @@ module.exports.checkPlayer = function (player) {
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
     return;
-};
+}
 
-module.exports.loadInventories = function (game, doErrorChecking) {
+export function loadInventories (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.inventorySheetDataCells, function (response) {
+        getSheetData(constants.inventorySheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnPlayer = 0;
@@ -1675,9 +1720,9 @@ module.exports.loadInventories = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkInventoryItem = function (item, game) {
+export function checkInventoryItem (item, game) {
     if (item.player === "")
         return new Error(`Couldn't load inventory item on row ${item.row}. No player name was given.`);
     if (!(item.player instanceof Player))
@@ -1717,11 +1762,11 @@ module.exports.checkInventoryItem = function (item, game) {
         }
     }
     return;
-};
+}
 
-module.exports.loadGestures = function (game, doErrorChecking) {
+export function loadGestures (game, doErrorChecking) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.gestureSheetDataCells, function (response) {
+        getSheetData(constants.gestureSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnName = 0;
@@ -1772,9 +1817,9 @@ module.exports.loadGestures = function (game, doErrorChecking) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkGesture = function (gesture) {
+export function checkGesture (gesture) {
     if (gesture.name === "" || gesture.name === null || gesture.name === undefined)
         return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture name was given.`);
     for (let i = 0; i < gesture.requires.length; i++) {
@@ -1791,13 +1836,13 @@ module.exports.checkGesture = function (gesture) {
     if (gesture.narration === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
     return;
-};
+}
 
 // Flags always undergo error checking. So, doErrorChecking simply determines if loadFlags trims the error messages itself.
 // Pass the currently existing errors 
-module.exports.loadFlags = function (game, doErrorChecking, errors) {
+export function loadFlags (game, doErrorChecking, errors) {
     return new Promise((resolve, reject) => {
-        sheets.getData(constants.flagSheetDataCells, function (response) {
+        getSheetData(constants.flagSheetDataCells, function (response) {
             const sheet = response.data.values ? response.data.values : [];
             // These constants are the column numbers corresponding to that data on the spreadsheet.
             const columnID = 0;
@@ -1805,32 +1850,31 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
             const columnValueScript = 2;
             const columnCommands = 3;
 
-            if (game.flags instanceof Map) game.flags.clear();
-            game.flags = new Map();
+            game.flags.clear();
             if (!errors) errors = [];
             for (let i = 0; i < sheet.length; i++) {
                 let commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
                 let commandSets = [];
                 let getCommands = function (commandString) {
                     const commands = commandString.split('/');
-                    let setCommands = commands[0] ? commands[0].split(',') : [];
+                    let setCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
                     for (let j = 0; j < setCommands.length; j++)
                         setCommands[j] = setCommands[j].trim();
-                    let clearedCommands = commands[1] ? commands[1].split(',') : [];
+                    let clearedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
                     for (let j = 0; j < clearedCommands.length; j++)
                         clearedCommands[j] = clearedCommands[j].trim();
                     return { setCommands: setCommands, clearedCommands: clearedCommands };
                 };
-                const regex = new RegExp(/(\[((.*?): (.*?))\],?)/);
-                if (regex.test(commandString)) {
-                    while (regex.test(commandString)) {
-                        const commandSet = RegExp.$2;
+                const regex = new RegExp(/(\[((.*?): (.*?))\],?)/g);
+                if (!!commandString.match(regex)) {
+                    let match;
+                    while (match = regex.exec(commandString)) {
+                        const commandSet = match[2];
                         let values = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
                         for (let j = 0; j < values.length; j++)
                             values[j] = values[j].trim();
                         const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
                         commandSets.push({ values: values, setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
-                        commandString = commandString.replace(RegExp.$1, "").trim();
                     }
                 }
                 else {
@@ -1843,7 +1887,7 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
                 else if (value === "FALSE") value = false;
                 
                 let flag = new Flag(
-                    sheet[i][columnID] ? sheet[i][columnID].trim().toUpperCase().replace(/\'/g, '') : "",
+                    sheet[i][columnID] ? sheet[i][columnID].toUpperCase().replace(/[\'"“”`]/g, '').trim() : "",
                     value,
                     sheet[i][columnValueScript] ? sheet[i][columnValueScript].trim() : "",
                     sheet[i][columnCommands] ? sheet[i][columnCommands].trim() : "",
@@ -1856,6 +1900,15 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
                 else game.flags.set(flag.id, flag);
             }
 
+            for (let i = 0; i < game.puzzles.length; i++) {
+                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+                    const requirementString = game.puzzles[i].requirementsStrings[j];
+                    if (requirementString.startsWith("Flag:")) {
+                        let requirement = game.flags.get(requirementString.substring(requirementString.indexOf(':') + 1).trim());
+                        if (requirement) game.puzzles[i].requirements[j] = requirement;
+                    }
+                }
+            }
             if (doErrorChecking && errors.length > 0) {
                 if (errors.length > 15) {
                     errors = errors.slice(0, 15);
@@ -1867,9 +1920,9 @@ module.exports.loadFlags = function (game, doErrorChecking, errors) {
             resolve(game);
         });
     });
-};
+}
 
-module.exports.checkFlag = function (flag, game) {
+export function checkFlag (flag, game) {
     if (flag.id === "" || flag.id === null || flag.id === undefined)
         return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
     if (!!game.flags.get(flag.id) && game.flags.get(flag.id).row !== flag.row)
@@ -1877,12 +1930,11 @@ module.exports.checkFlag = function (flag, game) {
     if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
         return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
     if (flag.valueScript !== "") {
-        const scriptParser = require('./scriptParser.js');
         try {
-            let value = scriptParser.evaluate(flag.valueScript, flag);
+            const value = flag.evaluate(flag.valueScript, flag);
             flag.value = value;
         } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
     }
 
     return;
-};
+}

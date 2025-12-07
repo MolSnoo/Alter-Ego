@@ -1,70 +1,116 @@
-﻿const constants = include('Configs/constants.json');
+﻿import Game from './Game.js';
+import InventorySlot from './InventorySlot.js';
+import ItemInstance from './ItemInstance.js';
+import Player from './Player.js';
+import Prefab from './Prefab.js';
+import { replaceInventoryItem } from '../Modules/itemManager.js';
+import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
 
-class InventoryItem {
-    constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row) {
+/**
+ * @class InventoryItem
+ * @classdesc Represents an item that is currently possessed by a player.
+ * @extends ItemInstance
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/inventory_item.html
+ */
+export default class InventoryItem extends ItemInstance {
+    /**
+     * The player who has this inventory item.
+     * @type {Player}
+     */
+    player;
+    /**
+     * The ID of the equipment slot the inventory item or its top-level container is equipped to.
+     * @type {string}
+     */
+    equipmentSlot;
+    /**
+     * Whether the equipment slot was found.
+     * @type {boolean}
+     */
+    foundEquipmentSlot;
+    /**
+     * The inventory item's actual container.
+     * @type {InventoryItem}
+     */
+    container;
+    /**
+     * An array of {@link InventorySlot|inventory slots} the item has.
+     * @override
+     * @type {InventorySlot<InventoryItem>[]}
+     */
+    inventory = [];
+
+    /**
+     * @constructor
+     * @param {Player} player - The player who has this inventory item.
+     * @param {Prefab} prefab - The prefab this inventory item is an instance of.
+     * @param {string} identifier - The unique identifier given to the inventory item if it is capable of containing other inventory items.
+     * @param {string} equipmentSlot - The ID of the equipment slot the inventory item or its top-level container is equipped to.
+     * @param {string} containerName - The identifier of the container the inventory item can be found in, and the ID of the {@link InventorySlot|inventory slot} it belongs to, separated by a forward slash.
+     * @param {number} quantity - How many identical instances of this inventory item are in the given container.
+     * @param {number} uses - The number of times this inventory item can be used.
+     * @param {string} description - The description of the inventory item. Can contain multiple item lists named after its inventory slots.
+     * @param {number} row - The row number of the inventory inventory item in the sheet.
+     * @param {Game} game - The game this belongs to.
+     */
+    constructor(player, prefab, identifier, equipmentSlot, containerName, quantity, uses, description, row, game) {
+        super(game, row, description, prefab, identifier, containerName, quantity, uses);
         this.player = player;
-        this.prefab = prefab;
-        this.identifier = identifier;
-        this.name = prefab ? prefab.name : "";
-        this.pluralName = prefab ? prefab.pluralName : "";
-        this.singleContainingPhrase = prefab ? prefab.singleContainingPhrase : "";
-        this.pluralContainingPhrase = prefab ? prefab.pluralContainingPhrase : "";
         this.equipmentSlot = equipmentSlot;
         this.foundEquipmentSlot = false;
-        this.containerName = containerName;
         this.container = null;
-        this.slot = "";
-        this.quantity = quantity;
-        this.uses = uses;
-        this.weight = prefab ? prefab.weight : 0;
         this.inventory = [];
-        this.description = description;
-        this.row = row;
     }
 
-    insertItem(item, slot) {
+    /**
+     * Decreases the number of uses this inventory item has left. If it runs out of uses, instantiates its nextStage in its place, if it has one.
+     */
+    decreaseUses() {
+        this.uses--;
+        if (this.uses === 0) {
+            const nextStage = this.prefab.nextStage;
+            const container = this.container !== null ? this.container : this.player;
+            const slot = this.container !== null ? this.slot :
+                this.equipmentSlot === "RIGHT HAND" || this.equipmentSlot === "LEFT HAND" ? "hands" : "equipment";
+            if (nextStage && !this.prefab.discreet)
+                container.setDescription(removeItemFromDescription(container.getDescription(), this, slot));
+            replaceInventoryItem(this, nextStage);
+            if (nextStage && !nextStage.discreet)
+                container.setDescription(addItemToDescription(container.getDescription(), this, slot));
+        }
+    }
+
+    /**
+     * Inserts an inventory item into the specified slot.
+     * @param {InventoryItem} item - The item to insert.
+     * @param {string} slotId - The ID of the inventory slot to insert it in.
+     */
+    insertItem(item, slotId) {
         if (item.quantity !== 0) {
             for (let i = 0; i < this.inventory.length; i++) {
-                if (this.inventory[i].name === slot) {
-                    let matchedItem = this.inventory[i].item.find(inventoryItem =>
-                        inventoryItem.prefab !== null && item.prefab !== null &&
-                        inventoryItem.prefab.id === item.prefab.id &&
-                        inventoryItem.identifier === item.identifier &&
-                        inventoryItem.containerName === item.containerName &&
-                        inventoryItem.slot === item.slot &&
-                        (inventoryItem.uses === item.uses || isNaN(inventoryItem.uses) && isNaN(item.uses)) &&
-                        inventoryItem.description === item.description
-                    );
-                    if (!matchedItem || isNaN(matchedItem.quantity)) this.inventory[i].item.push(item);
-                    if (!isNaN(item.quantity)) {
-                        this.inventory[i].weight += item.weight * item.quantity;
-                        this.inventory[i].takenSpace += item.prefab.size * item.quantity;
-                        this.weight += item.weight * item.quantity;
-                    }
+                if (this.inventory[i].id === slotId) {
+                    this.inventory[i].insertItem(item);
                 }
             }
         }
     }
 
-    removeItem(item, slot, removedQuantity) {
+    /**
+     * Removes an inventory item from the specified slot.
+     * @param {InventoryItem} item - The item to remove.
+     * @param {string} slotId - The ID of the inventory slot to remove it from.
+     * @param {number} removedQuantity - The quantity of this item to remove.
+     */
+    removeItem(item, slotId, removedQuantity) {
         for (let i = 0; i < this.inventory.length; i++) {
-            if (this.inventory[i].name === slot) {
-                for (let j = 0; j < this.inventory[i].item.length; j++) {
-                    if (this.inventory[i].item[j].name === item.name && this.inventory[i].item[j].description === item.description) {
-                        if (item.quantity === 0) this.inventory[i].item.splice(j, 1);
-                        this.inventory[i].weight -= item.weight * removedQuantity;
-                        this.inventory[i].takenSpace -= item.prefab.size * removedQuantity;
-                        this.weight -= item.weight * removedQuantity;
-                        break;
-                    }
-                }
+            if (this.inventory[i].id === slotId) {
+                this.inventory[i].removeItem(item, removedQuantity);
             }
         }
     }
 
+    /** @returns {string} */
     descriptionCell() {
-        return constants.inventorySheetDescriptionColumn + this.row;
+        return this.game.constants.inventorySheetDescriptionColumn + this.row;
     }
 }
-
-module.exports = InventoryItem;

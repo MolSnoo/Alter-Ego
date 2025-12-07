@@ -1,9 +1,12 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+import Narration from '../Data/Narration.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "inspect_moderator",
     description: "Inspects something for a player.",
     details: "Inspect something for the given player. The target must be the \"room\" argument, an object, an item, "
@@ -15,7 +18,17 @@ module.exports.config = {
         + "object or puzzle), or its prefab ID or container identifier (if it's an item). The player can be forced "
         + "to inspect items and inventory items belonging to a specific player (including themself) using the "
         + "player's name followed by \"'s\". If inspecting a different player's inventory items, a narration will not be sent.",
-    usage: `${settings.commandPrefix}inspect akio desk\n`
+    usableBy: "Moderator",
+    aliases: ["inspect", "investigate", "examine", "look", "x"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}inspect akio desk\n`
         + `${settings.commandPrefix}examine florian knife\n`
         + `${settings.commandPrefix}look florian knife on desk\n`
         + `${settings.commandPrefix}x florian knife in main pouch of red backpack 1\n`
@@ -24,15 +37,18 @@ module.exports.config = {
         + `${settings.commandPrefix}examine nestor jae-seong\n`
         + `${settings.commandPrefix}look roma lain's glasses\n`
         + `${settings.commandPrefix}x haruka binita's shirt\n`
-        + `${settings.commandPrefix}inspect ambrosia room`,
-    usableBy: "Moderator",
-    aliases: ["inspect", "investigate", "examine", "look", "x"],
-    requiresGame: true
-};
+        + `${settings.commandPrefix}inspect ambrosia room`;
+}
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a player and an object/item/player. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a player and an object/item/player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -42,7 +58,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -51,11 +67,11 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (parsedInput === "ROOM") {
         new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
         player.sendDescription(game, player.location.description, player.location);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${player.location.name} for ${player.name}.`);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${player.location.name} for ${player.name}.`);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected the room in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly inspected the room in ${player.location.channel}`);
 
         return;
     }
@@ -95,7 +111,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     if (object !== null) {
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
         player.sendDescription(game, object.description, object);
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${object.name} for ${player.name}.`);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${object.name} for ${player.name}.`);
 
         // Don't notify anyone if the player is inspecting the object that they're hiding in.
         if (!player.hasAttribute("hidden") || player.hidingSpot !== object.name) {
@@ -133,7 +149,7 @@ module.exports.run = async (bot, game, message, command, args) => {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ${object.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly inspected ${object.name} in ${player.location.channel}`);
 
         return;
     }
@@ -217,10 +233,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.singleContainingPhrase}` + (containerName ? ` ${preposition} ${containerName}` : '') + `.`).send();
         player.sendDescription(game, item.description, item);
         const identifier = item.identifier !== "" ? item.identifier : item.prefab.id;
-        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${identifier} ${preposition} ${containerIdentifier} for ${player.name}.`);
+        messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${identifier} ${preposition} ${containerIdentifier} for ${player.name}.`);
 
         const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
 
         return;
     }
@@ -234,10 +250,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             const item = inventory[i];
             if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.prefab.singleContainingPhrase} and begins inspecting it.`).send();
             player.sendDescription(game, item.description, item);
-            game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${player.name}'s ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` for ${player.name}.`);
+            messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${player.name}'s ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` for ${player.name}.`);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
 
             return;
         }
@@ -248,15 +264,15 @@ module.exports.run = async (bot, game, message, command, args) => {
         let occupant = player.location.occupants[i];
         const possessive = occupant.name.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasAttribute("hidden"))
-            return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
+            return messageHandler.addReply(message, `Couldn't find "${input}".`);
         if (occupant.name.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.name === player.name) return game.messageHandler.addReply(message, `${player.name} can't inspect ${player.originalPronouns.ref}.`);
+            if (occupant.name === player.name) return messageHandler.addReply(message, `${player.name} can't inspect ${player.originalPronouns.ref}.`);
             player.sendDescription(game, occupant.description, occupant);
-            game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${occupant.name} for ${player.name}.`);
+            messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${occupant.name} for ${player.name}.`);
 
             const time = new Date().toLocaleTimeString();
-            game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ${occupant.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly inspected ${occupant.name} in ${player.location.channel}`);
 
             return;
         }
@@ -277,10 +293,10 @@ module.exports.run = async (bot, game, message, command, args) => {
                         // Clear out any il tags in the description.
                         let description = inventory[j].description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
                         player.sendDescription(game, description, inventory[j]);
-                        game.messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${occupant.name}'s ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` for ${player.name}.`);
+                        messageHandler.addGameMechanicMessage(message.channel, `Successfully inspected ${occupant.name}'s ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` for ${player.name}.`);
 
                         const time = new Date().toLocaleTimeString();
-                        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
+                        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
 
                         return;
                     }
@@ -289,5 +305,5 @@ module.exports.run = async (bot, game, message, command, args) => {
         }
     }
 
-    return game.messageHandler.addReply(message, `Couldn't find "${input}".`);
-};
+    return messageHandler.addReply(message, `Couldn't find "${input}".`);
+}

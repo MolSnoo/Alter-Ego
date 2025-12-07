@@ -1,24 +1,42 @@
-﻿const settings = include('Configs/settings.json');
-const serverconfig = include('Configs/serverconfig.json');
-const discord = require('discord.js');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
+import { EmbedBuilder } from 'discord.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "help_player",
     description: "Lists all commands available to you.",
     details: "Lists all commands available to the user. If a command is specified, displays the help menu for that command.",
-    usage: `${settings.commandPrefix}help\n` +
-        `${settings.commandPrefix}help move`,
     usableBy: "Player",
-    aliases: ["help"]
+    aliases: ["help"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}help\n` +
+        `${settings.commandPrefix}help move`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ * @param {Player} player 
+ */
+export async function execute (game, message, command, args, player) {
     // Get all commands available to the user and sort them alphabetically.
-    var roleCommands = new discord.Collection();
-    roleCommands = bot.configs.filter(config => config.usableBy === "Player");
+    let roleCommands = game.botContext.playerCommands;
     roleCommands.sort(function (a, b) {
-        if (a.name < b.name) return -1;
-        if (a.name > b.name) return 1;
+        if (a.config.name < b.config.name) return -1;
+        if (a.config.name > b.config.name) return 1;
         return 0;
     });
 
@@ -29,7 +47,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
 
         roleCommands.forEach(function (value, key, map) {
             const commandName = key.substring(0, key.indexOf('_'));
-            fields.push({ command: `${settings.commandPrefix}${commandName}`, description: value.description });
+            fields.push({ command: `${game.settings.commandPrefix}${commandName}`, description: value.config.description });
         });
 
         // Divide the fields into pages.
@@ -70,37 +88,21 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         });
     }
     else {
-        let command = roleCommands.find(command => command.aliases.includes(args[0]));
-        if (!command) return game.messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
-
-        const commandName = command.name.charAt(0).toUpperCase() + command.name.substring(1, command.name.indexOf('_'));
-        let embed = new discord.EmbedBuilder()
-            .setColor('1F8B4C')
-            .setAuthor({ name: `${commandName} Command Help`, iconURL: game.guild.iconURL() })
-            .setDescription(command.description);
-
-        let aliasString = "";
-        for (let i = 0; i < command.aliases.length; i++)
-            aliasString += `\`${settings.commandPrefix}${command.aliases[i]}\` `;
-        embed.addFields([
-            { name: "Aliases", value: aliasString },
-            { name: "Examples", value: command.usage },
-            { name: "Description", value: command.details }
-        ]);
-
-        message.channel.send({ embeds: [embed] });
+        let command = roleCommands.find(command => command.config.aliases.includes(args[0]));
+        if (!command) return messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
+        messageHandler.addCommandHelp(message.author, command, game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL());
     }
 
     return;
-};
+}
 
 function createEmbed(game, page, pages) {
-    const role = game.guild.roles.cache.get(serverconfig.playerRole);
+    const role = game.guildContext.guild.roles.cache.get(game.guildContext.playerRole);
     const roleName = role ? role.name : "Player";
-    let embed = new discord.EmbedBuilder()
-        .setColor('1F8B4C')
-        .setAuthor({ name: `${game.guild.members.me.displayName} Help`, iconURL: game.guild.iconURL() })
-        .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${settings.commandPrefix}help commandname\` for more details.`)
+    let embed = new EmbedBuilder()
+        .setColor(game.settings.embedColor)
+        .setAuthor({ name: `${game.guildContext.guild.members.me.displayName} Help`, iconURL: game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL() })
+        .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${game.settings.commandPrefix}help commandname\` for more details.`)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 
     let fields = [];

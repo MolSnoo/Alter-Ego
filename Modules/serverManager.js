@@ -1,9 +1,8 @@
-const serverconfig = include('Configs/serverconfig.json');
+import serverconfig from '../Configs/serverconfig.json' with { type: 'json' };
+import { writeFileSync } from 'fs';
+import { ChannelType } from 'discord.js';
 
-const fs = require('fs');
-const { ChannelType } = require("../node_modules/discord-api-types/v10");
-
-module.exports.validateServerConfig = async (guild) => {
+export async function validateServerConfig (guild) {
     var missingSettings = [];
     var firstBootMessage = false;
     var save = false;
@@ -129,7 +128,7 @@ module.exports.validateServerConfig = async (guild) => {
     }
     if (save) {
         let json = JSON.stringify(serverconfig);
-        await fs.writeFileSync('Configs/serverconfig.json', json, 'utf8');
+        await writeFileSync('Configs/serverconfig.json', json, 'utf8');
         console.log("Populated serverconfig file.");
         firstBootMessage = true;
     }
@@ -142,9 +141,9 @@ module.exports.validateServerConfig = async (guild) => {
         firstBootMessage = false;
     }
     return firstBootMessage;
-};
+}
 
-module.exports.createCategory = function (guild, name) {
+export function createCategory (guild, name) {
     return new Promise((resolve, reject) => {
         guild.channels.create({
             name: name,
@@ -153,18 +152,18 @@ module.exports.createCategory = function (guild, name) {
             .then(channel => resolve(channel))
             .catch(err => reject(err));
     });
-};
+}
 
-module.exports.registerRoomCategory = async (category) => {
+export async function registerRoomCategory (category) {
     if (!serverconfig.roomCategories.includes(category.id)) {
         if (serverconfig.roomCategories !== "")
             serverconfig.roomCategories += ",";
         serverconfig.roomCategories += category.id;
 
         let json = JSON.stringify(serverconfig);
-        await fs.writeFileSync('Configs/serverconfig.json', json, 'utf8');
+        await writeFileSync('Configs/serverconfig.json', json, 'utf8');
 
         return `Successfully registered room category "${category.name}".`;
     }
     else return `Room category "${category.name}" is already registered.`;
-};
+}

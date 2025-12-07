@@ -1,8 +1,9 @@
 {
   "name": "alter-ego",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "An in-depth, multiplayer text adventure role-playing game for Discord.",
   "main": "bot.js",
+  "type": "module",
   "scripts": {
     "run": "node bot.js",
     "start": "node bot.js",
@@ -20,6 +21,7 @@
     "url": "https://github.com/MolSnoo/Alter-Ego/issues"
   },
   "homepage": "https://github.com/MolSnoo/Alter-Ego",
+  "types": "dist/bot.d.ts",
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
     "acorn": "^8.15.0",
@@ -30,10 +32,14 @@
     "minimist": "^1.2.5",
     "moment": "^2.24.0",
     "moment-timer": "^1.3.0",
-    "node-fetch": "^2.6.6",
-    "pretty-format": "^30.2.0"
+    "pretty-format": "^30.2.0",
+    "table": "^6.9.0"
   },
   "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/node-fetch": "2.6.13",
+    "typescript": "5.9.3",
+    "node-fetch": "^2.6.6",
     "jest": "^30.1.3"
   },
   "jest": {

@@ -4,10 +4,6 @@ Alter Ego has various **settings** that can be configured in the file `.env`. Al
 quotes. Remember to uncomment (i.e. remove the `#` before the line) for them to go into effect. This page details each
 setting and what it does.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Bot settings
 
 ### COMMAND_PREFIX
@@ -20,6 +16,10 @@ run it if it was.
 
 This is a simple [Boolean value](https://en.wikipedia.org/wiki/Boolean_data_type). If this is `true`, Alter Ego will
 start in debug mode. If this is `false`, it will start normally.
+
+### EMBED_COLOR
+
+This is a string that determines the color of embed messages sent by Alter Ego. String should be in the format of a 24-bit hexadecimal number without a hash symbol, e.g. `1F8B4C`
 
 ## Other game data
 
@@ -83,14 +83,14 @@ This is how often, in seconds, Alter Ego should update the spreadsheet with any 
 
 These are Discord user activities that Alter Ego will set for itself at certain times. They each have two options:
 
-* **type**: This is the verb that will be used. This is
+- **type**: This is the verb that will be used. This is
   a [Discord ActivityType](https://discord.js.org/#/docs/main/stable/typedef/ActivityType), so valid strings are:
-    * PLAYING
-    * STREAMING
-    * LISTENING
-    * WATCHING
-    * COMPETING
-* **string**: This is the name of the activity that will be used after the verb.
+    - PLAYING
+    - STREAMING
+    - LISTENING
+    - WATCHING
+    - COMPETING
+- **string**: This is the name of the activity that will be used after the verb.
 
 ### ONLINE_ACTIVITY_TYPE, ONLINE_ACTIVITY_STRING
 
@@ -115,12 +115,12 @@ changed to suit each individual player on the spreadsheet itself before all game
 
 ### DEFAULT_PRONOUNS
 
-This is the default [pronoun string](../data_structures/player.md#pronoun-string) that each player will have. The 
+This is the default [pronoun string](../data_structures/player.md#pronoun-string) that each player will have. The
 default is `neutral`. Once it is on the spreadsheet, it should be edited to suit each player.
 
 ### DEFAULT_VOICE
 
-This is the default [original voice string](../data_structures/player.md#original-voice-string) that each player will 
+This is the default [original voice string](../data_structures/player.md#original-voice-string) that each player will
 have. The default is `a neutral voice`. Once it is on the spreadsheet, it should be edited to suit each player.
 
 ### Default Stats

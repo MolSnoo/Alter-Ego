@@ -1,8 +1,12 @@
-const settings = include('Configs/settings.json');
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-var moment = require('moment');
+import moment from 'moment';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "occupants_moderator",
     description: "Lists all occupants in a room.",
     details: "Lists all occupants currently in the given room. If an occupant is in the process of moving, "
@@ -10,16 +14,29 @@ module.exports.config = {
         + "Note that the displayed time remaining will not be adjusted according to the heatedSlowdownRate setting. "
         + "If a player in the game has the heated status effect, movement times for all players will be displayed as shorter than they actually are. "
         + "Occupants with the `hidden` behavior attributes will also be listed alongside their hiding spots.",
-    usage: `${settings.commandPrefix}occupants floor-b1-hall-1\n`
-        + `${settings.commandPrefix}o ultimate conference hall`,
     usableBy: "Moderator",
     aliases: ["occupants", "o"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}occupants floor-b1-hall-1\n`
+        + `${settings.commandPrefix}o ultimate conference hall`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify a room. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
     var input = args.join(" ");
     var parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
@@ -30,7 +47,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (room === null) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
+    if (room === null) return messageHandler.addReply(message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = sort_occupantsString(room.occupants);
@@ -71,10 +88,10 @@ module.exports.run = async (bot, game, message, command, args) => {
     else occupantsMessage += `__All occupants in ${room.name}:__\n` + occupantsList.join(" ");
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");
     if (movingList.length > 0) occupantsMessage += `\n\n__Moving occupants:__\n` + movingList.join("\n");
-    game.messageHandler.addGameMechanicMessage(message.channel, occupantsMessage);
+    messageHandler.addGameMechanicMessage(message.channel, occupantsMessage);
 
     return;
-};
+}
 
 function sort_occupantsString(list) {
     list.sort(function (a, b) {

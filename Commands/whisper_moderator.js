@@ -1,31 +1,47 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { default as handleDialog } from '../Modules/dialogHandler.js';
 
-const Whisper = include(`${constants.dataDir}/Whisper.js`);
+import Whisper from '../Data/Whisper.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "whisper_moderator",
     description: "Initiates a whisper with the given players.",
     details: "Creates a channel for the given players to speak in. Only the selected players will be able to read messages "
         + "posted in the new channel, but everyone in the room will be notified that they've begun whispering to each other. "
         + "You can select as many players as you want as long as they're all in the same room. When a player in the whisper "
         + "leaves the room, they will be removed from the channel. If everyone leaves the room, the whisper channel will be "
-        + (settings.autoDeleteWhisperChannels ? "deleted" : "archived") + ". If one of the players listed has the talent "
-        + "\"NPC\", the remaining string after the list of players will be sent in the whisper channel. Once the channel is "
-        + "created, NPC players can only speak in the whisper using this command and the list of players in the whisper.",
-    usage: `${settings.commandPrefix}whisper nestor jun\n`
-        + `${settings.commandPrefix}whisper sadie elijah flint\n`
-        + `${settings.commandPrefix}whisper amy hibiki Clean it up.\n`
-        + `${settings.commandPrefix}whisper amy hibiki The mess you made. Clean it up now.`,
+        + "deleted or archived. If one of the players listed has the talent \"NPC\", the remaining string "
+        + "after the list of players will be sent in the whisper channel. Once the channel is created, "
+        + "NPC players can only speak in the whisper using this command and the list of players in the whisper.",
     usableBy: "Moderator",
     aliases: ["whisper"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}whisper nestor jun\n`
+        + `${settings.commandPrefix}whisper sadie elijah flint\n`
+        + `${settings.commandPrefix}whisper amy hibiki Clean it up.\n`
+        + `${settings.commandPrefix}whisper amy hibiki The mess you made. Clean it up now.`;
+}
+
+/**
+ * @param {Game} game 
+ * @param {Message} message 
+ * @param {string} command 
+ * @param {string[]} args 
+ */
+export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to choose at least two players. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(message, `You need to choose at least two players. Usage:\n${usage(game.settings)}`);
 
     // Get all players mentioned.
     var recipients = new Array();
@@ -38,17 +54,17 @@ module.exports.run = async (bot, game, message, command, args) => {
             if (player.name.toLowerCase() === args[i].toLowerCase()) {
                 for (let k = 0; k < recipients.length; k++) {
                     if (recipients[k].name === player.name)
-                        return game.messageHandler.addReply(message, `Can't include the same player multiple times.`);
+                        return messageHandler.addReply(message, `Can't include the same player multiple times.`);
                     if (recipients[k].location.name !== player.location.name)
-                        return game.messageHandler.addReply(message, `The selected players aren't all in the same room.`);
+                        return messageHandler.addReply(message, `The selected players aren't all in the same room.`);
                 }
                 // Check attributes that would prohibit the player from whispering to someone in the room.
                 let status = player.getAttributeStatusEffects("disable whisper");
-                if (status.length > 0) return game.messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
                 status = player.getAttributeStatusEffects("no hearing");
-                if (status.length > 0) return game.messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
                 status = player.getAttributeStatusEffects("unconscious");
-                if (status.length > 0) return game.messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;
                 if (player.talent === "NPC") npc = player;
@@ -61,10 +77,10 @@ module.exports.run = async (bot, game, message, command, args) => {
                 args.splice(0, i);
                 break;
             }
-            else return game.messageHandler.addReply(message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
+            else return messageHandler.addReply(message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
         }
     }
-    if (recipients.length < 2) return game.messageHandler.addReply(message, `Can't start a whisper with fewer than 2 players.`);
+    if (recipients.length < 2) return messageHandler.addReply(message, `Can't start a whisper with fewer than 2 players.`);
 
     var string = args.join(' ');
 
@@ -83,10 +99,10 @@ module.exports.run = async (bot, game, message, command, args) => {
             }
             if (matchedUsers === recipients.length) {
                 if (npc !== null) {
-                    await sendMessage(bot, game, message, string, npc, game.whispers[i]);
+                    await sendMessage(game, message, string, npc, game.whispers[i]);
                     return;
                 }
-                else return game.messageHandler.addReply(message, "Whisper group already exists.");
+                else return messageHandler.addReply(message, "Whisper group already exists.");
             }
         }
     }
@@ -97,15 +113,15 @@ module.exports.run = async (bot, game, message, command, args) => {
     game.whispers.push(whisper);
 
     if (npc !== null)
-        await sendMessage(bot, game, message, string, npc, whisper);
+        await sendMessage(game, message, string, npc, whisper);
 
     return;
-};
+}
 
-async function sendMessage (bot, game, message, string, player, whisper) {
+async function sendMessage (game, message, string, player, whisper) {
     // Create a webhook for this channel if necessary, or grab the existing one.
     let webHooks = await whisper.channel.fetchWebhooks();
-    let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
+    let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
     if (webHook === null || webHook === undefined)
         webHook = await whisper.channel.createWebhook({ name: whisper.channelName });
 
@@ -119,6 +135,6 @@ async function sendMessage (bot, game, message, string, player, whisper) {
         embeds: message.embeds,
         files: files
     }).then(message => {
-        dialogHandler.execute(bot, game, message, true, player);
+        handleDialog(game.botContext, game, message, true, player);
     });
 }
