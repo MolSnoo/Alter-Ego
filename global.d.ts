@@ -110,14 +110,14 @@ declare global {
 
 	/**
 	 * Represents a range of values in a spreadsheet.
-	 * @property range - The A1 notation of the range.
-	 * @property [majorDimension] - The major dimension of the values. Either 'ROWS' or 'COLUMNS'.
-	 * @property values - The values within the specified range.
+	 * @property {string} range - The A1 notation of the range.
+	 * @property {string} [majorDimension] - The major dimension of the values. Either 'ROWS' or 'COLUMNS'.
+	 * @property {string[][]} values - The values within the specified range.
 	 */
 	interface ValueRange {
 		range: string;
 		majorDimension?: string;
-		values: string[][]
+		values: string[][];
 	}
 
 	/**

@@ -217,7 +217,7 @@ export default class Game {
 		);
 		// Save data to the sheet periodically.
 		this.#autoSaveInterval = setInterval(
-			() => { if (this.inProgress && !this.editMode) saveGame(); },
+			() => { if (this.inProgress && !this.editMode) saveGame(this); },
 			this.settings.autoSaveInterval * 1000
 		);
 		// Check for any events that are supposed to trigger at this time of day.
