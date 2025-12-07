@@ -7,9 +7,9 @@
   "scripts": {
     "run": "node bot.js",
     "start": "node bot.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "vitest run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -37,17 +37,8 @@
   },
   "devDependencies": {
     "@types/node": "24.10.1",
-    "@types/node-fetch": "2.6.13",
+    "@vitest/coverage-v8": "^4.0.15",
     "typescript": "5.9.3",
-    "node-fetch": "^2.6.6",
-    "jest": "^30.1.3"
-  },
-  "jest": {
-    "setupFilesAfterEnv": ["<rootDir>/Test/setup.js"],
-    "collectCoverageFrom": [
-      "Commands/*.js",
-      "Data/*.js",
-      "Modules/*.js"
-    ]
+    "vitest": "^4.0.15"
   }
 }

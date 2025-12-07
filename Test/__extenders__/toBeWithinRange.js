@@ -1,4 +1,4 @@
-module.exports.toBeWithinRange = (actual, floor, ceiling) => {
+export default (actual, floor, ceiling) => {
   if (
     typeof actual !== 'number' ||
     typeof floor !== 'number' ||

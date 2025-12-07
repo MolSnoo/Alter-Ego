@@ -1,1 +1,0 @@
-module.exports = include('Defaults/default_serverconfig.json')

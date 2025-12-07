@@ -1,5 +1,5 @@
-module.exports.toHaveSize = (actual, size) => {
-	if (!'size' in actual)
+export default (actual, size) => {
+	if (!('size' in actual))
 		throw new TypeError('This must have size attribute!');
 	if (typeof actual.size !== 'number' || typeof size !== 'number')
 		throw new TypeError('These must be of type number!');

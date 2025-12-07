@@ -1,8 +1,10 @@
+import { beforeAll, describe, test, expect, vi } from 'vitest';
+
 var moment = require('moment');
 moment().format();
 
 beforeAll(() => {
-	jest.useFakeTimers();
+	vi.useFakeTimers();
 });
 
 describe('trigger times', () => {
@@ -31,7 +33,7 @@ describe('trigger times', () => {
 
 	describe('2025-10-11 20:30:17.156', () => {
 		beforeAll(() => {
-			jest.setSystemTime(new Date('2025-10-11T20:30:17.156'));
+			vi.setSystemTime(new Date('2025-10-11T20:30:17.156'));
 		});
 
 		const now = moment('2025-10-11 20:30:17.156');
@@ -359,7 +361,7 @@ describe('trigger times', () => {
 
 	describe('2025-03-01 20:30:17.156', () => {
 		beforeAll(() => {
-			jest.setSystemTime(new Date('2025-03-01T20:30:17.156'));
+			vi.setSystemTime(new Date('2025-03-01T20:30:17.156'));
 		});
 
 		const now = moment('2025-03-01 20:30:17.156');

@@ -4,7 +4,7 @@ const sheets = include('Modules/sheets.js');
 describe('sheets module', () => {
     describe('getData', () => {
         test('calls values.get with correct request and forwards response to callback', (done) => {
-            const dataOperation = jest.fn((response) => {
+            const dataOperation = vi.fn((response) => {
                 expect(response.data.values).toEqual([['cellA1', 'cellB1'], ['cellA2', 'cellB2']]);
                 expect(googleapisMock.valuesGet).toHaveBeenCalled();
                 const req = googleapisMock.valuesGet.mock.calls[0][0];
@@ -21,7 +21,7 @@ describe('sheets module', () => {
 
     describe('getDataWithProperties', () => {
         test('calls spreadsheets.get with includeGridData true and forwards response', (done) => {
-            const dataOperation = jest.fn((response) => {
+            const dataOperation = vi.fn((response) => {
                 expect(response.data.sheets).toBeDefined();
                 expect(googleapisMock.spreadsheetsGet).toHaveBeenCalled();
                 const req = googleapisMock.spreadsheetsGet.mock.calls[0][0];
@@ -39,7 +39,7 @@ describe('sheets module', () => {
     describe('updateData', () => {
         test('calls values.update with provided data and resolves via callback', (done) => {
             const payload = [['a', 'b'], ['c', 'd']];
-            const dataOperation = jest.fn((response) => {
+            const dataOperation = vi.fn((response) => {
                 expect(response.data.updatedRange).toBe('Sheet1!A1:B2');
                 done();
             });
@@ -82,7 +82,7 @@ describe('sheets module', () => {
     describe('appendRows', () => {
         test('appends rows using values.append and forwards the response', (done) => {
             const rows = [['one', 'two', 'three']];
-            const dataOperation = jest.fn((response) => {
+            const dataOperation = vi.fn((response) => {
                 expect(googleapisMock.valuesAppend).toHaveBeenCalled();
                 done();
             });

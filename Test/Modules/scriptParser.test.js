@@ -2,18 +2,18 @@ const scriptParser = require('../../Modules/scriptParser.js');
 
 // Mock the finder module so tests don't depend on game.json
 jest.mock('../../Modules/finder.js', () => ({
-    findRoom: jest.fn(),
-    findObject: jest.fn(),
-    findPrefab: jest.fn(),
-    findItem: jest.fn(),
-    findPuzzle: jest.fn(),
-    findEvent: jest.fn(),
-    findStatusEffect: jest.fn(),
-    findPlayer: jest.fn(),
-	findLivingPlayer: jest.fn(),
-	findDeadPlayer: jest.fn(),
-    findInventoryItem: jest.fn(),
-    findFlag: jest.fn()
+    findRoom: vi.fn(),
+    findObject: vi.fn(),
+    findPrefab: vi.fn(),
+    findItem: vi.fn(),
+    findPuzzle: vi.fn(),
+    findEvent: vi.fn(),
+    findStatusEffect: vi.fn(),
+    findPlayer: vi.fn(),
+	findLivingPlayer: vi.fn(),
+	findDeadPlayer: vi.fn(),
+    findInventoryItem: vi.fn(),
+    findFlag: vi.fn()
 }), { virtual: false });
 const finder = require('../../Modules/finder.js');
 

@@ -1,17 +1,8 @@
-const recipes_player = include('Commands/recipes_player');
-
-var botMock = include('Test/Mocks/bot').mock;
-var gameMock = include('Test/Mocks/game').mock;
-var messageMock = include('Test/Mocks/message').mock;
-var playerMock = include('Test/Mocks/player').mock;
+import { beforeEach, describe, test } from 'vitest';
+import {usage, execute} from '../../Commands/recipes_player.js'
 
 describe('recipes_player command', () => {
-    beforeEach(() => {
-        bot = botMock;
-        game = gameMock;
-        message = messageMock;
-        player = playerMock;
-    });
+    beforeEach(() => {});
         
     test('', async () => {});
 });

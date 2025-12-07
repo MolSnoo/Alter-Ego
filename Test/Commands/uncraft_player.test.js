@@ -32,8 +32,8 @@ describe('uncraft_player command', () => {
             ];
             await game.initPlayersAndInventories(players, inventoryItems);
             player = game.players_alive[0];
-            player.getAttributeStatusEffects = jest.fn(() => []);
-            player.uncraft = jest.fn(() => ({ ingredient1: null, ingredient2: null }));
+            player.getAttributeStatusEffects = vi.fn(() => []);
+            player.uncraft = vi.fn(() => ({ ingredient1: null, ingredient2: null }));
         });
 
         test('should abort when empty args provided', async () => {
@@ -75,8 +75,8 @@ describe('uncraft_player command', () => {
             ];
             await game.initPlayersAndInventories(players, inventoryItems);
             player = game.players_alive[0];
-            player.getAttributeStatusEffects = jest.fn(() => []);
-            player.uncraft = jest.fn(() => ({ ingredient1: null, ingredient2: null }));
+            player.getAttributeStatusEffects = vi.fn(() => []);
+            player.uncraft = vi.fn(() => ({ ingredient1: null, ingredient2: null }));
         });
 
         test('both hands contain uncraftable item', async () => {

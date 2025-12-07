@@ -1,17 +1,8 @@
-const move_player = include('Commands/move_player');
-
-var botMock = include('Test/Mocks/bot').mock;
-var gameMock = include('Test/Mocks/game').mock;
-var messageMock = include('Test/Mocks/message').mock;
-var playerMock = include('Test/Mocks/player').mock;
+import { beforeEach, describe, test } from 'vitest';
+import {usage, execute} from '../../Commands/move_player.js'
 
 describe('move_player command', () => {
-    beforeEach(() => {
-        bot = botMock;
-        game = gameMock;
-        message = messageMock;
-        player = playerMock;
-    });
+    beforeEach(() => {});
         
     test('', async () => {});
 });

@@ -1,17 +1,8 @@
-const text_moderator = include('Commands/text_moderator');
-
-var botMock = include('Test/Mocks/bot').mock;
-var gameMock = include('Test/Mocks/game').mock;
-var messageMock = include('Test/Mocks/message').mock;
-var playerMock = include('Test/Mocks/player').mock;
+import { beforeEach, describe, test } from 'vitest';
+import {usage, execute} from '../../Commands/text_moderator.js'
 
 describe('text_moderator command', () => {
-    beforeEach(() => {
-        bot = botMock;
-        game = gameMock;
-        message = messageMock;
-        player = playerMock;
-    });
+    beforeEach(() => {});
         
     test('', async () => {});
 });
