@@ -5,7 +5,7 @@ export default defineConfig({
         coverage: {
             provider: "v8",
             enabled: true,
-            include: ["Commands/*.js", "Data/*.js", "Modules/*.js"],
+            include: ["Commands/*.js", "Data/*.js", "Modules/*.js", "Classes/*.js"],
         },
         setupFiles: "Test/setup.js",
     },
