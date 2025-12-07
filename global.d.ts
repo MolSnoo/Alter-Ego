@@ -1,4 +1,4 @@
-import type { ActivitiesOptions, ActivityType, Message, Snowflake } from "discord.js";
+import type { ActivitiesOptions, ActivityType, GuildMember, Message, Snowflake } from "discord.js";
 import type Event from "./Data/Event.js";
 import type Flag from "./Data/Flag.js";
 import type Game from "./Data/Game.js";
@@ -313,23 +313,31 @@ declare global {
 	}
 	
 	/**
-	 * Represents a simplified player object for use in the parser module.
+	 * Represents a simplified player object for use in various places.
 	 * @property {string} [name] - The name of the player.
-	 * @property {string} [talent] - The talent of the player.
+	 * @property {string} [displayName] - The display name of the player.
+	 * @property {string} [displayIcon] - The display icon URL of the player.
+	 * @property {string} [title] - The title of the player.
+	 * @property {GuildMember} [member] - The Discord guild member associated with the player. 
 	 * @property {number} [strength] - The strength stat of the player.
 	 * @property {number} [intelligence] - The intelligence stat of the player.
 	 * @property {number} [dexterity] - The dexterity stat of the player.
 	 * @property {number} [speed] - The speed stat of the player.
 	 * @property {number} [stamina] - The stamina stat of the player.
+	 * @property {Game} [game] - The game instance the player is part of.
 	 */
 	interface PseudoPlayer {
 		name?: string;
-		talent?: string;
+		displayName?: string;
+		displayIcon?: string;
+		title?: string;
+		member?: GuildMember;
 		strength?: number;
 		intelligence?: number;
 		dexterity?: number;
 		speed?: number;
 		stamina?: number;
+		game?: Game;
 	}
 
 	interface Possibility {
