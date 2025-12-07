@@ -43,6 +43,7 @@ export default class Player extends ItemContainer {
     id;
     /**
      * member - The Discord member object of the player.
+     * @readonly
      * @type {GuildMember | null} 
      */
     member;
@@ -63,12 +64,14 @@ export default class Player extends ItemContainer {
     displayIcon;
     /**
      * A title that can be used in descriptions. If this is set to "NPC", the player will be marked as an NPC.
+     * @readonly
      * @type {string}
      */
     title;
     /**
      * A title that can be used in descriptions. If this is set to "NPC", the player will be marked as an NPC. Will eventually be removed.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     talent;
@@ -164,7 +167,6 @@ export default class Player extends ItemContainer {
     alive;
     /**
      * The ID of the room the player was loaded into.
-     * @readonly
      * @type {string}
      */
     locationId;

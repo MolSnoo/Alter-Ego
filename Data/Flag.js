@@ -14,6 +14,7 @@ import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler
 export default class Flag extends GameEntity {
 	/**
 	 * The unique identifier for this flag.
+	 * @readonly
 	 * @type {string}
 	 */
 	id;
@@ -29,6 +30,7 @@ export default class Flag extends GameEntity {
 	valueScript;
 	/**
 	 * The string representation of the bot commands to be executed when the flag is set or cleared with specified values.
+	 * @readonly
 	 * @type {string}
 	 */
 	commandSetsString;

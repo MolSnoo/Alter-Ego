@@ -18,12 +18,14 @@ moment().format();
 export default class Event extends GameEntity {
     /**
      * The unique ID of the event.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The unique name of the event. Deprecated. Use `id` instead.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     name;
@@ -105,11 +107,13 @@ export default class Event extends GameEntity {
     refreshes;
     /**
      * The narration to be sent to affected rooms when the event is triggered.
+     * @readonly
      * @type {string}
      */
     triggeredNarration;
     /**
      * The narration to be sent to affected rooms when the event is ended.
+     * @readonly
      * @type {string}
      */
     endedNarration;

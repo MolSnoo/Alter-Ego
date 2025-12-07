@@ -10,6 +10,7 @@ import ItemInstance from "./ItemInstance.js";
 export default class InventorySlot {
 	/**
 	 * The ID of the slot. Must be unique relative to other slots held by the same item.
+	 * @readonly
 	 * @type {string}
 	 */
 	id;

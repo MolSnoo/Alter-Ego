@@ -11,6 +11,7 @@ import InventoryItem from "./InventoryItem.js";
 export default class EquipmentSlot extends GameEntity {
     /**
      * The ID of this equipment slot. Must be unique only within the context of a single player.
+     * @readonly
      * @type {string}
      */
     id;

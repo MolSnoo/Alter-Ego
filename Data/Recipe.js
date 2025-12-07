@@ -11,6 +11,7 @@ import Prefab from './Prefab.js';
 export default class Recipe extends GameEntity {
     /**
      * The IDs of the ingredients required to carry out the recipe.
+     * @readonly
      * @type {string[]}
      */
     ingredientsStrings;
@@ -21,21 +22,25 @@ export default class Recipe extends GameEntity {
     ingredients;
     /**
      * Whether the product can be transformed back into its ingredients.
+     * @readonly
      * @type {boolean}
      */
     uncraftable;
     /**
      * Phrase that allows an object with the matching recipeTag to process this recipe.
+     * @readonly
      * @type {string}
      */
     objectTag;
     /**
      * How long it takes to process the recipe. Accepted units: s, m, h, d, w, M, y.
+     * @readonly
      * @type {import('moment').Duration}
      */
     duration;
     /**
      * The IDs of the products produced by the recipe.
+     * @readonly
      * @type {string[]}
      */
     productsStrings;
@@ -46,16 +51,19 @@ export default class Recipe extends GameEntity {
     products;
     /**
      * The description that indicates when a recipe has begun being processed.
+     * @readonly
      * @type {string}
      */
     initiatedDescription;
     /**
      * The description that indicates when a recipe has finished being processed or crafted.
+     * @readonly
      * @type {string}
      */
     completedDescription;
     /**
      * The description that indicates when a recipe has been uncrafted.
+     * @readonly
      * @type {string}
      */
     uncraftedDescription;

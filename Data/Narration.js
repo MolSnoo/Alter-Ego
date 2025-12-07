@@ -12,21 +12,25 @@ import { addNarration, addNarrationToWhisper } from "../Modules/messageHandler.j
 export default class Narration {
     /**
      * The game this is for.
+     * @readonly
      * @type {Game}
      */
     game;
     /**
      * The player who triggered the narration.
+     * @readonly
      * @type {Player}
      */
     player;
     /**
      * The room the narration is intended for.
+     * @readonly
      * @type {Room}
      */
     location;
     /**
      * The text content for the narration.
+     * @readonly
      * @type {string}
      */
     message;

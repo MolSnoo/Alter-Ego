@@ -21,11 +21,13 @@ moment().format();
 export default class Object extends ItemContainer {
     /**
      * The name of the object.
+     * @readonly
      * @type {string}
      */
     name;
     /**
      * The name of the room the object is located in.
+     * @readonly
      * @type {string}
      */
     locationName;
@@ -41,6 +43,7 @@ export default class Object extends ItemContainer {
     accessible;
     /**
      * The name of a puzzle that is associated with the object.
+     * @readonly
      * @type {string}
      */
     childPuzzleName;
@@ -50,7 +53,8 @@ export default class Object extends ItemContainer {
      */
     childPuzzle;
     /**
-     * A keyword or phrase assigned to an object's recipe that allows it to carry out recipes that require it.\
+     * A keyword or phrase assigned to an object's recipe that allows it to carry out recipes that require it.
+     * @readonly
      * @type {string}
      */
     recipeTag;

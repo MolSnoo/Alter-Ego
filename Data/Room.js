@@ -15,22 +15,26 @@ import { TextChannel } from 'discord.js';
 export default class Room extends GameEntity {
     /**
      * The unique ID of the room.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The name of the room. Deprecated. Use `id` instead.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     name;
     /**
      * The name of the room for display purposes. Can contain uppercase letters and special characters. Not to be used for identification.
+     * @readonly
      * @type {string}
      */
     displayName;
     /**
      * The channel associated with the room.
+     * @readonly
      * @type {TextChannel}
      */
     channel;

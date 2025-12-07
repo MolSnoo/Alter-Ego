@@ -29,6 +29,7 @@ moment().format();
 export default class Game {
 	/**
 	 * The guild in which the game is occurring and all of the parts of the guild frequently accessed by the bot.
+	 * @readonly
 	 * @type {GuildContext}
 	 */
 	guildContext;
@@ -44,6 +45,7 @@ export default class Game {
 	settings;
 	/** 
 	 * A collection of constants used to refer to cell ranges on the spreadsheet. 
+	 * @readonly
 	 * @type {GameConstants}
 	*/
 	constants;

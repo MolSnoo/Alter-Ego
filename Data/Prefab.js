@@ -12,61 +12,73 @@ import Status from './Status.js';
 export default class Prefab extends GameEntity {
     /**
      * The unique identifier of the prefab.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The name of the prefab.
+     * @readonly
      * @type {string}
      */
     name;
     /**
      * The plural name of the prefab.
+     * @readonly
      * @type {string}
      */
     pluralName;
     /**
      * The phrase that will be inserted in/removed from item tags when an instance of this prefab is added to/removed from an item list.
+     * @readonly
      * @type {string}
      */
     singleContainingPhrase;
     /**
      * The phrase that will be used in an item list when it contains multiple instances of prefabs with the same single containing phrase.
+     * @readonly
      * @type {string}
      */
     pluralContainingPhrase;
     /**
      * Whether interactions with instances of this prefab are narrated or not.
+     * @readonly
      * @type {boolean}
      */
     discreet;
     /**
      * How large the prefab is. Does not correspond with any particular unit of measurement.
+     * @readonly
      * @type {number}
      */
     size;
     /**
      * How much the prefab weighs in kilograms.
+     * @readonly
      * @type {number}
      */
     weight;
     /**
      * Whether the instances of the prefab can be used by a player to inflict or cure one or more status effects.
+     * @readonly
      * @type {boolean}
      */
     usable;
     /**
      * The verb that will be used when a player uses an inventory item instance of this prefab.
+     * @readonly
      * @type {string}
      */
     verb;
     /**
      * The number of uses the prefab has.
+     * @readonly
      * @type {number}
      */
     uses;
     /**
      * A list of status effects that will be inflicted on the player when they use an inventory item instance of this prefab.
+     * @readonly
      * @type {string[]}
      */
     effectsStrings;
@@ -77,6 +89,7 @@ export default class Prefab extends GameEntity {
     effects;
     /**
      * A list of status effects that the player will be cured of when they use an inventory item instance of this prefab.
+     * @readonly
      * @type {string[]}
      */
     curesStrings;
@@ -87,6 +100,7 @@ export default class Prefab extends GameEntity {
     cures;
     /**
      * The ID of the prefab that instances of this prefab will turn into once they have no uses left.
+     * @readonly
      * @type {string}
      */
     nextStageId;
@@ -97,46 +111,55 @@ export default class Prefab extends GameEntity {
     nextStage;
     /**
      * Whether inventory item instances of this prefab can be equipped by a player.
+     * @readonly
      * @type {boolean}
      */
     equippable;
     /**
      * The IDs of equipment slots that inventory item instances of this prefab can be equipped to.
+     * @readonly
      * @type {string[]}
      */
     equipmentSlots;
     /**
      * The IDs of equipment slots that inventory item instances of this prefab will cover when equipped. This prevents any inventory items equipped to those equipment slots from appearing in the player's equipment description.
+     * @readonly
      * @type {string[]}
      */
     coveredEquipmentSlots;
     /**
      * Forward slash separated list of comma-separated bot commands to be executed when the an inventory item instance of this prefab is equipped or unequipped.
+     * @readonly
      * @type {string}
      */
     commandsString;
     /**
      * The bot commands to be executed when an inventory item instance of this prefab is equipped by a player.
+     * @readonly
      * @type {string[]}
      */
     equipCommands;
     /**
      * The bot commands to be executed when an inventory item instance of this prefab is unequipped by a player.
+     * @readonly
      * @type {string[]}
      */
     unequipCommands;
     /**
      * {@link InventorySlot|Inventory slots} that instances of this prefab will have.
+     * @readonly
      * @type {InventorySlot[]}
      */
     inventory;
     /**
      * The preposition that will be used when a player puts an item into an instance of this prefab.
+     * @readonly
      * @type {string}
      */
     preposition;
     /**
      * The description of the prefab. Can contain multiple item lists named after its inventory slots.
+     * @readonly
      * @type {string}
      */
     description;

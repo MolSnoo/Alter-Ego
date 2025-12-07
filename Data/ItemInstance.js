@@ -11,6 +11,7 @@ import Prefab from "./Prefab.js";
 export default class ItemInstance extends ItemContainer {
 	/**
 	 * The ID of the prefab this item is an instance of.
+	 * @readonly
 	 * @type {string}
 	 */
 	prefabId;
@@ -21,6 +22,7 @@ export default class ItemInstance extends ItemContainer {
 	prefab;
 	/**
 	 * The unique identifier given to the item if it is capable of containing other items.
+	 * @readonly
 	 * @type {string}
 	 */
 	identifier;

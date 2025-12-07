@@ -58,7 +58,7 @@ export function loadRooms (game, doErrorChecking) {
                         sheet[i + j][columnExits] ? Game.generateValidEntityName(sheet[i + j][columnExits]) : "",
                         pos,
                         sheet[i + j][columnUnlocked] ? sheet[i + j][columnUnlocked].trim() === "TRUE" : false,
-                        sheet[i + j][columnLeadsTo] ? Room.generateValidId(sheet[i + j][columnLeadsTo]) : "",
+                        sheet[i + j][columnLeadsTo] ? sheet[i + j][columnLeadsTo].trim() : "",
                         sheet[i + j][columnFrom] ? Game.generateValidEntityName(sheet[i + j][columnFrom]) : "",
                         sheet[i + j][columnDescription] ? sheet[i + j][columnDescription].trim() : "",
                         i + j + 2,
@@ -107,7 +107,7 @@ export function loadRooms (game, doErrorChecking) {
         // Also, add any occupants to the room.
         for (let i = 0; i < game.rooms.length; i++) {
             for (let j = 0; j < game.rooms[i].exit.length; j++) {
-                let dest = game.rooms.find(room => room.id === game.rooms[i].exit[j].destId && room.id !== "");
+                let dest = game.rooms.find(room => room.id === Room.generateValidId(game.rooms[i].exit[j].destId) && room.id !== "");
                 if (dest) game.rooms[i].exit[j].dest = dest;
             }
             if (doErrorChecking) {
@@ -634,7 +634,7 @@ export function loadItems (game, doErrorChecking) {
                 new Item(
                     sheet[i][columnPrefab] ? Game.generateValidEntityName(sheet[i][columnPrefab]) : "",
                     sheet[i][columnIdentifier] ? Game.generateValidEntityName(sheet[i][columnIdentifier]) : "",
-                    sheet[i][columnLocation] ? sheet[i][columnLocation] : "",
+                    sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
                     sheet[i][columnAccessibility] ? sheet[i][columnAccessibility].trim() === "TRUE" : false,
                     sheet[i][columnContainer] ? sheet[i][columnContainer].trim() : "",
                     parseInt(sheet[i][columnQuantity]),

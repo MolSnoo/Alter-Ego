@@ -9,7 +9,8 @@ import Status from './Status.js';
  */
 export default class Die {
     /**
-     * The game context this roll is occuring in. 
+     * The game context this roll is occuring in.
+     * @readonly 
      * @type {Game}
      */
     game;

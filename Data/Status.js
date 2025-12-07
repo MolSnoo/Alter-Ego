@@ -11,17 +11,20 @@ import timer from 'moment-timer';
 export default class Status extends GameEntity {
     /**
      * The unique ID of the status.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The name of the status. Deprecated. Use `id` instead.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     name;
     /**
      * The duration representing how long it takes for the status to expire after it is inflicted. Accepted units: s, m, h, d, w, M, y. If there is none, this is `null`.
+     * @readonly
      * @type {import('moment').Duration}
      */
     duration;
@@ -32,16 +35,19 @@ export default class Status extends GameEntity {
     remaining;
     /**
      * Whether the status kills an inflicted player when it expires. If the status has a nextStage, this is never checked.
+     * @readonly
      * @type {boolean}
      */
     fatal;
     /**
      * Whether the status is visible to the player.
+     * @readonly
      * @type {boolean}
      */
     visible;
     /**
      * The IDs of statuses that prevent this status from being inflicted.
+     * @readonly
      * @type {string[]}
      */
     overridersStrings;
@@ -52,6 +58,7 @@ export default class Status extends GameEntity {
     overriders;
     /**
      * The IDs of statuses that cure this status when they are inflicted.
+     * @readonly
      * @type {string[]}
      */
     curesStrings;
@@ -62,6 +69,7 @@ export default class Status extends GameEntity {
     cures;
     /**
      * The ID of the status that will be inflicted on the player when this one expires.
+     * @readonly
      * @type {string}
      */
     nextStageId;
@@ -72,6 +80,7 @@ export default class Status extends GameEntity {
     nextStage;
     /**
      * The ID of the status that this Status will turn into if it is inflicted on a player who already has it.
+     * @readonly
      * @type {string}
      */
     duplicatedStatusId;
@@ -82,6 +91,7 @@ export default class Status extends GameEntity {
     duplicatedStatus;
     /**
      * The ID of the status that will be inflicted on the player if this one is cured.
+     * @readonly
      * @type {string}
      */
     curedConditionId;
@@ -93,22 +103,26 @@ export default class Status extends GameEntity {
     /**
      * Stat modifiers to apply to the player.
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#stat-modifiers
+     * @readonly
      * @type {StatModifier[]}
      */
     statModifiers;
     /**
      * The behavior attributes this status applies to the player.
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes
+     * @readonly
      * @type {string[]}
      */
     attributes;
     /**
      * The description of the status when a player is inflicted with it.
+     * @readonly
      * @type {string}
      */
     inflictedDescription;
     /**
      * The description of the status when a player is cured of it.
+     * @readonly
      * @type {string}
      */
     curedDescription;

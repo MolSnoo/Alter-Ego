@@ -13,6 +13,7 @@ import { ChannelType, TextChannel } from 'discord.js';
 export default class Whisper {
     /**
      * The game context this whisper is occuring in. 
+     * @readonly
      * @type {Game}
      */
     game;
