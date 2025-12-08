@@ -35,7 +35,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a player and a container with items. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player and a container with items. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -45,7 +45,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -62,7 +62,7 @@ export async function execute (game, message, command, args) {
         else if (player.inventory[handSlot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return messageHandler.addReply(message, `${player.name} does not have a free hand to take an item.`);
+    if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -76,7 +76,7 @@ export async function execute (game, message, command, args) {
             container = objects[i];
             // Check if the object has a puzzle attached to it.
             if (container.childPuzzle !== null && container.childPuzzle.type !== "weight" && container.childPuzzle.type !== "container" && (!container.childPuzzle.accessible || !container.childPuzzle.solved) && player.hidingSpot !== container.name)
-                return messageHandler.addReply(message, `Items cannot be taken from ${container.name} right now.`);
+                return messageHandler.addReply(game, message, `Items cannot be taken from ${container.name} right now.`);
             else if (container.childPuzzle !== null)
                 container = objects[i].childPuzzle;
             break;
@@ -100,13 +100,13 @@ export async function execute (game, message, command, args) {
                             break;
                         }
                     }
-                    if (slotName === "") return messageHandler.addReply(message, `Couldn't find "${parsedInput}" of ${container.name}.`);
+                    if (slotName === "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" of ${container.name}.`);
                 }
                 break;
             }
         }
     }
-    if (container === null) return messageHandler.addReply(message, `Couldn't find a container in the room named "${input}".`);
+    if (container === null) return messageHandler.addReply(game, message, `Couldn't find a container in the room named "${input}".`);
 
     let topContainer = container;
     while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
@@ -114,7 +114,7 @@ export async function execute (game, message, command, args) {
 
     if (topContainer !== null) {
         if (topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
-            return messageHandler.addReply(message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
+            return messageHandler.addReply(game, message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
     }
 
     // Get all items in this container.
@@ -128,7 +128,7 @@ export async function execute (game, message, command, args) {
     else if (container.hasOwnProperty("inventory") && slotName === "")
         containerItems = items.filter(item => item.containerName.startsWith(`Item: ${container.identifier}/`) && item.prefab.equippable);
     if (containerItems.length === 0)
-        return messageHandler.addReply(message, `${container.name} has no equippable items.`);
+        return messageHandler.addReply(game, message, `${container.name} has no equippable items.`);
 
     for (let i = 0; i < containerItems.length; i++) {
         // Player shouldn't be able to take items that they're not strong enough to carry.
@@ -156,10 +156,10 @@ export async function execute (game, message, command, args) {
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
     if (container.hasOwnProperty("hidingSpotCapacity"))
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
     else if (container.hasOwnProperty("solved")) {
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
             const weightItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
@@ -186,10 +186,10 @@ export async function execute (game, message, command, args) {
     }
     // Container is an Item.
     else if (container.hasOwnProperty("inventory") && slotName !== "")
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly dressed from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dressed from ${slotName} of ${container.identifier} in ${player.location.channel}`);
     else if (container.hasOwnProperty("inventory") && slotName === "")
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly dressed from ${container.identifier} in ${player.location.channel}`);
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully dressed ${player.name}.`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dressed from ${container.identifier} in ${player.location.channel}`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dressed ${player.name}.`);
 
     return;
 }

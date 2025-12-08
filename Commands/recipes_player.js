@@ -46,7 +46,7 @@ var objectRecipesDescription = "";
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable recipes");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
     var recipes = [];
     if (args.length > 0) {
@@ -62,7 +62,7 @@ export async function execute (game, message, command, args, player) {
                 break;
             }
         }
-        if (item === null) return messageHandler.addReply(message, `Couldn't find item "${input}" in your inventory.`);
+        if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${input}" in your inventory.`);
 
         for (let i = 0; i < game.recipes.length; i++) {
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {
@@ -89,7 +89,7 @@ export async function execute (game, message, command, args, player) {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return messageHandler.addReply(message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
+        if (recipes.length === 0) return messageHandler.addReply(game, message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command with your ${item.name} as an ingredient. The other ingredient may not be available in this room, or you may need to create it yourself.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command with your ${item.name} as an ingredient.`;
@@ -171,7 +171,7 @@ export async function execute (game, message, command, args, player) {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return messageHandler.addReply(message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
+        if (recipes.length === 0) return messageHandler.addReply(game, message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;

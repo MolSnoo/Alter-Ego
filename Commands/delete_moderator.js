@@ -1,6 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
+import { ChannelType, Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -36,28 +36,31 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an amount of messages to delete. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an amount of messages to delete. Usage:\n${usage(game.settings)}`);
 
     const user = message.mentions.users.first();
     const amount = parseInt(args[args.length - 1]);
-    if (isNaN(amount)) return messageHandler.addReply(message, `Invalid amount specified.`);
-    if (amount < 1) return messageHandler.addReply(message, `At least one message must be deleted.`);
-    if (amount > 100) return messageHandler.addReply(message, `Only 100 messages can be deleted at a time.`);
+    if (isNaN(amount)) return messageHandler.addReply(game, message, `Invalid amount specified.`);
+    if (amount < 1) return messageHandler.addReply(game, message, `At least one message must be deleted.`);
+    if (amount > 100) return messageHandler.addReply(game, message, `Only 100 messages can be deleted at a time.`);
 
-    message.channel.messages.fetch({
-        limit: amount
-    }).then((messages) => {
-        var size = messages.size;
-        if (user) {
-            const filterBy = user ? user.id : Client.user.id;
-            messages = messages.filter(message => message.author.id === filterBy);
-            messages = [...messages.values()].slice(0, amount);
-            size = messages.length;
-        }
-        message.channel.bulkDelete(messages, true).then(() => {
-            message.channel.send(`Deleted ${size} messages.`).then(message => { setTimeout(() => message.delete(), 3000); });
-        }).catch(error => console.log(error.stack));
-    });
+    const channel = message.channel;
+    if (channel.type === ChannelType.GuildText) {
+        channel.messages.fetch({
+            limit: amount
+        }).then((messages) => {
+            let size = messages.size;
+            if (user) {
+                const filterBy = user ? user.id : game.botContext.client.user.id;
+                messages = messages.filter(message => message.author.id === filterBy);
+                const actualMessages = [...messages.values()].slice(0, amount);
+                size = actualMessages.length;
+            }
+            channel.bulkDelete(messages, true).then(() => {
+                channel.send(`Deleted ${size} messages.`).then(message => { setTimeout(() => message.delete(), 3000); });
+            }).catch(error => console.log(error.stack));
+        });
+    }
 
     return;
 }

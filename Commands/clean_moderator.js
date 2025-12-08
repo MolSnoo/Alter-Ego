@@ -35,7 +35,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (!game.editMode)
-        return messageHandler.addReply(message, `You cannot clean the items and inventory items sheet while edit mode is disabled. Please turn edit mode on before using this command.`);
+        return messageHandler.addReply(game, message, `You cannot clean the items and inventory items sheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
     var deletedItemsCount = 0;
     var deletedInventoryItemsCount = 0;
@@ -56,11 +56,11 @@ export async function execute (game, message, command, args) {
     try {
         // Pass deletedItemsCount and deletedInventoryItemsCount so the saver knows how many blank rows to append at the end.
         await saveGame(deletedItemsCount, deletedInventoryItemsCount);
-        messageHandler.addGameMechanicMessage(message.channel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
     }
     catch (err) {
         console.log(err);
-        messageHandler.addGameMechanicMessage(message.channel, "Successfully cleaned items and inventory items, but there was an error saving data to the spreadsheet. Proceeding without manually saving and loading may cause additional errors. Error:\n```" + err + "```");
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items, but there was an error saving data to the spreadsheet. Proceeding without manually saving and loading may cause additional errors. Error:\n```" + err + "```");
     }
 
     return;

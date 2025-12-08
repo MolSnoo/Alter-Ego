@@ -35,7 +35,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
@@ -78,7 +78,7 @@ export async function execute (game, message, command, args) {
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
         for (let i = 1; i < players.length; i++) {
-            if (players[i].location !== currentRoom) return messageHandler.addReply(message, "All listed players must be in the same room to use an exit name.");
+            if (players[i].location !== currentRoom) return messageHandler.addReply(game, message, "All listed players must be in the same room to use an exit name.");
         }
         input = args.join(" ").toUpperCase();
         for (let i = 0; i < currentRoom.exit.length; i++) {
@@ -110,14 +110,14 @@ export async function execute (game, message, command, args) {
     if (args.length > 0) {
         if (desiredRoom === null && exit === null) {
             const roomName = args.join(" ");
-            return messageHandler.addReply(message, `Couldn't find room or exit "${roomName}".`);
+            return messageHandler.addReply(game, message, `Couldn't find room or exit "${roomName}".`);
         }
         else {
             const missingPlayers = args.join(", ");
-            return messageHandler.addReply(message, `Couldn't find player(s): ${missingPlayers}.`);
+            return messageHandler.addReply(game, message, `Couldn't find player(s): ${missingPlayers}.`);
         }
     }
-    if (players.length === 0) return messageHandler.addReply(message, "You need to specify at least one player.");
+    if (players.length === 0) return messageHandler.addReply(game, message, "You need to specify at least one player.");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -163,7 +163,7 @@ export async function execute (game, message, command, args) {
         }
     }
 
-    messageHandler.addGameMechanicMessage(message.channel, `The listed players have been moved to ${desiredRoom.channel}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `The listed players have been moved to ${desiredRoom.channel}.`);
 
     // Create a list of players moved for the log message.
     var playerList = players[0].name;
@@ -177,7 +177,7 @@ export async function execute (game, message, command, args) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
 
     return;
 }

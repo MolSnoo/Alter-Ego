@@ -41,7 +41,7 @@ export function usage (settings) {
  * @param {string[]} args 
  */
 export async function execute (game, message, command, args) {
-    if (game.inProgress) return messageHandler.addReply(message, `You can't use this command while a game is in progress.`);
+    if (game.inProgress) return messageHandler.addReply(game, message, `You can't use this command while a game is in progress.`);
 
     try {
         var roomValues = await setupdemo();
@@ -55,7 +55,7 @@ export async function execute (game, message, command, args) {
                 await registerRoomCategory(roomCategory);
             }
             catch (err) {
-                messageHandler.addGameMechanicMessage(message.channel, err);
+                messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
             }
         }
         else roomCategory = await game.guildContext.guild.channels.fetch(roomCategories[0].trim());
@@ -73,17 +73,17 @@ export async function execute (game, message, command, args) {
                 }
             }
 
-            messageHandler.addGameMechanicMessage(message.channel,
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel,
                 "The spreadsheet was populated with demo data. Once you've populated the Players sheet, either manually or with the "
                 + `${game.settings.commandPrefix}startgame command in conjuction with the ${game.settings.commandPrefix}play command, `
                 + `use ${game.settings.commandPrefix}load all start to begin the demo.`
             );
         }
-        else return messageHandler.addGameMechanicMessage(message.channel, "The spreadsheet was populated with demo data, but there was an error finding a room category to contain the new room channels.");
+        else return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "The spreadsheet was populated with demo data, but there was an error finding a room category to contain the new room channels.");
     }
     catch (err) {
         console.log(err);
-        messageHandler.addGameMechanicMessage(message.channel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
     }
 
     return;

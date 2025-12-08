@@ -72,7 +72,7 @@ export async function execute (game, message, command, args) {
 	let input = args.join(' ');
 
 	if (args.length === 0)
-		return messageHandler.addReply(message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
+		return messageHandler.addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
 
 	const dataTypeRegex = /^((?<Room>rooms?)|(?<Object>objects?)|(?<Prefab>prefabs?)|(?<Recipe>recipes?)|(?<Item>items?)|(?<Puzzle>puzzles?)|(?<Event>events?)|(?<Status>status(?:es)? ?(?:effects?)?)|(?<Player>players?)|(?<InventoryItem>inventory(?: ?items?)?)|(?<Gesture>gestures?)|(?<Flag>flags?))(?<search>.*)/i;
 	const dataTypeMatch = input.match(dataTypeRegex);
@@ -261,10 +261,10 @@ export async function execute (game, message, command, args) {
 			else results = finder.findFlags(dataTypeMatch.groups.search);
 			fields = { row: 'Row', id: 'ID' };
 		}
-		else return messageHandler.addReply(message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
+		else return messageHandler.addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
 		
 		if (results.length === 0)
-			return messageHandler.addGameMechanicMessage(message.channel, `Found 0 results.`);
+			return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
 		// Divide the results into pages.
 		const pages = createPages(fields, results);
 		let page = 0;
@@ -272,7 +272,7 @@ export async function execute (game, message, command, args) {
 		const resultCountString = `Found ${results.length} result` + (results.length === 1 ? '' : 's') + `.`;
 		let pageString = pages.length > 1 ? ` Showing page ${page + 1}/${pages.length}.\n` : '\n';
 		let resultsDisplay = '```' + table(pages[page]) + '```';
-		message.channel.send(resultCountString + pageString + resultsDisplay).then(msg => {
+		game.guildContext.commandChannel.send(resultCountString + pageString + resultsDisplay).then(msg => {
 			if (pages.length > 1) {
 				msg.react('⏪').then(() => {
 					msg.react('⏩');
@@ -306,7 +306,7 @@ export async function execute (game, message, command, args) {
 			}
 		});
 	}
-	else messageHandler.addReply(message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
+	else messageHandler.addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
 }
 
 function createPages(fields, results) {

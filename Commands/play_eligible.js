@@ -59,7 +59,9 @@ export async function execute (game, message, command, args) {
     game.players.push(player);
     game.players_alive.push(player);
     member.roles.add(game.guildContext.playerRole);
-    message.channel.send(`<@${message.author.id}> joined the game!`);
+
+    const channel = game.settings.debug ? game.guildContext.testingChannel : game.guildContext.generalChannel;
+    channel.send(`<@${message.author.id}> joined the game!`);
 
     return;
 }

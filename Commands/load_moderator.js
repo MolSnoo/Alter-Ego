@@ -114,7 +114,7 @@ export async function execute (game, message, command, args) {
                 errors = errors.slice(0, 15);
                 errors.push(new Error("Too many errors."));
             }
-            messageHandler.addGameMechanicMessage(game, message.channel, errors.join('\n'));
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
         }
         else {
             if (game.settings.debug) {
@@ -132,7 +132,7 @@ export async function execute (game, message, command, args) {
                 printData(game.flags);
             }
 
-            messageHandler.addGameMechanicMessage(game, message.channel,
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel,
                 game.rooms.length + " rooms, " +
                 game.objects.length + " objects, " +
                 game.prefabs.length + " prefabs, " +
@@ -156,7 +156,7 @@ export async function execute (game, message, command, args) {
             }
             if (privatePlayers.length > 0) {
                 const privatePlayerList = privatePlayers.join(", ");
-                messageHandler.addGameMechanicMessage(game, message.channel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
+                messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
             }
 
             if (command === "las" || args[1] && args[1] === "start") {
@@ -187,67 +187,67 @@ export async function execute (game, message, command, args) {
         try {
             await loader.loadRooms(game, true);
             if (game.settings.debug) printData(game.rooms);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.rooms.length + " rooms retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.rooms.length + " rooms retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "objects") {
         try {
             await loader.loadObjects(game, true);
             if (game.settings.debug) printData(game.objects);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.objects.length + " objects retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.objects.length + " objects retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "prefabs") {
         try {
             await loader.loadPrefabs(game, true);
             if (game.settings.debug) printData(game.prefabs);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.prefabs.length + " prefabs retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.prefabs.length + " prefabs retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "recipes") {
         try {
             await loader.loadRecipes(game, true);
             if (game.settings.debug) printData(game.recipes);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.recipes.length + " recipes retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.recipes.length + " recipes retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "items") {
         try {
             await loader.loadItems(game, true);
             if (game.settings.debug) printData(game.items);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.items.length + " items retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.items.length + " items retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "puzzles") {
         try {
             await loader.loadPuzzles(game, true);
             if (game.settings.debug) printData(game.puzzles);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.puzzles.length + " puzzles retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.puzzles.length + " puzzles retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "events") {
         try {
             await loader.loadEvents(game, true);
             if (game.settings.debug) printData(game.events);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.events.length + " events retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.events.length + " events retrieved.");
 
             // Start event timers.
             for (let i = 0; i < game.events.length; i++) {
@@ -258,27 +258,27 @@ export async function execute (game, message, command, args) {
             }
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "statuses" || args[0] === "effects" || args[0] === "status" && args[1] === "effects") {
         try {
             await loader.loadStatusEffects(game, true);
             if (game.settings.debug) printData(game.statusEffects);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.statusEffects.length + " status effects retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.statusEffects.length + " status effects retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "players") {
         try {
             await loader.loadPlayers(game, true);
             if (game.settings.debug) printData(game.players);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.players.length + " players retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.players.length + " players retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
 
         const privatePlayers = [];
@@ -290,37 +290,37 @@ export async function execute (game, message, command, args) {
         }
         if (privatePlayers.length > 0) {
             const privatePlayerList = privatePlayers.join(", ");
-            messageHandler.addGameMechanicMessage(game, message.channel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
         }
     }
     else if (args[0] === "inventories") {
         try {
             await loader.loadInventories(game, true);
             if (game.settings.debug) printData(game.inventoryItems);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.inventoryItems.length + " inventory items retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.inventoryItems.length + " inventory items retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "gestures") {
         try {
             await loader.loadGestures(game, true);
             if (game.settings.debug) printData(game.gestures);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.gestures.length + " gestures retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.gestures.length + " gestures retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "flags") {
         try {
             await loader.loadFlags(game, true, errors);
             if (game.settings.debug) printData(game.flags);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.flags.size + " flags retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.flags.size + " flags retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
 }

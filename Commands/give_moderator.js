@@ -33,7 +33,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 3)
-        return messageHandler.addReply(message, `You need to specify two players and an item. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify two players and an item. Usage:\n${usage(game.settings)}`);
 
     // First, find the giver.
     var giver = null;
@@ -44,7 +44,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (giver === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (giver === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     // Next, find the recipient.
     var recipient = null;
@@ -55,11 +55,11 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (recipient === null) return messageHandler.addReply(message, `Player "${args[args.length - 1]}" not found.`);
+    if (recipient === null) return messageHandler.addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);
 
-    if (giver.name === recipient.name) return messageHandler.addReply(message, `${giver.name} cannot give an item to ${giver.originalPronouns.ref}.`);
-    if (giver.location.name !== recipient.location.name) return messageHandler.addReply(message, `${giver.name} and ${recipient.name} are not in the same room.`);
+    if (giver.name === recipient.name) return messageHandler.addReply(game, message, `${giver.name} cannot give an item to ${giver.originalPronouns.ref}.`);
+    if (giver.location.name !== recipient.location.name) return messageHandler.addReply(game, message, `${giver.name} and ${recipient.name} are not in the same room.`);
 
     // Check to make sure that the recipient has a free hand.
     var recipientHand = "";
@@ -76,7 +76,7 @@ export async function execute (game, message, command, args) {
         else if (recipient.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (recipientHand === "") return messageHandler.addReply(message, `${recipient.name} does not have a free hand to receive an item.`);
+    if (recipientHand === "") return messageHandler.addReply(game, message, `${recipient.name} does not have a free hand to receive an item.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -120,14 +120,14 @@ export async function execute (game, message, command, args) {
         item = leftHand.equippedItem;
         giverHand = "LEFT HAND";
     }
-    if (item === null) return messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
+    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
 
     giver.give(game, item, giverHand, recipient, recipientHand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${giver.name} forcibly gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${giver.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${giver.name} forcibly gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${giver.location.channel}`);
 
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully gave ${giver.name}'s ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully gave ${giver.name}'s ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name}.`);
 
     return;
 }

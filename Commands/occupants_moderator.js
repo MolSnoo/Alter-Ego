@@ -36,7 +36,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
     var input = args.join(" ");
     var parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
@@ -47,7 +47,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (room === null) return messageHandler.addReply(message, `Couldn't find room "${input}".`);
+    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = sort_occupantsString(room.occupants);
@@ -88,7 +88,7 @@ export async function execute (game, message, command, args) {
     else occupantsMessage += `__All occupants in ${room.name}:__\n` + occupantsList.join(" ");
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");
     if (movingList.length > 0) occupantsMessage += `\n\n__Moving occupants:__\n` + movingList.join("\n");
-    messageHandler.addGameMechanicMessage(message.channel, occupantsMessage);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
 
     return;
 }

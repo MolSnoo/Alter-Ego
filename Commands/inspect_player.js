@@ -50,10 +50,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an object/item/player. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an object/item/player. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable inspect");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -68,7 +68,7 @@ export async function execute (game, message, command, args, player) {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected the room in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} inspected the room in ${player.location.channel}`);
 
         return;
     }
@@ -107,7 +107,7 @@ export async function execute (game, message, command, args, player) {
 
     if (object !== null) {
         // Make sure the player can only inspect the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
         player.sendDescription(game, object.description, object);
 
@@ -147,7 +147,7 @@ export async function execute (game, message, command, args, player) {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ${object.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ${object.name} in ${player.location.channel}`);
 
         return;
     }
@@ -213,7 +213,7 @@ export async function execute (game, message, command, args, player) {
                 topContainer = topContainer.parentObject;
 
             if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-                return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+                return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         }
 
         let preposition = "in";
@@ -240,7 +240,7 @@ export async function execute (game, message, command, args, player) {
 
         const time = new Date().toLocaleTimeString();
         const identifier = item.identifier !== "" ? item.identifier : item.prefab.id;
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ${identifier} ${preposition} ${containerIdentifier} in ${player.location.channel}`);
 
         return;
     }
@@ -255,7 +255,7 @@ export async function execute (game, message, command, args, player) {
             player.sendDescription(game, item.description, item);
 
             const time = new Date().toLocaleTimeString();
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
 
             return;
         }
@@ -266,22 +266,22 @@ export async function execute (game, message, command, args, player) {
         let occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
-            return messageHandler.addReply(message, `Couldn't find "${input}".`);
+            return messageHandler.addReply(game, message, `Couldn't find "${input}".`);
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
-            return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.name === player.name) return messageHandler.addReply(message, `You can't inspect yourself.`);
+            if (occupant.name === player.name) return messageHandler.addReply(game, message, `You can't inspect yourself.`);
             player.sendDescription(game, occupant.description, occupant);
 
             const time = new Date().toLocaleTimeString();
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ${occupant.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ${occupant.name} in ${player.location.channel}`);
 
             return;
         }
         else if (parsedInput.startsWith(possessive)) {
             // Don't let the player inspect their own items this way.
-            if (occupant.name === player.name) return messageHandler.addReply(message, `You can't inspect your own items this way. Use "my" instead of your name.`);
+            if (occupant.name === player.name) return messageHandler.addReply(game, message, `You can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
             const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
@@ -299,7 +299,7 @@ export async function execute (game, message, command, args, player) {
                         player.sendDescription(game, description, inventory[j]);
 
                         const time = new Date().toLocaleTimeString();
-                        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
+                        messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);
 
                         return;
                     }
@@ -308,5 +308,5 @@ export async function execute (game, message, command, args, player) {
         }
     }
 
-    return messageHandler.addReply(message, `Couldn't find "${input}".`);
+    return messageHandler.addReply(game, message, `Couldn't find "${input}".`);
 }

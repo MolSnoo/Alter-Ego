@@ -89,8 +89,8 @@ export async function execute (game, message, command, args, player) {
     }
     else {
         let command = roleCommands.find(command => command.config.aliases.includes(args[0]));
-        if (!command) return messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
-        messageHandler.addCommandHelp(message.author, command, game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL());
+        if (!command) return messageHandler.addReply(game, message, `Couldn't find command "${args[0]}".`);
+        messageHandler.addCommandHelp(game, message.author.dmChannel, command);
     }
 
     return;

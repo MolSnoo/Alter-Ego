@@ -34,7 +34,7 @@ export async function execute (game, message, command, args) {
         playerList += game.players_dead[0].name;
     for (let i = 1; i < game.players_dead.length; i++)
         playerList += `, ${game.players_dead[i].name}`;
-    messageHandler.addGameMechanicMessage(message.channel, playerList);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
 
     return;
 }

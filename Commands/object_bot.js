@@ -58,9 +58,9 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
+    if (command !== "activate" && command !== "deactivate") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -128,8 +128,8 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     if (object === null && player === null && room === null && objects.length > 0) object = objects[0];
-    else if (object === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
-    if (object.recipeTag === "") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${object.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (object === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
+    if (object.recipeTag === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${object.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
@@ -139,12 +139,12 @@ export async function execute (game, command, args, player, callee) {
     if (command === "activate") {
         object.activate(game, player, narrate);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
         object.deactivate(game, player, narrate);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
     }
 
     return;

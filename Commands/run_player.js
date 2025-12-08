@@ -39,12 +39,12 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable run");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
-    if (player.isMoving) return messageHandler.addReply(message, `You cannot do that because you are already moving.`);
+    if (player.isMoving) return messageHandler.addReply(game, message, `You cannot do that because you are already moving.`);
 
     player.moveQueue = args.join(" ").split(">");
     player.queueMovement(game.botContext, game, true, player.moveQueue[0].trim());

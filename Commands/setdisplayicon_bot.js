@@ -43,7 +43,7 @@ export function usage (settings) {
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0)
-        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (args[0].toLowerCase() !== "player") {
         for (let i = 0; i < game.players_alive.length; i++) {
@@ -52,10 +52,10 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
         }
-        if (player === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
+        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
     }
     else if (args[0].toLowerCase() === "player" && player === null)
-        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
+        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
 
     args.splice(0, 1);
 
@@ -65,7 +65,7 @@ export async function execute (game, command, args, player, callee) {
         if (player.talent === "NPC") input = player.id;
         else input = null;
     }
-    else if (!iconURLSyntax.test(input)) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
+    else if (!iconURLSyntax.test(input)) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
 
     player.displayIcon = input;
 

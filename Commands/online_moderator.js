@@ -35,7 +35,7 @@ export async function execute (game, message, command, args) {
 	}
 	players.sort();
 	const playerList = players.join(", ");
-    messageHandler.addGameMechanicMessage(message.channel, `Players online:\n${playerList}`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Players online:\n${playerList}`);
 
     return;
 }

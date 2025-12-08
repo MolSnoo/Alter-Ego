@@ -36,7 +36,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -46,7 +46,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -63,7 +63,7 @@ export async function execute (game, message, command, args) {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return messageHandler.addReply(message, `${player.name} does not have a free hand to take an item.`);
+    if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -148,15 +148,15 @@ export async function execute (game, message, command, args) {
         const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput)
-                return messageHandler.addReply(message, `The ${objects[i].name} is not an item.`);
+                return messageHandler.addReply(game, message, `The ${objects[i].name} is not an item.`);
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return messageHandler.addReply(message, `Couldn't find "${containerName}" containing "${itemName}".`);
+            return messageHandler.addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
-        else return messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in the room.`);
+        else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
     }
     // If no container was found, make the container the Room.
     if (item !== null && item.container === null)
@@ -167,14 +167,14 @@ export async function execute (game, message, command, args) {
         topContainer = topContainer.container;
 
     if (topContainer !== null && topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
-        return messageHandler.addReply(message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
+        return messageHandler.addReply(game, message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
 
     player.take(game, item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
     if (container !== null && (container.hasOwnProperty("hidingSpotCapacity") || container.hasOwnProperty("solved"))) {
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.hasOwnProperty("solved") && container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
@@ -201,12 +201,12 @@ export async function execute (game, message, command, args) {
     }
     // Container is an Item.
     else if (container !== null && container.hasOwnProperty("inventory"))
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
     // Container is a Room.
     else
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
 
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully took ${item.identifier ? item.identifier : item.prefab.id} for ${player.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully took ${item.identifier ? item.identifier : item.prefab.id} for ${player.name}.`);
 
     return;
 }

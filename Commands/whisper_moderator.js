@@ -41,7 +41,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to choose at least two players. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to choose at least two players. Usage:\n${usage(game.settings)}`);
 
     // Get all players mentioned.
     var recipients = new Array();
@@ -54,17 +54,17 @@ export async function execute (game, message, command, args) {
             if (player.name.toLowerCase() === args[i].toLowerCase()) {
                 for (let k = 0; k < recipients.length; k++) {
                     if (recipients[k].name === player.name)
-                        return messageHandler.addReply(message, `Can't include the same player multiple times.`);
+                        return messageHandler.addReply(game, message, `Can't include the same player multiple times.`);
                     if (recipients[k].location.name !== player.location.name)
-                        return messageHandler.addReply(message, `The selected players aren't all in the same room.`);
+                        return messageHandler.addReply(game, message, `The selected players aren't all in the same room.`);
                 }
                 // Check attributes that would prohibit the player from whispering to someone in the room.
                 let status = player.getAttributeStatusEffects("disable whisper");
-                if (status.length > 0) return messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
                 status = player.getAttributeStatusEffects("no hearing");
-                if (status.length > 0) return messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
                 status = player.getAttributeStatusEffects("unconscious");
-                if (status.length > 0) return messageHandler.addReply(message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;
                 if (player.talent === "NPC") npc = player;
@@ -77,10 +77,10 @@ export async function execute (game, message, command, args) {
                 args.splice(0, i);
                 break;
             }
-            else return messageHandler.addReply(message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
+            else return messageHandler.addReply(game, message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
         }
     }
-    if (recipients.length < 2) return messageHandler.addReply(message, `Can't start a whisper with fewer than 2 players.`);
+    if (recipients.length < 2) return messageHandler.addReply(game, message, `Can't start a whisper with fewer than 2 players.`);
 
     var string = args.join(' ');
 
@@ -102,7 +102,7 @@ export async function execute (game, message, command, args) {
                     await sendMessage(game, message, string, npc, game.whispers[i]);
                     return;
                 }
-                else return messageHandler.addReply(message, "Whisper group already exists.");
+                else return messageHandler.addReply(game, message, "Whisper group already exists.");
             }
         }
     }

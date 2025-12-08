@@ -48,11 +48,11 @@ export async function execute (game, message, command, args) {
                 if (!game.players_alive[i].hasAttribute('unconscious'))
                     messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
             }
-            messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been enabled.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been enabled.");
         }
         catch (err) {
             console.log(err);
-            return messageHandler.addGameMechanicMessage(message.channel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+            return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
         }
     }
     else if (args.length === 0 && game.editMode === true || args.length > 0 && args[0].toLowerCase() === "off") {
@@ -61,9 +61,9 @@ export async function execute (game, message, command, args) {
             if (!game.players_alive[i].hasAttribute('unconscious'))
                 messageHandler.addDirectNarration(game.players_alive[i], "Edit mode has been disabled. You are free to resume normal gameplay.", false);
         }
-        messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been disabled.");
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been disabled.");
     }
-    else messageHandler.addReply(message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
+    else messageHandler.addReply(game, message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
 
     return;
 }

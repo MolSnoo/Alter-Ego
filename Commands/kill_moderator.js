@@ -35,7 +35,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
@@ -50,13 +50,13 @@ export async function execute (game, message, command, args) {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return messageHandler.addReply(message, `Couldn't find player(s): ${missingPlayers}.`);
+        return messageHandler.addReply(game, message, `Couldn't find player(s): ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++)
         players[i].die(game);
 
-    messageHandler.addGameMechanicMessage(message.channel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
 
     return;
 }

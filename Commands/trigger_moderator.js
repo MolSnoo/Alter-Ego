@@ -30,7 +30,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -42,11 +42,11 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (event === null) return messageHandler.addReply(message, `Couldn't find event "${input}".`);
-    if (event.ongoing) return messageHandler.addReply(message, `${event.name} is already ongoing.`);
+    if (event === null) return messageHandler.addReply(game, message, `Couldn't find event "${input}".`);
+    if (event.ongoing) return messageHandler.addReply(game, message, `${event.name} is already ongoing.`);
 
     await event.trigger(game.botContext, game, true);
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully triggered ${event.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully triggered ${event.name}.`);
 
     return;
 }

@@ -61,7 +61,7 @@ export async function execute (game, command, args, player, callee) {
 	}
 
 	if (args.length === 0)
-		return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+		return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
 	// If we're going to set or clear another flag, make sure it won't set or clear other flags with its commands.
 	let doCommands = false;
@@ -93,7 +93,7 @@ export async function execute (game, command, args, player, callee) {
 				input = input.substring(0, input.toLowerCase().lastIndexOf(lastArg));
 		}
 		if (valueScript === undefined && value === undefined)
-			return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
+			return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
 
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
@@ -120,7 +120,7 @@ export async function execute (game, command, args, player, callee) {
 				flag.setValue(value, doCommands, game.botContext, game, player);
 			}
 			catch (err) {
-				return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
+				return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
 			}
 		}
 		else {
@@ -131,7 +131,7 @@ export async function execute (game, command, args, player, callee) {
 	else if (command === "clearflag") {
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
-		if (!flag) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
+		if (!flag) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
 
 		flag.clearValue(doCommands, game.botContext, game, player);
 	}

@@ -31,7 +31,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a player and an exit. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player and an exit. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -41,7 +41,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -53,7 +53,7 @@ export async function execute (game, message, command, args) {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";
@@ -87,11 +87,11 @@ export async function execute (game, message, command, args) {
         for (let i = 0; i < hearingPlayers.length; i++)
             hearingPlayers[i].notify(game, destNarration);
     }
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully knocked on ${exit.name} for ${player.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully knocked on ${exit.name} for ${player.name}.`);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly knocked on ${exit.name} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
 }

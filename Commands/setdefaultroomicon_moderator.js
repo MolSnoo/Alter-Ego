@@ -38,14 +38,14 @@ export async function execute (game, message, command, args) {
         if (message.attachments.size !== 0)
             input = message.attachments.first().url.replace(iconURLSyntax, '$1');
     }
-    if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
     settings.defaultRoomIconURL = input;
 
     const json = JSON.stringify(settings, null, "  ");
     await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully updated the default room icon.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the default room icon.`);
 
     return;
 }

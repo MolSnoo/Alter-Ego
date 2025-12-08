@@ -37,10 +37,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable unstash");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -57,7 +57,7 @@ export async function execute (game, message, command, args, player) {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (hand === "") return messageHandler.addReply(message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
     
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -108,16 +108,16 @@ export async function execute (game, message, command, args, player) {
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return messageHandler.addReply(message, `Couldn't find "${containerName}" in your inventory containing "${itemName}".`);
+            return messageHandler.addReply(game, message, `Couldn't find "${containerName}" in your inventory containing "${itemName}".`);
         }
-        else return messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in your inventory.`);
+        else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in your inventory.`);
     }
-    if (item !== null && container === null) return messageHandler.addReply(message, `${item.name} is not contained in another item and cannot be unstashed.`);
+    if (item !== null && container === null) return messageHandler.addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
 
     player.unstash(game, item, hand, container, slotName);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
     return;
 }

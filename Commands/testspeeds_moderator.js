@@ -38,7 +38,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
 
     const file = "./speeds.txt";
     fs.writeFile(file, "", function (err) {
@@ -49,9 +49,9 @@ export async function execute (game, message, command, args) {
         await testplayers(game, file);
     else if (args[0] === "stats")
         await testspeeds(game, file);
-    else return messageHandler.addReply(message, 'Function not found. You need to use "players" or "stats".');
+    else return messageHandler.addReply(game, message, 'Function not found. You need to use "players" or "stats".');
 
-    message.channel.send({
+    game.guildContext.commandChannel.send({
         content: "Speeds calculated.",
         files: [
             {

@@ -38,7 +38,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
@@ -51,7 +51,7 @@ export async function execute (game, message, command, args) {
             break;
         }
         if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
-            return messageHandler.addReply(message, `You cannot speak for a player that isn't an NPC.`);
+            return messageHandler.addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     }
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
@@ -96,7 +96,7 @@ export async function execute (game, message, command, args) {
     }
     else if (channel !== undefined)
         channel.send(string);
-    else messageHandler.addReply(message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
+    else messageHandler.addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 
     return;
 }

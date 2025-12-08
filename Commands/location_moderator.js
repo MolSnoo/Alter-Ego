@@ -29,7 +29,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -38,9 +38,9 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
-    messageHandler.addGameMechanicMessage(message.channel, `${player.name} is currently in ${player.location.channel}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `${player.name} is currently in ${player.location.channel}.`);
 
     return;
 }

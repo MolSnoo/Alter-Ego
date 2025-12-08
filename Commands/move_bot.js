@@ -43,7 +43,7 @@ export function usage (settings) {
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -81,7 +81,7 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
         }
-        if (player === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }
@@ -97,7 +97,7 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (desiredRoom === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (desiredRoom === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -154,7 +154,7 @@ export async function execute (game, command, args, player, callee) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
 
     return;
 }

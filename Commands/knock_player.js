@@ -32,10 +32,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable knock");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -47,7 +47,7 @@ export async function execute (game, message, command, args, player) {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";
@@ -84,7 +84,7 @@ export async function execute (game, message, command, args, player) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
 }

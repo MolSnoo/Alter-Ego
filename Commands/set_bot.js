@@ -47,7 +47,7 @@ export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
 
     if (args.length < 2) {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -55,7 +55,7 @@ export async function execute (game, command, args, player, callee) {
     if (args[0] === "accessible") command = "accessible";
     else if (args[0] === "inaccessible") command = "inaccessible";
     else {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The first argument must be "accessible" or "inaccessible".`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The first argument must be "accessible" or "inaccessible".`);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -66,7 +66,7 @@ export async function execute (game, command, args, player, callee) {
     if (args[0] === "object") isObject = true;
     else if (args[0] === "puzzle") isPuzzle = true;
     else {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The second argument must be "object" or "puzzle".`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The second argument must be "object" or "puzzle".`);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -101,7 +101,7 @@ export async function execute (game, command, args, player, callee) {
             }
         }
         if (object === null && room === null && objects.length > 0) object = objects[0];
-        else if (object === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
+        else if (object === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
     }
     else if (isPuzzle) {
         const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
@@ -114,7 +114,7 @@ export async function execute (game, command, args, player, callee) {
             }
         }
         if (puzzle === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-        else if (puzzle === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
+        else if (puzzle === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
     }
 
     if (command === "accessible") {

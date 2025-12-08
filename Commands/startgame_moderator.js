@@ -124,8 +124,8 @@ export async function execute (game, message, command, args) {
     let announcement = `${message.member.displayName} has started a game. You have ${timeInt} ${interval} to join the game with ${game.settings.commandPrefix}play.`;
     channel.send(announcement);
 
-    if (game.settings.debug) message.channel.send("Started game in debug mode.");
-    else message.channel.send("Started game.");
+    if (game.settings.debug) game.guildContext.commandChannel.send("Started game in debug mode.");
+    else game.guildContext.commandChannel.send("Started game.");
 
     return;
 }

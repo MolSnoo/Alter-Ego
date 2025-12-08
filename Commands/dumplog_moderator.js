@@ -70,7 +70,7 @@ export async function execute (game, message, command, args) {
         });
     } catch (error) {
         console.error("Compression error:", error);
-        return messageHandler.addReply(message, "An error occurred while compressing the data.");
+        return messageHandler.addReply(game, message, "An error occurred while compressing the data.");
     }
 
     if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
@@ -79,22 +79,22 @@ export async function execute (game, message, command, args) {
         fs.writeFile(fileGame, bufferGame, function (err) {
             if (err) {
                 console.log(err);
-                return messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_game.txt.gz`, see console for details!");
+                return messageHandler.addReply(game, message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_game.txt.gz`, see console for details!");
             }
         });
         fs.writeFile(fileLog, bufferLog, function (err) {
             if (err) {
                 console.log(err);
-                return messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_commands.log.gz`, see console for details!");
+                return messageHandler.addReply(game, message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_commands.log.gz`, see console for details!");
             }
         });
 
-        return messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
+        return messageHandler.addReply(game, message, "The compressed data exceeds Discord's file size limit. Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
     } else {
         const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
         const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
 
-        message.channel.send({ content: "Successfully generated log files.", files: [fileGame, fileLog] });
+        game.guildContext.commandChannel.send({ content: "Successfully generated log files.", files: [fileGame, fileLog] });
     }
 };
 

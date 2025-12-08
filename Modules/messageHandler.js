@@ -1,5 +1,4 @@
-import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, Message, ChannelType, Attachment, TextChannel } from 'discord.js';
-import PriorityQueue from '../Classes/PriorityQueue.js';
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, Message, ChannelType, Attachment, TextChannel, DMChannel, Collection } from 'discord.js';
 import Player from '../Data/Player.js';
 import Whisper from '../Data/Whisper.js';
 import Game from '../Data/Game.js';
@@ -104,7 +103,7 @@ export async function addDirectNarration (player, messageText, addSpectate = tru
  * Narrates a message directly to a player with attached files.
  * @param {Player} player - The player to send the message to.
  * @param {string} messageText - The message to send.
- * @param {Attachment[]} attachments - The attachments to send.
+ * @param {Collection<string, Attachment>} attachments - The attachments to send.
  * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
  */
 export async function addDirectNarrationWithAttachments (player, messageText, attachments, addSpectate = true) {
@@ -228,7 +227,7 @@ export async function addRoomDescription (player, location, descriptionText, def
 /**
  * Sends the help menu for a command as an array of Discord Components.
  * @param {Game} game - The game context in which this help menu is being sent.
- * @param {TextChannel} channel - The channel to send the help menu to.
+ * @param {TextChannel|DMChannel} channel - The channel to send the help menu to.
  * @param {Command} command - The command to display the help menu for.
  */
 export async function addCommandHelp (game, channel, command) {
@@ -282,7 +281,7 @@ export async function addCommandHelp (game, channel, command) {
                     flags: MessageFlags.IsComponentsV2
                 })
         },
-        channel.parent !== undefined && channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
+        channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
 }
 

@@ -50,10 +50,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable use");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -109,7 +109,7 @@ export async function execute (game, message, command, args, player) {
         }
         if (puzzle !== null) {
             // Make sure the player can only solve the puzzle if it's a child puzzle of the object they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
@@ -139,19 +139,19 @@ export async function execute (game, message, command, args, player) {
     // If there is an object, do the required behavior.
     if (object !== null && object.recipeTag !== "" && object.activatable) {
         // Make sure the player can only activate the object if it's the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
 
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (object.activated) {
             object.deactivate(game, player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
         }
         else {
             object.activate(game, player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
         }
     }
 
@@ -165,7 +165,7 @@ export async function execute (game, message, command, args, player) {
         };
         const response = player.attemptPuzzle(game.botContext, game, puzzle, item, password, command, misc);
         if (response === "" || !response) return;
-        else return messageHandler.addReply(message, response);
+        else return messageHandler.addReply(game, message, response);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
@@ -174,10 +174,10 @@ export async function execute (game, message, command, args, player) {
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
-        else return messageHandler.addReply(message, response);
+        else return messageHandler.addReply(game, message, response);
     }
-    else if (object === null) return messageHandler.addReply(message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (object === null) return messageHandler.addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
 }

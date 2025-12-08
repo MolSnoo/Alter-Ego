@@ -54,7 +54,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify what function to test. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify what function to test. Usage:\n${usage(game.settings)}`);
 
     const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
@@ -74,7 +74,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
         }
-        if (!found) return messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
+        if (!found) return messageHandler.addReply(game, message, `Couldn't find player "${args[1]}".`);
     }
 
     if (args[0] === "parse") {
@@ -93,7 +93,7 @@ export async function execute (game, message, command, args) {
                 warnings = warnings.slice(0, warnings.length - 1);  
             if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
         }
         let errors = [];
         for (let i = 0; i < result.errors.length; i++) {
@@ -109,7 +109,7 @@ export async function execute (game, message, command, args) {
                 errors = errors.slice(0, errors.length - 1);
             if (tooManyErrors)
                 errors.push("Too many errors.");
-            messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
         }
     }
     else if (args[0] === "add") {
@@ -130,12 +130,12 @@ export async function execute (game, message, command, args) {
                 warnings = warnings.slice(0, warnings.length - 1);  
             if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            messageHandler.addGameMechanicMessage(message.channel, warnings.join('\n'));
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
         }
     }
-    else return messageHandler.addReply(message, 'Function not found. You need to use "parse", "add", or "remove".');
+    else return messageHandler.addReply(game, message, 'Function not found. You need to use "parse", "add", or "remove".');
 
-    message.channel.send({
+    game.guildContext.commandChannel.send({
         content: "Text parsed.",
         files: [
             {

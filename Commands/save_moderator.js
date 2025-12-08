@@ -33,11 +33,11 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     try {
         await saveGame();
-        messageHandler.addGameMechanicMessage(message.channel, "Successfully saved game data to the spreadsheet.");
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully saved game data to the spreadsheet.");
     }
     catch (err) {
         console.log(err);
-        messageHandler.addGameMechanicMessage(message.channel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
     }
 
     return;

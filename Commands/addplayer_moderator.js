@@ -38,13 +38,13 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (game.inProgress && !game.editMode)
-        return messageHandler.addReply(message, `You cannot add a player to the spreadsheet while edit mode is disabled. Please turn edit mode on before using this command.`);
+        return messageHandler.addReply(game, message, `You cannot add a player to the spreadsheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
-    if (args.length !== 1) return messageHandler.addReply(message, `You need to mention a user to add. Usage:\n${usage(game.settings)}`);
+    if (args.length !== 1) return messageHandler.addReply(game, message, `You need to mention a user to add. Usage:\n${usage(game.settings)}`);
 
     const mentionedMember = message.mentions.members.first();
     const member = await game.guildContext.guild.members.fetch(mentionedMember.id);
-    if (!member) return messageHandler.addReply(message, `Couldn't find "${args[0]}" in the server. If the user you want isn't appearing in Discord's suggestions, type @ and enter their full username.`);
+    if (!member) return messageHandler.addReply(game, message, `Couldn't find "${args[0]}" in the server. If the user you want isn't appearing in Discord's suggestions, type @ and enter their full username.`);
 
     for (let i = 0; i < game.players.length; i++) {
         if (member.id === game.players[i].id)
@@ -109,12 +109,12 @@ export async function execute (game, message, command, args) {
 
         const successMessage = `<@${member.id}> has been added to the game. `
             + "After making any desired changes to the players and inventory items sheets, be sure to load players before disabling edit mode.";
-        messageHandler.addGameMechanicMessage(message.channel, successMessage);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, successMessage);
     }
     catch (err) {
         const errorMessage = `<@${member.id}> has been added to the game, but there was an error saving the data to the spreadsheet. `
             + "It is recommended that you add their data to the spreadsheet manually, then load it before proceeding. Error:\n```" + err + "```";
-        messageHandler.addGameMechanicMessage(message.channel, errorMessage);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, errorMessage);
     }
 
     return;

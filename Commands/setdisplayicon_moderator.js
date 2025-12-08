@@ -35,7 +35,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -45,7 +45,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
     var input = args.join(" ");
@@ -53,10 +53,10 @@ export async function execute (game, message, command, args) {
         if (player.talent === "NPC") input = player.id;
         else input = null;
     }
-    else if (!iconURLSyntax.test(input)) return messageHandler.addReply(message, `The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
+    else if (!iconURLSyntax.test(input)) return messageHandler.addReply(game, message, `The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
 
     player.displayIcon = input;
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully updated ${player.name}'s display icon.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display icon.`);
 
     return;
 }

@@ -35,10 +35,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable equip");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -63,8 +63,8 @@ export async function execute (game, message, command, args, player) {
         else if (player.inventory[slot].name === "LEFT HAND")
             break;
     }
-    if (item === null) return messageHandler.addReply(message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
-    if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return messageHandler.addReply(message, `${itemName} is not equippable.`);
+    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
+    if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return messageHandler.addReply(game, message, `${itemName} is not equippable.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
@@ -80,16 +80,16 @@ export async function execute (game, message, command, args, player) {
                     break;
                 }
             }
-            if (!acceptableSlot) return messageHandler.addReply(message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
-            if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
+            if (!acceptableSlot) return messageHandler.addReply(game, message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
+            if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
         }
     }
-    if (!foundSlot) return messageHandler.addReply(message, `Couldn't find equipment slot "${slotName}".`);
+    if (!foundSlot) return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
 
     player.equip(game, item, slotName, hand, game.botContext);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
 
     return;
 }

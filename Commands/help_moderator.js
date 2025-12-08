@@ -59,7 +59,7 @@ export async function execute (game, message, command, args) {
         }
 
         let embed = createEmbed(game, page, pages);
-        message.channel.send({ embeds: [embed] }).then(msg => {
+        game.guildContext.commandChannel.send({ embeds: [embed] }).then(msg => {
             msg.react('⏪').then(() => {
                 msg.react('⏩');
 
@@ -91,8 +91,8 @@ export async function execute (game, message, command, args) {
     }
     else {
         let command = roleCommands.find(command => command.config.aliases.includes(args[0]));
-        if (!command) return messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
-        messageHandler.addCommandHelp(message.channel, command, game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL());
+        if (!command) return messageHandler.addReply(game, message, `Couldn't find command "${args[0]}".`);
+        messageHandler.addCommandHelp(game, game.guildContext.commandChannel, command);
     }
 
     return;
