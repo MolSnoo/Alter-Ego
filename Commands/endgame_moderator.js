@@ -32,7 +32,7 @@ export async function execute (game, message, command, args) {
     // Remove all living players from whatever room channel they're in.
     for (let i = 0; i < game.players_alive.length; i++) {
         const player = game.players_alive[i];
-        if (player.talent !== "NPC") {
+        if (player.title !== "NPC") {
             if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
             player.removeFromWhispers("");
             player.member.roles.remove(game.guildContext.playerRole).catch();
@@ -46,7 +46,7 @@ export async function execute (game, message, command, args) {
 
     for (let i = 0; i < game.players_dead.length; i++) {
         const player = game.players_dead[i];
-        if (player.talent !== "NPC") player.member.roles.remove(game.guildContext.deadRole).catch();
+        if (player.title !== "NPC") player.member.roles.remove(game.guildContext.deadRole).catch();
     }
 
     clearTimeout(game.halfTimer);

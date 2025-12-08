@@ -41,7 +41,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You need to choose at least one player. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable whisper");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // Get all players mentioned.
     var recipients = new Array();
@@ -57,7 +57,7 @@ export async function execute (game, message, command, args, player) {
         for (let j = 0; j < game.players_alive.length; j++) {
             let other = game.players_alive[j];
             // Check if player exists and is in the same room.
-            if (other.displayName.toLowerCase() === args[i].toLowerCase() && other.location.name === player.location.name) {
+            if (other.displayName.toLowerCase() === args[i].toLowerCase() && other.location.id === player.location.id) {
                 // Check attributes that would prohibit the player from whispering to someone in the room.
                 if (other.hasAttribute("hidden"))
                     return messageHandler.addReply(game, message, `You can't whisper to ${other.displayName} because ${other.pronouns.sbj} ` + (other.pronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);

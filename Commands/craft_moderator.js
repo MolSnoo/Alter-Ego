@@ -55,8 +55,8 @@ export async function execute (game, message, command, args) {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND") rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND") leftHand = player.inventory[slot];
+        if (player.inventory[slot].id === "RIGHT HAND") rightHand = player.inventory[slot];
+        else if (player.inventory[slot].id === "LEFT HAND") leftHand = player.inventory[slot];
     }
 
     // Now find the item in the player's inventory.

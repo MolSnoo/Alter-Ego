@@ -59,21 +59,21 @@ export async function execute (game, message, command, args) {
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);
 
     if (giver.name === recipient.name) return messageHandler.addReply(game, message, `${giver.name} cannot give an item to ${giver.originalPronouns.ref}.`);
-    if (giver.location.name !== recipient.location.name) return messageHandler.addReply(game, message, `${giver.name} and ${recipient.name} are not in the same room.`);
+    if (giver.location.id !== recipient.location.id) return messageHandler.addReply(game, message, `${giver.name} and ${recipient.name} are not in the same room.`);
 
     // Check to make sure that the recipient has a free hand.
     var recipientHand = "";
     for (let slot = 0; slot < recipient.inventory.length; slot++) {
-        if (recipient.inventory[slot].name === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
+        if (recipient.inventory[slot].id === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
             recipientHand = "RIGHT HAND";
             break;
         }
-        else if (recipient.inventory[slot].name === "LEFT HAND" && recipient.inventory[slot].equippedItem === null) {
+        else if (recipient.inventory[slot].id === "LEFT HAND" && recipient.inventory[slot].equippedItem === null) {
             recipientHand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (recipient.inventory[slot].name === "LEFT HAND")
+        else if (recipient.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (recipientHand === "") return messageHandler.addReply(game, message, `${recipient.name} does not have a free hand to receive an item.`);
@@ -88,9 +88,9 @@ export async function execute (game, message, command, args) {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < giver.inventory.length; slot++) {
-        if (giver.inventory[slot].name === "RIGHT HAND")
+        if (giver.inventory[slot].id === "RIGHT HAND")
             rightHand = giver.inventory[slot];
-        else if (giver.inventory[slot].name === "LEFT HAND")
+        else if (giver.inventory[slot].id === "LEFT HAND")
             leftHand = giver.inventory[slot];
     }
     // Check for the identifier first.

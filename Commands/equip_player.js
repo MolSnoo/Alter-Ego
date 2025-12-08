@@ -38,7 +38,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable equip");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -49,18 +49,18 @@ export async function execute (game, message, command, args, player) {
     var item = null;
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
+        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
             item = player.inventory[slot].equippedItem;
             hand = "RIGHT HAND";
             break;
         }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
+        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
             item = player.inventory[slot].equippedItem;
             hand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
@@ -71,11 +71,11 @@ export async function execute (game, message, command, args, player) {
 
     let foundSlot = false;
     for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName && player.inventory[i].name === slotName) {
+        if (slotName && player.inventory[i].id === slotName) {
             foundSlot = true;
             var acceptableSlot = false;
             for (let j = 0; j < item.prefab.equipmentSlots.length; j++) {
-                if (item.prefab.equipmentSlots[j] === player.inventory[i].name) {
+                if (item.prefab.equipmentSlots[j] === player.inventory[i].id) {
                     acceptableSlot = true;
                     break;
                 }

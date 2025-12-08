@@ -82,7 +82,7 @@ export async function execute (game, message, command, args) {
     }
     if (announcement !== "" && target === null) return messageHandler.addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
     if (target !== null && player.name === target.name) return messageHandler.addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
-    if (target !== null && player.location.name !== target.location.name) return messageHandler.addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
+    if (target !== null && player.location.id !== target.location.id) return messageHandler.addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
 
     // args should now only contain the name of the item.
     input = args.join(" ");
@@ -94,9 +94,9 @@ export async function execute (game, message, command, args) {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND")
+        if (player.inventory[slot].id === "RIGHT HAND")
             rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             leftHand = player.inventory[slot];
     }
     // Check for the identifier first.

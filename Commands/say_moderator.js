@@ -46,11 +46,11 @@ export async function execute (game, message, command, args) {
     var player = null;
     var room = null;
     for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title === "NPC") {
             player = game.players_alive[i];
             break;
         }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title !== "NPC")
             return messageHandler.addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     }
     if (player !== null) {
@@ -86,7 +86,7 @@ export async function execute (game, message, command, args) {
     }
     else if (channel !== undefined && game.guildContext.roomCategories.includes(channel.parentId)) {
         for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].name === channel.name) {
+            if (game.rooms[i].id === channel.name) {
                 room = game.rooms[i];
                 break;
             }

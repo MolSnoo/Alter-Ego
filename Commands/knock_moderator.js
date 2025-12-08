@@ -65,7 +65,7 @@ export async function execute (game, message, command, args) {
     new Narration(game, player, player.location, roomNarration).send();
 
     var room = exit.dest;
-    if (room.name === player.location.name) return;
+    if (room.id === player.location.id) return;
 
     var hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.

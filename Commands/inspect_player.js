@@ -53,7 +53,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You need to specify an object/item/player. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable inspect");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -74,8 +74,8 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Check if the input is an object, or an item on an object.
-    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
-    const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
+    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     var object = null;
     var item = null;
     var container = null;
@@ -107,7 +107,7 @@ export async function execute (game, message, command, args, player) {
 
     if (object !== null) {
         // Make sure the player can only inspect the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
         player.sendDescription(object.description, object);
 
@@ -117,7 +117,7 @@ export async function execute (game, message, command, args, player) {
             if (object.childPuzzle === null || !object.childPuzzle.type.endsWith("lock") || object.childPuzzle.solved) {
                 let hiddenPlayers = [];
                 for (let i = 0; i < game.players_alive.length; i++) {
-                    if (game.players_alive[i].location.name === player.location.name && game.players_alive[i].hidingSpot === object.name) {
+                    if (game.players_alive[i].location.id === player.location.id && game.players_alive[i].hidingSpot === object.name) {
                         hiddenPlayers.push(game.players_alive[i]);
                         game.players_alive[i].notify(`You've been found by ${player.displayName}!`);
                     }
@@ -182,7 +182,7 @@ export async function execute (game, message, command, args, player) {
                     if (parsedInput.endsWith(` OF ${items[i].container.name}`)) {
                         let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${items[i].container.name}`)).trim();
                         for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
-                            if (items[i].container.inventory[slot].name === tempSlotName && items[i].slot === tempSlotName) {
+                            if (items[i].container.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
                                 item = items[i];
                                 container = item.container;
                                 slotName = item.slot;
@@ -213,7 +213,7 @@ export async function execute (game, message, command, args, player) {
                 topContainer = topContainer.parentObject;
 
             if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-                return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+                return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         }
 
         let preposition = "in";
@@ -268,7 +268,7 @@ export async function execute (game, message, command, args, player) {
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
             return messageHandler.addReply(game, message, `Couldn't find "${input}".`);
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
-            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
             if (occupant.name === player.name) return messageHandler.addReply(game, message, `You can't inspect yourself.`);

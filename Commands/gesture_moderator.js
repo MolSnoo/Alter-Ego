@@ -105,15 +105,15 @@ export async function execute (game, message, command, args) {
         var targetType = "";
         var target = null;
         for (let i = 0; i < game.gestures.length; i++) {
-            if (game.gestures[i].name.toLowerCase().replace(/\'/g, "") === input) {
+            if (game.gestures[i].id.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
                     return messageHandler.addReply(game, message, `You need to specify a target for that gesture.`);
                 gesture = game.gestures[i];
                 break;
             }
-            else if (input.startsWith(game.gestures[i].name.toLowerCase().replace(/\'/g, "") + ' ')) {
+            else if (input.startsWith(game.gestures[i].id.toLowerCase().replace(/\'/g, "") + ' ')) {
                 gesture = game.gestures[i];
-                let input2 = input.substring(game.gestures[i].name.toLowerCase().replace(/\'/g, "").length).trim();
+                let input2 = input.substring(game.gestures[i].id.toLowerCase().replace(/\'/g, "").length).trim();
 
                 if (input2 !== "") {
                     for (let j = 0; j < gesture.requires.length; j++) {
@@ -127,7 +127,7 @@ export async function execute (game, message, command, args) {
                             }
                         }
                         else if (gesture.requires[j] === "Object") {
-                            const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+                            const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
                             for (let k = 0; k < objects.length; k++) {
                                 if (objects[k].name.toLowerCase() === input2) {
                                     targetType = "Object";
@@ -137,7 +137,7 @@ export async function execute (game, message, command, args) {
                             }
                         }
                         else if (gesture.requires[j] === "Item") {
-                            const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+                            const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
                             for (let k = 0; k < items.length; k++) {
                                 if (items[k].prefab.id.toLowerCase() === input2 || items[k].name.toLowerCase() === input2) {
                                     targetType = "Item";
@@ -161,7 +161,7 @@ export async function execute (game, message, command, args) {
                         }
                         else if (gesture.requires[j] === "Inventory Item") {
                             for (let slot = 0; slot < player.inventory.length; slot++) {
-                                if ((player.inventory[slot].name === "RIGHT HAND" || player.inventory[slot].name === "LEFT HAND")
+                                if ((player.inventory[slot].id === "RIGHT HAND" || player.inventory[slot].id === "LEFT HAND")
                                     && player.inventory[slot].equippedItem !== null
 									&& (player.inventory[slot].equippedItem.prefab.id.toLowerCase() === input2 || player.inventory[slot].equippedItem.name.toLowerCase() === input2)) {
                                     targetType = "Inventory Item";
@@ -178,25 +178,25 @@ export async function execute (game, message, command, args) {
             }
         }
         if (gesture === null) return messageHandler.addReply(game, message, `Couldn't find gesture "${input}". For a list of gestures, send \`${settings.commandPrefix}gesture list\`.`);
-        input = input.substring(gesture.name.toLowerCase().replace(/\'/g, "").length).trim();
+        input = input.substring(gesture.id.toLowerCase().replace(/\'/g, "").length).trim();
         if (input !== "" && gesture.requires.length === 0)
             return messageHandler.addReply(game, message, `That gesture doesn't take a target.`);
         if (target === null && gesture.requires.length > 0)
             return messageHandler.addReply(game, message, `Couldn't find target "${input}" in the room with ${player.name}.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
-            if (player.statusString.includes(gesture.disabledStatuses[i].name))
-                return messageHandler.addReply(game, message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? "are" : "is") + ` **${gesture.disabledStatuses[i].name}**.`);
+            if (player.statusString.includes(gesture.disabledStatuses[i].id))
+                return messageHandler.addReply(game, message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? "are" : "is") + ` **${gesture.disabledStatuses[i].id}**.`);
         }
 
         player.gesture(gesture, targetType, target);
         // Post log message. Message should vary based on target type.
         const time = new Date().toLocaleTimeString();
         if (targetType === "")
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} in ${player.location.channel}`);
         else if (targetType === "Exit" || targetType === "Object" || targetType === "Player")
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} to ${target.name} in ${player.location.channel}`);
         else if (targetType === "Item" || targetType === "Inventory Item")
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.name} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
     }
 
     return;

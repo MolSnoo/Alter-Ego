@@ -34,7 +34,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable stop");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (!player.isMoving) return messageHandler.addReply(game, message, `You cannot do that because you are not moving.`);
 

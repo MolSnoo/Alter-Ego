@@ -85,7 +85,7 @@ export async function execute (game, command, args, player, callee) {
         let containerItem = null;
         let containerItemSlot = null;
         // Check if a container item was specified.
-        const roomItems = game.items.filter(item => item.location.name === room.name && (item.quantity > 0 || isNaN(item.quantity)));
+        const roomItems = game.items.filter(item => item.location.id === room.id && (item.quantity > 0 || isNaN(item.quantity)));
         for (let i = 0; i < roomItems.length; i++) {
             // If parsedInput is only the identifier or the item's name, we've found the item to delete.
             if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab.id === parsedInput) {
@@ -106,9 +106,9 @@ export async function execute (game, command, args, player, callee) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                     newArgs = parsedInput.split(' ');
                     for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                        if (parsedInput.endsWith(containerItem.inventory[slot].name)) {
+                        if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
                             containerItemSlot = containerItem.inventory[slot];
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.name)).trimEnd();
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
                             break;
                         }
                     }
@@ -126,7 +126,7 @@ export async function execute (game, command, args, player, callee) {
         // Check if an object was specified.
         let object = null;
         if (containerItem === null && item === null) {
-            const objects = game.objects.filter(object => object.location.name === room.name && object.accessible);
+            const objects = game.objects.filter(object => object.location.id === room.id && object.accessible);
             for (let i = 0; i < objects.length; i++) {
                 if (objects[i].name === parsedInput) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply an item and a preposition.`);
                 if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(`IN ${objects[i].name}`)) {
@@ -151,7 +151,7 @@ export async function execute (game, command, args, player, callee) {
             container = object.childPuzzle;
         else if (containerItem !== null) {
             container = containerItem;
-            slotName = containerItemSlot.name;
+            slotName = containerItemSlot.id;
         }
         else if (item !== null)
             container = item.container;
@@ -264,9 +264,9 @@ export async function execute (game, command, args, player, callee) {
                         parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(" OF")).trimEnd();
                         newArgs = parsedInput2.split(' ');
                         for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                            if (parsedInput2.endsWith(containerItem.inventory[slot].name)) {
+                            if (parsedInput2.endsWith(containerItem.inventory[slot].id)) {
                                 containerItemSlot = containerItem.inventory[slot];
-                                parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(containerItemSlot.name)).trimEnd();
+                                parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(containerItemSlot.id)).trimEnd();
                                 break;
                             }
                         }
@@ -280,7 +280,7 @@ export async function execute (game, command, args, player, callee) {
                 }
             }
             if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-            let slotName = containerItem !== null ? containerItemSlot.name : "";
+            let slotName = containerItem !== null ? containerItemSlot.id : "";
 
             let newArgs = parsedInput2.split(" ");
             if (newArgs[0] === "ALL") {
@@ -320,9 +320,9 @@ export async function execute (game, command, args, player, callee) {
                 // Check if an equipment slot was specified.
                 let equipmentSlotName = "";
                 for (let i = 0; i < player.inventory.length; i++) {
-                    if (player.inventory[i].name === parsedInput2) {
+                    if (player.inventory[i].id === parsedInput2) {
                         item = player.inventory[i].equippedItem;
-                        equipmentSlotName = player.inventory[i].name;
+                        equipmentSlotName = player.inventory[i].id;
                         if (item === null) gotoNext = true;
                         if (destroyAll) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipment slot.`);
                         break;
@@ -330,7 +330,7 @@ export async function execute (game, command, args, player, callee) {
                     else if (player.inventory[i].equippedItem !== null &&
                         (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === parsedInput2 || player.inventory[i].equippedItem.prefab.id === parsedInput2)) {
                         item = player.inventory[i].equippedItem;
-                        equipmentSlotName = player.inventory[i].name;
+                        equipmentSlotName = player.inventory[i].id;
                         if (destroyAll) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipped item.`);
                         break;
                     }

@@ -50,16 +50,16 @@ export async function execute (game, message, command, args) {
     // First, check if the player has a free hand.
     var hand = "";
     for (var handSlot = 0; handSlot < player.inventory.length; handSlot++) {
-        if (player.inventory[handSlot].name === "RIGHT HAND" && player.inventory[handSlot].equippedItem === null) {
+        if (player.inventory[handSlot].id === "RIGHT HAND" && player.inventory[handSlot].equippedItem === null) {
             hand = "RIGHT HAND";
             break;
         }
-        else if (player.inventory[handSlot].name === "LEFT HAND" && player.inventory[handSlot].equippedItem === null) {
+        else if (player.inventory[handSlot].id === "LEFT HAND" && player.inventory[handSlot].equippedItem === null) {
             hand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[handSlot].name === "LEFT HAND")
+        else if (player.inventory[handSlot].id === "LEFT HAND")
             break;
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
@@ -70,7 +70,7 @@ export async function execute (game, message, command, args) {
     var container = null;
     var slotName = "";
     // Check if the player specified an object.
-    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+    const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
     for (let i = 0; i < objects.length; i++) {
         if (objects[i].name === parsedInput) {
             container = objects[i];
@@ -84,7 +84,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the player specified a container item.
-    var items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    var items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     if (container === null) {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {
@@ -94,9 +94,9 @@ export async function execute (game, message, command, args) {
                 if (parsedInput.endsWith(" OF")) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                     for (let slot = 0; slot < container.inventory.length; slot++) {
-                        if (parsedInput.endsWith(container.inventory[slot].name)) {
-                            slotName = container.inventory[slot].name;
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(container.inventory[slot].name)).trimEnd();
+                        if (parsedInput.endsWith(container.inventory[slot].id)) {
+                            slotName = container.inventory[slot].id;
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(container.inventory[slot].id)).trimEnd();
                             break;
                         }
                     }
@@ -137,14 +137,14 @@ export async function execute (game, message, command, args) {
         // Look for the player's equipment slots that the current item can be equipped to.
         for (let j = 0; j < containerItems[i].prefab.equipmentSlots.length; j++) {
             for (let k = 0; k < player.inventory.length; k++) {
-                if (containerItems[i].prefab.equipmentSlots[j] === player.inventory[k].name) {
+                if (containerItems[i].prefab.equipmentSlots[j] === player.inventory[k].id) {
                     // Ensure that this item will only be equipped once if it can be equipped to multiple slots.
                     if (equipped) continue;
                     // If something is already equipped to this equipment slot, move on.
                     if (player.inventory[k].equippedItem !== null) break;
                     // Take the item and equip it.
                     player.take(containerItems[i], hand, container, containerItems[i].slot, false);
-                    player.equip(player.inventory[handSlot].equippedItem, player.inventory[k].name, hand, false);
+                    player.equip(player.inventory[handSlot].equippedItem, player.inventory[k].id, hand, false);
                     equipped = true;
                 }
             }
@@ -162,13 +162,13 @@ export async function execute (game, message, command, args) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
-            const weightItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const weightItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = weightItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             player.attemptPuzzle(container, null, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
         else if (container.hasOwnProperty("solved") && container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;

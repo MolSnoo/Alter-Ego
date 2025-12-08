@@ -88,7 +88,7 @@ export async function execute (game, message, command, args) {
         // Finally, find the object.
         var object = null;
         for (let i = 0; i < objects.length; i++) {
-            if (room !== null && objects[i].location.name === room.name) {
+            if (room !== null && objects[i].location.id === room.id) {
                 object = objects[i];
                 break;
             }
@@ -101,7 +101,7 @@ export async function execute (game, message, command, args) {
         // Finally, find the puzzle.
         var puzzle = null;
         for (let i = 0; i < puzzles.length; i++) {
-            if (room !== null && puzzles[i].location.name === room.name) {
+            if (room !== null && puzzles[i].location.id === room.id) {
                 puzzle = puzzles[i];
                 break;
             }
@@ -114,7 +114,7 @@ export async function execute (game, message, command, args) {
         if (isObject) {
             if (doItems) {
                 // Update all of the items contained in this object.
-                let items = game.items.filter(item => item.location.name === object.location.name && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && !item.accessible);
+                let items = game.items.filter(item => item.location.id === object.location.id && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && !item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -132,7 +132,7 @@ export async function execute (game, message, command, args) {
         else if (isPuzzle) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
-                let items = game.items.filter(item => item.location.name === puzzle.location.name && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && !item.accessible);
+                let items = game.items.filter(item => item.location.id === puzzle.location.id && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && !item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -152,7 +152,7 @@ export async function execute (game, message, command, args) {
         if (isObject) {
             if (doItems) {
                 // Update all of the items contained in this object.
-                let items = game.items.filter(item => item.location.name === object.location.name && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && item.accessible);
+                let items = game.items.filter(item => item.location.id === object.location.id && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -170,7 +170,7 @@ export async function execute (game, message, command, args) {
         else if (isPuzzle) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
-                let items = game.items.filter(item => item.location.name === puzzle.location.name && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && item.accessible);
+                let items = game.items.filter(item => item.location.id === puzzle.location.id && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);

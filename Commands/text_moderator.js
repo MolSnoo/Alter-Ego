@@ -38,11 +38,11 @@ export async function execute (game, message, command, args) {
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title === "NPC") {
             player = game.players_alive[i];
             break;
         }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title !== "NPC")
             return messageHandler.addReply(game, message, `You cannot text for a player that isn't an NPC.`);
     }
     if (player === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);

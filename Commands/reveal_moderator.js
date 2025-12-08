@@ -50,7 +50,7 @@ export async function execute (game, message, command, args) {
     }
 
     for (let i = 0; i < players.length; i++) {
-        if (players[i].talent !== "NPC") {
+        if (players[i].title !== "NPC") {
             players[i].member.roles.remove(game.guildContext.playerRole);
             players[i].member.roles.add(game.guildContext.deadRole);
         }

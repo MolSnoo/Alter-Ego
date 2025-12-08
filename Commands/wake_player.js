@@ -33,7 +33,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable wake");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (!player.statusString.includes("asleep")) return messageHandler.addReply(game, message, "You are not currently asleep.");
     player.cure("asleep", true, true, true);

@@ -410,7 +410,7 @@ async function testparse (game, file, player) {
         let text = "";
         for (let i = 0; i < game.events.length; i++) {
             text += "   ";
-            text += game.events[i].name + EOL;
+            text += game.events[i].id + EOL;
 
             const event = game.events[i];
             // First, do the triggered text.
@@ -770,7 +770,7 @@ async function testremove (game, file, formatted, player) {
                 let items = new Array();
                 let itemNames = new Array();
                 for (let k = 0; k < game.items.length; k++) {
-                    if (game.items[k].location.name === room.name
+                    if (game.items[k].location.id === room.id
                         && game.items[k].containerName === ""
                         && game.items[k].container === null
                         && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
@@ -841,7 +841,7 @@ async function testremove (game, file, formatted, player) {
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location.name === object.location.name
+                    if (game.items[j].location.id === object.location.id
                         && game.items[j].containerName === `Object: ${object.name}`
                         && game.items[j].container.row === object.row
                         && object.preposition !== ""
@@ -907,7 +907,7 @@ async function testremove (game, file, formatted, player) {
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location.name === item.location.name
+                    if (game.items[j].location.id === item.location.id
                         && game.items[j].containerName.startsWith(`Item: ${item.identifier}/`)
                         && game.items[j].container.row === item.row
                         && item.prefab.preposition !== ""
@@ -973,7 +973,7 @@ async function testremove (game, file, formatted, player) {
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location.name === puzzle.location.name
+                    if (game.items[j].location.id === puzzle.location.id
                         && game.items[j].containerName === `Puzzle: ${puzzle.name}`
                         && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
                         items.push(new Item(game.items[j].prefab, game.items[j].identifier, game.items[j].location, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game));

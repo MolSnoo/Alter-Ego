@@ -59,9 +59,9 @@ export async function execute (game, message, command, args) {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND")
+        if (player.inventory[slot].id === "RIGHT HAND")
             rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             leftHand = player.inventory[slot];
     }
     // Check for the identifier first.
@@ -98,7 +98,7 @@ export async function execute (game, message, command, args) {
 
     let foundSlot = false;
     for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName && player.inventory[i].name === slotName) {
+        if (slotName && player.inventory[i].id === slotName) {
             foundSlot = true;
             if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.identifier ? player.inventory[i].equippedItem.identifier : player.inventory[i].equippedItem.prefab.id} is already equipped to it.`);
         }

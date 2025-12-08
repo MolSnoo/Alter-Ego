@@ -35,7 +35,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable knock");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -59,7 +59,7 @@ export async function execute (game, message, command, args, player) {
     new Narration(game, player, player.location, roomNarration).send();
 
     var room = exit.dest;
-    if (room.name === player.location.name) return;
+    if (room.id === player.location.id) return;
 
     var hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.

@@ -41,7 +41,7 @@ export async function execute (game, message, command, args) {
     var players = [];
     if (args[0] === "all" || args[0] === "living") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
+            if (game.players_alive[i].title !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);
@@ -85,7 +85,7 @@ export async function execute (game, message, command, args) {
             if (input.endsWith(currentRoom.exit[i].name)) {
                 isExit = true;
                 exit = currentRoom.exit[i];
-                exitPuzzle = game.puzzles.find(puzzle => puzzle.location.name === currentRoom.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
+                exitPuzzle = game.puzzles.find(puzzle => puzzle.location.id === currentRoom.id && puzzle.name === exit.name && puzzle.type === "restricted exit");
                 desiredRoom = exit.dest;
                 for (let j = 0; j < desiredRoom.exit.length; j++) {
                     if (desiredRoom.exit[j].name === exit.link) {

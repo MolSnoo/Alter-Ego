@@ -51,16 +51,16 @@ export async function execute (game, message, command, args) {
     // First, check if the player has a free hand.
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
+        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
             break;
         }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
+        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
@@ -71,7 +71,7 @@ export async function execute (game, message, command, args) {
     var item = null;
     var container = null;
     var slotName = "";
-    const roomItems = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const roomItems = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
         if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput ||
@@ -109,7 +109,7 @@ export async function execute (game, message, command, args) {
                         tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItems[i].container.name}`));
 
                     for (let slot = 0; slot < roomItems[i].container.inventory.length; slot++) {
-                        if (roomItems[i].container.inventory[slot].name === tempSlotName && roomItems[i].slot === tempSlotName) {
+                        if (roomItems[i].container.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
                             item = roomItems[i];
                             container = roomItems[i].container;
                             slotName = tempSlotName;
@@ -145,7 +145,7 @@ export async function execute (game, message, command, args) {
     }
     if (item === null) {
         // Check if the player is trying to take an object.
-        const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+        const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput)
                 return messageHandler.addReply(game, message, `The ${objects[i].name} is not an item.`);
@@ -177,13 +177,13 @@ export async function execute (game, message, command, args) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.hasOwnProperty("solved") && container.type === "weight") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             player.attemptPuzzle(container, item, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
         else if (container.hasOwnProperty("solved") && container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;

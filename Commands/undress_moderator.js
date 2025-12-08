@@ -50,7 +50,7 @@ export async function execute (game, message, command, args) {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Check if an object was specified.
-    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+    const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
     var object = null;
     if (parsedInput !== "") {
         for (let i = 0; i < objects.length; i++) {
@@ -67,7 +67,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the player specified a container item.
-    var items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    var items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     var containerItem = null;
     var containerItemSlot = null;
     if (parsedInput !== "") {
@@ -81,9 +81,9 @@ export async function execute (game, message, command, args) {
                     if (parsedInput.endsWith(" OF")) {
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                         for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                            if (parsedInput.endsWith(containerItem.inventory[slot].name)) {
+                            if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
                                 containerItemSlot = containerItem.inventory[slot];
-                                parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.name)).trimEnd();
+                                parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
                                 break;
                             }
                         }
@@ -105,15 +105,15 @@ export async function execute (game, message, command, args) {
     else if (containerItem !== null) {
         container = containerItem;
         if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-        slotName = containerItemSlot.name;
+        slotName = containerItemSlot.id;
         let totalSize = 0;
         for (let i = 0; i < player.inventory.length; i++) {
             if (player.inventory[i].equippedItem !== null)
                 totalSize += player.inventory[i].equippedItem.prefab.size;
         }
-        if (totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${player.name}'s inventory will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
+        if (totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${player.name}'s inventory will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
         else if (totalSize > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${player.name}'s inventory will not fit in ${container.name} because it is too large.`);
-        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${player.name}'s inventory will not fit in ${containerItemSlot.name} of ${container.name} because there isn't enough space left.`);
+        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${player.name}'s inventory will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
         else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${player.name}'s inventory will not fit in ${container.name} because there isn't enough space left.`);
     }
     else {
@@ -136,16 +136,16 @@ export async function execute (game, message, command, args) {
     var rightHand = 0;
     // First, drop the items in the player's hands.
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND") rightHand = slot;
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null)
+        if (player.inventory[slot].id === "RIGHT HAND") rightHand = slot;
+        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null)
             player.drop(player.inventory[slot].equippedItem, "RIGHT HAND", container, slotName, false);
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null)
+        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null)
             player.drop(player.inventory[slot].equippedItem, "LEFT HAND", container, slotName, false);
     }
     // Now, unequip all equipped items.
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.prefab.equippable) {
-            player.unequip(player.inventory[slot].equippedItem, player.inventory[slot].name, "RIGHT HAND", false);
+            player.unequip(player.inventory[slot].equippedItem, player.inventory[slot].id, "RIGHT HAND", false);
             player.drop(player.inventory[rightHand].equippedItem, "RIGHT HAND", container, slotName, false);
         }
     }
@@ -161,13 +161,13 @@ export async function execute (game, message, command, args) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly undressed into ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             player.attemptPuzzle(container, null, weight.toString(), "drop", input);
         }
         // Container is a container puzzle.
         else if (container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;

@@ -47,7 +47,7 @@ export async function execute (game, command, args, player, callee) {
 
     var event = null;
     for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].name === parsedInput) {
+        if (game.events[i].id === parsedInput) {
             event = game.events[i];
             break;
         }

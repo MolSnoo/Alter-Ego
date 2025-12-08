@@ -50,16 +50,16 @@ export async function execute (game, message, command, args) {
     // First, check if the player has a free hand.
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
+        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
             break;
         }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
+        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to retrieve an item.`);
@@ -109,7 +109,7 @@ export async function execute (game, message, command, args) {
 
                     if (playerItems[i].container.hasOwnProperty("inventory")) {
                         for (let slot = 0; slot < playerItems[i].container.inventory.length; slot++) {
-                            if (playerItems[i].container.inventory[slot].name === tempSlotName && playerItems[i].slot === tempSlotName) {
+                            if (playerItems[i].container.inventory[slot].id === tempSlotName && playerItems[i].slot === tempSlotName) {
                                 item = playerItems[i];
                                 container = playerItems[i].container;
                                 slotName = tempSlotName;

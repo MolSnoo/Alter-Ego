@@ -55,19 +55,19 @@ export async function execute (game, message, command, args) {
                 for (let k = 0; k < recipients.length; k++) {
                     if (recipients[k].name === player.name)
                         return messageHandler.addReply(game, message, `Can't include the same player multiple times.`);
-                    if (recipients[k].location.name !== player.location.name)
+                    if (recipients[k].location.id !== player.location.id)
                         return messageHandler.addReply(game, message, `The selected players aren't all in the same room.`);
                 }
                 // Check attributes that would prohibit the player from whispering to someone in the room.
                 let status = player.getAttributeStatusEffects("disable whisper");
-                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
                 status = player.getAttributeStatusEffects("no hearing");
-                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
                 status = player.getAttributeStatusEffects("unconscious");
-                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[0].name}**.`);
+                if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;
-                if (player.talent === "NPC") npc = player;
+                if (player.title === "NPC") npc = player;
                 recipients.push(player);
                 break;
             }

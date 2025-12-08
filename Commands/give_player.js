@@ -38,7 +38,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable give");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -59,23 +59,23 @@ export async function execute (game, message, command, args, player) {
             break;
         }
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
-            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
     if (recipient === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // Check to make sure that the recipient has a free hand.
     var recipientHand = "";
     for (let slot = 0; slot < recipient.inventory.length; slot++) {
-        if (recipient.inventory[slot].name === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
+        if (recipient.inventory[slot].id === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
             recipientHand = "RIGHT HAND";
             break;
         }
-        else if (recipient.inventory[slot].name === "LEFT HAND" && recipient.inventory[slot].equippedItem === null) {
+        else if (recipient.inventory[slot].id === "LEFT HAND" && recipient.inventory[slot].equippedItem === null) {
             recipientHand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (recipient.inventory[slot].name === "LEFT HAND")
+        else if (recipient.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (recipientHand === "") return messageHandler.addReply(game, message, `${recipient.displayName} does not have a free hand to receive an item.`);
@@ -85,19 +85,19 @@ export async function execute (game, message, command, args, player) {
     var giverHand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
-            if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
+            if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 giverHand = "RIGHT HAND";
                 break;
             }
-            else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
+            else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 giverHand = "LEFT HAND";
                 break;
             }
         }
         // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);

@@ -40,12 +40,12 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable hide");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.statusString.includes("hidden") && command === "unhide") {
         let object = null;
         for (let i = 0; i < game.objects.length; i++) {
-            if (game.objects[i].location.name === player.location.name && game.objects[i].name === player.hidingSpot) {
+            if (game.objects[i].location.id === player.location.id && game.objects[i].name === player.hidingSpot) {
                 object = game.objects[i];
                 break;
             }
@@ -67,7 +67,7 @@ export async function execute (game, message, command, args, player) {
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
         // Check if the input is an object that the player can hide in.
-        const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+        const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
         var object = null;
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput && objects[i].hidingSpotCapacity > 0) {

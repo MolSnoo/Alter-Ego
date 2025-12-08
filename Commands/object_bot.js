@@ -121,8 +121,8 @@ export async function execute (game, command, args, player, callee) {
     // Finally, find the object.
     var object = null;
     for (let i = 0; i < objects.length; i++) {
-        if ((player !== null && objects[i].location.name === player.location.name)
-            || (room !== null && objects[i].location.name === room.name)) {
+        if ((player !== null && objects[i].location.id === player.location.id)
+            || (room !== null && objects[i].location.id === room.id)) {
             object = objects[i];
             break;
         }
@@ -133,7 +133,7 @@ export async function execute (game, command, args, player, callee) {
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
-    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.name === object.location.name), announcement).send();
+    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.id === object.location.id), announcement).send();
 
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {

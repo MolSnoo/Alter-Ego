@@ -33,9 +33,9 @@ export async function execute (game, message, command, args) {
     for (let i = 0; i < game.events.length; i++) {
         if (game.events[i].ongoing) {
             if (game.events[i].remaining === null)
-                events.push(game.events[i].name);
+                events.push(game.events[i].id);
             else
-                events.push(game.events[i].name + ` (${game.events[i].remainingString})`);
+                events.push(game.events[i].id + ` (${game.events[i].remainingString})`);
         }
     }
     const eventList = events.join(", ");

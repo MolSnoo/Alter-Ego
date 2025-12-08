@@ -70,7 +70,7 @@ export async function execute (game, command, args, player, callee) {
         players = player.location.occupants;
     else if (args[0].toLowerCase() === "all") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
+            if (game.players_alive[i].title !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
     }

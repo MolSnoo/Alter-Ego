@@ -283,7 +283,7 @@ export async function execute (game, message, command, args) {
 
         const privatePlayers = [];
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC") {
+            if (game.players_alive[i].title !== "NPC") {
                 const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
                 if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
             }

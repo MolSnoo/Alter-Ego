@@ -46,7 +46,7 @@ var objectRecipesDescription = "";
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable recipes");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var recipes = [];
     if (args.length > 0) {
@@ -71,7 +71,7 @@ export async function execute (game, message, command, args, player) {
                     // Gather a list of objects in the room that can be used to process this recipe, if applicable.
                     let objects = [];
                     if (game.recipes[i].objectTag !== "") {
-                        let recipeObjects = game.objects.filter(object => object.location.name === player.location.name && object.recipeTag === game.recipes[i].objectTag);
+                        let recipeObjects = game.objects.filter(object => object.location.id === player.location.id && object.recipeTag === game.recipes[i].objectTag);
                         // If there are no objects in the room, provide the object tag.
                         if (recipeObjects.length === 0) objects.push(game.recipes[i].objectTag);
                         else objects = recipeObjects.map(object => object.name);
@@ -104,7 +104,7 @@ export async function execute (game, message, command, args, player) {
             if (a.prefab.id > b.prefab.id) return 1;
             return 0;
         });
-        var roomItems = game.items.filter(item => item.location.name === player.location.name && (item.quantity > 0 || isNaN(item.quantity)));
+        var roomItems = game.items.filter(item => item.location.id === player.location.id && (item.quantity > 0 || isNaN(item.quantity)));
         roomItems.sort(function (a, b) {
             if (a.prefab.id < b.prefab.id) return -1;
             if (a.prefab.id > b.prefab.id) return 1;
@@ -142,7 +142,7 @@ export async function execute (game, message, command, args, player) {
                 // Gather a list of objects in the room that can be used to process this recipe, if applicable.
                 let objects = [];
                 if (game.recipes[i].objectTag !== "") {
-                    let recipeObjects = game.objects.filter(object => object.location.name === player.location.name && object.recipeTag === game.recipes[i].objectTag);
+                    let recipeObjects = game.objects.filter(object => object.location.id === player.location.id && object.recipeTag === game.recipes[i].objectTag);
                     if (recipeObjects.length === 0) continue;
                     objects = recipeObjects.map(object => object.name);
                 }

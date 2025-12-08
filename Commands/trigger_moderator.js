@@ -37,16 +37,16 @@ export async function execute (game, message, command, args) {
 
     var event = null;
     for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].name === parsedInput) {
+        if (game.events[i].id === parsedInput) {
             event = game.events[i];
             break;
         }
     }
     if (event === null) return messageHandler.addReply(game, message, `Couldn't find event "${input}".`);
-    if (event.ongoing) return messageHandler.addReply(game, message, `${event.name} is already ongoing.`);
+    if (event.ongoing) return messageHandler.addReply(game, message, `${event.id} is already ongoing.`);
 
     await event.trigger(true);
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully triggered ${event.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully triggered ${event.id}.`);
 
     return;
 }

@@ -31,7 +31,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable inventory");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const inventoryString = player.viewInventory("Your", false);
     player.notify(inventoryString);

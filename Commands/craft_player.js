@@ -39,7 +39,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable craft");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].id}**.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -50,8 +50,8 @@ export async function execute (game, message, command, args, player) {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND") rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND") leftHand = player.inventory[slot];
+        if (player.inventory[slot].id === "RIGHT HAND") rightHand = player.inventory[slot];
+        else if (player.inventory[slot].id === "LEFT HAND") leftHand = player.inventory[slot];
     }
 
     // Now find the item in the player's inventory.

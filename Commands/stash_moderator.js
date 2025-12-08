@@ -75,9 +75,9 @@ export async function execute (game, message, command, args) {
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                 newArgs = parsedInput.split(' ');
                 for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                    if (parsedInput.endsWith(containerItem.inventory[slot].name)) {
+                    if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
                         containerItemSlot = containerItem.inventory[slot];
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.name)).trimEnd();
+                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
                         break;
                     }
                 }
@@ -107,9 +107,9 @@ export async function execute (game, message, command, args) {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND")
+        if (player.inventory[slot].id === "RIGHT HAND")
             rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             leftHand = player.inventory[slot];
     }
     // Check for the identifier first.
@@ -150,17 +150,17 @@ export async function execute (game, message, command, args) {
     if (item.row === containerItem.row) return messageHandler.addReply(game, message, `Can't stash ${item.identifier ? item.identifier : item.prefab.id} ${itemPreposition} itself.`);
 
     if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.name} of ${containerItem.identifier} because it is too large.`);
+    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${containerItem.identifier} because it is too large.`);
     else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItem.identifier} because it is too large.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.name} of ${containerItem.identifier} because there isn't enough space left.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${containerItem.identifier} because there isn't enough space left.`);
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItem.identifier} because there isn't enough space left.`);
 
-    player.stash(item, hand, containerItem, containerItemSlot.name);
+    player.stash(item, hand, containerItem, containerItemSlot.id);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.name} of ${containerItem.identifier} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.id} of ${containerItem.identifier} in ${player.location.channel}`);
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.name} of ${containerItem.identifier} for ${player.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.id} of ${containerItem.identifier} for ${player.name}.`);
 
     return;
 }

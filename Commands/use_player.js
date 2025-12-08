@@ -53,7 +53,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable use");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -65,17 +65,17 @@ export async function execute (game, message, command, args, player) {
     var item = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
-            if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
+            if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 break;
             }
-            else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
+            else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 break;
             }
         }
         // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (item !== null) {
@@ -88,7 +88,7 @@ export async function execute (game, message, command, args, player) {
     var password = "";
     var targetPlayer = null;
     if (parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var puzzles = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name);
+        var puzzles = game.puzzles.filter(puzzle => puzzle.location.id === player.location.id);
         if (command === "lock" || command === "unlock") puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
         else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
@@ -109,13 +109,13 @@ export async function execute (game, message, command, args, player) {
         }
         if (puzzle !== null) {
             // Make sure the player can only solve the puzzle if it's a child puzzle of the object they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
             for (let i = 0; i < game.players_alive.length; i++) {
                 if (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() &&
-                game.players_alive[i].location.name === player.location.name &&
+                game.players_alive[i].location.id === player.location.id &&
                 (!game.players_alive[i].hasAttribute("hidden") || game.players_alive[i].hidingSpot === player.hidingSpot)) {
                     targetPlayer = game.players_alive[i];
                     break;
@@ -127,7 +127,7 @@ export async function execute (game, message, command, args, player) {
     // Check if the player specified an object.
     var object = null;
     if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var objects = game.objects.filter(object => object.location.name === player.location.name);
+        var objects = game.objects.filter(object => object.location.id === player.location.id);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) {
                 object = objects[i];
@@ -139,7 +139,7 @@ export async function execute (game, message, command, args, player) {
     // If there is an object, do the required behavior.
     if (object !== null && object.recipeTag !== "" && object.activatable) {
         // Make sure the player can only activate the object if it's the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();

@@ -109,8 +109,8 @@ export async function execute (game, message, command, args) {
     // Finally, find the puzzle.
     var puzzle = null;
     for (let i = 0; i < puzzles.length; i++) {
-        if ((player !== null && puzzles[i].location.name === player.location.name)
-            || (room !== null && puzzles[i].location.name === room.name)) {
+        if ((player !== null && puzzles[i].location.id === player.location.id)
+            || (room !== null && puzzles[i].location.id === room.id)) {
             puzzle = puzzles[i];
             break;
         }
@@ -122,7 +122,7 @@ export async function execute (game, message, command, args) {
     var targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].location.name === player.location.name &&
+            if (game.players_alive[i].location.id === player.location.id &&
                 (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() || game.players_alive[i].name.toLowerCase() === input.toLowerCase())) {
                 targetPlayer = game.players_alive[i];
                 break;

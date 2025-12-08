@@ -32,7 +32,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable time");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const timeMessage = `It is currently **${new Date().toLocaleTimeString()}** on **${new Date().toDateString()}**.`;
     messageHandler.addDirectNarration(player, timeMessage, false);

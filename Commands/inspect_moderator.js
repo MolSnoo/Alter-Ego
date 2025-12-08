@@ -77,8 +77,8 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the input is an object, or an item on an object.
-    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
-    const items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
+    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     var object = null;
     var item = null;
     var container = null;
@@ -119,7 +119,7 @@ export async function execute (game, message, command, args) {
             if (object.childPuzzle === null || !object.childPuzzle.type.endsWith("lock") || object.childPuzzle.solved) {
                 let hiddenPlayers = [];
                 for (let i = 0; i < game.players_alive.length; i++) {
-                    if (game.players_alive[i].location.name === player.location.name && game.players_alive[i].hidingSpot === object.name) {
+                    if (game.players_alive[i].location.id === player.location.id && game.players_alive[i].hidingSpot === object.name) {
                         hiddenPlayers.push(game.players_alive[i]);
                         game.players_alive[i].notify(`You've been found by ${player.displayName}!`);
                     }
@@ -189,7 +189,7 @@ export async function execute (game, message, command, args) {
                     if (containerName !== "") {
                         let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${containerName}`)).trim();
                         for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
-                            if (items[i].container.inventory[slot].name === tempSlotName && items[i].slot === tempSlotName) {
+                            if (items[i].container.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
                                 item = items[i];
                                 container = item.container;
                                 slotName = item.slot;
