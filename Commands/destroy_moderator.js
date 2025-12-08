@@ -1,5 +1,8 @@
+import { default as Fixture } from "../Data/Object.js";
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import Item from "../Data/Item.js";
+import Puzzle from "../Data/Puzzle.js";
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
@@ -166,19 +169,19 @@ export async function execute (game, message, command, args) {
             preposition = "at";
         }
         // Container is an Object.
-        else if (container.hasOwnProperty("hidingSpotCapacity")) {
+        else if (container instanceof Fixture) {
             containerItems = roomItems.filter(item => item.containerName === `Object: ${container.name}`);
             containerName = `${container.name} at ${room.name}`;
             preposition = container.preposition ? container.preposition : "in";
         }
         // Container is a Puzzle.
-        else if (container.hasOwnProperty("solved")) {
+        else if (container instanceof Puzzle) {
             containerItems = roomItems.filter(item => item.containerName === `Puzzle: ${container.name}`);
             containerName = `${container.parentObject.name} at ${room.name}`;
             preposition = container.parentObject.preposition ? container.parentObject.preposition : "in";
         }
         // Container is an Item.
-        else if (container.hasOwnProperty("inventory")) {
+        else if (container instanceof Item) {
             containerItems = roomItems.filter(item => item.containerName === `Item: ${container.identifier}/${slotName}`);
             containerName = `${slotName} of ${container.identifier} at ${room.name}`;
             preposition = container.prefab.preposition ? container.prefab.preposition : "in";

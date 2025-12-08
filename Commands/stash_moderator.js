@@ -63,7 +63,7 @@ export async function execute (game, message, command, args) {
             containerItem = items[i];
             if (items[i].inventory.length === 0) continue;
 
-            if (items[i].identifer !== "" && parsedInput.endsWith(items[i].identifier))
+            if (items[i].identifier !== "" && parsedInput.endsWith(items[i].identifier))
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].identifier)).trimEnd();
             else if (parsedInput.endsWith(items[i].prefab.id))
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].prefab.id)).trimEnd();

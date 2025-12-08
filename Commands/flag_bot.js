@@ -65,7 +65,7 @@ export async function execute (game, command, args, player, callee) {
 
 	// If we're going to set or clear another flag, make sure it won't set or clear other flags with its commands.
 	let doCommands = false;
-	if (callee && !callee.hasOwnProperty("valueScript")) doCommands = true;
+	if (callee && !(callee instanceof Flag)) doCommands = true;
 	// The value, if it exists, is the easiest to find at the beginning. Look for that first.
 	let valueScript;
 	let value;

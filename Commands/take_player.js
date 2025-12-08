@@ -1,6 +1,9 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import { default as Fixture } from '../Data/Object.js';
 import Game from '../Data/Game.js';
+import Item from '../Data/Item.js';
 import Player from '../Data/Player.js';
+import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
 import { Message } from "discord.js";
 import Narration from '../Data/Narration.js';
@@ -82,14 +85,15 @@ export async function execute (game, message, command, args, player) {
         if (parsedInput.startsWith(`${roomItems[i].name} FROM `)) {
             let containerName = parsedInput.substring(`${roomItems[i].name} FROM `.length).trim();
             if (roomItems[i].container !== null) {
+                const roomItemContainer = roomItems[i].container;
                 // Slot name was specified.
-                if (containerName.endsWith(` OF ${roomItems[i].container.name}`)) {
-                    let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItems[i].container.name}`));
-                    if (roomItems[i].container.hasOwnProperty("inventory")) {
-                        for (let slot = 0; slot < roomItems[i].container.inventory.length; slot++) {
-                            if (roomItems[i].container.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
+                if (containerName.endsWith(` OF ${roomItemContainer.name}`)) {
+                    let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
+                    if (roomItemContainer instanceof Item) {
+                        for (let slot = 0; slot < roomItemContainer.inventory.length; slot++) {
+                            if (roomItemContainer.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
                                 item = roomItems[i];
-                                container = roomItems[i].container;
+                                container = roomItemContainer;
                                 slotName = tempSlotName;
                                 break;
                             }
@@ -98,15 +102,15 @@ export async function execute (game, message, command, args, player) {
                     if (item !== null) break;
                 }
                 // A puzzle's parent object was specified.
-                else if (roomItems[i].container.hasOwnProperty("parentObject") && roomItems[i].container.parentObject.name === containerName) {
+                else if (roomItemContainer instanceof Puzzle && roomItemContainer.parentObject.name === containerName) {
                     item = roomItems[i];
-                    container = roomItems[i].container;
+                    container = roomItemContainer;
                     break;
                 }
                 // Only a container name was specified.
-                else if (roomItems[i].container.name === containerName) {
+                else if (roomItemContainer.name === containerName) {
                     item = roomItems[i];
-                    container = roomItems[i].container;
+                    container = roomItemContainer;
                     slotName = roomItems[i].slot;
                     break;
                 }
@@ -133,17 +137,17 @@ export async function execute (game, message, command, args, player) {
         container = item.location;
     
     let topContainer = container;
-    while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+    while (topContainer !== null && topContainer instanceof Item)
         topContainer = topContainer.container;
 
-    if (topContainer !== null && topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
+    if (topContainer !== null && topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
         return messageHandler.addReply(game, message, `You cannot take items from ${topContainer.name} while it is turned on.`);
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
-        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+        if (topContainer !== null && topContainer instanceof Puzzle)
             topContainer = topContainer.parentObject;
 
-        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+        if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
     if (item.weight > player.maxCarryWeight) {
@@ -157,16 +161,16 @@ export async function execute (game, message, command, args, player) {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
-    if (container.hasOwnProperty("hidingSpotCapacity") || container.hasOwnProperty("solved")) {
+    if (container instanceof Fixture || container instanceof Puzzle) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
-        if (container.hasOwnProperty("solved") && container.type === "weight") {
+        if (container instanceof Puzzle && container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             player.attemptPuzzle(container, item, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
-        else if (container.hasOwnProperty("solved") && container.type === "container") {
+        else if (container instanceof Puzzle && container.type === "container") {
             const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
@@ -176,7 +180,7 @@ export async function execute (game, message, command, args, player) {
         }
     }
     // Container is an Item.
-    else if (container.hasOwnProperty("inventory"))
+    else if (container instanceof Item)
         messageHandler.addLogMessage(game, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
     // Container is a Room.
     else

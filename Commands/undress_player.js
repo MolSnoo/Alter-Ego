@@ -1,6 +1,9 @@
+import { default as Fixture } from "../Data/Object.js";
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import Item from "../Data/Item.js";
 import Player from '../Data/Player.js';
+import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
 import { Message } from "discord.js";
 
@@ -65,7 +68,8 @@ export async function execute (game, message, command, args, player) {
     if (parsedInput !== "") {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {
-                if (object === null || object !== null && items[i].container !== null && (items[i].container.name === object.name || items[i].container.hasOwnProperty("parentObject") && items[i].container.parentObject.name === object.name)) {
+                const itemContainer = items[i].container;
+                if (object === null || object !== null && itemContainer !== null && (itemContainer.name === object.name || itemContainer instanceof Puzzle && itemContainer.parentObject.name === object.name)) {
                     if (items[i].inventory.length === 0) return messageHandler.addReply(game, message, `${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
                     containerItem = items[i];
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].name)).trimEnd();
@@ -116,20 +120,21 @@ export async function execute (game, message, command, args, player) {
     }
 
     let topContainer = container;
-    while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+    while (topContainer !== null && topContainer instanceof Item)
         topContainer = topContainer.container;
 
     if (topContainer !== null) {
-        const topContainerPreposition = topContainer.preposition ? topContainer.preposition : "in";
-        if (topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
+        let topContainerPreposition = "in";
+        if (topContainer instanceof Fixture && topContainer.preposition !== "") topContainerPreposition = topContainer.preposition;
+        if (topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
             return messageHandler.addReply(game, message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
-        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+        if (topContainer !== null && topContainer instanceof Puzzle)
             topContainer = topContainer.parentObject;
 
-        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+        if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
 
@@ -154,10 +159,10 @@ export async function execute (game, message, command, args, player) {
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
-    if (container.hasOwnProperty("hidingSpotCapacity"))
+    if (container instanceof Fixture)
         messageHandler.addLogMessage(game, `${time} - ${player.name} undressed into ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
-    else if (container.hasOwnProperty("solved")) {
+    else if (container instanceof Puzzle) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} undressed into ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
@@ -176,7 +181,7 @@ export async function execute (game, message, command, args, player) {
         }
     }
     // Container is an Item.
-    else if (container.hasOwnProperty("inventory"))
+    else if (container instanceof Item)
         messageHandler.addLogMessage(game, `${time} - ${player.name} undressed into ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
     return;

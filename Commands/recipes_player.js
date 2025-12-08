@@ -1,5 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { Message } from "discord.js";
@@ -255,7 +256,7 @@ function ingredientsMatch(items, ingredients) {
     var hasInventoryItem = false;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab.id !== ingredients[i].id) return false;
-        if (items[i].hasOwnProperty("player")) hasInventoryItem = true;
+        if (items[i] instanceof InventoryItem) hasInventoryItem = true;
     }
     if (!hasInventoryItem) return false;
     return true;
@@ -266,7 +267,7 @@ function productsMatch(items, products) {
     var hasInventoryItem = false;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab.id !== products[i].id) return false;
-        if (items[i].hasOwnProperty("player")) hasInventoryItem = true;
+        if (items[i] instanceof InventoryItem) hasInventoryItem = true;
     }
     if (!hasInventoryItem) return false;
     return true;

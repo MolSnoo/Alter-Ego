@@ -1,6 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
+﻿import { default as Fixture } from "../Data/Object.js";
+import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import Item from "../Data/Item.js";
 import Player from '../Data/Player.js';
+import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
 import { Message } from "discord.js";
 import Narration from '../Data/Narration.js';
@@ -165,8 +168,9 @@ export async function execute (game, message, command, args, player) {
                 break;
             }
 
-            if (items[i].container !== null && items[i].container.hasOwnProperty("prefab")) {
-                const preposition = items[i].container.prefab.preposition.toUpperCase();
+            const itemContainer = items[i].container;
+            if (itemContainer !== null && itemContainer instanceof Item) {
+                const preposition = itemContainer.prefab.preposition.toUpperCase();
                 let containerString = "";
                 if (parsedInput.startsWith(`${items[i].name} ${preposition} `))
                     containerString = parsedInput.substring(`${items[i].name} ${preposition} `.length).trim();
@@ -179,10 +183,10 @@ export async function execute (game, message, command, args, player) {
                 
                 if (containerString !== "") {
                     // Slot name was specified.
-                    if (parsedInput.endsWith(` OF ${items[i].container.name}`)) {
-                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${items[i].container.name}`)).trim();
-                        for (let slot = 0; slot < items[i].container.inventory.length; slot++) {
-                            if (items[i].container.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
+                    if (parsedInput.endsWith(` OF ${itemContainer.name}`)) {
+                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${itemContainer.name}`)).trim();
+                        for (let slot = 0; slot < itemContainer.inventory.length; slot++) {
+                            if (itemContainer.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
                                 item = items[i];
                                 container = item.container;
                                 slotName = item.slot;
@@ -192,7 +196,7 @@ export async function execute (game, message, command, args, player) {
                         if (item !== null) break;
                     }
                     // Only a container was specified.
-                    else if (items[i].container.name === containerString) {
+                    else if (itemContainer.name === containerString) {
                         item = items[i];
                         container = item.container;
                         slotName = item.slot;
@@ -207,29 +211,29 @@ export async function execute (game, message, command, args, player) {
         // Make sure the player can only inspect items contained in the object they're hiding in, if they're hidden.
         if (hiddenStatus.length > 0) {
             let topContainer = item.container;
-            while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+            while (topContainer !== null && topContainer instanceof Item)
                 topContainer = topContainer.container;
-            if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+            if (topContainer !== null && topContainer instanceof Puzzle)
                 topContainer = topContainer.parentObject;
 
-            if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+            if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
                 return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         }
 
         let preposition = "in";
         let containerName = "";
         let containerIdentifier = "";
-        if (container.hasOwnProperty("prefab")) {
+        if (container instanceof Item) {
             preposition = container.prefab.preposition;
             containerName = container.singleContainingPhrase;
             containerIdentifier = `${slotName} of ${container.identifier}`;
         }
-        else if (container.hasOwnProperty("hidingSpotCapacity")) {
+        else if (container instanceof Fixture) {
             preposition = container.preposition;
             containerName = `the ${container.name}`;
             containerIdentifier = container.name;
         }
-        else if (container.hasOwnProperty("solved")) {
+        else if (container instanceof Puzzle) {
             preposition = container.parentObject.preposition;
             containerName = `the ${container.parentObject.name}`;
             containerIdentifier = container.name;

@@ -1,5 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import InventoryItem from '../Data/InventoryItem.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
@@ -107,7 +108,7 @@ export async function execute (game, message, command, args) {
                     else if (containerName.endsWith(` OF ${playerItems[i].container.name}`))
                         tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.name}`));
 
-                    if (playerItems[i].container.hasOwnProperty("inventory")) {
+                    if (playerItems[i].container instanceof InventoryItem) {
                         for (let slot = 0; slot < playerItems[i].container.inventory.length; slot++) {
                             if (playerItems[i].container.inventory[slot].id === tempSlotName && playerItems[i].slot === tempSlotName) {
                                 item = playerItems[i];

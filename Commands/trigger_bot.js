@@ -56,7 +56,7 @@ export async function execute (game, command, args, player, callee) {
     if (event.ongoing) return;
 
     var doTriggeredCommands = false;
-    if (callee && !callee.hasOwnProperty("ongoing")) doTriggeredCommands = true;
+    if (callee && !(callee instanceof Event)) doTriggeredCommands = true;
 
     await event.trigger(doTriggeredCommands);
 

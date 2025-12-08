@@ -1,6 +1,9 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import { default as Fixture } from '../Data/Object.js';
 import Game from '../Data/Game.js';
+import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
+import Puzzle from '../Data/Puzzle.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { Message } from "discord.js";
 import { EmbedBuilder } from 'discord.js';
@@ -140,12 +143,12 @@ export async function execute (game, message, command, args, player) {
                                     // Make sure the player can only gesture to items contained in the object they're hiding in, if they're hidden.
                                     if (hiddenStatus.length > 0) {
                                         let topContainer = items[k].container;
-                                        while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+                                        while (topContainer !== null && topContainer instanceof ItemInstance)
                                             topContainer = topContainer.container;
-                                        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+                                        if (topContainer !== null && topContainer instanceof Puzzle)
                                             topContainer = topContainer.parentObject;
 
-                                        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
+                                        if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
                                             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                                     }
                                     targetType = "Item";
@@ -204,7 +207,7 @@ export async function execute (game, message, command, args, player) {
             messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} in ${player.location.channel}`);
         else if (targetType === "Exit" || targetType === "Object" || targetType === "Player")
             messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} to ${target.name} in ${player.location.channel}`);
-        else if (targetType === "Item" || targetType === "Inventory Item")
+        else if (target instanceof ItemInstance)
             messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
     }
 

@@ -53,7 +53,7 @@ export async function execute (game, command, args, player, callee) {
     var players = [];
     if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
-    else if (args[0].toLowerCase() === "room" && callee !== null && callee.hasOwnProperty("ongoing")) {
+    else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].tags.includes(callee.roomTag) && game.rooms[i].occupants.length > 0)

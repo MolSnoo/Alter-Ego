@@ -157,7 +157,7 @@ export async function execute (game, command, args, player, callee) {
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     var doCommands = false;
-    if (callee && !callee.hasOwnProperty("solved")) doCommands = true;
+    if (callee && !(callee instanceof Puzzle)) doCommands = true;
 
     if (command === "solve") {
         if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);

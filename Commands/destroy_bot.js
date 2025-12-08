@@ -2,8 +2,10 @@ import GameSettings from "../Classes/GameSettings.js";
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
+import { default as Fixture } from "../Data/Object.js";
 import Flag from "../Data/Flag.js";
 import InventoryItem from "../Data/InventoryItem.js";
+import Item from "../Data/Item.js";
 import Puzzle from "../Data/Puzzle.js";
 import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -163,13 +165,13 @@ export async function execute (game, command, args, player, callee) {
         if (container === null)
             containerItems = roomItems;
         // Container is an Object.
-        else if (container.hasOwnProperty("hidingSpotCapacity"))
+        else if (container instanceof Fixture)
             containerItems = roomItems.filter(item => item.containerName === `Object: ${container.name}`);
         // Container is a Puzzle.
-        else if (container.hasOwnProperty("solved"))
+        else if (container instanceof Puzzle)
             containerItems = roomItems.filter(item => item.containerName === `Puzzle: ${container.name}`);
         // Container is an Item.
-        else if (container.hasOwnProperty("inventory"))
+        else if (container instanceof Item)
             containerItems = roomItems.filter(item => item.containerName === `Item: ${container.identifier}/${slotName}`);
 
         let newArgs = parsedInput.split(" ");
