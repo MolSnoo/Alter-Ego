@@ -1,3 +1,4 @@
+import settings from '../Configs/settings.json' with { type: 'json' };
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
@@ -40,6 +41,7 @@ export async function execute (game, message, command, args) {
     }
     if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
+    game.settings.defaultRoomIconURL = input;
     settings.defaultRoomIconURL = input;
 
     const json = JSON.stringify(settings, null, "  ");

@@ -1,7 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
-import constants from '../Configs/constants.json' with { type: 'json' };
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import { updateSheetValues } from '../Modules/sheets.js';
 
@@ -113,8 +112,8 @@ export async function execute (game, message, command, args) {
                 inventoryCells.push(row);
             }
         }
-        updateSheetValues(constants.playerSheetDataCells, playerCells);
-        updateSheetValues(constants.inventorySheetDataCells, inventoryCells);
+        updateSheetValues(game.constants.playerSheetDataCells, playerCells);
+        updateSheetValues(game.constants.inventorySheetDataCells, inventoryCells);
         game.inProgress = false;
     }, time);
 

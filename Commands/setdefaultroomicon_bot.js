@@ -43,6 +43,7 @@ export async function execute (game, command, args, player, callee) {
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
+    game.settings.defaultRoomIconURL = input;
     settings.defaultRoomIconURL = input;
 
     const json = JSON.stringify(settings, null, "  ");

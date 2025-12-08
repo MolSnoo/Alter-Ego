@@ -191,8 +191,8 @@ export async function execute (game, message, command, args) {
     }
     else {
         if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
-        const defaultDropOpject = objects.find(object => object.name === settings.defaultDropObject);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(game, message, `There is no default drop object "${settings.defaultDropObject}" in ${player.location.name}.`);
+        const defaultDropOpject = objects.find(object => object.name === game.settings.defaultDropObject);
+        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(game, message, `There is no default drop object "${game.settings.defaultDropObject}" in ${player.location.name}.`);
         container = defaultDropOpject;
     }
 

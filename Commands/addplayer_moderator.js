@@ -2,7 +2,6 @@ import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import constants from '../Configs/constants.json' with { type: 'json' };
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import { appendRowsToSheet } from '../Modules/sheets.js';
 
@@ -106,8 +105,8 @@ export async function execute (game, message, command, args) {
     }
 
     try {
-        await appendRowsToSheet(constants.playerSheetDataCells, playerCells);
-        await appendRowsToSheet(constants.inventorySheetDataCells, inventoryCells);
+        await appendRowsToSheet(game.constants.playerSheetDataCells, playerCells);
+        await appendRowsToSheet(game.constants.inventorySheetDataCells, inventoryCells);
 
         const successMessage = `<@${member.id}> has been added to the game. `
             + "After making any desired changes to the players and inventory items sheets, be sure to load players before disabling edit mode.";

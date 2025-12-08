@@ -205,9 +205,9 @@ export async function execute (game, message, command, args) {
 
 function createEmbed(game, page, pages) {
     let embed = new EmbedBuilder()
-        .setColor(settings.embedColor)
+        .setColor(game.settings.embedColor)
         .setAuthor({ name: `Gestures List`, iconURL: game.guildContext.guild.iconURL() })
-        .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${settings.commandPrefix}help gesture\`.`)
+        .setDescription(`These are the available gestures.\nFor more information on the gesture command, send \`${game.settings.commandPrefix}help gesture\`.`)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
 
     let fields = [];
