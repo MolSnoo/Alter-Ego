@@ -93,12 +93,12 @@ export async function execute (game, command, args, player, callee) {
 
     // Now lock or unlock the exit.
     if (command === "lock") {
-        room.lock(game, exitIndex);
-        exit.dest.lock(game, entranceIndex);
+        room.lock(exitIndex);
+        exit.dest.lock(entranceIndex);
     }
     else if (command === "unlock") {
-        room.unlock(game, exitIndex);
-        exit.dest.unlock(game, entranceIndex);
+        room.unlock(exitIndex);
+        exit.dest.unlock(entranceIndex);
     }
 
     return;

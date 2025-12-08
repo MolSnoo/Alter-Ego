@@ -197,7 +197,7 @@ export async function execute (game, message, command, args, player) {
                 return messageHandler.addReply(game, message, `You cannot do that gesture because you are **${gesture.disabledStatuses[i].name}**.`);
         }
 
-        player.gesture(game, gesture, targetType, target);
+        player.gesture(gesture, targetType, target);
         // Post log message. Message should vary based on target type.
         const time = new Date().toLocaleTimeString();
         if (targetType === "")

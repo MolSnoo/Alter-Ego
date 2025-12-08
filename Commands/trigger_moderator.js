@@ -45,7 +45,7 @@ export async function execute (game, message, command, args) {
     if (event === null) return messageHandler.addReply(game, message, `Couldn't find event "${input}".`);
     if (event.ongoing) return messageHandler.addReply(game, message, `${event.name} is already ongoing.`);
 
-    await event.trigger(game.botContext, game, true);
+    await event.trigger(true);
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully triggered ${event.name}.`);
 
     return;

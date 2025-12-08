@@ -152,7 +152,7 @@ export async function execute (game, message, command, args) {
     item1Name = ingredients[0].identifier ? ingredients[0].identifier : ingredients[0].prefab.id;
     item2Name = ingredients[1].identifier ? ingredients[1].identifier : ingredients[1].prefab.id;
 
-    const products = player.craft(game, ingredients[0], ingredients[1], recipe);
+    const products = player.craft(ingredients[0], ingredients[1], recipe);
 
     let productPhrase = "";
     let product1Phrase = "";

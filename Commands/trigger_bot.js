@@ -58,7 +58,7 @@ export async function execute (game, command, args, player, callee) {
     var doTriggeredCommands = false;
     if (callee && !callee.hasOwnProperty("ongoing")) doTriggeredCommands = true;
 
-    await event.trigger(game.botContext, game, doTriggeredCommands);
+    await event.trigger(doTriggeredCommands);
 
     return;
 }

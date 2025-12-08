@@ -64,7 +64,7 @@ export async function execute (game, message, command, args) {
     var players = [];
     if (args[0] === "all" || args[0] === "living") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.headmasterRole))
+            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);
@@ -89,7 +89,7 @@ export async function execute (game, message, command, args) {
         if (players.length > 1) {
             let success = true;
             for (let i = 0; i < players.length; i++) {
-                const response = players[i].inflict(game, input.toLowerCase(), true, true, true);
+                const response = players[i].inflict(input.toLowerCase(), true, true, true);
                 if (response.startsWith("Couldn't find status effect")) {
                     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
                     success = false;
@@ -99,18 +99,18 @@ export async function execute (game, message, command, args) {
             if (success) messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added to the listed players.");
         }
         else {
-            const response = players[0].inflict(game, input.toLowerCase(), true, true, true);
+            const response = players[0].inflict(input.toLowerCase(), true, true, true);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
         }
     }
     else if (command === "cure") {
         if (players.length > 1) {
             for (let i = 0; i < players.length; i++)
-                players[i].cure(game, input.toLowerCase(), true, true, true);
+                players[i].cure(input.toLowerCase(), true, true, true);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully removed status effect from the listed players.");
         }
         else {
-            const response = players[0].cure(game, input.toLowerCase(), true, true, true);
+            const response = players[0].cure(input.toLowerCase(), true, true, true);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
         }
     }

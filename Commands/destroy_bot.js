@@ -300,7 +300,7 @@ export async function execute (game, command, args, player, callee) {
 
                 if (destroyAll) {
                     for (let i = 0; i < containerItems.length; i++)
-                        destroyInventoryItem(containerItems[i], containerItems[i].quantity, game.botContext, true);
+                        destroyInventoryItem(containerItems[i], containerItems[i].quantity, true);
                     gotoNext = true;
                 }
                 else {
@@ -336,13 +336,13 @@ export async function execute (game, command, args, player, callee) {
                     }
                 }
                 if (item !== null && equipmentSlotName !== "") {
-                    destroyInventoryItem(item, item.quantity, game.botContext, true);
+                    destroyInventoryItem(item, item.quantity, true);
                     gotoNext = true;
                 }
             }
             if (gotoNext) continue;
 
-            if (item !== null) destroyInventoryItem(item, item.quantity, game.botContext, true);
+            if (item !== null) destroyInventoryItem(item, item.quantity, true);
             else return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" in ${player.name}'s inventory.`);
         }
     }

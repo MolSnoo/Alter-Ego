@@ -105,7 +105,7 @@ export async function execute (game, message, command, args) {
     }
     if (!foundSlot) return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
 
-    player.equip(game, item, slotName, hand, game.botContext);
+    player.equip(item, slotName, hand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);

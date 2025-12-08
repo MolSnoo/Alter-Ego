@@ -169,7 +169,7 @@ export async function execute (game, message, command, args) {
     if (topContainer !== null && topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
         return messageHandler.addReply(game, message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
 
-    player.take(game, item, hand, container, slotName);
+    player.take(item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object or Puzzle.
@@ -179,11 +179,7 @@ export async function execute (game, message, command, args) {
         if (container.hasOwnProperty("solved") && container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-            const misc = {
-                command: "take",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, weight.toString(), "take", misc);
+            player.attemptPuzzle(container, item, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
         else if (container.hasOwnProperty("solved") && container.type === "container") {
@@ -192,11 +188,7 @@ export async function execute (game, message, command, args) {
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
             });
-            const misc = {
-                command: "take",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, containerItems, "take", misc);
+            player.attemptPuzzle(container, item, containerItems, "take", input);
         }
     }
     // Container is an Item.

@@ -41,7 +41,6 @@ export async function execute (game, message, command, args) {
         message.author.id,
         member,
         member.displayName,
-        member.displayName,
         "",
         playerdefaults.defaultPronouns,
         playerdefaults.defaultVoice,
@@ -49,11 +48,14 @@ export async function execute (game, message, command, args) {
         true,
         playerdefaults.defaultLocation,
         "",
-        playerdefaults.defaultStatusEffects,
+        [],
         playerdefaults.defaultDescription,
-        new Array(),
-        null
+        [],
+        null,
+        0,
+        game
     );
+    player.statusString = playerdefaults.defaultStatusEffects;
     player.setPronouns(player.originalPronouns, player.pronounString);
     player.setPronouns(player.pronouns, player.pronounString);
     game.players.push(player);

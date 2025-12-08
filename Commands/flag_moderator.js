@@ -98,7 +98,8 @@ export async function execute (game, message, command, args) {
 				valueScript,
 				"",
 				[],
-				rowNumber
+				rowNumber,
+				game
 			);
 		}
 		if (valueScript) {
@@ -106,7 +107,7 @@ export async function execute (game, message, command, args) {
 				value = flag.evaluate(valueScript);
 				if (newFlag) game.flags.set(flagId, flag);
 				flag.valueScript = valueScript;
-				flag.setValue(value, true, game.botContext, game);
+				flag.setValue(value, true);
 			}
 			catch (err) {
 				return messageHandler.addReply(game, message, `The specified script returned an error. ${err}`);
@@ -114,7 +115,7 @@ export async function execute (game, message, command, args) {
 		}
 		else {
 			if (newFlag) game.flags.set(flagId, flag);
-			flag.setValue(value, true, game.botContext, game);
+			flag.setValue(value, true);
 		}
 
 		const valueDisplay = 
@@ -128,7 +129,7 @@ export async function execute (game, message, command, args) {
 		let flag = game.flags.get(flagId);
 		if (!flag) return messageHandler.addReply(game, message, `Couldn't find flag "${input}".`);
 
-		flag.clearValue(true, game.botContext, game);
+		flag.clearValue(true);
 		messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully cleared flag ${flag.id}.`);
 	}
 }

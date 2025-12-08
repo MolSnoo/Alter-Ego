@@ -137,12 +137,12 @@ export async function execute (game, command, args, player, callee) {
 
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {
-        object.activate(game, player, narrate);
+        object.activate(player, narrate);
         // Post log message.
         if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
-        object.deactivate(game, player, narrate);
+        object.deactivate(player, narrate);
         // Post log message.
         if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
     }

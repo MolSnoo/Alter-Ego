@@ -141,22 +141,16 @@ export async function execute (game, message, command, args) {
 
     if (command === "solve") {
         if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addReply(game, message, `"${input}" is not a valid solution.`);
-        puzzle.solve(game.botContext, game, player, announcement, outcome, true, [], targetPlayer);
+        puzzle.solve(player, announcement, outcome, true, [], targetPlayer);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
-        puzzle.unsolve(game.botContext, game, player, announcement, null, true);
+        puzzle.unsolve(player, announcement, null, true);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unsolved ${puzzle.name}.`);
     }
     else if (command === "attempt") {
         if (player === null) return messageHandler.addReply(game, message, `Cannot attempt a puzzle without a player.`);
-        const misc = {
-            command: command,
-            input: input,
-            message: message,
-            targetPlayer: targetPlayer
-        };
-        player.attemptPuzzle(game.botContext, game, puzzle, null, input, command, misc);
+        player.attemptPuzzle(puzzle, null, input, command, input, message, targetPlayer);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 

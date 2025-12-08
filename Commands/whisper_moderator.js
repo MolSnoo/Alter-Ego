@@ -108,8 +108,8 @@ export async function execute (game, message, command, args) {
     }
 
     // Whisper does not exist, so create it.
-    var whisper = new Whisper(recipients, recipients[0].location);
-    await whisper.init(game);
+    var whisper = new Whisper(game, recipients, recipients[0].location);
+    await whisper.init();
     game.whispers.push(whisper);
 
     if (npc !== null)
@@ -135,6 +135,6 @@ async function sendMessage (game, message, string, player, whisper) {
         embeds: message.embeds,
         files: files
     }).then(message => {
-        handleDialog(game.botContext, game, message, true, player);
+        handleDialog(game, message, true, player);
     });
 }

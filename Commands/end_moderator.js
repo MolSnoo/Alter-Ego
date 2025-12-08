@@ -45,7 +45,7 @@ export async function execute (game, message, command, args) {
     if (event === null) return messageHandler.addReply(game, message, `Couldn't find event "${input}".`);
     if (!event.ongoing) return messageHandler.addReply(game, message, `${event.name} is not currently ongoing.`);
 
-    await event.end(game.botContext, game, true);
+    await event.end(true);
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully ended ${event.name}.`);
 
     return;

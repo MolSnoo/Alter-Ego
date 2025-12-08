@@ -141,7 +141,7 @@ export async function execute (game, message, command, args) {
     }
     if (item !== null && container === null) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} is not contained in another item and cannot be unstashed.`);
 
-    player.unstash(game, item, hand, container, slotName);
+    player.unstash(item, hand, container, slotName);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);

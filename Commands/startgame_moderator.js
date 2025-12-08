@@ -1,10 +1,9 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 import constants from '../Configs/constants.json' with { type: 'json' };
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import { updateData as updateSheetData } from '../Modules/sheets.js';
+import { updateSheetValues } from '../Modules/sheets.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -39,13 +38,13 @@ export async function execute (game, message, command, args) {
     if (args.length === 0) return message.reply("remember to specify how long players have to join!");
     if (game.inProgress) return message.reply("there is already a game running.");
     
-    const timeInt = args[0].substring(0, args[0].length - 1);
+    const timeInt = parseInt(args[0].substring(0, args[0].length - 1));
     if (isNaN(timeInt) || (!args[0].endsWith('m') && !args[0].endsWith('h')))
         return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
 
     var channel;
-    if (game.settings.debug) channel = game.guildContext.guild.channels.cache.get(game.guildContext.testingChannel);
-    else channel = game.guildContext.guild.channels.cache.get(game.guildContext.generalChannel);
+    if (game.settings.debug) channel = game.guildContext.testingChannel;
+    else channel = game.guildContext.generalChannel;
 
     var time;
     var halfTime;
@@ -87,18 +86,18 @@ export async function execute (game, message, command, args) {
             const playerData = [
                 player.id,
                 player.name,
-                player.talent,
+                player.title,
                 player.pronounString,
                 player.originalVoiceString,
-                player.strength,
-                player.intelligence,
-                player.dexterity,
-                player.speed,
-                player.stamina,
-                player.alive,
-                player.location,
+                String(player.strength),
+                String(player.intelligence),
+                String(player.dexterity),
+                String(player.speed),
+                String(player.stamina),
+                player.alive ? "TRUE" : "FALSE",
+                player.locationId,
                 player.hidingSpot,
-                player.status,
+                player.statusString,
                 player.description
             ];
             playerCells.push(playerData);
@@ -109,13 +108,13 @@ export async function execute (game, message, command, args) {
                 row = row.concat(playerdefaults.defaultInventory[j]);
                 for (let k = 0; k < row.length; k++) {
                     if (row[k].includes('#'))
-                        row[k] = row[k].replace(/#/g, i + 1);
+                        row[k] = row[k].replace(/#/g, String(i + 1));
                 }
                 inventoryCells.push(row);
             }
         }
-        updateSheetData(constants.playerSheetDataCells, playerCells);
-        updateSheetData(constants.inventorySheetDataCells, inventoryCells);
+        updateSheetValues(constants.playerSheetDataCells, playerCells);
+        updateSheetValues(constants.inventorySheetDataCells, inventoryCells);
         game.inProgress = false;
     }, time);
 

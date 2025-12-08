@@ -4,7 +4,7 @@ import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import constants from '../Configs/constants.json' with { type: 'json' };
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import { appendRows } from '../Modules/sheets.js';
+import { appendRowsToSheet } from '../Modules/sheets.js';
 
 import Player from '../Data/Player.js';
 
@@ -55,7 +55,6 @@ export async function execute (game, message, command, args) {
         member.id,
         member,
         member.displayName,
-        member.displayName,
         "",
         "neutral",
         "an average voice",
@@ -63,11 +62,14 @@ export async function execute (game, message, command, args) {
         true,
         playerdefaults.defaultLocation,
         "",
-        playerdefaults.defaultStatusEffects,
+        [],
         playerdefaults.defaultDescription,
-        new Array(),
-        null
+        [],
+        null,
+        0,
+        game
     );
+    player.statusString = playerdefaults.defaultStatusEffects;
 
     game.players.push(player);
     game.players_alive.push(player);
@@ -78,18 +80,18 @@ export async function execute (game, message, command, args) {
     playerCells.push([
         player.id,
         player.name,
-        player.talent,
+        player.title,
         player.pronounString,
         player.originalVoiceString,
-        player.defaultStrength,
-        player.defaultIntelligence,
-        player.defaultDexterity,
-        player.defaultSpeed,
-        player.defaultStamina,
-        player.alive,
-        player.location,
+        String(player.defaultStrength),
+        String(player.defaultIntelligence),
+        String(player.defaultDexterity),
+        String(player.defaultSpeed),
+        String(player.defaultStamina),
+        player.alive ? "TRUE" : "FALSE",
+        player.locationId,
         player.hidingSpot,
-        player.status,
+        player.statusString,
         player.description
     ]);
 
@@ -98,14 +100,14 @@ export async function execute (game, message, command, args) {
         row = row.concat(playerdefaults.defaultInventory[i]);
         for (let j = 0; j < row.length; j++) {
             if (row[j].includes('#'))
-                row[j] = row[j].replace(/#/g, game.players.length);
+                row[j] = row[j].replace(/#/g, String(game.players.length));
         }
         inventoryCells.push(row);
     }
 
     try {
-        await appendRows(constants.playerSheetDataCells, playerCells);
-        await appendRows(constants.inventorySheetDataCells, inventoryCells);
+        await appendRowsToSheet(constants.playerSheetDataCells, playerCells);
+        await appendRowsToSheet(constants.inventorySheetDataCells, inventoryCells);
 
         const successMessage = `<@${member.id}> has been added to the game. `
             + "After making any desired changes to the players and inventory items sheets, be sure to load players before disabling edit mode.";

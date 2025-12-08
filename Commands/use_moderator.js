@@ -119,7 +119,7 @@ export async function execute (game, message, command, args) {
     // Use the player's item.
     const itemName = item.identifier ? item.identifier : item.prefab.id;
     if (target !== null) {
-        const response = player.use(game, item, target, announcement);
+        const response = player.use(item, target, announcement);
         if (response === "" || !response) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully used ${itemName} on ${target.name} for ${player.name}.`);
             // Post log message.
@@ -132,7 +132,7 @@ export async function execute (game, message, command, args) {
         else return messageHandler.addReply(game, message, response);
     }
     else {
-        const response = player.use(game, item);
+        const response = player.use(item);
         if (response === "" || !response) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully used ${itemName} for ${player.name}.`);
             // Post log message.

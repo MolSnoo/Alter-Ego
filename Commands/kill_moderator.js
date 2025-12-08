@@ -54,7 +54,7 @@ export async function execute (game, message, command, args) {
     }
 
     for (let i = 0; i < players.length; i++)
-        players[i].die(game);
+        players[i].die();
 
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
 

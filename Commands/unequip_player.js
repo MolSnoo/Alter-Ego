@@ -88,7 +88,7 @@ export async function execute (game, message, command, args, player) {
 
     if (!item.prefab.equippable) return messageHandler.addReply(game, message, `You cannot unequip the ${item.name}.`);
 
-    player.unequip(game, item, slotName, hand, game.botContext);
+    player.unequip(item, slotName, hand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} in ${player.location.channel}`);

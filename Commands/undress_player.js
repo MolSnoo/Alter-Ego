@@ -138,19 +138,19 @@ export async function execute (game, message, command, args, player) {
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].name === "RIGHT HAND") rightHand = slot;
         if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null)
-            player.drop(game, player.inventory[slot].equippedItem, "RIGHT HAND", container, slotName, false);
+            player.drop(player.inventory[slot].equippedItem, "RIGHT HAND", container, slotName, false);
         else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null)
-            player.drop(game, player.inventory[slot].equippedItem, "LEFT HAND", container, slotName, false);
+            player.drop(player.inventory[slot].equippedItem, "LEFT HAND", container, slotName, false);
     }
     // Now, unequip all equipped items.
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.prefab.equippable) {
-            player.unequip(game, player.inventory[slot].equippedItem, player.inventory[slot].name, "RIGHT HAND", game.botContext, false);
-            player.drop(game, player.inventory[rightHand].equippedItem, "RIGHT HAND", container, slotName, false);
+            player.unequip(player.inventory[slot].equippedItem, player.inventory[slot].name, "RIGHT HAND", false);
+            player.drop(player.inventory[rightHand].equippedItem, "RIGHT HAND", container, slotName, false);
         }
     }
 
-    player.notify(game, `You undress.`);
+    player.notify(`You undress.`);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
@@ -163,11 +163,7 @@ export async function execute (game, message, command, args, player) {
         if (container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-            const misc = {
-                command: "drop",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, null, weight.toString(), "drop", misc);
+            player.attemptPuzzle(container, null, weight.toString(), "drop", input);
         }
         // Container is a container puzzle.
         else if (container.type === "container") {
@@ -176,11 +172,7 @@ export async function execute (game, message, command, args, player) {
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
             });
-            const misc = {
-                command: "drop",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, containerItems, "drop", misc);
+            player.attemptPuzzle(container, item, containerItems, "drop", input);
         }
     }
     // Container is an Item.

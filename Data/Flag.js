@@ -124,7 +124,7 @@ export default class Flag extends GameEntity {
 	/**
 	 * Sets the flag's value to null.
 	 * @param {boolean} doClearedCommands - Whether or not to execute the flag's clearedCommands.
-	 * @param {Player} player - The player who caused the flag to be cleared, if applicable.
+	 * @param {Player} [player] - The player who caused the flag to be cleared, if applicable.
 	 */
 	async clearValue(doClearedCommands, player) {
 		const originalValue = this.value;

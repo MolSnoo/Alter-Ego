@@ -85,7 +85,7 @@ export async function execute (game, message, command, args) {
         new Narration(game, player, room, destNarration).send();
     else {
         for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].notify(game, destNarration);
+            hearingPlayers[i].notify(destNarration);
     }
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully knocked on ${exit.name} for ${player.name}.`);
 

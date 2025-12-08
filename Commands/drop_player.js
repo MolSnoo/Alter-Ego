@@ -171,7 +171,7 @@ export async function execute (game, message, command, args, player) {
             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
     }
 
-    player.drop(game, item, hand, container, slotName);
+    player.drop(item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
@@ -184,11 +184,7 @@ export async function execute (game, message, command, args, player) {
         if (container.type === "weight") {
             const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-            const misc = {
-                command: "drop",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, weight.toString(), "drop", misc);
+            player.attemptPuzzle(container, item, weight.toString(), "drop", input);
         }
         // Container is a container puzzle.
         else if (container.type === "container") {
@@ -197,11 +193,7 @@ export async function execute (game, message, command, args, player) {
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
             });
-            const misc = {
-                command: "drop",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, containerItems, "drop", misc);
+            player.attemptPuzzle(container, item, containerItems, "drop", input);
         }
     }
     // Container is an Item.

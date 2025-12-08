@@ -64,7 +64,7 @@ export async function execute (game, message, command, args, player) {
             embeds: message.embeds,
             files: files
         }).then(msg => {
-            handleDialog(game.botContext, game, msg, true, player, displayName)
+            handleDialog(game, msg, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;

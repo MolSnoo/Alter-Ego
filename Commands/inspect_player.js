@@ -64,7 +64,7 @@ export async function execute (game, message, command, args, player) {
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
         new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
-        player.sendDescription(game, player.location.description, player.location);
+        player.sendDescription(player.location.description, player.location);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -109,7 +109,7 @@ export async function execute (game, message, command, args, player) {
         // Make sure the player can only inspect the object they're hiding in, if they're hidden.
         if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
         new Narration(game, player, player.location, `${player.displayName} begins inspecting the ${object.name}.`).send();
-        player.sendDescription(game, object.description, object);
+        player.sendDescription(object.description, object);
 
         // Don't notify anyone if the player is inspecting the object that they're hiding in.
         if (hiddenStatus.length === 0 || player.hidingSpot !== object.name) {
@@ -119,7 +119,7 @@ export async function execute (game, message, command, args, player) {
                 for (let i = 0; i < game.players_alive.length; i++) {
                     if (game.players_alive[i].location.name === player.location.name && game.players_alive[i].hidingSpot === object.name) {
                         hiddenPlayers.push(game.players_alive[i]);
-                        game.players_alive[i].notify(game, `You've been found by ${player.displayName}!`);
+                        game.players_alive[i].notify(`You've been found by ${player.displayName}!`);
                     }
                 }
 
@@ -141,7 +141,7 @@ export async function execute (game, message, command, args, player) {
                     hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
                 }
 
-                if (hiddenPlayersString) player.notify(game, `You find ${hiddenPlayersString} hiding in the ${object.name}!`);
+                if (hiddenPlayersString) player.notify(`You find ${hiddenPlayersString} hiding in the ${object.name}!`);
             }
         }
 
@@ -236,7 +236,7 @@ export async function execute (game, message, command, args, player) {
         }
         if (!item.prefab.discreet)
             new Narration(game, player, player.location, `${player.displayName} begins inspecting ${item.singleContainingPhrase}` + (containerName ? ` ${preposition} ${containerName}` : '') + `.`).send();
-        player.sendDescription(game, item.description, item);
+        player.sendDescription(item.description, item);
 
         const time = new Date().toLocaleTimeString();
         const identifier = item.identifier !== "" ? item.identifier : item.prefab.id;
@@ -252,7 +252,7 @@ export async function execute (game, message, command, args, player) {
         if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
             const item = inventory[i];
             if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} takes out ${item.prefab.singleContainingPhrase} and begins inspecting it.`).send();
-            player.sendDescription(game, item.description, item);
+            player.sendDescription(item.description, item);
 
             const time = new Date().toLocaleTimeString();
             messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ` + (item.identifier !== "" ? item.identifier : item.prefab.id) + ` from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
@@ -272,7 +272,7 @@ export async function execute (game, message, command, args, player) {
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
             if (occupant.name === player.name) return messageHandler.addReply(game, message, `You can't inspect yourself.`);
-            player.sendDescription(game, occupant.description, occupant);
+            player.sendDescription(occupant.description, occupant);
 
             const time = new Date().toLocaleTimeString();
             messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ${occupant.name} in ${player.location.channel}`);
@@ -296,7 +296,7 @@ export async function execute (game, message, command, args, player) {
                     if (coveringItems.length === 0) {
                         // Clear out any il tags in the description.
                         let description = inventory[j].description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
-                        player.sendDescription(game, description, inventory[j]);
+                        player.sendDescription(description, inventory[j]);
 
                         const time = new Date().toLocaleTimeString();
                         messageHandler.addLogMessage(game, `${time} - ${player.name} inspected ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` from ${occupant.name}'s inventory in ${player.location.channel}`);

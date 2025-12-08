@@ -98,7 +98,7 @@ export async function execute (game, message, command, args) {
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find equipped item "${parsedInput}".`);
 
-    player.unequip(game, item, slotName, hand, game.botContext);
+    player.unequip(item, slotName, hand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} in ${player.location.channel}`);

@@ -55,7 +55,7 @@ export async function execute (game, message, command, args) {
 
     try {
         // Pass deletedItemsCount and deletedInventoryItemsCount so the saver knows how many blank rows to append at the end.
-        await saveGame(deletedItemsCount, deletedInventoryItemsCount);
+        await saveGame(game, deletedItemsCount, deletedInventoryItemsCount);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
     }
     catch (err) {

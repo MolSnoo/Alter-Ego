@@ -58,7 +58,7 @@ export async function execute (game, command, args, player, callee) {
     var doEndedCommands = false;
     if (callee && !callee.hasOwnProperty("ongoing")) doEndedCommands = true;
 
-    await event.end(game.botContext, game, doEndedCommands);
+    await event.end(doEndedCommands);
 
     return;
 }

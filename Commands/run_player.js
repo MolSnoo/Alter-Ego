@@ -47,7 +47,7 @@ export async function execute (game, message, command, args, player) {
     if (player.isMoving) return messageHandler.addReply(game, message, `You cannot do that because you are already moving.`);
 
     player.moveQueue = args.join(" ").split(">");
-    player.queueMovement(game.botContext, game, true, player.moveQueue[0].trim());
+    player.queueMovement(true, player.moveQueue[0].trim());
 
     return;
 }

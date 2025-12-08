@@ -274,7 +274,7 @@ export async function execute (game, message, command, args) {
 
             if (destroyAll) {
                 for (let i = 0; i < containerItems.length; i++)
-                    destroyInventoryItem(containerItems[i], containerItems[i].quantity, game.botContext, true);
+                    destroyInventoryItem(containerItems[i], containerItems[i].quantity, true);
                 messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
                 return;
             }
@@ -311,7 +311,7 @@ export async function execute (game, message, command, args) {
                 }
             }
             if (item !== null && equipmentSlotName !== "") {
-                destroyInventoryItem(item, item.quantity, game.botContext, true);
+                destroyInventoryItem(item, item.quantity, true);
                 messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${player.name}'s ${equipmentSlotName}.`);
                 return;
             }
@@ -321,7 +321,7 @@ export async function execute (game, message, command, args) {
             if (containerName === "") containerName = `${item.slot} of ${item.container.identifier} in ${player.name}'s inventory`;
             if (item.container.prefab.preposition) preposition = item.container.prefab.preposition;
 
-            destroyInventoryItem(item, item.quantity, game.botContext, true);
+            destroyInventoryItem(item, item.quantity, true);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName}.`);
         }
         else return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" in ${player.name}'s inventory.`);

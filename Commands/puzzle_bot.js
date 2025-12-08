@@ -161,19 +161,14 @@ export async function execute (game, command, args, player, callee) {
 
     if (command === "solve") {
         if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
-        puzzle.solve(game.botContext, game, player, announcement, outcome, doCommands, [], targetPlayer);
+        puzzle.solve(player, announcement, outcome, doCommands, [], targetPlayer);
     }
     else if (command === "unsolve") {
-        puzzle.unsolve(game.botContext, game, player, announcement, null, doCommands);
+        puzzle.unsolve(player, announcement, null, doCommands);
     }
     else if (command === "attempt") {
         if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
-        const misc = {
-            command: command,
-            input: input,
-            targetPlayer: targetPlayer
-        };
-        player.attemptPuzzle(game.botContext, game, puzzle, null, input, command, misc);
+        player.attemptPuzzle(puzzle, null, input, command, input, null, targetPlayer);
     }
 
     return;

@@ -63,7 +63,7 @@ export async function execute (game, message, command, args) {
     const moving = sort_occupantsString(room.occupants.filter(occupant => occupant.isMoving));
     var movingList = [];
     for (let i = 0; i < moving.length; i++) {
-        const remaining = new moment.duration(moving[i].remainingTime);
+        const remaining = moment.duration(moving[i].remainingTime);
 
         const days = Math.floor(remaining.asDays());
         const hours = remaining.hours();

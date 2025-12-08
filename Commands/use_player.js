@@ -144,12 +144,12 @@ export async function execute (game, message, command, args, player) {
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (object.activated) {
-            object.deactivate(game, player, narrate);
+            object.deactivate(player, narrate);
             // Post log message.
             messageHandler.addLogMessage(game, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
         }
         else {
-            object.activate(game, player, narrate);
+            object.activate(player, narrate);
             // Post log message.
             messageHandler.addLogMessage(game, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
         }
@@ -157,20 +157,14 @@ export async function execute (game, message, command, args, player) {
 
     // If there is a puzzle, do the required behavior.
     if (puzzle !== null) {
-        const misc = {
-            command: command,
-            input: args.join(" "),
-            message: message,
-            targetPlayer: targetPlayer
-        };
-        const response = player.attemptPuzzle(game.botContext, game, puzzle, item, password, command, misc);
+        const response = player.attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer);
         if (response === "" || !response) return;
         else return messageHandler.addReply(game, message, response);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
         const itemName = item.identifier ? item.identifier : item.prefab.id;
-        const response = player.use(game, item);
+        const response = player.use(item);
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();

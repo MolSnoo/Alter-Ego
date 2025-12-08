@@ -52,7 +52,7 @@ export async function execute (game, message, command, args, player) {
         }
         if (object !== null && (!object.accessible || object.childPuzzle !== null && object.childPuzzle.type.endsWith("lock") && !object.childPuzzle.solved))
             return messageHandler.addReply(game, message, `You cannot come out of hiding right now.`);
-        else player.cure(game, "hidden", true, false, true);
+        else player.cure("hidden", true, false, true);
     }
     else if (player.statusString.includes("hidden"))
         return messageHandler.addReply(game, message, `You are already **hidden**. If you wish to stop hiding, use "${game.settings.commandPrefix}unhide".`);
@@ -101,25 +101,25 @@ export async function execute (game, message, command, args, player) {
         if (player.hasAttribute("no sight")) {
             let hiddenPlayersString = hiddenPlayers.length > 1 ? "multiple people" : "someone";
             if (hiddenPlayers.length + 1 > object.hidingSpotCapacity) {
-                player.notify(game, `You attempt to hide in the ${object.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
+                player.notify(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     if (hiddenPlayers[i].hasAttribute("no sight"))
-                        hiddenPlayers[i].notify(game, `Someone finds you! They try to hide with you, but there isn't enough room.`);
+                        hiddenPlayers[i].notify(`Someone finds you! They try to hide with you, but there isn't enough room.`);
                     else
-                        hiddenPlayers[i].notify(game, `You're found by ${player.displayName}! ${player.pronouns.Sbj} try to hide with you, but there isn't enough room.`);
+                        hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} try to hide with you, but there isn't enough room.`);
                 }
             }
             else {
-                player.notify(game, `When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+                player.notify(`When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
 
                 hiddenPlayers.push(player);
                 player.hidingSpot = object.name;
-                player.inflict(game, "hidden", true, false, true);
+                player.inflict("hidden", true, false, true);
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {
-                    var whisper = new Whisper(hiddenPlayers, player.location);
-                    await whisper.init(game);
+                    var whisper = new Whisper(game, hiddenPlayers, player.location);
+                    await whisper.init();
                     game.whispers.push(whisper);
                 }
 
@@ -138,31 +138,31 @@ export async function execute (game, message, command, args, player) {
             }
 
             if (hiddenPlayers.length + 1 > object.hidingSpotCapacity) {
-                player.notify(game, `You attempt to hide in the ${object.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
+                player.notify(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     if (hiddenPlayers[i].hasAttribute("no sight"))
-                        hiddenPlayers[i].notify(game, `Someone finds you! They try to hide with you, but there isn't enough room.`);
+                        hiddenPlayers[i].notify(`Someone finds you! They try to hide with you, but there isn't enough room.`);
                     else
-                        hiddenPlayers[i].notify(game, `You're found by ${player.displayName}! ${player.pronouns.Sbj} try to hide with you, but there isn't enough room.`);
+                        hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} try to hide with you, but there isn't enough room.`);
                 }
             }
             else {
-                if (hiddenPlayers.length > 0) player.notify(game, `When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+                if (hiddenPlayers.length > 0) player.notify(`When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     if (hiddenPlayers[i].hasAttribute("no sight"))
-                        hiddenPlayers[i].notify(game, `Someone finds you! They hide with you.`);
+                        hiddenPlayers[i].notify(`Someone finds you! They hide with you.`);
                     else
-                        hiddenPlayers[i].notify(game, `You're found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
-                    hiddenPlayers[i].removeFromWhispers(game, "");
+                        hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
+                    hiddenPlayers[i].removeFromWhispers("");
                 }
                 hiddenPlayers.push(player);
                 player.hidingSpot = object.name;
-                player.inflict(game, "hidden", true, false, true);
+                player.inflict("hidden", true, false, true);
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {
-                    var whisper = new Whisper(hiddenPlayers, player.location);
-                    await whisper.init(game);
+                    var whisper = new Whisper(game, hiddenPlayers, player.location);
+                    await whisper.init();
                     game.whispers.push(whisper);
                 }
 

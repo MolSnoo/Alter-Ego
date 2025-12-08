@@ -32,7 +32,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     try {
-        await saveGame();
+        await saveGame(game);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully saved game data to the spreadsheet.");
     }
     catch (err) {

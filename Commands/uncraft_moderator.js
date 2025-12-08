@@ -94,7 +94,7 @@ export async function execute (game, message, command, args) {
 
     let itemName = item.identifier ? item.identifier : item.prefab.id;
 
-    const ingredients = player.uncraft(game, item, recipe, game.botContext);
+    const ingredients = player.uncraft(item, recipe);
 
     let ingredientPhrase = "";
     let ingredient1Phrase = "";

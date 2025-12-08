@@ -143,15 +143,15 @@ export async function execute (game, message, command, args) {
                     // If something is already equipped to this equipment slot, move on.
                     if (player.inventory[k].equippedItem !== null) break;
                     // Take the item and equip it.
-                    player.take(game, containerItems[i], hand, container, containerItems[i].slot, false);
-                    player.equip(game, player.inventory[handSlot].equippedItem, player.inventory[k].name, hand, game.botContext, false);
+                    player.take(containerItems[i], hand, container, containerItems[i].slot, false);
+                    player.equip(player.inventory[handSlot].equippedItem, player.inventory[k].name, hand, false);
                     equipped = true;
                 }
             }
         }
     }
 
-    player.notify(game, `You dress.`);
+    player.notify(`You dress.`);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
@@ -164,11 +164,7 @@ export async function execute (game, message, command, args) {
         if (container.type === "weight") {
             const weightItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = weightItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-            const misc = {
-                command: "take",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, null, weight.toString(), "take", misc);
+            player.attemptPuzzle(container, null, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
         else if (container.hasOwnProperty("solved") && container.type === "container") {
@@ -177,11 +173,7 @@ export async function execute (game, message, command, args) {
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
             });
-            const misc = {
-                command: "take",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, containerItems, "take", misc);
+            player.attemptPuzzle(container, item, containerItems, "take", input);
         }
     }
     // Container is an Item.

@@ -70,7 +70,7 @@ export async function execute (game, command, args, player, callee) {
         players = player.location.occupants;
     else if (args[0].toLowerCase() === "all") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole))
+            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
     }
@@ -90,9 +90,9 @@ export async function execute (game, command, args, player, callee) {
     var statusName = args.join(" ").toLowerCase();
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict")
-            players[i].inflict(game, statusName, true, true, true, callee);
+            players[i].inflict(statusName, true, true, true, callee);
         else if (command === "cure")
-            players[i].cure(game, statusName, true, true, true, callee);
+            players[i].cure(statusName, true, true, true, callee);
     }
 
     return;

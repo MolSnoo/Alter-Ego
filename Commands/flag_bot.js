@@ -109,7 +109,8 @@ export async function execute (game, command, args, player, callee) {
 				valueScript,
 				"",
 				[],
-				rowNumber
+				rowNumber,
+				game
 			);
 		}
 		if (valueScript) {
@@ -117,7 +118,7 @@ export async function execute (game, command, args, player, callee) {
 				value = flag.evaluate(valueScript);
 				if (newFlag) game.flags.set(flagId, flag);
 				flag.valueScript = valueScript;
-				flag.setValue(value, doCommands, game.botContext, game, player);
+				flag.setValue(value, doCommands, player);
 			}
 			catch (err) {
 				return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
@@ -125,7 +126,7 @@ export async function execute (game, command, args, player, callee) {
 		}
 		else {
 			if (newFlag) game.flags.set(flagId, flag);
-			flag.setValue(value, doCommands, game.botContext, game, player);
+			flag.setValue(value, doCommands, player);
 		}
 	}
 	else if (command === "clearflag") {
@@ -133,6 +134,6 @@ export async function execute (game, command, args, player, callee) {
 		let flag = game.flags.get(flagId);
 		if (!flag) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
 
-		flag.clearValue(doCommands, game.botContext, game, player);
+		flag.clearValue(doCommands, player);
 	}
 }

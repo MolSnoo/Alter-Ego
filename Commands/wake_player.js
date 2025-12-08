@@ -36,7 +36,7 @@ export async function execute (game, message, command, args, player) {
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].name}**.`);
 
     if (!player.statusString.includes("asleep")) return messageHandler.addReply(game, message, "You are not currently asleep.");
-    player.cure(game, "asleep", true, true, true);
+    player.cure("asleep", true, true, true);
 
     return;
 }

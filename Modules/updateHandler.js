@@ -1,5 +1,5 @@
 import constants from '../Configs/constants.json' with { type: 'json' };
-import * as sheets from './sheets.js';
+import { batchUpdateSheet, batchUpdateSheetValues, getSheetWithProperties } from './sheets.js';
 
 import fs from 'fs';
 
@@ -24,62 +24,62 @@ async function v1_10Update() {
         console.log("Updated constants file with new Recipes sheet coordinates.");
     }
     // Updated Recipes sheet with the new columns.
-    sheets.getDataWithProperties("Recipes!A1:H1", async function (response) {
-        const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
-        if (sheetProperties.gridProperties.columnCount === 6) {
-            var requests = [
-                {
-                    insertDimension: {
-                        range: {
-                            sheetId: sheetProperties.sheetId,
-                            dimension: "COLUMNS",
-                            startIndex: 1,
-                            endIndex: 2
-                        },
-                        inheritFromBefore: false
-                    }
-                },
-                {
-                    insertDimension: {
-                        range: {
-                            sheetId: sheetProperties.sheetId,
-                            dimension: "COLUMNS",
-                            startIndex: 7,
-                            endIndex: 8
-                        },
-                        inheritFromBefore: true
-                    }
-                },
-                {
-                    pasteData: {
-                        coordinate: {
-                            sheetId: sheetProperties.sheetId,
-                            rowIndex: 0,
-                            columnIndex: 1
-                        },
-                        data: "Uncraftable?",
-                        type: "PASTE_VALUES",
-                        delimiter: ","
-                    }
-                },
-                {
-                    pasteData: {
-                        coordinate: {
-                            sheetId: sheetProperties.sheetId,
-                            rowIndex: 0,
-                            columnIndex: 7
-                        },
-                        data: "Message When Uncrafted",
-                        type: "PASTE_VALUES",
-                        delimiter: ","
-                    }
+    const response = await getSheetWithProperties("Recipes!A1:H1");
+    const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
+    if (sheetProperties.gridProperties.columnCount === 6) {
+        var requests = [
+            {
+                insertDimension: {
+                    range: {
+                        sheetId: sheetProperties.sheetId,
+                        dimension: "COLUMNS",
+                        startIndex: 1,
+                        endIndex: 2
+                    },
+                    inheritFromBefore: false
                 }
-            ];
-            sheets.batchUpdate(requests, async function (response) {
-                console.log("Inserted Uncraftable and Message When Uncrafted columns on Recipes sheet.");
-            });
-        }
-    });
+            },
+            {
+                insertDimension: {
+                    range: {
+                        sheetId: sheetProperties.sheetId,
+                        dimension: "COLUMNS",
+                        startIndex: 7,
+                        endIndex: 8
+                    },
+                    inheritFromBefore: true
+                }
+            },
+            {
+                pasteData: {
+                    coordinate: {
+                        sheetId: sheetProperties.sheetId,
+                        rowIndex: 0,
+                        columnIndex: 1
+                    },
+                    data: "Uncraftable?",
+                    type: "PASTE_VALUES",
+                    delimiter: ","
+                }
+            },
+            {
+                pasteData: {
+                    coordinate: {
+                        sheetId: sheetProperties.sheetId,
+                        rowIndex: 0,
+                        columnIndex: 7
+                    },
+                    data: "Message When Uncrafted",
+                    type: "PASTE_VALUES",
+                    delimiter: ","
+                }
+            }
+        ];
+        batchUpdateSheet(requests).then(() => {
+            console.log("Inserted Uncraftable and Message When Uncrafted columns on Recipes sheet.");
+        }).catch(err => console.error(err));
+        
+    }
 }
 
 async function v1_9Update() {
@@ -94,49 +94,48 @@ async function v1_9Update() {
         console.log("Updated constants file with new Players sheet coordinates.");
     }
     // Update Players sheet with the new voice column.
-    sheets.getDataWithProperties("Players!A1:O1", async function (response) {
-        const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
-        if (sheetProperties.gridProperties.columnCount === 14) {
-            var requests = [
-                {
-                    insertDimension: {
-                        range: {
-                            sheetId: sheetProperties.sheetId,
-                            dimension: "COLUMNS",
-                            startIndex: 4,
-                            endIndex: 5,
-                        },
-                        inheritFromBefore: true
-                    }
-                },
-                {
-                    pasteData: {
-                        coordinate: {
-                            sheetId: sheetProperties.sheetId,
-                            rowIndex: 0,
-                            columnIndex: 4
-                        },
-                        data: "Voice",
-                        type: "PASTE_VALUES",
-                        delimiter: ","
-                    }
-                },
-                {
-                    mergeCells: {
-                        range: {
-                            sheetId: sheetProperties.sheetId,
-                            startRowIndex: 0,
-                            endRowIndex: 2,
-                            startColumnIndex: 4,
-                            endColumnIndex: 5
-                        },
-                        mergeType: "MERGE_COLUMNS"
-                    }
+    const response = await getSheetWithProperties("Players!A1:O1");
+    const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
+    if (sheetProperties.gridProperties.columnCount === 14) {
+        var requests = [
+            {
+                insertDimension: {
+                    range: {
+                        sheetId: sheetProperties.sheetId,
+                        dimension: "COLUMNS",
+                        startIndex: 4,
+                        endIndex: 5,
+                    },
+                    inheritFromBefore: true
                 }
-            ];
-            sheets.batchUpdate(requests, async function (response) {
-                console.log("Inserted Voice column on Players sheet.");
-            });
-        }
-    });
+            },
+            {
+                pasteData: {
+                    coordinate: {
+                        sheetId: sheetProperties.sheetId,
+                        rowIndex: 0,
+                        columnIndex: 4
+                    },
+                    data: "Voice",
+                    type: "PASTE_VALUES",
+                    delimiter: ","
+                }
+            },
+            {
+                mergeCells: {
+                    range: {
+                        sheetId: sheetProperties.sheetId,
+                        startRowIndex: 0,
+                        endRowIndex: 2,
+                        startColumnIndex: 4,
+                        endColumnIndex: 5
+                    },
+                    mergeType: "MERGE_COLUMNS"
+                }
+            }
+        ];
+        batchUpdateSheetValues(requests).then(() => {
+            console.log("Inserted Voice column on Players sheet.");
+        }).catch(err => console.error(err));
+    }
 }

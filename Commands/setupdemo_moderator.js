@@ -44,7 +44,7 @@ export async function execute (game, message, command, args) {
     if (game.inProgress) return messageHandler.addReply(game, message, `You can't use this command while a game is in progress.`);
 
     try {
-        var roomValues = await setupdemo();
+        var roomValues = await setupdemo(game);
 
         // Ensure that a room category exists.
         let roomCategories = game.guildContext.roomCategories;

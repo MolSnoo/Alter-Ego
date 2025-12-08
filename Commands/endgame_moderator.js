@@ -34,7 +34,7 @@ export async function execute (game, message, command, args) {
         const player = game.players_alive[i];
         if (player.talent !== "NPC") {
             if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
-            player.removeFromWhispers(game);
+            player.removeFromWhispers("");
             player.member.roles.remove(game.guildContext.playerRole).catch();
 
             for (let j = 0; j < player.status.length; j++) {

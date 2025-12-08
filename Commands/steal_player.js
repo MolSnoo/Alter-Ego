@@ -127,11 +127,11 @@ export async function execute (game, message, command, args, player) {
     }
     // If there are no items in that slot, tell the player.
     if (container.inventory[slotNo].item.length === 0) {
-        if (container.inventory.length === 1) return player.notify(game, `You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
-        else return player.notify(game, `You try to steal from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but it's empty.`);
+        if (container.inventory.length === 1) return player.notify(`You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
+        else return player.notify(`You try to steal from ${container.inventory[slotNo].name} of ${victim.displayName}'s ${container.name}, but it's empty.`);
     }
 
-    const result = player.steal(game, hand, victim, container, slotNo);
+    const result = player.steal(hand, victim, container, slotNo);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();

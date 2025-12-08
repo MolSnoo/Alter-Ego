@@ -122,7 +122,7 @@ export async function execute (game, message, command, args) {
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
 
-    giver.give(game, item, giverHand, recipient, recipientHand);
+    giver.give(item, giverHand, recipient, recipientHand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${giver.name} forcibly gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${giver.location.channel}`);

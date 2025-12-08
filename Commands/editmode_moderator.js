@@ -38,7 +38,7 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     if (args.length === 0 && game.editMode === false || args.length > 0 && args[0].toLowerCase() === "on") {
         try {
-            await saveGame();
+            await saveGame(game);
             game.editMode = true;
             for (let i = 0; i < game.players_alive.length; i++) {
                 game.players_alive[i].isMoving = false;

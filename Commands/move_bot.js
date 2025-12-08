@@ -68,7 +68,7 @@ export async function execute (game, command, args, player, callee) {
     }
     else if (args[0].toLowerCase() === "all") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole))
+            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);
@@ -135,10 +135,10 @@ export async function execute (game, command, args, player, callee) {
             players[i].moveQueue.length = 0;
             // Solve the exit puzzle, if applicable.
             if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
-                exitPuzzle.solve(game.botContext, game, players[i], "", players[i].name, true);
+                exitPuzzle.solve(players[i], "", players[i].name, true);
             // Move the player.
-            currentRoom.removePlayer(game, players[i], exit, exitMessage);
-            desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
+            currentRoom.removePlayer(players[i], exit, exitMessage);
+            desiredRoom.addPlayer(players[i], entrance, entranceMessage, true);
         }
     }
 
