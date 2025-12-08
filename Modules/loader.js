@@ -653,21 +653,7 @@ export function loadItems (game, doErrorChecking) {
             const location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.items[i].locationId))
             if (location) game.items[i].location = location;
             if (game.items[i].prefab instanceof Prefab) {
-                const prefab = game.items[i].prefab;
-                game.items[i].weight = game.items[i].prefab.weight;
-                for (let j = 0; j < prefab.inventory.length; j++){
-                    /** @type {Item[]} */
-                    const items = [];
-                    game.items[i].inventory.push(
-                        new InventorySlot(
-                            prefab.inventory[j].id,
-                            prefab.inventory[j].capacity,
-                            prefab.inventory[j].takenSpace,
-                            prefab.inventory[j].weight,
-                            items
-                        )
-                    );
-                }
+                game.items[i].initializeInventory();
             }
             if (game.items[i].containerName.startsWith("Object:")) {
                 const container = game.objects.find(object =>
@@ -745,21 +731,8 @@ export function loadItems (game, doErrorChecking) {
             createdItem.weight = item.weight;
 
             // Initialize the item's inventory slots.
-            if (item.prefab instanceof Prefab) {
-                for (let i = 0; i < item.prefab.inventory.length; i++) {
-                    /** @type {Item[]} */
-                    const items = [];
-                    createdItem.inventory.push(
-                        new InventorySlot(
-                            item.prefab.inventory[i].id,
-                            item.prefab.inventory[i].capacity,
-                            item.prefab.inventory[i].takenSpace,
-                            item.prefab.inventory[i].weight,
-                            items
-                        )
-                    );
-                }
-            }
+            if (item.prefab instanceof Prefab)
+                item.initializeInventory();
 
             for (let i = 0; i < item.inventory.length; i++) {
                 for (let j = 0; j < item.inventory[i].items.length; j++) {
@@ -1751,19 +1724,7 @@ export function loadInventories (game, doErrorChecking) {
         for (let i = 0; i < game.inventoryItems.length; i++) {
             const prefab = game.inventoryItems[i].prefab;
             if (prefab instanceof Prefab) {
-                for (let j = 0; j < prefab.inventory.length; j++) {
-                    /** @type {InventoryItem[]} */
-                    const items = [];
-                    game.inventoryItems[i].inventory.push(
-                        new InventorySlot(
-                            prefab.inventory[j].id,
-                            prefab.inventory[j].capacity,
-                            prefab.inventory[j].takenSpace,
-                            prefab.inventory[j].weight,
-                            items
-                        )
-                    );
-                }
+                game.inventoryItems[i].initializeInventory();
             }
             if (game.inventoryItems[i].player instanceof Player) {
                 const player = game.inventoryItems[i].player;
@@ -1818,19 +1779,7 @@ export function loadInventories (game, doErrorChecking) {
             createdItem.weight = item.weight;
 
             // Initialize the item's inventory slots.
-            for (let i = 0; i < item.prefab.inventory.length; i++) {
-                /** @type {InventoryItem[]} */
-                const items = [];
-                createdItem.inventory.push(
-                    new InventorySlot(
-                        item.prefab.inventory[i].id,
-                        item.prefab.inventory[i].capacity,
-                        item.prefab.inventory[i].takenSpace,
-                        item.prefab.inventory[i].weight,
-                        items
-                    )
-                );
-            }
+            createdItem.initializeInventory();
 
             for (let i = 0; i < item.inventory.length; i++) {
                 for (let j = 0; j < item.inventory[i].items.length; j++) {

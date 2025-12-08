@@ -36,7 +36,7 @@ export default class InventoryItem extends ItemInstance {
      * The inventory item's actual container.
      * @type {InventoryItem}
      */
-    container;
+    container = null;
     /**
      * An array of {@link InventorySlot|inventory slots} the item has.
      * @override
@@ -62,9 +62,27 @@ export default class InventoryItem extends ItemInstance {
         this.playerName = playerName;
         this.equipmentSlot = equipmentSlot;
         this.foundEquipmentSlot = false;
-        this.container = null;
         this.inventory = [];
     }
+
+    /**
+         * Creates instances of all of the prefab's {@link InventorySlot|inventory slots} and inserts them into this instance's inventory.
+         */
+        initializeInventory() {
+            for (let i = 0; i < this.prefab.inventory.length; i++) {
+                /** @type {InventoryItem[]} */
+                const items = [];
+                this.inventory.push(
+                    new InventorySlot(
+                        this.prefab.inventory[i].id,
+                        this.prefab.inventory[i].capacity,
+                        this.prefab.inventory[i].takenSpace,
+                        this.prefab.inventory[i].weight,
+                        items
+                    )
+                );
+            }
+        }
 
     /**
      * Decreases the number of uses this inventory item has left. If it runs out of uses, instantiates its nextStage in its place, if it has one.

@@ -34,7 +34,7 @@ export default class Item extends ItemInstance {
      * The item's actual container.
      * @type {Fixture|Puzzle|Item}
      */
-    container;
+    container = null;
     /**
      * An array of {@link InventorySlot|inventory slots} the item has.
      * @type {InventorySlot<Item>[]}
@@ -45,7 +45,7 @@ export default class Item extends ItemInstance {
      * @constructor
      * @param {string} prefabId - The ID of the prefab this item is an instance of.
      * @param {string} identifier - The unique identifier given to the item if it is capable of containing other items.
-     * @param {string} locationId - The room the item can be found in.
+     * @param {string} locationId - The ID of the room the item can be found in.
      * @param {boolean} accessible - Whether the item can be interacted with.
      * @param {string} containerName - The type and identifier/name of the container the item can be found in, and the ID of the {@link InventorySlot|inventory slot} it belongs to, separated by a forward slash.
      * @param {number} quantity - How many identical instances of this item are in the given container.
@@ -58,8 +58,26 @@ export default class Item extends ItemInstance {
         super(game, row, description, prefabId, identifier, containerName, quantity, uses);
         this.locationId = locationId;
         this.accessible = accessible;
-        this.container = null;
         this.inventory = [];
+    }
+
+    /**
+     * Creates instances of all of the prefab's {@link InventorySlot|inventory slots} and inserts them into this instance's inventory.
+     */
+    initializeInventory() {
+        for (let i = 0; i < this.prefab.inventory.length; i++) {
+            /** @type {Item[]} */
+            const items = [];
+            this.inventory.push(
+                new InventorySlot(
+                    this.prefab.inventory[i].id,
+                    this.prefab.inventory[i].capacity,
+                    this.prefab.inventory[i].takenSpace,
+                    this.prefab.inventory[i].weight,
+                    items
+                )
+            );
+        }
     }
 
     /**

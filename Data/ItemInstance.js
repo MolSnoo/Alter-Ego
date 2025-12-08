@@ -22,7 +22,6 @@ export default class ItemInstance extends ItemContainer {
 	prefab;
 	/**
 	 * The unique identifier given to the item if it is capable of containing other items.
-	 * @readonly
 	 * @type {string}
 	 */
 	identifier;
@@ -51,6 +50,11 @@ export default class ItemInstance extends ItemContainer {
 	 * @type {string}
 	 */
 	containerName;
+	/**
+	 * The item's actual container.
+	 * @type {ItemContainer}
+	 */
+	container;
 	/**
 	 * The ID of the {@link InventorySlot|inventory slot} the item can be found in.
 	 * @type {string}

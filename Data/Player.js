@@ -1147,18 +1147,18 @@ export default class Player extends ItemContainer {
             }
         }
         // Create a list of all the child items.
-        /** @type {Array<Item|InventoryItem>} */
+        /** @type {InventoryItem[]} */
         let items = [];
         itemManager.getChildItems(items, createdItem);
 
         // Now that the item has been converted, we can update the quantities of child items.
-        /** @type {Array<Item|InventoryItem>} */
+        /** @type {Item[]} */
         let oldChildItems = [];
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(this.game, this, items, slot);
+        itemManager.insertInventoryItems(this, items, slot);
 
         this.carryWeight += createdItem.weight;
         if (notify) this.notify(`You take ${createdItem.singleContainingPhrase}.`);
@@ -1248,18 +1248,18 @@ export default class Player extends ItemContainer {
                 }
             }
             // Create a list of all the child items.
-            /** @type {Array<Item|InventoryItem>} */
+            /** @type {InventoryItem[]} */
             let items = [];
             itemManager.getChildItems(items, createdItem);
 
             // Now that the item has been converted, we can update the quantities of child items.
-            /** @type {Array<Item|InventoryItem>} */
+            /** @type {InventoryItem[]} */
             let oldChildItems = [];
             itemManager.getChildItems(oldChildItems, item);
             for (let i = 0; i < oldChildItems.length; i++)
                 oldChildItems[i].quantity = 0;
 
-            itemManager.insertInventoryItems(this.game, this, items, slot);
+            itemManager.insertInventoryItems(this, items, slot);
 
             victim.carryWeight -= createdItem.weight;
             this.carryWeight += createdItem.weight;
@@ -1366,7 +1366,7 @@ export default class Player extends ItemContainer {
         deleteChildQuantities(item);
         item.quantity = 0;
         
-        itemManager.insertItems(this.game, this.location, items);
+        itemManager.insertItems(this.location, items);
 
         this.carryWeight -= item.weight;
         if (notify) this.notify(`You discard ${item.singleContainingPhrase}.`);
@@ -1428,7 +1428,7 @@ export default class Player extends ItemContainer {
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(this.game, recipient, items, slot);
+        itemManager.insertInventoryItems(recipient, items, slot);
 
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
@@ -1486,7 +1486,7 @@ export default class Player extends ItemContainer {
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(this.game, this, items, slot);
+        itemManager.insertInventoryItems(this, items, slot);
 
         this.notify(`You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
@@ -1566,7 +1566,7 @@ export default class Player extends ItemContainer {
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(this.game, this, items, slot);
+        itemManager.insertInventoryItems(this, items, slot);
         
         this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
@@ -1626,7 +1626,7 @@ export default class Player extends ItemContainer {
             oldChildItems[i].quantity = 0;
         item.quantity = 0;
 
-        itemManager.insertInventoryItems(this.game, this, items, slot);
+        itemManager.insertInventoryItems(this, items, slot);
 
         if (notify) this.notify(`You equip the ${createdItem.name}.`);
         new Narration(this.game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
@@ -1855,7 +1855,7 @@ export default class Player extends ItemContainer {
                 oldChildItems[i].quantity = 0;
             item.quantity = 0;
 
-            itemManager.insertInventoryItems(this.game, this, items, slot);
+            itemManager.insertInventoryItems(this, items, slot);
 
             if (notify) this.notify(`You unequip the ${createdItem.name}.`);
             new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
