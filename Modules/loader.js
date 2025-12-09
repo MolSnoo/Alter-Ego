@@ -18,8 +18,8 @@ import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
 
 import { ChannelType } from 'discord.js';
-import moment from 'moment';
-moment().format();
+import dayjs from 'dayjs';
+dayjs().format();
 
 /**
  * Loads data from the Rooms sheet into the game.
@@ -530,7 +530,7 @@ export function loadRecipes (game, doErrorChecking) {
                 durationInt = NaN;
                 durationUnit = "?";
             }
-            let duration = durationString ? moment.duration(durationInt, durationUnit) : moment.duration(0);
+            let duration = durationString ? dayjs.duration(durationInt, durationUnit) : dayjs.duration(0);
             // Separate the products.
             let productsStrings = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
             // For each product, convert the string to a valid entity name.
@@ -1127,8 +1127,8 @@ export function loadEvents (game, doErrorChecking) {
                 durationInt = NaN;
                 durationUnit = '?';
             }
-            const duration = durationString ? moment.duration(durationInt, durationUnit) : null;
-            const timeRemaining = sheet[i][columnTimeRemaining] ? moment.duration(sheet[i][columnTimeRemaining]) : null;
+            const duration = durationString ? dayjs.duration(durationInt, durationUnit) : null;
+            const timeRemaining = sheet[i][columnTimeRemaining] ? dayjs.duration(sheet[i][columnTimeRemaining]) : null;
             let triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
             for (let j = 0; j < triggerTimes.length; j++)
                 triggerTimes[j] = triggerTimes[j].trim();
@@ -1223,9 +1223,9 @@ export function checkEvent (event) {
     if (event.ongoing && event.duration !== null && event.remaining === null)
         return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
     for (let i = 0; i < event.triggerTimes.length; i++) {
-        const triggerTime = moment(event.triggerTimes[i], Event.formats);
+        let triggerTime = dayjs(event.triggerTimes[i], Event.formats);
         if (!triggerTime.isValid()) {
-            let timeString = triggerTime.inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
+            let timeString = triggerTime.inspect().replace(/dayjs.invalid\(\/\* (.*)\*\/\)/g, '$1').trim(); // TODO: FIXME (broken by day.js migration, no .inspect() on dayjs objects)
             return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
         }
     }
@@ -1274,7 +1274,7 @@ export function loadStatusEffects (game, doErrorChecking) {
                 durationInt = NaN;
                 durationUnit = "?";
             }
-            const duration = durationString ? moment.duration(durationInt, durationUnit) : null;
+            const duration = durationString ? dayjs.duration(durationInt, durationUnit) : null;
             let overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
             for (let j = 0; j < overriders.length; j++)
                 overriders[j] = Status.generateValidId(overriders[j]);
@@ -1561,7 +1561,7 @@ export function loadPlayers (game, doErrorChecking) {
                             const statusId = statusList[k].includes('(') ? Status.generateValidId(statusList[k].substring(0, statusList[k].lastIndexOf('('))) : statusList[k];
                             if (game.statusEffects[j].id === statusId) {
                                 const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
+                                const timeRemaining = statusRemaining ? dayjs.duration(statusRemaining) : null;
                                 currentPlayer.inflict(statusId, false, false, false, null, timeRemaining);
                             }
                         }

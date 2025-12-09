@@ -35,7 +35,7 @@ export default class Recipe extends GameEntity {
     /**
      * How long it takes to process the recipe. Accepted units: s, m, h, d, w, M, y.
      * @readonly
-     * @type {import('moment').Duration}
+     * @type {import('dayjs/plugin/duration.js').Duration}
      */
     duration;
     /**
@@ -73,7 +73,7 @@ export default class Recipe extends GameEntity {
      * @param {string[]} ingredientsStrings - The IDs of the ingredients required to carry out the recipe.
      * @param {boolean} uncraftable - Whether the product can be transformed back into its ingredients.
      * @param {string} objectTag - Phrase that allows an object with the matching recipeTag to process this recipe.
-     * @param {import('moment').Duration} duration - How long it takes to process the recipe. Accepted units: s, m, h, d, w, M, y.
+     * @param {import('dayjs/plugin/duration.js').Duration} duration - How long it takes to process the recipe. Accepted units: s, m, h, d, w, M, y.
      * @param {string[]} productsStrings - The IDs of the products produced by the recipe.
      * @param {string} initiatedDescription - The description that indicates when a recipe has begun being processed.
      * @param {string} completedDescription - The description that indicates when a recipe has finished being processed or crafted.
