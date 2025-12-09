@@ -56,7 +56,10 @@ export default class PriorityQueue {
      * @returns {number}
      */
     size() {
-        return this.priorityOrder.reduce((total, priority) => total + this.queues[priority].length, 0);
+        let size = 0;
+        for (let i = 0; i < this.priorityOrder.length; i++)
+            size += this.queues.get(this.priorityOrder[i]).length;
+        return size;
     }
 
     /**
@@ -64,7 +67,7 @@ export default class PriorityQueue {
      */
     clear() {
         for (let i = 0; i < this.priorityOrder.length; i++) {
-            this.queues[this.priorityOrder[i]].clear();
+            this.queues.get(this.priorityOrder[i]).clear();
         }
     }
 }
