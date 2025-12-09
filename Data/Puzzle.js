@@ -23,6 +23,7 @@ import { Message } from 'discord.js';
 export default class Puzzle extends ItemContainer {
     /**
      * The name of the puzzle. 
+     * @readonly
      * @type {string} 
      */ 
     name;
@@ -37,10 +38,17 @@ export default class Puzzle extends ItemContainer {
      */ 
     outcome;
     /**
-     * Whether the puzzle requires a moderator to solve it. 
+     * Whether the puzzle requires a moderator to solve it.
+     * @readonly 
      * @type {boolean} 
      */ 
     requiresMod;
+    /**
+     * The ID of the location the puzzle is found in.
+     * @readonly
+     * @type {string}
+     */
+    locationId;
     /**
      * The location the puzzle is found in. 
      * @type {Room} 
@@ -48,6 +56,7 @@ export default class Puzzle extends ItemContainer {
     location;
     /**
      * The name of the object associated with the puzzle. 
+     * @readonly
      * @type {string} 
      */ 
     parentObjectName;
@@ -59,6 +68,7 @@ export default class Puzzle extends ItemContainer {
     /**
      * The type of puzzle.
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type
+     * @readonly
      * @type {string} 
      */ 
     type;
@@ -69,6 +79,7 @@ export default class Puzzle extends ItemContainer {
     accessible;
     /**
      * Puzzle names, event IDs, prefab IDs or flag IDs that are required for the puzzle to be made accessible. 
+     * @readonly
      * @type {string[]} 
      */ 
     requirementsStrings;
@@ -79,6 +90,7 @@ export default class Puzzle extends ItemContainer {
     requirements;
     /**
      * The solutions to the puzzle. 
+     * @readonly
      * @type {string[]} 
      */ 
     solutions;
@@ -88,17 +100,20 @@ export default class Puzzle extends ItemContainer {
      */ 
     remainingAttempts;
     /**
-     * The string representation of the bot commands to be executed when the puzzle is solved or unsolved with specified outcomes. 
+     * The string representation of the bot commands to be executed when the puzzle is solved or unsolved with specified outcomes.
+     * @readonly 
      * @type {string} 
      */ 
     commandSetsString;
     /**
      * Sets of commands to be executed when the puzzle is solved or unsolved with specified outcomes. 
+     * @readonly
      * @type {PuzzleCommandSet[]} 
      */ 
     commandSets;
     /**
      * The description of the puzzle when it is solved by a player. 
+     * @readonly
      * @type {string} 
      */ 
     correctDescription;
@@ -109,16 +124,19 @@ export default class Puzzle extends ItemContainer {
     alreadySolvedDescription;
     /**
      * The description of the puzzle when the incorrect answer is given. 
+     * @readonly
      * @type {string} 
      */ 
     incorrectDescription;
     /**
      * The description of the puzzle when the player attempts to solve it when the number of remainingAttempts is 0. 
+     * @readonly
      * @type {string} 
      */ 
     noMoreAttemptsDescription;
     /**
      * The description of the puzzle when a player attempts to solve it while all of the requirements are not met. 
+     * @readonly
      * @type {string} 
      */ 
     requirementsNotMetDescription;
@@ -129,7 +147,7 @@ export default class Puzzle extends ItemContainer {
      * @param {boolean} solved - Whether the puzzle is solved.
      * @param {string} outcome - String indicating which solution the puzzle has been solved with.
      * @param {boolean} requiresMod - Whether the puzzle requires a moderator to solve it.
-     * @param {Room} location - The location the puzzle is found in.
+     * @param {string} locationId - The ID of the location the puzzle is found in.
      * @param {string} parentObjectName - The name of the object associated with the puzzle.
      * @param {string} type - The type of puzzle. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type}
      * @param {boolean} accessible - Whether the puzzle can be interacted with.
@@ -146,13 +164,13 @@ export default class Puzzle extends ItemContainer {
      * @param {number} row - The row number of the puzzle in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(name, solved, outcome, requiresMod, location, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
+    constructor(name, solved, outcome, requiresMod, locationId, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
         super(game, row, alreadySolvedDescription);
         this.name = name;
         this.solved = solved;
         this.outcome = outcome;
         this.requiresMod = requiresMod;
-        this.location = location;
+        this.locationId = locationId;
         this.parentObjectName = parentObjectName;
         this.parentObject = null;
         this.type = type;

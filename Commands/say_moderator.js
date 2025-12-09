@@ -31,14 +31,14 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
@@ -46,12 +46,12 @@ export async function execute (game, message, command, args) {
     var player = null;
     var room = null;
     for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title === "NPC") {
             player = game.players_alive[i];
             break;
         }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
-            return messageHandler.addReply(message, `You cannot speak for a player that isn't an NPC.`);
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title !== "NPC")
+            return messageHandler.addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     }
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
@@ -77,7 +77,7 @@ export async function execute (game, message, command, args) {
             embeds: message.embeds,
             files: files
         }).then(message => {
-            handleDialog(game.botContext, game, message, true, player, displayName)
+            handleDialog(game, message, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;
@@ -86,7 +86,7 @@ export async function execute (game, message, command, args) {
     }
     else if (channel !== undefined && game.guildContext.roomCategories.includes(channel.parentId)) {
         for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].name === channel.name) {
+            if (game.rooms[i].id === channel.name) {
                 room = game.rooms[i];
                 break;
             }
@@ -96,7 +96,7 @@ export async function execute (game, message, command, args) {
     }
     else if (channel !== undefined)
         channel.send(string);
-    else messageHandler.addReply(message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
+    else messageHandler.addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 
     return;
 }

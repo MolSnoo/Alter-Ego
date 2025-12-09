@@ -1,6 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
+﻿import { default as Fixture } from "../Data/Object.js";
+import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import Item from "../Data/Item.js";
 import Player from '../Data/Player.js';
+import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
 import { Message } from "discord.js";
 
@@ -32,18 +35,18 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable drop");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -54,58 +57,59 @@ export async function execute (game, message, command, args, player) {
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
-            if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
+            if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 hand = "RIGHT HAND";
                 break;
             }
-            else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
+            else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 hand = "LEFT HAND";
                 break;
             }
         }
         // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (item !== null) {
         parsedInput = parsedInput.substring(item.name.length).trim();
         newArgs = parsedInput.split(' ');
     }
-    else return messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to drop it.`);
+    else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to drop it.`);
 
     // Check if the player specified an object.
-    const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+    const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
     var object = null;
     if (parsedInput !== "") {
         for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput) return messageHandler.addReply(message, `You need to supply a preposition.`);
+            if (objects[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a preposition.`);
             if ((parsedInput === `${objects[i].preposition.toUpperCase()} ${objects[i].name}` || parsedInput === `IN ${objects[i].name}`) && objects[i].preposition !== "") {
                 object = objects[i];
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
                 // Check if the object has a puzzle attached to it.
                 if (object.childPuzzle !== null && object.childPuzzle.type !== "weight" && object.childPuzzle.type !== "container" && (!object.childPuzzle.accessible || !object.childPuzzle.solved) && player.hidingSpot !== object.name)
-                    return messageHandler.addReply(message, `You cannot put items ${object.preposition} ${object.name} right now.`);
+                    return messageHandler.addReply(game, message, `You cannot put items ${object.preposition} ${object.name} right now.`);
                 newArgs = parsedInput.split(' ');
                 newArgs.splice(newArgs.length - 1, 1);
                 parsedInput = newArgs.join(' ');
                 break;
             }
-            else if (parsedInput === `${newArgs[0]} ${objects[i].name}` && objects[i].preposition === "") return messageHandler.addReply(message, `${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+            else if (parsedInput === `${newArgs[0]} ${objects[i].name}` && objects[i].preposition === "") return messageHandler.addReply(game, message, `${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
         }
     }
 
     // Check if the player specified a container item.
-    var items = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    var items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     var containerItem = null;
     var containerItemSlot = null;
     if (parsedInput !== "") {
         for (let i = 0; i < items.length; i++) {
-            if (items[i].name === parsedInput) return messageHandler.addReply(message, `You need to supply a preposition.`);
+            if (items[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a preposition.`);
             if (parsedInput.endsWith(items[i].name) && parsedInput !== items[i].name) {
-                if (object === null || object !== null && items[i].container !== null && (items[i].container.name === object.name || items[i].container.hasOwnProperty("parentObject") && items[i].container.parentObject.name === object.name)) {
-                    if (items[i].inventory.length === 0) return messageHandler.addReply(message, `${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+                const itemContainer = items[i].container;
+                if (object === null || object !== null && itemContainer !== null && (itemContainer.name === object.name || itemContainer instanceof Puzzle && itemContainer.parentObject.name === object.name)) {
+                    if (items[i].inventory.length === 0) return messageHandler.addReply(game, message, `${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
                     containerItem = items[i];
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].name)).trimEnd();
                     // Check if a slot was specified.
@@ -113,13 +117,13 @@ export async function execute (game, message, command, args, player) {
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                         newArgs = parsedInput.split(' ');
                         for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                            if (parsedInput.endsWith(containerItem.inventory[slot].name)) {
+                            if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
                                 containerItemSlot = containerItem.inventory[slot];
-                                parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.name)).trimEnd();
+                                parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return messageHandler.addReply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
+                        if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
                     }
                     newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
@@ -140,73 +144,66 @@ export async function execute (game, message, command, args, player) {
     else if (containerItem !== null) {
         container = containerItem;
         if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-        slotName = containerItemSlot.name;
-        if (item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(message, `${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because it is too large.`);
-        else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(message, `${item.name} will not fit in ${container.name} because it is too large.`);
-        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(message, `${item.name} will not fit in ${containerItemSlot.name} of ${container.name} because there isn't enough space left.`);
-        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(message, `${item.name} will not fit in ${container.name} because there isn't enough space left.`);
+        slotName = containerItemSlot.id;
+        if (item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
+        else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.name} will not fit in ${container.name} because it is too large.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.name} will not fit in ${container.name} because there isn't enough space left.`);
     }
     else {
-        if (parsedInput !== "") return messageHandler.addReply(message, `Couldn't find "${parsedInput}" to drop item into.`);
+        if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
         const defaultDropOpject = objects.find(object => object.name === game.settings.defaultDropObject);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(message, `You cannot drop items in this room.`);
+        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(game, message, `You cannot drop items in this room.`);
         container = defaultDropOpject;
     }
 
     let topContainer = container;
-    while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+    while (topContainer !== null && topContainer instanceof Item)
         topContainer = topContainer.container;
 
     if (topContainer !== null) {
-        const topContainerPreposition = topContainer.preposition ? topContainer.preposition : "in";
-        if (topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
-            return messageHandler.addReply(message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
+        let topContainerPreposition = "in";
+        if (topContainer instanceof Fixture && topContainer.preposition !== "") topContainerPreposition = topContainer.preposition;
+        if (topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
+            return messageHandler.addReply(game, message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
-        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
+        if (topContainer !== null && topContainer instanceof Puzzle)
             topContainer = topContainer.parentObject;
 
-        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-            return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
+            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
 
-    player.drop(game, item, hand, container, slotName);
+    player.drop(item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is an Object.
-    if (container.hasOwnProperty("hidingSpotCapacity"))
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.preposition} ${container.name} in ${player.location.channel}`);
+    if (container instanceof Fixture)
+        messageHandler.addLogMessage(game, `${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.preposition} ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
-    else if (container.hasOwnProperty("solved")) {
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
+    else if (container instanceof Puzzle) {
+        messageHandler.addLogMessage(game, `${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.parentObject.preposition} ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-            const misc = {
-                command: "drop",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, weight.toString(), "drop", misc);
+            player.attemptPuzzle(container, item, weight.toString(), "drop", input);
         }
         // Container is a container puzzle.
         else if (container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
             });
-            const misc = {
-                command: "drop",
-                input: input
-            };
-            player.attemptPuzzle(game.botContext, game, container, item, containerItems, "drop", misc);
+            player.attemptPuzzle(container, item, containerItems, "drop", input);
         }
     }
     // Container is an Item.
-    else if (container.hasOwnProperty("inventory"))
-        messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slotName} of ${container.identifier} in ${player.location.channel}`);
+    else if (container instanceof Item)
+        messageHandler.addLogMessage(game, `${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slotName} of ${container.identifier} in ${player.location.channel}`);
     
     return;
 }

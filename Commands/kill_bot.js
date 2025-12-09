@@ -36,16 +36,16 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} [player] 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No players were specified.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No players were specified.`);
         return;
     }
 
@@ -53,7 +53,7 @@ export async function execute (game, command, args, player, callee) {
     var players = [];
     if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
-    else if (args[0].toLowerCase() === "room" && callee !== null && callee.hasOwnProperty("ongoing")) {
+    else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].tags.includes(callee.roomTag) && game.rooms[i].occupants.length > 0)
@@ -75,12 +75,12 @@ export async function execute (game, command, args, player, callee) {
         }
         if (args.length > 0) {
             const missingPlayers = args.join(", ");
-            return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player(s): ${missingPlayers}.`);
+            return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player(s): ${missingPlayers}.`);
         }
     }
 
     for (let i = 0; i < players.length; i++)
-        players[i].die(game);
+        players[i].die();
 
     return;
 }

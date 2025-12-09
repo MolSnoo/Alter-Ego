@@ -10,9 +10,17 @@ import ItemInstance from "./ItemInstance.js";
 export default class InventorySlot {
 	/**
 	 * The ID of the slot. Must be unique relative to other slots held by the same item.
+	 * @readonly
 	 * @type {string}
 	 */
 	id;
+	/**
+	 * The name of the slot. Deprecated. Use `id` instead.
+	 * @deprecated
+	 * @readonly
+	 * @type {string}
+	 */
+	name;
 	/**
 	 * Maximum sum of sizes that can be stored in the slot.
 	 * @type {number}
@@ -33,6 +41,13 @@ export default class InventorySlot {
 	 * @type {Array<T>}
 	 */
 	items;
+	/**
+	 * The items stored in the slot. Deprecated. Use `items` instead.
+	 * @deprecated
+	 * @readonly
+	 * @type {Array<T>}
+	 */
+	item;
 
 	/**
 	 * @constructor
@@ -44,10 +59,12 @@ export default class InventorySlot {
 	 */
 	constructor(id, capacity, takenSpace, weight, items) {
 		this.id = id;
+		this.name = id;
 		this.capacity = capacity;
 		this.takenSpace = takenSpace;
 		this.weight = weight;
 		this.items = items;
+		this.item = [];
 	}
 	
 	/** 

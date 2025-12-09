@@ -27,25 +27,25 @@ export function usage (settings) {
 
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a sender, a recipient, and a message. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a sender, a recipient, and a message. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title === "NPC") {
             player = game.players_alive[i];
             break;
         }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
-            return messageHandler.addReply(message, `You cannot text for a player that isn't an NPC.`);
+        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title !== "NPC")
+            return messageHandler.addReply(game, message, `You cannot text for a player that isn't an NPC.`);
     }
-    if (player === null) return messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
+    if (player === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
     args.splice(0, 1);
 
     var recipient = null;
@@ -55,12 +55,12 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (recipient === null) return messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
-    if (recipient.name === player.name) return messageHandler.addReply(message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
+    if (recipient === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
+    if (recipient.name === player.name) return messageHandler.addReply(game, message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
     args.splice(0, 1);
 
     var input = args.join(" ");
-    if (input === "" && message.attachments.size === 0) return messageHandler.addReply(message, `Text message cannot be empty. Please send a message and/or an attachment.`);
+    if (input === "" && message.attachments.size === 0) return messageHandler.addReply(game, message, `Text message cannot be empty. Please send a message and/or an attachment.`);
     if (input.length > 1900)
         input = input.substring(0, 1897) + "...";
 

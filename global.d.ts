@@ -1,4 +1,4 @@
-import type { ActivitiesOptions, ActivityType, Message, Snowflake } from "discord.js";
+import type { ActivitiesOptions, ActivityType, GuildMember, Message, Snowflake } from "discord.js";
 import type Event from "./Data/Event.js";
 import type Flag from "./Data/Flag.js";
 import type Game from "./Data/Game.js";
@@ -106,6 +106,18 @@ declare global {
 	 */
 	interface MessageQueueEntry {
 		fire: () => Promise<Message>;
+	}
+
+	/**
+	 * Represents a range of values in a spreadsheet.
+	 * @property {string} range - The A1 notation of the range.
+	 * @property {string} [majorDimension] - The major dimension of the values. Either 'ROWS' or 'COLUMNS'.
+	 * @property {string[][]} values - The values within the specified range.
+	 */
+	interface ValueRange {
+		range: string;
+		majorDimension?: string;
+		values: string[][];
 	}
 
 	/**
@@ -254,23 +266,23 @@ declare global {
     }
 
 	/**
-     * @property outcomes - Strings indicating which puzzle solutions will execute the commands in this command set.
+     * @property [outcomes] - Strings indicating which puzzle solutions will execute the commands in this command set.
      * @property solvedCommands - Bot commands that will be executed when the puzzle is solved.
      * @property unsolvedCommands - Bot commands that will be executed when the puzzle is unsolved.
      */
     interface PuzzleCommandSet {
-        outcomes: string[];
+        outcomes?: string[];
         solvedCommands: string[];
         unsolvedCommands: string[];
     }
 
 	/**
-     * @property values - Strings indicating which flag values will execute the commands in this command set.
+     * @property [values] - Strings indicating which flag values will execute the commands in this command set.
      * @property setCommands - Bot commands that will be executed when the flag is set.
      * @property clearedCommands - Bot commands that will be executed when the flag is cleared.
      */
     interface FlagCommandSet {
-        values: string[];
+        values?: string[];
         setCommands: string[];
         clearedCommands: string[];
     }
@@ -301,23 +313,31 @@ declare global {
 	}
 	
 	/**
-	 * Represents a simplified player object for use in the parser module.
+	 * Represents a simplified player object for use in various places.
 	 * @property {string} [name] - The name of the player.
-	 * @property {string} [talent] - The talent of the player.
+	 * @property {string} [displayName] - The display name of the player.
+	 * @property {string} [displayIcon] - The display icon URL of the player.
+	 * @property {string} [title] - The title of the player.
+	 * @property {GuildMember} [member] - The Discord guild member associated with the player. 
 	 * @property {number} [strength] - The strength stat of the player.
 	 * @property {number} [intelligence] - The intelligence stat of the player.
 	 * @property {number} [dexterity] - The dexterity stat of the player.
 	 * @property {number} [speed] - The speed stat of the player.
 	 * @property {number} [stamina] - The stamina stat of the player.
+	 * @property {Game} [game] - The game instance the player is part of.
 	 */
 	interface PseudoPlayer {
 		name?: string;
-		talent?: string;
+		displayName?: string;
+		displayIcon?: string;
+		title?: string;
+		member?: GuildMember;
 		strength?: number;
 		intelligence?: number;
 		dexterity?: number;
 		speed?: number;
 		stamina?: number;
+		game?: Game;
 	}
 
 	interface Possibility {
@@ -328,5 +348,21 @@ declare global {
 	interface TimerAttributes {
 		loop: boolean;
 		start: boolean;
+  }
+
+	interface TestParserWarningOrError {
+		cell: string;
+		warnings?: string[];
+		errors?: string[];
+	}
+
+	interface TestParserResults {
+		warnings: TestParserWarningOrError[];
+		errors: TestParserWarningOrError[];
+	}
+
+	interface TestParserError {
+		cell: string;
+		text: string;
 	}
 }

@@ -43,11 +43,11 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} [player] 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
@@ -58,7 +58,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -70,7 +70,7 @@ export async function execute (game, command, args, player, callee) {
         players = player.location.occupants;
     else if (args[0].toLowerCase() === "all") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole))
+            if (game.players_alive[i].title !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
     }
@@ -82,7 +82,7 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
         }
-        if (player === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
     args.splice(0, 1);
@@ -90,9 +90,9 @@ export async function execute (game, command, args, player, callee) {
     var statusName = args.join(" ").toLowerCase();
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict")
-            players[i].inflict(game, statusName, true, true, true, callee);
+            players[i].inflict(statusName, true, true, true, callee);
         else if (command === "cure")
-            players[i].cure(game, statusName, true, true, true, callee);
+            players[i].cure(statusName, true, true, true, callee);
     }
 
     return;

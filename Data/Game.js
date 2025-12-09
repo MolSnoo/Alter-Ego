@@ -29,6 +29,7 @@ dayjs().format();
 export default class Game {
 	/**
 	 * The guild in which the game is occurring and all of the parts of the guild frequently accessed by the bot.
+	 * @readonly
 	 * @type {GuildContext}
 	 */
 	guildContext;
@@ -44,6 +45,7 @@ export default class Game {
 	settings;
 	/** 
 	 * A collection of constants used to refer to cell ranges on the spreadsheet. 
+	 * @readonly
 	 * @type {GameConstants}
 	*/
 	constants;
@@ -217,7 +219,7 @@ export default class Game {
 		);
 		// Save data to the sheet periodically.
 		this.#autoSaveInterval = setInterval(
-			() => { if (this.inProgress && !this.editMode) saveGame(); },
+			() => { if (this.inProgress && !this.editMode) saveGame(this); },
 			this.settings.autoSaveInterval * 1000
 		);
 		// Check for any events that are supposed to trigger at this time of day.
@@ -245,5 +247,14 @@ export default class Game {
 
 	setBotContext() {
 		this.botContext = BotContext.instance;
+	}
+
+	/**
+	 * Generate a name in all uppercase with no apostrophes or quotation marks.
+	 * @param {string} name
+	 * @returns {string} 
+	 */
+	static generateValidEntityName(name) {
+		return name.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 	}
 }

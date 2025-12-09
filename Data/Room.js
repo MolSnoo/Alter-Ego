@@ -15,17 +15,26 @@ import { TextChannel } from 'discord.js';
 export default class Room extends GameEntity {
     /**
      * The unique ID of the room.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The name of the room. Deprecated. Use `id` instead.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     name;
     /**
+     * The name of the room for display purposes. Can contain uppercase letters and special characters. Not to be used for identification.
+     * @readonly
+     * @type {string}
+     */
+    displayName;
+    /**
      * The channel associated with the room.
+     * @readonly
      * @type {TextChannel}
      */
     channel;
@@ -65,6 +74,7 @@ export default class Room extends GameEntity {
     /**
      * @constructor
      * @param {string} id - The unique ID of the room.
+     * @param {string} displayName - The name of the room for display purposes. Can contain uppercase letters and special characters.
      * @param {TextChannel} channel - The channel associated with the room.
      * @param {string[]} tags - The tags associated with the room. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/room.html#tags}
      * @param {string} iconURL - The URL of the icon associated with the room.
@@ -73,10 +83,11 @@ export default class Room extends GameEntity {
      * @param {number} row - The row number of the room in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, channel, tags, iconURL, exit, description, row, game) {
+    constructor(id, displayName, channel, tags, iconURL, exit, description, row, game) {
         super(game, row);
         this.id = id;
-        this.name = id;
+        this.displayName = displayName;
+        this.name = this.id;
         this.channel = channel;
         this.tags = tags;
         this.iconURL = iconURL;
@@ -223,5 +234,13 @@ export default class Room extends GameEntity {
     /** @returns {string} */
     descriptionCell() {
         return this.game.constants.roomSheetDescriptionColumn + this.row;
+    }
+
+    /**
+     * Convert a room name to a valid Discord channel name which can be used as a Room's ID.
+     * @param {string} name - A string, preferably the name of a room.
+     */
+    static generateValidId(name) {
+        return name.toLowerCase().replace(/[+=/<>\[\]!@#$%^&*()'":;,?`~\\|{}]/g, '').trim().replace(/ /g, '-');
     }
 }

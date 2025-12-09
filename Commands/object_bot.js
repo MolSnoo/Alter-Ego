@@ -41,11 +41,11 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} [player] 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
@@ -58,9 +58,9 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
+    if (command !== "activate" && command !== "deactivate") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -121,30 +121,30 @@ export async function execute (game, command, args, player, callee) {
     // Finally, find the object.
     var object = null;
     for (let i = 0; i < objects.length; i++) {
-        if ((player !== null && objects[i].location.name === player.location.name)
-            || (room !== null && objects[i].location.name === room.name)) {
+        if ((player !== null && objects[i].location.id === player.location.id)
+            || (room !== null && objects[i].location.id === room.id)) {
             object = objects[i];
             break;
         }
     }
     if (object === null && player === null && room === null && objects.length > 0) object = objects[0];
-    else if (object === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
-    if (object.recipeTag === "") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${object.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (object === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
+    if (object.recipeTag === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${object.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
-    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.name === object.location.name), announcement).send();
+    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.id === object.location.id), announcement).send();
 
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {
-        object.activate(game, player, narrate);
+        object.activate(player, narrate);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly activated ${object.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
-        object.deactivate(game, player, narrate);
+        object.deactivate(player, narrate);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
+        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${object.name} in ${player.location.channel}`);
     }
 
     return;

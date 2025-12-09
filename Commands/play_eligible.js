@@ -23,10 +23,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     for (let i = 0; i < game.players.length; i++) {
@@ -41,7 +41,6 @@ export async function execute (game, message, command, args) {
         message.author.id,
         member,
         member.displayName,
-        member.displayName,
         "",
         playerdefaults.defaultPronouns,
         playerdefaults.defaultVoice,
@@ -49,17 +48,22 @@ export async function execute (game, message, command, args) {
         true,
         playerdefaults.defaultLocation,
         "",
-        playerdefaults.defaultStatusEffects,
+        [],
         playerdefaults.defaultDescription,
-        new Array(),
-        null
+        [],
+        null,
+        0,
+        game
     );
+    player.statusString = playerdefaults.defaultStatusEffects;
     player.setPronouns(player.originalPronouns, player.pronounString);
     player.setPronouns(player.pronouns, player.pronounString);
     game.players.push(player);
     game.players_alive.push(player);
     member.roles.add(game.guildContext.playerRole);
-    message.channel.send(`<@${message.author.id}> joined the game!`);
+
+    const channel = game.settings.debug ? game.guildContext.testingChannel : game.guildContext.generalChannel;
+    channel.send(`<@${message.author.id}> joined the game!`);
 
     return;
 }

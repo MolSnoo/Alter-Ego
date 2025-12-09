@@ -1,5 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { Message } from "discord.js";
@@ -29,35 +30,35 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable unstash");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
     var hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
+        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
             break;
         }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
+        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
-    if (hand === "") return messageHandler.addReply(message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
     
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -82,9 +83,9 @@ export async function execute (game, message, command, args, player) {
                 // Slot name was specified.
                 if (containerName.endsWith(` OF ${playerItems[i].container.name}`)) {
                     let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.name}`));
-                    if (playerItems[i].container.hasOwnProperty("inventory")) {
+                    if (playerItems[i].container instanceof InventoryItem) {
                         for (let slot = 0; slot < playerItems[i].container.inventory.length; slot++) {
-                            if (playerItems[i].container.inventory[slot].name === tempSlotName && playerItems[i].slot === tempSlotName) {
+                            if (playerItems[i].container.inventory[slot].id === tempSlotName && playerItems[i].slot === tempSlotName) {
                                 item = playerItems[i];
                                 container = playerItems[i].container;
                                 slotName = tempSlotName;
@@ -108,16 +109,16 @@ export async function execute (game, message, command, args, player) {
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return messageHandler.addReply(message, `Couldn't find "${containerName}" in your inventory containing "${itemName}".`);
+            return messageHandler.addReply(game, message, `Couldn't find "${containerName}" in your inventory containing "${itemName}".`);
         }
-        else return messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in your inventory.`);
+        else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in your inventory.`);
     }
-    if (item !== null && container === null) return messageHandler.addReply(message, `${item.name} is not contained in another item and cannot be unstashed.`);
+    if (item !== null && container === null) return messageHandler.addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
 
-    player.unstash(game, item, hand, container, slotName);
+    player.unstash(item, hand, container, slotName);
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
     return;
 }

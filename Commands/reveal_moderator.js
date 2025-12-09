@@ -24,14 +24,14 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
@@ -46,17 +46,17 @@ export async function execute (game, message, command, args) {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return messageHandler.addReply(message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
+        return messageHandler.addReply(game, message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++) {
-        if (players[i].talent !== "NPC") {
+        if (players[i].title !== "NPC") {
             players[i].member.roles.remove(game.guildContext.playerRole);
             players[i].member.roles.add(game.guildContext.deadRole);
         }
     }
 
-    messageHandler.addGameMechanicMessage(message.channel, "Listed players have been given the Dead role.");
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players have been given the Dead role.");
 
     return;
 }

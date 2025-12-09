@@ -29,10 +29,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     var input = command + " " + args.join(" ");
@@ -43,7 +43,7 @@ export async function execute (game, message, command, args) {
     }
 
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to input a room and an exit. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to input a room and an exit. Usage:\n${usage(game.settings)}`);
 
     input = args.join(" ");
     var parsedInput = input.replace(/ /g, "-").toLowerCase();
@@ -57,9 +57,9 @@ export async function execute (game, message, command, args) {
             input = input.substring(input.toUpperCase().indexOf(parsedInput));
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return messageHandler.addReply(message, `You need to specify an exit to ${command}.`);
+        else if (parsedInput === game.rooms[i].name) return messageHandler.addReply(game, message, `You need to specify an exit to ${command}.`);
     }
-    if (room === null) return messageHandler.addReply(message, `Couldn't find room "${input}".`);
+    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
     var exitIndex = -1;
@@ -80,19 +80,19 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (exit === null) return messageHandler.addReply(message, `Couldn't find exit "${input}" in ${room.name}.`);
-    if (entrance === null) return messageHandler.addReply(message, `Found exit ${exit.name} in ${room.name}, but it doesn't have a corresponding entrance in ${exit.dest.name}.`);
-    if (command === "unlock" && exit.unlocked && entrance.unlocked) return messageHandler.addReply(message, `${exit.name} in ${room.name} and ${entrance.name} in ${exit.dest.name} are already unlocked.`);
-    if (command === "lock" && !exit.unlocked && !entrance.unlocked) return messageHandler.addReply(message, `${exit.name} in ${room.name} and ${entrance.name} in ${exit.dest.name} are already locked.`);
+    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${input}" in ${room.name}.`);
+    if (entrance === null) return messageHandler.addReply(game, message, `Found exit ${exit.name} in ${room.name}, but it doesn't have a corresponding entrance in ${exit.dest.name}.`);
+    if (command === "unlock" && exit.unlocked && entrance.unlocked) return messageHandler.addReply(game, message, `${exit.name} in ${room.name} and ${entrance.name} in ${exit.dest.name} are already unlocked.`);
+    if (command === "lock" && !exit.unlocked && !entrance.unlocked) return messageHandler.addReply(game, message, `${exit.name} in ${room.name} and ${entrance.name} in ${exit.dest.name} are already locked.`);
 
     // Now lock or unlock the exit.
     if (command === "lock") {
-        room.lock(game, exitIndex);
-        exit.dest.lock(game, entranceIndex);
+        room.lock(exitIndex);
+        exit.dest.lock(entranceIndex);
     }
     else if (command === "unlock") {
-        room.unlock(game, exitIndex);
-        exit.dest.unlock(game, entranceIndex);
+        room.unlock(exitIndex);
+        exit.dest.unlock(entranceIndex);
     }
 
     return;

@@ -36,37 +36,37 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     var statString = null, stat = null, attacker = null, defender = null;
     if (args.length === 3) {
         statString = args[0].toLowerCase();
         attacker = getPlayer(game, args[1].toLowerCase());
-        if (typeof attacker === "string") return messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
+        if (typeof attacker === "string") return messageHandler.addReply(game, message, `Couldn't find player "${args[1]}".`);
         defender = getPlayer(game, args[2].toLowerCase());
-        if (typeof defender === "string") return messageHandler.addReply(message, `Couldn't find player "${args[2]}".`);
+        if (typeof defender === "string") return messageHandler.addReply(game, message, `Couldn't find player "${args[2]}".`);
     }
     else if (args.length === 2) {
         const arg0 = getPlayer(game, args[0].toLowerCase());
         if (typeof arg0 !== "string") {
             attacker = arg0;
             defender = getPlayer(game, args[1].toLowerCase());
-            if (typeof defender === "string") return messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
+            if (typeof defender === "string") return messageHandler.addReply(game, message, `Couldn't find player "${args[1]}".`);
         }
         else {
             statString = arg0;
             attacker = getPlayer(game, args[1].toLowerCase());
-            if (typeof attacker === "string") return messageHandler.addReply(message, `Couldn't find player "${args[1]}".`);
+            if (typeof attacker === "string") return messageHandler.addReply(game, message, `Couldn't find player "${args[1]}".`);
         }
     }
     else if (args.length === 1) {
         const arg0 = getPlayer(game, args[0].toLowerCase());
         if (typeof arg0 !== "string") attacker = arg0;
-        else return messageHandler.addReply(message, `Cannot roll for a stat without a given player.`);
+        else return messageHandler.addReply(game, message, `Cannot roll for a stat without a given player.`);
     }
     if (statString) {
         if (statString === "str" || statString === "strength") stat = "str";
@@ -74,12 +74,12 @@ export async function execute (game, message, command, args) {
         else if (statString === "dex" || statString === "dexterity") stat = "dex";
         else if (statString === "spd" || statString === "speed") stat = "spd";
         else if (statString === "sta" || statString === "stamina") stat = "sta";
-        else return messageHandler.addReply(message, `"${statString}" is not a valid stat.`);
+        else return messageHandler.addReply(game, message, `"${statString}" is not a valid stat.`);
     }
 
-    const die = new Die(stat, attacker, defender);
-    if (die.modifier === 0) messageHandler.addGameMechanicMessage(message.channel, `Rolled a **${die.result}** with no modifiers.`);
-    else messageHandler.addGameMechanicMessage(message.channel, `Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
+    const die = new Die(game, stat, attacker, defender);
+    if (die.modifier === 0) messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with no modifiers.`);
+    else messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
     
     return;
 }

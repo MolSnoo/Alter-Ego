@@ -16,22 +16,26 @@ import Status from "./Status.js";
 export default class Gesture extends GameEntity {
     /**
      * The unique ID of the gesture.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The name of the gesture. Deprecated. Use `id` instead.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     name;
     /**
      * Data types the gesture can take as a target.
+     * @readonly
      * @type {string[]}
      */
     requires;
     /**
      * The string representation of status effects that prevent the gesture from being used.
+     * @readonly
      * @type {string[]}
      */
     disabledStatusesStrings;
@@ -42,11 +46,13 @@ export default class Gesture extends GameEntity {
     disabledStatuses;
     /**
      * The description of the gesture shown in the list of gestures.
+     * @readonly
      * @type {string}
      */
     description;
     /**
      * Narration that will be parsed and sent to the player's room when the gesture is performed.
+     * @readonly
      * @type {string}
      */
     narration;
@@ -78,7 +84,7 @@ export default class Gesture extends GameEntity {
         this.name = id;
         this.requires = requires;
         this.disabledStatusesStrings = disabledStatusesStrings;
-        this.disabledStatuses = [];
+        this.disabledStatuses = new Array(this.disabledStatusesStrings.length);
         this.description = description;
         this.narration = narration;
 

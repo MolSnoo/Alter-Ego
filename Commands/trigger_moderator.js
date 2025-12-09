@@ -23,30 +23,30 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     var event = null;
     for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].name === parsedInput) {
+        if (game.events[i].id === parsedInput) {
             event = game.events[i];
             break;
         }
     }
-    if (event === null) return messageHandler.addReply(message, `Couldn't find event "${input}".`);
-    if (event.ongoing) return messageHandler.addReply(message, `${event.name} is already ongoing.`);
+    if (event === null) return messageHandler.addReply(game, message, `Couldn't find event "${input}".`);
+    if (event.ongoing) return messageHandler.addReply(game, message, `${event.id} is already ongoing.`);
 
-    await event.trigger(game.botContext, game, true);
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully triggered ${event.name}.`);
+    await event.trigger(true);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully triggered ${event.id}.`);
 
     return;
 }

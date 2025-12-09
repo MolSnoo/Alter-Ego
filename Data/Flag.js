@@ -14,6 +14,7 @@ import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler
 export default class Flag extends GameEntity {
 	/**
 	 * The unique identifier for this flag.
+	 * @readonly
 	 * @type {string}
 	 */
 	id;
@@ -29,6 +30,7 @@ export default class Flag extends GameEntity {
 	valueScript;
 	/**
 	 * The string representation of the bot commands to be executed when the flag is set or cleared with specified values.
+	 * @readonly
 	 * @type {string}
 	 */
 	commandSetsString;
@@ -122,7 +124,7 @@ export default class Flag extends GameEntity {
 	/**
 	 * Sets the flag's value to null.
 	 * @param {boolean} doClearedCommands - Whether or not to execute the flag's clearedCommands.
-	 * @param {Player} player - The player who caused the flag to be cleared, if applicable.
+	 * @param {Player} [player] - The player who caused the flag to be cleared, if applicable.
 	 */
 	async clearValue(doClearedCommands, player) {
 		const originalValue = this.value;

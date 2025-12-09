@@ -1,5 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import * as loader from '../Modules/loader.js';
@@ -41,14 +42,14 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (command !== "las" && command !== "lar" && args.length === 0)
-        return messageHandler.addReply(message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
 
     if (command === "las" || command === "lar" || args[0] === "all") {
         var errors = [];
@@ -74,7 +75,7 @@ export async function execute (game, message, command, args) {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.prefabs.length; i++) {
-            let error = loader.checkPrefab(game.prefabs[i], game);
+            let error = loader.checkPrefab(game.prefabs[i]);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.recipes.length; i++) {
@@ -82,7 +83,7 @@ export async function execute (game, message, command, args) {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.items.length; i++) {
-            let error = loader.checkItem(game.items[i], game);
+            let error = loader.checkItem(game.items[i]);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.puzzles.length; i++) {
@@ -90,7 +91,7 @@ export async function execute (game, message, command, args) {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.events.length; i++) {
-            let error = loader.checkEvent(game.events[i], game);
+            let error = loader.checkEvent(game.events[i]);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.statusEffects.length; i++) {
@@ -102,7 +103,7 @@ export async function execute (game, message, command, args) {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.inventoryItems.length; i++) {
-            let error = loader.checkInventoryItem(game.inventoryItems[i], game);
+            let error = loader.checkInventoryItem(game.inventoryItems[i]);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.gestures.length; i++) {
@@ -114,7 +115,7 @@ export async function execute (game, message, command, args) {
                 errors = errors.slice(0, 15);
                 errors.push(new Error("Too many errors."));
             }
-            messageHandler.addGameMechanicMessage(message.channel, errors.join('\n'));
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
         }
         else {
             if (game.settings.debug) {
@@ -132,7 +133,7 @@ export async function execute (game, message, command, args) {
                 printData(game.flags);
             }
 
-            messageHandler.addGameMechanicMessage(message.channel,
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel,
                 game.rooms.length + " rooms, " +
                 game.objects.length + " objects, " +
                 game.prefabs.length + " prefabs, " +
@@ -149,14 +150,14 @@ export async function execute (game, message, command, args) {
 
             const privatePlayers = [];
             for (let i = 0; i < game.players_alive.length; i++) {
-                if (game.players_alive[i].talent !== "NPC") {
+                if (game.players_alive[i].title !== "NPC") {
                     const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
                     if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
                 }
             }
             if (privatePlayers.length > 0) {
                 const privatePlayerList = privatePlayers.join(", ");
-                messageHandler.addGameMechanicMessage(message.channel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
+                messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
             }
 
             if (command === "las" || args[1] && args[1] === "start") {
@@ -165,7 +166,7 @@ export async function execute (game, message, command, args) {
                 if (!game.settings.debug)
                     game.botContext.updatePresence();
                 for (let i = 0; i < game.players_alive.length; i++)
-                    game.players_alive[i].sendDescription(game, game.players_alive[i].location.description, game.players_alive[i].location);
+                    game.players_alive[i].sendDescription(game.players_alive[i].location.description, game.players_alive[i].location);
             }
             else if (command === "lar" || args[1] && args[1] === "resume") {
                 game.inProgress = true;
@@ -177,9 +178,9 @@ export async function execute (game, message, command, args) {
             // Start event timers.
             for (let i = 0; i < game.events.length; i++) {
                 if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer(game.botContext, game);
+                    game.events[i].startTimer();
                 if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer(game);
+                    game.events[i].startEffectsTimer();
             }
         }
     }
@@ -187,144 +188,148 @@ export async function execute (game, message, command, args) {
         try {
             await loader.loadRooms(game, true);
             if (game.settings.debug) printData(game.rooms);
-            messageHandler.addGameMechanicMessage(message.channel, game.rooms.length + " rooms retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.rooms.length + " rooms retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "objects") {
         try {
             await loader.loadObjects(game, true);
             if (game.settings.debug) printData(game.objects);
-            messageHandler.addGameMechanicMessage(message.channel, game.objects.length + " objects retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.objects.length + " objects retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "prefabs") {
         try {
             await loader.loadPrefabs(game, true);
             if (game.settings.debug) printData(game.prefabs);
-            messageHandler.addGameMechanicMessage(message.channel, game.prefabs.length + " prefabs retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.prefabs.length + " prefabs retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "recipes") {
         try {
             await loader.loadRecipes(game, true);
             if (game.settings.debug) printData(game.recipes);
-            messageHandler.addGameMechanicMessage(message.channel, game.recipes.length + " recipes retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.recipes.length + " recipes retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "items") {
         try {
             await loader.loadItems(game, true);
             if (game.settings.debug) printData(game.items);
-            messageHandler.addGameMechanicMessage(message.channel, game.items.length + " items retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.items.length + " items retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "puzzles") {
         try {
             await loader.loadPuzzles(game, true);
             if (game.settings.debug) printData(game.puzzles);
-            messageHandler.addGameMechanicMessage(message.channel, game.puzzles.length + " puzzles retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.puzzles.length + " puzzles retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "events") {
         try {
             await loader.loadEvents(game, true);
             if (game.settings.debug) printData(game.events);
-            messageHandler.addGameMechanicMessage(message.channel, game.events.length + " events retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.events.length + " events retrieved.");
 
             // Start event timers.
             for (let i = 0; i < game.events.length; i++) {
                 if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer(game.botContext, game);
+                    game.events[i].startTimer();
                 if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer(game);
+                    game.events[i].startEffectsTimer();
             }
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "statuses" || args[0] === "effects" || args[0] === "status" && args[1] === "effects") {
         try {
             await loader.loadStatusEffects(game, true);
             if (game.settings.debug) printData(game.statusEffects);
-            messageHandler.addGameMechanicMessage(message.channel, game.statusEffects.length + " status effects retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.statusEffects.length + " status effects retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "players") {
         try {
             await loader.loadPlayers(game, true);
             if (game.settings.debug) printData(game.players);
-            messageHandler.addGameMechanicMessage(message.channel, game.players.length + " players retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.players.length + " players retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
 
         const privatePlayers = [];
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC") {
+            if (game.players_alive[i].title !== "NPC") {
                 const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
                 if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
             }
         }
         if (privatePlayers.length > 0) {
             const privatePlayerList = privatePlayers.join(", ");
-            messageHandler.addGameMechanicMessage(message.channel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
         }
     }
     else if (args[0] === "inventories") {
         try {
             await loader.loadInventories(game, true);
             if (game.settings.debug) printData(game.inventoryItems);
-            messageHandler.addGameMechanicMessage(message.channel, game.inventoryItems.length + " inventory items retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.inventoryItems.length + " inventory items retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "gestures") {
         try {
             await loader.loadGestures(game, true);
             if (game.settings.debug) printData(game.gestures);
-            messageHandler.addGameMechanicMessage(message.channel, game.gestures.length + " gestures retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.gestures.length + " gestures retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
     else if (args[0] === "flags") {
         try {
-            await loader.loadFlags(game, true);
+            await loader.loadFlags(game, true, errors);
             if (game.settings.debug) printData(game.flags);
-            messageHandler.addGameMechanicMessage(message.channel, game.flags.size + " flags retrieved.");
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.flags.size + " flags retrieved.");
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
 }
 
+/**
+ * Prints an array or map of entities to the console.
+ * @param {*[]|Map<*, *>} data 
+ */
 function printData(data) {
     if (data instanceof Array) {
         for (var i = 0; i < data.length; i++) {
@@ -338,6 +343,11 @@ function printData(data) {
     }
 }
 
+/**
+ * Checks whether or not the member can receive direct messages from guild members.
+ * @param {Player} player - The player to check for.
+ * @returns {Promise<boolean>} True if the player can receive direct messages from guild members, false if not.
+ */
 function checkCanDmPlayer(player) {
     return new Promise(resolve => {
         player.member.send('').catch(error => {

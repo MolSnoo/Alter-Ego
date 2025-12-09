@@ -24,14 +24,14 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a player and an exit. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player and an exit. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -41,7 +41,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -53,7 +53,7 @@ export async function execute (game, message, command, args) {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";
@@ -65,7 +65,7 @@ export async function execute (game, message, command, args) {
     new Narration(game, player, player.location, roomNarration).send();
 
     var room = exit.dest;
-    if (room.name === player.location.name) return;
+    if (room.id === player.location.id) return;
 
     var hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.
@@ -85,13 +85,13 @@ export async function execute (game, message, command, args) {
         new Narration(game, player, room, destNarration).send();
     else {
         for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].notify(game, destNarration);
+            hearingPlayers[i].notify(destNarration);
     }
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully knocked on ${exit.name} for ${player.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully knocked on ${exit.name} for ${player.name}.`);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} forcibly knocked on ${exit.name} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
 }

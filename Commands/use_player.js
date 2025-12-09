@@ -42,18 +42,18 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable use");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -65,17 +65,17 @@ export async function execute (game, message, command, args, player) {
     var item = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
-            if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
+            if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 break;
             }
-            else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
+            else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
                 item = player.inventory[slot].equippedItem;
                 break;
             }
         }
         // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
     if (item !== null) {
@@ -88,7 +88,7 @@ export async function execute (game, message, command, args, player) {
     var password = "";
     var targetPlayer = null;
     if (parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var puzzles = game.puzzles.filter(puzzle => puzzle.location.name === player.location.name);
+        var puzzles = game.puzzles.filter(puzzle => puzzle.location.id === player.location.id);
         if (command === "lock" || command === "unlock") puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
         else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
@@ -109,13 +109,13 @@ export async function execute (game, message, command, args, player) {
         }
         if (puzzle !== null) {
             // Make sure the player can only solve the puzzle if it's a child puzzle of the object they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
             for (let i = 0; i < game.players_alive.length; i++) {
                 if (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() &&
-                game.players_alive[i].location.name === player.location.name &&
+                game.players_alive[i].location.id === player.location.id &&
                 (!game.players_alive[i].hasAttribute("hidden") || game.players_alive[i].hidingSpot === player.hidingSpot)) {
                     targetPlayer = game.players_alive[i];
                     break;
@@ -127,7 +127,7 @@ export async function execute (game, message, command, args, player) {
     // Check if the player specified an object.
     var object = null;
     if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var objects = game.objects.filter(object => object.location.name === player.location.name);
+        var objects = game.objects.filter(object => object.location.id === player.location.id);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) {
                 object = objects[i];
@@ -139,45 +139,39 @@ export async function execute (game, message, command, args, player) {
     // If there is an object, do the required behavior.
     if (object !== null && object.recipeTag !== "" && object.activatable) {
         // Make sure the player can only activate the object if it's the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (object.activated) {
-            object.deactivate(game, player, narrate);
+            object.deactivate(player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
         }
         else {
-            object.activate(game, player, narrate);
+            object.activate(player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
         }
     }
 
     // If there is a puzzle, do the required behavior.
     if (puzzle !== null) {
-        const misc = {
-            command: command,
-            input: args.join(" "),
-            message: message,
-            targetPlayer: targetPlayer
-        };
-        const response = player.attemptPuzzle(game.botContext, game, puzzle, item, password, command, misc);
+        const response = player.attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer);
         if (response === "" || !response) return;
-        else return messageHandler.addReply(message, response);
+        else return messageHandler.addReply(game, message, response);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
         const itemName = item.identifier ? item.identifier : item.prefab.id;
-        const response = player.use(game, item);
+        const response = player.use(item);
         if (response === "" || !response) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
             return;
         }
-        else return messageHandler.addReply(message, response);
+        else return messageHandler.addReply(game, message, response);
     }
-    else if (object === null) return messageHandler.addReply(message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (object === null) return messageHandler.addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
 }

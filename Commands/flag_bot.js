@@ -44,11 +44,11 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} [player] 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
 	const cmdString = command + " " + args.join(" ");
@@ -61,11 +61,11 @@ export async function execute (game, command, args, player, callee) {
 	}
 
 	if (args.length === 0)
-		return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+		return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
 	// If we're going to set or clear another flag, make sure it won't set or clear other flags with its commands.
 	let doCommands = false;
-	if (callee && !callee.hasOwnProperty("valueScript")) doCommands = true;
+	if (callee && !(callee instanceof Flag)) doCommands = true;
 	// The value, if it exists, is the easiest to find at the beginning. Look for that first.
 	let valueScript;
 	let value;
@@ -93,7 +93,7 @@ export async function execute (game, command, args, player, callee) {
 				input = input.substring(0, input.toLowerCase().lastIndexOf(lastArg));
 		}
 		if (valueScript === undefined && value === undefined)
-			return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
+			return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
 
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
@@ -109,7 +109,8 @@ export async function execute (game, command, args, player, callee) {
 				valueScript,
 				"",
 				[],
-				rowNumber
+				rowNumber,
+				game
 			);
 		}
 		if (valueScript) {
@@ -117,22 +118,22 @@ export async function execute (game, command, args, player, callee) {
 				value = flag.evaluate(valueScript);
 				if (newFlag) game.flags.set(flagId, flag);
 				flag.valueScript = valueScript;
-				flag.setValue(value, doCommands, game.botContext, game, player);
+				flag.setValue(value, doCommands, player);
 			}
 			catch (err) {
-				return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
+				return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
 			}
 		}
 		else {
 			if (newFlag) game.flags.set(flagId, flag);
-			flag.setValue(value, doCommands, game.botContext, game, player);
+			flag.setValue(value, doCommands, player);
 		}
 	}
 	else if (command === "clearflag") {
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
-		if (!flag) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
+		if (!flag) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
 
-		flag.clearValue(doCommands, game.botContext, game, player);
+		flag.clearValue(doCommands, player);
 	}
 }

@@ -22,10 +22,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     var players = [];
@@ -35,7 +35,7 @@ export async function execute (game, message, command, args) {
 	}
 	players.sort();
 	const playerList = players.join(", ");
-    messageHandler.addGameMechanicMessage(message.channel, `Players online:\n${playerList}`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Players online:\n${playerList}`);
 
     return;
 }

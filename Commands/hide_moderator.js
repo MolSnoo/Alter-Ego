@@ -28,14 +28,14 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -45,26 +45,26 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     if (player.statusString.includes("hidden") && command === "unhide") {
-        player.cure(game, "hidden", true, false, true);
-        messageHandler.addGameMechanicMessage(message.channel, `Successfully brought ${player.name} out of hiding.`);
+        player.cure("hidden", true, false, true);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully brought ${player.name} out of hiding.`);
     }
     else if (player.statusString.includes("hidden"))
-        return messageHandler.addReply(message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${game.settings.commandPrefix}unhide ${player.name}".`);
+        return messageHandler.addReply(game, message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${game.settings.commandPrefix}unhide ${player.name}".`);
     else if (command === "unhide")
-        return messageHandler.addReply(message, `${player.name} is not currently hidden.`);
+        return messageHandler.addReply(game, message, `${player.name} is not currently hidden.`);
     // Player is currently not hidden and the hide command is being used.
     else {
         if (args.length === 0)
-            return messageHandler.addReply(message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
+            return messageHandler.addReply(game, message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
 
         var input = args.join(" ");
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
         // Check if the input is an object that the player can hide in.
-        const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
+        const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
         var object = null;
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput && objects[i].hidingSpotCapacity > 0) {
@@ -72,9 +72,9 @@ export async function execute (game, message, command, args) {
                 break;
             }
             else if (objects[i].name === parsedInput)
-                return messageHandler.addReply(message, `${objects[i].name} is not a hiding spot.`);
+                return messageHandler.addReply(game, message, `${objects[i].name} is not a hiding spot.`);
         }
-        if (object === null) return messageHandler.addReply(message, `Couldn't find object "${input}".`);
+        if (object === null) return messageHandler.addReply(game, message, `Couldn't find object "${input}".`);
 
         // Check to see if the hiding spot is already taken.
         var hiddenPlayers = [];
@@ -93,9 +93,9 @@ export async function execute (game, message, command, args) {
         });
         if (player.hasAttribute("no sight")) {
             if (hiddenPlayers.length === 1)
-                player.notify(game, `When you hide in the ${object.name}, you find someone already there!`);
+                player.notify(`When you hide in the ${object.name}, you find someone already there!`);
             else if (hiddenPlayers.length > 1)
-                player.notify(game, `When you hide in the ${object.name}, you find multiple people already there!`);
+                player.notify(`When you hide in the ${object.name}, you find multiple people already there!`);
         }
         else {
             let hiddenPlayersString = "";
@@ -108,27 +108,27 @@ export async function execute (game, message, command, args) {
                 hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
             }
 
-            if (hiddenPlayers.length > 0) player.notify(game, `When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+            if (hiddenPlayers.length > 0) player.notify(`When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
         }
         for (let i = 0; i < hiddenPlayers.length; i++) {
             if (hiddenPlayers[i].hasAttribute("no sight"))
-                hiddenPlayers[i].notify(game, `Someone finds you! They hide with you.`);
+                hiddenPlayers[i].notify(`Someone finds you! They hide with you.`);
             else
-                hiddenPlayers[i].notify(game, `You're found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
-            hiddenPlayers[i].removeFromWhispers(game, "");
+                hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
+            hiddenPlayers[i].removeFromWhispers( "");
         }
         hiddenPlayers.push(player);
         player.hidingSpot = object.name;
-        player.inflict(game, "hidden", true, false, true);
+        player.inflict("hidden", true, false, true);
 
         // Create a whisper.
         if (hiddenPlayers.length > 0) {
-            var whisper = new Whisper(hiddenPlayers, player.location);
-            await whisper.init(game);
+            var whisper = new Whisper(game, hiddenPlayers, player.location);
+            await whisper.init();
             game.whispers.push(whisper);
         }
 
-        messageHandler.addGameMechanicMessage(message.channel, `Successfully hid ${player.name} in the ${object.name}.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully hid ${player.name} in the ${object.name}.`);
         // Log message is sent when status is inflicted.
     }
 

@@ -28,29 +28,29 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
 
     var input = args.join(" ");
     var channel = game.guildContext.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
     if (channel) {
         let response = await registerRoomCategory(channel);
-        messageHandler.addGameMechanicMessage(message.channel, response);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
     }
     else {
         try {
             channel = await createCategory(game.guildContext.guild, input);
             let response = await registerRoomCategory(channel);
-            messageHandler.addGameMechanicMessage(message.channel, response);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(message.channel, err);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
 

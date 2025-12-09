@@ -40,10 +40,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
 	let input = args.join(" ");
@@ -55,7 +55,7 @@ export async function execute (game, message, command, args) {
 	}
 
 	if (args.length === 0)
-		return messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+		return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
 	// The value, if it exists, is the easiest to find at the beginning. Look for that first.
 	let valueScript;
@@ -82,7 +82,7 @@ export async function execute (game, message, command, args) {
 			if (value !== undefined)
 				input = input.substring(0, input.toLowerCase().lastIndexOf(lastArg));
 		}
-		if (valueScript === undefined && value === undefined) return messageHandler.addReply(message, `Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
+		if (valueScript === undefined && value === undefined) return messageHandler.addReply(game, message, `Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
 
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
@@ -98,7 +98,8 @@ export async function execute (game, message, command, args) {
 				valueScript,
 				"",
 				[],
-				rowNumber
+				rowNumber,
+				game
 			);
 		}
 		if (valueScript) {
@@ -106,29 +107,29 @@ export async function execute (game, message, command, args) {
 				value = flag.evaluate(valueScript);
 				if (newFlag) game.flags.set(flagId, flag);
 				flag.valueScript = valueScript;
-				flag.setValue(value, true, game.botContext, game);
+				flag.setValue(value, true);
 			}
 			catch (err) {
-				return messageHandler.addReply(message, `The specified script returned an error. ${err}`);
+				return messageHandler.addReply(game, message, `The specified script returned an error. ${err}`);
 			}
 		}
 		else {
 			if (newFlag) game.flags.set(flagId, flag);
-			flag.setValue(value, true, game.botContext, game);
+			flag.setValue(value, true);
 		}
 
 		const valueDisplay = 
 			typeof flag.value === "string" ? `"${flag.value}"` :
 			typeof flag.value === "boolean" ? `\`${flag.value}\`` :
 			flag.value;
-		messageHandler.addGameMechanicMessage(message.channel, `Successfully set flag ${flag.id} with value ${valueDisplay}.`);
+		messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully set flag ${flag.id} with value ${valueDisplay}.`);
 	}
 	else if (command === "clearflag") {
 		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
 		let flag = game.flags.get(flagId);
-		if (!flag) return messageHandler.addReply(message, `Couldn't find flag "${input}".`);
+		if (!flag) return messageHandler.addReply(game, message, `Couldn't find flag "${input}".`);
 
-		flag.clearValue(true, game.botContext, game);
-		messageHandler.addGameMechanicMessage(message.channel, `Successfully cleared flag ${flag.id}.`);
+		flag.clearValue(true);
+		messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully cleared flag ${flag.id}.`);
 	}
 }

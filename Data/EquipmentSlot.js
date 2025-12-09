@@ -11,9 +11,17 @@ import InventoryItem from "./InventoryItem.js";
 export default class EquipmentSlot extends GameEntity {
     /**
      * The ID of this equipment slot. Must be unique only within the context of a single player.
+     * @readonly
      * @type {string}
      */
     id;
+    /**
+     * The name of this equipment slot. Deprecated. Use `id` instead.
+     * @deprecated
+     * @readonly
+     * @type {string}
+     */
+    name;
     /**
      * The inventory item currently equipped to this equipment slot. If nothing is equipped, this is `null`.
      * @type {InventoryItem | null}
@@ -35,6 +43,7 @@ export default class EquipmentSlot extends GameEntity {
     constructor(id, row, game) {
         super(game, row);
         this.id = id;
+        this.name = id;
         this.equippedItem = null;
         this.items = [];
     }

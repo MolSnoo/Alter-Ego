@@ -1,9 +1,12 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import InventoryItem from '../Data/InventoryItem.js';
+import ItemInstance from '../Data/ItemInstance.js';
+import Prefab from '../Data/Prefab.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
+import { createPaginatedEmbed } from '../Modules/helpers.js';
 import { Message } from "discord.js";
-import { EmbedBuilder } from 'discord.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -38,15 +41,15 @@ var craftingRecipesDescription = "";
 var objectRecipesDescription = "";
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable recipes");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var recipes = [];
     if (args.length > 0) {
@@ -62,7 +65,7 @@ export async function execute (game, message, command, args, player) {
                 break;
             }
         }
-        if (item === null) return messageHandler.addReply(message, `Couldn't find item "${input}" in your inventory.`);
+        if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${input}" in your inventory.`);
 
         for (let i = 0; i < game.recipes.length; i++) {
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {
@@ -71,7 +74,7 @@ export async function execute (game, message, command, args, player) {
                     // Gather a list of objects in the room that can be used to process this recipe, if applicable.
                     let objects = [];
                     if (game.recipes[i].objectTag !== "") {
-                        let recipeObjects = game.objects.filter(object => object.location.name === player.location.name && object.recipeTag === game.recipes[i].objectTag);
+                        let recipeObjects = game.objects.filter(object => object.location.id === player.location.id && object.recipeTag === game.recipes[i].objectTag);
                         // If there are no objects in the room, provide the object tag.
                         if (recipeObjects.length === 0) objects.push(game.recipes[i].objectTag);
                         else objects = recipeObjects.map(object => object.name);
@@ -89,7 +92,7 @@ export async function execute (game, message, command, args, player) {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return messageHandler.addReply(message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
+        if (recipes.length === 0) return messageHandler.addReply(game, message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command with your ${item.name} as an ingredient. The other ingredient may not be available in this room, or you may need to create it yourself.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command with your ${item.name} as an ingredient.`;
@@ -104,7 +107,7 @@ export async function execute (game, message, command, args, player) {
             if (a.prefab.id > b.prefab.id) return 1;
             return 0;
         });
-        var roomItems = game.items.filter(item => item.location.name === player.location.name && (item.quantity > 0 || isNaN(item.quantity)));
+        var roomItems = game.items.filter(item => item.location.id === player.location.id && (item.quantity > 0 || isNaN(item.quantity)));
         roomItems.sort(function (a, b) {
             if (a.prefab.id < b.prefab.id) return -1;
             if (a.prefab.id > b.prefab.id) return 1;
@@ -142,7 +145,7 @@ export async function execute (game, message, command, args, player) {
                 // Gather a list of objects in the room that can be used to process this recipe, if applicable.
                 let objects = [];
                 if (game.recipes[i].objectTag !== "") {
-                    let recipeObjects = game.objects.filter(object => object.location.name === player.location.name && object.recipeTag === game.recipes[i].objectTag);
+                    let recipeObjects = game.objects.filter(object => object.location.id === player.location.id && object.recipeTag === game.recipes[i].objectTag);
                     if (recipeObjects.length === 0) continue;
                     objects = recipeObjects.map(object => object.name);
                 }
@@ -171,7 +174,7 @@ export async function execute (game, message, command, args, player) {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return messageHandler.addReply(message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
+        if (recipes.length === 0) return messageHandler.addReply(game, message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;
@@ -220,7 +223,17 @@ export async function execute (game, message, command, args, player) {
         pages[pageNo].push(uncraftingFields[i]);
     }
 
-    let embed = createEmbed(game, page, pages);
+    const embedAuthorName = `Recipes List`;
+    const embedAuthorIcon = game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL();
+    let processingRecipe = pages[page][0].objects.length > 0;
+    let uncraftingRecipe = pages[page][0].uncraftable;
+    let fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+    const fieldName = (entryIndex) => `**Recipe ${entryIndex + 1}**`;
+    const fieldValue = (entryIndex) => `**Ingredients:** ${pages[page][entryIndex].ingredients}\n` +
+        `**Products:** ${pages[page][entryIndex].products}\n` +
+        (processingRecipe ? `**Using Object(s):** ${pages[page][entryIndex].objects}\n` : '') +
+        (processingRecipe ? `**Duration:** ${pages[page][entryIndex].duration}` : '');
+    let embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
     message.author.send({ embeds: [embed] }).then(msg => {
         msg.react('⏪').then(() => {
             msg.react('⏩');
@@ -234,14 +247,20 @@ export async function execute (game, message, command, args, player) {
             backwards.on("collect", () => {
                 if (page === 0) return;
                 page--;
-                embed = createEmbed(game, page, pages);
+                processingRecipe = pages[page][0].objects.length > 0;
+                uncraftingRecipe = pages[page][0].uncraftable;
+                fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+                embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
                 msg.edit({ embeds: [embed] });
             });
 
             forwards.on("collect", () => {
                 if (page === pages.length - 1) return;
                 page++;
-                embed = createEmbed(game, page, pages);
+                processingRecipe = pages[page][0].objects.length > 0;
+                uncraftingRecipe = pages[page][0].uncraftable;
+                fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+                embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
                 msg.edit({ embeds: [embed] });
             });
         });
@@ -250,48 +269,34 @@ export async function execute (game, message, command, args, player) {
     return;
 }
 
+/**
+ * Returns true if the items and ingredients match.
+ * @param {ItemInstance[]} items - The actually existing items. 
+ * @param {Prefab[]} ingredients - The list of ingredients in the recipe.
+ */
 function ingredientsMatch(items, ingredients) {
     if (items.length !== ingredients.length) return false;
     var hasInventoryItem = false;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab.id !== ingredients[i].id) return false;
-        if (items[i].hasOwnProperty("player")) hasInventoryItem = true;
+        if (items[i] instanceof InventoryItem) hasInventoryItem = true;
     }
     if (!hasInventoryItem) return false;
     return true;
 }
 
+/**
+ * Returns true if the items and ingredients match.
+ * @param {ItemInstance[]} items - The actually existing items. 
+ * @param {Prefab[]} products - The list of products in the recipe.
+ */
 function productsMatch(items, products) {
     if (items.length !== products.length) return false;
     var hasInventoryItem = false;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab.id !== products[i].id) return false;
-        if (items[i].hasOwnProperty("player")) hasInventoryItem = true;
+        if (items[i] instanceof InventoryItem) hasInventoryItem = true;
     }
     if (!hasInventoryItem) return false;
     return true;
-}
-
-function createEmbed(game, page, pages) {
-    let objectRecipe = pages[page][0].objects.length > 0;
-    let uncraftRecipe = pages[page][0].uncraftable;
-    let embed = new EmbedBuilder()
-        .setColor(game.settings.embedColor)
-        .setAuthor({ name: `Recipes List`, iconURL: game.guildContext.guild.iconURL() })
-        .setDescription(objectRecipe ? objectRecipesDescription : uncraftRecipe ? uncraftingRecipesDescription : craftingRecipesDescription)
-        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
-
-    let fields = [];
-    // Now add the fields of the first page.
-    for (let i = 0; i < pages[page].length; i++)
-        fields.push({
-            name: `**Recipe ${i + 1}**`,
-            value: `**Ingredients:** ${pages[page][i].ingredients}\n` +
-            `**Products:** ${pages[page][i].products}\n` +
-            (objectRecipe ? `**Using Object(s):** ${pages[page][i].objects}\n` : '') +
-            (objectRecipe ? `**Duration:** ${pages[page][i].duration}` : '')
-        });
-    embed.addFields(fields);
-
-    return embed;
 }
