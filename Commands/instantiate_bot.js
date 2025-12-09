@@ -4,6 +4,7 @@ import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
 import Flag from "../Data/Flag.js";
 import InventoryItem from "../Data/InventoryItem.js";
+import Item from "../Data/Item.js";
 import Puzzle from "../Data/Puzzle.js";
 import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -57,19 +58,19 @@ export async function execute (game, command, args, player, callee) {
         return;
     }
 
-    var quantity = 1;
-    if (!isNaN(args[0])) {
+    let quantity = 1;
+    if (!isNaN(parseInt(args[0]))) {
         quantity = parseInt(args[0]);
         args.splice(0, 1);
     }
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
     const undashedInput = parsedInput.replace(/-/g, " ");
 
     // Some prefabs might have similar names. Make a list of all the ones that are found at the beginning of parsedInput.
-    var prefab = null;
-    var matches = [];
+    let prefab = null;
+    let matches = [];
     for (let i = 0; i < game.prefabs.length; i++) {
         if (parsedInput.startsWith(`${game.prefabs[i].id} `))
             matches.push(game.prefabs[i]);
@@ -86,7 +87,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // If a parenthetical expression is included, procedural options are being manually set.
-    var proceduralSelections = new Map();
+    let proceduralSelections = new Map();
     if (parsedInput.indexOf('(') < parsedInput.indexOf(')')) {
         const proceduralString = parsedInput.substring(parsedInput.indexOf('(') + 1, parsedInput.indexOf(')'));
         let proceduralList = proceduralString.split('+');
@@ -102,7 +103,7 @@ export async function execute (game, command, args, player, callee) {
     // Room was found. Look for the container in it.
     if (room !== null) {
         // Check if an object was specified.
-        var object = null;
+        let object = null;
         const objects = game.objects.filter(object => object.location.id === room.id && object.accessible);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
@@ -189,7 +190,7 @@ export async function execute (game, command, args, player, callee) {
         else if (prefab === null && container !== null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find prefab with id "${parsedInput}".`);
         else if (prefab === null && container === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}".`);
 
-        if (containerItem !== null) {
+        if (containerItem !== null && container instanceof Item) {
             if (prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
             else if (prefab.size > containerItemSlot.capacity) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${container.name} because it is too large.`);
             else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
@@ -205,7 +206,7 @@ export async function execute (game, command, args, player, callee) {
         else instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections, player);
     }
     else {
-        var players = [];
+        let players = [];
         for (let i = 0; i < args.length; i++) {
             if (args[i].toLowerCase().replace(/'s/g, "") === "player" && player !== null) {
                 players.push(player);

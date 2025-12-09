@@ -40,7 +40,7 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and a container with items. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
+    let player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
         if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
             player = game.players_alive[i];
@@ -51,8 +51,9 @@ export async function execute (game, message, command, args) {
     if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
-    var hand = "";
-    for (var handSlot = 0; handSlot < player.inventory.length; handSlot++) {
+    let hand = "";
+    let handSlot = 0;
+    for (handSlot; handSlot < player.inventory.length; handSlot++) {
         if (player.inventory[handSlot].id === "RIGHT HAND" && player.inventory[handSlot].equippedItem === null) {
             hand = "RIGHT HAND";
             break;
@@ -67,11 +68,11 @@ export async function execute (game, message, command, args) {
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let input = args.join(' ');
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var container = null;
-    var slotName = "";
+    let container = null;
+    let slotName = "";
     // Check if the player specified an object.
     const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
     for (let i = 0; i < objects.length; i++) {
@@ -87,7 +88,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the player specified a container item.
-    var items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     if (container === null) {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {
@@ -121,7 +122,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Get all items in this container.
-    var containerItems = [];
+    let containerItems = [];
     if (container instanceof Fixture)
         containerItems = items.filter(item => item.containerName === `Object: ${container.name}` && item.prefab.equippable);
     else if (container instanceof Puzzle)
@@ -175,8 +176,8 @@ export async function execute (game, message, command, args) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
-            });
-            player.attemptPuzzle(container, item, containerItems, "take", input);
+            }).map(item => item.prefab.id);
+            player.attemptPuzzle(container, null, containerItems.join(','), "take", input);
         }
     }
     // Container is an Item.

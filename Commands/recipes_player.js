@@ -225,8 +225,8 @@ export async function execute (game, message, command, args, player) {
 
     const embedAuthorName = `Recipes List`;
     const embedAuthorIcon = game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL();
-    let processingRecipe = pages[page][0].objects.length > 0;
-    let uncraftingRecipe = pages[page][0].uncraftable;
+    let processingRecipe = pages[page].at(0).objects.length > 0;
+    let uncraftingRecipe = pages[page].at(0).uncraftable;
     let fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
     const fieldName = (entryIndex) => `**Recipe ${entryIndex + 1}**`;
     const fieldValue = (entryIndex) => `**Ingredients:** ${pages[page][entryIndex].ingredients}\n` +

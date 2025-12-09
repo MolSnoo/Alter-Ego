@@ -63,12 +63,14 @@ export async function execute (game, command, args, player, callee) {
 
     args.splice(0, 1);
 
-    var input = args.join(" ").toLowerCase().replace(/\\/g, "/");
+    let input = args.join(" ").toLowerCase().replace(/\\/g, "/");
+    if (input !== "female" && input !== "male" && input !== "neutral" && input.split('/').length !== 6)
+        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The supplied pronoun string is invalid.`);
     player.setPronouns(player.pronouns, input);
 
     // Check if the pronouns were set correctly.
-    var correct = true;
-    var errorMessage = "";
+    let correct = true;
+    let errorMessage = "";
     if (player.pronouns.sbj === null || player.pronouns.sbj === "") {
         correct = false;
         errorMessage += "No subject pronoun was given.\n";
@@ -89,7 +91,7 @@ export async function execute (game, command, args, player, callee) {
         correct = false;
         errorMessage += "No reflexive pronoun was given.\n";
     }
-    if (player.pronouns.plural === null || player.pronouns.plural === "") {
+    if (player.pronouns.plural === null) {
         correct = false;
         errorMessage += "Whether the player's pronouns pluralize verbs was not specified.\n";
     }

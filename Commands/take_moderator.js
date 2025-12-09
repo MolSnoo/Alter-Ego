@@ -41,7 +41,7 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
+    let player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
         if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
             player = game.players_alive[i];
@@ -52,7 +52,7 @@ export async function execute (game, message, command, args) {
     if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     // First, check if the player has a free hand.
-    var hand = "";
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
@@ -68,12 +68,12 @@ export async function execute (game, message, command, args) {
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var item = null;
-    var container = null;
-    var slotName = "";
+    let item = null;
+    let container = null;
+    let slotName = "";
     const roomItems = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
@@ -191,8 +191,8 @@ export async function execute (game, message, command, args) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
-            });
-            player.attemptPuzzle(container, item, containerItems, "take", input);
+            }).map(item => item.prefab.id);
+            player.attemptPuzzle(container, item, containerItems.join(','), "take", input);
         }
     }
     // Container is an Item.

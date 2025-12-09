@@ -48,13 +48,13 @@ export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable drop");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = null;
+    let input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let newArgs = null;
 
     // First, find the item in the player's inventory.
-    var item = null;
-    var hand = "";
+    let item = null;
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
             if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
@@ -80,7 +80,7 @@ export async function execute (game, message, command, args, player) {
 
     // Check if the player specified an object.
     const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
-    var object = null;
+    let object = null;
     if (parsedInput !== "") {
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a preposition.`);
@@ -100,9 +100,9 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Check if the player specified a container item.
-    var items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
-    var containerItem = null;
-    var containerItemSlot = null;
+    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    let containerItem = null;
+    let containerItemSlot = null;
     if (parsedInput !== "") {
         for (let i = 0; i < items.length; i++) {
             if (items[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a preposition.`);
@@ -135,8 +135,8 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Now decide what the container should be.
-    var container = null;
-    var slotName = "";
+    let container = null;
+    let slotName = "";
     if (object !== null && object.childPuzzle === null && containerItem === null)
         container = object;
     else if (object !== null && object.childPuzzle !== null && (object.childPuzzle.type === "weight" || object.childPuzzle.type === "container" || object.childPuzzle.accessible && object.childPuzzle.solved || player.hidingSpot === object.name) && containerItem === null)
@@ -197,8 +197,8 @@ export async function execute (game, message, command, args, player) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
-            });
-            player.attemptPuzzle(container, item, containerItems, "drop", input);
+            }).map(item => item.prefab.id);
+            player.attemptPuzzle(container, item, containerItems.join(','), "drop", input);
         }
     }
     // Container is an Item.

@@ -50,7 +50,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // Determine which player(s) are having their positions updated.
-    var players = new Array();
+    let players = [];
     if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
     else if (args[0].toLowerCase() === "room" && player !== null)
@@ -100,7 +100,7 @@ export async function execute (game, command, args, player, callee) {
         let coordinates = args.slice(1);
         if (coordinates.length !== 3) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid coordinates given.`);
         for (let i = 0; i < coordinates.length; i++) {
-            if (isNaN(coordinates[i])) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid coordinates given.`);
+            if (isNaN(parseInt(coordinates[i]))) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid coordinates given.`);
         }
 
         for (let i = 0; i < players.length; i++) {

@@ -42,7 +42,7 @@ export async function execute (game, message, command, args) {
     if (args.length !== 2)
         return messageHandler.addReply(game, message, `You need to specify a player and a pronoun set. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
+    let player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
         if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
             player = game.players_alive[i];
@@ -52,12 +52,14 @@ export async function execute (game, message, command, args) {
     }
     if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
-    var input = args.join(" ").toLowerCase();
+    let input = args.join(" ").toLowerCase();
+    if (input !== "female" && input !== "male" && input !== "neutral" && input.split('/').length !== 6)
+        return messageHandler.addReply(game, message, `The supplied pronoun string is invalid.`);
     player.setPronouns(player.pronouns, input);
 
     // Check if the pronouns were set correctly.
-    var correct = true;
-    var errorMessage = "";
+    let correct = true;
+    let errorMessage = "";
     if (player.pronouns.sbj === null || player.pronouns.sbj === "") {
         correct = false;
         errorMessage += "No subject pronoun was given.\n";
@@ -78,7 +80,7 @@ export async function execute (game, message, command, args) {
         correct = false;
         errorMessage += "No reflexive pronoun was given.\n";
     }
-    if (player.pronouns.plural === null || player.pronouns.plural === "") {
+    if (player.pronouns.plural === null) {
         correct = false;
         errorMessage += "Whether the player's pronouns pluralize verbs was not specified.\n";
     }

@@ -577,7 +577,10 @@ async function testadd (game, fileName, formatted, player) {
                     let randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     while (itemNames.includes(game.prefabs[randomIndex].name) || object.description.includes(game.prefabs[randomIndex].name) || object.description.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    items.push(new Item(game.prefabs[randomIndex], "", object.location, true, `Object: ${object.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game));
+                    let newItem = new Item(game.prefabs[randomIndex].id, "", object.location.id, true, `Object: ${object.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    newItem.location = object.location;
+                    items.push(newItem);
                     itemNames += game.prefabs[randomIndex].name + " ";
                 }
 
@@ -620,7 +623,10 @@ async function testadd (game, fileName, formatted, player) {
                     let randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     while (itemNames.includes(game.prefabs[randomIndex].name) || item.description.includes(game.prefabs[randomIndex].name) || item.description.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    items.push(new Item(game.prefabs[randomIndex], "", item.location, true, `Item: ${item.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game));
+                    let newItem = new Item(game.prefabs[randomIndex].id, "", item.location.id, true, `Item: ${item.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    newItem.location = item.location;
+                    items.push(newItem);
                     itemNames += game.prefabs[randomIndex].name + " ";
                 }
 
@@ -662,7 +668,10 @@ async function testadd (game, fileName, formatted, player) {
                     let randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     while (itemNames.includes(game.prefabs[randomIndex].name) || puzzle.alreadySolvedDescription.includes(game.prefabs[randomIndex].name) || puzzle.alreadySolvedDescription.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    items.push(new Item(game.prefabs[randomIndex], "", puzzle.location, true, `Puzzle: ${puzzle.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game));
+                    let newItem = new Item(game.prefabs[randomIndex].id, "", puzzle.location.id, true, `Puzzle: ${puzzle.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    newItem.location = puzzle.location;
+                    items.push(newItem);
                     itemNames += game.prefabs[randomIndex].name + " ";
                 }
 
@@ -704,7 +713,10 @@ async function testadd (game, fileName, formatted, player) {
                     while (itemNames.includes(game.prefabs[randomIndex].name) || currentPlayer.description.includes(game.prefabs[randomIndex].name) || currentPlayer.description.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     items.push(game.items[randomIndex]);
-                    items.push(new InventoryItem(player, game.prefabs[randomIndex], "", "", "", 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game));
+                    let newItem = new InventoryItem(player.name, game.prefabs[randomIndex].id, "", "", "", 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    if (player instanceof Player) newItem.player = player;
+                    items.push(newItem);
                     itemNames += game.prefabs[randomIndex].name + " ";
                 }
 
@@ -745,7 +757,10 @@ async function testadd (game, fileName, formatted, player) {
                     let randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     while (itemNames.includes(game.prefabs[randomIndex].name) || inventoryItem.description.includes(game.prefabs[randomIndex].name) || inventoryItem.description.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    items.push(new InventoryItem(player, game.prefabs[randomIndex], "", "", "", 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game));
+                    let newItem = new InventoryItem(player.name, game.prefabs[randomIndex].id, "", "", "", 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    if (player instanceof Player) newItem.player = player;
+                    items.push(newItem);
                     itemNames += game.prefabs[randomIndex].name + " ";
                 }
 
@@ -800,7 +815,10 @@ async function testremove (game, fileName, formatted, player) {
                         && game.items[k].containerName === ""
                         && game.items[k].container === null
                         && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
-                        items.push(new Item(game.items[k].prefab, game.items[k].identifier, game.items[k].location, game.items[k].accessible, game.items[k].containerName, game.items[k].quantity, game.items[k].uses, game.items[k].description, game.items[k].row, game));
+                        let newItem = new Item(game.items[k].prefab.id, game.items[k].identifier, game.items[k].location.id, game.items[k].accessible, game.items[k].containerName, game.items[k].quantity, game.items[k].uses, game.items[k].description, game.items[k].row, game);
+                        newItem.setPrefab(game.items[k].prefab);
+                        newItem.location = game.items[k].location;
+                        items.push(newItem);
                         itemNames.push(game.items[k].name);
                     }
                 }
@@ -872,7 +890,10 @@ async function testremove (game, fileName, formatted, player) {
                         && game.items[j].container.row === object.row
                         && object.preposition !== ""
                         && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
-                        items.push(new Item(game.items[j].prefab, game.items[j].identifier, game.items[j].location, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game));
+                        let newItem = new Item(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
+                        newItem.setPrefab(game.items[j].prefab);
+                        newItem.location = game.items[j].location;
+                        items.push(newItem);
                         itemNames.push(game.items[j].name);
                     }
                 }
@@ -938,7 +959,9 @@ async function testremove (game, fileName, formatted, player) {
                         && game.items[j].container.row === item.row
                         && item.prefab.preposition !== ""
                         && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
-                        let newItem = new Item(game.items[j].prefab, game.items[j].identifier, game.items[j].location, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
+                        let newItem = new Item(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
+                        newItem.setPrefab(game.items[j].prefab);
+                        newItem.location = game.items[j].location;
                         newItem.slot = game.items[j].slot;
                         items.push(newItem);
                         itemNames.push(game.items[j].name);
@@ -1002,7 +1025,10 @@ async function testremove (game, fileName, formatted, player) {
                     if (game.items[j].location.id === puzzle.location.id
                         && game.items[j].containerName === `Puzzle: ${puzzle.name}`
                         && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
-                        items.push(new Item(game.items[j].prefab, game.items[j].identifier, game.items[j].location, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game));
+                        let newItem = new Item(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
+                        newItem.setPrefab(game.items[j].prefab);
+                        newItem.location = game.items[j].location;
+                        items.push(newItem);
                         itemNames.push(game.items[j].name);
                     }
                 }
@@ -1065,7 +1091,10 @@ async function testremove (game, fileName, formatted, player) {
                         && game.inventoryItems[j].prefab !== null
                         && game.inventoryItems[j].container === null
                         && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
-                        items.push(new InventoryItem(game.inventoryItems[j].player, game.inventoryItems[j].prefab, game.inventoryItems[j].identifier, game.inventoryItems[j].equipmentSlot, game.inventoryItems[j].containerName, game.inventoryItems[j].quantity, game.inventoryItems[j].uses, game.inventoryItems[j].description, game.inventoryItems[j].row, game));
+                        let newItem = new InventoryItem(game.inventoryItems[j].player.name, game.inventoryItems[j].prefab.id, game.inventoryItems[j].identifier, game.inventoryItems[j].equipmentSlot, game.inventoryItems[j].containerName, game.inventoryItems[j].quantity, game.inventoryItems[j].uses, game.inventoryItems[j].description, game.inventoryItems[j].row, game);
+                        newItem.setPrefab(game.inventoryItems[j].prefab);
+                        newItem.player = game.inventoryItems[j].player;
+                        items.push(newItem);
                         itemNames.push(game.inventoryItems[j].name);
                     }
                 }
@@ -1134,7 +1163,9 @@ async function testremove (game, fileName, formatted, player) {
                         && game.inventoryItems[j].container.row === inventoryItem.row
                         && inventoryItem.prefab.preposition !== ""
                         && !items.find(item => item.singleContainingPhrase === game.inventoryItems[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.inventoryItems[j].pluralContainingPhrase)) {
-                        let newItem = new InventoryItem(game.inventoryItems[j].player, game.inventoryItems[j].prefab, game.inventoryItems[j].identifier, game.inventoryItems[j].equipmentSlot, game.inventoryItems[j].containerName, game.inventoryItems[j].quantity, game.inventoryItems[j].uses, game.inventoryItems[j].description, game.inventoryItems[j].row, game);
+                        let newItem = new InventoryItem(game.inventoryItems[j].player.name, game.inventoryItems[j].prefab.id, game.inventoryItems[j].identifier, game.inventoryItems[j].equipmentSlot, game.inventoryItems[j].containerName, game.inventoryItems[j].quantity, game.inventoryItems[j].uses, game.inventoryItems[j].description, game.inventoryItems[j].row, game);
+                        newItem.setPrefab(game.inventoryItems[j].prefab);
+                        newItem.player = game.inventoryItems[j].player;
                         newItem.slot = game.inventoryItems[j].slot;
                         items.push(newItem);
                         itemNames.push(game.inventoryItems[j].name);

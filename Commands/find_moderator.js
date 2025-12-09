@@ -1,6 +1,13 @@
 import GameSettings from '../Classes/GameSettings.js';
+import { default as Fixture } from '../Data/Object.js';
 import Game from '../Data/Game.js';
 import GameEntity from '../Data/GameEntity.js';
+import InventoryItem from '../Data/InventoryItem.js';
+import Item from '../Data/Item.js';
+import ItemInstance from '../Data/ItemInstance.js';
+import Player from '../Data/Player.js';
+import Puzzle from '../Data/Puzzle.js';
+import Recipe from '../Data/Recipe.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
@@ -343,18 +350,19 @@ function createPages(fields, results) {
 		Object.keys(fields).forEach((key, j) => {
 			// Some fields require special access to get a string value. Handle those here.
 			let cellContents = "";
-			if (key === 'location')
-				cellContents = results[i].location.name;
-			else if (key === 'player')
-				cellContents = results[i].player.name;
-			else if (key === 'id' && Object.hasOwn(results[i], 'prefab'))
-				cellContents = results[i].identifier !== '' ? results[i].identifier : results[i].prefab.id;
-			else if (key === 'ingredients')
-				cellContents = results[i].ingredients.map(ingredient => ingredient.id).join(',');
-			else if (key === 'products')
-				cellContents = results[i].products.map(product => product.id).join(',');
+			const result = results[i];
+			if (key === 'location' && (result instanceof Fixture || result instanceof Item || result instanceof Player || result instanceof Puzzle))
+				cellContents = result.location.displayName;
+			else if (key === 'player' && result instanceof InventoryItem)
+				cellContents = result.player.name;
+			else if (key === 'id' && result instanceof ItemInstance)
+				cellContents = result.identifier !== '' ? result.identifier : result.prefab.id;
+			else if (key === 'ingredients' && result instanceof Recipe)
+				cellContents = result.ingredients.map(ingredient => ingredient.id).join(',');
+			else if (key === 'products' && result instanceof Recipe)
+				cellContents = result.products.map(product => product.id).join(',');
 			else
-				cellContents = String(results[i][key]);
+				cellContents = String(result[key]);
 			// If the cellContents exceed the preset character limit, truncate it.
 			if (cellContents.length >= cellCharacterLimit)
 				cellContents = cellContents.substring(0, cellCharacterLimit) + '…';
@@ -371,7 +379,7 @@ function createPages(fields, results) {
 			pageNo++;
 			page = [];
 			page.push(header);
-			for (let k = 0; k < widestEntryLength; k++) {
+			for (let k = 0; k < widestEntryLength.length; k++) {
 				if (widestEntryLength[k] < headerEntryLength[k]) widestEntryLength[k] = headerEntryLength[k];
 			}
 		}

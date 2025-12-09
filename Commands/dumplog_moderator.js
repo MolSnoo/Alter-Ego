@@ -41,12 +41,12 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    const dataGame = prettyFormat(game, {
+    const dataGame = prettyFormat.format(game, {
         plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });
     
-    const dataLog = prettyFormat(bot.commandLog, {
+    const dataLog = prettyFormat.format(game.botContext.commandLog, {
         plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });

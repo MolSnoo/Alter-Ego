@@ -36,6 +36,7 @@ export async function execute (game, message, command, args) {
             if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
             player.removeFromWhispers("");
             player.member.roles.remove(game.guildContext.playerRole).catch();
+            player.member.roles.add(game.guildContext.spectatorRole).catch();
 
             for (let j = 0; j < player.status.length; j++) {
                 if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
@@ -46,7 +47,10 @@ export async function execute (game, message, command, args) {
 
     for (let i = 0; i < game.players_dead.length; i++) {
         const player = game.players_dead[i];
-        if (player.title !== "NPC") player.member.roles.remove(game.guildContext.deadRole).catch();
+        if (player.title !== "NPC") {
+            player.member.roles.remove(game.guildContext.deadRole).catch();
+            player.member.roles.add(game.guildContext.spectatorRole).catch();
+        }
     }
 
     clearTimeout(game.halfTimer);
@@ -54,15 +58,15 @@ export async function execute (game, message, command, args) {
 
     game.inProgress = false;
     game.canJoin = false;
-    messageHandler.clearQueue();
+    messageHandler.clearQueue(game);
     if (!game.settings.debug) {
         game.botContext.updatePresence();
     }
-    game.players.clear();
-    game.players_alive.clear();
-    game.players_dead.clear();
+    game.players = [];
+    game.players_alive = [];
+    game.players_dead = [];
 
-    var channel;
+    let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;
     else channel = game.guildContext.generalChannel;
     channel.send(`${message.member.displayName} ended the game!`);

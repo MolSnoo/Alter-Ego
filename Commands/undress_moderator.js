@@ -39,7 +39,7 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
+    let player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
         if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
             player = game.players_alive[i];
@@ -49,12 +49,12 @@ export async function execute (game, message, command, args) {
     }
     if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let input = args.join(' ');
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Check if an object was specified.
     const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
-    var object = null;
+    let object = null;
     if (parsedInput !== "") {
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput && objects[i].preposition !== "") {
@@ -70,9 +70,9 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the player specified a container item.
-    var items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
-    var containerItem = null;
-    var containerItemSlot = null;
+    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    let containerItem = null;
+    let containerItemSlot = null;
     if (parsedInput !== "") {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {
@@ -100,8 +100,8 @@ export async function execute (game, message, command, args) {
     }
 
     // Now decide what the container should be.
-    var container = null;
-    var slotName = "";
+    let container = null;
+    let slotName = "";
     if (object !== null && object.childPuzzle === null && containerItem === null)
         container = object;
     else if (object !== null && object.childPuzzle !== null && (object.childPuzzle.type === "weight" || object.childPuzzle.type === "container" || object.childPuzzle.accessible && object.childPuzzle.solved || player.hidingSpot === object.name) && containerItem === null)
@@ -138,7 +138,7 @@ export async function execute (game, message, command, args) {
             return messageHandler.addReply(game, message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
-    var rightHand = 0;
+    let rightHand = 0;
     // First, drop the items in the player's hands.
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND") rightHand = slot;
@@ -176,8 +176,8 @@ export async function execute (game, message, command, args) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
-            });
-            player.attemptPuzzle(container, item, containerItems, "drop", input);
+            }).map(item => item.prefab.id);
+            player.attemptPuzzle(container, null, containerItems.join(','), "drop", input);
         }
     }
     // Container is an Item.

@@ -1,6 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
+import { ChannelType, Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { default as handleDialog } from '../Modules/dialogHandler.js';
 
@@ -43,8 +43,8 @@ export async function execute (game, message, command, args) {
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
 
-    var player = null;
-    var room = null;
+    let player = null;
+    let room = null;
     for (let i = 0; i < game.players_alive.length; i++) {
         if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title === "NPC") {
             player = game.players_alive[i];
@@ -60,7 +60,7 @@ export async function execute (game, message, command, args) {
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
-        var files = [];
+        let files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         const displayName = player.displayName;
@@ -84,7 +84,7 @@ export async function execute (game, message, command, args) {
                 });
         });
     }
-    else if (channel !== undefined && game.guildContext.roomCategories.includes(channel.parentId)) {
+    else if (channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(channel.parentId)) {
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].id === channel.name) {
                 room = game.rooms[i];
@@ -94,7 +94,7 @@ export async function execute (game, message, command, args) {
         if (room !== null)
             new Narration(game, null, room, string).send();
     }
-    else if (channel !== undefined)
+    else if (channel.type === ChannelType.GuildText)
         channel.send(string);
     else messageHandler.addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 

@@ -1,5 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import Item from '../Data/Item.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
@@ -49,19 +50,19 @@ export async function execute (game, message, command, args) {
     if (args.length < 4)
         return messageHandler.addReply(game, message, `Not enough arguments given. Usage:\n${usage(game.settings)}`);
 
-    var quantity = 1;
-    if (!isNaN(args[0])) {
+    let quantity = 1;
+    if (!isNaN(parseInt(args[0]))) {
         quantity = parseInt(args[0]);
         args.splice(0, 1);
     }
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
     const undashedInput = parsedInput.replace(/-/g, " ");
 
     // Some prefabs might have similar names. Make a list of all the ones that are found at the beginning of parsedInput.
-    var prefab = null;
-    var matches = [];
+    let prefab = null;
+    let matches = [];
     for (let i = 0; i < game.prefabs.length; i++) {
         if (parsedInput.startsWith(`${game.prefabs[i].id} `))
             matches.push(game.prefabs[i]);
@@ -78,7 +79,7 @@ export async function execute (game, message, command, args) {
     }
 
     // If a parenthetical expression is included, procedural options are being manually set.
-    var proceduralSelections = new Map();
+    let proceduralSelections = new Map();
     if (parsedInput.indexOf('(') < parsedInput.indexOf(')')) {
         const proceduralString = parsedInput.substring(parsedInput.indexOf('(') + 1, parsedInput.indexOf(')'));
         let proceduralList = proceduralString.split('+');
@@ -91,11 +92,11 @@ export async function execute (game, message, command, args) {
         parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')'));
     }
 
-    var player = null;
+    let player = null;
     // Room was found. Look for the container in it.
     if (room !== null) {
         // Check if an object was specified.
-        var object = null;
+        let object = null;
         const objects = game.objects.filter(object => object.location.id === room.id && object.accessible);
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a prefab and a preposition.`);
@@ -182,7 +183,7 @@ export async function execute (game, message, command, args) {
         else if (prefab === null && container !== null) return messageHandler.addReply(game, message, `Couldn't find prefab with id "${parsedInput}".`);
         else if (prefab === null && container === null) return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}".`);
 
-        if (containerItem !== null) {
+        if (containerItem !== null && container instanceof Item) {
             if (prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
             else if (prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${container.name} because it is too large.`);
             else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
