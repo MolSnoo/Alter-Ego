@@ -4,6 +4,7 @@ import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { default as handleDialog } from '../Modules/dialogHandler.js';
 
+import Player from '../Data/Player.js';
 import Whisper from '../Data/Whisper.js';
 
 /** @type {CommandConfig} */
@@ -34,10 +35,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
@@ -99,7 +100,7 @@ export async function execute (game, message, command, args) {
             }
             if (matchedUsers === recipients.length) {
                 if (npc !== null) {
-                    await sendMessage(game, message, string, npc, game.whispers[i]);
+                    await sendMessageToWhisper(game, message, string, npc, game.whispers[i]);
                     return;
                 }
                 else return messageHandler.addReply(game, message, "Whisper group already exists.");
@@ -113,12 +114,20 @@ export async function execute (game, message, command, args) {
     game.whispers.push(whisper);
 
     if (npc !== null)
-        await sendMessage(game, message, string, npc, whisper);
+        await sendMessageToWhisper(game, message, string, npc, whisper);
 
     return;
 }
 
-async function sendMessage (game, message, string, player, whisper) {
+/**
+ * 
+ * @param {Game} game - The game the whisper is occurring in.
+ * @param {Message} message - The Discord message that triggered this.
+ * @param {string} messageText - The text of the message to send.
+ * @param {Player} npc - The NPC player whispering this message.
+ * @param {Whisper} whisper - The whisper this is occurring in.
+ */
+async function sendMessageToWhisper (game, message, messageText, npc, whisper) {
     // Create a webhook for this channel if necessary, or grab the existing one.
     let webHooks = await whisper.channel.fetchWebhooks();
     let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
@@ -129,12 +138,12 @@ async function sendMessage (game, message, string, player, whisper) {
     [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
     webHook.send({
-        content: string,
-        username: player.displayName,
-        avatarURL: player.id,
+        content: messageText,
+        username: npc.displayName,
+        avatarURL: npc.id,
         embeds: message.embeds,
         files: files
     }).then(message => {
-        handleDialog(game, message, true, player);
+        handleDialog(game, message, true, npc);
     });
 }

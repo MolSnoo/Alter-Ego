@@ -1,10 +1,12 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
+import ItemInstance from '../Data/ItemInstance.js';
+import Prefab from '../Data/Prefab.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
+import { createPaginatedEmbed } from '../Modules/helpers.js';
 import { Message } from "discord.js";
-import { EmbedBuilder } from 'discord.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -39,11 +41,11 @@ var craftingRecipesDescription = "";
 var objectRecipesDescription = "";
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable recipes");
@@ -221,7 +223,17 @@ export async function execute (game, message, command, args, player) {
         pages[pageNo].push(uncraftingFields[i]);
     }
 
-    let embed = createEmbed(game, page, pages);
+    const embedAuthorName = `Recipes List`;
+    const embedAuthorIcon = game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL();
+    let processingRecipe = pages[page][0].objects.length > 0;
+    let uncraftingRecipe = pages[page][0].uncraftable;
+    let fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+    const fieldName = (entryIndex) => `**Recipe ${entryIndex + 1}**`;
+    const fieldValue = (entryIndex) => `**Ingredients:** ${pages[page][entryIndex].ingredients}\n` +
+        `**Products:** ${pages[page][entryIndex].products}\n` +
+        (processingRecipe ? `**Using Object(s):** ${pages[page][entryIndex].objects}\n` : '') +
+        (processingRecipe ? `**Duration:** ${pages[page][entryIndex].duration}` : '');
+    let embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
     message.author.send({ embeds: [embed] }).then(msg => {
         msg.react('⏪').then(() => {
             msg.react('⏩');
@@ -235,14 +247,20 @@ export async function execute (game, message, command, args, player) {
             backwards.on("collect", () => {
                 if (page === 0) return;
                 page--;
-                embed = createEmbed(game, page, pages);
+                processingRecipe = pages[page][0].objects.length > 0;
+                uncraftingRecipe = pages[page][0].uncraftable;
+                fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+                embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
                 msg.edit({ embeds: [embed] });
             });
 
             forwards.on("collect", () => {
                 if (page === pages.length - 1) return;
                 page++;
-                embed = createEmbed(game, page, pages);
+                processingRecipe = pages[page][0].objects.length > 0;
+                uncraftingRecipe = pages[page][0].uncraftable;
+                fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+                embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
                 msg.edit({ embeds: [embed] });
             });
         });
@@ -251,6 +269,11 @@ export async function execute (game, message, command, args, player) {
     return;
 }
 
+/**
+ * Returns true if the items and ingredients match.
+ * @param {ItemInstance[]} items - The actually existing items. 
+ * @param {Prefab[]} ingredients - The list of ingredients in the recipe.
+ */
 function ingredientsMatch(items, ingredients) {
     if (items.length !== ingredients.length) return false;
     var hasInventoryItem = false;
@@ -262,6 +285,11 @@ function ingredientsMatch(items, ingredients) {
     return true;
 }
 
+/**
+ * Returns true if the items and ingredients match.
+ * @param {ItemInstance[]} items - The actually existing items. 
+ * @param {Prefab[]} products - The list of products in the recipe.
+ */
 function productsMatch(items, products) {
     if (items.length !== products.length) return false;
     var hasInventoryItem = false;
@@ -271,28 +299,4 @@ function productsMatch(items, products) {
     }
     if (!hasInventoryItem) return false;
     return true;
-}
-
-function createEmbed(game, page, pages) {
-    let objectRecipe = pages[page][0].objects.length > 0;
-    let uncraftRecipe = pages[page][0].uncraftable;
-    let embed = new EmbedBuilder()
-        .setColor(game.settings.embedColor)
-        .setAuthor({ name: `Recipes List`, iconURL: game.guildContext.guild.iconURL() })
-        .setDescription(objectRecipe ? objectRecipesDescription : uncraftRecipe ? uncraftingRecipesDescription : craftingRecipesDescription)
-        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
-
-    let fields = [];
-    // Now add the fields of the first page.
-    for (let i = 0; i < pages[page].length; i++)
-        fields.push({
-            name: `**Recipe ${i + 1}**`,
-            value: `**Ingredients:** ${pages[page][i].ingredients}\n` +
-            `**Products:** ${pages[page][i].products}\n` +
-            (objectRecipe ? `**Using Object(s):** ${pages[page][i].objects}\n` : '') +
-            (objectRecipe ? `**Duration:** ${pages[page][i].duration}` : '')
-        });
-    embed.addFields(fields);
-
-    return embed;
 }

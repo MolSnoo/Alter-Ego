@@ -1,5 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import Player from '../Data/Player.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import * as loader from '../Modules/loader.js';
@@ -41,10 +42,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (command !== "las" && command !== "lar" && args.length === 0)
@@ -325,6 +326,10 @@ export async function execute (game, message, command, args) {
     }
 }
 
+/**
+ * Prints an array or map of entities to the console.
+ * @param {*[]|Map<*, *>} data 
+ */
 function printData(data) {
     if (data instanceof Array) {
         for (var i = 0; i < data.length; i++) {
@@ -338,6 +343,11 @@ function printData(data) {
     }
 }
 
+/**
+ * Checks whether or not the member can receive direct messages from guild members.
+ * @param {Player} player - The player to check for.
+ * @returns {Promise<boolean>} True if the player can receive direct messages from guild members, false if not.
+ */
 function checkCanDmPlayer(player) {
     return new Promise(resolve => {
         player.member.send('').catch(error => {

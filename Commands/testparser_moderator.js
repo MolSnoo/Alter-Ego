@@ -47,10 +47,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
@@ -140,7 +140,7 @@ export async function execute (game, message, command, args) {
         const result = await testremove(game, file, formatted, player);
         let warnings = [];
         for (let i = 0; i < result.length; i++)
-            warnings.push(`Warning on ${result[i].cell}: ${result[i].text}`);
+            warnings.push(`Warning on ${result[i].cell}: ${result[i].warnings[0]}`);
         if (warnings.length > 0) {
             const tooManyWarnings = warnings.length > 20 || warnings.join('\n').length >= 1980;
             while (warnings.length > 20 || warnings.join('\n').length >= 1980)
@@ -165,13 +165,21 @@ export async function execute (game, message, command, args) {
     return;
 };
 
-async function testparse (game, file, player) {
+/**
+ * Parses all in-game descriptions and writes the results to a file.
+ * If there's something wrong with any of the descriptions, issues warnings and errors.
+ * @param {Game} game - The game being tested.
+ * @param {string} fileName - The name of the file to write the results to.
+ * @param {Player|PseudoPlayer} player - The player to pass into the parser module.
+ * @returns {Promise<TestParserResults>} All of the warnings and errors found when parsing descriptions.
+ */
+async function testparse (game, fileName, player) {
     var warnings = [];
     var errors = [];
 
     // Get rooms first.
     {
-        await appendText(file, "ROOMS:");
+        await appendFile(fileName, "ROOMS:");
         let text = "";
         for (let i = 0; i < game.rooms.length; i++) {
             text += "   ";
@@ -192,12 +200,12 @@ async function testparse (game, file, player) {
             }
             text += EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get objects next.
     {
-        await appendText(file, "OBJECTS:");
+        await appendFile(fileName, "OBJECTS:");
         let text = "";
         for (let i = 0; i < game.objects.length; i++) {
             text += "   ";
@@ -213,12 +221,12 @@ async function testparse (game, file, player) {
             text += "      ";
             text += parsedDescription.text + EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get prefabs next.
     {
-        await appendText(file, "PREFABS:");
+        await appendFile(fileName, "PREFABS:");
         let text = "";
         for (let i = 0; i < game.prefabs.length; i++) {
             text += "   ";
@@ -234,12 +242,12 @@ async function testparse (game, file, player) {
             text += "      ";
             text += parsedDescription.text + EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get recipes next.
     {
-        await appendText(file, "RECIPES:");
+        await appendFile(fileName, "RECIPES:");
         let text = "";
         for (let i = 0; i < game.recipes.length; i++) {
             text += "   ";
@@ -291,12 +299,12 @@ async function testparse (game, file, player) {
                 text += parsedDescription.text + EOL;
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get items next.
     {
-        await appendText(file, "ITEMS:");
+        await appendFile(fileName, "ITEMS:");
         let text = "";
         for (let i = 0; i < game.items.length; i++) {
             text += "   ";
@@ -312,12 +320,12 @@ async function testparse (game, file, player) {
             text += "      ";
             text += parsedDescription.text + EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get puzzles next.
     {
-        await appendText(file, "PUZZLES:");
+        await appendFile(fileName, "PUZZLES:");
         let text = "";
         for (let i = 0; i < game.puzzles.length; i++) {
             text += "   ";
@@ -401,12 +409,12 @@ async function testparse (game, file, player) {
 
             text += EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get events next.
     {
-        await appendText(file, "EVENTS:");
+        await appendFile(fileName, "EVENTS:");
         let text = "";
         for (let i = 0; i < game.events.length; i++) {
             text += "   ";
@@ -445,12 +453,12 @@ async function testparse (game, file, player) {
 
             text += EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get status effects next.
     {
-        await appendText(file, "STATUS EFFECTS:");
+        await appendFile(fileName, "STATUS EFFECTS:");
         let text = "";
         for (let i = 0; i < game.statusEffects.length; i++) {
             text += "   ";
@@ -489,12 +497,12 @@ async function testparse (game, file, player) {
 
             text += EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get players next.
     {
-        await appendText(file, "PLAYERS:");
+        await appendFile(fileName, "PLAYERS:");
         let text = "";
         for (let i = 0; i < game.players.length; i++) {
             text += "   ";
@@ -510,12 +518,12 @@ async function testparse (game, file, player) {
             text += "      ";
             text += parsedDescription.text + EOL;
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Finally, get inventory items.
     {
-        await appendText(file, "INVENTORY ITEMS:");
+        await appendFile(fileName, "INVENTORY ITEMS:");
         let text = "";
         for (let i = 0; i < game.inventoryItems.length; i++) {
             if (game.inventoryItems[i].prefab !== null) {
@@ -533,18 +541,26 @@ async function testparse (game, file, player) {
                 text += parsedDescription.text + EOL;
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     return { warnings: warnings, errors: errors };
 }
 
-async function testadd (game, file, formatted, player) {
+/**
+ * Tests the parser module's addItem function on all in-game descriptions with il tags.
+ * Adds 4 instances of random prefabs to each description. Writes the final results to a file.
+ * @param {Game} game - The game being tested. 
+ * @param {string} fileName - The name of the file to write the results to.
+ * @param {boolean} formatted - Whether or not to write the resulting text with its XML tags.
+ * @param {Player|PseudoPlayer} player - The player to pass into the parser module.
+ */
+async function testadd (game, fileName, formatted, player) {
     // Skip over rooms because you can't add items to them.
 
     // Get objects first.
     {
-        await appendText(file, "OBJECTS:");
+        await appendFile(fileName, "OBJECTS:");
         let text = "";
         for (let i = 0; i < game.objects.length; i++) {
             const object = game.objects[i];
@@ -580,14 +596,14 @@ async function testadd (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Prefabs can't have items inside them.
 
     // Get items next.
     {
-        await appendText(file, "ITEMS:");
+        await appendFile(fileName, "ITEMS:");
         let text = "";
         for (let i = 0; i < game.items.length; i++) {
             const item = game.items[i];
@@ -624,12 +640,12 @@ async function testadd (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get puzzles next.
     {
-        await appendText(file, "PUZZLES:");
+        await appendFile(fileName, "PUZZLES:");
         let text = "";
         for (let i = 0; i < game.puzzles.length; i++) {
             const puzzle = game.puzzles[i];
@@ -665,12 +681,12 @@ async function testadd (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get players next.
     {
-        await appendText(file, "PLAYERS:");
+        await appendFile(fileName, "PLAYERS:");
         let text = "";
         for (let i = 0; i < game.players.length; i++) {
             const currentPlayer = game.players[i];
@@ -707,12 +723,12 @@ async function testadd (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Finally, get inventory items.
     {
-        await appendText(file, "INVENTORY ITEMS:");
+        await appendFile(fileName, "INVENTORY ITEMS:");
         let text = "";
         for (let i = 0; i < game.inventoryItems.length; i++) {
             const inventoryItem = game.inventoryItems[i];
@@ -749,17 +765,27 @@ async function testadd (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     return;
 }
 
-async function testremove (game, file, formatted, player) {
+/**
+ * Tests the parser module's removeItem function on all in-game descriptions with item tags.
+ * Tries to remove every item from each description. Issues a warning for every description where it can't remove all items.
+ * Writes the final results to a file.
+ * @param {Game} game - The game being tested. 
+ * @param {string} fileName - The name of the file to write the results to.
+ * @param {boolean} formatted - Whether or not to write the resulting text with its XML tags. If this is true, also tries to remove items in every possible order.
+ * @param {Player|PseudoPlayer} player - The player to pass into the parser module.
+ * @returns {Promise<TestParserWarningOrError[]>} A list of warnings for items that failed to be removed.
+ */
+async function testremove (game, fileName, formatted, player) {
     var warnings = [];
     // Get rooms first.
     {
-        await appendText(file, "ROOMS:");
+        await appendFile(fileName, "ROOMS:");
         let text = "";
         for (let i = 0; i < game.rooms.length; i++) {
             const room = game.rooms[i];
@@ -822,12 +848,12 @@ async function testremove (game, file, formatted, player) {
                 text += EOL;
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get objects next.
     {
-        await appendText(file, "OBJECTS:");
+        await appendFile(fileName, "OBJECTS:");
         let text = "";
         for (let i = 0; i < game.objects.length; i++) {
             const object = game.objects[i];
@@ -881,19 +907,19 @@ async function testremove (game, file, formatted, player) {
                         text += (formatted ? description : parseDescription(description, object, player)) + EOL;
                         tabs++;
                         if (k === permutation.length - 1 && description.includes("<item>") && description.includes("</item"))
-                            warnings.push({ cell: object.descriptionCell(), text: "Unable to remove all item tags." });
+                            warnings.push({ cell: object.descriptionCell(), warnings: ["Unable to remove all item tags."] });
                     }
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Prefabs can't have items inside them.
 
     // Get items next.
     {
-        await appendText(file, "ITEMS:");
+        await appendFile(fileName, "ITEMS:");
         let text = "";
         for (let i = 0; i < game.items.length; i++) {
             const item = game.items[i];
@@ -954,12 +980,12 @@ async function testremove (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get puzzles next.
     {
-        await appendText(file, "PUZZLES:");
+        await appendFile(fileName, "PUZZLES:");
         let text = "";
         for (let i = 0; i < game.puzzles.length; i++) {
             const puzzle = game.puzzles[i];
@@ -1016,12 +1042,12 @@ async function testremove (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Get players next.
     {
-        await appendText(file, "PLAYERS:");
+        await appendFile(fileName, "PLAYERS:");
         let text = "";
         for (let i = 0; i < game.players.length; i++) {
             const currentPlayer = game.players[i];
@@ -1082,12 +1108,12 @@ async function testremove (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
 
     // Finally, get inventory items.
     {
-        await appendText(file, "INVENTORY ITEMS:");
+        await appendFile(fileName, "INVENTORY ITEMS:");
         let text = "";
         for (let i = 0; i < game.inventoryItems.length; i++) {
             const inventoryItem = game.inventoryItems[i];
@@ -1150,12 +1176,17 @@ async function testremove (game, file, formatted, player) {
                 }
             }
         }
-        await appendText(file, text);
+        await appendFile(fileName, text);
     }
     
     return warnings;
 }
 
+/**
+ * Recursively gets all possible permutations of the contents of the array.
+ * @param {string[]} array - The array of strings to find all permutations of.
+ * @returns {string[]} An array comma-separated strings representing all possible permutations.
+ */
 function permute(array) {
     if (array.length < 2) return array;
 
@@ -1174,11 +1205,17 @@ function permute(array) {
     return permutations;
 }
 
-function appendText(file, text) {
+/**
+ * Appends text to the file.
+ * @param {string} fileName - The name of the file to append.
+ * @param {string} text - The text to add to the end of the file.
+ * @returns {Promise<string>} The name of the file.
+ */
+function appendFile(fileName, text) {
     return new Promise((resolve) => {
-        fs.appendFile(file, text + EOL, function (err) {
+        fs.appendFile(fileName, text + EOL, function (err) {
             if (err) return console.log(err);
-            resolve(file);
+            resolve(fileName);
         });
     });
 }

@@ -31,31 +31,31 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
 
-    const file = "./speeds.txt";
-    fs.writeFile(file, "", function (err) {
+    const fileName = "./speeds.txt";
+    fs.writeFile(fileName, "", function (err) {
         if (err) return console.log(err);
     });
 
     if (args[0] === "players")
-        await testplayers(game, file);
+        await testplayers(game, fileName);
     else if (args[0] === "stats")
-        await testspeeds(game, file);
+        await testspeeds(game, fileName);
     else return messageHandler.addReply(game, message, 'Function not found. You need to use "players" or "stats".');
 
     game.guildContext.commandChannel.send({
         content: "Speeds calculated.",
         files: [
             {
-                attachment: file,
+                attachment: fileName,
                 name: `speeds-${args[0]}.txt`
             }
         ]
@@ -64,7 +64,12 @@ export async function execute (game, message, command, args) {
     return;
 }
 
-async function testplayers (game, file) {
+/**
+ * Calculates the time it takes for each player in the game to move from every exit in a room to every other exit and appends it to the file.
+ * @param {Game} game - The game being tested. 
+ * @param {string} fileName - The name of the file to write the results to.
+ */
+async function testplayers (game, fileName) {
     var text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
@@ -101,12 +106,17 @@ async function testplayers (game, file) {
             }
         }
     }
-    await appendText(file, text);
+    await appendText(fileName, text);
 
     return;
 }
 
-async function testspeeds (game, file) {
+/**
+ * Calculates the time it takes for a hypothetical player of every possible speed stat value to move from every exit in a room to every other exit and appends it to the file.
+ * @param {Game} game - The game being tested. 
+ * @param {string} fileName - The name of the file to write the results to.
+ */
+async function testspeeds (game, fileName) {
     var text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
@@ -135,16 +145,22 @@ async function testspeeds (game, file) {
             }
         }
     }
-    await appendText(file, text);
+    await appendText(fileName, text);
 
     return;
 }
 
-function appendText(file, text) {
+/**
+ * Appends text to the file.
+ * @param {string} fileName - The name of the file to append.
+ * @param {string} text - The text to add to the end of the file.
+ * @returns {Promise<string>} The name of the file.
+ */
+function appendText(fileName, text) {
     return new Promise((resolve) => {
-        fs.appendFile(file, text + EOL, function (err) {
+        fs.appendFile(fileName, text + EOL, function (err) {
             if (err) return console.log(err);
-            resolve(file);
+            resolve(fileName);
         });
     });
 }

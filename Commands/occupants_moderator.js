@@ -29,10 +29,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
@@ -50,17 +50,17 @@ export async function execute (game, message, command, args) {
     if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
-    const occupants = sort_occupantsString(room.occupants);
+    const occupants = room.occupants.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
     var occupantsList = [];
     for (let i = 0; i < occupants.length; i++)
         occupantsList.push(occupants[i].name);
     // Generate a string of all hidden occupants in the room.
-    const hidden = sort_occupantsString(room.occupants.filter(occupant => occupant.hasAttribute("hidden")));
+    const hidden = room.occupants.filter(occupant => occupant.hasAttribute("hidden")).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
     var hiddenList = [];
     for (let i = 0; i < hidden.length; i++)
         hiddenList.push(`${hidden[i].name} (${hidden[i].hidingSpot})`);
     // Generate a string of all moving occupants in the room.
-    const moving = sort_occupantsString(room.occupants.filter(occupant => occupant.isMoving));
+    const moving = room.occupants.filter(occupant => occupant.isMoving).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
     var movingList = [];
     for (let i = 0; i < moving.length; i++) {
         const remaining = moment.duration(moving[i].remainingTime);
@@ -91,15 +91,4 @@ export async function execute (game, message, command, args) {
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
 
     return;
-}
-
-function sort_occupantsString(list) {
-    list.sort(function (a, b) {
-        var nameA = a.name.toLowerCase();
-        var nameB = b.name.toLowerCase();
-        if (nameA < nameB) return -1;
-        if (nameA > nameB) return 1;
-        return 0;
-    });
-    return list;
 }

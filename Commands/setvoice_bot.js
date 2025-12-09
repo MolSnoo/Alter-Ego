@@ -42,11 +42,11 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} [player] 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");

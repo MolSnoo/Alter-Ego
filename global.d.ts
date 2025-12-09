@@ -344,4 +344,20 @@ declare global {
 		index: number;
 		chance: number;
 	}
+
+	interface TestParserWarningOrError {
+		cell: string;
+		warnings?: string[];
+		errors?: string[];
+	}
+
+	interface TestParserResults {
+		warnings: TestParserWarningOrError[];
+		errors: TestParserWarningOrError[];
+	}
+
+	interface TestParserError {
+		cell: string;
+		text: string;
+	}
 }

@@ -1,5 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
+import GameEntity from '../Data/GameEntity.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
@@ -63,10 +64,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
 	let input = args.join(' ');
@@ -309,6 +310,13 @@ export async function execute (game, message, command, args) {
 	else messageHandler.addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
 }
 
+/**
+ * Divides all of the results into pages to be displayed as a table.
+ * Ensures that the length of the table will never exceed Discord's maximum character limit.
+ * @param {object} fields - The fields of the respective game entity to use as column headers.
+ * @param {GameEntity[]} results - All results found from the search.
+ * @returns {string[][][]} An array of rows and columns to convert into a table.
+ */
 function createPages(fields, results) {
 	// Divide the results into pages.
 	let pages = [];
@@ -373,6 +381,10 @@ function createPages(fields, results) {
 	return pages;
 }
 
+/**
+ * Calculates the length of the row in terms of character count.
+ * @param {number[]} widestEntryLength - The current widest entry of each row in every column.
+ */
 function calculateRowLength(widestEntryLength) {
 	const cellPadding = 2;
 	const cellBorders = widestEntryLength.length + 1;
