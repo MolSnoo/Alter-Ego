@@ -525,12 +525,10 @@ export function loadRecipes (game, doErrorChecking) {
             const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
-            // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
-            if (!"yMwdhms".includes(durationUnit)) {
-                durationInt = NaN;
-                durationUnit = "?";
-            }
-            let duration = durationString ? dayjs.duration(durationInt, durationUnit) : dayjs.duration(0);
+            /** @type {import('dayjs/plugin/duration.js').Duration} */
+            let duration;
+            if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
+                duration = dayjs.duration(durationInt, durationUnit);
             // Separate the products.
             let productsStrings = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
             // For each product, convert the string to a valid entity name.
@@ -594,7 +592,7 @@ export function checkRecipe (recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require an object tag.`);
     if (recipe.products.length > 2 && recipe.objectTag === "")
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require an object tag.`);
-    if (recipe.duration !== null && !recipe.duration.isValid())
+    if (recipe.duration !== null && !dayjs.isDuration(recipe.duration))
         return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
     if (recipe.objectTag === "" && recipe.duration.asMilliseconds() !== 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without an object tag cannot have a duration.`);
@@ -1122,12 +1120,10 @@ export function loadEvents (game, doErrorChecking) {
             const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
-            // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
-            if (!"yMwdhms".includes(durationUnit)) {
-                durationInt = NaN;
-                durationUnit = '?';
-            }
-            const duration = durationString ? dayjs.duration(durationInt, durationUnit) : null;
+            /** @type {import('dayjs/plugin/duration.js').Duration} */
+            let duration;
+            if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
+                duration = dayjs.duration(durationInt, durationUnit);
             const timeRemaining = sheet[i][columnTimeRemaining] ? dayjs.duration(sheet[i][columnTimeRemaining]) : null;
             let triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
             for (let j = 0; j < triggerTimes.length; j++)
@@ -1214,9 +1210,9 @@ export function checkEvent (event) {
         return new Error(`Couldn't load event on row ${event.row}. No event ID was given.`);
     if (event.game.events.filter(other => other.id === event.id && other.row < event.row).length > 0)
         return new Error(`Couldn't load event on row ${event.row}. Another event with this ID already exists.`);
-    if (event.duration !== null && !event.duration.isValid())
+    if (event.duration !== null && !dayjs.isDuration(event.duration))
         return new Error(`Couldn't load event on row ${event.row}. An invalid duration was given.`);
-    if (event.remaining !== null && !event.remaining.isValid())
+    if (event.remaining !== null && !dayjs.isDuration(event.remaining))
         return new Error(`Couldn't load event on row ${event.row}. An invalid time remaining was given.`);
     if (!event.ongoing && event.remaining !== null)
         return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
@@ -1224,10 +1220,8 @@ export function checkEvent (event) {
         return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
     for (let i = 0; i < event.triggerTimes.length; i++) {
         let triggerTime = dayjs(event.triggerTimes[i], Event.formats);
-        if (!triggerTime.isValid()) {
-            let timeString = triggerTime.inspect().replace(/dayjs.invalid\(\/\* (.*)\*\/\)/g, '$1').trim(); // TODO: FIXME (broken by day.js migration, no .inspect() on dayjs objects)
-            return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
-        }
+        if (!triggerTime.isValid())
+            return new Error(`Couldn't load event on row ${event.row}. "${event.triggerTimes[i]}" is not a valid time to trigger at.`);
     }
     for (let i = 0; i < event.effects.length; i++) {
         if (!(event.effects[i] instanceof Status))
@@ -1269,12 +1263,10 @@ export function loadStatusEffects (game, doErrorChecking) {
             const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
-            // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
-            if (!"yMwdhms".includes(durationUnit)) {
-                durationInt = NaN;
-                durationUnit = "?";
-            }
-            const duration = durationString ? dayjs.duration(durationInt, durationUnit) : null;
+            /** @type {import('dayjs/plugin/duration.js').Duration} */
+            let duration;
+            if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
+                duration = dayjs.duration(durationInt, durationUnit);
             let overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
             for (let j = 0; j < overriders.length; j++)
                 overriders[j] = Status.generateValidId(overriders[j]);
@@ -1414,7 +1406,7 @@ export function loadStatusEffects (game, doErrorChecking) {
 export function checkStatusEffect (status) {
     if (status.id === "" || status.id === null || status.id === undefined)
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect ID was given.`);
-    if (status.duration !== null && !status.duration.isValid())
+    if (status.duration !== null && !dayjs.isDuration(status.duration))
         return new Error(`Couldn't load status effect on row ${status.row}. An invalid duration was given.`);
     for (let i = 0; i < status.statModifiers.length; i++) {
         if (status.statModifiers[i].stat === null)
