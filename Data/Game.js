@@ -4,7 +4,7 @@ import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
 import Room from './Room.js';
-import { default as Fixture } from './Object.js';
+import Fixture from './Object.js';
 import Prefab from './Prefab.js';
 import Recipe from './Recipe.js';
 import Item from './Item.js';
@@ -18,6 +18,7 @@ import Flag from './Flag.js';
 import Whisper from './Whisper.js';
 import { saveGame } from '../Modules/saver.js';
 import { sendQueuedMessages } from '../Modules/messageHandler.js';
+import { Collection } from 'discord.js';
 import dayjs from 'dayjs';
 dayjs().format();
 
@@ -81,29 +82,53 @@ export default class Game {
 	editMode;
 	/** 
 	 * An array of all rooms in the game.
+	 * @deprecated
 	 * @type {Room[]}
 	 */
 	rooms;
+	/**
+	 * A collection of all rooms in the game. The key for each room is its id.
+	 * @type {Collection<string, Room>}
+	 */
+	roomsCollection;
 	/** 
-	 * An array of all fixtures in the game.
+	 * An array of all fixtures in the game. Deprecated. Use fixtures instead.
+	 * @deprecated
 	 * @type {Fixture[]}
 	 */
 	objects;
 	/**
+	 * An array of all fixtures in the game.
+	 * @type {Fixture[]}
+	 */
+	fixtures;
+	/**
 	 * An array of all prefabs in the game.
+	 * @deprecated
 	 * @type {Prefab[]}
 	 */
 	prefabs;
+	/**
+	 * A collection of all prefabs in the game. The key for each prefab is its id.
+	 * @type {Collection<string, Prefab>}
+	 */
+	prefabsCollection;
 	/** 
 	 * An array of all recipes in the game.
 	 * @type {Recipe[]}
 	 */
 	recipes;
 	/** 
-	 * An array of all room items in the game.
+	 * An array of all room items in the game. Deprecated. Use roomItems instead.
+	 * @deprecated
 	 * @type {Item[]}
 	 */
 	items;
+	/**
+	 * An array of all room items in the game.
+	 * @type {Item[]}
+	 */
+	roomItems;
 	/** 
 	 * An array of all puzzles in the game.
 	 * @type {Puzzle[]} 
@@ -111,29 +136,59 @@ export default class Game {
 	puzzles;
 	/** 
 	 * An array of all events in the game.
+	 * @deprecated
 	 * @type {Event[]}
 	 */
 	events;
 	/**
+	 * A collection of all events in the game. The key for each prefab is its id.
+	 * @type {Collection<string, Event>}
+	 */
+	eventsCollection;
+	/**
 	 * An array of all status effects in the game. 
+	 * @deprecated
 	 * @type {Status[]} 
 	 */
 	statusEffects;
 	/**
+	 * A collection of all status effects in the game. The key for each prefab is its id.
+	 * @type {Collection<string, Status>}
+	 */
+	statusEffectsCollection;
+	/**
 	 * An array of all players in the game. 
+	 * @deprecated
 	 * @type {Player[]} 
 	 */
 	players;
+	/**
+	 * A collection of all players in the game. The key for each player is their name.
+	 * @type {Collection<string, Player>}
+	 */
+	playersCollection;
 	/** 
 	 * An array of all living players in the game.
+	 * @deprecated
 	 * @type {Player[]}
 	 */
 	players_alive;
 	/**
+	 * A collection of all living players in the game. The key for each player is their name.
+	 * @type {Collection<string, Player>}
+	 */
+	livingPlayersCollection;
+	/**
 	 * An array of all dead players in the game. 
+	 * @deprecated
 	 * @type {Player[]}
 	 */
 	players_dead;
+	/**
+	 * A collection of all dead players in the game. The key for each player is their name.
+	 * @type {Collection<string, Player>}
+	 */
+	deadPlayersCollection;
 	/**
 	 * An array of all inventory items in the game. 
 	 * @type {InventoryItem[]}
@@ -141,12 +196,18 @@ export default class Game {
 	inventoryItems;
 	/** 
 	 * An array of all gestures in the game.
+	 * @deprecated
 	 * @type {Gesture[]}
 	 */
 	gestures;
+	/**
+	 * A collection of all gestures in the game. The key for each gesture is its id.
+	 * @type {Collection<string, Gesture>}
+	 */
+	gesturesCollection;
 	/** 
-	 * A map of all flags in the game, where the key is the flag's ID.
-	 * @type {Map<string, Flag>} */
+	 * A collection of all flags in the game, where the key is the flag's ID.
+	 * @type {Collection<string, Flag>} */
 	flags;
 	/** 
 	 * An array of all whispers in the game. These are not saved to the sheet.
@@ -195,19 +256,29 @@ export default class Game {
 		this.heated = false;
 		this.editMode = false;
 		this.rooms = [];
+		this.roomsCollection = new Collection();
 		this.objects = [];
+		this.fixtures = [];
 		this.prefabs = [];
+		this.prefabsCollection = new Collection();
 		this.recipes = [];
 		this.items = [];
+		this.roomItems = [];
 		this.puzzles = [];
 		this.events = [];
+		this.eventsCollection = new Collection();
 		this.statusEffects = [];
+		this.statusEffectsCollection = new Collection();
 		this.players = [];
+		this.playersCollection = new Collection();
 		this.players_alive = [];
+		this.livingPlayersCollection = new Collection();
 		this.players_dead = [];
+		this.deadPlayersCollection = new Collection();
 		this.inventoryItems = [];
 		this.gestures = [];
-		this.flags = new Map();
+		this.gesturesCollection = new Collection();
+		this.flags = new Collection();
 		this.whispers = [];
 		this.messageQueue = new PriorityQueue();
 		this.dialogCache = [];

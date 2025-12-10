@@ -3,7 +3,7 @@
 import Game from '../Data/Game.js';
 import Exit from '../Data/Exit.js';
 import Room from '../Data/Room.js';
-import { default as Fixture } from '../Data/Object.js';
+import Fixture from '../Data/Object.js';
 import Prefab from '../Data/Prefab.js';
 import InventorySlot from '../Data/InventorySlot.js';
 import Recipe from '../Data/Recipe.js';
@@ -45,6 +45,7 @@ export function loadRooms (game, doErrorChecking) {
         const columnDescription = 10;
 
         game.rooms.length = 0;
+        game.roomsCollection.clear();
         for (let i = 0, j = 0; i < sheet.length; i = i + j) {
             let exits = [];
             for (j = 0; i + j < sheet.length && (j === 0 || sheet[i + j][columnRoomName] === ""); j++) {
@@ -88,19 +89,19 @@ export function loadRooms (game, doErrorChecking) {
             let tags = sheet[i][columnTags] ? sheet[i][columnTags].trim().split(',') : [];
             for (let j = 0; j < tags.length; j++)
                 tags[j] = tags[j].trim();
-            game.rooms.push(
-                new Room(
-                    id,
-                    sheet[i][columnRoomName] ? sheet[i][columnRoomName].trim() : "",
-                    channel && channel.type === ChannelType.GuildText ? channel : null,
-                    tags,
-                    sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
-                    exits,
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    i + 2,
-                    game
-                )
+            const room = new Room(
+                id,
+                sheet[i][columnRoomName] ? sheet[i][columnRoomName].trim() : "",
+                channel && channel.type === ChannelType.GuildText ? channel : null,
+                tags,
+                sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
+                exits,
+                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                i + 2,
+                game
             );
+            game.rooms.push(room);
+            game.roomsCollection.set(room.id, room);
         }
         let errors = [];
         // Now go through and make the dest for each exit an actual Room object.
@@ -251,13 +252,13 @@ export function loadObjects (game, doErrorChecking) {
                 if (error instanceof Error) errors.push(error);
             }
         }
-        for (let i = 0; i < game.items.length; i++) {
-            if (game.items[i].containerName.startsWith("Object:")) {
-                game.items[i].container = game.objects.find(object =>
-                    object.name === Game.generateValidEntityName(game.items[i].containerName.substring("Object:".length))
+        for (let i = 0; i < game.roomItems.length; i++) {
+            if (game.roomItems[i].containerName.startsWith("Object:")) {
+                game.roomItems[i].container = game.objects.find(object =>
+                    object.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
                     && object.location instanceof Room
-                    && game.items[i].location instanceof Room
-                    && object.location.id === game.items[i].location.id
+                    && game.roomItems[i].location instanceof Room
+                    && object.location.id === game.roomItems[i].location.id
                 );
             }
         }
@@ -334,6 +335,7 @@ export function loadPrefabs (game, doErrorChecking) {
         const columnDescription = 18;
 
         game.prefabs.length = 0;
+        game.prefabsCollection.clear();
         for (let i = 0; i < sheet.length; i++) {
             // Separate name and plural name.
             const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
@@ -382,35 +384,35 @@ export function loadPrefabs (game, doErrorChecking) {
                 );
             }
 
-            game.prefabs.push(
-                new Prefab(
-                    sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",
-                    name[0] ? Game.generateValidEntityName(name[0]) : "",
-                    name[1] ? Game.generateValidEntityName(name[1]) : "",
-                    containingPhrase[0] ? containingPhrase[0].trim() : "",
-                    containingPhrase[1] ? containingPhrase[1].trim() : "",
-                    sheet[i][columnDiscreet] ? sheet[i][columnDiscreet].trim() === "TRUE" : false,
-                    parseInt(sheet[i][columnSize]),
-                    parseInt(sheet[i][columnWeight]),
-                    sheet[i][columnUsable] ? sheet[i][columnUsable].trim() === "TRUE" : false,
-                    sheet[i][columnUseVerb] ? sheet[i][columnUseVerb].trim() : "",
-                    parseInt(sheet[i][columnUses]),
-                    effects,
-                    cures,
-                    sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
-                    sheet[i][columnEquippable] ? sheet[i][columnEquippable].trim() === "TRUE" : false,
-                    equipmentSlots,
-                    coveredEquipmentSlots,
-                    sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands] : "",
-                    equipCommands,
-                    unequipCommands,
-                    inventorySlots,
-                    sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    i + 2,
-                    game
-                )
+            const prefab = new Prefab(
+                sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",
+                name[0] ? Game.generateValidEntityName(name[0]) : "",
+                name[1] ? Game.generateValidEntityName(name[1]) : "",
+                containingPhrase[0] ? containingPhrase[0].trim() : "",
+                containingPhrase[1] ? containingPhrase[1].trim() : "",
+                sheet[i][columnDiscreet] ? sheet[i][columnDiscreet].trim() === "TRUE" : false,
+                parseInt(sheet[i][columnSize]),
+                parseInt(sheet[i][columnWeight]),
+                sheet[i][columnUsable] ? sheet[i][columnUsable].trim() === "TRUE" : false,
+                sheet[i][columnUseVerb] ? sheet[i][columnUseVerb].trim() : "",
+                parseInt(sheet[i][columnUses]),
+                effects,
+                cures,
+                sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
+                sheet[i][columnEquippable] ? sheet[i][columnEquippable].trim() === "TRUE" : false,
+                equipmentSlots,
+                coveredEquipmentSlots,
+                sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands] : "",
+                equipCommands,
+                unequipCommands,
+                inventorySlots,
+                sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
+                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                i + 2,
+                game
             );
+            game.prefabs.push(prefab);
+            game.prefabsCollection.set(prefab.id, prefab);
         }
         let errors = [];
         for (let i = 0; i < game.prefabs.length; i++) {
@@ -626,9 +628,9 @@ export function loadItems (game, doErrorChecking) {
         const columnUses = 6;
         const columnDescription = 7;
 
-        game.items.length = 0;
+        game.roomItems.length = 0;
         for (let i = 0; i < sheet.length; i++) {
-            game.items.push(
+            game.roomItems.push(
                 new Item(
                     sheet[i][columnPrefab] ? Game.generateValidEntityName(sheet[i][columnPrefab]) : "",
                     sheet[i][columnIdentifier] ? Game.generateValidEntityName(sheet[i][columnIdentifier]) : "",
@@ -645,47 +647,47 @@ export function loadItems (game, doErrorChecking) {
         }
         let errors = [];
         let childItemIndexes = [];
-        for (let i = 0; i < game.items.length; i++) {
-            const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === game.items[i].prefabId);
-            if (prefab) game.items[i].setPrefab(prefab);
-            const location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.items[i].locationId))
-            if (location) game.items[i].location = location;
-            if (game.items[i].prefab instanceof Prefab) {
-                game.items[i].initializeInventory();
+        for (let i = 0; i < game.roomItems.length; i++) {
+            const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === game.roomItems[i].prefabId);
+            if (prefab) game.roomItems[i].setPrefab(prefab);
+            const location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.roomItems[i].locationId))
+            if (location) game.roomItems[i].location = location;
+            if (game.roomItems[i].prefab instanceof Prefab) {
+                game.roomItems[i].initializeInventory();
             }
-            if (game.items[i].containerName.startsWith("Object:")) {
+            if (game.roomItems[i].containerName.startsWith("Object:")) {
                 const container = game.objects.find(object =>
-                    object.name === Game.generateValidEntityName(game.items[i].containerName.substring("Object:".length))
+                    object.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
                     && object.location instanceof Room
-                    && game.items[i].location instanceof Room
-                    && object.location.id === game.items[i].location.id
+                    && game.roomItems[i].location instanceof Room
+                    && object.location.id === game.roomItems[i].location.id
                 );
-                if (container) game.items[i].container = container;
+                if (container) game.roomItems[i].container = container;
             }
-            else if (game.items[i].containerName.startsWith("Item:")) {
+            else if (game.roomItems[i].containerName.startsWith("Item:")) {
                 childItemIndexes.push(i);
             }
-            else if (game.items[i].containerName.startsWith("Puzzle:")) {
+            else if (game.roomItems[i].containerName.startsWith("Puzzle:")) {
                 const container = game.puzzles.find(puzzle =>
-                    puzzle.name === Game.generateValidEntityName(game.items[i].containerName.substring("Puzzle:".length))
+                    puzzle.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Puzzle:".length))
                     && puzzle.location instanceof Room
-                    && game.items[i].location instanceof Room
-                    && puzzle.location.id === game.items[i].location.id
+                    && game.roomItems[i].location instanceof Room
+                    && puzzle.location.id === game.roomItems[i].location.id
                 );
-                if (container) game.items[i].container = container;
+                if (container) game.roomItems[i].container = container;
             }
         }
         // Only assign child item containers once all items have been properly initialized.
         for (let index = 0; index < childItemIndexes.length; index++) {
             const i = childItemIndexes[index];
-            const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
+            const containerName = game.roomItems[i].containerName.substring("Item:".length).trim().split("/");
             const identifier = containerName[0] ? Game.generateValidEntityName(containerName[0]) : "";
             const slotId = containerName[1] ? Game.generateValidEntityName(containerName[1]) : "";
-            let possibleContainers = game.items.filter(item =>
+            let possibleContainers = game.roomItems.filter(item =>
                 item.identifier === identifier
                 && item.location instanceof Room
-                && game.items[i].location instanceof Room
-                && item.location.id === game.items[i].location.id);
+                && game.roomItems[i].location instanceof Room
+                && item.location.id === game.roomItems[i].location.id);
             let container = null;
             for (let i = 0; i < possibleContainers.length; i++) {
                 if (possibleContainers[i].quantity > 0) {
@@ -695,13 +697,13 @@ export function loadItems (game, doErrorChecking) {
             }
             if (container === null && possibleContainers.length > 0) container = possibleContainers[0];
             if (container) {
-                game.items[i].container = container;
-                game.items[i].slot = slotId;
+                game.roomItems[i].container = container;
+                game.roomItems[i].slot = slotId;
                 // This is a pseudo-copy of the insertItems function without weight and takenSpace changing.
-                if (game.items[i].quantity !== 0) {
+                if (game.roomItems[i].quantity !== 0) {
                     for (let j = 0; j < container.inventory.length; j++) {
                         if (container.inventory[j].id === slotId)
-                            container.inventory[j].items.push(game.items[i]);
+                            container.inventory[j].items.push(game.roomItems[i]);
                     }
                 }
             }
@@ -723,7 +725,7 @@ export function loadItems (game, doErrorChecking) {
             );
             createdItem.setPrefab(item.prefab);
             createdItem.location = item.location;
-            if (item.container instanceof Item) createdItem.container = game.items.find(gameItem => gameItem.row === item.container.row);
+            if (item.container instanceof Item) createdItem.container = game.roomItems.find(gameItem => gameItem.row === item.container.row);
             else createdItem.container = item.container;
             createdItem.slot = item.slot;
             createdItem.weight = item.weight;
@@ -737,40 +739,40 @@ export function loadItems (game, doErrorChecking) {
                     const inventoryItem = insertInventory(item.inventory[i].items[j]);
                     let foundItem = false;
                     let k = 0;
-                    for (k; k < game.items.length; k++) {
-                        if (game.items[k].row === inventoryItem.row) {
+                    for (k; k < game.roomItems.length; k++) {
+                        if (game.roomItems[k].row === inventoryItem.row) {
                             foundItem = true;
-                            game.items[k] = inventoryItem;
+                            game.roomItems[k] = inventoryItem;
                             break;
                         }
                     }
                     if (foundItem) {
-                        game.items[k].container = createdItem;
-                        if (game.items[k].containerName !== "")
-                            createdItem.insertItem(game.items[k], game.items[k].slot);
-                        else createdItem.inventory[i].items.push(game.items[k]);
+                        game.roomItems[k].container = createdItem;
+                        if (game.roomItems[k].containerName !== "")
+                            createdItem.insertItem(game.roomItems[k], game.roomItems[k].slot);
+                        else createdItem.inventory[i].items.push(game.roomItems[k]);
                     }
                 }
             }
             return createdItem;
         };
         // Run through items one more time to properly insert their inventories.
-        for (let i = 0; i < game.items.length; i++) {
-            const container = game.items[i].container;
+        for (let i = 0; i < game.roomItems.length; i++) {
+            const container = game.roomItems[i].container;
             if (container instanceof Item) {
                 for (let slot = 0; slot < container.inventory.length; slot++) {
                     for (let j = 0; j < container.inventory[slot].items.length; j++) {
-                        if (container.inventory[slot].items[j].row === game.items[i].row) {
-                            game.items[i] = container.inventory[slot].items[j];
+                        if (container.inventory[slot].items[j].row === game.roomItems[i].row) {
+                            game.roomItems[i] = container.inventory[slot].items[j];
                             break;
                         }
                     }
                 }
             }
-            else game.items[i] = insertInventory(game.items[i]);
+            else game.roomItems[i] = insertInventory(game.roomItems[i]);
 
             if (doErrorChecking) {
-                const error = exports.checkItem(game.items[i], game);
+                const error = exports.checkItem(game.roomItems[i], game);
                 if (error instanceof Error) errors.push(error);
             }
         }
@@ -798,7 +800,7 @@ export function checkItem (item) {
     if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
     if (item.identifier !== "" && item.quantity !== 0 &&
-        item.game.items.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length
+        item.game.roomItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length
         + item.game.inventoryItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length > 0)
         return new Error(`Couldn't load item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
     if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
@@ -969,13 +971,13 @@ export function loadPuzzles (game, doErrorChecking) {
                 );
             }
         }
-        for (let i = 0; i < game.items.length; i++) {
-            if (game.items[i].containerName.startsWith("Puzzle:")) {
-                game.items[i].container = game.puzzles.find(puzzle =>
-                    puzzle.name === Game.generateValidEntityName(game.items[i].containerName.substring("Puzzle:".length))
+        for (let i = 0; i < game.roomItems.length; i++) {
+            if (game.roomItems[i].containerName.startsWith("Puzzle:")) {
+                game.roomItems[i].container = game.puzzles.find(puzzle =>
+                    puzzle.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Puzzle:".length))
                     && puzzle.location instanceof Room
-                    && game.items[i].location instanceof Room
-                    && puzzle.location.id === game.items[i].location.id
+                    && game.roomItems[i].location instanceof Room
+                    && puzzle.location.id === game.roomItems[i].location.id
                 );
             }
         }
@@ -1116,6 +1118,7 @@ export function loadEvents (game, doErrorChecking) {
         const columnEndedNarration = 10;
 
         game.events.length = 0;
+        game.eventsCollection.clear();
         for (let i = 0; i < sheet.length; i++) {
             const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
@@ -1142,28 +1145,28 @@ export function loadEvents (game, doErrorChecking) {
             let refreshes = sheet[i][columnRefreshedEffects] ? sheet[i][columnRefreshedEffects].split(',') : [];
             for (let j = 0; j < refreshes.length; j++)
                 refreshes[j] = Status.generateValidId(refreshes[j]);
-            game.events.push(
-                new Event(
-                    sheet[i][columnName] ? Game.generateValidEntityName(sheet[i][columnName]) : "",
-                    sheet[i][columnOngoing] ? sheet[i][columnOngoing].trim() === "TRUE" : false,
-                    durationString,
-                    duration,
-                    sheet[i][columnTimeRemaining] ? sheet[i][columnTimeRemaining] : "",
-                    timeRemaining,
-                    sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt] : "",
-                    triggerTimes,
-                    sheet[i][columnRoomTag] ? sheet[i][columnRoomTag].trim() : "",
-                    sheet[i][columnCommands] ? sheet[i][columnCommands] : "",
-                    triggeredCommands,
-                    endedCommands,
-                    effects,
-                    refreshes,
-                    sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration].trim() : "",
-                    sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration].trim() : "",
-                    i + 2,
-                    game
-                )
+            const event = new Event(
+                sheet[i][columnName] ? Game.generateValidEntityName(sheet[i][columnName]) : "",
+                sheet[i][columnOngoing] ? sheet[i][columnOngoing].trim() === "TRUE" : false,
+                durationString,
+                duration,
+                sheet[i][columnTimeRemaining] ? sheet[i][columnTimeRemaining] : "",
+                timeRemaining,
+                sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt] : "",
+                triggerTimes,
+                sheet[i][columnRoomTag] ? sheet[i][columnRoomTag].trim() : "",
+                sheet[i][columnCommands] ? sheet[i][columnCommands] : "",
+                triggeredCommands,
+                endedCommands,
+                effects,
+                refreshes,
+                sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration].trim() : "",
+                sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration].trim() : "",
+                i + 2,
+                game
             );
+            game.events.push(event);
+            game.eventsCollection.set(event.id, event);
         }
         let errors = [];
         for (let i = 0; i < game.events.length; i++) {
@@ -1259,6 +1262,7 @@ export function loadStatusEffects (game, doErrorChecking) {
         const columnCuredDescription = 13;
 
         game.statusEffects.length = 0;
+        game.statusEffectsCollection.clear();
         for (let i = 0; i < sheet.length; i++) {
             const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
@@ -1313,25 +1317,25 @@ export function loadStatusEffects (game, doErrorChecking) {
             let attributes = sheet[i][columnAttributes] ? sheet[i][columnAttributes].split(',') : [];
             for (let j = 0; j < attributes.length; j++)
                 attributes[j] = attributes[j].trim();
-            game.statusEffects.push(
-                new Status(
-                    sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                    duration,
-                    sheet[i][columnFatal] ? sheet[i][columnFatal].trim() === "TRUE" : false,
-                    sheet[i][columnVisible] ? sheet[i][columnVisible].trim() === "TRUE" : false,
-                    overriders,
-                    cures,
-                    sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : null,
-                    sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus].trim() : null,
-                    sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition].trim() : null,
-                    modifiers,
-                    attributes,
-                    sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription].trim() : "",
-                    sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription].trim() : "",
-                    i + 2,
-                    game
-                )
+            const status = new Status(
+                sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                duration,
+                sheet[i][columnFatal] ? sheet[i][columnFatal].trim() === "TRUE" : false,
+                sheet[i][columnVisible] ? sheet[i][columnVisible].trim() === "TRUE" : false,
+                overriders,
+                cures,
+                sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : null,
+                sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus].trim() : null,
+                sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition].trim() : null,
+                modifiers,
+                attributes,
+                sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription].trim() : "",
+                sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription].trim() : "",
+                i + 2,
+                game
             );
+            game.statusEffects.push(status);
+            game.statusEffectsCollection.set(status.id, status);
         }
         // Now go through and make the nextStage and curedCondition an actual Status object.
         var errors = [];
@@ -1483,6 +1487,9 @@ export function loadPlayers (game, doErrorChecking) {
         game.players.length = 0;
         game.players_alive.length = 0;
         game.players_dead.length = 0;
+        game.playersCollection.clear();
+        game.livingPlayersCollection.clear();
+        game.deadPlayersCollection.clear();
 
         for (let i = 0; i < sheet.length; i++) {
             const stats = {
@@ -1516,34 +1523,35 @@ export function loadPlayers (game, doErrorChecking) {
                     });
                 }
             }
-            const player =
-                new Player(
-                    sheet[i][columnID] ? sheet[i][columnID].trim() : "",
-                    member,
-                    sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                    sheet[i][columnTitle] ? sheet[i][columnTitle].trim() : "",
-                    sheet[i][columnPronouns] ? sheet[i][columnPronouns].trim().toLowerCase() : "",
-                    sheet[i][columnVoice] ? sheet[i][columnVoice].trim() : "",
-                    stats,
-                    sheet[i][columnAlive] ? sheet[i][columnAlive].trim() === "TRUE" : false,
-                    sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                    sheet[i][columnHidingSpot] ? sheet[i][columnHidingSpot].trim() : "",
-                    [],
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    [],
-                    spectateChannel && spectateChannel.type === ChannelType.GuildText ? spectateChannel : null,
-                    i + 3,
-                    game
-                );
+            const player = new Player(
+                sheet[i][columnID] ? sheet[i][columnID].trim() : "",
+                member,
+                sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                sheet[i][columnTitle] ? sheet[i][columnTitle].trim() : "",
+                sheet[i][columnPronouns] ? sheet[i][columnPronouns].trim().toLowerCase() : "",
+                sheet[i][columnVoice] ? sheet[i][columnVoice].trim() : "",
+                stats,
+                sheet[i][columnAlive] ? sheet[i][columnAlive].trim() === "TRUE" : false,
+                sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
+                sheet[i][columnHidingSpot] ? sheet[i][columnHidingSpot].trim() : "",
+                [],
+                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                [],
+                spectateChannel && spectateChannel.type === ChannelType.GuildText ? spectateChannel : null,
+                i + 3,
+                game
+            );
             const location = game.rooms.find(room => room.id === Room.generateValidId(player.locationId));
             if (location) player.location = location;
             if (player.title === "NPC") player.displayIcon = player.id;
             player.setPronouns(player.originalPronouns, player.pronounString);
             player.setPronouns(player.pronouns, player.pronounString);
             game.players.push(player);
+            game.playersCollection.set(player.name, player);
 
             if (player.alive) {
                 game.players_alive.push(player);
+                game.livingPlayersCollection.set(player.name, player);
 
                 if (player.member !== null || player.title === "NPC") {
                     // Parse statuses and inflict the player with them.
@@ -1569,8 +1577,10 @@ export function loadPlayers (game, doErrorChecking) {
                     }
                 }
             }
-            else
+            else {
                 game.players_dead.push(player);
+                game.deadPlayersCollection.set(player.name, player);
+            }
         }
 
         await loadInventories(game, false);
@@ -1885,7 +1895,7 @@ export function checkInventoryItem (item) {
         if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
             return new Error(`Couldn't load inventory item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
         if (item.identifier !== "" && item.quantity !== 0 &&
-            item.game.items.filter(other => other.identifier === item.identifier && other.quantity !== 0).length
+            item.game.roomItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length
             + item.game.inventoryItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length > 0)
             return new Error(`Couldn't load inventory item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
         if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
@@ -1929,6 +1939,7 @@ export function loadGestures (game, doErrorChecking) {
         const columnNarration = 4;
 
         game.gestures.length = 0;
+        game.gesturesCollection.clear();
         for (let i = 0; i < sheet.length; i++) {
             let requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
             for (let j = 0; j < requires.length; j++)
@@ -1936,17 +1947,17 @@ export function loadGestures (game, doErrorChecking) {
             let disabledStatuses = sheet[i][columnDontAllowIf] ? sheet[i][columnDontAllowIf].split(',') : [];
             for (let j = 0; j < disabledStatuses.length; j++)
                 disabledStatuses[j] = Status.generateValidId(disabledStatuses[j]);
-            game.gestures.push(
-                new Gesture(
-                    sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                    requires,
-                    disabledStatuses,
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    sheet[i][columnNarration] ? sheet[i][columnNarration].trim() : "",
-                    i + 2,
-                    game
-                )
+            const gesture = new Gesture(
+                sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                requires,
+                disabledStatuses,
+                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                sheet[i][columnNarration] ? sheet[i][columnNarration].trim() : "",
+                i + 2,
+                game
             );
+            game.gestures.push(gesture);
+            game.gesturesCollection.set(gesture.id, gesture);
         }
         // Now go through and make the disabledStatuses actual Status objects.
         let errors = [];

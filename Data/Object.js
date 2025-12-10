@@ -13,12 +13,12 @@ import dayjs from 'dayjs';
 dayjs().format();
 
 /**
- * @class Object
+ * @class Fixture
  * @classdesc Represents a fixed structure in a room that cannot be taken or moved by a player.
  * @extends ItemContainer
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/object.html
  */
-export default class Object extends ItemContainer {
+export default class Fixture extends ItemContainer {
     /**
      * The name of the object.
      * @readonly
