@@ -1547,11 +1547,11 @@ export function loadPlayers (game, doErrorChecking) {
             player.setPronouns(player.originalPronouns, player.pronounString);
             player.setPronouns(player.pronouns, player.pronounString);
             game.players.push(player);
-            game.playersCollection.set(player.name, player);
+            game.playersCollection.set(Game.generateValidEntityName(player.name), player);
 
             if (player.alive) {
                 game.players_alive.push(player);
-                game.livingPlayersCollection.set(player.name, player);
+                game.livingPlayersCollection.set(Game.generateValidEntityName(player.name), player);
 
                 if (player.member !== null || player.title === "NPC") {
                     // Parse statuses and inflict the player with them.
@@ -1579,7 +1579,7 @@ export function loadPlayers (game, doErrorChecking) {
             }
             else {
                 game.players_dead.push(player);
-                game.deadPlayersCollection.set(player.name, player);
+                game.deadPlayersCollection.set(Game.generateValidEntityName(player.name), player);
             }
         }
 
@@ -1948,7 +1948,7 @@ export function loadGestures (game, doErrorChecking) {
             for (let j = 0; j < disabledStatuses.length; j++)
                 disabledStatuses[j] = Status.generateValidId(disabledStatuses[j]);
             const gesture = new Gesture(
-                sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                sheet[i][columnName] ? Gesture.generateValidId(sheet[i][columnName]) : "",
                 requires,
                 disabledStatuses,
                 sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
@@ -2067,7 +2067,7 @@ export function loadFlags (game, doErrorChecking, errors) {
             else if (valueString === "FALSE") value = false;
             
             let flag = new Flag(
-                sheet[i][columnID] ? sheet[i][columnID].toUpperCase().replace(/[\'"“”`]/g, '').trim() : "",
+                sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",
                 value,
                 sheet[i][columnValueScript] ? sheet[i][columnValueScript].trim() : "",
                 sheet[i][columnCommands] ? sheet[i][columnCommands].trim() : "",

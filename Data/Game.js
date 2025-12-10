@@ -1,5 +1,6 @@
 import BotContext from '../Classes/BotContext.js';
 import GameConstants from '../Classes/GameConstants.js';
+import GameEntityFinder from '../Classes/GameEntityFinder.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
@@ -50,6 +51,12 @@ export default class Game {
 	 * @type {GameConstants}
 	*/
 	constants;
+	/**
+	 * A set of functions to get and find game entities.
+	 * @readonly
+	 * @type {GameEntityFinder}
+	 */
+	entityFinder;
 	/**
 	 * Whether or not the game is currently in progress.
 	 * @type {boolean}
@@ -249,6 +256,7 @@ export default class Game {
 		this.guildContext = guildContext;
 		this.settings = settings;
 		this.constants = new GameConstants();
+		this.entityFinder = new GameEntityFinder(this);
 		this.inProgress = false;
 		this.canJoin = false;
 		this.halfTimer = null;
@@ -297,7 +305,7 @@ export default class Game {
 		this.#eventTriggerInterval = setInterval(() => {
 			if (this.inProgress) {
 				const now = dayjs();
-				this.events.forEach(event => {
+				this.eventsCollection.forEach(event => {
 					if (!event.ongoing) {
 						for (let triggerTime of event.triggerTimes) {
 							const time = dayjs(triggerTime, Event.formats);

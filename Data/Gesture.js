@@ -91,4 +91,12 @@ export default class Gesture extends GameEntity {
         this.targetType = "";
         this.target = null;
     }
+
+    /**
+     * Generate an ID in all lowercase.
+     * @param {string} id 
+     */
+    static generateValidId(id) {
+        return id.toLowerCase().trim();
+    }
 }

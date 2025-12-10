@@ -183,10 +183,10 @@ export default class Status extends GameEntity {
     }
 
     /**
-     * Generate a name in all lowercase.
-     * @param {string} name 
+     * Generate an ID in all lowercase.
+     * @param {string} id 
      */
-    static generateValidId(name) {
-        return name.toLowerCase().trim();
+    static generateValidId(id) {
+        return id.toLowerCase().trim();
     }
 }
