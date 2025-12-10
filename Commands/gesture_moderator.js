@@ -132,21 +132,21 @@ export async function execute (game, message, command, args) {
                                 }
                             }
                         }
-                        else if (gesture.requires[j] === "Object") {
-                            const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
-                            for (let k = 0; k < objects.length; k++) {
-                                if (objects[k].name.toLowerCase() === input2) {
-                                    targetType = "Object";
-                                    target = objects[k];
+                        else if (gesture.requires[j] === "Fixture" || gesture.requires[j] === "Object") {
+                            const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
+                            for (let k = 0; k < fixtures.length; k++) {
+                                if (fixtures[k].name.toLowerCase() === input2) {
+                                    targetType = "Fixture";
+                                    target = fixtures[k];
                                     break;
                                 }
                             }
                         }
-                        else if (gesture.requires[j] === "Item") {
+                        else if (gesture.requires[j] === "Room Item" || gesture.requires[j] === "Item") {
                             const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
                             for (let k = 0; k < items.length; k++) {
                                 if (items[k].prefab.id.toLowerCase() === input2 || items[k].name.toLowerCase() === input2) {
-                                    targetType = "Item";
+                                    targetType = "Room Item";
                                     target = items[k];
                                     break;
                                 }
@@ -199,7 +199,7 @@ export async function execute (game, message, command, args) {
         const time = new Date().toLocaleTimeString();
         if (targetType === "")
             messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} in ${player.location.channel}`);
-        else if (targetType === "Exit" || targetType === "Object" || targetType === "Player")
+        else if (targetType === "Exit" || targetType === "Fixture" || targetType === "Player")
             messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} to ${target.name} in ${player.location.channel}`);
         else if (target instanceof ItemInstance)
             messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);

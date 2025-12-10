@@ -30,9 +30,9 @@ export const config = {
  */
 export function usage (settings) {
     return `set accessible puzzle button\n`
-        + `set inaccessible object terminal\n`
-        + `set accessible object keypad tool shed\n`
-        + `set accessible object items medicine cabinet\n`
+        + `set inaccessible fixture terminal\n`
+        + `set accessible fixture keypad tool shed\n`
+        + `set accessible fixture items medicine cabinet\n`
         + `set inaccessible puzzle items lock men's locker room`;
 }
 
@@ -51,7 +51,7 @@ export async function execute (game, command, args, player, callee) {
         return;
     }
 
-    var input = args.join(" ");
+    let input = args.join(" ");
     if (args[0] === "accessible") command = "accessible";
     else if (args[0] === "inaccessible") command = "inaccessible";
     else {
@@ -61,18 +61,18 @@ export async function execute (game, command, args, player, callee) {
     input = input.substring(input.indexOf(args[1]));
     args = input.split(" ");
 
-    var isObject = false;
-    var isPuzzle = false;
-    if (args[0] === "object") isObject = true;
+    let isFixture = false;
+    let isPuzzle = false;
+    if (args[0] === "fixture" || args[0] === "object") isFixture = true;
     else if (args[0] === "puzzle") isPuzzle = true;
     else {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The second argument must be "object" or "puzzle".`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The second argument must be "fixture" or "puzzle".`);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
     args = input.split(" ");
 
-    var doItems = false;
+    let doItems = false;
     if (args[0] === "items") {
         doItems = true;
         input = input.substring(input.indexOf(args[1]));
@@ -80,7 +80,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // Check if a room name was specified.
-    var room = null;
+    let room = null;
     const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
     for (let i = 0; i < game.rooms.length; i++) {
         if (parsedInput.endsWith(game.rooms[i].name)) {
@@ -90,23 +90,23 @@ export async function execute (game, command, args, player, callee) {
         }
     }
 
-    if (isObject) {
-        const objects = game.objects.filter(object => object.name === input.toUpperCase().replace(/\'/g, ""));
-        // Finally, find the object.
-        var object = null;
-        for (let i = 0; i < objects.length; i++) {
-            if (room !== null && objects[i].location.id === room.id) {
-                object = objects[i];
+    let fixture = null;
+    let puzzle = null;
+    if (isFixture) {
+        const fixtures = game.fixtures.filter(fixture => fixture.name === input.toUpperCase().replace(/\'/g, ""));
+        // Finally, find the fixture.
+        for (let i = 0; i < fixtures.length; i++) {
+            if (room !== null && fixtures[i].location.id === room.id) {
+                fixture = fixtures[i];
                 break;
             }
         }
-        if (object === null && room === null && objects.length > 0) object = objects[0];
-        else if (object === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find object "${input}".`);
+        if (fixture === null && room === null && fixtures.length > 0) fixture = fixtures[0];
+        else if (fixture === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
     }
     else if (isPuzzle) {
         const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
         // Finally, find the puzzle.
-        var puzzle = null;
         for (let i = 0; i < puzzles.length; i++) {
             if (room !== null && puzzles[i].location.id === room.id) {
                 puzzle = puzzles[i];
@@ -118,10 +118,10 @@ export async function execute (game, command, args, player, callee) {
     }
 
     if (command === "accessible") {
-        if (isObject) {
+        if (isFixture) {
             if (doItems) {
-                // Update all of the items contained in this object.
-                let items = game.items.filter(item => item.location.id === object.location.id && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && !item.accessible);
+                // Update all of the items contained in this fixture.
+                let items = game.items.filter(item => item.location.id === fixture.location.id && item.containerName === `Object: ${fixture.name}` && item.container !== null && item.container.name === fixture.name && item.quantity > 0 && !item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -130,7 +130,7 @@ export async function execute (game, command, args, player, callee) {
                 for (let i = 0; i < items.length; i++)
                     items[i].setAccessible();
             }
-            else object.setAccessible();
+            else fixture.setAccessible();
         }
         else if (isPuzzle) {
             if (doItems) {
@@ -148,10 +148,10 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     else if (command === "inaccessible") {
-        if (isObject) {
+        if (isFixture) {
             if (doItems) {
-                // Update all of the items contained in this object.
-                let items = game.items.filter(item => item.location.id === object.location.id && item.containerName === `Object: ${object.name}` && item.container !== null && item.container.name === object.name && item.quantity > 0 && item.accessible);
+                // Update all of the items contained in this fixture.
+                let items = game.items.filter(item => item.location.id === fixture.location.id && item.containerName === `Object: ${fixture.name}` && item.container !== null && item.container.name === fixture.name && item.quantity > 0 && item.accessible);
                 let childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -160,7 +160,7 @@ export async function execute (game, command, args, player, callee) {
                 for (let i = 0; i < items.length; i++)
                     items[i].setInaccessible();
             }
-            else object.setInaccessible();
+            else fixture.setInaccessible();
         }
         else if (isPuzzle) {
             if (doItems) {

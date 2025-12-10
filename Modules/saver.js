@@ -36,23 +36,23 @@ export async function saveGame (game, deletedItemsCount = 0, deletedInventoryIte
         data.push({ range: game.constants.roomSheetDataCells, values: roomValues });
 
         /** @type {string[][]} */
-        let objectValues = [];
-        for (let i = 0; i < game.objects.length; i++) {
-            objectValues.push([
-                game.objects[i].name,
-                game.objects[i].location.displayName,
-                game.objects[i].accessible ? "TRUE" : "FALSE",
-                game.objects[i].childPuzzleName,
-                game.objects[i].recipeTag,
-                game.objects[i].activatable ? "TRUE" : "FALSE",
-                game.objects[i].activated ? "TRUE" : "FALSE",
-                game.objects[i].autoDeactivate ? "TRUE" : "FALSE",
-                String(game.objects[i].hidingSpotCapacity),
-                game.objects[i].preposition,
-                game.objects[i].description
+        let fixtureValues = [];
+        for (let i = 0; i < game.fixtures.length; i++) {
+            fixtureValues.push([
+                game.fixtures[i].name,
+                game.fixtures[i].location.displayName,
+                game.fixtures[i].accessible ? "TRUE" : "FALSE",
+                game.fixtures[i].childPuzzleName,
+                game.fixtures[i].recipeTag,
+                game.fixtures[i].activatable ? "TRUE" : "FALSE",
+                game.fixtures[i].activated ? "TRUE" : "FALSE",
+                game.fixtures[i].autoDeactivate ? "TRUE" : "FALSE",
+                String(game.fixtures[i].hidingSpotCapacity),
+                game.fixtures[i].preposition,
+                game.fixtures[i].description
             ]);
         }
-        data.push({ range: game.constants.objectSheetDataCells, values: objectValues });
+        data.push({ range: game.constants.fixtureSheetDataCells, values: fixtureValues });
 
         /** @type {string[][]} */
         let itemValues = [];
@@ -84,7 +84,7 @@ export async function saveGame (game, deletedItemsCount = 0, deletedInventoryIte
                 "",
                 ""
             ]);
-        data.push({ range: game.constants.itemSheetDataCells, values: itemValues });
+        data.push({ range: game.constants.roomItemSheetDataCells, values: itemValues });
 
         /** @type {string[][]} */
         let puzzleValues = [];
@@ -95,7 +95,7 @@ export async function saveGame (game, deletedItemsCount = 0, deletedInventoryIte
                 game.puzzles[i].outcome,
                 game.puzzles[i].requiresMod ? "TRUE" : "FALSE",
                 game.puzzles[i].location.displayName,
-                game.puzzles[i].parentObjectName,
+                game.puzzles[i].parentFixtureName,
                 game.puzzles[i].type,
                 game.puzzles[i].accessible ? "TRUE" : "FALSE",
                 game.puzzles[i].requirementsStrings.join(", "),
@@ -218,7 +218,7 @@ export async function setupdemo (game) {
         let data = [];
 
         const roomValues = demodata.rooms;
-        const objectValues = demodata.objects;
+        const fixtureValues = demodata.objects;
         const prefabValues = demodata.prefabs;
         const recipeValues = demodata.recipes;
         const itemValues = demodata.items;
@@ -230,13 +230,13 @@ export async function setupdemo (game) {
         /** @type {ValueRange} */
         data.push({ range: game.constants.roomSheetDataCells, values: roomValues });
         /** @type {ValueRange} */
-        data.push({ range: game.constants.objectSheetDataCells, values: objectValues });
+        data.push({ range: game.constants.fixtureSheetDataCells, values: fixtureValues });
         /** @type {ValueRange} */
         data.push({ range: game.constants.prefabSheetDataCells, values: prefabValues });
         /** @type {ValueRange} */
         data.push({ range: game.constants.recipeSheetDataCells, values: recipeValues });
         /** @type {ValueRange} */
-        data.push({ range: game.constants.itemSheetDataCells, values: itemValues });
+        data.push({ range: game.constants.roomItemSheetDataCells, values: itemValues });
         /** @type {ValueRange} */
         data.push({ range: game.constants.puzzleSheetDataCells, values: puzzleValues });
         /** @type {ValueRange} */

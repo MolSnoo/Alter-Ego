@@ -2,10 +2,10 @@ import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Exit from './Exit.js';
 import Room from './Room.js';
-import { default as Fixture } from './Object.js';
+import Fixture from './Fixture.js';
 import Prefab from './Prefab.js';
 import Recipe from './Recipe.js';
-import Item from './Item.js';
+import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
 import Puzzle from './Puzzle.js';
 import Event from './Event.js';
@@ -182,7 +182,7 @@ export default class Player extends ItemContainer {
      */
     pos;
     /**
-     * The name of the object the player is currently hiding in. The object doesn't actually have to exist.
+     * The name of the fixture the player is currently hiding in. The fixture doesn't actually have to exist.
      * @type {string}
      */
     hidingSpot;
@@ -272,7 +272,7 @@ export default class Player extends ItemContainer {
      * @param {Stats} stats - The stats of the player. For more details, see {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#stats}
      * @param {boolean} alive - Whether the player is alive or not.
      * @param {string} locationId - The ID of the room the player was loaded into.
-     * @param {string} hidingSpot - The name of the object the player is currently hiding in. The object doesn't actually have to exist.
+     * @param {string} hidingSpot - The name of the fixture the player is currently hiding in. The fixture doesn't actually have to exist.
      * @param {Status[]} status - All status effects the player currently has.
      * @param {string} description - The description of the player. Can contain two item lists: hands and equipment.
      * @param {EquipmentSlot[]} inventory - All of the player's {@link EquipmentSlot | equipment slots}.
@@ -1096,9 +1096,9 @@ export default class Player extends ItemContainer {
 
     /**
      * Takes an item and puts it in the player's inventory.
-     * @param {Item} item - The item to take.
+     * @param {RoomItem} item - The item to take.
      * @param {string} hand - The ID of the hand equipment slot to put the item in.
-     * @param {Puzzle|Fixture|Item|Room} container - The item's current container.
+     * @param {Puzzle|Fixture|RoomItem|Room} container - The item's current container.
      * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} the item is currently in.
      * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
      */
@@ -1111,7 +1111,7 @@ export default class Player extends ItemContainer {
             container.alreadySolvedDescription = parser.removeItem(container.alreadySolvedDescription, item);
         else if (container instanceof Fixture)
             container.description = parser.removeItem(container.description, item);
-        else if (container instanceof Item) {
+        else if (container instanceof RoomItem) {
             container.removeItem(item, slotId, 1);
             container.description = parser.removeItem(container.description, item, slotId);
         }
@@ -1131,7 +1131,7 @@ export default class Player extends ItemContainer {
             }
         }
 
-        let createdItem = itemManager.convertItem(item, this, hand, 1);
+        let createdItem = itemManager.convertRoomItem(item, this, hand, 1);
         createdItem.containerName = "";
         createdItem.container = null;
         createdItem.row = rowNumber;
@@ -1153,7 +1153,7 @@ export default class Player extends ItemContainer {
         itemManager.getChildItems(items, createdItem);
 
         // Now that the item has been converted, we can update the quantities of child items.
-        /** @type {Item[]} */
+        /** @type {RoomItem[]} */
         let oldChildItems = [];
         itemManager.getChildItems(oldChildItems, item);
         for (let i = 0; i < oldChildItems.length; i++)
@@ -1312,7 +1312,7 @@ export default class Player extends ItemContainer {
      * Drops an inventory item and puts it in the specified container in the room.
      * @param {InventoryItem} item - The inventory item to drop.
      * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
-     * @param {Puzzle|Fixture|Item} container - The container to put the item in.
+     * @param {Puzzle|Fixture|RoomItem} container - The container to put the item in.
      * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to put the item in.
      * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
      */
@@ -1320,7 +1320,7 @@ export default class Player extends ItemContainer {
         // Unequip the item from the player's hand.
         this.unequip(item, hand, null);
 
-        // Convert the InventoryItem to an Item.
+        // Convert the InventoryItem to a RoomItem.
         let createdItem = itemManager.convertInventoryItem(item, this, container, slotId, 1);
         createdItem.container = container;
         createdItem.slot = slotId;
@@ -1331,15 +1331,15 @@ export default class Player extends ItemContainer {
         // Update the container's description.
         if (container instanceof Puzzle) {
             container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, item);
-            containerName = container.parentObject ? container.parentObject.name : container.name;
-            preposition = container.parentObject ? container.parentObject.preposition : "in";
+            containerName = container.parentFixture ? container.parentFixture.name : container.name;
+            preposition = container.parentFixture ? container.parentFixture.preposition : "in";
         }
         else if (container instanceof Fixture) {
             container.description = parser.addItem(container.description, item);
             containerName = container.name;
             preposition = container.preposition;
         }
-        else if (container instanceof Item) {
+        else if (container instanceof RoomItem) {
             container.insertItem(createdItem, slotId);
             container.description = parser.addItem(container.description, item, slotId);
             containerName = container.name;
@@ -1347,7 +1347,7 @@ export default class Player extends ItemContainer {
         }
 
         // Create a list of all the child items.
-        /** @type {Item[]} */
+        /** @type {RoomItem[]} */
         let items = [];
         items.push(createdItem);
         itemManager.getChildItems(items, createdItem);
@@ -2216,7 +2216,7 @@ export default class Player extends ItemContainer {
     /**
      * Attempts to solve a puzzle.
      * @param {Puzzle} puzzle - The puzzle to attempt.
-     * @param {Item|InventoryItem} item - The item instance required to attempt the puzzle.
+     * @param {RoomItem|InventoryItem} item - The item instance required to attempt the puzzle.
      * @param {string} password - The password the player entered to attempt the puzzle.
      * @param {string} command - The command alias that was used to attempt the puzzle.
      * @param {string} input - The combined arguments of the command.
@@ -2225,7 +2225,7 @@ export default class Player extends ItemContainer {
      * @returns {string|void} A message to show to the player indicating why their attempt failed.
      */
     attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer) {
-        const puzzleName = puzzle.parentObject ? puzzle.parentObject.name : puzzle.name;
+        const puzzleName = puzzle.parentFixture ? puzzle.parentFixture.name : puzzle.name;
         // Make sure all the requirements are met.
         let allRequirementsMet = true;
         let requiredItems = [];
@@ -2506,7 +2506,7 @@ export default class Player extends ItemContainer {
     /** Performs a gesture. 
      * @param {Gesture} gesture - The gesture to perform.
      * @param {string} targetType - The type of entity to target.
-     * @param {Exit|Fixture|Item|Player|InventoryItem|null} target - The entity to target.
+     * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The entity to target.
      */
     gesture(gesture, targetType, target) {
         let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
@@ -2594,11 +2594,11 @@ export default class Player extends ItemContainer {
     sendDescription(description, container) {
         if (description) {
             if (!this.hasAttribute("unconscious") && (container && container instanceof Room)) {
-                let defaultDropObjectString = "";
-                let defaultDropObject = this.game.objects.find(object => object.name === this.game.settings.defaultDropObject && object.location.id === container.id);
-                if (defaultDropObject)
-                    defaultDropObjectString = parser.parseDescription(defaultDropObject.description, defaultDropObject, this);
-                messageHandler.addRoomDescription(this, container, parser.parseDescription(description, container, this), defaultDropObjectString);
+                let defaultDropFixtureString = "";
+                let defaultDropFixture = this.game.fixtures.find(fixture => fixture.name === this.game.settings.defaultDropFixture && fixture.location.id === container.id);
+                if (defaultDropFixture)
+                    defaultDropFixtureString = parser.parseDescription(defaultDropFixture.description, defaultDropFixture, this);
+                messageHandler.addRoomDescription(this, container, parser.parseDescription(description, container, this), defaultDropFixtureString);
             }
             else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
                 messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));

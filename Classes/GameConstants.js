@@ -9,16 +9,24 @@ export default class GameConstants {
 	roomSheetDataCells = "Rooms!A2:K";
     roomSheetSaveCells = "Rooms!D2:K";
     roomSheetDescriptionColumn = "Rooms!K";
+    /** @deprecated */
     objectSheetDataCells = "Objects!A2:K";
+    /** @deprecated */
     objectSheetDescriptionColumn = "Objects!K";
+    fixtureSheetDataCells = "Objects!A2:K";
+    fixtureSheetDescriptionColumn = "Objects!K";
     prefabSheetDataCells = "Prefabs!A2:S";
     prefabSheetDescriptionColumn = "Prefabs!S";
     recipeSheetDataCells = "Recipes!A2:H";
     recipeSheetInitiatedColumn = "Recipes!F";
     recipeSheetCompletedColumn = "Recipes!G";
     recipeSheetUncraftedColumn = "Recipes!H";
+    /** @deprecated */
     itemSheetDataCells = "Items!A2:H";
+    /** @deprecated */
     itemSheetDescriptionColumn = "Items!H";
+    roomItemSheetDataCells = "Items!A2:H";
+    roomItemSheetDescriptionColumn = "Items!H";
     puzzleSheetDataCells = "Puzzles!A2:Q";
     puzzleSheetCorrectColumn = "Puzzles!M";
     puzzleSheetAlreadySolvedColumn = "Puzzles!N";

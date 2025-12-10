@@ -4,10 +4,10 @@ import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
 import Room from './Room.js';
-import Fixture from './Object.js';
+import Fixture from './Fixture.js';
 import Prefab from './Prefab.js';
 import Recipe from './Recipe.js';
-import Item from './Item.js';
+import RoomItem from './RoomItem.js';
 import Puzzle from './Puzzle.js';
 import Event from './Event.js';
 import Status from './Status.js';
@@ -121,12 +121,12 @@ export default class Game {
 	/** 
 	 * An array of all room items in the game. Deprecated. Use roomItems instead.
 	 * @deprecated
-	 * @type {Item[]}
+	 * @type {RoomItem[]}
 	 */
 	items;
 	/**
 	 * An array of all room items in the game.
-	 * @type {Item[]}
+	 * @type {RoomItem[]}
 	 */
 	roomItems;
 	/** 

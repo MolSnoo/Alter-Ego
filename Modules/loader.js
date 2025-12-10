@@ -3,11 +3,11 @@
 import Game from '../Data/Game.js';
 import Exit from '../Data/Exit.js';
 import Room from '../Data/Room.js';
-import Fixture from '../Data/Object.js';
+import Fixture from '../Data/Fixture.js';
 import Prefab from '../Data/Prefab.js';
 import InventorySlot from '../Data/InventorySlot.js';
 import Recipe from '../Data/Recipe.js';
-import Item from '../Data/Item.js';
+import RoomItem from '../Data/RoomItem.js';
 import Puzzle from '../Data/Puzzle.js';
 import Event from '../Data/Event.js';
 import EquipmentSlot from '../Data/EquipmentSlot.js';
@@ -181,22 +181,22 @@ export function checkRoom (room) {
 }
 
 /**
- * Loads data from the Objects sheet into the game.
+ * Loads data from the Fixtures sheet into the game.
  * @param {Game} game - The game to load these entities into.
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadObjects (game, doErrorChecking) {
+export function loadFixtures (game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
-        // Clear all recipe intervals so they don't continue after these objects are unloaded.
-        for (let i = 0; i < game.objects.length; i++) {
-            if (game.objects[i].recipeInterval !== null)
-                game.objects[i].recipeInterval.stop();
-            if (game.objects[i].process.timer !== null)
-                game.objects[i].process.timer.stop();
+        // Clear all recipe intervals so they don't continue after these fixtures are unloaded.
+        for (let i = 0; i < game.fixtures.length; i++) {
+            if (game.fixtures[i].recipeInterval !== null)
+                game.fixtures[i].recipeInterval.stop();
+            if (game.fixtures[i].process.timer !== null)
+                game.fixtures[i].process.timer.stop();
         }
 
-        const response = await getSheetValues(game.constants.objectSheetDataCells, game.settings.spreadsheetID);
+        const response = await getSheetValues(game.constants.fixtureSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
         const columnName = 0;
@@ -211,7 +211,7 @@ export function loadObjects (game, doErrorChecking) {
         const columnPreposition = 9;
         const columnDescription = 10;
 
-        game.objects.length = 0;
+        game.fixtures.length = 0;
         for (let i = 0; i < sheet.length; i++) {
             // Convert old spreadsheet values.
             let hidingSpotCapacity = NaN;
@@ -219,7 +219,7 @@ export function loadObjects (game, doErrorChecking) {
                 hidingSpotCapacity = 1;
             else if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "FALSE" || sheet[i][columnHidingSpot].trim() === "")
                 hidingSpotCapacity = 0;
-            game.objects.push(
+            game.fixtures.push(
                 new Fixture(
                     sheet[i][columnName] ? Game.generateValidEntityName(sheet[i][columnName]) : "",
                     sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
@@ -238,37 +238,37 @@ export function loadObjects (game, doErrorChecking) {
             );
         }
         let errors = [];
-        for (let i = 0; i < game.objects.length; i++) {
-            game.objects[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.objects[i].locationName));
+        for (let i = 0; i < game.fixtures.length; i++) {
+            game.fixtures[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.fixtures[i].locationName));
             const childPuzzle = game.puzzles.find(puzzle =>
-                puzzle.name === game.objects[i].childPuzzleName
+                puzzle.name === game.fixtures[i].childPuzzleName
                 && puzzle.location instanceof Room
-                && game.objects[i].location instanceof Room
-                && puzzle.location.id === game.objects[i].location.id
+                && game.fixtures[i].location instanceof Room
+                && puzzle.location.id === game.fixtures[i].location.id
             );
-            if (childPuzzle) game.objects[i].childPuzzle = childPuzzle;
+            if (childPuzzle) game.fixtures[i].childPuzzle = childPuzzle;
             if (doErrorChecking) {
-                const error = checkObject(game.objects[i]);
+                const error = checkFixture(game.fixtures[i]);
                 if (error instanceof Error) errors.push(error);
             }
         }
         for (let i = 0; i < game.roomItems.length; i++) {
             if (game.roomItems[i].containerName.startsWith("Object:")) {
-                game.roomItems[i].container = game.objects.find(object =>
-                    object.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
-                    && object.location instanceof Room
+                game.roomItems[i].container = game.fixtures.find(fixture =>
+                    fixture.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
+                    && fixture.location instanceof Room
                     && game.roomItems[i].location instanceof Room
-                    && object.location.id === game.roomItems[i].location.id
+                    && fixture.location.id === game.roomItems[i].location.id
                 );
             }
         }
         for (let i = 0; i < game.puzzles.length; i++) {
-            if (game.puzzles[i].parentObjectName !== "") {
-                game.puzzles[i].parentObject = game.objects.find(object =>
-                    object.name === game.puzzles[i].parentObjectName
-                    && object.location instanceof Room
+            if (game.puzzles[i].parentFixtureName !== "") {
+                game.puzzles[i].parentFixture = game.fixtures.find(fixture =>
+                    fixture.name === game.puzzles[i].parentFixtureName
+                    && fixture.location instanceof Room
                     && game.puzzles[i].location instanceof Room
-                    && object.location.id === game.puzzles[i].location.id
+                    && fixture.location.id === game.puzzles[i].location.id
                 );
             }
         }
@@ -284,23 +284,23 @@ export function loadObjects (game, doErrorChecking) {
 }
 
 /**
- * Checks an Object for errors.
- * @param {Fixture} object - The object to check. 
+ * Checks a Fixture for errors.
+ * @param {Fixture} fixture - The fixture to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkObject (object) {
-    if (object.name === "" || object.name === null || object.name === undefined)
-        return new Error(`Couldn't load object on row ${object.row}. No object name was given.`);
-    if (!(object.location instanceof Room))
-        return new Error(`Couldn't load object on row ${object.row}. The location given is not a room.`);
-    if (object.childPuzzleName !== "" && !(object.childPuzzle instanceof Puzzle))
-        return new Error(`Couldn't load object on row ${object.row}. The child puzzle given is not a puzzle.`);
-    if (object.childPuzzle !== null && object.childPuzzle !== undefined && (object.childPuzzle.parentObject === null || object.childPuzzle.parentObject === undefined))
-        return new Error(`Couldn't load object on row ${object.row}. The child puzzle on row ${object.childPuzzle.row} has no parent object.`);
-    if (object.childPuzzle !== null && object.childPuzzle !== undefined && object.childPuzzle.parentObject !== null && object.childPuzzle.parentObject !== undefined && object.childPuzzle.parentObject.name !== object.name)
-        return new Error(`Couldn't load object on row ${object.row}. The child puzzle has a different parent object.`);
-    if (isNaN(object.hidingSpotCapacity))
-        return new Error(`Couldn't load object on row ${object.row}. The hiding spot capacity given is not a number.`);
+export function checkFixture (fixture) {
+    if (fixture.name === "" || fixture.name === null || fixture.name === undefined)
+        return new Error(`Couldn't load fixture on row ${fixture.row}. No fixture name was given.`);
+    if (!(fixture.location instanceof Room))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The location given is not a room.`);
+    if (fixture.childPuzzleName !== "" && !(fixture.childPuzzle instanceof Puzzle))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle given is not a puzzle.`);
+    if (fixture.childPuzzle !== null && fixture.childPuzzle !== undefined && (fixture.childPuzzle.parentFixture === null || fixture.childPuzzle.parentFixture === undefined))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle on row ${fixture.childPuzzle.row} has no parent fixture.`);
+    if (fixture.childPuzzle !== null && fixture.childPuzzle !== undefined && fixture.childPuzzle.parentFixture !== null && fixture.childPuzzle.parentFixture !== undefined && fixture.childPuzzle.parentFixture.name !== fixture.name)
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle has a different parent fixture.`);
+    if (isNaN(fixture.hidingSpotCapacity))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The hiding spot capacity given is not a number.`);
 }
 
 /**
@@ -502,7 +502,7 @@ export function loadRecipes (game, doErrorChecking) {
         // These constants are the column numbers corresponding to that data on the spreadsheet.
         const columnIngredients = 0;
         const columnUncraftable = 1;
-        const columnObjectTag = 2;
+        const columnFixtureTag = 2;
         const columnDuration = 3;
         const columnProducts = 4;
         const columnInitiatedDescription = 5;
@@ -541,7 +541,7 @@ export function loadRecipes (game, doErrorChecking) {
                 new Recipe(
                     ingredientsStrings,
                     sheet[i][columnUncraftable] ? sheet[i][columnUncraftable].trim() === "TRUE" : false,
-                    sheet[i][columnObjectTag] ? sheet[i][columnObjectTag].trim() : "",
+                    sheet[i][columnFixtureTag] ? sheet[i][columnFixtureTag].trim() : "",
                     duration,
                     productsStrings,
                     sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription].trim() : "",
@@ -590,33 +590,33 @@ export function checkRecipe (recipe) {
         if (!(recipe.ingredients[i] instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.ingredientsStrings[i]}" in ingredients is not a prefab.`);
     }
-    if (recipe.ingredients.length > 2 && recipe.objectTag === "")
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require an object tag.`);
-    if (recipe.products.length > 2 && recipe.objectTag === "")
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require an object tag.`);
+    if (recipe.ingredients.length > 2 && recipe.fixtureTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require a fixture tag.`);
+    if (recipe.products.length > 2 && recipe.fixtureTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require a fixture tag.`);
     if (recipe.duration !== null && !dayjs.isDuration(recipe.duration))
         return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
-    if (recipe.objectTag === "" && recipe.duration.asMilliseconds() !== 0)
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without an object tag cannot have a duration.`);
+    if (recipe.fixtureTag === "" && recipe.duration.asMilliseconds() !== 0)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without a fixture tag cannot have a duration.`);
     for (let i = 0; i < recipe.products.length; i++) {
         if (!(recipe.products[i] instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.productsStrings[i]}" in products is not a prefab.`);
     }
-    if (recipe.objectTag !== "" && recipe.uncraftable)
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with an object tag cannot be uncraftable.`)
+    if (recipe.fixtureTag !== "" && recipe.uncraftable)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with a fixture tag cannot be uncraftable.`)
     if (recipe.products.length > 1 && recipe.uncraftable)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than one product cannot be uncraftable.`)
 }
 
 /**
- * Loads data from the Items sheet into the game.
+ * Loads data from the Room Items sheet into the game.
  * @param {Game} game - The game to load these entities into.
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadItems (game, doErrorChecking) {
+export function loadRoomItems (game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
-        const response = await getSheetValues(game.constants.itemSheetDataCells, game.settings.spreadsheetID);
+        const response = await getSheetValues(game.constants.roomItemSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
         const columnPrefab = 0;
@@ -631,7 +631,7 @@ export function loadItems (game, doErrorChecking) {
         game.roomItems.length = 0;
         for (let i = 0; i < sheet.length; i++) {
             game.roomItems.push(
-                new Item(
+                new RoomItem(
                     sheet[i][columnPrefab] ? Game.generateValidEntityName(sheet[i][columnPrefab]) : "",
                     sheet[i][columnIdentifier] ? Game.generateValidEntityName(sheet[i][columnIdentifier]) : "",
                     sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
@@ -656,11 +656,11 @@ export function loadItems (game, doErrorChecking) {
                 game.roomItems[i].initializeInventory();
             }
             if (game.roomItems[i].containerName.startsWith("Object:")) {
-                const container = game.objects.find(object =>
-                    object.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
-                    && object.location instanceof Room
+                const container = game.fixtures.find(fixture =>
+                    fixture.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
+                    && fixture.location instanceof Room
                     && game.roomItems[i].location instanceof Room
-                    && object.location.id === game.roomItems[i].location.id
+                    && fixture.location.id === game.roomItems[i].location.id
                 );
                 if (container) game.roomItems[i].container = container;
             }
@@ -709,9 +709,9 @@ export function loadItems (game, doErrorChecking) {
             }
         }
         // Create a recursive function for properly inserting item inventories.
-        /** @param {Item} item */
+        /** @param {RoomItem} item */
         let insertInventory = function (item) {
-            let createdItem = new Item(
+            let createdItem = new RoomItem(
                 item.prefab.id,
                 item.identifier,
                 item.locationId,
@@ -725,7 +725,7 @@ export function loadItems (game, doErrorChecking) {
             );
             createdItem.setPrefab(item.prefab);
             createdItem.location = item.location;
-            if (item.container instanceof Item) createdItem.container = game.roomItems.find(gameItem => gameItem.row === item.container.row);
+            if (item.container instanceof RoomItem) createdItem.container = game.roomItems.find(gameItem => gameItem.row === item.container.row);
             else createdItem.container = item.container;
             createdItem.slot = item.slot;
             createdItem.weight = item.weight;
@@ -759,7 +759,7 @@ export function loadItems (game, doErrorChecking) {
         // Run through items one more time to properly insert their inventories.
         for (let i = 0; i < game.roomItems.length; i++) {
             const container = game.roomItems[i].container;
-            if (container instanceof Item) {
+            if (container instanceof RoomItem) {
                 for (let slot = 0; slot < container.inventory.length; slot++) {
                     for (let j = 0; j < container.inventory[slot].items.length; j++) {
                         if (container.inventory[slot].items[j].row === game.roomItems[i].row) {
@@ -788,48 +788,48 @@ export function loadItems (game, doErrorChecking) {
 }
 
 /**
- * Checks an Item for errors.
- * @param {Item} item - The item to check. 
+ * Checks a RoomItem for errors.
+ * @param {RoomItem} item - The room item to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkItem (item) {
+export function checkRoomItem (item) {
     if (!(item.prefab instanceof Prefab))
-        return new Error(`Couldn't load item on row ${item.row}. "${item.prefabId}" is not a prefab.`);
+        return new Error(`Couldn't load room item on row ${item.row}. "${item.prefabId}" is not a prefab.`);
     if (item.inventory.length > 0 && item.identifier === "")
-        return new Error(`Couldn't load item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
+        return new Error(`Couldn't load room item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
     if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
-        return new Error(`Couldn't load item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
+        return new Error(`Couldn't load room item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
     if (item.identifier !== "" && item.quantity !== 0 &&
         item.game.roomItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length
         + item.game.inventoryItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length > 0)
-        return new Error(`Couldn't load item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
+        return new Error(`Couldn't load room item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
     if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
-        return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
+        return new Error(`Couldn't load room item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
-        return new Error(`Couldn't load item on row ${item.row}. "${item.locationId}" is not a room.`);
+        return new Error(`Couldn't load room item on row ${item.row}. "${item.locationId}" is not a room.`);
     if (item.containerName === "")
-        return new Error(`Couldn't load item on row ${item.row}. No container was given.`);
-    if (item.containerName.startsWith("Object:") && !(item.container instanceof Object))
-        return new Error(`Couldn't load item on row ${item.row}. The container given is not an object.`);
-    if (item.containerName.startsWith("Item:") && !(item.container instanceof Item))
-        return new Error(`Couldn't load item on row ${item.row}. The container given is not an item.`);
+        return new Error(`Couldn't load room item on row ${item.row}. No container was given.`);
+    if (item.containerName.startsWith("Object:") && !(item.container instanceof Fixture))
+        return new Error(`Couldn't load room item on row ${item.row}. The container given is not a fixture.`);
+    if (item.containerName.startsWith("Item:") && !(item.container instanceof RoomItem))
+        return new Error(`Couldn't load room item on row ${item.row}. The container given is not a room item.`);
     if (item.containerName.startsWith("Puzzle:") && !(item.container instanceof Puzzle))
-        return new Error(`Couldn't load item on row ${item.row}. The container given is not a puzzle.`);
+        return new Error(`Couldn't load room item on row ${item.row}. The container given is not a puzzle.`);
     if (item.containerName !== "" && !item.containerName.startsWith("Object:") && !item.containerName.startsWith("Item:") && !item.containerName.startsWith("Puzzle:"))
-        return new Error(`Couldn't load item on row ${item.row}. The given container type is invalid.`);
-    if (item.container instanceof Item && item.container.inventory.length === 0)
-        return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
-    if (item.container instanceof Item) {
-        if (item.slot === "") return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but a prefab inventory slot ID was not given.`);
+        return new Error(`Couldn't load room item on row ${item.row}. The given container type is invalid.`);
+    if (item.container instanceof RoomItem && item.container.inventory.length === 0)
+        return new Error(`Couldn't load room item on row ${item.row}. The item's container is a room item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+    if (item.container instanceof RoomItem) {
+        if (item.slot === "") return new Error(`Couldn't load room item on row ${item.row}. The item's container is a room item, but a prefab inventory slot ID was not given.`);
         let foundSlot = false;
         for (let i = 0; i < item.container.inventory.length; i++) {
             if (item.container.inventory[i].id === item.slot) {
                 foundSlot = true;
                 if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
-                    return new Error(`Couldn't load item on row ${item.row}. The item's container is over capacity.`);
+                    return new Error(`Couldn't load room item on row ${item.row}. The item's container is over capacity.`);
             }
         }
-        if (!foundSlot) return new Error(`Couldn't load item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+        if (!foundSlot) return new Error(`Couldn't load room item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
     }
 }
 
@@ -849,7 +849,7 @@ export function loadPuzzles (game, doErrorChecking) {
         const columnOutcome = 2;
         const columnRequiresMod = 3;
         const columnLocation = 4;
-        const columnParentObject = 5;
+        const columnParentFixture = 5;
         const columnType = 6;
         const columnAccessible = 7;
         const columnRequires = 8;
@@ -914,7 +914,7 @@ export function loadPuzzles (game, doErrorChecking) {
                     sheet[i][columnOutcome] ? sheet[i][columnOutcome].trim() : "",
                     sheet[i][columnRequiresMod] ? sheet[i][columnRequiresMod].trim() === "TRUE" : false,
                     sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                    sheet[i][columnParentObject] ? Game.generateValidEntityName(sheet[i][columnParentObject]) : "",
+                    sheet[i][columnParentFixture] ? Game.generateValidEntityName(sheet[i][columnParentFixture]) : "",
                     sheet[i][columnType] ? sheet[i][columnType].trim() : "",
                     sheet[i][columnAccessible] ? sheet[i][columnAccessible].trim() === "TRUE" : false,
                     requirements,
@@ -935,13 +935,13 @@ export function loadPuzzles (game, doErrorChecking) {
         let errors = [];
         for (let i = 0; i < game.puzzles.length; i++) {
             game.puzzles[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.puzzles[i].locationId));
-            const parentObject = game.objects.find(object =>
-                object.name === game.puzzles[i].parentObjectName
-                && object.location instanceof Room
+            const parentFixture = game.fixtures.find(fixture =>
+                fixture.name === game.puzzles[i].parentFixtureName
+                && fixture.location instanceof Room
                 && game.puzzles[i].location instanceof Room
-                && object.location.id === game.puzzles[i].location.id
+                && fixture.location.id === game.puzzles[i].location.id
             );
-            if (parentObject) game.puzzles[i].parentObject = parentObject;
+            if (parentFixture) game.puzzles[i].parentFixture = parentFixture;
             for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
                 let requirement = null;
                 const requirementString = game.puzzles[i].requirementsStrings[j];
@@ -961,13 +961,13 @@ export function loadPuzzles (game, doErrorChecking) {
                 if (error instanceof Error) errors.push(error);
             }
         }
-        for (let i = 0; i < game.objects.length; i++) {
-            if (game.objects[i].childPuzzleName !== "") {
-                game.objects[i].childPuzzle = game.puzzles.find(puzzle =>
-                    puzzle.name === game.objects[i].childPuzzleName
+        for (let i = 0; i < game.fixtures.length; i++) {
+            if (game.fixtures[i].childPuzzleName !== "") {
+                game.fixtures[i].childPuzzle = game.puzzles.find(puzzle =>
+                    puzzle.name === game.fixtures[i].childPuzzleName
                     && puzzle.location instanceof Room
-                    && game.objects[i].location instanceof Room
-                    && puzzle.location.id === game.objects[i].location.id
+                    && game.fixtures[i].location instanceof Room
+                    && puzzle.location.id === game.fixtures[i].location.id
                 );
             }
         }
@@ -1002,12 +1002,12 @@ export function checkPuzzle (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. No puzzle name was given.`);
     if (!(puzzle.location instanceof Room))
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.locationId}" is not a room.`);
-    if (puzzle.parentObjectName !== "" && !(puzzle.parentObject instanceof Fixture))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object given is not an object.`);
-    if (puzzle.parentObject !== null && puzzle.parentObject !== undefined && (puzzle.parentObject.childPuzzle === null || puzzle.parentObject.childPuzzle === undefined))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
-    if (puzzle.parentObject !== null && puzzle.parentObject !== undefined && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle !== undefined && puzzle.parentObject.childPuzzle.name !== puzzle.name)
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
+    if (puzzle.parentFixtureName !== "" && !(puzzle.parentFixture instanceof Fixture))
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent fixture given is not a fixture.`);
+    if (puzzle.parentFixture !== null && puzzle.parentFixture !== undefined && (puzzle.parentFixture.childPuzzle === null || puzzle.parentFixture.childPuzzle === undefined))
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent fixture on row ${puzzle.parentFixture.row} has no child puzzle.`);
+    if (puzzle.parentFixture !== null && puzzle.parentFixture !== undefined && puzzle.parentFixture.childPuzzle !== null && puzzle.parentFixture.childPuzzle !== undefined && puzzle.parentFixture.childPuzzle.name !== puzzle.name)
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent fixture has a different child puzzle.`);
     if (puzzle.type !== "password" &&
         puzzle.type !== "interact" &&
         puzzle.type !== "toggle" &&
@@ -1991,7 +1991,7 @@ export function checkGesture (gesture) {
     if (gesture.id === "" || gesture.id === null || gesture.id === undefined)
         return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture ID was given.`);
     for (let i = 0; i < gesture.requires.length; i++) {
-        if (gesture.requires[i] !== "Exit" && gesture.requires[i] !== "Object" && gesture.requires[i] !== "Item" && gesture.requires[i] !== "Player" && gesture.requires[i] !== "Inventory Item")
+        if (gesture.requires[i] !== "Exit" && gesture.requires[i] !== "Fixture" && gesture.requires[i] !== "Object" && gesture.requires[i] !== "Room Item" && gesture.requires[i] !== "Item" && gesture.requires[i] !== "Player" && gesture.requires[i] !== "Inventory Item")
             return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.requires[i]}" is not a valid requirement.`);
     }
     if (gesture.disabledStatuses.length > 0) {

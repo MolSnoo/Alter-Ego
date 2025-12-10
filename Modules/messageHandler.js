@@ -140,10 +140,10 @@ export async function addDirectNarrationWithAttachments (player, messageText, at
  * @param {Player} player - The player to send the message to.
  * @param {Room} location - The room whose description is being sent. 
  * @param {string} descriptionText - The description of the room to send. 
- * @param {string} defaultDropObjectText - The description of the default drop object in this room. 
+ * @param {string} defaultDropFixtureText - The description of the default drop fixture in this room. 
  * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
  */
-export async function addRoomDescription (player, location, descriptionText, defaultDropObjectText, addSpectate = true) {
+export async function addRoomDescription (player, location, descriptionText, defaultDropFixtureText, addSpectate = true) {
     if (player.title !== "NPC" || (addSpectate && player.spectateChannel !== null)) {
         let constructedString = "";
         const generatedString = location.generate_occupantsString(
@@ -192,8 +192,8 @@ export async function addRoomDescription (player, location, descriptionText, def
             new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false),
             new TextDisplayBuilder().setContent("**Occupants**"),
             new TextDisplayBuilder().setContent(constructedString),
-            new TextDisplayBuilder().setContent(`**${game.settings.defaultDropObject.charAt(0) + game.settings.defaultDropObject.substring(1).toLowerCase()}**`),
-            new TextDisplayBuilder().setContent(defaultDropObjectText === "" ? "You don't see any items." : defaultDropObjectText),
+            new TextDisplayBuilder().setContent(`**${game.settings.defaultDropFixture.charAt(0) + game.settings.defaultDropFixture.substring(1).toLowerCase()}**`),
+            new TextDisplayBuilder().setContent(defaultDropFixtureText === "" ? "You don't see any items." : defaultDropFixtureText),
             new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
         ];
 

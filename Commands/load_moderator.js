@@ -28,7 +28,7 @@ export function usage (settings) {
         + `${settings.commandPrefix}load all resume\n`
         + `${settings.commandPrefix}load all\n`
         + `${settings.commandPrefix}load rooms\n`
-        + `${settings.commandPrefix}load objects\n`
+        + `${settings.commandPrefix}load fixtures\n`
         + `${settings.commandPrefix}load prefabs\n`
         + `${settings.commandPrefix}load recipes\n`
         + `${settings.commandPrefix}load items\n`
@@ -54,10 +54,10 @@ export async function execute (game, message, command, args) {
     if (command === "las" || command === "lar" || args[0] === "all") {
         var errors = [];
         await loader.loadRooms(game, false);
-        await loader.loadObjects(game, false);
+        await loader.loadFixtures(game, false);
         await loader.loadPrefabs(game, false);
         await loader.loadRecipes(game, false);
-        await loader.loadItems(game, false);
+        await loader.loadRoomItems(game, false);
         await loader.loadPuzzles(game, false);
         await loader.loadEvents(game, false);
         await loader.loadStatusEffects(game, false);
@@ -70,8 +70,8 @@ export async function execute (game, message, command, args) {
             let error = loader.checkRoom(game.rooms[i]);
             if (error instanceof Error) errors.push(error);
         }
-        for (let i = 0; i < game.objects.length; i++) {
-            let error = loader.checkObject(game.objects[i]);
+        for (let i = 0; i < game.fixtures.length; i++) {
+            let error = loader.checkFixture(game.fixtures[i]);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.prefabs.length; i++) {
@@ -83,7 +83,7 @@ export async function execute (game, message, command, args) {
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.items.length; i++) {
-            let error = loader.checkItem(game.items[i]);
+            let error = loader.checkRoomItem(game.items[i]);
             if (error instanceof Error) errors.push(error);
         }
         for (let i = 0; i < game.puzzles.length; i++) {
@@ -120,7 +120,7 @@ export async function execute (game, message, command, args) {
         else {
             if (game.settings.debug) {
                 printData(game.rooms);
-                printData(game.objects);
+                printData(game.fixtures);
                 printData(game.prefabs);
                 printData(game.recipes);
                 printData(game.items);
@@ -135,7 +135,7 @@ export async function execute (game, message, command, args) {
 
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel,
                 game.rooms.length + " rooms, " +
-                game.objects.length + " objects, " +
+                game.fixtures.length + " fixtures, " +
                 game.prefabs.length + " prefabs, " +
                 game.recipes.length + " recipes, " +
                 game.items.length + " items, " +
@@ -194,11 +194,11 @@ export async function execute (game, message, command, args) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
-    else if (args[0] === "objects") {
+    else if (args[0] === "fixtures") {
         try {
-            await loader.loadObjects(game, true);
-            if (game.settings.debug) printData(game.objects);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.objects.length + " objects retrieved.");
+            await loader.loadFixtures(game, true);
+            if (game.settings.debug) printData(game.fixtures);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.fixtures.length + " fixtures retrieved.");
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
@@ -226,7 +226,7 @@ export async function execute (game, message, command, args) {
     }
     else if (args[0] === "items") {
         try {
-            await loader.loadItems(game, true);
+            await loader.loadRoomItems(game, true);
             if (game.settings.debug) printData(game.items);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.items.length + " items retrieved.");
         }

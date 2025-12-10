@@ -19,18 +19,18 @@ export function findObject (name, location) {
     if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
 
     if (location)
-        return game.objects.find(object => object.name === name && object.location.name === location);
-    else return game.objects.find(object => object.name === name);
+        return game.fixtures.find(fixture => fixture.name === name && fixture.location.name === location);
+    else return game.fixtures.find(fixture => fixture.name === name);
 }
 
 export function findObjects (name, location) {
     if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
     if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
 
-    if (name && location) return game.objects.filter(object => object.name.includes(name) && object.location.name === location);
-    else if (location) return game.objects.filter(object => object.location.name === location);
-    else if (name) return game.objects.filter(object => object.name.includes(name));
-    else return game.objects;
+    if (name && location) return game.fixtures.filter(fixture => fixture.name.includes(name) && fixture.location.name === location);
+    else if (location) return game.fixtures.filter(fixture => fixture.location.name === location);
+    else if (name) return game.fixtures.filter(fixture => fixture.name.includes(name));
+    else return game.fixtures;
 }
 
 export function findPrefab (id) {
@@ -229,13 +229,13 @@ export function findPuzzles (name, location) {
 export function findEvent (name) {
     if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
 
-    return game.events.find(event => event.name === name);
+    return game.events.find(event => event.id === name);
 }
 
 export function findEvents (name) {
     if (name) {
         name = name.toUpperCase().replace(/\'/g, '').trim();
-        return game.events.filter(event => event.name.includes(name));
+        return game.events.filter(event => event.id.includes(name));
     }
     else return game.events;
 }

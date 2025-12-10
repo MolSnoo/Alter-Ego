@@ -50,7 +50,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a fixture or an inventory item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable use");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
@@ -93,11 +93,11 @@ export async function execute (game, message, command, args, player) {
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
         else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
         for (let i = 0; i < puzzles.length; i++) {
-            if (puzzles[i].parentObject !== null &&
-                (parsedInput.startsWith(puzzles[i].parentObject.name + ' ') || parsedInput === puzzles[i].parentObject.name)) {
+            if (puzzles[i].parentFixture !== null &&
+                (parsedInput.startsWith(puzzles[i].parentFixture.name + ' ') || parsedInput === puzzles[i].parentFixture.name)) {
                 puzzle = puzzles[i];
-                //parsedInput = parsedInput.substring(puzzle.parentObject.name.length).trim();
-                input = input.substring(puzzle.parentObject.name.length).trim();
+                //parsedInput = parsedInput.substring(puzzle.parentFixture.name.length).trim();
+                input = input.substring(puzzle.parentFixture.name.length).trim();
                 break;
             }
             else if (parsedInput.startsWith(puzzles[i].name + ' ') || parsedInput === puzzles[i].name) {
@@ -108,8 +108,8 @@ export async function execute (game, message, command, args, player) {
             }
         }
         if (puzzle !== null) {
-            // Make sure the player can only solve the puzzle if it's a child puzzle of the object they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0 && puzzle.parentObject !== null && player.hidingSpot !== puzzle.parentObject.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+            // Make sure the player can only solve the puzzle if it's a child puzzle of the fixture they're hiding in, if they're hidden.
+            if (hiddenStatus.length > 0 && puzzle.parentFixture !== null && player.hidingSpot !== puzzle.parentFixture.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
@@ -124,34 +124,34 @@ export async function execute (game, message, command, args, player) {
         }
     }
 
-    // Check if the player specified an object.
-    var object = null;
+    // Check if the player specified a fixture.
+    var fixture = null;
     if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var objects = game.objects.filter(object => object.location.id === player.location.id);
-        for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput) {
-                object = objects[i];
+        var fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id);
+        for (let i = 0; i < fixtures.length; i++) {
+            if (fixtures[i].name === parsedInput) {
+                fixture = fixtures[i];
                 break;
             }
         }
     }
 
-    // If there is an object, do the required behavior.
-    if (object !== null && object.recipeTag !== "" && object.activatable) {
-        // Make sure the player can only activate the object if it's the object they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== object.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+    // If there is a fixture, do the required behavior.
+    if (fixture !== null && fixture.recipeTag !== "" && fixture.activatable) {
+        // Make sure the player can only activate the fixture if it's the fixture they're hiding in, if they're hidden.
+        if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
-        if (object.activated) {
-            object.deactivate(player, narrate);
+        if (fixture.activated) {
+            fixture.deactivate(player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game, `${time} - ${player.name} deactivated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} deactivated ${fixture.name} in ${player.location.channel}`);
         }
         else {
-            object.activate(player, narrate);
+            fixture.activate(player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game, `${time} - ${player.name} activated ${object.name} in ${player.location.channel}`);
+            messageHandler.addLogMessage(game, `${time} - ${player.name} activated ${fixture.name} in ${player.location.channel}`);
         }
     }
 
@@ -173,5 +173,5 @@ export async function execute (game, message, command, args, player) {
         }
         else return messageHandler.addReply(game, message, response);
     }
-    else if (object === null) return messageHandler.addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
 }

@@ -51,10 +51,16 @@ export default class GameSettings {
 	 */
 	diceMax;
 	/**
-	 * The name of the Object in each Room that Players will drop Items in if they don't specify one.
+	 * The name of the Object in each Room that Players will drop Items in if they don't specify one. Deprecated. Use defaultDropFixture instead.
+	 * @deprecated
 	 * @type {string}
 	 */
 	defaultDropObject;
+	/**
+	 * The name of the Fixture in each Room that Players will drop Items in if they don't specify one.
+	 * @type {string}
+	 */
+	defaultDropFixture;
 	/**
 	 * The URL of an image that will be displayed when a Player enters a Room if that Room does not have an icon URL of its own.
 	 * @type {string}
@@ -139,7 +145,7 @@ export default class GameSettings {
 		this.autoSaveInterval = autoSaveInterval;
 		this.diceMin = diceMin;
 		this.diceMax = diceMax;
-		this.defaultDropObject = defaultDropObject;
+		this.defaultDropFixture = defaultDropObject;
 		this.defaultRoomIconURL = defaultRoomIconURL;
 		this.autoDeleteWhisperChannels = autoDeleteWhisperChannels;
 		this.embedColor = embedColor;

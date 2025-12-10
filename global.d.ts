@@ -7,7 +7,7 @@ import type Player from "./Data/Player.js";
 import type Puzzle from "./Data/Puzzle.js";
 import type GameSettings from "./Classes/GameSettings.js";
 import type Recipe from "./Data/Recipe.js";
-import type Item from "./Data/Item.js";
+import type RoomItem from "./Data/RoomItem.js";
 import type { Duration } from "dayjs/plugin/duration.js";
 
 export {};
@@ -141,7 +141,7 @@ declare global {
      */
     interface Process {
         recipe?: Recipe;
-        ingredients: Item[];
+        ingredients: RoomItem[];
         duration?: Duration;
         timer?: any;
     }
@@ -152,7 +152,7 @@ declare global {
 	 */
 	interface FindRecipeResult {
 		recipe: Recipe | null;
-		ingredients: Item[];
+		ingredients: RoomItem[];
 	}
 
 	/**

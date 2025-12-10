@@ -8,7 +8,7 @@ import { parseDescription, parseDescriptionWithErrors, addItem, removeItem } fro
 import fs from 'fs';
 import { EOL } from 'os';
 
-import Item from '../Data/Item.js';
+import RoomItem from '../Data/RoomItem.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 
@@ -203,20 +203,20 @@ async function testparse (game, fileName, player) {
         await appendFile(fileName, text);
     }
 
-    // Get objects next.
+    // Get fixtures next.
     {
-        await appendFile(fileName, "OBJECTS:");
+        await appendFile(fileName, "FIXTURES:");
         let text = "";
-        for (let i = 0; i < game.objects.length; i++) {
+        for (let i = 0; i < game.fixtures.length; i++) {
             text += "   ";
-            text += game.objects[i].name + EOL;
+            text += game.fixtures[i].name + EOL;
 
-            const parsedDescription = parseDescriptionWithErrors(game.objects[i].description, game.objects[i], player);
-            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.objects[i].descriptionCell(), warnings: parsedDescription.warnings });
-            if (parsedDescription.errors.length !== 0) errors.push({ cell: game.objects[i].descriptionCell(), errors: parsedDescription.errors });
+            const parsedDescription = parseDescriptionWithErrors(game.fixtures[i].description, game.fixtures[i], player);
+            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.fixtures[i].descriptionCell(), warnings: parsedDescription.warnings });
+            if (parsedDescription.errors.length !== 0) errors.push({ cell: game.fixtures[i].descriptionCell(), errors: parsedDescription.errors });
 
             text += "      ";
-            text += game.objects[i].description + EOL;
+            text += game.fixtures[i].description + EOL;
 
             text += "      ";
             text += parsedDescription.text + EOL;
@@ -253,12 +253,12 @@ async function testparse (game, fileName, player) {
             text += "   ";
             text += "ROW " + game.recipes[i].row + EOL;
 
-            const taggedObject = game.objects.find(object => object.recipeTag === game.recipes[i].objectTag);
+            const taggedFixture = game.fixtures.find(fixture => fixture.recipeTag === game.recipes[i].fixtureTag);
             // First, do the initiated text.
             if (game.recipes[i].initiatedDescription !== "") {
                 text += "      MESSAGE WHEN INITIATED:" + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].initiatedDescription, taggedObject ? taggedObject : game.recipes[i], player);
+                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].initiatedDescription, taggedFixture ? taggedFixture : game.recipes[i], player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].initiatedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].initiatedCell(), errors: parsedDescription.errors });
 
@@ -273,7 +273,7 @@ async function testparse (game, fileName, player) {
             if (game.recipes[i].completedDescription !== "") {
                 text += "      MESSAGE WHEN COMPLETED:" + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].completedDescription, taggedObject ? taggedObject : game.recipes[i], player);
+                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].completedDescription, taggedFixture ? taggedFixture : game.recipes[i], player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].completedCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].completedCell(), errors: parsedDescription.errors });
 
@@ -558,33 +558,33 @@ async function testparse (game, fileName, player) {
 async function testadd (game, fileName, formatted, player) {
     // Skip over rooms because you can't add items to them.
 
-    // Get objects first.
+    // Get fixtures first.
     {
-        await appendFile(fileName, "OBJECTS:");
+        await appendFile(fileName, "FIXTURES:");
         let text = "";
-        for (let i = 0; i < game.objects.length; i++) {
-            const object = game.objects[i];
-            if (object.description.includes('<il>') && object.description.includes('</il>')) {
+        for (let i = 0; i < game.fixtures.length; i++) {
+            const fixture = game.fixtures[i];
+            if (fixture.description.includes('<il>') && fixture.description.includes('</il>')) {
                 text += "   ";
-                text += object.name + EOL;
+                text += fixture.name + EOL;
 
                 text += "      ";
-                text += (formatted ? object.description : parseDescription(object.description, object, player)) + EOL;
+                text += (formatted ? fixture.description : parseDescription(fixture.description, fixture, player)) + EOL;
 
                 let items = new Array();
                 let itemNames = "";
                 for (let j = 0; j < 4; j++) {
                     let randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    while (itemNames.includes(game.prefabs[randomIndex].name) || object.description.includes(game.prefabs[randomIndex].name) || object.description.includes(game.prefabs[randomIndex].pluralName))
+                    while (itemNames.includes(game.prefabs[randomIndex].name) || fixture.description.includes(game.prefabs[randomIndex].name) || fixture.description.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    let newItem = new Item(game.prefabs[randomIndex].id, "", object.location.id, true, `Object: ${object.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    let newItem = new RoomItem(game.prefabs[randomIndex].id, "", fixture.location.id, true, `Object: ${fixture.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
                     newItem.setPrefab(game.prefabs[randomIndex]);
-                    newItem.location = object.location;
+                    newItem.location = fixture.location;
                     items.push(newItem);
                     itemNames += game.prefabs[randomIndex].name + " ";
                 }
 
-                let description = object.description;
+                let description = fixture.description;
                 let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
@@ -594,7 +594,7 @@ async function testadd (game, fileName, formatted, player) {
                     item.quantity = 0;
                     text += `(Drop ${item.name}): `;
                     description = addItem(description, item);
-                    text += (formatted ? description : parseDescription(description, object, player)) + EOL;
+                    text += (formatted ? description : parseDescription(description, fixture, player)) + EOL;
                     tabs++;
                 }
             }
@@ -623,7 +623,7 @@ async function testadd (game, fileName, formatted, player) {
                     let randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     while (itemNames.includes(game.prefabs[randomIndex].name) || item.description.includes(game.prefabs[randomIndex].name) || item.description.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    let newItem = new Item(game.prefabs[randomIndex].id, "", item.location.id, true, `Item: ${item.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    let newItem = new RoomItem(game.prefabs[randomIndex].id, "", item.location.id, true, `Item: ${item.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
                     newItem.setPrefab(game.prefabs[randomIndex]);
                     newItem.location = item.location;
                     items.push(newItem);
@@ -668,7 +668,7 @@ async function testadd (game, fileName, formatted, player) {
                     let randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     while (itemNames.includes(game.prefabs[randomIndex].name) || puzzle.alreadySolvedDescription.includes(game.prefabs[randomIndex].name) || puzzle.alreadySolvedDescription.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    let newItem = new Item(game.prefabs[randomIndex].id, "", puzzle.location.id, true, `Puzzle: ${puzzle.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
+                    let newItem = new RoomItem(game.prefabs[randomIndex].id, "", puzzle.location.id, true, `Puzzle: ${puzzle.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
                     newItem.setPrefab(game.prefabs[randomIndex]);
                     newItem.location = puzzle.location;
                     items.push(newItem);
@@ -815,7 +815,7 @@ async function testremove (game, fileName, formatted, player) {
                         && game.items[k].containerName === ""
                         && game.items[k].container === null
                         && !items.find(item => item.singleContainingPhrase === game.items[k].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[k].pluralContainingPhrase)) {
-                        let newItem = new Item(game.items[k].prefab.id, game.items[k].identifier, game.items[k].location.id, game.items[k].accessible, game.items[k].containerName, game.items[k].quantity, game.items[k].uses, game.items[k].description, game.items[k].row, game);
+                        let newItem = new RoomItem(game.items[k].prefab.id, game.items[k].identifier, game.items[k].location.id, game.items[k].accessible, game.items[k].containerName, game.items[k].quantity, game.items[k].uses, game.items[k].description, game.items[k].row, game);
                         newItem.setPrefab(game.items[k].prefab);
                         newItem.location = game.items[k].location;
                         items.push(newItem);
@@ -869,28 +869,28 @@ async function testremove (game, fileName, formatted, player) {
         await appendFile(fileName, text);
     }
 
-    // Get objects next.
+    // Get fixtures next.
     {
-        await appendFile(fileName, "OBJECTS:");
+        await appendFile(fileName, "FIXTURES:");
         let text = "";
-        for (let i = 0; i < game.objects.length; i++) {
-            const object = game.objects[i];
-            if (object.description.includes('<item>') && object.description.includes('</item>')) {
+        for (let i = 0; i < game.fixtures.length; i++) {
+            const fixture = game.fixtures[i];
+            if (fixture.description.includes('<item>') && fixture.description.includes('</item>')) {
                 text += "   ";
-                text += object.name + EOL;
+                text += fixture.name + EOL;
 
                 text += "      ";
-                text += (formatted ? object.description : parseDescription(object.description, object, player)) + EOL;
+                text += (formatted ? fixture.description : parseDescription(fixture.description, fixture, player)) + EOL;
 
                 let items = new Array();
                 let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
-                    if (game.items[j].location.id === object.location.id
-                        && game.items[j].containerName === `Object: ${object.name}`
-                        && game.items[j].container.row === object.row
-                        && object.preposition !== ""
+                    if (game.items[j].location.id === fixture.location.id
+                        && game.items[j].containerName === `Object: ${fixture.name}`
+                        && game.items[j].container.row === fixture.row
+                        && fixture.preposition !== ""
                         && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
-                        let newItem = new Item(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
+                        let newItem = new RoomItem(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
                         newItem.setPrefab(game.items[j].prefab);
                         newItem.location = game.items[j].location;
                         items.push(newItem);
@@ -908,7 +908,7 @@ async function testremove (game, fileName, formatted, player) {
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
-                    let description = object.description;
+                    let description = fixture.description;
                     let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
@@ -925,10 +925,10 @@ async function testremove (game, fileName, formatted, player) {
                         }
                         text += `(Take ${permutation[k]}): `;
                         if (item) description = removeItem(description, item, null, NaN);
-                        text += (formatted ? description : parseDescription(description, object, player)) + EOL;
+                        text += (formatted ? description : parseDescription(description, fixture, player)) + EOL;
                         tabs++;
                         if (k === permutation.length - 1 && description.includes("<item>") && description.includes("</item"))
-                            warnings.push({ cell: object.descriptionCell(), warnings: ["Unable to remove all item tags."] });
+                            warnings.push({ cell: fixture.descriptionCell(), warnings: ["Unable to remove all item tags."] });
                     }
                 }
             }
@@ -959,7 +959,7 @@ async function testremove (game, fileName, formatted, player) {
                         && game.items[j].container.row === item.row
                         && item.prefab.preposition !== ""
                         && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
-                        let newItem = new Item(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
+                        let newItem = new RoomItem(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
                         newItem.setPrefab(game.items[j].prefab);
                         newItem.location = game.items[j].location;
                         newItem.slot = game.items[j].slot;
@@ -1025,7 +1025,7 @@ async function testremove (game, fileName, formatted, player) {
                     if (game.items[j].location.id === puzzle.location.id
                         && game.items[j].containerName === `Puzzle: ${puzzle.name}`
                         && !items.find(item => item.singleContainingPhrase === game.items[j].singleContainingPhrase || item.pluralContainingPhrase !== "" && item.pluralContainingPhrase === game.items[j].pluralContainingPhrase)) {
-                        let newItem = new Item(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
+                        let newItem = new RoomItem(game.items[j].prefab.id, game.items[j].identifier, game.items[j].location.id, game.items[j].accessible, game.items[j].containerName, game.items[j].quantity, game.items[j].uses, game.items[j].description, game.items[j].row, game);
                         newItem.setPrefab(game.items[j].prefab);
                         newItem.location = game.items[j].location;
                         items.push(newItem);

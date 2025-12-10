@@ -38,7 +38,7 @@ export function usage (settings) {
 
 var uncraftingRecipesDescription = "";
 var craftingRecipesDescription = "";
-var objectRecipesDescription = "";
+var fixtureRecipesDescription = "";
 
 /**
  * @param {Game} game - The game in which the command is being executed. 
@@ -71,17 +71,17 @@ export async function execute (game, message, command, args, player) {
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {
                 if (game.recipes[i].ingredients[j].id === item.prefab.id) {
                     // This recipe contains the given item as an ingredient.
-                    // Gather a list of objects in the room that can be used to process this recipe, if applicable.
-                    let objects = [];
-                    if (game.recipes[i].objectTag !== "") {
-                        let recipeObjects = game.objects.filter(object => object.location.id === player.location.id && object.recipeTag === game.recipes[i].objectTag);
-                        // If there are no objects in the room, provide the object tag.
-                        if (recipeObjects.length === 0) objects.push(game.recipes[i].objectTag);
-                        else objects = recipeObjects.map(object => object.name);
+                    // Gather a list of fixtures in the room that can be used to process this recipe, if applicable.
+                    let fixtures = [];
+                    if (game.recipes[i].fixtureTag !== "") {
+                        let recipeFixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.recipeTag === game.recipes[i].fixtureTag);
+                        // If there are no fixtures in the room, provide the fixture tag.
+                        if (recipeFixtures.length === 0) fixtures.push(game.recipes[i].fixtureTag);
+                        else fixtures = recipeFixtures.map(fixture => fixture.name);
                     }
                     let ingredients = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
                     let products = game.recipes[i].products.map(product => product.singleContainingPhrase);
-                    recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: objects.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
+                    recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: fixtures.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
                     break;
                 }
             }
@@ -89,15 +89,15 @@ export async function execute (game, message, command, args, player) {
                 // This recipe contains the given item as the sole product and is uncraftable.
                 let ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
                 let products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
-                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
+                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
         if (recipes.length === 0) return messageHandler.addReply(game, message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command with your ${item.name} as an ingredient. The other ingredient may not be available in this room, or you may need to create it yourself.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command with your ${item.name} as an ingredient.`;
-        objectRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}use\` command on an object after dropping your ${item.name} and any other required ingredients into it. The other ingredients may not be available in this room, or you may need to create them yourself. `;
-        objectRecipesDescription += `If there is no object listed in all uppercase, then you cannot carry out this recipe in the room you're currently in and must find a suitable object elsewhere.`;
+        fixtureRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}use\` command on a fixture after dropping your ${item.name} and any other required ingredients into it. The other ingredients may not be available in this room, or you may need to create them yourself. `;
+        fixtureRecipesDescription += `If there is no fixture listed in all uppercase, then you cannot carry out this recipe in the room you're currently in and must find a suitable fixture elsewhere.`;
     }
     else {
         // Get lists of all the player's inventory items and items in the room.
@@ -142,16 +142,16 @@ export async function execute (game, message, command, args, player) {
                 return 0;
             });
             if (ingredientsMatch(ingredients, game.recipes[i].ingredients)) {
-                // Gather a list of objects in the room that can be used to process this recipe, if applicable.
-                let objects = [];
-                if (game.recipes[i].objectTag !== "") {
-                    let recipeObjects = game.objects.filter(object => object.location.id === player.location.id && object.recipeTag === game.recipes[i].objectTag);
-                    if (recipeObjects.length === 0) continue;
-                    objects = recipeObjects.map(object => object.name);
+                // Gather a list of fixtures in the room that can be used to process this recipe, if applicable.
+                let fixtures = [];
+                if (game.recipes[i].fixtureTag !== "") {
+                    let recipeFixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.recipeTag === game.recipes[i].fixtureTag);
+                    if (recipeFixtures.length === 0) continue;
+                    fixtures = recipeFixtures.map(fixture => fixture.name);
                 }
                 ingredients = ingredients.map(ingredient => ingredient.prefab.singleContainingPhrase);
                 products = game.recipes[i].products.map(product => product.singleContainingPhrase);
-                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: objects.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
+                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: fixtures.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
             }
 
             if (game.recipes[i].products.length === 1 && game.recipes[i].uncraftable) {
@@ -171,31 +171,31 @@ export async function execute (game, message, command, args, player) {
                 });
                 ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
                 products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
-                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), objects: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
+                recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
         if (recipes.length === 0) return messageHandler.addReply(game, message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;
-        objectRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}use\` command on an object after dropping all of the ingredients into it. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
+        fixtureRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}use\` command on a fixture after dropping all of the ingredients into it. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
     }
 
     // Create a rich embed for the Recipes.
     var craftingFields = [];
-    var objectFields = [];
+    var fixtureFields = [];
     var uncraftingFields = [];
     var pages = [];
     var page = 0;
 
     for (let i = 0; i < recipes.length; i++) {
-        if (recipes[i].objects.length > 0) objectFields.push(recipes[i]);
+        if (recipes[i].fixtures.length > 0) fixtureFields.push(recipes[i]);
         else if (recipes[i].uncraftable) uncraftingFields.push(recipes[i]);
         else craftingFields.push(recipes[i]);
     }
 
     let pageNo = 0;
-    // Divide the fields into pages. Split them up by crafting Recipes and object Recipes.
+    // Divide the fields into pages. Split them up by crafting Recipes and fixture Recipes.
     for (let i = 0; i < craftingFields.length; i++) {
         // Divide the menu into groups of 5.
         if (i % 5 === 0) {
@@ -205,13 +205,13 @@ export async function execute (game, message, command, args, player) {
         pages[pageNo].push(craftingFields[i]);
     }
     if (pages[pageNo] && pages[pageNo].length > 0) pageNo++;
-    for (let i = 0; i < objectFields.length; i++) {
+    for (let i = 0; i < fixtureFields.length; i++) {
         // Divide the menu into groups of 5.
         if (i % 5 === 0) {
             pages.push([]);
             if (i !== 0) pageNo++;
         }
-        pages[pageNo].push(objectFields[i]);
+        pages[pageNo].push(fixtureFields[i]);
     }
     if (pages[pageNo] && pages[pageNo].length > 0) pageNo++;
     for (let i = 0; i < uncraftingFields.length; i++) {
@@ -225,13 +225,13 @@ export async function execute (game, message, command, args, player) {
 
     const embedAuthorName = `Recipes List`;
     const embedAuthorIcon = game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL();
-    let processingRecipe = pages[page].at(0).objects.length > 0;
+    let processingRecipe = pages[page].at(0).fixtures.length > 0;
     let uncraftingRecipe = pages[page].at(0).uncraftable;
-    let fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+    let fieldDescription = processingRecipe ? fixtureRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
     const fieldName = (entryIndex) => `**Recipe ${entryIndex + 1}**`;
     const fieldValue = (entryIndex) => `**Ingredients:** ${pages[page][entryIndex].ingredients}\n` +
         `**Products:** ${pages[page][entryIndex].products}\n` +
-        (processingRecipe ? `**Using Object(s):** ${pages[page][entryIndex].objects}\n` : '') +
+        (processingRecipe ? `**Using Fixture(s):** ${pages[page][entryIndex].fixtures}\n` : '') +
         (processingRecipe ? `**Duration:** ${pages[page][entryIndex].duration}` : '');
     let embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
     message.author.send({ embeds: [embed] }).then(msg => {
@@ -247,9 +247,9 @@ export async function execute (game, message, command, args, player) {
             backwards.on("collect", () => {
                 if (page === 0) return;
                 page--;
-                processingRecipe = pages[page][0].objects.length > 0;
+                processingRecipe = pages[page][0].fixtures.length > 0;
                 uncraftingRecipe = pages[page][0].uncraftable;
-                fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+                fieldDescription = processingRecipe ? fixtureRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
                 embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
                 msg.edit({ embeds: [embed] });
             });
@@ -257,9 +257,9 @@ export async function execute (game, message, command, args, player) {
             forwards.on("collect", () => {
                 if (page === pages.length - 1) return;
                 page++;
-                processingRecipe = pages[page][0].objects.length > 0;
+                processingRecipe = pages[page][0].fixtures.length > 0;
                 uncraftingRecipe = pages[page][0].uncraftable;
-                fieldDescription = processingRecipe ? objectRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
+                fieldDescription = processingRecipe ? fixtureRecipesDescription : uncraftingRecipe ? uncraftingRecipesDescription : craftingRecipesDescription;
                 embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
                 msg.edit({ embeds: [embed] });
             });

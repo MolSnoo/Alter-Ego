@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import { default as Fixture } from '../Data/Object.js';
+import Fixture from '../Data/Fixture.js';
 import Game from '../Data/Game.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
@@ -129,34 +129,34 @@ export async function execute (game, message, command, args, player) {
                                 }
                             }
                         }
-                        else if (gesture.requires[j] === "Object") {
-                            const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
-                            for (let k = 0; k < objects.length; k++) {
-                                if (objects[k].name.toLowerCase() === input2) {
-                                    // Make sure the player can only gesture to the object they're hiding in, if they're hidden.
-                                    if (hiddenStatus.length > 0 && player.hidingSpot !== objects[k].name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
-                                    targetType = "Object";
-                                    target = objects[k];
+                        else if (gesture.requires[j] === "Fixture" || gesture.requires[j] === "Object") {
+                            const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
+                            for (let k = 0; k < fixtures.length; k++) {
+                                if (fixtures[k].name.toLowerCase() === input2) {
+                                    // Make sure the player can only gesture to the fixture they're hiding in, if they're hidden.
+                                    if (hiddenStatus.length > 0 && player.hidingSpot !== fixtures[k].name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+                                    targetType = "Fixture";
+                                    target = fixtures[k];
                                     break;
                                 }
                             }
                         }
-                        else if (gesture.requires[j] === "Item") {
+                        else if (gesture.requires[j] === "Room Item" || gesture.requires[j] === "Item") {
                             const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
                             for (let k = 0; k < items.length; k++) {
                                 if (items[k].name.toLowerCase() === input2) {
-                                    // Make sure the player can only gesture to items contained in the object they're hiding in, if they're hidden.
+                                    // Make sure the player can only gesture to items contained in the fixture they're hiding in, if they're hidden.
                                     if (hiddenStatus.length > 0) {
                                         let topContainer = items[k].container;
                                         while (topContainer !== null && topContainer instanceof ItemInstance)
                                             topContainer = topContainer.container;
                                         if (topContainer !== null && topContainer instanceof Puzzle)
-                                            topContainer = topContainer.parentObject;
+                                            topContainer = topContainer.parentFixture;
 
                                         if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
                                             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                                     }
-                                    targetType = "Item";
+                                    targetType = "Room Item";
                                     target = items[k];
                                     break;
                                 }
@@ -165,7 +165,7 @@ export async function execute (game, message, command, args, player) {
                         else if (gesture.requires[j] === "Player") {
                             for (let k = 0; k < player.location.occupants.length; k++) {
                                 let occupant = player.location.occupants[k];
-                                // Make sure the player can only gesture to players hiding in the same object they're hiding in, if they're hidden.
+                                // Make sure the player can only gesture to players hiding in the same fixture they're hiding in, if they're hidden.
                                 if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
                                     // Player cannot gesture toward themselves.
                                     if (occupant.name === player.name) return messageHandler.addReply(game, message, "You can't gesture toward yourself.");
@@ -210,7 +210,7 @@ export async function execute (game, message, command, args, player) {
         const time = new Date().toLocaleTimeString();
         if (targetType === "")
             messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} in ${player.location.channel}`);
-        else if (targetType === "Exit" || targetType === "Object" || targetType === "Player")
+        else if (targetType === "Exit" || targetType === "Fixture" || targetType === "Player")
             messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} to ${target.name} in ${player.location.channel}`);
         else if (target instanceof ItemInstance)
             messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);

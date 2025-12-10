@@ -43,14 +43,14 @@ export async function execute (game, message, command, args, player) {
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.statusString.includes("hidden") && command === "unhide") {
-        let object = null;
-        for (let i = 0; i < game.objects.length; i++) {
-            if (game.objects[i].location.id === player.location.id && game.objects[i].name === player.hidingSpot) {
-                object = game.objects[i];
+        let fixture = null;
+        for (let i = 0; i < game.fixtures.length; i++) {
+            if (game.fixtures[i].location.id === player.location.id && game.fixtures[i].name === player.hidingSpot) {
+                fixture = game.fixtures[i];
                 break;
             }
         }
-        if (object !== null && (!object.accessible || object.childPuzzle !== null && object.childPuzzle.type.endsWith("lock") && !object.childPuzzle.solved))
+        if (fixture !== null && (!fixture.accessible || fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved))
             return messageHandler.addReply(game, message, `You cannot come out of hiding right now.`);
         else player.cure("hidden", true, false, true);
     }
@@ -61,32 +61,32 @@ export async function execute (game, message, command, args, player) {
     // Player is currently not hidden and is using the hide command.
     else {
         if (args.length === 0)
-            return messageHandler.addReply(game, message, `You need to specify an object. Usage:\n${usage(game.settings)}`);
+            return messageHandler.addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
 
         var input = args.join(" ");
         var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-        // Check if the input is an object that the player can hide in.
-        const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
-        var object = null;
-        for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput && objects[i].hidingSpotCapacity > 0) {
-                object = objects[i];
+        // Check if the input is a fixture that the player can hide in.
+        const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
+        var fixture = null;
+        for (let i = 0; i < fixtures.length; i++) {
+            if (fixtures[i].name === parsedInput && fixtures[i].hidingSpotCapacity > 0) {
+                fixture = fixtures[i];
                 break;
             }
-            else if (objects[i].name === parsedInput)
-                return messageHandler.addReply(game, message, `${objects[i].name} is not a hiding spot.`);
+            else if (fixtures[i].name === parsedInput)
+                return messageHandler.addReply(game, message, `${fixtures[i].name} is not a hiding spot.`);
         }
-        if (object === null) return messageHandler.addReply(game, message, `Couldn't find object "${input}".`);
+        if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find fixture "${input}".`);
 
-        // Make sure the object isn't locked.
-        if (object.childPuzzle !== null && object.childPuzzle.type.endsWith("lock") && !object.childPuzzle.solved)
-            return messageHandler.addReply(game, message, `You cannot hide in ${object.name} right now.`);
+        // Make sure the fixture isn't locked.
+        if (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved)
+            return messageHandler.addReply(game, message, `You cannot hide in ${fixture.name} right now.`);
 
         // Check to see if the hiding spot is already taken.
         var hiddenPlayers = [];
         for (let i = 0; i < player.location.occupants.length; i++) {
-            if (player.location.occupants[i].hidingSpot === object.name)
+            if (player.location.occupants[i].hidingSpot === fixture.name)
                 hiddenPlayers.push(player.location.occupants[i]);
         }
 
@@ -100,8 +100,8 @@ export async function execute (game, message, command, args, player) {
         });
         if (player.hasAttribute("no sight")) {
             let hiddenPlayersString = hiddenPlayers.length > 1 ? "multiple people" : "someone";
-            if (hiddenPlayers.length + 1 > object.hidingSpotCapacity) {
-                player.notify(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
+            if (hiddenPlayers.length + 1 > fixture.hidingSpotCapacity) {
+                player.notify(`You attempt to hide in the ${fixture.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     if (hiddenPlayers[i].hasAttribute("no sight"))
                         hiddenPlayers[i].notify(`Someone finds you! They try to hide with you, but there isn't enough room.`);
@@ -110,10 +110,10 @@ export async function execute (game, message, command, args, player) {
                 }
             }
             else {
-                player.notify(`When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+                player.notify(`When you hide in the ${fixture.name}, you find ${hiddenPlayersString} already there!`);
 
                 hiddenPlayers.push(player);
-                player.hidingSpot = object.name;
+                player.hidingSpot = fixture.name;
                 player.inflict("hidden", true, false, true);
 
                 // Create a whisper.
@@ -137,8 +137,8 @@ export async function execute (game, message, command, args, player) {
                 hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
             }
 
-            if (hiddenPlayers.length + 1 > object.hidingSpotCapacity) {
-                player.notify(`You attempt to hide in the ${object.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
+            if (hiddenPlayers.length + 1 > fixture.hidingSpotCapacity) {
+                player.notify(`You attempt to hide in the ${fixture.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     if (hiddenPlayers[i].hasAttribute("no sight"))
                         hiddenPlayers[i].notify(`Someone finds you! They try to hide with you, but there isn't enough room.`);
@@ -147,7 +147,7 @@ export async function execute (game, message, command, args, player) {
                 }
             }
             else {
-                if (hiddenPlayers.length > 0) player.notify(`When you hide in the ${object.name}, you find ${hiddenPlayersString} already there!`);
+                if (hiddenPlayers.length > 0) player.notify(`When you hide in the ${fixture.name}, you find ${hiddenPlayersString} already there!`);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     if (hiddenPlayers[i].hasAttribute("no sight"))
                         hiddenPlayers[i].notify(`Someone finds you! They hide with you.`);
@@ -156,7 +156,7 @@ export async function execute (game, message, command, args, player) {
                     hiddenPlayers[i].removeFromWhispers("");
                 }
                 hiddenPlayers.push(player);
-                player.hidingSpot = object.name;
+                player.hidingSpot = fixture.name;
                 player.inflict("hidden", true, false, true);
 
                 // Create a whisper.

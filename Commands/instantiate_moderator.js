@@ -1,6 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import Item from '../Data/Item.js';
+import RoomItem from '../Data/RoomItem.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
@@ -95,27 +95,27 @@ export async function execute (game, message, command, args) {
     let player = null;
     // Room was found. Look for the container in it.
     if (room !== null) {
-        // Check if an object was specified.
-        let object = null;
-        const objects = game.objects.filter(object => object.location.id === room.id && object.accessible);
-        for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a prefab and a preposition.`);
-            if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(`IN ${objects[i].name}`)) {
-                if (objects[i].preposition === "") return messageHandler.addReply(game, message, `${objects[i].name} cannot hold items.`);
-                object = objects[i];
-                if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`))
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`)).trimEnd();
-                else if (parsedInput.endsWith(`IN ${objects[i].name}`))
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`IN ${objects[i].name}`)).trimEnd();
+        // Check if a fixture was specified.
+        let fixture = null;
+        const fixtures = game.fixtures.filter(fixture => fixture.location.id === room.id && fixture.accessible);
+        for (let i = 0; i < fixtures.length; i++) {
+            if (fixtures[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a prefab and a preposition.`);
+            if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(`IN ${fixtures[i].name}`)) {
+                if (fixtures[i].preposition === "") return messageHandler.addReply(game, message, `${fixtures[i].name} cannot hold items.`);
+                fixture = fixtures[i];
+                if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`))
+                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`)).trimEnd();
+                else if (parsedInput.endsWith(`IN ${fixtures[i].name}`))
+                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`IN ${fixtures[i].name}`)).trimEnd();
                 else
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
+                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(fixtures[i].name)).trimEnd();
                 break;
             }
         }
 
         let containerItem = null;
         let containerItemSlot = null;
-        if (object === null) {
+        if (fixture === null) {
             // Check if a container item was specified.
             const items = game.items.filter(item => item.location.id === room.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
             for (let i = 0; i < items.length; i++) {
@@ -155,10 +155,10 @@ export async function execute (game, message, command, args) {
         // Now decide what the container should be.
         let container = null;
         let slotName = "";
-        if (object !== null && object.childPuzzle === null && containerItem === null)
-            container = object;
-        else if (object !== null && object.childPuzzle !== null && containerItem === null)
-            container = object.childPuzzle;
+        if (fixture !== null && fixture.childPuzzle === null && containerItem === null)
+            container = fixture;
+        else if (fixture !== null && fixture.childPuzzle !== null && containerItem === null)
+            container = fixture.childPuzzle;
         else if (containerItem !== null) {
             container = containerItem;
             slotName = containerItemSlot.id;
@@ -183,7 +183,7 @@ export async function execute (game, message, command, args) {
         else if (prefab === null && container !== null) return messageHandler.addReply(game, message, `Couldn't find prefab with id "${parsedInput}".`);
         else if (prefab === null && container === null) return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}".`);
 
-        if (containerItem !== null && container instanceof Item) {
+        if (containerItem !== null && container instanceof RoomItem) {
             if (prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
             else if (prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${container.name} because it is too large.`);
             else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);

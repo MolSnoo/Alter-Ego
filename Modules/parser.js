@@ -1,5 +1,6 @@
+import GameEntity from '../Data/GameEntity.js';
 import InventoryItem from '../Data/InventoryItem.js';
-import Item from '../Data/Item.js';
+import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
 import * as finder from './finder.js';
 import { default as evaluateScript } from './scriptParser.js';
@@ -62,7 +63,7 @@ class Sentence {
 /**
  * Parses the XML of a description and evaluates it into a result object with no XML tags. Includes warnings and errors.
  * @param {string} description - The description to parse.
- * @param {*} container - The in-game entity this description belongs to.
+ * @param {GameEntity} container - The in-game entity this description belongs to.
  * @param {Player|PseudoPlayer} player - The Player currently reading the description.
  * @returns {{text: string, warnings: string[], errors: string[]}}
  */
@@ -162,7 +163,7 @@ export function parseDescriptionWithErrors (description, container, player) {
 /**
  * Parses the XML of a description and evaluates it into a result with no XML tags. Returns only the resulting text.
  * @param {string} description - The description to parse.
- * @param {*} container - The in-game entity this description belongs to.
+ * @param {GameEntity} container - The in-game entity this description belongs to.
  * @param {Player|PseudoPlayer} player - The Player currently reading the description.
  * @returns {string}
  */
@@ -174,7 +175,7 @@ export function parseDescription(description, container, player) {
 /**
  * Adds an item to an item list in an XML description. If the item already exists, increases its quantity.
  * @param {string} description - The description to add an item to.
- * @param {Item|InventoryItem|PseudoItem} item - The item to add.
+ * @param {RoomItem|InventoryItem|PseudoItem} item - The item to add.
  * @param {string} [slot] - The name of the il tag to update.
  * @param {number} [addedQuantity=1] - The quantity of this item to add. If none is provided, defaults to 1.
  * @returns {string}
@@ -258,7 +259,7 @@ export function addItem (description, item, slot, addedQuantity = 1) {
 /**
  * Removes an item clause from an il tag within a description. If the item's quantity is greater than 1, decreases it. Returns a Document.
  * @param {string} description - The description to remove an item from.
- * @param {Item|InventoryItem|PseudoItem} item - The item to remove.
+ * @param {RoomItem|InventoryItem|PseudoItem} item - The item to remove.
  * @param {string} [slot] - The name of the il tag to update.
  * @param {number} [removedQuantity=1] - The quantity of this item to remove. If none is provided, defaults to 1.
  * @param {Document} [document] - An already existing document. If this is present, the function returns an unparsed document.
@@ -332,7 +333,7 @@ function removeItemWithDocument (description, item, slot, removedQuantity = 1, d
 /**
  * Removes an item clause from an il tag within a description. If the item's quantity is greater than 1, decreases it.
  * @param {string} description - The description to remove an item from.
- * @param {Item|InventoryItem|PseudoItem} item - The item to remove.
+ * @param {RoomItem|InventoryItem|PseudoItem} item - The item to remove.
  * @param {string} [slot] - The name of the il tag to update.
  * @param {number} [removedQuantity=1] - The quantity of this item to remove. If none is provided, defaults to 1.
  * @returns {string}

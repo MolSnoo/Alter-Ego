@@ -1,9 +1,9 @@
 import GameSettings from '../Classes/GameSettings.js';
-import { default as Fixture } from '../Data/Object.js';
+import Fixture from '../Data/Fixture.js';
 import Game from '../Data/Game.js';
 import GameEntity from '../Data/GameEntity.js';
 import InventoryItem from '../Data/InventoryItem.js';
-import Item from '../Data/Item.js';
+import RoomItem from '../Data/RoomItem.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
@@ -351,7 +351,7 @@ function createPages(fields, results) {
 			// Some fields require special access to get a string value. Handle those here.
 			let cellContents = "";
 			const result = results[i];
-			if (key === 'location' && (result instanceof Fixture || result instanceof Item || result instanceof Player || result instanceof Puzzle))
+			if (key === 'location' && (result instanceof Fixture || result instanceof RoomItem || result instanceof Player || result instanceof Puzzle))
 				cellContents = result.location.displayName;
 			else if (key === 'player' && result instanceof InventoryItem)
 				cellContents = result.player.name;

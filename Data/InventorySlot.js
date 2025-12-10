@@ -1,11 +1,11 @@
 import InventoryItem from "./InventoryItem.js";
-import Item from "./Item.js";
+import RoomItem from "./RoomItem.js";
 import ItemInstance from "./ItemInstance.js";
 
 /**
  * @class InventorySlot
  * @classdesc Represents a slot within an item that can contain other items.
- * @template {ItemInstance|Item|InventoryItem} T
+ * @template {ItemInstance|RoomItem|InventoryItem} T
  */
 export default class InventorySlot {
 	/**

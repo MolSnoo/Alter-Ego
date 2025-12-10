@@ -1,5 +1,5 @@
-import { default as Fixture } from '../Data/Object.js';
-import Item from '../Data/Item.js';
+import Fixture from '../Data/Fixture.js';
+import RoomItem from '../Data/RoomItem.js';
 import Puzzle from '../Data/Puzzle.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import InventorySlot from '../Data/InventorySlot.js';
@@ -14,7 +14,7 @@ import { addLogMessage } from './messageHandler.js';
  * Instantiates a new item in the specified location and container.
  * @param {Prefab} prefab - The prefab to instantiate as an item.
  * @param {Room} location - The room to instantiate the item in.
- * @param {Fixture|Puzzle|Item} container - The container to instantiate the item in.
+ * @param {Fixture|Puzzle|RoomItem} container - The container to instantiate the item in.
  * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
  * @param {number} quantity - The quantity to instantiate.
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
@@ -26,21 +26,21 @@ export function instantiateItem (prefab, location, container, slotId, quantity, 
     let preposition = "in";
     if (container instanceof Puzzle) {
         containerName = "Puzzle: " + container.name;
-        containerLogDisplay = container.parentObject ? container.parentObject.name : container.name;
-        if (container.parentObject) preposition = container.parentObject.preposition;
+        containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
+        if (container.parentFixture) preposition = container.parentFixture.preposition;
     }
     else if (container instanceof Fixture) {
         containerName = "Object: " + container.name;
         containerLogDisplay = container.name;
         preposition = container.preposition;
     }
-    else if (container instanceof Item) {
+    else if (container instanceof RoomItem) {
         containerName = "Item: " + container.identifier + '/' + slotId;
         containerLogDisplay = `${slotId} of ${container.identifier}`;
         if (container.prefab) preposition = container.prefab.preposition;
     }
 
-    let createdItem = new Item(
+    let createdItem = new RoomItem(
         prefab.id,
         generateIdentifier(prefab),
         location.id,
@@ -58,7 +58,7 @@ export function instantiateItem (prefab, location, container, slotId, quantity, 
     createdItem.container = container;
     createdItem.slot = slotId;
 
-    if (container instanceof Item)
+    if (container instanceof RoomItem)
         container.insertItem(createdItem, slotId);
     // Update the container's description.
     container.setDescription(addItemToDescription(container.getDescription(), createdItem, slotId, quantity));
@@ -163,7 +163,7 @@ export function replaceInventoryItem (item, newPrefab) {
 
 /**
  * Destroys an item.
- * @param {Item} item - The item to destroy. 
+ * @param {RoomItem} item - The item to destroy. 
  * @param {number} quantity - How many of this item to destroy.
  * @param {boolean} getChildren - Whether or not to recursively destroy all of the items it contains as well.
  */
@@ -176,21 +176,21 @@ export function destroyItem (item, quantity, getChildren) {
 
     container.setDescription(removeItemFromDescription(container.getDescription(), item, item.slot, quantity));
     if (container instanceof Puzzle) {
-        containerLogDisplay = container.parentObject ? container.parentObject.name : container.name;
-        if (container.parentObject) preposition = container.parentObject.preposition;
+        containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
+        if (container.parentFixture) preposition = container.parentFixture.preposition;
     }
     else if (container instanceof Fixture) {
         containerLogDisplay = container.name;
         if (container.preposition) preposition = container.preposition;
     }
-    else if (container instanceof Item) {
+    else if (container instanceof RoomItem) {
         container.removeItem(item, item.slot, quantity);
         containerLogDisplay = `${item.slot} of ${container.identifier}`;
         if (container.prefab) preposition = container.prefab.preposition;
     }
 
     if (getChildren) {
-        /** @type {Item[]} */
+        /** @type {RoomItem[]} */
         let childItems = [];
         getChildItems(childItems, item);
         for (let i = 0; i < childItems.length; i++)
@@ -241,15 +241,15 @@ export function destroyInventoryItem (item, quantity, getChildren) {
 }
 
 /**
- * Converts an item to an inventory item and recursively converts all of the items it contains.
+ * Converts a room item to an inventory item and recursively converts all of the items it contains.
  * @param {ItemInstance} item - The item to convert.
  * @param {Player} player - The player who the new inventory item will belong to.
  * @param {string} equipmentSlot - The ID of the equipment slot the inventory item will be created in.
  * @param {number} quantity - The quantity of the new inventory item.
  * @returns {InventoryItem} The new inventory item.
  */
-export function convertItem (item, player, equipmentSlot, quantity) {
-    // Make a copy of the Item as an InventoryItem.
+export function convertRoomItem (item, player, equipmentSlot, quantity) {
+    // Make a copy of the RoomItem as an InventoryItem.
     let createdItem = new InventoryItem(
         player.name,
         item.prefab.id,
@@ -269,7 +269,7 @@ export function convertItem (item, player, equipmentSlot, quantity) {
     // Now recursively run through all of the inventory items and convert them.
     for (let i = 0; i < item.inventory.length; i++) {
         for (let j = 0; j < item.inventory[i].items.length; j++) {
-            let inventoryItem = convertItem(item.inventory[i].items[j], player, equipmentSlot, item.inventory[i].items[j].quantity);
+            let inventoryItem = convertRoomItem(item.inventory[i].items[j], player, equipmentSlot, item.inventory[i].items[j].quantity);
             if (inventoryItem.containerName !== "") {
                 inventoryItem.container = createdItem;
                 inventoryItem.slot = createdItem.inventory[i].id;
@@ -291,26 +291,26 @@ export function convertItem (item, player, equipmentSlot, quantity) {
  * @returns {InventoryItem} The new inventory item.
  */
 export function copyInventoryItem (item, player, equipmentSlot, quantity) {
-    return convertItem(item, player, equipmentSlot, quantity);
+    return convertRoomItem(item, player, equipmentSlot, quantity);
 }
 
 /**
- * Converts an inventory item to an item and recursively converts all of the inventory items it contains.
+ * Converts an inventory item to a room item and recursively converts all of the inventory items it contains.
  * @param {ItemInstance} item - The inventory item to convert.
  * @param {Player} player - The player the inventory item currently belongs to.
  * @param {Fixture|Puzzle|ItemInstance} container - The container to new item will be created in.
  * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
  * @param {number} quantity - The quantity of the new item.
- * @returns {Item} The new item.
+ * @returns {RoomItem} The new room item.
  */
 export function convertInventoryItem (item, player, container, slotId, quantity) {
     let containerName = "";
     if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
     else if (container instanceof Fixture) containerName = "Object: " + container.name;
-    else if (container instanceof Item) containerName = "Item: " + container.identifier + '/' + slotId;
+    else if (container instanceof RoomItem) containerName = "Item: " + container.identifier + '/' + slotId;
     else if (container instanceof InventoryItem) containerName = "Item: " + container.identifier + '/' + item.slot;
-    // Make a copy of the Item as an InventoryItem.
-    let createdItem = new Item(
+    // Make a copy of the InventoryItem as a RoomItem.
+    let createdItem = new RoomItem(
         item.prefab.id,
         item.identifier,
         player.location.id,
@@ -359,7 +359,7 @@ export function getChildItems (items, item) {
 /**
  * Inserts an array of items into the game at the correct position in the game's array of items.
  * @param {Room} location - The room to insert items into. 
- * @param {Item[]} items - The items to insert. 
+ * @param {RoomItem[]} items - The items to insert. 
  */
 export function insertItems (location, items) {
     const game = location.game;
@@ -379,15 +379,15 @@ export function insertItems (location, items) {
         if (matchedItem) {
             if (!isNaN(matchedItem.quantity))
                 matchedItem.quantity += item.quantity;
-            /** @type {Fixture|Puzzle|Item} */
+            /** @type {Fixture|Puzzle|RoomItem} */
             let itemContainer = null;
-            if (item.container instanceof Item) {
+            if (item.container instanceof RoomItem) {
                 /** 
-                 * @param {Item} item1
-                 * @param {Item} item2 
+                 * @param {RoomItem} item1
+                 * @param {RoomItem} item2 
                  */
                 const containersMatch = function (item1, item2) {
-                    if (item1.container instanceof Item && item2.container instanceof Item)
+                    if (item1.container instanceof RoomItem && item2.container instanceof RoomItem)
                         return containersMatch(item1.container, item2.container);
                     else {
                         if (item1.containerName === item2.containerName) return true;
@@ -395,7 +395,7 @@ export function insertItems (location, items) {
                     }
                 };
                 const possibleContainers = roomItems.filter(roomItem =>
-                    item.container instanceof Item &&
+                    item.container instanceof RoomItem &&
                     roomItem.identifier === item.container.identifier &&
                     roomItem.containerName === item.container.containerName &&
                     roomItem.slot === item.container.slot &&
@@ -403,7 +403,7 @@ export function insertItems (location, items) {
                     roomItem.description === item.container.description
                 );
                 for (let j = 0; j < possibleContainers.length; j++) {
-                    if (item.container instanceof Item && containersMatch(item.container, possibleContainers[j])) {
+                    if (item.container instanceof RoomItem && containersMatch(item.container, possibleContainers[j])) {
                         itemContainer = possibleContainers[j];
                         break;
                     }
@@ -414,7 +414,7 @@ export function insertItems (location, items) {
             matchedItem.weight = item.weight;
             matchedItem.inventory = item.inventory;
             // Update container's references to this item.
-            if (item.container instanceof Item) {
+            if (item.container instanceof RoomItem) {
                 let foundItem = false;
                 for (let slot = 0; slot < item.container.inventory.length; slot++) {
                     if (item.container.inventory[slot].id === item.slot) {

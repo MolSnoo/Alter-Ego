@@ -1,4 +1,4 @@
-import { default as Fixture } from './Object.js';
+import Fixture from './Fixture.js';
 import Game from './Game.js';
 import InventorySlot from './InventorySlot.js';
 import ItemInstance from './ItemInstance.js';
@@ -9,12 +9,12 @@ import { instantiateItem, destroyItem } from '../Modules/itemManager.js';
 import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
 
 /**
- * @class Item
+ * @class RoomItem
  * @classdesc Represents an item in a room that a player can take with them.
  * @extends ItemInstance
- * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/item.html
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/room_item.html
  */
-export default class Item extends ItemInstance {
+export default class RoomItem extends ItemInstance {
     /**
      * The ID of the room the item can be found in.
      * @type {string}
@@ -32,12 +32,12 @@ export default class Item extends ItemInstance {
     accessible;
     /**
      * The item's actual container.
-     * @type {Fixture|Puzzle|Item}
+     * @type {Fixture|Puzzle|RoomItem}
      */
     container = null;
     /**
      * An array of {@link InventorySlot|inventory slots} the item has.
-     * @type {InventorySlot<Item>[]}
+     * @type {InventorySlot<RoomItem>[]}
      */
     inventory = [];
 
@@ -66,7 +66,7 @@ export default class Item extends ItemInstance {
      */
     initializeInventory() {
         for (let i = 0; i < this.prefab.inventory.length; i++) {
-            /** @type {Item[]} */
+            /** @type {RoomItem[]} */
             const items = [];
             this.inventory.push(
                 new InventorySlot(
@@ -101,7 +101,7 @@ export default class Item extends ItemInstance {
 
     /**
      * Inserts an item into the specified slot.
-     * @param {Item} item - The item to insert.
+     * @param {RoomItem} item - The item to insert.
      * @param {string} slotId - The ID of the inventory slot to insert it in.
      */
     insertItem(item, slotId) {
@@ -116,7 +116,7 @@ export default class Item extends ItemInstance {
 
     /**
      * Removes an item from the specified slot.
-     * @param {Item} item - The item to remove.
+     * @param {RoomItem} item - The item to remove.
      * @param {string} slotId - The ID of the inventory slot to remove it from.
      * @param {number} removedQuantity - The quantity of this item to remove.
      */
@@ -144,6 +144,6 @@ export default class Item extends ItemInstance {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.itemSheetDescriptionColumn + this.row;
+        return this.game.constants.roomItemSheetDescriptionColumn + this.row;
     }
 }

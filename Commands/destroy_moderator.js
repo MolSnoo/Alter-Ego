@@ -1,7 +1,7 @@
-import { default as Fixture } from "../Data/Object.js";
+import Fixture from "../Data/Fixture.js";
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import Item from "../Data/Item.js";
+import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -124,20 +124,20 @@ export async function execute (game, message, command, args) {
         }
         if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
 
-        // Check if an object was specified.
-        let object = null;
+        // Check if a fixture was specified.
+        let fixture = null;
         if (containerItem === null && item === null) {
-            const objects = game.objects.filter(object => object.location.id === room.id && object.accessible);
-            for (let i = 0; i < objects.length; i++) {
-                if (objects[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply an item and a preposition.`);
-                if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`) || parsedInput.endsWith(`IN ${objects[i].name}`)) {
-                    object = objects[i];
-                    if (parsedInput.endsWith(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`))
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${objects[i].preposition.toUpperCase()} ${objects[i].name}`)).trimEnd();
-                    else if (parsedInput.endsWith(`IN ${objects[i].name}`))
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`IN ${objects[i].name}`)).trimEnd();
+            const fixtures = game.fixtures.filter(fixture => fixture.location.id === room.id && fixture.accessible);
+            for (let i = 0; i < fixtures.length; i++) {
+                if (fixtures[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply an item and a preposition.`);
+                if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(`IN ${fixtures[i].name}`)) {
+                    fixture = fixtures[i];
+                    if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`))
+                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`)).trimEnd();
+                    else if (parsedInput.endsWith(`IN ${fixtures[i].name}`))
+                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`IN ${fixtures[i].name}`)).trimEnd();
                     else
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
+                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(fixtures[i].name)).trimEnd();
                     break;
                 }
             }
@@ -146,10 +146,10 @@ export async function execute (game, message, command, args) {
         // Now decide what the container should be.
         let container = null;
         let slotName = "";
-        if (object !== null && object.childPuzzle === null && containerItem === null)
-            container = object;
-        else if (object !== null && object.childPuzzle !== null && containerItem === null)
-            container = object.childPuzzle;
+        if (fixture !== null && fixture.childPuzzle === null && containerItem === null)
+            container = fixture;
+        else if (fixture !== null && fixture.childPuzzle !== null && containerItem === null)
+            container = fixture.childPuzzle;
         else if (containerItem !== null) {
             container = containerItem;
             slotName = containerItemSlot.id;
@@ -168,7 +168,7 @@ export async function execute (game, message, command, args) {
             containerName = `${room.name}`;
             preposition = "at";
         }
-        // Container is an Object.
+        // Container is a Fixture.
         else if (container instanceof Fixture) {
             containerItems = roomItems.filter(item => item.containerName === `Object: ${container.name}`);
             containerName = `${container.name} at ${room.name}`;
@@ -177,11 +177,11 @@ export async function execute (game, message, command, args) {
         // Container is a Puzzle.
         else if (container instanceof Puzzle) {
             containerItems = roomItems.filter(item => item.containerName === `Puzzle: ${container.name}`);
-            containerName = `${container.parentObject.name} at ${room.name}`;
-            preposition = container.parentObject.preposition ? container.parentObject.preposition : "in";
+            containerName = `${container.parentFixture.name} at ${room.name}`;
+            preposition = container.parentFixture.preposition ? container.parentFixture.preposition : "in";
         }
-        // Container is an Item.
-        else if (container instanceof Item) {
+        // Container is a RoomItem.
+        else if (container instanceof RoomItem) {
             containerItems = roomItems.filter(item => item.containerName === `Item: ${container.identifier}/${slotName}`);
             containerName = `${slotName} of ${container.identifier} at ${room.name}`;
             preposition = container.prefab.preposition ? container.prefab.preposition : "in";

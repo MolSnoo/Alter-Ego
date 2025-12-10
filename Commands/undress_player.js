@@ -1,7 +1,7 @@
-import { default as Fixture } from "../Data/Object.js";
+import Fixture from "../Data/Fixture.js";
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import Item from "../Data/Item.js";
+import RoomItem from "../Data/RoomItem.js";
 import Player from '../Data/Player.js';
 import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -44,20 +44,20 @@ export async function execute (game, message, command, args, player) {
     let input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    // Check if the player specified an object.
-    const objects = game.objects.filter(object => object.location.id === player.location.id && object.accessible);
-    let object = null;
+    // Check if the player specified a fixture.
+    const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
+    let fixture = null;
     if (parsedInput !== "") {
-        for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput && objects[i].preposition !== "") {
-                object = objects[i];
-                parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(objects[i].name)).trimEnd();
-                // Check if the object has a puzzle attached to it.
-                if (object.childPuzzle !== null && object.childPuzzle.type !== "weight" && object.childPuzzle.type !== "container" && (!object.childPuzzle.accessible || !object.childPuzzle.solved) && player.hidingSpot !== object.name)
-                    return messageHandler.addReply(game, message, `You cannot put items ${object.preposition} ${object.name} right now.`);
+        for (let i = 0; i < fixtures.length; i++) {
+            if (fixtures[i].name === parsedInput && fixtures[i].preposition !== "") {
+                fixture = fixtures[i];
+                parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(fixtures[i].name)).trimEnd();
+                // Check if the fixture has a puzzle attached to it.
+                if (fixture.childPuzzle !== null && fixture.childPuzzle.type !== "weight" && fixture.childPuzzle.type !== "container" && (!fixture.childPuzzle.accessible || !fixture.childPuzzle.solved) && player.hidingSpot !== fixture.name)
+                    return messageHandler.addReply(game, message, `You cannot put items ${fixture.preposition} ${fixture.name} right now.`);
                 break;
             }
-            else if (objects[i].name === parsedInput) return messageHandler.addReply(game, message, `${objects[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+            else if (fixtures[i].name === parsedInput) return messageHandler.addReply(game, message, `${fixtures[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
         }
     }
 
@@ -69,7 +69,7 @@ export async function execute (game, message, command, args, player) {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {
                 const itemContainer = items[i].container;
-                if (object === null || object !== null && itemContainer !== null && (itemContainer.name === object.name || itemContainer instanceof Puzzle && itemContainer.parentObject.name === object.name)) {
+                if (fixture === null || fixture !== null && itemContainer !== null && (itemContainer.name === fixture.name || itemContainer instanceof Puzzle && itemContainer.parentFixture.name === fixture.name)) {
                     if (items[i].inventory.length === 0) return messageHandler.addReply(game, message, `${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
                     containerItem = items[i];
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].name)).trimEnd();
@@ -94,10 +94,10 @@ export async function execute (game, message, command, args, player) {
     // Now decide what the container should be.
     let container = null;
     let slotName = "";
-    if (object !== null && object.childPuzzle === null && containerItem === null)
-        container = object;
-    else if (object !== null && object.childPuzzle !== null && (object.childPuzzle.type === "weight" || object.childPuzzle.type === "container" || object.childPuzzle.accessible && object.childPuzzle.solved || player.hidingSpot === object.name) && containerItem === null)
-        container = object.childPuzzle;
+    if (fixture !== null && fixture.childPuzzle === null && containerItem === null)
+        container = fixture;
+    else if (fixture !== null && fixture.childPuzzle !== null && (fixture.childPuzzle.type === "weight" || fixture.childPuzzle.type === "container" || fixture.childPuzzle.accessible && fixture.childPuzzle.solved || player.hidingSpot === fixture.name) && containerItem === null)
+        container = fixture.childPuzzle;
     else if (containerItem !== null) {
         container = containerItem;
         if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
@@ -114,13 +114,13 @@ export async function execute (game, message, command, args, player) {
     }
     else {
         if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
-        const defaultDropOpject = objects.find(object => object.name === game.settings.defaultDropObject);
+        const defaultDropOpject = fixtures.find(fixture => fixture.name === game.settings.defaultDropFixture);
         if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(game, message, `You cannot drop items in this room.`);
         container = defaultDropOpject;
     }
 
     let topContainer = container;
-    while (topContainer !== null && topContainer instanceof Item)
+    while (topContainer !== null && topContainer instanceof RoomItem)
         topContainer = topContainer.container;
 
     if (topContainer !== null) {
@@ -132,7 +132,7 @@ export async function execute (game, message, command, args, player) {
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
         if (topContainer !== null && topContainer instanceof Puzzle)
-            topContainer = topContainer.parentObject;
+            topContainer = topContainer.parentFixture;
 
         if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
@@ -158,7 +158,7 @@ export async function execute (game, message, command, args, player) {
     player.notify(`You undress.`);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
-    // Container is an Object.
+    // Container is a Fixture.
     if (container instanceof Fixture)
         messageHandler.addLogMessage(game, `${time} - ${player.name} undressed into ${container.name} in ${player.location.channel}`);
     // Container is a Puzzle.
@@ -180,8 +180,8 @@ export async function execute (game, message, command, args, player) {
             player.attemptPuzzle(container, null, containerItems.join(','), "drop", input);
         }
     }
-    // Container is an Item.
-    else if (container instanceof Item)
+    // Container is a RoomItem.
+    else if (container instanceof RoomItem)
         messageHandler.addLogMessage(game, `${time} - ${player.name} undressed into ${slotName} of ${container.identifier} in ${player.location.channel}`);
 
     return;

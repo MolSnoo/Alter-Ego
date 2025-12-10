@@ -1,9 +1,9 @@
 ﻿import Event from './Event.js';
-import { default as Fixture } from './Object.js';
+import Fixture from './Fixture.js';
 import Flag from './Flag.js';
 import Game from './Game.js';
 import InventoryItem from './InventoryItem.js';
-import Item from './Item.js';
+import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
 import Narration from '../Data/Narration.js';
 import Player from './Player.js';
@@ -55,16 +55,29 @@ export default class Puzzle extends ItemContainer {
      */ 
     location;
     /**
-     * The name of the object associated with the puzzle. 
+     * The name of the object associated with the puzzle. Deprecated. Use parentFixtureName instead.
+     * @deprecated
      * @readonly
      * @type {string} 
      */ 
     parentObjectName;
     /**
-     * The puzzle's parent object. If there isn't one, this is `null`.
+     * The name of the fixture associated with the puzzle.
+     * @readonly
+     * @type {string}
+     */
+    parentFixtureName;
+    /**
+     * The puzzle's parent object. Deprecated. Use parentFixture instead. If there isn't one, this is `null`.
+     * @deprecated
      * @type {Fixture}
      */
     parentObject;
+    /**
+     * The puzzle's parent fixture. If there isn't one, this is `null`.
+     * @type {Fixture}
+     */
+    parentFixture;
     /**
      * The type of puzzle.
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type
@@ -148,7 +161,7 @@ export default class Puzzle extends ItemContainer {
      * @param {string} outcome - String indicating which solution the puzzle has been solved with.
      * @param {boolean} requiresMod - Whether the puzzle requires a moderator to solve it.
      * @param {string} locationId - The ID of the location the puzzle is found in.
-     * @param {string} parentObjectName - The name of the object associated with the puzzle.
+     * @param {string} parentFixtureName - The name of the fixture associated with the puzzle.
      * @param {string} type - The type of puzzle. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type}
      * @param {boolean} accessible - Whether the puzzle can be interacted with.
      * @param {string[]} requirementsStrings - Puzzle names, event IDs, prefab IDs or flag IDs that are required for the puzzle to be made accessible.
@@ -164,14 +177,16 @@ export default class Puzzle extends ItemContainer {
      * @param {number} row - The row number of the puzzle in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(name, solved, outcome, requiresMod, locationId, parentObjectName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
+    constructor(name, solved, outcome, requiresMod, locationId, parentFixtureName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
         super(game, row, alreadySolvedDescription);
         this.name = name;
         this.solved = solved;
         this.outcome = outcome;
         this.requiresMod = requiresMod;
         this.locationId = locationId;
-        this.parentObjectName = parentObjectName;
+        this.parentFixtureName = parentFixtureName;
+        this.parentObjectName = parentFixtureName;
+        this.parentFixture = null;
         this.parentObject = null;
         this.type = type;
         this.accessible = accessible;
@@ -208,7 +223,7 @@ export default class Puzzle extends ItemContainer {
      * @param {string} narration - The message to be narrated in the room.
      * @param {string} outcome - The solution the puzzle was solved with.
      * @param {boolean} doSolvedCommands - Whether or not to execute the puzzle's solved commands.
-     * @param {Array<Item|InventoryItem>} [requiredItems] - The actual item instances that were required for this puzzle to be solved.
+     * @param {Array<RoomItem|InventoryItem>} [requiredItems] - The actual item instances that were required for this puzzle to be solved.
      * @param {Player} [targetPlayer] - The player who will be treated as the initiating player in subsequent bot command executions called by this puzzle's solved commands, if applicable.
      */
     async solve(player, narration, outcome, doSolvedCommands, requiredItems = [], targetPlayer = null) {
@@ -396,7 +411,7 @@ export default class Puzzle extends ItemContainer {
         // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
         if (this.requirementsNotMetDescription === "" && message)
             addReply(this.game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
-        // If there is text there, then the object in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
+        // If there is text there, then the fixture in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
         else {
             player.sendDescription(this.requirementsNotMetDescription, this);
             if (message) new Narration(this.game, player, player.location, narration).send();

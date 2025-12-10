@@ -139,7 +139,7 @@ export async function execute (game, message, command, args) {
         return 0;
     });
 
-    const recipes = game.recipes.filter(recipe => recipe.ingredients.length === 2 && recipe.objectTag === "");
+    const recipes = game.recipes.filter(recipe => recipe.ingredients.length === 2 && recipe.fixtureTag === "");
     var recipe = null;
     for (let i = 0; i < recipes.length; i++) {
         if (recipes[i].ingredients[0].id === ingredients[0].prefab.id && recipes[i].ingredients[1].id === ingredients[1].prefab.id) {

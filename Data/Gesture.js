@@ -1,9 +1,9 @@
 import Exit from "./Exit.js";
-import { default as Fixture } from "./Object.js";
+import Fixture from "./Fixture.js";
 import Game from "./Game.js";
 import GameEntity from "./GameEntity.js";
 import InventoryItem from "./InventoryItem.js";
-import Item from "./Item.js";
+import RoomItem from "./RoomItem.js";
 import Player from "./Player.js";
 import Status from "./Status.js";
 
@@ -64,7 +64,7 @@ export default class Gesture extends GameEntity {
     targetType;
     /**
      * The game entity the player chose to target.
-     * @type {Exit|Fixture|Item|Player|InventoryItem|null}
+     * @type {Exit|Fixture|RoomItem|Player|InventoryItem|null}
      */
     target;
 
