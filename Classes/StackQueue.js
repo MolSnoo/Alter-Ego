@@ -14,16 +14,10 @@ export default class StackQueue {
      * @type {Array<MessageQueueEntry>}
      */
     outStack;
-    /**
-     * Length of StackQueue
-     * @type {number}
-     */
-    length;
 
     constructor() {
         this.inStack = [];
         this.outStack = [];
-        this.length = 0;
     }
 
     /**
@@ -32,7 +26,6 @@ export default class StackQueue {
      */
     enqueue(value) {
         this.inStack.push(value);
-        this.length++;
     }
 
     /**
@@ -40,7 +33,7 @@ export default class StackQueue {
      * @returns {MessageQueueEntry | undefined}
      */
     dequeue() {
-        if (this.length === 0) {
+        if (this.size() !== 0) {
             if (this.outStack.length === 0) {
                 while (this.inStack.length > 0) {
                     this.outStack.push(this.inStack.pop());
@@ -48,7 +41,6 @@ export default class StackQueue {
             }
             const out = this.outStack.pop();
             if (out) {
-                this.length--;
                 return out;
             }
         }
@@ -61,4 +53,12 @@ export default class StackQueue {
         this.inStack.length = 0;
         this.outStack.length = 0;
     }
+
+    /**
+     * Size of the queue.
+     * @returns {number}
+    */
+   size() {
+        return this.inStack.length + this.outStack.length;
+   }
 }
