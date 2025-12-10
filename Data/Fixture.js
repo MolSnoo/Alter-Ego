@@ -213,9 +213,8 @@ export default class Fixture extends ItemContainer {
 
     /**
      * Checks if the fixture is activated and processes its recipes if it is.
-     * @param {this} this
      */
-    processRecipes(this) {
+    processRecipes() {
         if (this.activated) {
             const result = this.findRecipe();
             if (this.process.recipe === null && this.process.duration === null && result.recipe === null && this.autoDeactivate) {
