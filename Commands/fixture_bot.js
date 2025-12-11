@@ -94,15 +94,12 @@ export async function execute (game, command, args, player, callee) {
         announcement = announcement.replace(/player/g, player.displayName);
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-                player = game.players_alive[i];
-                args.splice(args.length - 1, 1);
-                input = args.join(" ");
-                break;
-            }
-        }
+        player = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+        if (player) {
+            args.splice(args.length - 1, 1);
+            input = args.join(" ");
+        } else
+            player = null
     }
 
     // If a player wasn't specified, check if a room name was.

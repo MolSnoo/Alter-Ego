@@ -31,14 +31,8 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            break;
-        }
-    }
-    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    let player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `${player.name} is currently in ${player.location.channel}.`);
 

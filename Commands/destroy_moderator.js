@@ -210,15 +210,18 @@ export async function execute (game, message, command, args) {
         }
     }
     else {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            for (let j = 0; j < args.length; j++) {
-                if (args[j].toUpperCase() === `${game.players_alive[i].name.toUpperCase()}'S`) {
-                    player = game.players_alive[i];
-                    args.splice(j, 1);
-                    break;
-                }
+        for (let i = 0; i < args.length; i++) {
+            let playerName = args[i].toUpperCase();
+            if (playerName.endsWith("'S")) {
+                playerName = playerName.slice(0, -2);
             }
-            if (player !== null) break;
+
+            const fetchedPlayer = game.entityFinder.getLivingPlayer(playerName);
+            if (fetchedPlayer) {
+                player = fetchedPlayer
+                args.splice(i, 1);
+                break;
+            }
         }
         if (player === null) return messageHandler.addReply(game, message, `Couldn't find a room or player in your input.`);
 

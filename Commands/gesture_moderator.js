@@ -96,16 +96,10 @@ export async function execute (game, message, command, args) {
         if (args.length < 2)
             return messageHandler.addReply(game, message, `You need to specify a player and a gesture. Usage:\n${usage(game.settings)}`);
 
-        var player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                args.splice(0, 1);
-                input = args.join(" ").toLowerCase().replace(/\'/g, "");
-                break;
-            }
-        }
-        if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+        var player = game.entityFinder.getLivingPlayer(args[0]);
+        if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+        args.splice(0, 1);
+        input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
         var gesture = null;
         var targetType = "";
