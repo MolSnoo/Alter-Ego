@@ -437,13 +437,11 @@ export default class Player extends ItemContainer {
         // If the player has the free movement role, they can move to any room they please.
         if (this.member.roles.resolve(this.game.guildContext.freeMovementRole)) {
             adjacent = true;
-            for (let i = 0; i < this.game.rooms.length; i++) {
-                if (this.game.rooms[i].id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
-                    desiredRoom = this.game.rooms[i];
+            let fetchedRoom = this.game.entityFinder.getRoom(destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase());
+            if (fetchedRoom) {
+                desiredRoom = fetchedRoom;
                     exitMessage = `${this.displayName} suddenly disappears${appendString}`;
                     entranceMessage = `${this.displayName} suddenly appears${appendString}`;
-                    break;
-                }
             }
         }
         // Otherwise, check that the desired room is adjacent to the current room.
@@ -689,13 +687,8 @@ export default class Player extends ItemContainer {
         let status = null;
         if (statusId instanceof Status) status = statusId;
         else {
-            for (let i = 0; i < this.game.statusEffects.length; i++) {
-                if (this.game.statusEffects[i].id.toLowerCase() === statusId.toLowerCase()) {
-                    status = this.game.statusEffects[i];
-                    break;
-                }
-            }
-            if (status === null) return `Couldn't find status effect "${statusId}".`;
+            this.game.entityFinder.getStatusEffect(statusId);
+            if (status === undefined) return `Couldn't find status effect "${statusId}".`;
         }
 
         for (let i = 0; i < status.overriders.length; i++) {

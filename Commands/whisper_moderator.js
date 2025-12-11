@@ -45,20 +45,21 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to choose at least two players. Usage:\n${usage(game.settings)}`);
 
     // Get all players mentioned.
+    /**
+     * @type {Array<Player>}
+     */
     var recipients = new Array();
     var npc = null;
     for (let i = 0; i < args.length; i++) {
         let playerExists = false;
-        for (let j = 0; j < game.players_alive.length; j++) {
-            let player = game.players_alive[j];
-            // Player cannot be included multiple times.
-            if (player.name.toLowerCase() === args[i].toLowerCase()) {
-                for (let k = 0; k < recipients.length; k++) {
-                    if (recipients[k].name === player.name)
-                        return messageHandler.addReply(game, message, `Can't include the same player multiple times.`);
-                    if (recipients[k].location.id !== player.location.id)
-                        return messageHandler.addReply(game, message, `The selected players aren't all in the same room.`);
-                }
+        let player = game.entityFinder.getLivingPlayer(args[i]);
+        if (player) {
+            for (let j = 0; j < recipients.length; j++) {
+                // Player cannot be included multiple times.
+                if (recipients[j].name === player.name)
+                    return messageHandler.addReply(game, message, `Can't include the same player multiple times.`);
+                if (recipients[j].location.id !== player.location.id)
+                    return messageHandler.addReply(game, message, `The selected players aren't all in the same room.`);
                 // Check attributes that would prohibit the player from whispering to someone in the room.
                 let status = player.getAttributeStatusEffects("disable whisper");
                 if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
