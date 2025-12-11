@@ -9,6 +9,7 @@ import type GameSettings from "./Classes/GameSettings.js";
 import type Recipe from "./Data/Recipe.js";
 import type RoomItem from "./Data/RoomItem.js";
 import type { Duration } from "dayjs/plugin/duration.js";
+import type GameEntity from "./Data/GameEntity.js";
 
 export {};
 
@@ -107,6 +108,15 @@ declare global {
 	interface MessageQueueEntry {
 		fire: () => Promise<Message>;
 	}
+
+	/**
+	 * @callback GameEntityMatcher
+	 * @param {GameEntity} entity - The game entity to match the criteria against.
+	 * @param {string|number|boolean} criteria - The criteria to match.
+	 * @param {boolean} [normalize] - Whether or not to normalize the criteria before matching. Defaults to false.
+	 * @returns {boolean} - Whether the entity matches the criteria.
+	 */
+	type GameEntityMatcher = (entity: GameEntity, criteria: string|number|boolean, normalize?: boolean) => boolean;
 
 	/**
 	 * Represents a range of values in a spreadsheet.

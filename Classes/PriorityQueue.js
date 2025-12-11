@@ -44,7 +44,7 @@ export default class PriorityQueue {
     dequeue() {
         if (this.size() > 0) {
             for (const priority of this.priorityOrder) {
-                if (this.queues.get(priority).length > 0) {
+                if (this.queues.get(priority).size() > 0) {
                     return this.queues.get(priority).dequeue();
                 }
             }
@@ -58,7 +58,7 @@ export default class PriorityQueue {
     size() {
         let size = 0;
         for (let i = 0; i < this.priorityOrder.length; i++)
-            size += this.queues.get(this.priorityOrder[i]).length;
+            size += this.queues.get(this.priorityOrder[i]).size();
         return size;
     }
 
