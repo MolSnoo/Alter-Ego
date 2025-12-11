@@ -131,7 +131,7 @@ export default class Whisper {
                         || !players[i].statusString.includes("hidden") && players[i].hasAttribute("no channel")
                         || players[i].hasAttribute("no hearing"))
                         noChannel = true;
-                    if (!noChannel && players[i].title !== "NPC") {
+                    if (!noChannel && !players[i].isNPC) {
                         channel.permissionOverwrites.create(players[i].id, {
                             ViewChannel: true,
                             ReadMessageHistory: true
@@ -181,7 +181,7 @@ export default class Whisper {
      * @param {Player} player
      */
     revokeAccess(player) {
-        if (player.title !== "NPC") {
+        if (!player.isNPC) {
             this.channel.permissionOverwrites.create(player.id, {
                 ViewChannel: null,
                 ReadMessageHistory: null

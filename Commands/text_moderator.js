@@ -38,7 +38,7 @@ export async function execute (game, message, command, args) {
 
     let player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
-    else if (player.title !== "NPC") return messageHandler.addReply(game, message, `You cannot text for a player that isn't an NPC.`);
+    else if (!player.isNPC) return messageHandler.addReply(game, message, `You cannot text for a player that isn't an NPC.`);
     args.splice(0, 1);
 
     let recipient = game.entityFinder.getLivingPlayer(args[0]);

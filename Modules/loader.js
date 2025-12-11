@@ -1543,7 +1543,7 @@ export function loadPlayers (game, doErrorChecking) {
             );
             const location = game.rooms.find(room => room.id === Room.generateValidId(player.locationId));
             if (location) player.location = location;
-            if (player.title === "NPC") player.displayIcon = player.id;
+            if (player.isNPC) player.displayIcon = player.id;
             player.setPronouns(player.originalPronouns, player.pronounString);
             player.setPronouns(player.pronouns, player.pronounString);
             game.players.push(player);
@@ -1553,7 +1553,7 @@ export function loadPlayers (game, doErrorChecking) {
                 game.players_alive.push(player);
                 game.livingPlayersCollection.set(Game.generateValidEntityName(player.name), player);
 
-                if (player.member !== null || player.title === "NPC") {
+                if (player.member !== null || player.isNPC) {
                     // Parse statuses and inflict the player with them.
                     const currentPlayer = game.players_alive[game.players_alive.length - 1];
                     for (let j = 0; j < game.statusEffects.length; j++) {
@@ -1615,12 +1615,12 @@ export function loadPlayers (game, doErrorChecking) {
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
 export function checkPlayer (player) {
-    if (player.title !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
+    if (!player.isNPC && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
-    if (player.title === "NPC" && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
+    if (player.isNPC && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
         return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg, .jpeg, .png, .webp, or .avif extension.`);
-    if (player.title !== "NPC" && (player.member === null || player.member === undefined))
+    if (!player.isNPC && (player.member === null || player.member === undefined))
         return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
     if (player.name === "" || player.name === null || player.name === undefined)
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);

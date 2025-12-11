@@ -97,7 +97,7 @@ export default class Narration {
                 for (let i = 0; i < whisper.players.length; i++) {
                     let occupant = whisper.players[i];
                     // Players who don't have access to the whisper channel should receive all narrations besides their own via DM.
-                    if (!occupant.hasAttribute("no sight") && occupant.title !== "NPC" && (occupant.hasAttribute("see room") || !occupant.member.permissionsIn(whisper.channel).has("ViewChannel"))) {
+                    if (!occupant.hasAttribute("no sight") && !occupant.isNPC && (occupant.hasAttribute("see room") || !occupant.member.permissionsIn(whisper.channel).has("ViewChannel"))) {
                         if (!this.player || occupant.name !== this.player.name)
                             occupant.notify(this.message, false);
                     }

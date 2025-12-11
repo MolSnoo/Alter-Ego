@@ -44,7 +44,7 @@ export async function execute (game, message, command, args) {
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
     var input = args.join(" ");
     if (input === "") {
-        if (player.title === "NPC") input = player.id;
+        if (player.isNPC) input = player.id;
         else input = null;
     }
     else if (!iconURLSyntax.test(input)) return messageHandler.addReply(game, message, `The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);

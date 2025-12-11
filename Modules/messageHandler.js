@@ -81,7 +81,7 @@ export async function addNarrationToWhisper (whisper, messageText, addSpectate =
  * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
  */
 export async function addDirectNarration (player, messageText, addSpectate = true) {
-    if (player.title !== "NPC") {
+    if (!player.isNPC) {
         player.game.messageQueue.enqueue(
             {
                 fire: async () => await player.member.send(messageText),
@@ -109,7 +109,7 @@ export async function addDirectNarration (player, messageText, addSpectate = tru
 export async function addDirectNarrationWithAttachments (player, messageText, attachments, addSpectate = true) {
     const files = attachments.map((attachment) => attachment.url);
 
-    if (player.title !== "NPC") {
+    if (!player.isNPC) {
         player.game.messageQueue.enqueue(
             {
                 fire: async () =>
@@ -144,7 +144,7 @@ export async function addDirectNarrationWithAttachments (player, messageText, at
  * @param {boolean} [addSpectate] - Whether or not to mirror the message in spectate channels. Defaults to true.
  */
 export async function addRoomDescription (player, location, descriptionText, defaultDropFixtureText, addSpectate = true) {
-    if (player.title !== "NPC" || (addSpectate && player.spectateChannel !== null)) {
+    if (!player.isNPC || (addSpectate && player.spectateChannel !== null)) {
         let constructedString = "";
         const generatedString = location.generate_occupantsString(
             location.occupants.filter((occupant) => !occupant.hasAttribute("hidden") && occupant.name !== player.name)
@@ -197,7 +197,7 @@ export async function addRoomDescription (player, location, descriptionText, def
             new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
         ];
 
-        if (player.title !== "NPC") {
+        if (!player.isNPC) {
             location.game.messageQueue.enqueue(
                 {
                     fire: async () =>

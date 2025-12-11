@@ -832,7 +832,7 @@ export default class Player extends ItemContainer {
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
-            if (this.title === "NPC") this.displayIcon = this.id;
+            if (this.isNPC) this.displayIcon = this.id;
             else this.displayIcon = null;
             if (item === null || item === undefined) item = { name: "MASK" };
             if (narrate) new Narration(this.game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
@@ -2611,7 +2611,7 @@ export default class Player extends ItemContainer {
      * @param {boolean} [addSpectate=true] - Whether or not to mirror this message in the player's spectateChannel. Defaults to true.
      */
     notify(messageText, addSpectate = true) {
-        if (!this.hasAttribute("unconscious") && this.title !== "NPC")
+        if (!this.hasAttribute("unconscious") && !this.isNPC)
             messageHandler.addDirectNarration(this, messageText, addSpectate);
     }
 

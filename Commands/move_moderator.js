@@ -41,7 +41,7 @@ export async function execute (game, message, command, args) {
     var players = [];
     if (args[0] === "all" || args[0] === "living") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].title !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
+            if (!game.players_alive[i].isNPC && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);

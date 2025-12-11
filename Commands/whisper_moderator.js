@@ -69,7 +69,7 @@ export async function execute (game, message, command, args) {
                 if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;
-                if (player.title === "NPC") npc = player;
+                if (player.isNPC) npc = player;
                 recipients.push(player);
                 break;
             }

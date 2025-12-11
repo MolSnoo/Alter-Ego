@@ -47,7 +47,7 @@ export async function execute (game, message, command, args) {
     let room = null;
     if (!player)
         player = null;
-    else if (player.title === "NPC")
+    else if (!player.isNPC)
         return messageHandler.addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.

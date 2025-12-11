@@ -57,7 +57,7 @@ export async function execute (game, command, args, player, callee) {
     var input = args.join(" ").replace(/(?<=http(s?))@(?=.*?(jpg|jpeg|png|webp|avif))/g, ':').replace(/(?<=http(s?):.*?)\\(?=.*?(jpg|jpeg|png|webp|avif))/g, '/');
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
     if (input === "") {
-        if (player.title === "NPC") input = player.id;
+        if (player.isNPC) input = player.id;
         else input = null;
     }
     else if (!iconURLSyntax.test(input)) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);

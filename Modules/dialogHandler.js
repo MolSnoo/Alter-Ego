@@ -57,7 +57,7 @@ export default async function execute (game, message, deletable, player = null, 
         game.dialogCache.unshift({ messageId: message.id, spectateMirrors: [] });
 
         if (player !== null && message.channel.id !== game.guildContext.announcementChannel.id) {
-            if (player.title !== "NPC") player.setOnline();
+            if (!player.isNPC) player.setOnline();
 
             /**
              * Preserve the player data as it is now in order to display it in spectate channels. Only preserve what's needed for that purpose.
@@ -66,7 +66,7 @@ export default async function execute (game, message, deletable, player = null, 
             const speaker = { displayName: player.displayName, displayIcon: player.displayIcon, member: player.member, game: player.game };
 
             if (player.hasAttribute("no speech")) {
-                if (player.title !== "NPC") player.notify("You are mute, so you cannot speak.", false);
+                if (!player.isNPC) player.notify("You are mute, so you cannot speak.", false);
                 if (deletable) message.delete().catch();
                 resolve();
             }
@@ -117,13 +117,13 @@ export default async function execute (game, message, deletable, player = null, 
                                     whisper.players[i].notify(`${player.displayName}, with ${speakerVoiceString} you recognize to be ${speakerRecognitionName}'s, whispers "${message.content}".`, false);
                                     messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, `${player.displayName} (${speakerRecognitionName})`);
                                 }
-                                else if (whisper.players[i].title !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
+                                else if (!whisper.players[i].isNPC && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
                                     whisper.players[i].notify(`${speakerRecognitionName} whispers "${message.content}".`, false);
                                     messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, speakerRecognitionName);
                                 }
                                 else messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper);
                             }
-                            else if (whisper.players[i].title !== "NPC" && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
+                            else if (!whisper.players[i].isNPC && !whisper.players[i].member.permissionsIn(message.channel).has("ViewChannel")) {
                                 if (whisper.players[i].hasAttribute(`knows ${speakerRecognitionName}`)) {
                                     whisper.players[i].notify(`${speakerRecognitionName} whispers "${message.content}".`, false);
                                     messageHandler.addSpectatedPlayerMessage(whisper.players[i], speaker, message, whisper, speakerRecognitionName);
@@ -493,7 +493,7 @@ export default async function execute (game, message, deletable, player = null, 
             for (let i = 0; i < players.length; i++) {
                 let occupant = players[i];
                 // Players with the see room attribute should receive narrations from moderators.
-                if (!occupant.hasAttribute("no sight") && occupant.title !== "NPC"
+                if (!occupant.hasAttribute("no sight") && !occupant.isNPC
                     && (occupant.hasAttribute("see room") || message.channel.type === ChannelType.GuildText && !occupant.member.permissionsIn(message.channel).has("ViewChannel"))
                     && !message.content.startsWith('('))
                     occupant.notify(message.content);
@@ -507,7 +507,7 @@ export default async function execute (game, message, deletable, player = null, 
                     if (game.rooms[i].tags.includes("video monitoring") && game.rooms[i].occupants.length > 0 && game.rooms[i].id !== room.id) {
                         for (let j = 0; j < game.rooms[i].occupants.length; j++) {
                             let occupant = game.rooms[i].occupants[j];
-                            if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !occupant.hasAttribute("hidden") && occupant.title !== "NPC") {
+                            if (occupant.hasAttribute("see room") && !occupant.hasAttribute("no sight") && !occupant.hasAttribute("hidden") && !occupant.isNPC) {
                                 occupant.notify(messageText, false);
                             }
                         }

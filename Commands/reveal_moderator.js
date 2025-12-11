@@ -48,7 +48,7 @@ export async function execute (game, message, command, args) {
     }
 
     for (let i = 0; i < players.length; i++) {
-        if (players[i].title !== "NPC") {
+        if (!players[i].isNPC) {
             players[i].member.roles.remove(game.guildContext.playerRole);
             players[i].member.roles.add(game.guildContext.deadRole);
         }
