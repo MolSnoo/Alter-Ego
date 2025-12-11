@@ -5,6 +5,10 @@ import Room from "../Data/Room.js";
 import Status from "../Data/Status.js";
 import * as matchers from '../Modules/matchers.js';
 
+/**
+ * @class GameEntityFinder
+ * @classdesc A set of functions to easily find in-game entities without parsing inputs yourself.
+ */
 export default class GameEntityFinder {
 	/**
 	 * The game this belongs to.
@@ -54,15 +58,15 @@ export default class GameEntityFinder {
 	 * Gets a room item.
 	 * @param {string} identifier - The room item's identifier or prefab ID.
 	 * @param {string} [location] - The ID or displayName of the room the item is in. 
-	 * @param {string} [containerName] - The room item's containerName.
-	 * @returns The room item with the specified identifier, and location and containerName if applicable. If no such item exists, returns undefined.
+	 * @param {string} [containerName] - The room item's container name.
+	 * @returns The room item with the specified identifier, and location and container name if applicable. If no such item exists, returns undefined.
 	 */
 	getRoomItem(identifier, location, containerName) {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
 		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
-		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNameMatches);
+		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
 		return this.#game.roomItems.find(roomItem => roomItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(roomItem, key)));
 	}
 
@@ -126,16 +130,16 @@ export default class GameEntityFinder {
 	 * 
 	 * @param {string} identifier - The inventory item's identifier or prefab ID.
 	 * @param {string} [player] - The name of the player the inventory item belongs to.
-	 * @param {string} [containerName] - The inventory item's containerName.
+	 * @param {string} [containerName] - The inventory item's container name.
 	 * @param {string} [equipmentSlotId] - The ID of the equipment slot the inventory item belongs to.
-	 * @returns The inventory item with the specified identifier, and player, containerName, and equipment slot if applicable. If no such item exists, returns undefined.
+	 * @returns The inventory item with the specified identifier, and player, container name, and equipment slot if applicable. If no such item exists, returns undefined.
 	 */
 	getInventoryItem(identifier, player, containerName, equipmentSlotId) {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
 		if (player) selectedFilters.set(Game.generateValidEntityName(player), matchers.inventoryItemPlayerNameMatches);
-		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNameMatches);
+		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
 		if (equipmentSlotId) selectedFilters.set(Game.generateValidEntityName(equipmentSlotId), matchers.inventoryItemEquipmentSlotMatches);
 		return this.#game.inventoryItems.find(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(inventoryItem, key)));
 	}
@@ -176,7 +180,7 @@ export default class GameEntityFinder {
 		let selectedFilters = new Collection();
 		if (id) selectedFilters.set(Room.generateValidId(id), matchers.roomIdMatches);
 		if (tag) selectedFilters.set(tag.trim(), matchers.roomTagMatches);
-		if (occupied !== undefined) selectedFilters.set(occupied, matchers.roomOccupiedMatches);
+		if (occupied !== undefined && occupied !== null) selectedFilters.set(occupied, matchers.roomOccupiedMatches);
 		return this.#game.roomsCollection.filter(room => selectedFilters.every((filterFunction, key) => filterFunction(room, key)));
 	}
 
@@ -193,8 +197,92 @@ export default class GameEntityFinder {
 		let selectedFilters = new Collection();
 		if (name) selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
 		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
-		if (accessible !== undefined) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
+		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
 		if (recipeTag) selectedFilters.set(recipeTag.trim(), matchers.fixtureRecipeTagMatches);
 		return this.#game.fixtures.filter(fixture => selectedFilters.every((filterFunction, key) => filterFunction(fixture, key)));
+	}
+
+	/**
+	 * Gets all prefabs that match the given search queries.
+	 * @param {string} [id] - Filter the prefabs to only those whose ID or name contains the given string.
+	 * @param {string} [effectsString] - Filter the prefabs to only those who inflict the given comma-separated status effects.
+	 * @param {string} [curesString] - Filter the prefabs to only those who cure the given comma-separated status effects.
+	 * @param {string} [equipmentSlotsString] - Filter the prefabs to only those who are equippable to the given comma-separated equipment slots.
+	 * @returns All prefabs that match the given search queries.
+	 */
+	getPrefabs(id, effectsString, curesString, equipmentSlotsString) {
+		/** @type {Collection<string, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (id) selectedFilters.set(Game.generateValidEntityName(id), matchers.itemIdentifierOrNameMatches);
+		if (effectsString) {
+			let effects = effectsString.split(',');
+			effects.forEach((effect, i) => effects[i] = Status.generateValidId(effect));
+			selectedFilters.set(effects.join(','), matchers.prefabEffectsMatches);
+		}
+		if (curesString) {
+			let cures = curesString.split(',');
+			cures.forEach((cure, i) => cures[i] = Status.generateValidId(cure));
+			selectedFilters.set(cures.join(','), matchers.prefabCuresMatches);
+		}
+		if (equipmentSlotsString) {
+			let equipmentSlots = equipmentSlotsString.split(',');
+			equipmentSlots.forEach((equipmentSlot, i) => equipmentSlots[i] = Game.generateValidEntityName(equipmentSlot));
+			selectedFilters.set(equipmentSlots.join(','), matchers.prefabEquipmentSlotsMatches);
+		}
+		return this.#game.prefabsCollection.filter(prefab => selectedFilters.every((filterFunction, key) => filterFunction(prefab, key)));
+	}
+
+	/**
+	 * Gets all recipes that match the given search queries.
+	 * @param {string} [type] - Filter the recipes to only those of the given type.
+	 * @param {string} [fixtureTag] - Filter the recipes to only those with the given fixture tag.
+	 * @param {string} [ingredientsString] - Filter the recipes to only those with the given comma-separated ingredients.
+	 * @param {string} [productsString] - Filter the recipes to only those with the given comma-separated products.
+	 * @returns All recipes that match the given search queries.
+	 */
+	getRecipes(type, fixtureTag, ingredientsString, productsString) {
+		/** @type {Collection<string, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (type) selectedFilters.set(type.toLowerCase().trim(), matchers.recipeTypeMatches);
+		if (fixtureTag) selectedFilters.set(fixtureTag.trim(), matchers.recipeFixtureTagMatches);
+		if (ingredientsString) {
+			let ingredients = ingredientsString.split(',');
+			ingredients.forEach((ingredient, i) => ingredients[i] = Game.generateValidEntityName(ingredient));
+			selectedFilters.set(ingredients.join(','), matchers.recipeIngredientsMatches);
+		}
+		if (productsString) {
+			let products = productsString.split(',');
+			products.forEach((product, i) => products[i] = Game.generateValidEntityName(product));
+			selectedFilters.set(products.join(','), matchers.recipeProductsMatches);
+		}
+		return this.#game.recipes.filter(recipe => selectedFilters.every((filterFunction, key) => filterFunction(recipe, key)));
+	}
+
+	/**
+	 * Gets all room items that match the given search queries.
+	 * @param {string} [identifier] - The room item's identifier or prefab ID in moderator contexts, or its name or plural name in player contexts. 
+	 * @param {string} [location] - Filter the room items to only those whose location ID matches the given location ID.
+	 * @param {boolean} [accessible] - Filter the room items to only those who are accessible or not.
+	 * @param {string} [containerName] - Filter the room items to only those with the given container name. Does not include slot.
+	 * @param {string} [slotId] - Filter the room items to only those in the inventory slot with the given ID.
+	 * @param {string} [resultContext] - Either `moderator`, `player`, or `fuzzy`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
+	 */
+	getRoomItems(identifier, location, accessible, containerName, slotId, resultContext = 'fuzzy') {
+		/** @type {Collection<string|boolean, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (identifier) {
+			if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
+			else if (resultContext === 'fuzzy') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameMatches);
+			else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
+		}
+		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
+		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
+		if (containerName) {
+			if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemContainerNameMatches);
+			else if (resultContext === 'fuzzy') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemContainerIdentifierOrNameMatches);
+			else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
+		}
+		if (slotId) selectedFilters.set(Game.generateValidEntityName(slotId), matchers.itemSlotMatches);
+		return this.#game.roomItems.filter(roomItem => roomItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(roomItem, key)));
 	}
 }
