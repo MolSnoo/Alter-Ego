@@ -70,9 +70,10 @@ export async function execute (game, command, args, player, callee) {
     }
     else {
         if (args.length === 1) {
-            for (let i = 0; i < game.players.length; i++) {
-                if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name !== player.name) {
-                    player.voiceString = game.players[i].name;
+            let fetchedPlayer = game.entityFinder.getPlayer(args[0]);
+            if (fetchedPlayer) {
+                if (fetchedPlayer.name !== player.name) {
+                    player.voiceString = fetchedPlayer.name;
                     return;
                 }
             }

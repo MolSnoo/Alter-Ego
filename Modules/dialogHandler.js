@@ -37,12 +37,7 @@ export default async function execute (game, message, deletable, player = null, 
         let whisper = null;
         if (player !== null) room = player.location;
         else if (message.channel.type === ChannelType.GuildText) {
-            for (let i = 0; i < game.rooms.length; i++) {
-                if (game.rooms[i].id === message.channel.name) {
-                    room = game.rooms[i];
-                    break;
-                }
-            }
+            room = game.entityFinder.getRoom(message.channel.name);
             for (let i = 0; i < game.whispers.length; i++) {
                 if (game.whispers[i].channelName === message.channel.name) {
                     whisper = game.whispers[i];
@@ -80,12 +75,10 @@ export default async function execute (game, message, deletable, player = null, 
             let speakerVoiceString = player.voiceString;
             let speakerRecognitionName = player.name;
             if (player.voiceString !== player.originalVoiceString) {
-                for (let i = 0; i < game.players.length; i++) {
-                    if (player.voiceString === game.players[i].name) {
-                        speakerVoiceString = game.players[i].originalVoiceString;
-                        speakerRecognitionName = game.players[i].name;
-                        break;
-                    }
+                let fetchedPlayer = game.entityFinder.getPlayer(player.voiceString);
+                if (fetchedPlayer) {
+                    speakerVoiceString = fetchedPlayer.originalVoiceString;
+                    speakerRecognitionName = fetchedPlayer.name;
                 }
                 // If the player's voice descriptor is different but doesn't match the name of another player,
                 // set their recognition name to unknown so that other players won't recognize their voice.

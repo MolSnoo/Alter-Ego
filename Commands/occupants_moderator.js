@@ -40,14 +40,8 @@ export async function execute (game, message, command, args) {
 
     var input = args.join(" ");
     var parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === parsedInput) {
-            room = game.rooms[i];
-            break;
-        }
-    }
-    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    var room = game.entityFinder.getRoom(parsedInput);
+    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = room.occupants.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);

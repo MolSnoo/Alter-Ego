@@ -60,12 +60,12 @@ export async function execute (game, message, command, args) {
     }
     else {
         if (args.length === 1) {
-            for (let i = 0; i < game.players.length; i++) {
-                if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name !== player.name) {
-                    player.voiceString = game.players[i].name;
-                    return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${game.players[i].name}.`);
-                }
-                else if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name === player.name)
+            let fetchedPlayer = game.entityFinder.getPlayer(args[0]);
+            if (fetchedPlayer) {
+                if (fetchedPlayer.name !== player.name) {
+                    player.voiceString = fetchedPlayer.name;
+                    return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${fetchedPlayer.name}.`);
+                } else
                     return messageHandler.addReply(game, message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${game.settings.commandPrefix}setvoice ${player.name}`);
             }
         }

@@ -81,12 +81,7 @@ export async function execute (game, message, command, args) {
         });
     }
     else if (channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(channel.parentId)) {
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].id === channel.name) {
-                room = game.rooms[i];
-                break;
-            }
-        }
+        room = game.entityFinder.getRoom(channel.name);
         if (room !== null)
             new Narration(game, null, room, string).send();
     }

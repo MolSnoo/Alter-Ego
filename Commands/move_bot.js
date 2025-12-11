@@ -82,16 +82,10 @@ export async function execute (game, command, args, player, callee) {
     // Args at this point should only include the room name.
     // Check to see that the last argument is the name of a room.
     var input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var desiredRoom = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === input) {
-            desiredRoom = game.rooms[i];
-            input = input.substring(0, input.indexOf(desiredRoom.name));
-            args = input.split("-");
-            break;
-        }
-    }
-    if (desiredRoom === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    let desiredRoom = game.entityFinder.getRoom(input);
+    if (desiredRoom === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    input = input.substring(0, input.indexOf(desiredRoom.name));
+    args = input.split("-");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
