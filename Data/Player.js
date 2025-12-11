@@ -77,6 +77,12 @@ export default class Player extends ItemContainer {
      */
     talent;
     /**
+     * Whether or not the player is an NPC.
+     * @readonly
+     * @type {boolean}
+     */
+    isNPC;
+    /**
      * The player's third person personal pronouns. 
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#pronoun-string
      * @type {string}
@@ -289,6 +295,7 @@ export default class Player extends ItemContainer {
         this.displayIcon = null;
         this.title = title;
         this.talent = title;
+        this.isNPC = this.title === "NPC";
         this.pronounString = pronounString;
         this.originalPronouns = {
             sbj: null, Sbj: null,
@@ -2636,6 +2643,28 @@ export default class Player extends ItemContainer {
     /** @returns {string} */
     descriptionCell() {
         return this.game.constants.playerSheetDescriptionColumn + this.row;
+    }
+    
+    /**
+     * Converts the name of a stat to its abbreviated form in all lowercase.
+     * @param {string} statName 
+     */
+    static abbreviateStatName(statName) {
+        statName = statName.toLowerCase().trim();
+        switch (statName) {
+            case "strength":
+                return "str";
+            case "intelligence":
+                return "int";
+            case "dexterity":
+                return "dex";
+            case "speed":
+                return "spd";
+            case "stamina":
+                return "sta";
+            default:
+                return statName;
+        }
     }
 }
 
