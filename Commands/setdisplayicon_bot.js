@@ -46,13 +46,8 @@ export async function execute (game, command, args, player, callee) {
         return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (args[0].toLowerCase() !== "player") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                break;
-            }
-        }
-        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
+        player = game.entityFinder.getLivingPlayer(args[0]);
+        if (player === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
     }
     else if (args[0].toLowerCase() === "player" && player === null)
         return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);

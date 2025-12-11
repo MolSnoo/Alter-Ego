@@ -70,13 +70,11 @@ export async function execute (game, message, command, args) {
         args.splice(0, 1);
     }
     else {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            for (let j = 0; j < args.length; j++) {
-                if (args[j].toLowerCase() === game.players_alive[i].name.toLowerCase()) {
-                    players.push(game.players_alive[i]);
-                    args.splice(j, 1);
-                    break;
-                }
+        for (let i = args.length - 1; i >= 0; i--) {
+            let fetchedPlayer = game.entityFinder.getLivingPlayer(args[i]);
+            if (fetchedPlayer) {
+                players.push(fetchedPlayer);
+                args.splice(i, 1);
             }
         }
     }

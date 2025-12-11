@@ -36,26 +36,13 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a sender, a recipient, and a message. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title === "NPC") {
-            player = game.players_alive[i];
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title !== "NPC")
-            return messageHandler.addReply(game, message, `You cannot text for a player that isn't an NPC.`);
-    }
-    if (player === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
+    let player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
+    else if (player.title !== "NPC") return messageHandler.addReply(game, message, `You cannot text for a player that isn't an NPC.`);
     args.splice(0, 1);
 
-    var recipient = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            recipient = game.players_alive[i];
-            break;
-        }
-    }
-    if (recipient === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
+    let recipient = game.entityFinder.getLivingPlayer(args[0]);
+    if (recipient === undefined) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
     if (recipient.name === player.name) return messageHandler.addReply(game, message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
     args.splice(0, 1);
 

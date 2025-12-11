@@ -62,14 +62,8 @@ export async function execute (game, command, args, player, callee) {
             players.push(game.players_alive[i]);
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                break;
-            }
-        }
-        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        player = game.entityFinder.getLivingPlayer(args[0]);
+        if (player === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
 

@@ -39,13 +39,11 @@ export async function execute (game, message, command, args) {
 
     // Get all listed players first.
     var players = [];
-    for (let i = 0; i < game.players_alive.length; i++) {
-        for (let j = 0; j < args.length; j++) {
-            if (args[j].toLowerCase() === game.players_alive[i].name.toLowerCase()) {
-                players.push(game.players_alive[i]);
-                args.splice(j, 1);
-                break;
-            }
+    for (let i = args.length - 1; i >= 0; i--) {
+        let player = game.entityFinder.getLivingPlayer(args[i]);
+        if (player) {
+            players.push(player);
+            args.splice(i, 1);
         }
     }
     if (args.length > 0) {
