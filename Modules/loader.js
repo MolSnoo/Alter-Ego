@@ -2065,6 +2065,7 @@ export function loadFlags (game, doErrorChecking, errors) {
             if (!isNaN(parseFloat(valueString))) value = parseFloat(valueString);
             else if (valueString === "TRUE") value = true;
             else if (valueString === "FALSE") value = false;
+            else value = valueString;
             
             let flag = new Flag(
                 sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",

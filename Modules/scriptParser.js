@@ -1,12 +1,17 @@
+import GameEntity from '../Data/GameEntity.js';
+import Player from '../Data/Player.js';
 import * as finder from './finder.js';
 import * as helpers from './helpers.js';
 
 import { parse as parseScript } from 'acorn';
 
-const OPTIONS = {
+/** @type {import('acorn').Options} */
+const PARSER_OPTIONS = {
 	sourceType: 'script',
-	ecmaVersion: 2020,
+	ecmaVersion: 2020
+};
 
+const SCRIPT_SCOPE_OPTIONS = {
 	maxNodes: 20,
 	allowCall: true,
 	// Expose useful helpers by default.
@@ -18,12 +23,12 @@ const OPTIONS = {
 		parseInt,
 		Math,
 		undefined,
-		finder,
-		helpers,
 		findRoom: finder.findRoom,
-		findObject: finder.findObject,
+		findFixture: finder.findFixture,
+		findObject: finder.findFixture,
 		findPrefab: finder.findPrefab,
-		findItem: finder.findItem,
+		findRoomItem: finder.findRoomItem,
+		findItem: finder.findRoomItem,
 		findPuzzle: finder.findPuzzle,
 		findEvent: finder.findEvent,
 		findStatusEffect: finder.findStatusEffect,
@@ -31,7 +36,22 @@ const OPTIONS = {
 		findLivingPlayer: finder.findLivingPlayer,
 		findDeadPlayer: finder.findDeadPlayer,
 		findInventoryItem: finder.findInventoryItem,
+		findGesture: finder.findGesture,
 		findFlag: finder.findFlag,
+		findRooms: finder.findRooms,
+		findFixtures: finder.findFixtures,
+		findObjects: finder.findFixtures,
+		findPrefabs: finder.findPrefabs,
+		findRoomItems: finder.findRoomItems,
+		findItems: finder.findRoomItems,
+		findPuzzles: finder.findPuzzles,
+		findEvents: finder.findEvents,
+		findStatusEffects: finder.findStatusEffects,
+		findLivingPlayers: finder.findLivingPlayers,
+		findDeadPlayers: finder.findDeadPlayers,
+		findInventoryItems: finder.findInventoryItems,
+		findGestures: finder.findGestures,
+		findFlags: finder.findFlags,
 		getRandomString: helpers.getRandomString
 	},
 	allowedConstructors: {
@@ -41,6 +61,19 @@ const OPTIONS = {
 		'__proto__',
 		'prototype',
 		'constructor',
+		'game',
+		'guildContext',
+		'botContext',
+		'settings',
+		'constants',
+		'inProgress',
+		'canJoin',
+		'halfTimer',
+		'endTimer',
+		'editMode',
+		'messageQueue',
+		'dialogCache',
+		'setBotContext',
 		'channel',
 		'addPlayer',
 		'removePlayer',
@@ -56,6 +89,8 @@ const OPTIONS = {
 		'processRecipes',
 		'stop',
 		'findRecipe',
+		'setPrefab',
+		'initializeInventory',
 		'decreaseUses',
 		'insertItem',
 		'removeItem',
@@ -103,6 +138,20 @@ const OPTIONS = {
 		'evaluate',
 		'setValue',
 		'clearValue'
+	],
+	blockedMutators: [
+		'set',
+		'delete',
+		'clear',
+		'push',
+		'pop',
+		'shift',
+		'unshift',
+		'splice',
+		'sort',
+		'reverse',
+		'fill',
+		'copyWithin'
 	]
 };
 
@@ -130,12 +179,21 @@ const UNARY_OPS = {
 	'!': a => !a
 };
 
-// Safely evaluate a single JS-like expression string with restrictions.
+/**
+ * Safely evaluate a single JS-like expression string with restrictions.
+ * @param {string} scriptText - The script to evaluate.
+ * @param {GameEntity} container - The game entity this script is attached to.
+ * @param {Player|PseudoPlayer} [player] - The player currently in scope.
+ * @returns {string | number | boolean}
+ */
 export default function evaluate (scriptText, container, player) {
-	// Group together the container and player into a context object.
+	/**
+	 * Group together the container and player into a context object.
+	 * @type {ScriptEvaluationContext}
+	 */
 	const context = {container, player};
 	// Add the allowedGlobals to the context object.
-	Object.keys(OPTIONS.allowedGlobals).forEach(k => { if (!Object.hasOwn(context, k)) context[k] = OPTIONS.allowedGlobals[k]; });
+	Object.keys(SCRIPT_SCOPE_OPTIONS.allowedGlobals).forEach(k => { if (!Object.hasOwn(context, k)) context[k] = SCRIPT_SCOPE_OPTIONS.allowedGlobals[k]; });
 
 	let script;
 	try {
@@ -149,17 +207,26 @@ export default function evaluate (scriptText, container, player) {
 	return evaluatedValue;
 }
 
+/**
+ * Converts a script from plain text into an evaluatable expression.
+ * @param {string} scriptText - The script to convert. 
+ * @returns {import('acorn').Expression}
+ */
 function parseExpression(scriptText) {
 	// Parse a single expression.
-	const script = parseScript(scriptText, OPTIONS);
+	const script = parseScript(scriptText, PARSER_OPTIONS);
 	if (!script || !script.body || script.body.length !== 1 || script.body[0].type !== 'ExpressionStatement')
 		throw new Error('Only single expressions are allowed');
 	const expr = script.body[0].expression;
 	replaceThisExpressions(expr);
+	replaceFinderCallArguments(expr);
 	return expr;
 }
 
-// Replace ThisExpression nodes with `container` Identifier nodes so that the `this` keyword is mapped to `container`.
+/**
+ * Replace ThisExpression nodes with `container` Identifier nodes so that the `this` keyword is mapped to `container`.
+ * @param {any} node
+ */
 function replaceThisExpressions(node) {
 	if (!node || typeof node !== 'object') return;
 	if (node.type === 'ThisExpression') {
@@ -181,26 +248,66 @@ function replaceThisExpressions(node) {
 	}
 }
 
+/**
+ * Modify calls to finder functions to automatically insert the container into the function's arguments.
+ * @param {any} node 
+ */
+function replaceFinderCallArguments(node) {
+	if (!node || typeof node !== 'object') return;
+	if (node.type === 'CallExpression') {
+		const args = node.arguments ? node.arguments : [];
+		const finderRegex = /find(Room(Item)s??|Fixtures?|Objects?|Prefabs?|Items?|Puzzles?|Events?|StatusEffects?|Player|LivingPlayers?|DeadPlayers?|InventoryItems?|Gestures?|Flags?)/;
+		if (finderRegex.test(node.callee.name)) {
+			if (!args || args.length === 0 || !(args[0].type === 'Identifier' && args[0].name === 'container')) {
+				node.arguments.splice(0, 0, { type: 'Identifier', name: 'container' });
+				return;
+			}
+		}
+	}
+	for (const key of Object.keys(node)) {
+		const child = node[key];
+		if (Array.isArray(child)) {
+			for (const c of child) replaceFinderCallArguments(c);
+		} else if (child && typeof child === 'object') {
+			replaceFinderCallArguments(child);
+		}
+	}
+}
+
+/**
+ * Returns true if the name of the property is blocked from being accessed.
+ * @param {string} name - The name of the property. 
+ */
 function isBlockedProp(name) {
 	if (!name || typeof name !== 'string') return false;
 	// Ensure that sensitive properties cannot be accessed.
-	return OPTIONS.blockedProperties.includes(name);
+	return SCRIPT_SCOPE_OPTIONS.blockedProperties.includes(name);
 }
 
-// Create read-only proxies for objects so script evaluation cannot modify them.
 const proxyCache = new WeakMap();
+/**
+ * Create read-only proxies for objects so script evaluation cannot modify them.
+ * @param {import('acorn').Node} val 
+ */
 function makeReadOnly(val) {
 	if (val === null) return null;
 	if (typeof val !== 'object' && typeof val !== 'function') return val;
 	if (proxyCache.has(val)) return proxyCache.get(val);
 
+	/** @type {ScriptProxyHandler} */
 	const handler = {
 		get(targetObject, propKey, thisReceiver) {
 			const prop = Reflect.get(targetObject, propKey, thisReceiver);
 			if (typeof prop === 'function') {
+				// Block known mutating methods by name to keep the proxy read-only.
+				const methodName = typeof propKey === 'symbol' ? propKey.toString() : String(propKey);
+				if (SCRIPT_SCOPE_OPTIONS.blockedMutators.includes(methodName)) {
+					return function() { throw new Error('Mutation prohibited'); };
+				}
+				/** @param {any[]} args */
 				return function(...args) {
-					// Call original function with the proxy as `this` value so any property accesses go through proxy traps.
-					return prop.apply(proxyCache.get(targetObject) || thisReceiver, args);
+					// Call original function with the original target as `this` so Maps and Collections work correctly.
+					return prop.apply(targetObject, args);
 				};
 			}
 			return makeReadOnly(prop);
@@ -223,9 +330,16 @@ function makeReadOnly(val) {
 	return proxy;
 }
 
+/**
+ * Recursively validates and evaluates a script expression.
+ * @param {any} node - The node to evaluate. 
+ * @param {ScriptEvaluationContext} context - Variables in the script's context.
+ * @param {number} nodeCount - The total number of nodes that have been traversed since we began evaluating.
+ * @returns 
+ */
 function validateAndEval(node, context, nodeCount) {
 	nodeCount++;
-	if (nodeCount > OPTIONS.maxNodes) throw new Error('Expression too complex');
+	if (nodeCount > SCRIPT_SCOPE_OPTIONS.maxNodes) throw new Error('Expression too complex');
 
 	switch (node.type) {
 		case 'Literal':
@@ -286,7 +400,7 @@ function validateAndEval(node, context, nodeCount) {
 				if (!Object.hasOwn(context, rootName)) throw new Error(`Unknown root identifier: ${rootName}`);
 				current = context[rootName];
 			}
-			else if (objectNode.type === 'CallExpression' && Object.hasOwn(OPTIONS.allowedGlobals, objectNode.callee.name)) {
+			else if (objectNode.type === 'CallExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name)) {
 				// Make an exception to allow the root to be an expression in allowedGlobals.
 				current = validateAndEval(objectNode, context, nodeCount);
 			}
@@ -302,7 +416,7 @@ function validateAndEval(node, context, nodeCount) {
 			let callee = node.callee;
 			let constructor;
 			if (callee.type === 'Identifier') {
-				if (!Object.hasOwn(OPTIONS.allowedConstructors, callee.name)) throw new Error(`Unknown constructor ${callee.name}`);
+				if (!Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedConstructors, callee.name)) throw new Error(`Unknown constructor ${callee.name}`);
 				constructor = context[callee.name];
 			}
 			else {
@@ -314,15 +428,15 @@ function validateAndEval(node, context, nodeCount) {
 			return Reflect.construct(constructor, args);
 		}
 		case 'CallExpression': {
-			if (!OPTIONS.allowCall) throw new Error('Function calls are disabled');
+			if (!SCRIPT_SCOPE_OPTIONS.allowCall) throw new Error('Function calls are disabled');
 			// Only permit calls where the callee is a function available in allowedGlobals.
 			// e.g., Math.floor(x) -> callee is MemberExpression with root Math in allowedGlobals.
 			let callee = node.callee;
 			let fn;
 			let thisArg = null;
 			if (callee.type === 'Identifier') {
-				if (!Object.hasOwn(OPTIONS.allowedGlobals, callee.name)) throw new Error(`Unknown function ${callee.name}`);
-				fn = OPTIONS.allowedGlobals[callee.name];
+				if (!Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, callee.name)) throw new Error(`Unknown function ${callee.name}`);
+				fn = SCRIPT_SCOPE_OPTIONS.allowedGlobals[callee.name];
 				thisArg = null;
 			}
 			else if (callee.type === 'MemberExpression') {
@@ -352,8 +466,8 @@ function validateAndEval(node, context, nodeCount) {
 					rootObj = context[rootName];
 				}
 				// Allow function calls if the root object is in allowedGlobals or allowedConstructors.
-				else if (objectNode.type === 'CallExpression' && Object.hasOwn(OPTIONS.allowedGlobals, objectNode.callee.name) ||
-						objectNode.type === 'NewExpression' && Object.hasOwn(OPTIONS.allowedConstructors, objectNode.callee.name)) {
+				else if (objectNode.type === 'CallExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name) ||
+						objectNode.type === 'NewExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedConstructors, objectNode.callee.name)) {
 					rootObj = validateAndEval(objectNode, context, nodeCount);
 				}
 				let owner = rootObj;

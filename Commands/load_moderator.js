@@ -66,50 +66,50 @@ export async function execute (game, message, command, args) {
         await loader.loadGestures(game, false);
         await loader.loadFlags(game, false, errors);
 
-        for (let i = 0; i < game.rooms.length; i++) {
-            let error = loader.checkRoom(game.rooms[i]);
+        game.roomsCollection.forEach(room => {
+            let error = loader.checkRoom(room);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.fixtures.length; i++) {
-            let error = loader.checkFixture(game.fixtures[i]);
+        });
+        game.fixtures.forEach(fixture => {
+            let error = loader.checkFixture(fixture);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.prefabs.length; i++) {
-            let error = loader.checkPrefab(game.prefabs[i]);
+        });
+        game.prefabsCollection.forEach(prefab => {
+            let error = loader.checkPrefab(prefab);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.recipes.length; i++) {
-            let error = loader.checkRecipe(game.recipes[i]);
+        });
+        game.recipes.forEach(recipe => {
+            let error = loader.checkRecipe(recipe);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.items.length; i++) {
-            let error = loader.checkRoomItem(game.items[i]);
+        });
+        game.roomItems.forEach(roomItem => {
+            let error = loader.checkRoomItem(roomItem);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.puzzles.length; i++) {
-            let error = loader.checkPuzzle(game.puzzles[i]);
+        });
+        game.puzzles.forEach(puzzle => {
+            let error = loader.checkPuzzle(puzzle);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.events.length; i++) {
-            let error = loader.checkEvent(game.events[i]);
+        });
+        game.eventsCollection.forEach(event => {
+            let error = loader.checkEvent(event);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.statusEffects.length; i++) {
-            let error = loader.checkStatusEffect(game.statusEffects[i]);
+        });
+        game.statusEffectsCollection.forEach(statusEffect => {
+            let error = loader.checkStatusEffect(statusEffect);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.players.length; i++) {
-            let error = loader.checkPlayer(game.players[i]);
+        });
+        game.playersCollection.forEach(player => {
+            let error = loader.checkPlayer(player);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            let error = loader.checkInventoryItem(game.inventoryItems[i]);
+        });
+        game.inventoryItems.forEach(inventoryItem => {
+            let error = loader.checkInventoryItem(inventoryItem);
             if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.gestures.length; i++) {
-            let error = loader.checkGesture(game.gestures[i]);
+        });
+        game.gesturesCollection.forEach(gesture => {
+            let error = loader.checkGesture(gesture);
             if (error instanceof Error) errors.push(error);
-        }
+        });
         if (errors.length > 0) {
             if (errors.length > 15) {
                 errors = errors.slice(0, 15);
@@ -119,42 +119,40 @@ export async function execute (game, message, command, args) {
         }
         else {
             if (game.settings.debug) {
-                printData(game.rooms);
+                printData(game.roomsCollection);
                 printData(game.fixtures);
-                printData(game.prefabs);
+                printData(game.prefabsCollection);
                 printData(game.recipes);
-                printData(game.items);
+                printData(game.roomItems);
                 printData(game.puzzles);
-                printData(game.events);
-                printData(game.statusEffects);
-                printData(game.players);
+                printData(game.eventsCollection);
+                printData(game.statusEffectsCollection);
+                printData(game.playersCollection);
                 printData(game.inventoryItems);
-                printData(game.gestures);
+                printData(game.gesturesCollection);
                 printData(game.flags);
             }
 
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel,
-                game.rooms.length + " rooms, " +
+                game.roomsCollection.size + " rooms, " +
                 game.fixtures.length + " fixtures, " +
-                game.prefabs.length + " prefabs, " +
+                game.prefabsCollection.size + " prefabs, " +
                 game.recipes.length + " recipes, " +
-                game.items.length + " items, " +
+                game.roomItems.length + " items, " +
                 game.puzzles.length + " puzzles, " +
-                game.events.length + " events, " +
-                game.statusEffects.length + " status effects, " +
-                game.players.length + " players, " +
+                game.eventsCollection.size + " events, " +
+                game.statusEffectsCollection.size + " status effects, " +
+                game.playersCollection.size + " players, " +
                 game.inventoryItems.length + " inventory items, " +
-                game.gestures.length + " gestures, and " +
+                game.gesturesCollection.size + " gestures, and " +
                 game.flags.size + " flags retrieved."
             );
 
             const privatePlayers = [];
-            for (let i = 0; i < game.players_alive.length; i++) {
-                if (game.players_alive[i].title !== "NPC") {
-                    const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-                    if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
-                }
-            }
+            game.livingPlayersCollection.forEach(async player => {
+                const canDmPlayer = await checkCanDmPlayer(player);
+                if (!canDmPlayer) privatePlayers.push(player.name);
+            });
             if (privatePlayers.length > 0) {
                 const privatePlayerList = privatePlayers.join(", ");
                 messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
@@ -165,8 +163,9 @@ export async function execute (game, message, command, args) {
                 game.canJoin = false;
                 if (!game.settings.debug)
                     game.botContext.updatePresence();
-                for (let i = 0; i < game.players_alive.length; i++)
-                    game.players_alive[i].sendDescription(game.players_alive[i].location.description, game.players_alive[i].location);
+                game.livingPlayersCollection.forEach(player => {
+                    player.sendDescription(player.location.description, player.location);
+                });
             }
             else if (command === "lar" || args[1] && args[1] === "resume") {
                 game.inProgress = true;
@@ -176,19 +175,19 @@ export async function execute (game, message, command, args) {
             }
 
             // Start event timers.
-            for (let i = 0; i < game.events.length; i++) {
-                if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer();
-                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer();
-            }
+            game.eventsCollection.forEach(event => {
+                if (event.ongoing && event.duration !== null)
+                    event.startTimer();
+                if (event.ongoing && (event.effects.length > 0 || event.refreshes.length > 0))
+                    event.startEffectsTimer();
+            });
         }
     }
     else if (args[0] === "rooms") {
         try {
             await loader.loadRooms(game, true);
-            if (game.settings.debug) printData(game.rooms);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.rooms.length + " rooms retrieved.");
+            if (game.settings.debug) printData(game.roomsCollection);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.roomsCollection.size + " rooms retrieved.");
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
@@ -207,8 +206,8 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "prefabs") {
         try {
             await loader.loadPrefabs(game, true);
-            if (game.settings.debug) printData(game.prefabs);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.prefabs.length + " prefabs retrieved.");
+            if (game.settings.debug) printData(game.prefabsCollection);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.prefabsCollection.size + " prefabs retrieved.");
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
@@ -227,8 +226,8 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "items") {
         try {
             await loader.loadRoomItems(game, true);
-            if (game.settings.debug) printData(game.items);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.items.length + " items retrieved.");
+            if (game.settings.debug) printData(game.roomItems);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.roomItems.length + " items retrieved.");
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
@@ -247,16 +246,16 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "events") {
         try {
             await loader.loadEvents(game, true);
-            if (game.settings.debug) printData(game.events);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.events.length + " events retrieved.");
+            if (game.settings.debug) printData(game.eventsCollection);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.eventsCollection.size + " events retrieved.");
 
             // Start event timers.
-            for (let i = 0; i < game.events.length; i++) {
-                if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer();
-                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer();
-            }
+            game.eventsCollection.forEach(event => {
+                if (event.ongoing && event.duration !== null)
+                    event.startTimer();
+                if (event.ongoing && (event.effects.length > 0 || event.refreshes.length > 0))
+                    event.startEffectsTimer();
+            });
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
@@ -265,8 +264,8 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "statuses" || args[0] === "effects" || args[0] === "status" && args[1] === "effects") {
         try {
             await loader.loadStatusEffects(game, true);
-            if (game.settings.debug) printData(game.statusEffects);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.statusEffects.length + " status effects retrieved.");
+            if (game.settings.debug) printData(game.statusEffectsCollection);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.statusEffectsCollection.size + " status effects retrieved.");
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
@@ -275,20 +274,18 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "players") {
         try {
             await loader.loadPlayers(game, true);
-            if (game.settings.debug) printData(game.players);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.players.length + " players retrieved.");
+            if (game.settings.debug) printData(game.playersCollection);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.playersCollection.size + " players retrieved.");
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
 
         const privatePlayers = [];
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].title !== "NPC") {
-                const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-                if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
-            }
-        }
+        game.livingPlayersCollection.forEach(async player => {
+            const canDmPlayer = await checkCanDmPlayer(player);
+            if (!canDmPlayer) privatePlayers.push(player.name);
+        });
         if (privatePlayers.length > 0) {
             const privatePlayerList = privatePlayers.join(", ");
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
@@ -307,8 +304,8 @@ export async function execute (game, message, command, args) {
     else if (args[0] === "gestures") {
         try {
             await loader.loadGestures(game, true);
-            if (game.settings.debug) printData(game.gestures);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.gestures.length + " gestures retrieved.");
+            if (game.settings.debug) printData(game.gesturesCollection);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.gesturesCollection.size + " gestures retrieved.");
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
