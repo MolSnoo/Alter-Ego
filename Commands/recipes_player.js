@@ -67,7 +67,7 @@ export async function execute (game, message, command, args, player) {
         }
         if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${input}" in your inventory.`);
 
-        for (let i = 0; i < game.recipes.length; i++) {
+        for (let i = 0; i < game.recipes.length; i++) { // TODO: optimize this ENTIRE for block later!
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {
                 if (game.recipes[i].ingredients[j].id === item.prefab.id) {
                     // This recipe contains the given item as an ingredient.
@@ -114,7 +114,7 @@ export async function execute (game, message, command, args, player) {
             return 0;
         });
 
-        for (let i = 0; i < game.recipes.length; i++) {
+        for (let i = 0; i < game.recipes.length; i++) { // TODO: optimize this ENTIRE for block later!
             let ingredients = [];
             let products = [];
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {

@@ -30,28 +30,24 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     // Remove all living players from whatever room channel they're in.
-    for (let i = 0; i < game.players_alive.length; i++) {
-        const player = game.players_alive[i];
-        if (!player.isNPC) {
-            if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
-            player.removeFromWhispers("");
-            player.member.roles.remove(game.guildContext.playerRole).catch();
-            player.member.roles.add(game.guildContext.spectatorRole).catch();
+    game.entityFinder.getLivingPlayers(null, false).map((player) => {
+        if (player.location.channel)
+            player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
+        player.removeFromWhispers("");
+        player.member.roles.remove(game.guildContext.playerRole).catch();
+        player.member.roles.add(game.guildContext.spectatorRole).catch();
 
-            for (let j = 0; j < player.status.length; j++) {
-                if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
-                    player.status[j].timer.stop();
-            }
+        for (let j = 0; j < player.status.length; j++) {
+            if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
+                player.status[j].timer.stop();
         }
-    }
+    });
 
-    for (let i = 0; i < game.players_dead.length; i++) {
-        const player = game.players_dead[i];
-        if (!player.isNPC) {
-            player.member.roles.remove(game.guildContext.deadRole).catch();
-            player.member.roles.add(game.guildContext.spectatorRole).catch();
-        }
-    }
+    // Remove dead role and add spectator role to dead players.
+    game.entityFinder.getDeadPlayers(null, false).map((player) => {
+        player.member.roles.remove(game.guildContext.deadRole).catch();
+        player.member.roles.add(game.guildContext.spectatorRole).catch();
+    });
 
     clearTimeout(game.halfTimer);
     clearTimeout(game.endTimer);

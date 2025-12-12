@@ -53,12 +53,9 @@ export async function execute (game, message, command, args, player) {
     var input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
     if (input === "list") {
-        var fields = [];
+        var fields = game.entityFinder.getGestures().map(gesture => gesture);
         var pages = [];
         var page = 0;
-
-        for (let i = 0; i < game.gestures.length; i++)
-            fields.push(game.gestures[i]);
 
         // Divide the fields into pages.
         for (let i = 0, pageNo = 0; i < fields.length; i++) {
@@ -106,7 +103,7 @@ export async function execute (game, message, command, args, player) {
         var gesture = null;
         var targetType = "";
         var target = null;
-        for (let i = 0; i < game.gestures.length; i++) {
+        for (let i = 0; i < game.gestures.length; i++) { // TODO: optimize this ENTIRE for block later!!! very evil!!!
             if (game.gestures[i].id.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
                     return messageHandler.addReply(game, message, `You need to specify a target for that gesture.`);

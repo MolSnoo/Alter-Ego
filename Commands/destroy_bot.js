@@ -65,30 +65,21 @@ export async function execute (game, command, args, player, callee) {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
     const undashedInput = parsedInput.replace(/-/g, " ");
 
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        const parsedRoomName = game.rooms[i].name.toUpperCase().replace(/-/g, " ");
-        if (undashedInput.endsWith(` AT ${parsedRoomName}`)) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${parsedRoomName}`));
-            break;
-        }
-        else if (undashedInput.endsWith(`AT ${parsedRoomName}`)) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(`AT ${parsedRoomName}`));
-            break;
-        }
+    let room = game.entityFinder.getRooms(undashedInput.substring(undashedInput.lastIndexOf(" AT ") + 4), null, null, true)[0];
+    if (room) {
+        parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(" AT "));
     }
 
     var destroyAll = false;
     var item = null;
     // Room was found. Look for the container in it.
-    if (room !== null) {
+    if (room !== undefined) {
         let containerItem = null;
         let containerItemSlot = null;
         // Check if a container item was specified.
-        const roomItems = game.items.filter(item => item.location.id === room.id && (item.quantity > 0 || isNaN(item.quantity)));
+        const roomItems = game.entityFinder.getRoomItems(null, room.id);
         for (let i = 0; i < roomItems.length; i++) {
+            // TODO: this can probably be optimized further...?
             // If parsedInput is only the identifier or the item's name, we've found the item to delete.
             if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab.id === parsedInput) {
                 item = roomItems[i];
@@ -216,8 +207,7 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
             else if (args[i].toLowerCase().replace(/'s/g, "") === "all") {
-                for (let j = 0; j < game.players_alive.length; j++)
-                    players.push(game.players_alive[j]);
+                players = game.entityFinder.getLivingPlayers();
                 args.splice(i, 1);
                 break;
             }

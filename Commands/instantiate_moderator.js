@@ -63,20 +63,16 @@ export async function execute (game, message, command, args) {
     // Some prefabs might have similar names. Make a list of all the ones that are found at the beginning of parsedInput.
     let prefab = null;
     let matches = [];
-    for (let i = 0; i < game.prefabs.length; i++) {
-        if (parsedInput.startsWith(`${game.prefabs[i].id} `))
-            matches.push(game.prefabs[i]);
+    for (let i = 1; i <= args.length; i++) {
+        let match = game.entityFinder.getPrefab(args.slice(0, i).join(" "));
+        if (match)
+            matches.push(match);
     }
 
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        const parsedRoomName = game.rooms[i].name.toUpperCase().replace(/-/g, " ");
-        if (undashedInput.endsWith(` AT ${parsedRoomName}`)) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${parsedRoomName}`));
-            break;
-        }
-    }
+    // Find room specified at the end of args.
+    let room = game.entityFinder.getRoom(input.substring(undashedInput.lastIndexOf(" AT ") + 4));
+    if (!room) room = null;
+    else parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${room.id.toUpperCase().replace(/-/g, " ")}`));
 
     // If a parenthetical expression is included, procedural options are being manually set.
     let proceduralSelections = new Map();

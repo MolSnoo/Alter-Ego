@@ -114,12 +114,9 @@ export async function execute (game, message, command, args) {
         if (!player.hasAttribute("hidden") || player.hidingSpot !== fixture.name) {
             // Make sure the fixture isn't locked.
             if (fixture.childPuzzle === null || !fixture.childPuzzle.type.endsWith("lock") || fixture.childPuzzle.solved) {
-                let hiddenPlayers = [];
-                for (let i = 0; i < game.players_alive.length; i++) {
-                    if (game.players_alive[i].location.id === player.location.id && game.players_alive[i].hidingSpot === fixture.name) {
-                        hiddenPlayers.push(game.players_alive[i]);
-                        game.players_alive[i].notify(`You've been found by ${player.displayName}!`);
-                    }
+                let hiddenPlayers = game.entityFinder.getLivingPlayers(null, null, player.location.id, fixture.name);
+                for (let i = 0; i < hiddenPlayers.length; i++) {
+                    hiddenPlayers[i].notify(`You've been found by ${player.displayName}!`);
                 }
 
                 // Create a list string of players currently hiding in that hiding spot.

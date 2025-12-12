@@ -64,19 +64,9 @@ export async function execute (game, message, command, args) {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
     const undashedInput = parsedInput.replace(/-/g, " ");
 
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        const parsedRoomName = game.rooms[i].name.toUpperCase().replace(/-/g, " ");
-        if (undashedInput.endsWith(` AT ${parsedRoomName}`)) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${parsedRoomName}`));
-            break;
-        }
-        else if (undashedInput.endsWith(`AT ${parsedRoomName}`)) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(`AT ${parsedRoomName}`));
-            break;
-        }
+    let room = game.entityFinder.getRooms(undashedInput.substring(undashedInput.lastIndexOf(" AT ") + 4), null, null, true)[0];
+    if (room) {
+        parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(" AT "));
     }
 
     var item = null;

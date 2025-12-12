@@ -111,13 +111,14 @@ export async function execute (game, command, args, player, callee) {
     var room = null;
     if (player === null) {
         const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (parsedInput.endsWith(game.rooms[i].name)) {
-                room = game.rooms[i];
-                input = input.substring(0, parsedInput.indexOf(room.name) - 1);
+        for (let i = args.length - 1; i >= 0; i--) {
+            room = game.entityFinder.getRoom(args.splice(i).join(" "));
+            if (room) {
+                input = input.substring(0, parsedInput.indexOf(room.id) - 1);
                 break;
             }
         }
+        if (!room) room = null;
     }
 
     // Finally, find the puzzle.
@@ -135,13 +136,11 @@ export async function execute (game, command, args, player, callee) {
     var outcome = "";
     var targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].location.id === player.location.id &&
-                (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() || game.players_alive[i].name.toLowerCase() === input.toLowerCase())) {
-                targetPlayer = game.players_alive[i];
-                break;
-            }
-        }
+        targetPlayer = game.entityFinder.getLivingPlayers(null, null, player.location.id).filter((player) => {
+            player.displayName.toLowerCase() === input.toLowerCase() ||
+                player.name.toLowerCase() === input.toLowerCase();
+        })[0];
+        if (!targetPlayer) targetPlayer === null;
     }
     for (let i = 0; i < puzzle.solutions.length; i++) {
         if (targetPlayer && puzzle.solutions[i].toLowerCase() === targetPlayer.displayName.toLowerCase() ||

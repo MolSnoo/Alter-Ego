@@ -55,10 +55,9 @@ export async function execute (game, command, args, player, callee) {
     }
     else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].tags.includes(callee.roomTag) && game.rooms[i].occupants.length > 0)
-                players = players.concat(game.rooms[i].occupants);
-        }
+        game.entityFinder.getRooms(null, callee.roomTag, true).map((room) => {
+            players = players.concat(room.occupants);
+        });
         args.splice(0, 1);
     }
     else if (args[0].toLowerCase() === "room" && player !== null) {
@@ -67,10 +66,10 @@ export async function execute (game, command, args, player, callee) {
         args.splice(0, 1);
     }
     else if (args[0].toLowerCase() === "all") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (!game.players_alive[i].isNPC && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
-                players.push(game.players_alive[i]);
-        }
+        game.entityFinder.getLivingPlayers(null, false).map((player) => {
+            if (!player.member.roles.cache.find((role) => role.id === game.guildContext.freeMovementRole.id))
+                players.push(player);
+        });
         args.splice(0, 1);
     }
     else {

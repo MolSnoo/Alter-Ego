@@ -149,11 +149,10 @@ export async function execute (game, message, command, args) {
             );
 
             const privatePlayers = [];
-            for (let i = 0; i < game.players_alive.length; i++) {
-                if (!game.players_alive[i].isNPC) {
-                    const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-                    if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
-                }
+            let fetchedPlayers = game.entityFinder.getLivingPlayers(null, false);
+            for (let i = 0; i < fetchedPlayers.length; i++) {
+                const canDmPlayer = await checkCanDmPlayer(fetchedPlayers[i]);
+                if (!canDmPlayer) privatePlayers.push(fetchedPlayers[i].name);
             }
             if (privatePlayers.length > 0) {
                 const privatePlayerList = privatePlayers.join(", ");
@@ -165,8 +164,9 @@ export async function execute (game, message, command, args) {
                 game.canJoin = false;
                 if (!game.settings.debug)
                     game.botContext.updatePresence();
-                for (let i = 0; i < game.players_alive.length; i++)
-                    game.players_alive[i].sendDescription(game.players_alive[i].location.description, game.players_alive[i].location);
+                game.entityFinder.getLivingPlayers().map((player) => {
+                    player.sendDescription(player.location.description, player.location);
+                });
             }
             else if (command === "lar" || args[1] && args[1] === "resume") {
                 game.inProgress = true;
@@ -176,12 +176,11 @@ export async function execute (game, message, command, args) {
             }
 
             // Start event timers.
-            for (let i = 0; i < game.events.length; i++) {
-                if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer();
-                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer();
-            }
+            game.entityFinder.getEvents().map((event) => {
+                if (event.ongoing && event.duration !== null) event.startTimer();
+                if (event.ongoing && (event.effects.length > 0 || event.refreshes.length > 0))
+                    event.startEffectsTimer();
+            });
         }
     }
     else if (args[0] === "rooms") {
@@ -251,12 +250,11 @@ export async function execute (game, message, command, args) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.events.length + " events retrieved.");
 
             // Start event timers.
-            for (let i = 0; i < game.events.length; i++) {
-                if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer();
-                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer();
-            }
+            game.entityFinder.getEvents().map((event) => {
+                if (event.ongoing && event.duration !== null) event.startTimer();
+                if (event.ongoing && (event.effects.length > 0 || event.refreshes.length > 0))
+                    event.startEffectsTimer();
+            });
         }
         catch (err) {
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
@@ -283,11 +281,10 @@ export async function execute (game, message, command, args) {
         }
 
         const privatePlayers = [];
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (!game.players_alive[i].isNPC) {
-                const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-                if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
-            }
+        let fetchedPlayers = game.entityFinder.getLivingPlayers(null, false);
+        for (let i = 0; i < fetchedPlayers.length; i++) {
+            const canDmPlayer = await checkCanDmPlayer(fetchedPlayers[i]);
+            if (!canDmPlayer) privatePlayers.push(fetchedPlayers[i].name);
         }
         if (privatePlayers.length > 0) {
             const privatePlayerList = privatePlayers.join(", ");

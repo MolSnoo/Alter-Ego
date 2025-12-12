@@ -40,10 +40,10 @@ export async function execute (game, message, command, args) {
     // Get all listed players first.
     var players = [];
     if (args[0] === "all" || args[0] === "living") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (!game.players_alive[i].isNPC && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
-                players.push(game.players_alive[i]);
-        }
+        game.entityFinder.getLivingPlayers(null, false).map((player) => {
+            if (!player.member.roles.cache.find((role) => role.id === game.guildContext.freeMovementRole.id))
+                players.push(player);
+        });
         args.splice(0, 1);
     }
     else {
@@ -59,10 +59,11 @@ export async function execute (game, message, command, args) {
     // Check to see that the last argument is the name of a room.
     var input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
     var desiredRoom = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (input.endsWith(game.rooms[i].name)) {
-            desiredRoom = game.rooms[i];
-            input = input.substring(0, input.indexOf(desiredRoom.name));
+    for (let i = 0; i < args.length; i++) {
+        const searchString = args.slice(i).join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+        desiredRoom = game.entityFinder.getRoom(searchString);
+        if (desiredRoom) {
+            input = input.substring(0, input.indexOf(desiredRoom.id));
             args = input.split("-");
             break;
         }
