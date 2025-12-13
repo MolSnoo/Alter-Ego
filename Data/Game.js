@@ -94,6 +94,11 @@ export default class Game {
 	 * @type {boolean}
 	 */
 	editMode;
+	/**
+	 * Whether or not the entities currently loaded into memory have errors. The game is not playable while this is true.
+	 * @type {boolean}
+	 */
+	loadedEntitiesHaveErrors;
 	/** 
 	 * An array of all rooms in the game.
 	 * @deprecated

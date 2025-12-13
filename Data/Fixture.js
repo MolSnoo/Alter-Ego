@@ -139,6 +139,14 @@ export default class Fixture extends ItemContainer {
     }
 
     /**
+     * Sets the child puzzle.
+     * @param {Puzzle} puzzle
+     */
+    setChildPuzzle(puzzle) {
+        this.childPuzzle = puzzle;
+    }
+
+    /**
      * Sets the fixture to be accessible.
      */
     setAccessible() {
