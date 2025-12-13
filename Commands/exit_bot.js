@@ -62,11 +62,12 @@ export async function execute (game, command, args, player, callee) {
         if (room) {
             parsedInput = parsedInput.substring(room.id.length).replace(/-/g, " ").toUpperCase().trim();
             input = input.substring(input.toUpperCase().indexOf(parsedInput));
+            args = args.slice(i);
             break;
         }
-        if (i === args.length) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
     }
     if (room === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    else if (args.length === 0) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
     var exitIndex = -1;

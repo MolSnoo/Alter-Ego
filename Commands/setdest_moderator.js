@@ -54,17 +54,19 @@ export async function execute (game, message, command, args) {
     let parsedInput = input.replace(/ /g, "-").toLowerCase();
 
     // First, find the room.
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(room.name.length).replace(/-/g, " ").toUpperCase().trim();
-            input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
+    let room;
+    for (let i = args.length - 1; i >= 0; i--) {
+        let searchString = args.slice(0, i).join(" ");
+        room = game.entityFinder.getRoom(searchString);
+        if (room) {
+            parsedInput = parsedInput.substring(room.id.length).replace(/-/g, " ").toUpperCase().trim();
+            input = input.substring(input.toUpperCase().indexOf(parsedInput));
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return messageHandler.addReply(game, message, `You need to specify an exit in ${game.rooms[i].name}, another room, and another exit.`);
     }
-    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify an exit in ${room.id}, another room, and another exit.`);
 
     // Now that the room has been found, find the exit.
     let exit = null;

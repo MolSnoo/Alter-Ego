@@ -56,11 +56,12 @@ export async function execute (game, message, command, args) {
         if (room) {
             parsedInput = parsedInput.substring(room.id.length).replace(/-/g, " ").toUpperCase().trim();
             input = input.substring(input.toUpperCase().indexOf(parsedInput));
+            args = args.slice(i);
             break;
         }
-        if (i === args.length) return messageHandler.addReply(game, message, `You need to specify an exit to ${command}.`);
     }
     if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify an exit to ${room.id}.`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
     var exitIndex = -1;
