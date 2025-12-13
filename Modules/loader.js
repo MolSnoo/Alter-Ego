@@ -102,6 +102,9 @@ export function loadRooms (game, doErrorChecking) {
                 roomRow + 2,
                 game
             );
+            for (let j = 0; j < exits.length; j++) {
+                room.exitCollection.set(Room.generateValidId(exits[j].name), exits[j]);
+            }
             if (game.entityFinder.getRoom(room.id))
                 errors.push(new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`));
             else game.roomsCollection.set(room.id, room);
@@ -109,9 +112,9 @@ export function loadRooms (game, doErrorChecking) {
         // Now go through and make the dest for each exit an actual Room object.
         // Also, add any occupants to the room.
         game.roomsCollection.forEach(room => {
-            for (let j = 0; j < room.exit.length; j++) {
-                const dest = game.entityFinder.getRoom(room.exit[j].destDisplayName);
-                if (dest) room.exit[j].dest = dest;
+            for (const [_, exit] of room.exitCollection) {
+                const dest = game.entityFinder.getRoom(exit.destDisplayName);
+                if (dest) exit.dest = dest;
             }
             if (doErrorChecking) {
                 const error = checkRoom(room);
@@ -150,7 +153,7 @@ export function checkRoom (room) {
         return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
     /** @type {string[]} */
     let exitNames = [];
-    for (const exit of room.exit) {
+    for (const [_, exit] of room.exitCollection) {
         exitNames.push(exit.name);
         if (exit.name === "" || exit.name === null || exit.name === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No exit name was given.`);
@@ -169,9 +172,8 @@ export function checkRoom (room) {
         if (!(exit.dest instanceof Room))
             return new Error(`Couldn't load exit on row ${exit.row}. The destination given is not a room.`);
         let matchingExit = false;
-        for (let j = 0; j < exit.dest.exit.length; j++) {
-            let dest = exit.dest;
-            if (dest.exit[j].link === exit.name) {
+        for (const [_, destExit] of exit.dest.exitCollection) {
+            if (destExit.link === exit.name) {
                 matchingExit = true;
                 break;
             }
