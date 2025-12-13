@@ -50,13 +50,13 @@ export default class Room extends GameEntity {
      */
     iconURL;
     /**
-     * The exits of the room.
+     * The exits of the room. Deprecated. Use exitCollection instead.
      * @deprecated
      * @type {Exit[]}
      */
     exit;
     /**
-     * A collection of all exits in the room, where they key is the exit's name.
+     * A collection of all exits in the room. The key is the exit's name.
      * @type {Collection<string, Exit>}
      */
     exitCollection;
@@ -84,7 +84,7 @@ export default class Room extends GameEntity {
      * @param {TextChannel} channel - The channel associated with the room.
      * @param {string[]} tags - The tags associated with the room. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/room.html#tags}
      * @param {string} iconURL - The URL of the icon associated with the room.
-     * @param {Exit[]} exit - The exits of the room.
+     * @param {Collection<string, Exit>} exit - The exits of the room.
      * @param {string} description - The default description of the room for when a player enters from the first listed exit or inspects the room.
      * @param {number} row - The row number of the room in the sheet.
      * @param {Game} game - The game this belongs to.
@@ -97,7 +97,7 @@ export default class Room extends GameEntity {
         this.channel = channel;
         this.tags = tags;
         this.iconURL = iconURL;
-        this.exit = exit;
+        this.exit = [];
         this.exitCollection = new Collection();
         this.description = description;
 
@@ -125,11 +125,11 @@ export default class Room extends GameEntity {
         else {
             /** @type {Pos} */
             let coordSum = { x: 0, y: 0, z: 0 };
-            for (const [_, exit] of this.exitCollection) {
+            this.exitCollection.forEach(exit => {
                 coordSum.x += exit.pos.x;
                 coordSum.y += exit.pos.y;
                 coordSum.z += exit.pos.z;
-            }
+            });
             /** @type {Pos} */
             let pos = { x: 0, y: 0, z: 0 };
             pos.x = Math.floor(coordSum.x / this.exitCollection.size);
@@ -213,7 +213,7 @@ export default class Room extends GameEntity {
     }
 
     /**
-     * Unlocks an exit in the room.
+     * Unlocks an exit in the room. Deprecated. Use unlockExit instead.
      * @deprecated
      * @param {number} index - The exit's index within the room's array of exits.
      */
@@ -231,7 +231,8 @@ export default class Room extends GameEntity {
      * @param {string} name - The exit's name key within the room's collection of exits.
      */
     unlockExit(name) {
-        let exit = this.exitCollection.get(name)
+        let exit = this.exitCollection.get(name);
+        exit.unlock();
         if (this.occupants.length > 0) new Narration(this.game, null, this, `${exit.name} unlocks.`).send();
 
         // Post log message.
@@ -240,7 +241,7 @@ export default class Room extends GameEntity {
     }
 
     /**
-     * Locks an exit in the room.
+     * Locks an exit in the room. Deprecated. Use lockExit instead.
      * @deprecated
      * @param {number} index - The exit's index within the room's array of exits.
      */
@@ -258,7 +259,7 @@ export default class Room extends GameEntity {
      * @param {string} name - The exit's name key within the room's collection of exits.
      */
     lockExit(name) {
-        let exit = this.exitCollection.get(name)
+        let exit = this.exitCollection.get(name);
         exit.lock();
         if (this.occupants.length > 0) new Narration(this.game, null, this, `${exit.name} locks.`).send();
 
