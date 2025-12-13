@@ -17,7 +17,7 @@ import Player from '../Data/Player.js';
 import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
 
-import { ChannelType } from 'discord.js';
+import { ChannelType, Collection } from 'discord.js';
 import dayjs from 'dayjs';
 dayjs().format();
 
@@ -48,25 +48,28 @@ export function loadRooms (game, doErrorChecking) {
         /** @type {Error[]} */
         let errors = [];
         for (let roomRow = 0, exitRow = 0; roomRow < sheet.length; roomRow = roomRow + exitRow) {
-            /** @type {Exit[]} */
-            let exits = [];
+            /** @type {Collection<string, Exit>} */
+            let exits = new Collection();
             for (exitRow = 0; roomRow + exitRow < sheet.length && (exitRow === 0 || sheet[roomRow + exitRow][columnRoomDisplayName] === ""); exitRow++) {
                 const pos = {
                     x: parseInt(sheet[roomRow + exitRow][columnExitPosX]),
                     y: parseInt(sheet[roomRow + exitRow][columnExitPosY]),
                     z: parseInt(sheet[roomRow + exitRow][columnExitPosZ])
                 };
-                exits.push(
-                    new Exit(
-                        sheet[roomRow + exitRow][columnExitName] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitName]) : "",
-                        pos,
-                        sheet[roomRow + exitRow][columnExitUnlocked] ? sheet[roomRow + exitRow][columnExitUnlocked].trim() === "TRUE" : false,
-                        sheet[roomRow + exitRow][columnExitDest] ? sheet[roomRow + exitRow][columnExitDest].trim() : "",
-                        sheet[roomRow + exitRow][columnExitLink] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitLink]) : "",
-                        sheet[roomRow + exitRow][columnExitDescription] ? sheet[roomRow + exitRow][columnExitDescription].trim() : "",
-                        roomRow + exitRow + 2,
-                        game
-                    ));
+                const exitName = sheet[roomRow + exitRow][columnExitName] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitName]) : "";
+                const exit =  new Exit(
+                    exitName,
+                    pos,
+                    sheet[roomRow + exitRow][columnExitUnlocked] ? sheet[roomRow + exitRow][columnExitUnlocked].trim() === "TRUE" : false,
+                    sheet[roomRow + exitRow][columnExitDest] ? sheet[roomRow + exitRow][columnExitDest].trim() : "",
+                    sheet[roomRow + exitRow][columnExitLink] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitLink]) : "",
+                    sheet[roomRow + exitRow][columnExitDescription] ? sheet[roomRow + exitRow][columnExitDescription].trim() : "",
+                    roomRow + exitRow + 2,
+                    game
+                );
+                if (exits.get(exit.name))
+                    errors.push(new Error(`Couldn't load exit on row ${exit.row}. The room already has an exit named "${exit.name}".`));
+                else exits.set(exit.name, exit); 
             }
             const id = sheet[roomRow][columnRoomDisplayName] ? Room.generateValidId(sheet[roomRow][columnRoomDisplayName]) : "";
             let channel = game.guildContext.guild.channels.cache.find(channel => channel.name === id);
@@ -102,9 +105,6 @@ export function loadRooms (game, doErrorChecking) {
                 roomRow + 2,
                 game
             );
-            for (let j = 0; j < exits.length; j++) {
-                room.exitCollection.set(Room.generateValidId(exits[j].name), exits[j]);
-            }
             if (game.entityFinder.getRoom(room.id))
                 errors.push(new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`));
             else game.roomsCollection.set(room.id, room);
@@ -153,12 +153,10 @@ export function checkRoom (room) {
         return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
     /** @type {string[]} */
     let exitNames = [];
-    for (const [_, exit] of room.exitCollection) {
+    room.exitCollection.forEach(exit => {
         exitNames.push(exit.name);
         if (exit.name === "" || exit.name === null || exit.name === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No exit name was given.`);
-        if (exitNames.includes(exit.name))
-            return new Error(`Couldn't load exit on row ${exit.row}. The room already has an exit named "${exit.name}".`);
         if (isNaN(exit.pos.x))
             return new Error(`Couldn't load exit on row ${exit.row}. The X-coordinate given is not an integer.`);
         if (isNaN(exit.pos.y))
@@ -172,7 +170,7 @@ export function checkRoom (room) {
         if (!(exit.dest instanceof Room))
             return new Error(`Couldn't load exit on row ${exit.row}. The destination given is not a room.`);
         let matchingExit = false;
-        for (const [_, destExit] of exit.dest.exitCollection) {
+        for (const destExit of exit.dest.exitCollection.values()) {
             if (destExit.link === exit.name) {
                 matchingExit = true;
                 break;
@@ -180,7 +178,7 @@ export function checkRoom (room) {
         }
         if (!matchingExit)
             return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.displayName}"  does not have an exit that links back to it.`);
-    }
+    });
 }
 
 /**
