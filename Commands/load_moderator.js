@@ -52,7 +52,7 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
 
     if (command === "las" || command === "lar" || args[0] === "all") {
-        var errors = [];
+        let errors = [];
         await loader.loadRooms(game, false);
         await loader.loadFixtures(game, false);
         await loader.loadPrefabs(game, false);
@@ -64,7 +64,7 @@ export async function execute (game, message, command, args) {
         await loader.loadPlayers(game, false);
         await loader.loadInventories(game, false);
         await loader.loadGestures(game, false);
-        await loader.loadFlags(game, false, errors);
+        await loader.loadFlags(game, false);
 
         game.roomsCollection.forEach(room => {
             let error = loader.checkRoom(room);
@@ -313,7 +313,7 @@ export async function execute (game, message, command, args) {
     }
     else if (args[0] === "flags") {
         try {
-            await loader.loadFlags(game, true, errors);
+            await loader.loadFlags(game, true);
             if (game.settings.debug) printData(game.flags);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.flags.size + " flags retrieved.");
         }

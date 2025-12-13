@@ -1,6 +1,7 @@
 import BotContext from '../Classes/BotContext.js';
 import GameConstants from '../Classes/GameConstants.js';
 import GameEntityFinder from '../Classes/GameEntityFinder.js';
+import GameEntityManager from '../Classes/GameEntityManager.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
@@ -57,6 +58,12 @@ export default class Game {
 	 * @type {GameEntityFinder}
 	 */
 	entityFinder;
+	/**
+	 * A set of functions to manage game entities.
+	 * @readonly
+	 * @type {GameEntityManager}
+	 */
+	entityManager;
 	/**
 	 * Whether or not the game is currently in progress.
 	 * @type {boolean}
@@ -257,6 +264,7 @@ export default class Game {
 		this.settings = settings;
 		this.constants = new GameConstants();
 		this.entityFinder = new GameEntityFinder(this);
+		this.entityManager = new GameEntityManager(this);
 		this.inProgress = false;
 		this.canJoin = false;
 		this.halfTimer = null;

@@ -107,7 +107,7 @@ export default class Room extends GameEntity {
      * @param {boolean} sendDescription - Whether or not to send the player the room description.
      */
     addPlayer(player, entrance, entranceMessage, sendDescription) {
-        player.location = this;
+        player.setLocation(this);
         // Set the player's position.
         if (entrance) {
             player.pos.x = entrance.pos.x;

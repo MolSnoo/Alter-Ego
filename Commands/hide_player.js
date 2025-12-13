@@ -118,7 +118,7 @@ export async function execute (game, message, command, args, player) {
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {
-                    var whisper = new Whisper(game, hiddenPlayers, player.location);
+                    var whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
                     await whisper.init();
                     game.whispers.push(whisper);
                 }
@@ -161,7 +161,7 @@ export async function execute (game, message, command, args, player) {
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {
-                    var whisper = new Whisper(game, hiddenPlayers, player.location);
+                    var whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
                     await whisper.init();
                     game.whispers.push(whisper);
                 }

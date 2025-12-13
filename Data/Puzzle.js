@@ -44,11 +44,11 @@ export default class Puzzle extends ItemContainer {
      */ 
     requiresMod;
     /**
-     * The ID of the location the puzzle is found in.
+     * The display name of the location the puzzle is found in.
      * @readonly
      * @type {string}
      */
-    locationId;
+    locationDisplayName;
     /**
      * The location the puzzle is found in. 
      * @type {Room} 
@@ -160,7 +160,7 @@ export default class Puzzle extends ItemContainer {
      * @param {boolean} solved - Whether the puzzle is solved.
      * @param {string} outcome - String indicating which solution the puzzle has been solved with.
      * @param {boolean} requiresMod - Whether the puzzle requires a moderator to solve it.
-     * @param {string} locationId - The ID of the location the puzzle is found in.
+     * @param {string} locationDisplayName - The display name of the location the puzzle is found in.
      * @param {string} parentFixtureName - The name of the fixture associated with the puzzle.
      * @param {string} type - The type of puzzle. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type}
      * @param {boolean} accessible - Whether the puzzle can be interacted with.
@@ -177,13 +177,14 @@ export default class Puzzle extends ItemContainer {
      * @param {number} row - The row number of the puzzle in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(name, solved, outcome, requiresMod, locationId, parentFixtureName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
+    constructor(name, solved, outcome, requiresMod, locationDisplayName, parentFixtureName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
         super(game, row, alreadySolvedDescription);
         this.name = name;
         this.solved = solved;
         this.outcome = outcome;
         this.requiresMod = requiresMod;
-        this.locationId = locationId;
+        this.locationDisplayName = locationDisplayName;
+        this.location = null;
         this.parentFixtureName = parentFixtureName;
         this.parentObjectName = parentFixtureName;
         this.parentFixture = null;
@@ -201,6 +202,14 @@ export default class Puzzle extends ItemContainer {
         this.incorrectDescription = incorrectDescription;
         this.noMoreAttemptsDescription = noMoreAttemptsDescription;
         this.requirementsNotMetDescription = requirementsNotMetDescription;
+    }
+
+    /**
+     * Sets the location.
+     * @param {Room} room
+     */
+    setLocation(room) {
+        this.location = room;
     }
 
     /**

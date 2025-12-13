@@ -16,10 +16,10 @@ import { addItem as addItemToDescription, removeItem as removeItemFromDescriptio
  */
 export default class RoomItem extends ItemInstance {
     /**
-     * The ID of the room the item can be found in.
+     * The display name of the room the item can be found in.
      * @type {string}
      */
-    locationId;
+    locationDisplayName;
     /**
      * The room the item can be found in.
      * @type {Room}
@@ -45,7 +45,7 @@ export default class RoomItem extends ItemInstance {
      * @constructor
      * @param {string} prefabId - The ID of the prefab this item is an instance of.
      * @param {string} identifier - The unique identifier given to the item if it is capable of containing other items.
-     * @param {string} locationId - The ID of the room the item can be found in.
+     * @param {string} locationDisplayName - The display name of the room the item can be found in.
      * @param {boolean} accessible - Whether the item can be interacted with.
      * @param {string} containerName - The type and identifier/name of the container the item can be found in, and the ID of the {@link InventorySlot|inventory slot} it belongs to, separated by a forward slash.
      * @param {number} quantity - How many identical instances of this item are in the given container.
@@ -54,11 +54,20 @@ export default class RoomItem extends ItemInstance {
      * @param {number} row - The row number of the item in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(prefabId, identifier, locationId, accessible, containerName, quantity, uses, description, row, game) {
+    constructor(prefabId, identifier, locationDisplayName, accessible, containerName, quantity, uses, description, row, game) {
         super(game, row, description, prefabId, identifier, containerName, quantity, uses);
-        this.locationId = locationId;
+        this.locationDisplayName = locationDisplayName;
+        this.location = null;
         this.accessible = accessible;
         this.inventory = [];
+    }
+
+    /**
+     * Sets the location.
+     * @param {Room} room
+     */
+    setLocation(room) {
+        this.location = room;
     }
 
     /**

@@ -23,6 +23,12 @@ export default class Whisper {
      */
     players;
     /**
+     * The ID of the room the players are whispering in.
+     * @readonly
+     * @type {string}
+     */
+    locationId;
+    /**
      * The room the players are whispering in.
      * @type {Room}
      */
@@ -42,12 +48,22 @@ export default class Whisper {
      * @constructor
      * @param {Game} game - The game context this whisper is occuring in. 
      * @param {Player[]} players - The players in the whisper.
+     * @param {string} locationId - The ID of the room the players are whispering in.
      * @param {Room} location - The room the players are whispering in.
      */
-    constructor(game, players, location) {
+    constructor(game, players, locationId, location) {
         this.game = game;
         this.players = players;
+        this.locationId = locationId;
         this.location = location;
+    }
+
+    /**
+     * Sets the location.
+     * @param {Room} room
+     */
+    setLocation(room) {
+        this.location = room;
     }
     
     /**

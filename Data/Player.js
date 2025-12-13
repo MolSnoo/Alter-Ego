@@ -173,10 +173,10 @@ export default class Player extends ItemContainer {
      */
     alive;
     /**
-     * The ID of the room the player was loaded into.
+     * The display name of the room the player was loaded into.
      * @type {string}
      */
-    locationId;
+    locationDisplayName;
     /**
      * The room the player is currently in.
      * @type {Room}
@@ -277,7 +277,7 @@ export default class Player extends ItemContainer {
      * @param {string} originalVoiceString - A phrase that will be used to describe the player's voice to other players when their identity is obscured in some way. This should begin with "a" or "an" and end with "voice".
      * @param {Stats} stats - The stats of the player. For more details, see {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/player.html#stats}
      * @param {boolean} alive - Whether the player is alive or not.
-     * @param {string} locationId - The ID of the room the player was loaded into.
+     * @param {string} locationDisplayName - The display name of the room the player was loaded into.
      * @param {string} hidingSpot - The name of the fixture the player is currently hiding in. The fixture doesn't actually have to exist.
      * @param {Status[]} status - All status effects the player currently has.
      * @param {string} description - The description of the player. Can contain two item lists: hands and equipment.
@@ -286,7 +286,7 @@ export default class Player extends ItemContainer {
      * @param {number} row - The row of the player.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, member, name, title, pronounString, originalVoiceString, stats, alive, locationId, hidingSpot, status, description, inventory, spectateChannel, row, game) {
+    constructor(id, member, name, title, pronounString, originalVoiceString, stats, alive, locationDisplayName, hidingSpot, status, description, inventory, spectateChannel, row, game) {
         super(game, row, description);
         this.id = id;
         this.member = member;
@@ -329,7 +329,8 @@ export default class Player extends ItemContainer {
         this.stamina = this.defaultStamina;
 
         this.alive = alive;
-        this.locationId = locationId;
+        this.locationDisplayName = locationDisplayName;
+        this.location = null;
         this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
         this.status = status;
@@ -356,6 +357,15 @@ export default class Player extends ItemContainer {
         this.online = false;
         /** @private */
         this.#onlineInterval = null;
+    }
+
+    /**
+     * Sets the location.
+     * @param {Room} room
+     */
+    setLocation(room) {
+        this.location = room;
+        this.locationDisplayName = room.displayName;
     }
 
     /**
