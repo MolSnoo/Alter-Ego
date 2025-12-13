@@ -102,7 +102,7 @@ export function loadRooms (game, doErrorChecking) {
                 game
             );
             for (let j = 0; j < exits.length; j++) {
-                room.exitCollection.set(exits[j].name, exits[j]);
+                room.exitCollection.set(Room.generateValidId(exits[j].name), exits[j]);
             }
             if (game.entityFinder.getRoom(room.id))
                 errors.push(new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`));
