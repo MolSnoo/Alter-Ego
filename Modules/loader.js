@@ -48,6 +48,7 @@ export function loadRooms (game, doErrorChecking) {
         /** @type {Error[]} */
         let errors = [];
         for (let roomRow = 0, exitRow = 0; roomRow < sheet.length; roomRow = roomRow + exitRow) {
+            /** @type {Exit[]} */
             let exits = [];
             for (exitRow = 0; roomRow + exitRow < sheet.length && (exitRow === 0 || sheet[roomRow + exitRow][columnRoomDisplayName] === ""); exitRow++) {
                 const pos = {
@@ -88,8 +89,8 @@ export function loadRooms (game, doErrorChecking) {
                 }
             }
             let tags = sheet[roomRow][columnRoomTags] ? sheet[roomRow][columnRoomTags].trim().split(',') : [];
-            for (let j = 0; j < tags.length; j++)
-                tags[j] = tags[j].trim();
+            for (let i = 0; i < tags.length; i++)
+                tags[i] = tags[i].trim();
             const room = new Room(
                 id,
                 sheet[roomRow][columnRoomDisplayName] ? sheet[roomRow][columnRoomDisplayName].trim() : "",
@@ -112,7 +113,7 @@ export function loadRooms (game, doErrorChecking) {
         // Also, add any occupants to the room.
         game.roomsCollection.forEach(room => {
             for (const [_, exit] of room.exitCollection) {
-                const dest = game.entityFinder.getRoom(Room.generateValidId(exit.destDisplayName));
+                const dest = game.entityFinder.getRoom(exit.destDisplayName);
                 if (dest) exit.dest = dest;
             }
             if (doErrorChecking) {
@@ -125,11 +126,8 @@ export function loadRooms (game, doErrorChecking) {
             }
         });
         if (errors.length > 0) {
-            const tooManyErrors = errors.length > 20 || errors.join('\n').length >= 1980;
-            while (errors.length > 20 || errors.join('\n').length >= 1980)
-                errors = errors.slice(0, errors.length - 1);
-            if (tooManyErrors)
-                errors.push(new Error("Too many errors."));
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -197,9 +195,9 @@ export function loadFixtures (game, doErrorChecking) {
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
         const columnName = 0;
-        const columnLocation = 1;
-        const columnAccessibility = 2;
-        const columnChildPuzzle = 3;
+        const columnLocationDisplayName = 1;
+        const columnAccessible = 2;
+        const columnChildPuzzleName = 3;
         const columnRecipeTag = 4;
         const columnActivatable = 5;
         const columnActivated = 6;
@@ -209,71 +207,45 @@ export function loadFixtures (game, doErrorChecking) {
         const columnDescription = 10;
 
         game.entityManager.clearFixtures();
-        for (let i = 0; i < sheet.length; i++) {
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
             // Convert old spreadsheet values.
             let hidingSpotCapacity = NaN;
-            if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "TRUE")
+            const hidingSpot = sheet[row][columnHidingSpot] ? sheet[row][columnHidingSpot].trim() : "";
+            if (hidingSpot === "TRUE")
                 hidingSpotCapacity = 1;
-            else if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "FALSE" || sheet[i][columnHidingSpot].trim() === "")
+            else if (hidingSpot === "FALSE" || hidingSpot === "")
                 hidingSpotCapacity = 0;
-            game.fixtures.push(
-                new Fixture(
-                    sheet[i][columnName] ? Game.generateValidEntityName(sheet[i][columnName]) : "",
-                    sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                    sheet[i][columnAccessibility]? sheet[i][columnAccessibility].trim() === "TRUE" : false,
-                    sheet[i][columnChildPuzzle] ? Game.generateValidEntityName(sheet[i][columnChildPuzzle]) : "",
-                    sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag].trim() : "",
-                    sheet[i][columnActivatable] ? sheet[i][columnActivatable].trim() === "TRUE" : false,
-                    sheet[i][columnActivated] ? sheet[i][columnActivated].trim() === "TRUE" : false,
-                    sheet[i][columnAutoDeactivate] ? sheet[i][columnAutoDeactivate].trim() === "TRUE" : false,
-                    isNaN(hidingSpotCapacity) ? parseInt(sheet[i][columnHidingSpot]) : hidingSpotCapacity,
-                    sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    i + 2,
-                    game
-                )
+            const fixture = new Fixture(
+                sheet[row][columnName] ? Game.generateValidEntityName(sheet[row][columnName]) : "",
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnAccessible]? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                sheet[row][columnChildPuzzleName] ? Game.generateValidEntityName(sheet[row][columnChildPuzzleName]) : "",
+                sheet[row][columnRecipeTag] ? sheet[row][columnRecipeTag].trim() : "",
+                sheet[row][columnActivatable] ? sheet[row][columnActivatable].trim() === "TRUE" : false,
+                sheet[row][columnActivated] ? sheet[row][columnActivated].trim() === "TRUE" : false,
+                sheet[row][columnAutoDeactivate] ? sheet[row][columnAutoDeactivate].trim() === "TRUE" : false,
+                isNaN(hidingSpotCapacity) ? parseInt(sheet[row][columnHidingSpot]) : hidingSpotCapacity,
+                sheet[row][columnPreposition] ? sheet[row][columnPreposition].trim() : "",
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                row + 2,
+                game
             );
-        }
-        let errors = [];
-        for (let i = 0; i < game.fixtures.length; i++) {
-            game.fixtures[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.fixtures[i].locationDisplayName));
-            const childPuzzle = game.puzzles.find(puzzle =>
-                puzzle.name === game.fixtures[i].childPuzzleName
-                && puzzle.location instanceof Room
-                && game.fixtures[i].location instanceof Room
-                && puzzle.location.id === game.fixtures[i].location.id
-            );
-            if (childPuzzle) game.fixtures[i].childPuzzle = childPuzzle;
+            const location = game.entityFinder.getRoom(fixture.locationDisplayName);
+            if (location) fixture.setLocation(location);
+            const childPuzzle = game.entityFinder.getPuzzle(fixture.childPuzzleName, fixture.locationDisplayName);
+            if (childPuzzle) fixture.setChildPuzzle(childPuzzle);
             if (doErrorChecking) {
-                const error = checkFixture(game.fixtures[i]);
+                const error = checkFixture(fixture);
                 if (error instanceof Error) errors.push(error);
             }
-        }
-        for (let i = 0; i < game.roomItems.length; i++) {
-            if (game.roomItems[i].containerName.startsWith("Object:")) {
-                game.roomItems[i].container = game.fixtures.find(fixture =>
-                    fixture.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
-                    && fixture.location instanceof Room
-                    && game.roomItems[i].location instanceof Room
-                    && fixture.location.id === game.roomItems[i].location.id
-                );
-            }
-        }
-        for (let i = 0; i < game.puzzles.length; i++) {
-            if (game.puzzles[i].parentFixtureName !== "") {
-                game.puzzles[i].parentFixture = game.fixtures.find(fixture =>
-                    fixture.name === game.puzzles[i].parentFixtureName
-                    && fixture.location instanceof Room
-                    && game.puzzles[i].location instanceof Room
-                    && fixture.location.id === game.puzzles[i].location.id
-                );
-            }
+            game.fixtures.push(fixture);
+            game.entityManager.updateFixtureReferences(fixture);
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -2124,4 +2096,18 @@ export function checkFlag (flag, flags) {
     }
 
     return;
+}
+
+/**
+ * Trims the number of errors to fit in a single Discord message.
+ * @param {Error[]} errors - An array of errors to trim.
+ * @returns The trimmed array of errors.
+ */
+function trimErrors (errors) {
+    const tooManyErrors = errors.length > 20 || errors.join('\n').length >= 1980;
+    while (errors.length > 20 || errors.join('\n').length >= 1980)
+        errors = errors.slice(0, errors.length - 1);
+    if (tooManyErrors)
+        errors.push(new Error("Too many errors."));
+    return errors;
 }

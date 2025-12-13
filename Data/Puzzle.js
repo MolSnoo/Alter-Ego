@@ -213,6 +213,14 @@ export default class Puzzle extends ItemContainer {
     }
 
     /**
+     * Sets the parent fixture.
+     * @param {Fixture} fixture 
+     */
+    setParentFixture(fixture) {
+        this.parentFixture = fixture;
+    }
+
+    /**
      * Sets the puzzle as accessible.
      */
     setAccessible() {

@@ -78,8 +78,8 @@ export default class GameEntityFinder {
 	 * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
 	 */
 	getPuzzle(name, location) {
-		if (location) this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name) && puzzle.location.id === Room.generateValidId(location));
-		else this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name));
+		if (location) return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name) && puzzle.location.id === Room.generateValidId(location));
+		else return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name));
 	}
 
 	/**

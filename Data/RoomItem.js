@@ -71,6 +71,14 @@ export default class RoomItem extends ItemInstance {
     }
 
     /**
+     * Sets the container.
+     * @param {Fixture|Puzzle|RoomItem} container
+     */
+    setContainer(container) {
+        this.container = container;
+    }
+
+    /**
      * Creates instances of all of the prefab's {@link InventorySlot|inventory slots} and inserts them into this instance's inventory.
      */
     initializeInventory() {

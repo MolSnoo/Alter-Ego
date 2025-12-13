@@ -1,3 +1,4 @@
+import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
 import Room from "../Data/Room.js";
 
@@ -47,10 +48,10 @@ export default class GameEntityManager {
 	 * @param {Room} room - The room to reference.
 	 */
 	updateRoomReferences(room) {
-		this.game.livingPlayersCollection.forEach((player => {
+		this.game.livingPlayersCollection.forEach(player => {
 			if (Room.generateValidId(player.locationDisplayName) === room.id)
 				room.addPlayer(player, null, null, false);
-		}));
+		});
 		this.game.fixtures.forEach(fixture => {
 			if (Room.generateValidId(fixture.locationDisplayName) === room.id)
 				fixture.setLocation(room);
@@ -66,6 +67,24 @@ export default class GameEntityManager {
 		this.game.whispers.forEach(whisper => {
 			if (whisper.locationId === room.id)
 				whisper.setLocation(room);
+		});
+	}
+
+	/**
+	 * Updates references to a given fixture throughout the game.
+	 * @param {Fixture} fixture - The fixture to reference. 
+	 */
+	updateFixtureReferences(fixture) {
+		this.game.roomItems.forEach(roomItem => {
+			if (roomItem.location.id === fixture.location.id
+				&& (roomItem.containerName.startsWith("Fixture:") || roomItem.containerName.startsWith("Object:"))
+				&& Game.generateValidEntityName(roomItem.containerName.substring(roomItem.containerName.indexOf(':') + 1)) === fixture.name) {
+					roomItem.setContainer(fixture);
+			}
+		});
+		this.game.puzzles.forEach(puzzle => {
+			if (puzzle.location.id === fixture.location.id && puzzle.parentFixtureName !== "" && puzzle.parentFixtureName === fixture.name)
+				puzzle.setParentFixture;
 		});
 	}
 }
