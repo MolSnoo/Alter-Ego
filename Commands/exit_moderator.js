@@ -50,7 +50,7 @@ export async function execute (game, message, command, args) {
 
     // First, find the room.
     let room;
-    for (let i = 0; i <= args.length; i++) {
+    for (let i = args.length - 1; i >= 0; i--) {
         let searchString = args.slice(0, i).join(" ");
         room = game.entityFinder.getRoom(searchString);
         if (room) {
