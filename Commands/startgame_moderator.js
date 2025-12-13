@@ -94,7 +94,7 @@ export async function execute (game, message, command, args) {
                 String(player.speed),
                 String(player.stamina),
                 player.alive ? "TRUE" : "FALSE",
-                player.locationId,
+                player.locationDisplayName,
                 player.hidingSpot,
                 player.statusString,
                 player.description

@@ -4,7 +4,7 @@ import GameEntity from './GameEntity.js';
 import Narration from '../Data/Narration.js';
 import Player from './Player.js';
 import { addLogMessage } from '../Modules/messageHandler.js';
-import { TextChannel } from 'discord.js';
+import { Collection, TextChannel } from 'discord.js';
 
 /**
  * @class Room
@@ -51,9 +51,15 @@ export default class Room extends GameEntity {
     iconURL;
     /**
      * The exits of the room.
+     * @deprecated
      * @type {Exit[]}
      */
     exit;
+    /**
+     * A collection of all exits in the room, where they key is the exit's name.
+     * @type {Collection<string, Exit>}
+     */
+    exitCollection;
     /**
      * The default description of the room for when a player enters from the first listed exit or inspects the room.
      * @type {string}
@@ -92,6 +98,7 @@ export default class Room extends GameEntity {
         this.tags = tags;
         this.iconURL = iconURL;
         this.exit = exit;
+        this.exitCollection = new Collection();
         this.description = description;
 
          /** @type {Player[]} */
@@ -107,7 +114,7 @@ export default class Room extends GameEntity {
      * @param {boolean} sendDescription - Whether or not to send the player the room description.
      */
     addPlayer(player, entrance, entranceMessage, sendDescription) {
-        player.location = this;
+        player.setLocation(this);
         // Set the player's position.
         if (entrance) {
             player.pos.x = entrance.pos.x;
@@ -118,16 +125,16 @@ export default class Room extends GameEntity {
         else {
             /** @type {Pos} */
             let coordSum = { x: 0, y: 0, z: 0 };
-            for (let i = 0; i < this.exit.length; i++) {
-                coordSum.x += this.exit[i].pos.x;
-                coordSum.y += this.exit[i].pos.y;
-                coordSum.z += this.exit[i].pos.z;
+            for (const [_, exit] of this.exitCollection) {
+                coordSum.x += exit.pos.x;
+                coordSum.y += exit.pos.y;
+                coordSum.z += exit.pos.z;
             }
             /** @type {Pos} */
             let pos = { x: 0, y: 0, z: 0 };
-            pos.x = Math.floor(coordSum.x / this.exit.length);
-            pos.y = Math.floor(coordSum.y / this.exit.length);
-            pos.z = Math.floor(coordSum.z / this.exit.length);
+            pos.x = Math.floor(coordSum.x / this.exitCollection.size);
+            pos.y = Math.floor(coordSum.y / this.exitCollection.size);
+            pos.z = Math.floor(coordSum.z / this.exitCollection.size);
             player.pos = pos;
         }
         if (entranceMessage) new Narration(this.game, player, this, entranceMessage).send();
@@ -207,6 +214,7 @@ export default class Room extends GameEntity {
 
     /**
      * Unlocks an exit in the room.
+     * @deprecated
      * @param {number} index - The exit's index within the room's array of exits.
      */
     unlock(index) {
@@ -219,7 +227,21 @@ export default class Room extends GameEntity {
     }
 
     /**
+     * Unlocks an exit in the room.
+     * @param {string} name - The exit's name key within the room's collection of exits.
+     */
+    unlockExit(name) {
+        let exit = this.exitCollection.get(name)
+        if (this.occupants.length > 0) new Narration(this.game, null, this, `${exit.name} unlocks.`).send();
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        addLogMessage(this.game, `${time} - ${exit.name} in ${this.channel} was unlocked.`);
+    }
+
+    /**
      * Locks an exit in the room.
+     * @deprecated
      * @param {number} index - The exit's index within the room's array of exits.
      */
     lock(index) {
@@ -229,6 +251,20 @@ export default class Room extends GameEntity {
         // Post log message.
         const time = new Date().toLocaleTimeString();
         addLogMessage(this.game, `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
+    }
+
+    /**
+     * Locks an exit in the room.
+     * @param {string} name - The exit's name key within the room's collection of exits.
+     */
+    lockExit(name) {
+        let exit = this.exitCollection.get(name)
+        exit.lock();
+        if (this.occupants.length > 0) new Narration(this.game, null, this, `${exit.name} locks.`).send();
+
+        // Post log message.
+        const time = new Date().toLocaleTimeString();
+        addLogMessage(this.game, `${time} - ${exit.name} in ${this.channel} was locked.`);
     }
 
     /** @returns {string} */

@@ -16,14 +16,14 @@ export default class GameEntityFinder {
 	 * @readonly
 	 * @type {Game}
 	 */
-	#game;
+	game;
 
 	/**
 	 * @constructor
 	 * @param {Game} game - The game this belongs to.
 	 */
 	constructor(game) {
-		this.#game = game;
+		this.game = game;
 	}
 
 	/** 
@@ -32,7 +32,7 @@ export default class GameEntityFinder {
 	 * @returns The room with the specified ID. If no such room exists, returns undefined.
 	 */
 	getRoom(id) {
-		return this.#game.roomsCollection.get(Room.generateValidId(id));
+		return this.game.roomsCollection.get(Room.generateValidId(id));
 	}
 
 	/**
@@ -42,8 +42,8 @@ export default class GameEntityFinder {
 	 * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
 	 */
 	getFixture(name, location) {
-		if (location) this.#game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
-		else this.#game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
+		if (location) this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
+		else this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
 	}
 
 	/**
@@ -52,7 +52,7 @@ export default class GameEntityFinder {
 	 * @returns The prefab with the specified ID. If no such prefab exists, returns undefined.
 	 */
 	getPrefab(id) {
-		return this.#game.prefabsCollection.get(Game.generateValidEntityName(id));
+		return this.game.prefabsCollection.get(Game.generateValidEntityName(id));
 	}
 
 	/**
@@ -68,7 +68,7 @@ export default class GameEntityFinder {
 		selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
 		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
 		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
-		return this.#game.roomItems.find(roomItem => roomItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(roomItem, key)));
+		return this.game.roomItems.find(roomItem => roomItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(roomItem, key)));
 	}
 
 	/**
@@ -78,8 +78,8 @@ export default class GameEntityFinder {
 	 * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
 	 */
 	getPuzzle(name, location) {
-		if (location) this.#game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name) && puzzle.location.id === Room.generateValidId(location));
-		else this.#game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name));
+		if (location) return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name) && puzzle.location.id === Room.generateValidId(location));
+		else return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name));
 	}
 
 	/**
@@ -88,7 +88,7 @@ export default class GameEntityFinder {
 	 * @returns The event with the specified ID. If no such event exists, returns undefined.
 	 */
 	getEvent(id) {
-		return this.#game.eventsCollection.get(Game.generateValidEntityName(id));
+		return this.game.eventsCollection.get(Game.generateValidEntityName(id));
 	}
 
 	/**
@@ -97,7 +97,7 @@ export default class GameEntityFinder {
 	 * @returns The status effect with the specified ID. If no such status effect exists, returns undefined.
 	 */
 	getStatusEffect(id) {
-		return this.#game.statusEffectsCollection.get(Status.generateValidId(id));
+		return this.game.statusEffectsCollection.get(Status.generateValidId(id));
 	}
 
 	/**
@@ -106,7 +106,7 @@ export default class GameEntityFinder {
 	 * @returns The player with the specified name. If no such player exists, returns undefined.
 	 */
 	getPlayer(name) {
-		return this.#game.playersCollection.get(Game.generateValidEntityName(name));
+		return this.game.playersCollection.get(Game.generateValidEntityName(name));
 	}
 
 	/**
@@ -115,7 +115,7 @@ export default class GameEntityFinder {
 	 * @returns The living player with the specified name. If no such player exists, returns undefined.
 	 */
 	getLivingPlayer(name) {
-		return this.#game.livingPlayersCollection.get(Game.generateValidEntityName(name));
+		return this.game.livingPlayersCollection.get(Game.generateValidEntityName(name));
 	}
 	
 	/**
@@ -124,11 +124,11 @@ export default class GameEntityFinder {
 	 * @returns The dead player with the specified name. If no such player exists, returns undefined.
 	 */
 	getDeadPlayer(name) {
-		return this.#game.deadPlayersCollection.get(Game.generateValidEntityName(name));
+		return this.game.deadPlayersCollection.get(Game.generateValidEntityName(name));
 	}
 
 	/**
-	 * 
+	 * Gets an inventory item.
 	 * @param {string} identifier - The inventory item's identifier or prefab ID.
 	 * @param {string} [player] - The name of the player the inventory item belongs to.
 	 * @param {string} [containerName] - The inventory item's container name.
@@ -142,7 +142,7 @@ export default class GameEntityFinder {
 		if (player) selectedFilters.set(Game.generateValidEntityName(player), matchers.inventoryItemPlayerNameMatches);
 		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
 		if (equipmentSlotId) selectedFilters.set(Game.generateValidEntityName(equipmentSlotId), matchers.inventoryItemEquipmentSlotMatches);
-		return this.#game.inventoryItems.find(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(inventoryItem, key)));
+		return this.game.inventoryItems.find(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(inventoryItem, key)));
 	}
 
 	/**
@@ -151,7 +151,7 @@ export default class GameEntityFinder {
 	 * @returns The gesture with the specified ID. If no such gesture exists, returns undefined.
 	 */
 	getGesture(id) {
-		return this.#game.gesturesCollection.get(Gesture.generateValidId(id));
+		return this.game.gesturesCollection.get(Gesture.generateValidId(id));
 	}
 
 	/**
@@ -161,7 +161,7 @@ export default class GameEntityFinder {
 	 * @returns The flag with the specified ID. If no such flag exists, returns undefined.
 	 */
 	getFlag(id, evaluate = false) {
-		const flag = this.#game.flags.get(Game.generateValidEntityName(id));
+		const flag = this.game.flags.get(Game.generateValidEntityName(id));
 		if (flag && flag.valueScript && evaluate) {
 			const value = flag.evaluate();
 			flag.setValue(value, false);
@@ -182,7 +182,7 @@ export default class GameEntityFinder {
 		if (id) selectedFilters.set(Room.generateValidId(id), fuzzySearch ? matchers.roomIdContains : matchers.roomIdMatches);
 		if (tag) selectedFilters.set(tag.trim(), matchers.roomTagMatches);
 		if (occupied !== undefined && occupied !== null) selectedFilters.set(occupied, matchers.roomOccupiedMatches);
-		return this.#game.roomsCollection.filter(room => selectedFilters.every((filterFunction, key) => filterFunction(room, key))).map(room => room);
+		return this.game.roomsCollection.filter(room => selectedFilters.every((filterFunction, key) => filterFunction(room, key))).map(room => room);
 	}
 
 	/**
@@ -200,7 +200,7 @@ export default class GameEntityFinder {
 		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
 		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
 		if (recipeTag) selectedFilters.set(recipeTag.trim(), matchers.fixtureRecipeTagMatches);
-		return this.#game.fixtures.filter(fixture => selectedFilters.every((filterFunction, key) => filterFunction(fixture, key)));
+		return this.game.fixtures.filter(fixture => selectedFilters.every((filterFunction, key) => filterFunction(fixture, key)));
 	}
 
 	/**
@@ -230,7 +230,7 @@ export default class GameEntityFinder {
 			equipmentSlots.forEach((equipmentSlot, i) => equipmentSlots[i] = Game.generateValidEntityName(equipmentSlot));
 			selectedFilters.set(equipmentSlots.join(','), matchers.prefabEquipmentSlotsMatches);
 		}
-		return this.#game.prefabsCollection.filter(prefab => selectedFilters.every((filterFunction, key) => filterFunction(prefab, key))).map(prefab => prefab);
+		return this.game.prefabsCollection.filter(prefab => selectedFilters.every((filterFunction, key) => filterFunction(prefab, key))).map(prefab => prefab);
 	}
 
 	/**
@@ -255,7 +255,7 @@ export default class GameEntityFinder {
 			products.forEach((product, i) => products[i] = Game.generateValidEntityName(product));
 			selectedFilters.set(products.join(','), matchers.recipeProductsMatches);
 		}
-		return this.#game.recipes.filter(recipe => selectedFilters.every((filterFunction, key) => filterFunction(recipe, key)));
+		return this.game.recipes.filter(recipe => selectedFilters.every((filterFunction, key) => filterFunction(recipe, key)));
 	}
 
 	/**
@@ -286,7 +286,7 @@ export default class GameEntityFinder {
 			else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
 		}
 		if (slotId) selectedFilters.set(Game.generateValidEntityName(slotId), matchers.itemSlotMatches);
-		return this.#game.roomItems.filter(roomItem => roomItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(roomItem, key)));
+		return this.game.roomItems.filter(roomItem => roomItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(roomItem, key)));
 	}
 
 	/**
@@ -304,7 +304,7 @@ export default class GameEntityFinder {
 		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
 		if (type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
 		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
-		return this.#game.puzzles.filter(puzzle => selectedFilters.every((filterFunction, key) => filterFunction(puzzle, key)));
+		return this.game.puzzles.filter(puzzle => selectedFilters.every((filterFunction, key) => filterFunction(puzzle, key)));
 	}
 
 	/**
@@ -332,7 +332,7 @@ export default class GameEntityFinder {
 			refreshes.forEach((refresh, i) => refreshes[i] = Status.generateValidId(refresh));
 			selectedFilters.set(refreshes.join(','), matchers.eventRefreshesMatches);
 		}
-		return this.#game.eventsCollection.filter(event => selectedFilters.every((filterFunction, key) => filterFunction(event, key))).map(event => event);
+		return this.game.eventsCollection.filter(event => selectedFilters.every((filterFunction, key) => filterFunction(event, key))).map(event => event);
 	}
 
 	/**
@@ -356,7 +356,7 @@ export default class GameEntityFinder {
 			attributes.forEach((attribute, i) => attributes[i] = attribute.trim());
 			selectedFilters.set(attributes.join(','), matchers.statusAttributeMatches);
 		}
-		return this.#game.statusEffectsCollection.filter(status => selectedFilters.every((filterFunction, key) => filterFunction(status, key))).map(status => status);
+		return this.game.statusEffectsCollection.filter(status => selectedFilters.every((filterFunction, key) => filterFunction(status, key))).map(status => status);
 	}
 
 	/**
@@ -380,7 +380,7 @@ export default class GameEntityFinder {
 			statuses.forEach((status, i) => statuses[i] = Status.generateValidId(status));
 			selectedFilters.set(statuses.join(','), matchers.playerStatusMatches);
 		}
-		return this.#game.livingPlayersCollection.filter(player => selectedFilters.every((filterFunction, key) => filterFunction(player, key))).map(player => player);
+		return this.game.livingPlayersCollection.filter(player => selectedFilters.every((filterFunction, key) => filterFunction(player, key))).map(player => player);
 	}
 
 	/**
@@ -394,7 +394,7 @@ export default class GameEntityFinder {
 		let selectedFilters = new Collection();
 		if (name) selectedFilters.set(name.toLowerCase().trim(), fuzzySearch ? matchers.playerNameOrDisplayNameContains : matchers.playerNameOrDisplayNameMatches);
 		if (isNPC !== undefined && isNPC !== null) selectedFilters.set(isNPC, matchers.playerNPCMatches);
-		return this.#game.deadPlayersCollection.filter(player => selectedFilters.every((filterFunction, key) => filterFunction(player, key))).map(player => player);
+		return this.game.deadPlayersCollection.filter(player => selectedFilters.every((filterFunction, key) => filterFunction(player, key))).map(player => player);
 	}
 
 	/**
@@ -425,7 +425,7 @@ export default class GameEntityFinder {
 		}
 		if (slotId) selectedFilters.set(Game.generateValidEntityName(slotId), matchers.itemSlotMatches);
 		if (equipmentSlotId) selectedFilters.set(Game.generateValidEntityName(equipmentSlotId), matchers.inventoryItemEquipmentSlotMatches);
-		return this.#game.roomItems.filter(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(inventoryItem, key)));
+		return this.game.roomItems.filter(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(inventoryItem, key)));
 	}
 
 	/**
@@ -437,7 +437,7 @@ export default class GameEntityFinder {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		if (id) selectedFilters.set(Gesture.generateValidId(id), fuzzySearch ? matchers.gestureIdContains : matchers.gestureIdMatches);
-		return this.#game.gesturesCollection.filter(gesture => selectedFilters.every((filterFunction, key) => filterFunction(gesture, key)));
+		return this.game.gesturesCollection.filter(gesture => selectedFilters.every((filterFunction, key) => filterFunction(gesture, key)));
 	}
 
 	/**
@@ -449,6 +449,6 @@ export default class GameEntityFinder {
 		/** @type {Collection<string|boolean, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.entityIdContains : matchers.entityIdMatches);
-		return this.#game.flags.filter(flag => selectedFilters.every((filterFunction, key) => filterFunction(flag, key)));
+		return this.game.flags.filter(flag => selectedFilters.every((filterFunction, key) => filterFunction(flag, key)));
 	}
 }

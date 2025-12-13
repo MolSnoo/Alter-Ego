@@ -26,8 +26,10 @@ import { readdir, readFileSync } from 'fs';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration.js';
 import weekday from 'dayjs/plugin/weekday.js';
+import advancedFormat from 'dayjs/plugin/advancedFormat.js';
 dayjs.extend(duration);
 dayjs.extend(weekday);
+dayjs.extend(advancedFormat);
 
 const client = new Client({
     partials: [

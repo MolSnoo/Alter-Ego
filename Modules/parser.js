@@ -129,7 +129,7 @@ export function parseDescriptionWithErrors (description, container, player) {
                     const variableText = evaluateScript(varAttribute, container, player);
                     if (variableText === undefined || variableText === "undefined")
                         errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
-                    variableStrings.push({ element: variables[i], attribute: variableText });
+                    variableStrings.push({ element: variables[i], attribute: String(variableText) });
                     if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
                         variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
                 } catch (err) {
@@ -984,42 +984,4 @@ function removeClause(sentence, i) {
     // If all else fails, just remove the item clause.
     clause[i].delete();
     return 22;
-}
-
-// The functions below are included to provide shorthand for using the finder module in descriptions.
-function findRoom(name) {
-    return finder.findRoom(name);
-}
-function findObject(name, location) {
-    return finder.findObject(name, location);
-}
-function findPrefab(id) {
-    return finder.findPrefab(id);
-}
-function findItem(identifier, location, containerName) {
-    return finder.findItem(identifier, location, containerName);
-}
-function findPuzzle(name, location) {
-    return finder.findPuzzle(name, location);
-}
-function findEvent(name) {
-    return finder.findEvent(name);
-}
-function findStatusEffect(name) {
-    return finder.findStatusEffect(name);
-}
-function findPlayer(name) {
-    return finder.findPlayer(name);
-}
-function findLivingPlayer(name) {
-    return finder.findLivingPlayer(name);
-}
-function findDeadPlayer(name) {
-    return finder.findDeadPlayer(name);
-}
-function findInventoryItem(identifier, player, containerName, equipmentSlot) {
-    return finder.findInventoryItem(identifier, player, containerName, equipmentSlot);
-}
-function findFlag(id, evaluate) {
-    return finder.findFlag(id, evaluate);
 }

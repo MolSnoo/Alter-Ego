@@ -10,6 +10,7 @@ import type Recipe from "./Data/Recipe.js";
 import type RoomItem from "./Data/RoomItem.js";
 import type { Duration } from "dayjs/plugin/duration.js";
 import type GameEntity from "./Data/GameEntity.js";
+import type { Node } from "acorn";
 
 export {};
 
@@ -375,4 +376,31 @@ declare global {
 		cell: string;
 		text: string;
 	}
+
+	/**
+	 * @typedef ScriptEvaluationContext
+	 * @param {GameEntity} container - The game entity this script is attached to.
+	 * @param {Player|PseudoPlayer} player - The player currently in scope.
+	 */
+	type ScriptEvaluationContext = {
+		container: GameEntity;
+		player: Player|PseudoPlayer;
+	};
+
+	/**
+	 * @typedef ScriptProxyHandler
+	 * @property {function} get - Function to handle property access.
+	 * @property {function} set - Function to handle property assignment.
+	 */
+	type ScriptProxyHandler = {
+		get: (targetObject: any, propKey: string | symbol, thisReceiver: any) => any;
+		set: () => any;
+		deleteProperty: () => any;
+		defineProperty: () => any;
+		setPrototypeOf: () => any;
+		has: (targetObject: Node, propKey: string | symbol) => boolean;
+		ownKeys: (targetObject: Node) => (string | symbol)[];
+		getOwnPropertyDescriptor: (targetObject: Node, propKey: string | symbol) => TypedPropertyDescriptor<any>;
+		getPrototypeOf: (targetObject: Node) => object;
+	};
 }

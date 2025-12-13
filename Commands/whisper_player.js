@@ -91,7 +91,7 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Whisper does not exist, so create it.
-    var whisper = new Whisper(game, recipients, player.location);
+    var whisper = new Whisper(game, recipients, player.location.id, player.location);
     await whisper.init();
     game.whispers.push(whisper);
 

@@ -32,45 +32,47 @@ export function loadRooms (game, doErrorChecking) {
         const response = await getSheetValues(game.constants.roomSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnRoomName = 0;
-        const columnTags = 1;
-        const columnRoomIcon = 2;
-        const columnExits = 3;
-        const columnPosX = 4;
-        const columnPosY = 5;
-        const columnPosZ = 6;
-        const columnUnlocked = 7;
-        const columnLeadsTo = 8;
-        const columnFrom = 9;
-        const columnDescription = 10;
+        const columnRoomDisplayName = 0;
+        const columnRoomTags = 1;
+        const columnRoomIconUrl = 2;
+        const columnExitName = 3;
+        const columnExitPosX = 4;
+        const columnExitPosY = 5;
+        const columnExitPosZ = 6;
+        const columnExitUnlocked = 7;
+        const columnExitDest = 8;
+        const columnExitLink = 9;
+        const columnExitDescription = 10;
 
-        game.rooms.length = 0;
-        game.roomsCollection.clear();
-        for (let i = 0, j = 0; i < sheet.length; i = i + j) {
+        game.entityManager.clearRooms();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let roomRow = 0, exitRow = 0; roomRow < sheet.length; roomRow = roomRow + exitRow) {
+            /** @type {Exit[]} */
             let exits = [];
-            for (j = 0; i + j < sheet.length && (j === 0 || sheet[i + j][columnRoomName] === ""); j++) {
+            for (exitRow = 0; roomRow + exitRow < sheet.length && (exitRow === 0 || sheet[roomRow + exitRow][columnRoomDisplayName] === ""); exitRow++) {
                 const pos = {
-                    x: parseInt(sheet[i + j][columnPosX]),
-                    y: parseInt(sheet[i + j][columnPosY]),
-                    z: parseInt(sheet[i + j][columnPosZ])
+                    x: parseInt(sheet[roomRow + exitRow][columnExitPosX]),
+                    y: parseInt(sheet[roomRow + exitRow][columnExitPosY]),
+                    z: parseInt(sheet[roomRow + exitRow][columnExitPosZ])
                 };
                 exits.push(
                     new Exit(
-                        sheet[i + j][columnExits] ? Game.generateValidEntityName(sheet[i + j][columnExits]) : "",
+                        sheet[roomRow + exitRow][columnExitName] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitName]) : "",
                         pos,
-                        sheet[i + j][columnUnlocked] ? sheet[i + j][columnUnlocked].trim() === "TRUE" : false,
-                        sheet[i + j][columnLeadsTo] ? sheet[i + j][columnLeadsTo].trim() : "",
-                        sheet[i + j][columnFrom] ? Game.generateValidEntityName(sheet[i + j][columnFrom]) : "",
-                        sheet[i + j][columnDescription] ? sheet[i + j][columnDescription].trim() : "",
-                        i + j + 2,
+                        sheet[roomRow + exitRow][columnExitUnlocked] ? sheet[roomRow + exitRow][columnExitUnlocked].trim() === "TRUE" : false,
+                        sheet[roomRow + exitRow][columnExitDest] ? sheet[roomRow + exitRow][columnExitDest].trim() : "",
+                        sheet[roomRow + exitRow][columnExitLink] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitLink]) : "",
+                        sheet[roomRow + exitRow][columnExitDescription] ? sheet[roomRow + exitRow][columnExitDescription].trim() : "",
+                        roomRow + exitRow + 2,
                         game
                     ));
             }
-            const id = sheet[i][columnRoomName] ? Room.generateValidId(sheet[i][columnRoomName]) : "";
+            const id = sheet[roomRow][columnRoomDisplayName] ? Room.generateValidId(sheet[roomRow][columnRoomDisplayName]) : "";
             let channel = game.guildContext.guild.channels.cache.find(channel => channel.name === id);
             if (channel === null || channel === undefined) {
-                for (let j = 0; j < game.guildContext.roomCategories.length; j++) {
-                    const roomCategory = game.guildContext.guild.channels.resolve(game.guildContext.roomCategories[j].trim());
+                for (const roomCategoryId of game.guildContext.roomCategories) {
+                    const roomCategory = game.guildContext.guild.channels.resolve(roomCategoryId);
                     if (roomCategory === null || roomCategory === undefined)
                         continue;
                     const roomCategorySize = game.guildContext.guild.channels.cache.filter(
@@ -78,7 +80,7 @@ export function loadRooms (game, doErrorChecking) {
                     ).size;
                     if (roomCategory.type === ChannelType.GuildCategory && roomCategorySize < 50) {
                         channel = await game.guildContext.guild.channels.create({
-                            name: sheet[i][columnRoomName],
+                            name: id,
                             type: ChannelType.GuildText,
                             parent: roomCategory,
                         });
@@ -86,46 +88,46 @@ export function loadRooms (game, doErrorChecking) {
                     }
                 }
             }
-            let tags = sheet[i][columnTags] ? sheet[i][columnTags].trim().split(',') : [];
-            for (let j = 0; j < tags.length; j++)
-                tags[j] = tags[j].trim();
+            let tags = sheet[roomRow][columnRoomTags] ? sheet[roomRow][columnRoomTags].trim().split(',') : [];
+            for (let i = 0; i < tags.length; i++)
+                tags[i] = tags[i].trim();
             const room = new Room(
                 id,
-                sheet[i][columnRoomName] ? sheet[i][columnRoomName].trim() : "",
+                sheet[roomRow][columnRoomDisplayName] ? sheet[roomRow][columnRoomDisplayName].trim() : "",
                 channel && channel.type === ChannelType.GuildText ? channel : null,
                 tags,
-                sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
+                sheet[roomRow][columnRoomIconUrl] ? sheet[roomRow][columnRoomIconUrl].trim() : "",
                 exits,
-                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                i + 2,
+                sheet[roomRow][columnExitDescription] ? sheet[roomRow][columnExitDescription].trim() : "",
+                roomRow + 2,
                 game
             );
-            game.rooms.push(room);
-            game.roomsCollection.set(room.id, room);
+            for (let j = 0; j < exits.length; j++) {
+                room.exitCollection.set(Room.generateValidId(exits[j].name), exits[j]);
+            }
+            if (game.entityFinder.getRoom(room.id))
+                errors.push(new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`));
+            else game.roomsCollection.set(room.id, room);
         }
-        let errors = [];
         // Now go through and make the dest for each exit an actual Room object.
         // Also, add any occupants to the room.
-        for (let i = 0; i < game.rooms.length; i++) {
-            for (let j = 0; j < game.rooms[i].exit.length; j++) {
-                let dest = game.rooms.find(room => room.id === Room.generateValidId(game.rooms[i].exit[j].destId) && room.id !== "");
-                if (dest) game.rooms[i].exit[j].dest = dest;
+        game.roomsCollection.forEach(room => {
+            for (const [_, exit] of room.exitCollection) {
+                const dest = game.entityFinder.getRoom(exit.destDisplayName);
+                if (dest) exit.dest = dest;
             }
             if (doErrorChecking) {
-                const error = checkRoom(game.rooms[i]);
+                const error = checkRoom(room);
                 if (error instanceof Error) errors.push(error);
-            }
-            for (let j = 0; j < game.players_alive.length; j++) {
-                if (game.players_alive[j].location instanceof Room && game.players_alive[j].location.id === game.rooms[i].id) {
-                    game.rooms[i].addPlayer(game.players_alive[j], null, null, false);
+                else {
+                    game.roomsCollection.set(room.id, room);
+                    game.entityManager.updateRoomReferences(room);
                 }
             }
-        }
+        });
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -134,27 +136,29 @@ export function loadRooms (game, doErrorChecking) {
 
 /**
  * Checks a Room for errors.
- * @param {Room} room - The room to check. 
+ * @param {Room} room - The room to check.
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
 export function checkRoom (room) {
     if (room.displayName === "" || room.displayName === null || room.displayName === undefined)
-        return new Error(`Couldn't load room on row ${room.row}. No room name was given.`);
+        return new Error(`Couldn't load room on row ${room.row}. No room display name was given.`);
     if (room.id === "" || room.id === null || room.id === undefined)
-        return new Error(`Couldn't load room on row ${room.row}. The room name resolved to a unique ID with an empty value.`);
-    if (room.game.rooms.find(other => other.id === room.id && other.row < room.row))
-        return new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`);
+        return new Error(`Couldn't load room on row ${room.row}. The room display name resolved to a unique ID with an empty value.`);
     if (room.id.length > 100)
         return new Error(`Couldn't load room on row ${room.row}. The room ID exceeds 100 characters in length.`);
     if (room.channel === null || room.channel === undefined)
-        return new Error(`Couldn't load room "${room.id}" on row ${room.row}. There is no corresponding channel on the server, and a channel to accomodate the room could not be automatically created.`);
+        return new Error(`Couldn't load room "${room.id}" on row ${room.row}. There is no corresponding channel on the server, and a channel to accommodate the room could not be automatically created.`);
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
         return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
-    for (let i = 0; i < room.exit.length; i++) {
-        let exit = room.exit[i];
+    /** @type {string[]} */
+    let exitNames = [];
+    for (const [_, exit] of room.exitCollection) {
+        exitNames.push(exit.name);
         if (exit.name === "" || exit.name === null || exit.name === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No exit name was given.`);
+        if (exitNames.includes(exit.name))
+            return new Error(`Couldn't load exit on row ${exit.row}. The room already has an exit named "${exit.name}".`);
         if (isNaN(exit.pos.x))
             return new Error(`Couldn't load exit on row ${exit.row}. The X-coordinate given is not an integer.`);
         if (isNaN(exit.pos.y))
@@ -163,14 +167,13 @@ export function checkRoom (room) {
             return new Error(`Couldn't load exit on row ${exit.row}. The Z-coordinate given is not an integer.`);
         if (exit.link === "" || exit.link === null || exit.link === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No linked exit was given.`);
-        if (exit.destId === "" || exit.destId === null || exit.destId === undefined)
+        if (exit.destDisplayName === "" || exit.destDisplayName === null || exit.destDisplayName === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No destination was given.`);
         if (!(exit.dest instanceof Room))
             return new Error(`Couldn't load exit on row ${exit.row}. The destination given is not a room.`);
         let matchingExit = false;
-        for (let j = 0; j < exit.dest.exit.length; j++) {
-            let dest = exit.dest;
-            if (dest.exit[j].link === exit.name) {
+        for (const [_, destExit] of exit.dest.exitCollection) {
+            if (destExit.link === exit.name) {
                 matchingExit = true;
                 break;
             }
@@ -188,21 +191,13 @@ export function checkRoom (room) {
  */
 export function loadFixtures (game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
-        // Clear all recipe intervals so they don't continue after these fixtures are unloaded.
-        for (let i = 0; i < game.fixtures.length; i++) {
-            if (game.fixtures[i].recipeInterval !== null)
-                game.fixtures[i].recipeInterval.stop();
-            if (game.fixtures[i].process.timer !== null)
-                game.fixtures[i].process.timer.stop();
-        }
-
         const response = await getSheetValues(game.constants.fixtureSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
         const columnName = 0;
-        const columnLocation = 1;
-        const columnAccessibility = 2;
-        const columnChildPuzzle = 3;
+        const columnLocationDisplayName = 1;
+        const columnAccessible = 2;
+        const columnChildPuzzleName = 3;
         const columnRecipeTag = 4;
         const columnActivatable = 5;
         const columnActivated = 6;
@@ -211,72 +206,46 @@ export function loadFixtures (game, doErrorChecking) {
         const columnPreposition = 9;
         const columnDescription = 10;
 
-        game.fixtures.length = 0;
-        for (let i = 0; i < sheet.length; i++) {
+        game.entityManager.clearFixtures();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
             // Convert old spreadsheet values.
             let hidingSpotCapacity = NaN;
-            if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "TRUE")
+            const hidingSpot = sheet[row][columnHidingSpot] ? sheet[row][columnHidingSpot].trim() : "";
+            if (hidingSpot === "TRUE")
                 hidingSpotCapacity = 1;
-            else if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "FALSE" || sheet[i][columnHidingSpot].trim() === "")
+            else if (hidingSpot === "FALSE" || hidingSpot === "")
                 hidingSpotCapacity = 0;
-            game.fixtures.push(
-                new Fixture(
-                    sheet[i][columnName] ? Game.generateValidEntityName(sheet[i][columnName]) : "",
-                    sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                    sheet[i][columnAccessibility]? sheet[i][columnAccessibility].trim() === "TRUE" : false,
-                    sheet[i][columnChildPuzzle] ? Game.generateValidEntityName(sheet[i][columnChildPuzzle]) : "",
-                    sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag].trim() : "",
-                    sheet[i][columnActivatable] ? sheet[i][columnActivatable].trim() === "TRUE" : false,
-                    sheet[i][columnActivated] ? sheet[i][columnActivated].trim() === "TRUE" : false,
-                    sheet[i][columnAutoDeactivate] ? sheet[i][columnAutoDeactivate].trim() === "TRUE" : false,
-                    isNaN(hidingSpotCapacity) ? parseInt(sheet[i][columnHidingSpot]) : hidingSpotCapacity,
-                    sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    i + 2,
-                    game
-                )
+            const fixture = new Fixture(
+                sheet[row][columnName] ? Game.generateValidEntityName(sheet[row][columnName]) : "",
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnAccessible]? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                sheet[row][columnChildPuzzleName] ? Game.generateValidEntityName(sheet[row][columnChildPuzzleName]) : "",
+                sheet[row][columnRecipeTag] ? sheet[row][columnRecipeTag].trim() : "",
+                sheet[row][columnActivatable] ? sheet[row][columnActivatable].trim() === "TRUE" : false,
+                sheet[row][columnActivated] ? sheet[row][columnActivated].trim() === "TRUE" : false,
+                sheet[row][columnAutoDeactivate] ? sheet[row][columnAutoDeactivate].trim() === "TRUE" : false,
+                isNaN(hidingSpotCapacity) ? parseInt(sheet[row][columnHidingSpot]) : hidingSpotCapacity,
+                sheet[row][columnPreposition] ? sheet[row][columnPreposition].trim() : "",
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                row + 2,
+                game
             );
-        }
-        let errors = [];
-        for (let i = 0; i < game.fixtures.length; i++) {
-            game.fixtures[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.fixtures[i].locationName));
-            const childPuzzle = game.puzzles.find(puzzle =>
-                puzzle.name === game.fixtures[i].childPuzzleName
-                && puzzle.location instanceof Room
-                && game.fixtures[i].location instanceof Room
-                && puzzle.location.id === game.fixtures[i].location.id
-            );
-            if (childPuzzle) game.fixtures[i].childPuzzle = childPuzzle;
+            const location = game.entityFinder.getRoom(fixture.locationDisplayName);
+            if (location) fixture.setLocation(location);
+            const childPuzzle = game.entityFinder.getPuzzle(fixture.childPuzzleName, fixture.locationDisplayName);
+            if (childPuzzle) fixture.setChildPuzzle(childPuzzle);
             if (doErrorChecking) {
-                const error = checkFixture(game.fixtures[i]);
+                const error = checkFixture(fixture);
                 if (error instanceof Error) errors.push(error);
             }
-        }
-        for (let i = 0; i < game.roomItems.length; i++) {
-            if (game.roomItems[i].containerName.startsWith("Object:")) {
-                game.roomItems[i].container = game.fixtures.find(fixture =>
-                    fixture.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
-                    && fixture.location instanceof Room
-                    && game.roomItems[i].location instanceof Room
-                    && fixture.location.id === game.roomItems[i].location.id
-                );
-            }
-        }
-        for (let i = 0; i < game.puzzles.length; i++) {
-            if (game.puzzles[i].parentFixtureName !== "") {
-                game.puzzles[i].parentFixture = game.fixtures.find(fixture =>
-                    fixture.name === game.puzzles[i].parentFixtureName
-                    && fixture.location instanceof Room
-                    && game.puzzles[i].location instanceof Room
-                    && fixture.location.id === game.puzzles[i].location.id
-                );
-            }
+            game.fixtures.push(fixture);
+            game.entityManager.updateFixtureReferences(fixture);
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -528,7 +497,7 @@ export function loadRecipes (game, doErrorChecking) {
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
             /** @type {import('dayjs/plugin/duration.js').Duration} */
-            let duration;
+            let duration = null;
             if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
                 duration = dayjs.duration(durationInt, durationUnit);
             // Separate the products.
@@ -596,7 +565,7 @@ export function checkRecipe (recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require a fixture tag.`);
     if (recipe.duration !== null && !dayjs.isDuration(recipe.duration))
         return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
-    if (recipe.fixtureTag === "" && recipe.duration.asMilliseconds() !== 0)
+    if (recipe.fixtureTag === "" && recipe.duration !== null)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without a fixture tag cannot have a duration.`);
     for (let i = 0; i < recipe.products.length; i++) {
         if (!(recipe.products[i] instanceof Prefab))
@@ -650,7 +619,7 @@ export function loadRoomItems (game, doErrorChecking) {
         for (let i = 0; i < game.roomItems.length; i++) {
             const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === game.roomItems[i].prefabId);
             if (prefab) game.roomItems[i].setPrefab(prefab);
-            const location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.roomItems[i].locationId))
+            const location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.roomItems[i].locationDisplayName))
             if (location) game.roomItems[i].location = location;
             if (game.roomItems[i].prefab instanceof Prefab) {
                 game.roomItems[i].initializeInventory();
@@ -714,7 +683,7 @@ export function loadRoomItems (game, doErrorChecking) {
             let createdItem = new RoomItem(
                 item.prefab.id,
                 item.identifier,
-                item.locationId,
+                item.locationDisplayName,
                 item.accessible,
                 item.containerName,
                 item.quantity,
@@ -806,7 +775,7 @@ export function checkRoomItem (item) {
     if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load room item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
     if (!(item.location instanceof Room))
-        return new Error(`Couldn't load room item on row ${item.row}. "${item.locationId}" is not a room.`);
+        return new Error(`Couldn't load room item on row ${item.row}. "${item.locationDisplayName}" is not a room.`);
     if (item.containerName === "")
         return new Error(`Couldn't load room item on row ${item.row}. No container was given.`);
     if (item.containerName.startsWith("Object:") && !(item.container instanceof Fixture))
@@ -934,7 +903,7 @@ export function loadPuzzles (game, doErrorChecking) {
         }
         let errors = [];
         for (let i = 0; i < game.puzzles.length; i++) {
-            game.puzzles[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.puzzles[i].locationId));
+            game.puzzles[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.puzzles[i].locationDisplayName));
             const parentFixture = game.fixtures.find(fixture =>
                 fixture.name === game.puzzles[i].parentFixtureName
                 && fixture.location instanceof Room
@@ -1001,7 +970,7 @@ export function checkPuzzle (puzzle) {
     if (puzzle.name === "" || puzzle.name === null || puzzle.name === undefined)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. No puzzle name was given.`);
     if (!(puzzle.location instanceof Room))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.locationId}" is not a room.`);
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.locationDisplayName}" is not a room.`);
     if (puzzle.parentFixtureName !== "" && !(puzzle.parentFixture instanceof Fixture))
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent fixture given is not a fixture.`);
     if (puzzle.parentFixture !== null && puzzle.parentFixture !== undefined && (puzzle.parentFixture.childPuzzle === null || puzzle.parentFixture.childPuzzle === undefined))
@@ -1124,7 +1093,7 @@ export function loadEvents (game, doErrorChecking) {
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
             /** @type {import('dayjs/plugin/duration.js').Duration} */
-            let duration;
+            let duration = null;
             if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
                 duration = dayjs.duration(durationInt, durationUnit);
             const timeRemaining = sheet[i][columnTimeRemaining] ? dayjs.duration(sheet[i][columnTimeRemaining]) : null;
@@ -1268,7 +1237,7 @@ export function loadStatusEffects (game, doErrorChecking) {
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
             /** @type {import('dayjs/plugin/duration.js').Duration} */
-            let duration;
+            let duration = null;
             if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
                 duration = dayjs.duration(durationInt, durationUnit);
             let overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
@@ -1541,7 +1510,7 @@ export function loadPlayers (game, doErrorChecking) {
                 i + 3,
                 game
             );
-            const location = game.rooms.find(room => room.id === Room.generateValidId(player.locationId));
+            const location = game.rooms.find(room => room.id === Room.generateValidId(player.locationDisplayName));
             if (location) player.location = location;
             if (player.isNPC) player.displayIcon = player.id;
             player.setPronouns(player.originalPronouns, player.pronounString);
@@ -1651,7 +1620,7 @@ export function checkPlayer (player) {
     if (isNaN(player.stamina))
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
-        return new Error(`Couldn't load player on row ${player.row}. "${player.locationId}" is not a room.`);
+        return new Error(`Couldn't load player on row ${player.row}. "${player.locationDisplayName}" is not a room.`);
 }
 
 /**
@@ -2010,10 +1979,9 @@ export function checkGesture (gesture) {
  * Loads data from the Flags sheet into the game.
  * @param {Game} game - The game to load these entities into.
  * @param {boolean} doErrorChecking - Flags always undergo error checking. So, doErrorChecking simply determines if loadFlags trims the error messages itself.
- * @param {Error[]} errors - The currently existing errors from loading the rest of the spreadsheet.
  * @returns {Promise<Game>}
  */
-export function loadFlags (game, doErrorChecking, errors) {
+export function loadFlags (game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.flagSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response?.values : [];
@@ -2024,7 +1992,8 @@ export function loadFlags (game, doErrorChecking, errors) {
         const columnCommands = 3;
 
         game.flags.clear();
-        if (!errors) errors = [];
+        /** @type {Flag[]} */
+        let flags = [];
         for (let i = 0; i < sheet.length; i++) {
             let commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
             /** @type {FlagCommandSet[]} */
@@ -2065,6 +2034,7 @@ export function loadFlags (game, doErrorChecking, errors) {
             if (!isNaN(parseFloat(valueString))) value = parseFloat(valueString);
             else if (valueString === "TRUE") value = true;
             else if (valueString === "FALSE") value = false;
+            else value = valueString;
             
             let flag = new Flag(
                 sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",
@@ -2075,12 +2045,16 @@ export function loadFlags (game, doErrorChecking, errors) {
                 i + 2,
                 game
             );
-            
-            const error = checkFlag(flag);
-            if (error instanceof Error) errors.push(error);
-            else game.flags.set(flag.id, flag);
+            flags.push(flag);
         }
-
+        let errors = [];
+        for (let flag of flags) {
+            if (doErrorChecking) {
+                const error = checkFlag(flag, flags);
+                if (error instanceof Error) errors.push(error);
+                else game.flags.set(flag.id, flag);
+            }
+        }
         for (let i = 0; i < game.puzzles.length; i++) {
             for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
                 const requirementString = game.puzzles[i].requirementsStrings[j];
@@ -2090,7 +2064,7 @@ export function loadFlags (game, doErrorChecking, errors) {
                 }
             }
         }
-        if (doErrorChecking && errors.length > 0) {
+        if (errors.length > 0) {
             if (errors.length > 15) {
                 errors = errors.slice(0, 15);
                 errors.push(new Error("Too many errors."));
@@ -2104,12 +2078,13 @@ export function loadFlags (game, doErrorChecking, errors) {
 /**
  * Checks a Flag for errors.
  * @param {Flag} flag - The flag to check. 
+ * @param {Flag[]} flags - An array of flags that have been loaded.
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkFlag (flag) {
+export function checkFlag (flag, flags) {
     if (flag.id === "" || flag.id === null || flag.id === undefined)
         return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
-    if (!!flag.game.flags.get(flag.id) && flag.game.flags.get(flag.id).row !== flag.row)
+    if (flags.find(other => other.id === flag.id && other.row !== flag.row))
         return new Error(`Couldn't get flag on row ${flag.row}. Another flag with this ID already exists.`);
     if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
         return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
@@ -2121,4 +2096,18 @@ export function checkFlag (flag) {
     }
 
     return;
+}
+
+/**
+ * Trims the number of errors to fit in a single Discord message.
+ * @param {Error[]} errors - An array of errors to trim.
+ * @returns The trimmed array of errors.
+ */
+function trimErrors (errors) {
+    const tooManyErrors = errors.length > 20 || errors.join('\n').length >= 1980;
+    while (errors.length > 20 || errors.join('\n').length >= 1980)
+        errors = errors.slice(0, errors.length - 1);
+    if (tooManyErrors)
+        errors.push(new Error("Too many errors."));
+    return errors;
 }

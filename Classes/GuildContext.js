@@ -129,6 +129,8 @@ export default class GuildContext {
 		this.testingChannel = testingChannel;
 		this.generalChannel = generalChannel;
 		
+		for (let i = 0; i < roomCategories.length; i++)
+			roomCategories[i] = roomCategories[i].trim();
 		this.roomCategories = roomCategories;
 		this.whisperCategoryId = whisperCategoryId;
 		this.spectateCategoryId = spectateCategoryId;

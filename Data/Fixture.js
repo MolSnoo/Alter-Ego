@@ -26,11 +26,11 @@ export default class Fixture extends ItemContainer {
      */
     name;
     /**
-     * The name of the room the fixture is located in.
+     * The display name of the room the fixture is located in.
      * @readonly
      * @type {string}
      */
-    locationName;
+    locationDisplayName;
     /**
      * The room the fixture is located in.
      * @type {Room}
@@ -97,7 +97,7 @@ export default class Fixture extends ItemContainer {
     /**
      * @constructor
      * @param {string} name - The name of the fixture.
-     * @param {string} locationName - The name of the room the fixture is located in.
+     * @param {string} locationDisplayName - The display name of the room the fixture is located in.
      * @param {boolean} accessible - Whether the fixture can be interacted with.
      * @param {string} childPuzzleName - The name of a puzzle that is associated with the fixture.
      * @param {string} recipeTag - A keyword or phrase assigned to an fixture's recipe that allows it to carry out recipes that require it.
@@ -110,10 +110,11 @@ export default class Fixture extends ItemContainer {
      * @param {number} row - The row number of the fixture in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(name, locationName, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row, game) {
+    constructor(name, locationDisplayName, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row, game) {
         super(game, row, description);
         this.name = name;
-        this.locationName = locationName;
+        this.locationDisplayName = locationDisplayName;
+        this.location = null;
         this.accessible = accessible;
         this.childPuzzleName = childPuzzleName;
         this.childPuzzle = null;
@@ -127,6 +128,22 @@ export default class Fixture extends ItemContainer {
         this.process = { recipe: null, ingredients: [], duration: null, timer: null };
         let fixture = this;
         this.recipeInterval = this.recipeTag ? new Timer(dayjs.duration(1000), { start: true, loop: true }, function () { fixture.processRecipes(); }) : null;
+    }
+
+    /**
+     * Sets the location.
+     * @param {Room} room
+     */
+    setLocation(room) {
+        this.location = room;
+    }
+
+    /**
+     * Sets the child puzzle.
+     * @param {Puzzle} puzzle
+     */
+    setChildPuzzle(puzzle) {
+        this.childPuzzle = puzzle;
     }
 
     /**

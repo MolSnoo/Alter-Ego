@@ -1,6 +1,11 @@
 import Game from "../Data/Game.js";
 import { EmbedBuilder } from "discord.js";
 
+/**
+ * Gets a random string out of an array of possibilties.
+ * @param {string[]} possibilities - A list of strings to choose from.
+ * @returns A randomly chosen entry from possibilities.
+ */
 export function getRandomString (possibilities = []) {
 	return possibilities[Math.floor(Math.random() * possibilities.length)];
 }
