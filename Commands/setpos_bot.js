@@ -58,8 +58,7 @@ export async function execute (game, command, args, player, callee) {
     else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Puzzle)
         players = callee.location.occupants;
     else if (args[0].toLowerCase() === "all") {
-        for (let i = 0; i < game.players_alive.length; i++)
-            players.push(game.players_alive[i]);
+        players.concat(game.entityFinder.getLivingPlayers());
     }
     else {
         player = game.entityFinder.getLivingPlayer(args[0]);

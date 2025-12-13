@@ -113,14 +113,7 @@ export async function execute (game, message, command, args, player) {
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
-            for (let i = 0; i < game.players_alive.length; i++) {
-                if (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() &&
-                game.players_alive[i].location.id === player.location.id &&
-                (!game.players_alive[i].hasAttribute("hidden") || game.players_alive[i].hidingSpot === player.hidingSpot)) {
-                    targetPlayer = game.players_alive[i];
-                    break;
-                }
-            }
+            targetPlayer = game.entityFinder.getLivingPlayers(input, null, player.location.id, player.hidingSpot)[0];
         }
     }
 

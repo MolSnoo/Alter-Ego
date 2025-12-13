@@ -60,23 +60,14 @@ export async function execute (game, message, command, args) {
             announcement += '.';
     }
 
-    var target = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
+    let target = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+    if (args.length > 1 && args[args.length - 2].toLowerCase() === "on")
         // If "on" precedes the target's name, remove both args.
-        if (args.length > 1 && game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase() && args[args.length - 2].toLowerCase() === "on") {
-            target = game.players_alive[i];
-            args.splice(args.length - 2, 2);
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-            target = game.players_alive[i];
-            args.splice(args.length - 1, 1);
-            break;
-        }
-    }
-    if (announcement !== "" && target === null) return messageHandler.addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
-    if (target !== null && player.name === target.name) return messageHandler.addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
-    if (target !== null && player.location.id !== target.location.id) return messageHandler.addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
+        args.splice(args.length - 2, 2);
+    else args.splice(args.length - 1, 1);
+    if (announcement !== "" && target === undefined) return messageHandler.addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
+    if (target !== undefined && player.name === target.name) return messageHandler.addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
+    if (target !== undefined && player.location.id !== target.location.id) return messageHandler.addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
 
     // args should now only contain the name of the item.
     input = args.join(" ");

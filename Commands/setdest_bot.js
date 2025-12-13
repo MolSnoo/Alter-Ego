@@ -77,7 +77,7 @@ export async function execute (game, command, args, player, callee) {
 
     // Now that the room has been found, find the exit.
     let exit = null;
-    for (let i = 0; i < room.exit.length; i++) {
+    for (let i = 0; i < room.exit.length; i++) { // TODO: optimize this with exit collection lookups once feature/exitcollection is merged
         if (parsedInput.startsWith(room.exit[i].name + ' ')) {
             exit = room.exit[i];
             parsedInput = parsedInput.substring(exit.name.length).toLowerCase().trim().replace(/ /g, "-");

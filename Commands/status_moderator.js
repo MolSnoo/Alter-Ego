@@ -2,6 +2,7 @@
 import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
+import Player from '../Data/Player.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -61,12 +62,12 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
-    var players = [];
+    /**
+     * @type {Array<Player>}
+     */
+    let players = new Array();
     if (args[0] === "all" || args[0] === "living") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (!game.players_alive[i].isNPC && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
-                players.push(game.players_alive[i]);
-        }
+        players.concat(game.entityFinder.getLivingPlayers(null, false).filter((player) => {!player.member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id)}));
         args.splice(0, 1);
     }
     else {

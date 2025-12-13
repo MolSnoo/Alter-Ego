@@ -63,16 +63,16 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // Determine which player(s) are being inflicted/cured with a status effect.
-    var players = new Array();
+    /**
+     * @type {Array<Player>}
+     */
+    let players = new Array();
     if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
     else if (args[0].toLowerCase() === "room" && player !== null)
         players = player.location.occupants;
     else if (args[0].toLowerCase() === "all") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (!game.players_alive[i].isNPC && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
-                players.push(game.players_alive[i]);
-        }
+        players.concat(game.entityFinder.getLivingPlayers(null, false).filter((player) => {!player.member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id)}));
     }
     else {
         player = game.entityFinder.getLivingPlayer(args[0]);
