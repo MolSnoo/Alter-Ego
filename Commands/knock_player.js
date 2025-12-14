@@ -41,13 +41,8 @@ export async function execute (game, message, command, args, player) {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Check that the input given is an exit in the player's current room.
-    var exit = null;
-    for (let i = 0; i < player.location.exit.length; i++) {
-        if (player.location.exit[i].name === parsedInput) {
-            exit = player.location.exit[i];
-        }
-    }
-    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
+    let exit = player.location.exitCollection.get(parsedInput);
+    if (exit === undefined) return messageHandler.addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";

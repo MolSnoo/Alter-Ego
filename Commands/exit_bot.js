@@ -70,37 +70,21 @@ export async function execute (game, command, args, player, callee) {
     else if (args.length === 0) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
-    var exitIndex = -1;
-    var exit = null;
-    var entranceIndex = -1;
-    var entrance = null;
-    for (let i = 0; i < room.exit.length; i++) {
-        if (room.exit[i].name === parsedInput) {
-            exitIndex = i;
-            exit = room.exit[i];
-            for (let j = 0; j < exit.dest.exit.length; j++) {
-                if (exit.dest.exit[j].name === exit.link) {
-                    entranceIndex = j;
-                    entrance = exit.dest.exit[j];
-                    break;
-                }
-            }
-            break;
-        }
-    }
-    if (exit === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.name}.`);
-    if (entrance === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Found exit ${exit.name} in ${room.name}, but it doesn't have a corresponding entrance in ${exit.dest.name}.`);
+    const exit = room.exitCollection.get(parsedInput);
+    const entrance = exit.dest.exitCollection.get(exit.link);
+    if (exit === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.id}.`);
+    if (entrance === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Found exit ${exit.name} in ${room.id}, but it doesn't have a corresponding entrance in ${exit.dest.id}.`);
     if (command === "unlock" && exit.unlocked && entrance.unlocked) return;
     if (command === "lock" && !exit.unlocked && !entrance.unlocked) return;
 
     // Now lock or unlock the exit.
     if (command === "lock") {
-        room.lock(exitIndex);
-        exit.dest.lock(entranceIndex);
+        room.lockExit(exit.name);
+        exit.dest.lockExit(entrance.name);
     }
     else if (command === "unlock") {
-        room.unlock(exitIndex);
-        exit.dest.unlock(entranceIndex);
+        room.unlockExit(exit.name);
+        exit.dest.unlockExit(entrance.name);
     }
 
     return;

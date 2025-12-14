@@ -4,6 +4,7 @@ import ItemInstance from '../Data/ItemInstance.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
+import Room from '../Data/Room.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -115,13 +116,11 @@ export async function execute (game, message, command, args) {
                 if (input2 !== "") {
                     for (let j = 0; j < gesture.requires.length; j++) {
                         if (gesture.requires[j] === "Exit") {
-                            for (let k = 0; k < player.location.exit.length; k++) {
-                                if (player.location.exit[k].name.toLowerCase() === input2) {
-                                    targetType = "Exit";
-                                    target = player.location.exit[k];
-                                    break;
-                                }
-                            }
+                            target = player.location.exitCollection.get(Room.generateValidId(input2))
+                            if (target)
+                                targetType = "Exit";
+                            else
+                                target = null;
                         }
                         else if (gesture.requires[j] === "Fixture" || gesture.requires[j] === "Object") {
                             const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);

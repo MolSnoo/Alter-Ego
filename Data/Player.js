@@ -463,24 +463,22 @@ export default class Player extends ItemContainer {
         }
         // Otherwise, check that the desired room is adjacent to the current room.
         else {
-            for (let i = 0; i < currentRoom.exit.length; i++) {
-                if (currentRoom.exit[i].dest.id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
-                    || currentRoom.exit[i].name === destination.toUpperCase()) {
-                    adjacent = true;
-                    exit = currentRoom.exit[i];
-                    exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
-                    desiredRoom = exit.dest;
-
-                    // Find the correct entrance.
-                    for (let j = 0; j < desiredRoom.exit.length; j++) {
-                        if (desiredRoom.exit[j].name === currentRoom.exit[i].link) {
-                            entrance = desiredRoom.exit[j];
-                            entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
-                            break;
-                        }
+            exit = currentRoom.exitCollection.get(destination.toUpperCase());
+            if (!exit) {
+                for (const targetExit of currentRoom.exitCollection.values()) {
+                    if (targetExit.dest.id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
+                        exit = targetExit;
+                        break;
                     }
-                    break;
                 }
+            }
+            if (exit) {
+                adjacent = true;
+                exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
+                desiredRoom = exit.dest;
+                entrance = desiredRoom.exitCollection.get(exit.link);
+                if (entrance)
+                    entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
             }
         }
         if (!adjacent) {
@@ -1127,8 +1125,7 @@ export default class Player extends ItemContainer {
         }
         else if (container instanceof Room) {
             container.description = parser.removeItem(container.description, item);
-            for (let i = 0; i < container.exit.length; i++)
-                container.exit[i].description = parser.removeItem(container.exit[i].description, item);
+            container.exitCollection.forEach((exit) => (exit.description = parser.removeItem(exit.description, item)));
         }
 
         // Get the slot and row number of the EquipmentSlot that the item will go into.
