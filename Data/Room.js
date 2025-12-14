@@ -84,12 +84,12 @@ export default class Room extends GameEntity {
      * @param {TextChannel} channel - The channel associated with the room.
      * @param {string[]} tags - The tags associated with the room. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/room.html#tags}
      * @param {string} iconURL - The URL of the icon associated with the room.
-     * @param {Collection<string, Exit>} exit - The exits of the room.
+     * @param {Collection<string, Exit>} exits - The exits of the room.
      * @param {string} description - The default description of the room for when a player enters from the first listed exit or inspects the room.
      * @param {number} row - The row number of the room in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, displayName, channel, tags, iconURL, exit, description, row, game) {
+    constructor(id, displayName, channel, tags, iconURL, exits, description, row, game) {
         super(game, row);
         this.id = id;
         this.displayName = displayName;
@@ -98,7 +98,7 @@ export default class Room extends GameEntity {
         this.tags = tags;
         this.iconURL = iconURL;
         this.exit = [];
-        this.exitCollection = new Collection();
+        this.exitCollection = exits;
         this.description = description;
 
          /** @type {Player[]} */
