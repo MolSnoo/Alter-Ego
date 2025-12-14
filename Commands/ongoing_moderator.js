@@ -1,28 +1,45 @@
-const settings = include('Configs/settings.json');
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "ongoing_moderator",
     description: "Lists all ongoing events.",
     details: "Lists all events which are currently ongoing, along with the time remaining on each one, if applicable.",
-    usage: `${settings.commandPrefix}ongoing\n`
-        + `${settings.commandPrefix}events`,
     usableBy: "Moderator",
     aliases: ["ongoing", "events"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}ongoing\n`
+        + `${settings.commandPrefix}events`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute (game, message, command, args) {
     var events = [];
     for (let i = 0; i < game.events.length; i++) {
         if (game.events[i].ongoing) {
             if (game.events[i].remaining === null)
-                events.push(game.events[i].name);
+                events.push(game.events[i].id);
             else
-                events.push(game.events[i].name + ` (${game.events[i].remainingString})`);
+                events.push(game.events[i].id + ` (${game.events[i].remainingString})`);
         }
     }
     const eventList = events.join(", ");
-    game.messageHandler.addGameMechanicMessage(message.channel, `Ongoing events:\n${eventList}`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Ongoing events:\n${eventList}`);
 
     return;
-};
+}

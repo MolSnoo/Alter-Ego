@@ -1,18 +1,43 @@
-﻿module.exports.config = {
+﻿import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @type {CommandConfig} */
+export const config = {
     name: "exit_bot",
     description: "Locks or unlocks an exit.",
     details: "Locks or unlocks an exit in the specified room. The corresponding entrance in the room the exit leads to "
         + "will also be locked, so that it goes both ways. When an exit is locked, players will be unable to enter the room "
         + "that exit leads to, and will be unable to enter through the exit from another room.",
-    usage: `exit lock carousel door\n`
-        + `exit unlock headmasters quarters door\n`
-        + `lock warehouse door 3\n`
-        + `unlock trial grounds elevator`,
     usableBy: "Bot",
-    aliases: ["exit", "room", "lock", "unlock"]
+    aliases: ["exit", "room", "lock", "unlock"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `exit lock carousel door\n`
+        + `exit unlock headmasters quarters door\n`
+        + `lock warehouse door 3\n`
+        + `unlock trial grounds elevator`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     var input = cmdString;
     if (command === "exit" || command === "room") {
@@ -22,7 +47,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     }
 
     if (args.length === 0) {
-        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -38,9 +63,9 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             input = input.substring(input.toUpperCase().indexOf(parsedInput));
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
+        else if (parsedInput === game.rooms[i].name) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
     }
-    if (room === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (room === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
     var exitIndex = -1;
@@ -61,20 +86,20 @@ module.exports.run = async (bot, game, command, args, player, data) => {
             break;
         }
     }
-    if (exit === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.name}.`);
-    if (entrance === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Found exit ${exit.name} in ${room.name}, but it doesn't have a corresponding entrance in ${exit.dest.name}.`);
+    if (exit === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.name}.`);
+    if (entrance === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Found exit ${exit.name} in ${room.name}, but it doesn't have a corresponding entrance in ${exit.dest.name}.`);
     if (command === "unlock" && exit.unlocked && entrance.unlocked) return;
     if (command === "lock" && !exit.unlocked && !entrance.unlocked) return;
 
     // Now lock or unlock the exit.
     if (command === "lock") {
-        room.lock(game, exitIndex);
-        exit.dest.lock(game, entranceIndex);
+        room.lock(exitIndex);
+        exit.dest.lock(entranceIndex);
     }
     else if (command === "unlock") {
-        room.unlock(game, exitIndex);
-        exit.dest.unlock(game, entranceIndex);
+        room.unlock(exitIndex);
+        exit.dest.unlock(entranceIndex);
     }
 
     return;
-};
+}
