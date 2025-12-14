@@ -745,23 +745,23 @@ export default class Player extends ItemContainer {
         // Apply the effects of any attributes that require immediate action.
         if (status.id === "heated")
             this.game.heated = true;
-        if (status.attributes.includes("no channel")) {
+        if (status.behaviorAttributes.includes("no channel")) {
             this.location.leaveChannel(this);
             this.removeFromWhispers(`${this.displayName} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.id}.`);
         }
-        if (status.attributes.includes("no hearing")) this.removeFromWhispers(`${this.displayName} can no longer hear.`);
-        if (status.attributes.includes("hidden")) {
+        if (status.behaviorAttributes.includes("no hearing")) this.removeFromWhispers(`${this.displayName} can no longer hear.`);
+        if (status.behaviorAttributes.includes("hidden")) {
             if (narrate) new Narration(this.game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") && occupant.name !== this.name));
         }
-        if (status.attributes.includes("concealed")) {
+        if (status.behaviorAttributes.includes("concealed")) {
             if (item === null || item === undefined) item = { singleContainingPhrase: "a MASK" };
             this.displayName = `An individual wearing ${item.singleContainingPhrase}`;
             this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
             this.setPronouns(this.pronouns, "neutral");
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
         }
-        if (status.attributes.includes("disable all") || status.attributes.includes("disable move") || status.attributes.includes("disable run")) {
+        if (status.behaviorAttributes.includes("disable all") || status.behaviorAttributes.includes("disable move") || status.behaviorAttributes.includes("disable run")) {
             // Clear the player's movement timer.
             this.isMoving = false;
             clearInterval(this.moveTimer);
@@ -772,9 +772,9 @@ export default class Player extends ItemContainer {
         // Announce when a player falls asleep or unconscious.
         if (status.id === "asleep" && narrate) new Narration(this.game, this, this.location, `${this.displayName} falls asleep.`).send();
         else if (status.id === "blacked out" && narrate) new Narration(this.game, this, this.location, `${this.displayName} blacks out.`).send();
-        else if (status.attributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} goes unconscious.`).send();
+        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.attributes, status.inflictedDescription, status.curedDescription, status.row, this.game);
+        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.game);
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -846,15 +846,15 @@ export default class Player extends ItemContainer {
         }
         if (status === null) return "Specified player doesn't have that status effect.";
 
-        if (status.attributes.includes("no channel") && this.getAttributeStatusEffects("no channel").length - 1 === 0)
+        if (status.behaviorAttributes.includes("no channel") && this.getAttributeStatusEffects("no channel").length - 1 === 0)
             this.location.joinChannel(this);
-        if (status.attributes.includes("hidden")) {
+        if (status.behaviorAttributes.includes("hidden")) {
             if (narrate) new Narration(this.game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.removeFromWhispers(`${this.displayName} comes out of the ${this.hidingSpot}.`);
             this.location.occupantsString = this.location.generate_occupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden") || occupant.name === this.name));
             this.hidingSpot = "";
         }
-        if (status.attributes.includes("concealed")) {
+        if (status.behaviorAttributes.includes("concealed")) {
             this.displayName = this.name;
             if (this.title === "NPC") this.displayIcon = this.id;
             else this.displayIcon = null;
@@ -867,7 +867,7 @@ export default class Player extends ItemContainer {
         // Announce when a player awakens.
         if (status.id === "asleep" && narrate) new Narration(this.game, this, this.location, `${this.displayName} wakes up.`).send();
         else if (status.id === "blacked out" && narrate) new Narration(this.game, this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.attributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} regains consciousness.`).send();
+        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} regains consciousness.`).send();
 
         let returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
@@ -951,7 +951,7 @@ export default class Player extends ItemContainer {
     hasAttribute(attribute) {
         let hasAttribute = false;
         for (let i = 0; i < this.status.length; i++) {         
-            if (this.status[i].attributes.includes(attribute)) {
+            if (this.status[i].behaviorAttributes.includes(attribute)) {
                 hasAttribute = true;
                 break;
             }
@@ -968,7 +968,7 @@ export default class Player extends ItemContainer {
         /** @type {Status[]} */
         let statusEffects = [];
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].attributes.includes(attribute))
+            if (this.status[i].behaviorAttributes.includes(attribute))
                 statusEffects.push(this.status[i]);
         }
         return statusEffects;

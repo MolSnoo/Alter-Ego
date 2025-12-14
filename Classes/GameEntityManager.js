@@ -4,6 +4,7 @@ import Game from "../Data/Game.js";
 import Prefab from "../Data/Prefab.js";
 import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
+import Status from "../Data/Status.js";
 
 /**
  * @class GameEntityManager
@@ -87,6 +88,14 @@ export default class GameEntityManager {
 		});
 		this.game.events.length = 0;
 		this.game.eventsCollection.clear();
+	}
+
+	/**
+	 * Clears all status effect data from memory.
+	 */
+	clearStatusEffects() {
+		this.game.statusEffects.length = 0;
+        this.game.statusEffectsCollection.clear();
 	}
 
 	/** 
@@ -176,6 +185,39 @@ export default class GameEntityManager {
 			puzzle.requirementsStrings.forEach((requirementsString, i) => {
 				if (requirementsString.type === "Event" && requirementsString.entityId === event.id)
 					puzzle.requirements[i] = event;
+			});
+		});
+	}
+
+	/**
+	 * Updates references to a given status effect throughout the game.
+	 * @param {Status} status 
+	 */
+	updateStatusEffectReferences(status) {
+		this.game.prefabsCollection.forEach(prefab => {
+			prefab.effectsStrings.forEach((effectsString, i) => {
+				if (effectsString === status.id)
+					prefab.effects[i] = status;
+			});
+			prefab.curesStrings.forEach((curesString, i) => {
+				if (curesString === status.id)
+					prefab.cures[i] = status;
+			});
+		});
+		this.game.eventsCollection.forEach(event => {
+			event.effectsStrings.forEach((effectsString, i) => {
+				if (effectsString === status.id)
+					event.effects[i] = status;
+			});
+			event.refreshesStrings.forEach((refreshesString, i) => {
+				if (refreshesString === status.id)
+					event.refreshes[i] = status;
+			});
+		});
+		this.game.gesturesCollection.forEach(gesture => {
+			gesture.disabledStatusesStrings.forEach((disabledStatusString, i) => {
+				if (disabledStatusString === status.id)
+					gesture.disabledStatuses[i] = status;
 			});
 		});
 	}

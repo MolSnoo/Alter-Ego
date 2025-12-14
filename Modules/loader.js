@@ -279,7 +279,7 @@ export function loadPrefabs (game, doErrorChecking) {
         const response = await getSheetValues(game.constants.prefabSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnID = 0;
+        const columnId = 0;
         const columnName = 1;
         const columnContainingPhrase = 2;
         const columnDiscreet = 3;
@@ -288,14 +288,14 @@ export function loadPrefabs (game, doErrorChecking) {
         const columnUsable = 6;
         const columnUseVerb = 7;
         const columnUses = 8;
-        const columnEffects = 9;
-        const columnCures = 10;
-        const columnNextStage = 11;
+        const columnEffectsStrings = 9;
+        const columnCuresStrings = 10;
+        const columnNextStageId = 11;
         const columnEquippable = 12;
         const columnEquipmentSlots = 13;
         const columnCoveredEquipmentSlots = 14;
-        const columnEquipCommands = 15;
-        const columnInventorySlots = 16;
+        const columnCommandsString = 15;
+        const columnInventorySlotsStrings = 16;
         const columnPreposition = 17;
         const columnDescription = 18;
 
@@ -310,11 +310,11 @@ export function loadPrefabs (game, doErrorChecking) {
             // Separate single containing phrase and plural containing phrase.
             const containingPhrase = sheet[row][columnContainingPhrase] ? sheet[row][columnContainingPhrase].split(',') : "";
             // Create a list of all status effect IDs this prefab will inflict when used.
-            let effects = sheet[row][columnEffects] ? sheet[row][columnEffects].split(',') : [];
+            let effects = sheet[row][columnEffectsStrings] ? sheet[row][columnEffectsStrings].split(',') : [];
             for (let j = 0; j < effects.length; j++)
                 effects[j] = Status.generateValidId(effects[j]);
             // Create a list of all status effect IDs this prefab will cure when used.
-            let cures = sheet[row][columnCures] ? sheet[row][columnCures].split(',') : [];
+            let cures = sheet[row][columnCuresStrings] ? sheet[row][columnCuresStrings].split(',') : [];
             for (let j = 0; j < cures.length; j++)
                 cures[j] = Status.generateValidId(cures[j]);
             // Create a list of equipment slots this prefab can be equipped to.
@@ -326,7 +326,7 @@ export function loadPrefabs (game, doErrorChecking) {
             for (let j = 0; j < coveredEquipmentSlots.length; j++)
                 coveredEquipmentSlots[j] = Game.generateValidEntityName(coveredEquipmentSlots[j]);
             // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
-            const commandString = sheet[row][columnEquipCommands] ? sheet[row][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
+            const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
             const commands = commandString ? commandString.split('/') : ["", ""];
             let equipCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
             for (let j = 0; j < equipCommands.length; j++)
@@ -335,7 +335,7 @@ export function loadPrefabs (game, doErrorChecking) {
             for (let j = 0; j < unequipCommands.length; j++)
                 unequipCommands[j] = unequipCommands[j].trim();
             // Create a list of inventory slots this prefab contains.
-            let inventorySlotStrings = sheet[row][columnInventorySlots] ? sheet[row][columnInventorySlots].split(',') : [];
+            let inventorySlotStrings = sheet[row][columnInventorySlotsStrings] ? sheet[row][columnInventorySlotsStrings].split(',') : [];
             /** @type {Collection<string, InventorySlot>} */
             let inventorySlots = new Collection();
             for (let i = 0; i < inventorySlotStrings.length; i++) {
@@ -353,7 +353,7 @@ export function loadPrefabs (game, doErrorChecking) {
                 else inventorySlots.set(inventorySlot.id, inventorySlot);
             }
             const prefab = new Prefab(
-                sheet[row][columnID] ? Game.generateValidEntityName(sheet[row][columnID]) : "",
+                sheet[row][columnId] ? Game.generateValidEntityName(sheet[row][columnId]) : "",
                 name[0] ? Game.generateValidEntityName(name[0]) : "",
                 name[1] ? Game.generateValidEntityName(name[1]) : "",
                 containingPhrase[0] ? containingPhrase[0].trim() : "",
@@ -366,11 +366,11 @@ export function loadPrefabs (game, doErrorChecking) {
                 parseInt(sheet[row][columnUses]),
                 effects,
                 cures,
-                sheet[row][columnNextStage] ? sheet[row][columnNextStage].trim() : "",
+                sheet[row][columnNextStageId] ? sheet[row][columnNextStageId].trim() : "",
                 sheet[row][columnEquippable] ? sheet[row][columnEquippable].trim() === "TRUE" : false,
                 equipmentSlots,
                 coveredEquipmentSlots,
-                sheet[row][columnEquipCommands] ? sheet[row][columnEquipCommands] : "",
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "",
                 equipCommands,
                 unequipCommands,
                 inventorySlots,
@@ -500,13 +500,8 @@ export function loadRecipes (game, doErrorChecking) {
             for (let j = 0; j < ingredientsStrings.length; j++)
                 ingredientsStrings[j] = Game.generateValidEntityName(ingredientsStrings[j]);
             // Parse the duration.
-            const durationString = sheet[row][columnDuration] ? sheet[row][columnDuration].toString() : "";
-            let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
-            let durationUnit = durationString.charAt(durationString.length - 1);
-            /** @type {import('dayjs/plugin/duration.js').Duration} */
-            let duration = null;
-            if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
-                duration = dayjs.duration(durationInt, durationUnit);
+            const durationString = sheet[row][columnDuration] ? String(sheet[row][columnDuration]) : "";
+            const duration = parseDuration(durationString);
             // Separate the products.
             let productsStrings = sheet[row][columnProducts] ? sheet[row][columnProducts].split(',') : [];
             // For each product, convert the string to a valid entity name.
@@ -592,7 +587,7 @@ export function loadRoomItems (game, doErrorChecking) {
         const columnIdentifier = 1;
         const columnLocationDisplayName = 2;
         const columnAccessible = 3;
-        const columnContainer = 4;
+        const columnContainerName = 4;
         const columnQuantity = 5;
         const columnUses = 6;
         const columnDescription = 7;
@@ -605,7 +600,7 @@ export function loadRoomItems (game, doErrorChecking) {
         /** @type {Error[]} */
         let errors = [];
         for (let row = 0; row < sheet.length; row++) {
-            let containerDisplay = sheet[row][columnContainer] && sheet[row][columnContainer].split(':').length > 1 ? sheet[row][columnContainer].split(':') : ['', sheet[row][columnContainer]];
+            let containerDisplay = sheet[row][columnContainerName] && sheet[row][columnContainerName].split(':').length > 1 ? sheet[row][columnContainerName].split(':') : ['', sheet[row][columnContainerName]];
             let containerType = containerDisplay[0].trim();
             const containerTypeUpper = containerType.toUpperCase();
             let containerName = Game.generateValidEntityName(containerDisplay[1]);
@@ -750,13 +745,13 @@ export function loadPuzzles (game, doErrorChecking) {
         const columnOutcome = 2;
         const columnRequiresMod = 3;
         const columnLocationDisplayName = 4;
-        const columnParentFixture = 5;
+        const columnParentFixtureName = 5;
         const columnType = 6;
         const columnAccessible = 7;
-        const columnRequires = 8;
+        const columnRequiresStrings = 8;
         const columnSolution = 9;
         const columnAttempts = 10;
-        const columnCommandSets = 11;
+        const columnCommandsString = 11;
         const columnCorrectDescription = 12;
         const columnAlreadySolvedDescription = 13;
         const columnIncorrectDescription = 14;
@@ -767,7 +762,7 @@ export function loadPuzzles (game, doErrorChecking) {
         /** @type {Error[]} */
         let errors = [];
         for (let row = 0; row < sheet.length; row++) {
-            let requirements = sheet[row][columnRequires] ? sheet[row][columnRequires].split(',') : [];
+            let requirements = sheet[row][columnRequiresStrings] ? sheet[row][columnRequiresStrings].split(',') : [];
             /** @type {PuzzleRequirement[]} */
             let requirementsStrings = [];
             requirements.forEach(requirement => {
@@ -781,7 +776,7 @@ export function loadPuzzles (game, doErrorChecking) {
                 else if (requirementTypeUpper === "PREFAB" || requirementTypeUpper === "ITEM" || requirementTypeUpper === "ROOMITEM" || requirementTypeUpper === "INVENTORYITEM") requirementType = "Prefab";
                 requirementsStrings.push({ type: requirementType, entityId: requirementId });
             });
-            const commandString = sheet[row][columnCommandSets] ? sheet[row][columnCommandSets].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
+            const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
             /** @type {PuzzleCommandSet[]} */
             let commandSets = [];
             /**
@@ -811,7 +806,7 @@ export function loadPuzzles (game, doErrorChecking) {
                 }
             }
             else {
-                const commands = getCommands(sheet[row][columnCommandSets] ? sheet[row][columnCommandSets] : "");
+                const commands = getCommands(sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "");
                 commandSets.push({ outcomes: [], solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
             }
             let solutions = sheet[row][columnSolution] ? sheet[row][columnSolution].toString().split(',') : [];
@@ -827,13 +822,13 @@ export function loadPuzzles (game, doErrorChecking) {
                 sheet[row][columnOutcome] ? sheet[row][columnOutcome].trim() : "",
                 sheet[row][columnRequiresMod] ? sheet[row][columnRequiresMod].trim() === "TRUE" : false,
                 sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
-                sheet[row][columnParentFixture] ? Game.generateValidEntityName(sheet[row][columnParentFixture]) : "",
+                sheet[row][columnParentFixtureName] ? Game.generateValidEntityName(sheet[row][columnParentFixtureName]) : "",
                 sheet[row][columnType] ? sheet[row][columnType].trim() : "",
                 sheet[row][columnAccessible] ? sheet[row][columnAccessible].trim() === "TRUE" : false,
                 requirementsStrings,
                 solutions,
                 parseInt(sheet[row][columnAttempts]),
-                sheet[row][columnCommandSets] ? sheet[row][columnCommandSets] : "",
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "",
                 commandSets,
                 sheet[row][columnCorrectDescription] ? sheet[row][columnCorrectDescription].trim() : "",
                 sheet[row][columnAlreadySolvedDescription] ? sheet[row][columnAlreadySolvedDescription].trim() : "",
@@ -848,6 +843,7 @@ export function loadPuzzles (game, doErrorChecking) {
             const parentFixture = game.entityFinder.getFixture(puzzle.parentFixtureName, puzzle.locationDisplayName);
             if (parentFixture) puzzle.setParentFixture(parentFixture);
             game.puzzles.push(puzzle);
+            game.entityManager.updatePuzzleReferences(puzzle);
         }
         game.puzzles.forEach(puzzle => {
             puzzle.requirementsStrings.forEach((requirementString, i) => {
@@ -982,7 +978,7 @@ export function loadEvents (game, doErrorChecking) {
         const response = await getSheetValues(game.constants.eventSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnID = 0;
+        const columnId = 0;
         const columnOngoing = 1;
         const columnDurationString = 2;
         const columnRemainingString = 3;
@@ -999,12 +995,7 @@ export function loadEvents (game, doErrorChecking) {
         let errors = [];
         for (let row = 0; row < sheet.length; row++) {
             const durationString = sheet[row][columnDurationString] ? String(sheet[row][columnDurationString]) : "";
-            let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
-            let durationUnit = durationString.charAt(durationString.length - 1);
-            /** @type {import('dayjs/plugin/duration.js').Duration} */
-            let duration = null;
-            if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
-                duration = dayjs.duration(durationInt, durationUnit);
+            const duration = parseDuration(durationString);
             const timeRemaining = sheet[row][columnRemainingString] ? dayjs.duration(sheet[row][columnRemainingString]) : null;
             let triggerTimesStrings = sheet[row][columnTriggerTimesStrings] ? sheet[row][columnTriggerTimesStrings].split(',') : [];
             for (let i = 0; i < triggerTimesStrings.length; i++)
@@ -1024,7 +1015,7 @@ export function loadEvents (game, doErrorChecking) {
             for (let i = 0; i < refreshesStrings.length; i++)
                 refreshesStrings[i] = Status.generateValidId(refreshesStrings[i]);
             const event = new Event(
-                sheet[row][columnID] ? Game.generateValidEntityName(sheet[row][columnID]) : "",
+                sheet[row][columnId] ? Game.generateValidEntityName(sheet[row][columnId]) : "",
                 sheet[row][columnOngoing] ? sheet[row][columnOngoing].trim() === "TRUE" : false,
                 durationString,
                 duration,
@@ -1113,155 +1104,112 @@ export function loadStatusEffects (game, doErrorChecking) {
         const response = await getSheetValues(game.constants.statusSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnName = 0;
+        const columnId = 0;
         const columnDuration = 1;
         const columnFatal = 2;
         const columnVisible = 3;
-        const columnOverriders = 4;
-        const columnCures = 5;
-        const columnNextStage = 6;
-        const columnDuplicatedStatus = 7;
-        const columnCuredCondition = 8;
-        const columnStatModifier = 9;
-        const columnAttributes = 10;
+        const columnOverridersStrings = 4;
+        const columnCuresStrings = 5;
+        const columnNextStageId = 6;
+        const columnDuplicatedStatusId = 7;
+        const columnCuredConditionId = 8;
+        const columnStatModifiersString = 9;
+        const columnBehaviorAttributes = 10;
         const columnInflictedDescription = 12;
         const columnCuredDescription = 13;
 
-        game.statusEffects.length = 0;
-        game.statusEffectsCollection.clear();
-        for (let i = 0; i < sheet.length; i++) {
-            const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
-            let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
-            let durationUnit = durationString.charAt(durationString.length - 1);
-            /** @type {import('dayjs/plugin/duration.js').Duration} */
-            let duration = null;
-            if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
-                duration = dayjs.duration(durationInt, durationUnit);
-            let overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
-            for (let j = 0; j < overriders.length; j++)
-                overriders[j] = Status.generateValidId(overriders[j]);
-            let cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
-            for (let j = 0; j < cures.length; j++)
-                cures[j] = Status.generateValidId(cures[j]);
-            let modifierStrings = sheet[i][columnStatModifier] ? sheet[i][columnStatModifier].split(',') : [];
+        game.entityManager.clearStatusEffects();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            const durationString = sheet[row][columnDuration] ? String(sheet[row][columnDuration]) : "";
+            const duration = parseDuration(durationString);
+            let overriders = sheet[row][columnOverridersStrings] ? sheet[row][columnOverridersStrings].split(',') : [];
+            for (let i = 0; i < overriders.length; i++)
+                overriders[i] = Status.generateValidId(overriders[i]);
+            let cures = sheet[row][columnCuresStrings] ? sheet[row][columnCuresStrings].split(',') : [];
+            for (let i = 0; i < cures.length; i++)
+                cures[i] = Status.generateValidId(cures[i]);
+            const modifierStrings = sheet[row][columnStatModifiersString] ? sheet[row][columnStatModifiersString].split(',') : [];
+            const regex = /(@)?(.*)(\+|-|=)(.*)/gi;
             /** @type {StatModifier[]} */
             let modifiers = [];
-            for (let j = 0; j < modifierStrings.length; j++) {
-                modifierStrings[j] = modifierStrings[j].toLowerCase().trim();
-
-                let modifiesSelf = true;
-                if (modifierStrings[j].charAt(0) === '@') {
-                    modifiesSelf = false;
-                    modifierStrings[j] = modifierStrings[j].substring(1);
+            for (const modifierString of modifierStrings) {
+                const matches = modifierString.trim().matchAll(regex);
+                for (const match of matches) {
+                    // Determine if the modifier modifies the player it's applied to or not.
+                    let modifiesSelf = true;
+                    if (match[1] && match[1] === '@')
+                        modifiesSelf = false;
+                    // Parse the stat.
+                    let stat = null;
+                    if (match[2])
+                        stat = Player.abbreviateStatName(match[2]);
+                    // Determine if the modifier assigns the value to the player's stat, or just modifies it.
+                    let assignValue = false;
+                    if (match[3] && match[3] === '=')
+                        assignValue = true;
+                    // Parse the value.
+                    let value = null;
+                    if (match[4]) {
+                        value = parseInt(match[4]);
+                        if (match[3] && match[3] === '-')
+                            value *= -1;
+                    }
+                    modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
                 }
-
-                let stat = null;
-                let assignValue = false;
-                let value = null;
-                if (modifierStrings[j].includes('+')) {
-                    stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('+'));
-                    value = parseInt(modifierStrings[j].substring(stat.length));
-                }
-                else if (modifierStrings[j].includes('-')) {
-                    stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('-'));
-                    value = parseInt(modifierStrings[j].substring(stat.length));
-                }
-                else if (modifierStrings[j].includes('=')) {
-                    stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('='));
-                    assignValue = true;
-                    value = parseInt(modifierStrings[j].substring(stat.length + 1));
-                }
-
-                if (stat === "strength") stat = "str";
-                else if (stat === "intelligence") stat = "int";
-                else if (stat === "dexterity") stat = "dex";
-                else if (stat === "speed") stat = "spd";
-                else if (stat === "stamina") stat = "sta";
-
-                modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
             }
-            let attributes = sheet[i][columnAttributes] ? sheet[i][columnAttributes].split(',') : [];
-            for (let j = 0; j < attributes.length; j++)
-                attributes[j] = attributes[j].trim();
+            let attributes = sheet[row][columnBehaviorAttributes] ? sheet[row][columnBehaviorAttributes].split(',') : [];
+            for (let i = 0; i < attributes.length; i++)
+                attributes[i] = attributes[i].trim();
             const status = new Status(
-                sheet[i][columnName] ? sheet[i][columnName].trim() : "",
+                sheet[row][columnId] ? sheet[row][columnId].trim() : "",
                 duration,
-                sheet[i][columnFatal] ? sheet[i][columnFatal].trim() === "TRUE" : false,
-                sheet[i][columnVisible] ? sheet[i][columnVisible].trim() === "TRUE" : false,
+                sheet[row][columnFatal] ? sheet[row][columnFatal].trim() === "TRUE" : false,
+                sheet[row][columnVisible] ? sheet[row][columnVisible].trim() === "TRUE" : false,
                 overriders,
                 cures,
-                sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : null,
-                sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus].trim() : null,
-                sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition].trim() : null,
+                sheet[row][columnNextStageId] ? sheet[row][columnNextStageId].trim() : "",
+                sheet[row][columnDuplicatedStatusId] ? sheet[row][columnDuplicatedStatusId].trim() : "",
+                sheet[row][columnCuredConditionId] ? sheet[row][columnCuredConditionId].trim() : "",
                 modifiers,
                 attributes,
-                sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription].trim() : "",
-                sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription].trim() : "",
-                i + 2,
+                sheet[row][columnInflictedDescription] ? sheet[row][columnInflictedDescription].trim() : "",
+                sheet[row][columnCuredDescription] ? sheet[row][columnCuredDescription].trim() : "",
+                row + 2,
                 game
             );
+            if (game.entityFinder.getStatusEffect(status.id)) {
+                errors.push(new Error(`Couldn't load status effect on row ${status.row}. Another status effect with this ID already exists.`));
+                continue;
+            }
             game.statusEffects.push(status);
             game.statusEffectsCollection.set(status.id, status);
+            game.entityManager.updateStatusEffectReferences(status);
         }
-        // Now go through and make the nextStage and curedCondition an actual Status object.
-        var errors = [];
-        for (let i = 0; i < game.statusEffects.length; i++) {
-            for (let j = 0; j < game.statusEffects[i].overriders.length; j++) {
-                let overrider = game.statusEffects.find(statusEffect => statusEffect.id === game.statusEffects[i].overridersStrings[j]);
-                if (overrider) game.statusEffects[i].overriders[j] = overrider;
-            }
-            for (let j = 0; j < game.statusEffects[i].cures.length; j++) {
-                let cure = game.statusEffects.find(statusEffect => statusEffect.id === game.statusEffects[i].curesStrings[j]);
-                if (cure) game.statusEffects[i].cures[j] = cure;
-            }
-            if (game.statusEffects[i].nextStage) {
-                let nextStage = game.statusEffects.find(statusEffect => statusEffect.id === game.statusEffects[i].nextStageId);
-                if (nextStage) game.statusEffects[i].nextStage = nextStage;
-            }
-            if (game.statusEffects[i].duplicatedStatus) {
-                let duplicatedStatus = game.statusEffects.find(statusEffect => statusEffect.id === game.statusEffects[i].duplicatedStatusId);
-                if (duplicatedStatus) game.statusEffects[i].duplicatedStatus = duplicatedStatus;
-            }
-            if (game.statusEffects[i].curedCondition) {
-                let curedCondition = game.statusEffects.find(statusEffect => statusEffect.id === game.statusEffects[i].curedConditionId);
-                if (curedCondition) game.statusEffects[i].curedCondition = curedCondition;
-            }
+        game.statusEffectsCollection.forEach(status => {
+            status.overridersStrings.forEach((overriderString, i) => {
+                const overrider = game.entityFinder.getStatusEffect(overriderString);
+                if (overrider) status.overriders[i] = overrider;
+            });
+            status.curesStrings.forEach((curesString, i) => {
+                const cure = game.entityFinder.getStatusEffect(curesString);
+                if (cure) status.cures[i] = cure;
+            });
+            const nextStage = game.entityFinder.getStatusEffect(status.nextStageId);
+            if (nextStage) status.setNextStage(nextStage);
+            const duplicatedStatus = game.entityFinder.getStatusEffect(status.duplicatedStatusId);
+            if (duplicatedStatus) status.setDuplicatedStatus(duplicatedStatus);
+            const curedCondition = game.entityFinder.getStatusEffect(status.curedConditionId);
+            if (curedCondition) status.setCuredCondition(curedCondition);
             if (doErrorChecking) {
-                const error = checkStatusEffect(game.statusEffects[i]);
+                const error = checkStatusEffect(status);
                 if (error instanceof Error) errors.push(error);
             }
-        }
-        for (let i = 0; i < game.prefabs.length; i++) {
-            for (let j = 0; j < game.prefabs[i].effectsStrings.length; j++) {
-                let status = game.statusEffects.find(statusEffect => statusEffect.id === game.prefabs[i].effectsStrings[j]);
-                if (status) game.prefabs[i].effects[j] = status;
-            }
-            for (let j = 0; j < game.prefabs[i].curesStrings.length; j++) {
-                let status = game.statusEffects.find(statusEffect => statusEffect.id === game.prefabs[i].curesStrings[j]);
-                if (status) game.prefabs[i].cures[j] = status;
-            }
-        }
-        for (let i = 0; i < game.events.length; i++) {
-            for (let j = 0; j < game.events[i].effectsStrings.length; j++) {
-                let status = game.statusEffects.find(statusEffect => statusEffect.id === game.events[i].effectsStrings[j]);
-                if (status) game.events[i].effects[j] = status;
-            }
-            for (let j = 0; j < game.events[i].refreshesStrings.length; j++) {
-                let status = game.statusEffects.find(statusEffect => statusEffect.id === game.events[i].refreshesStrings[j]);
-                if (status) game.events[i].refreshes[j] = status;
-            }
-        }
-        for (let i = 0; i < game.gestures.length; i++) {
-            for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
-                let status = game.statusEffects.find(statusEffect => statusEffect.id === game.gestures[i].disabledStatusesStrings[j]);
-                if (status) game.gestures[i].disabledStatuses[j] = status;
-            }
-        }
+        });
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -1278,33 +1226,30 @@ export function checkStatusEffect (status) {
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect ID was given.`);
     if (status.duration !== null && !dayjs.isDuration(status.duration))
         return new Error(`Couldn't load status effect on row ${status.row}. An invalid duration was given.`);
-    for (let i = 0; i < status.statModifiers.length; i++) {
-        if (status.statModifiers[i].stat === null)
+    status.statModifiers.forEach((statModifier, i) => {
+        if (statModifier.stat === null)
             return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
-        if (status.statModifiers[i].stat !== "str" && status.statModifiers[i].stat !== "int" && status.statModifiers[i].stat !== "dex" && status.statModifiers[i].stat !== "spd" && status.statModifiers[i].stat !== "sta")
-            return new Error(`Couldn't load status effect on row ${status.row}. "${status.statModifiers[i].stat}" in stat modifier ${i + 1} is not a valid stat.`);
-        if (status.statModifiers[i].value === null)
+        if (statModifier.stat !== "str" && statModifier.stat !== "int" && statModifier.stat !== "dex" && statModifier.stat !== "spd" && statModifier.stat !== "sta")
+            return new Error(`Couldn't load status effect on row ${status.row}. "${statModifier.stat}" in stat modifier ${i + 1} is not a valid stat.`);
+        if (statModifier.value === null)
             return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
-        if (isNaN(status.statModifiers[i].value))
+        if (isNaN(statModifier.value))
             return new Error(`Couldn't load status effect on row ${status.row}. The value given in stat modifier ${i + 1} is not an integer.`);
-    }
-    if (status.overriders.length > 0) {
-        for (let i = 0; i < status.overriders.length; i++)
-            if (!(status.overriders[i] instanceof Status))
-                return new Error(`Couldn't load status effect on row ${status.row}. "${status.overridersStrings[i]}" in "don't inflict if" is not a status effect.`);
-    }
-    if (status.cures.length > 0) {
-        for (let i = 0; i < status.cures.length; i++)
-            if (!(status.cures[i] instanceof Status))
-                return new Error(`Couldn't load status effect on row ${status.row}. "${status.curesStrings[i]}" in cures is not a status effect.`);
-    }
-    if (status.nextStage !== null && !(status.nextStage instanceof Status))
+    });
+    status.overriders.forEach((overrider, i) => {
+        if (!(overrider instanceof Status))
+            return new Error(`Couldn't load status effect on row ${status.row}. "${status.overridersStrings[i]}" in "don't inflict if" is not a status effect.`);
+    });
+    status.cures.forEach((cure, i) => {
+        if (!(cure instanceof Status))
+            return new Error(`Couldn't load status effect on row ${status.row}. "${status.curesStrings[i]}" in cures is not a status effect.`);
+    });
+    if (status.nextStageId !== "" && !(status.nextStage instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Next stage "${status.nextStageId}" is not a status effect.`);
-    if (status.duplicatedStatus !== null && !(status.duplicatedStatus instanceof Status))
+    if (status.duplicatedStatusId !== "" && !(status.duplicatedStatus instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Duplicated status "${status.duplicatedStatusId}" is not a status effect.`);
-    if (status.curedCondition !== null && !(status.curedCondition instanceof Status))
+    if (status.curedConditionId !== "" && !(status.curedCondition instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Cured condition "${status.curedConditionId}" is not a status effect.`);
-    return;
 }
 
 /**
@@ -1993,6 +1938,21 @@ export function checkFlag (flag, flags) {
     }
 
     return;
+}
+
+/**
+ * Parses a duration string and returns a duration object.
+ * @param {string} durationString - An integer and a unit. Acceptable units: y, M, w, d, h, m, s.
+ * @returns A duration object, or null.
+ */
+function parseDuration (durationString) {
+    let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+    let durationUnit = durationString.charAt(durationString.length - 1);
+    /** @type {import('dayjs/plugin/duration.js').Duration} */
+    let duration = null;
+    if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
+        duration = dayjs.duration(durationInt, durationUnit);
+    return duration;
 }
 
 /**
