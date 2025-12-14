@@ -320,8 +320,8 @@ export default class Game {
 				const now = dayjs();
 				this.eventsCollection.forEach(event => {
 					if (!event.ongoing) {
-						for (let triggerTime of event.triggerTimes) {
-							const time = dayjs(triggerTime, Event.formats);
+						for (let triggerTimeString of event.triggerTimesStrings) {
+							const time = dayjs(triggerTimeString, Event.formats);
 							if (now.month() === time.month()
 								&& now.weekday() === time.weekday()
 								&& now.date() === time.date()

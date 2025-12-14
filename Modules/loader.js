@@ -105,9 +105,10 @@ export function loadRooms (game, doErrorChecking) {
                 roomRow + 2,
                 game
             );
-            if (game.entityFinder.getRoom(room.id))
+            if (game.entityFinder.getRoom(room.id)) {
                 errors.push(new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`));
-            else game.roomsCollection.set(room.id, room);
+                continue;
+            }
         }
         // Now go through and make the dest for each exit an actual Room object.
         game.roomsCollection.forEach(room => {
@@ -442,14 +443,14 @@ export function checkPrefab (prefab) {
         return new Error(`Couldn't load prefab on row ${prefab.row}. The size given is not a number.`);
     if (isNaN(prefab.weight))
         return new Error(`Couldn't load prefab on row ${prefab.row}. The weight given is not a number.`);
-    for (let i = 0; i < prefab.effects.length; i++) {
-        if (!(prefab.effects[i] instanceof Status))
+    prefab.effects.forEach((effect, i) => {
+        if (!(effect instanceof Status))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.effectsStrings[i]}" in effects is not a status effect.`);
-    }
-    for (let i = 0; i < prefab.cures.length; i++) {
-        if (!(prefab.cures[i] instanceof Status))
+    });
+    prefab.cures.forEach((cure, i) => {
+        if (!(cure instanceof Status))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.curesStrings[i]}" in cures is not a status effect.`);
-    }
+    });
     if (prefab.nextStageId !== "" && !(prefab.nextStage instanceof Prefab))
         return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStageId}" in turns into is not a prefab.`);
     prefab.inventoryCollection.forEach((inventorySlot, i) => {
@@ -554,10 +555,10 @@ export function loadRecipes (game, doErrorChecking) {
 export function checkRecipe (recipe) {
     if (recipe.ingredients.length === 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
-    for (let i = 0; i < recipe.ingredients.length; i++) {
-        if (!(recipe.ingredients[i] instanceof Prefab))
+    recipe.ingredients.forEach((ingredient, i) => {
+        if (!(ingredient instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.ingredientsStrings[i]}" in ingredients is not a prefab.`);
-    }
+    });
     if (recipe.ingredients.length > 2 && recipe.fixtureTag === "")
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require a fixture tag.`);
     if (recipe.products.length > 2 && recipe.fixtureTag === "")
@@ -566,10 +567,10 @@ export function checkRecipe (recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
     if (recipe.fixtureTag === "" && recipe.duration !== null)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without a fixture tag cannot have a duration.`);
-    for (let i = 0; i < recipe.products.length; i++) {
-        if (!(recipe.products[i] instanceof Prefab))
+    recipe.products.forEach((product, i) => {
+        if (!(product instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.productsStrings[i]}" in products is not a prefab.`);
-    }
+    });
     if (recipe.fixtureTag !== "" && recipe.uncraftable)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with a fixture tag cannot be uncraftable.`)
     if (recipe.products.length > 1 && recipe.uncraftable)
@@ -920,21 +921,19 @@ export function checkPuzzle (puzzle) {
             puzzle.type !== "sta probability" && puzzle.type !== "stamina probability")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid stat probability puzzle type.`);
     }
-    if (puzzle.type === "weight") {
-        for (let i = 0; i < puzzle.solutions.length; i++) {
-            if (isNaN(parseInt(puzzle.solutions[i])))
-                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${puzzle.solutions[i]}" is not an integer.`);
+    puzzle.solutions.forEach(solution => {
+        if (puzzle.type === "weight" && isNaN(parseInt(solution)))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${solution}" is not an integer.`);
+        if (puzzle.type === "media" && !solution.startsWith("Item: ") && !solution.startsWith("Prefab: "))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${solution}" does not have the "Item: " or "Prefab: " prefix.`);
+        if (puzzle.type === "container") {
+            const requiredItems = solution.split('+');
+            requiredItems.forEach(requiredItem => {
+                if (!requiredItem.trim().startsWith("Item: ") && !requiredItem.trim().startsWith("Prefab: "))
+                    return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItem}" does not have the "Item: " or "Prefab: " prefix.`);
+            });
         }
-    }
-    if (puzzle.type === "container") {
-        for (let i = 0; i < puzzle.solutions.length; i++) {
-            let requiredItems = puzzle.solutions[i].split('+');
-            for (let j = 0; j < requiredItems.length; j++) {
-                if (!requiredItems[j].trim().startsWith("Item: ") && !requiredItems[j].trim().startsWith("Prefab: "))
-                    return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItems[j]}" does not have the "Item: " or "Prefab: " prefix.`);
-            }
-        }
-    }
+    });
     if (puzzle.type === "switch" && puzzle.solved === false)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but it not solved.`);
     if (puzzle.type === "switch" && puzzle.outcome === "")
@@ -942,30 +941,26 @@ export function checkPuzzle (puzzle) {
     if (puzzle.type === "switch" && !puzzle.solutions.includes(puzzle.outcome))
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but its outcome is not among the list of its solutions.`);
     if (puzzle.type === "media") {
-        for (let i = 0; i < puzzle.solutions.length; i++) {
-            if (!puzzle.solutions[i].startsWith("Item: ") && !puzzle.solutions[i].startsWith("Prefab: "))
-                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${puzzle.solutions[i]}" does not have the "Item: " or "Prefab: " prefix.`);
-        }
         if (puzzle.solved === true && puzzle.outcome === "")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but it was solved without an outcome.`);
         if (puzzle.outcome !== "" && !puzzle.solutions.includes(puzzle.outcome))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but its outcome is not among the list of its solutions.`);
     }
-    for (let i = 0; i < puzzle.commandSets.length; i++) {
-        for (let j = 0; j < puzzle.commandSets[i].outcomes.length; j++) {
-            if (!puzzle.solutions.includes(puzzle.commandSets[i].outcomes[j]))
-                return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.commandSets[i].outcomes[j]}" in command sets is not an outcome in the puzzle's solutions.`);
-        }
-    }
-    for (let i = 0; i < puzzle.requirements.length; i++) {
+    puzzle.commandSets.forEach(commandSet => {
+        commandSet.outcomes.forEach(outcome => {
+            if (!puzzle.solutions.includes(outcome))
+                return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${outcome}" in command sets is not an outcome in the puzzle's solutions.`);
+        });
+    });
+    puzzle.requirements.forEach((requirement, i) => {
         const requirementString = puzzle.requirementsStrings[i];
-        if (requirementString.type === "Prefab" && !(puzzle.requirements[i] instanceof Prefab))
+        if (requirementString.type === "Prefab" && !(requirement instanceof Prefab))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a prefab.`);
-        else if (requirementString.type === "Event" && !(puzzle.requirements[i] instanceof Event))
+        else if (requirementString.type === "Event" && !(requirement instanceof Event))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not an event.`);
-        else if (requirementString.type === "Flag" && !(puzzle.requirements[i] instanceof Flag))
+        else if (requirementString.type === "Flag" && !(requirement instanceof Flag))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a flag.`);
-        else if ((requirementString.type === "Puzzle" || requirementString.type === "") && !(puzzle.requirements[i] instanceof Puzzle))
+        else if ((requirementString.type === "Puzzle" || requirementString.type === "") && !(requirement instanceof Puzzle))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a puzzle.`);
         else if (requirementString.type !== "Prefab"
             && requirementString.type !== "Event"
@@ -973,7 +968,7 @@ export function checkPuzzle (puzzle) {
             && requirementString.type !== "Puzzle"
             && requirementString.type !== "")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.type}" is not a valid requirement type.`);
-    }
+    });
 }
 
 /**
@@ -984,109 +979,92 @@ export function checkPuzzle (puzzle) {
  */
 export function loadEvents (game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
-        // Clear timers for all events first.
-        for (let i = 0; i < game.events.length; i++) {
-            if (game.events[i].timer !== null)
-                game.events[i].timer.stop();
-            if (game.events[i].effectsTimer !== null)
-                game.events[i].effectsTimer.stop();
-        }
-
         const response = await getSheetValues(game.constants.eventSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnName = 0;
+        const columnID = 0;
         const columnOngoing = 1;
-        const columnDuration = 2;
-        const columnTimeRemaining = 3;
-        const columnTriggersAt = 4;
+        const columnDurationString = 2;
+        const columnRemainingString = 3;
+        const columnTriggerTimesStrings = 4;
         const columnRoomTag = 5;
-        const columnCommands = 6;
-        const columnStatusEffects = 7;
-        const columnRefreshedEffects = 8;
+        const columnCommandsString = 6;
+        const columnEffectsStrings = 7;
+        const columnRefreshedStrings = 8;
         const columnTriggeredNarration = 9;
         const columnEndedNarration = 10;
 
-        game.events.length = 0;
-        game.eventsCollection.clear();
-        for (let i = 0; i < sheet.length; i++) {
-            const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+        game.entityManager.clearEvents();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            const durationString = sheet[row][columnDurationString] ? String(sheet[row][columnDurationString]) : "";
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
             /** @type {import('dayjs/plugin/duration.js').Duration} */
             let duration = null;
             if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
                 duration = dayjs.duration(durationInt, durationUnit);
-            const timeRemaining = sheet[i][columnTimeRemaining] ? dayjs.duration(sheet[i][columnTimeRemaining]) : null;
-            let triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
-            for (let j = 0; j < triggerTimes.length; j++)
-                triggerTimes[j] = triggerTimes[j].trim();
-            const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
+            const timeRemaining = sheet[row][columnRemainingString] ? dayjs.duration(sheet[row][columnRemainingString]) : null;
+            let triggerTimesStrings = sheet[row][columnTriggerTimesStrings] ? sheet[row][columnTriggerTimesStrings].split(',') : [];
+            for (let i = 0; i < triggerTimesStrings.length; i++)
+                triggerTimesStrings[i] = triggerTimesStrings[i].trim();
+            const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
             const commands = commandString ? commandString.split('/') : ["", ""];
             let triggeredCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
-            for (let j = 0; j < triggeredCommands.length; j++)
-                triggeredCommands[j] = triggeredCommands[j].trim();
+            for (let i = 0; i < triggeredCommands.length; i++)
+                triggeredCommands[i] = triggeredCommands[i].trim();
             let endedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
-            for (let j = 0; j < endedCommands.length; j++)
-                endedCommands[j] = endedCommands[j].trim();
-            let effects = sheet[i][columnStatusEffects] ? sheet[i][columnStatusEffects].split(',') : [];
-            for (let j = 0; j < effects.length; j++)
-                effects[j] = Status.generateValidId(effects[j]);
-            let refreshes = sheet[i][columnRefreshedEffects] ? sheet[i][columnRefreshedEffects].split(',') : [];
-            for (let j = 0; j < refreshes.length; j++)
-                refreshes[j] = Status.generateValidId(refreshes[j]);
+            for (let i = 0; i < endedCommands.length; i++)
+                endedCommands[i] = endedCommands[i].trim();
+            let effectsStrings = sheet[row][columnEffectsStrings] ? sheet[row][columnEffectsStrings].split(',') : [];
+            for (let i = 0; i < effectsStrings.length; i++)
+                effectsStrings[i] = Status.generateValidId(effectsStrings[i]);
+            let refreshesStrings = sheet[row][columnRefreshedStrings] ? sheet[row][columnRefreshedStrings].split(',') : [];
+            for (let i = 0; i < refreshesStrings.length; i++)
+                refreshesStrings[i] = Status.generateValidId(refreshesStrings[i]);
             const event = new Event(
-                sheet[i][columnName] ? Game.generateValidEntityName(sheet[i][columnName]) : "",
-                sheet[i][columnOngoing] ? sheet[i][columnOngoing].trim() === "TRUE" : false,
+                sheet[row][columnID] ? Game.generateValidEntityName(sheet[row][columnID]) : "",
+                sheet[row][columnOngoing] ? sheet[row][columnOngoing].trim() === "TRUE" : false,
                 durationString,
                 duration,
-                sheet[i][columnTimeRemaining] ? sheet[i][columnTimeRemaining] : "",
+                sheet[row][columnRemainingString] ? sheet[row][columnRemainingString] : "",
                 timeRemaining,
-                sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt] : "",
-                triggerTimes,
-                sheet[i][columnRoomTag] ? sheet[i][columnRoomTag].trim() : "",
-                sheet[i][columnCommands] ? sheet[i][columnCommands] : "",
+                triggerTimesStrings,
+                sheet[row][columnRoomTag] ? sheet[row][columnRoomTag].trim() : "",
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "",
                 triggeredCommands,
                 endedCommands,
-                effects,
-                refreshes,
-                sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration].trim() : "",
-                sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration].trim() : "",
-                i + 2,
+                effectsStrings,
+                refreshesStrings,
+                sheet[row][columnTriggeredNarration] ? sheet[row][columnTriggeredNarration].trim() : "",
+                sheet[row][columnEndedNarration] ? sheet[row][columnEndedNarration].trim() : "",
+                row + 2,
                 game
             );
-            game.events.push(event);
-            game.eventsCollection.set(event.id, event);
-        }
-        let errors = [];
-        for (let i = 0; i < game.events.length; i++) {
-            for (let j = 0; j < game.events[i].effects.length; j++) {
-                const status = game.statusEffects.find(statusEffect => statusEffect.id === game.events[i].effectsStrings[j]);
-                if (status) game.events[i].effects[j] = status;
+            if (game.entityFinder.getEvent(event.id)) {
+                errors.push(new Error(`Couldn't load event on row ${event.row}. Another event with this ID already exists.`));
+                continue;
             }
-            for (let j = 0; j < game.events[i].refreshes.length; j++) {
-                const status = game.statusEffects.find(statusEffect => statusEffect.id === game.events[i].refreshesStrings[j]);
-                if (status) game.events[i].refreshes[j] = status;
-            }
+            event.effectsStrings.forEach((effectsString, i) => {
+                const effect = game.entityFinder.getStatusEffect(effectsString);
+                if (effect) event.effects[i] = effect;
+            });
+            event.refreshesStrings.forEach((refreshesString, i) => {
+                const refreshes = game.entityFinder.getStatusEffect(refreshesString);
+                if (refreshes) event.refreshes[i] = refreshes;
+            });
             if (doErrorChecking) {
-                const error = checkEvent(game.events[i]);
+                const error = checkEvent(event);
                 if (error instanceof Error) errors.push(error);
             }
-        }
-        for (let i = 0; i < game.puzzles.length; i++) {
-            for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                const requirementString = game.puzzles[i].requirementsStrings[j];
-                /*if (requirementString.startsWith("Event:")) {
-                    const requirement = game.events.find(event => event.id === Game.generateValidEntityName(requirementString.substring(requirementString.indexOf(':') + 1)));
-                    if (requirement) game.puzzles[i].requirements[j] = requirement;
-                }*/
-            }
+            game.events.push(event);
+            game.eventsCollection.set(event.id, event);
+            game.entityManager.updateEventReferences(event);
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -1101,29 +1079,27 @@ export function loadEvents (game, doErrorChecking) {
 export function checkEvent (event) {
     if (event.id === "" || event.id === null || event.id === undefined)
         return new Error(`Couldn't load event on row ${event.row}. No event ID was given.`);
-    if (event.game.events.filter(other => other.id === event.id && other.row < event.row).length > 0)
-        return new Error(`Couldn't load event on row ${event.row}. Another event with this ID already exists.`);
     if (event.duration !== null && !dayjs.isDuration(event.duration))
-        return new Error(`Couldn't load event on row ${event.row}. An invalid duration was given.`);
+        return new Error(`Couldn't load event on row ${event.row}. "${event.durationString}" is not a valid duration.`);
     if (event.remaining !== null && !dayjs.isDuration(event.remaining))
-        return new Error(`Couldn't load event on row ${event.row}. An invalid time remaining was given.`);
+        return new Error(`Couldn't load event on row ${event.row}. "${event.remainingString}" is not a valid representation of the time remaining.`);
     if (!event.ongoing && event.remaining !== null)
         return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
     if (event.ongoing && event.duration !== null && event.remaining === null)
-        return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
-    for (let i = 0; i < event.triggerTimes.length; i++) {
-        let triggerTime = dayjs(event.triggerTimes[i], Event.formats);
+        return new Error(`Couldn't load event on row ${event.row}. The event is ongoing and has a duration, but no amount of time remaining was given.`);
+    event.triggerTimesStrings.forEach(triggerTimeString => {
+        let triggerTime = dayjs(triggerTimeString, Event.formats);
         if (!triggerTime.isValid())
-            return new Error(`Couldn't load event on row ${event.row}. "${event.triggerTimes[i]}" is not a valid time to trigger at.`);
-    }
-    for (let i = 0; i < event.effects.length; i++) {
-        if (!(event.effects[i] instanceof Status))
+            return new Error(`Couldn't load event on row ${event.row}. "${triggerTimeString}" is not a valid time to trigger at.`);
+    });
+    event.effects.forEach((effect, i) => {
+        if (!(effect instanceof Status))
             return new Error(`Couldn't load event on row ${event.row}. "${event.effectsStrings[i]}" in inflicted status effects is not a status effect.`);
-    }
-    for (let i = 0; i < event.refreshes.length; i++) {
-        if (!(event.refreshes[i] instanceof Status))
-            return new Error(`Couldn't load event on row ${event.row}. "${event.refreshesStrings[i]}" in refreshing status effects is not a status effect.`);
-    }
+    });
+    event.refreshes.forEach((refreshes, i) => {
+        if (!(refreshes instanceof Status))
+            return new Error(`Couldn't load event on row ${event.row}. "${event.refreshesStrings[i]}" in refreshed status effects is not a status effect.`);
+    });
 }
 
 /**

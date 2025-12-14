@@ -1,3 +1,4 @@
+import Event from "../Data/Event.js";
 import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
 import Prefab from "../Data/Prefab.js";
@@ -74,6 +75,20 @@ export default class GameEntityManager {
 		this.game.puzzles.length = 0;
 	}
 
+	/**
+	 * Clears all event data from memory.
+	 */
+	clearEvents() {
+		this.game.eventsCollection.forEach(event => {
+			if (event.timer !== null)
+				event.timer.stop();
+			if (event.effectsTimer !== null)
+				event.effectsTimer.stop();
+		});
+		this.game.events.length = 0;
+		this.game.eventsCollection.clear();
+	}
+
 	/** 
 	 * Updates references to a given room throughout the game.
 	 * @param {Room} room - The room to reference.
@@ -131,7 +146,7 @@ export default class GameEntityManager {
 		});
 		this.game.puzzles.forEach(puzzle => {
 			puzzle.requirementsStrings.forEach((requirementsString, i) => {
-				if (requirementsString.entityId === "Prefab" && requirementsString.entityId === prefab.id)
+				if (requirementsString.type === "Prefab" && requirementsString.entityId === prefab.id)
 					puzzle.requirements[i] = prefab;
 			});
 		});
@@ -149,6 +164,19 @@ export default class GameEntityManager {
 		this.game.roomItems.forEach(roomItem => {
 			if (roomItem.location.id === puzzle.location.id && roomItem.containerType === "Puzzle" && roomItem.containerName === puzzle.name)
 				roomItem.setContainer(puzzle);
+		});
+	}
+
+	/**
+	 * Updates references to a given event throughout the game.
+	 * @param {Event} event 
+	 */
+	updateEventReferences(event) {
+		this.game.puzzles.forEach(puzzle => {
+			puzzle.requirementsStrings.forEach((requirementsString, i) => {
+				if (requirementsString.type === "Event" && requirementsString.entityId === event.id)
+					puzzle.requirements[i] = event;
+			});
 		});
 	}
 }

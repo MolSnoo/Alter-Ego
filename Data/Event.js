@@ -55,16 +55,23 @@ export default class Event extends GameEntity {
      */
     remaining;
     /**
-     * The string representation of what times the event will be automatically triggered.
-     * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string
+     * The string representation of what times the event will be automatically triggered. Deprecated. Use triggerTimesStrings instead.
+     * @deprecated
      * @type {string}
      */
     triggerTimesString;
     /**
-     * What times the event will be automatically triggered.
+     * What times the event will be automatically triggered. Deprecated. Use triggerTimesStrings instead.
+     * @deprecated
      * @type {string[]}
      */
     triggerTimes;
+    /**
+     * The string representations of what times the event will be automatically triggered.
+     * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-strings
+     * @type {string[]}
+     */
+    triggerTimesStrings;
     /**
      * The keyword or phrase assigned to the event that allows it to affect rooms.
      * @type {string}
@@ -136,8 +143,7 @@ export default class Event extends GameEntity {
      * @param {import('dayjs/plugin/duration.js').Duration} duration - The duration object of the event.
      * @param {string} remainingString - The string representation of the remaining time of the event.
      * @param {import('dayjs/plugin/duration.js').Duration} remaining - The remaining time of the event.
-     * @param {string} triggerTimesString - The string representation of what times the event will be automatically triggered. Refer to this link for accepted formats: {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string}
-     * @param {string[]} triggerTimes - What times the event will be automatically triggered.
+     * @param {string[]} triggerTimesStrings - The string representations of what times the event will be automatically triggered. Refer to this link for accepted formats: {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string}
      * @param {string} roomTag - The keyword or phrase assigned to the event that allows it to affect rooms.
      * @param {string} commandsString - Forward slash separated list of comma-separated bot commands to be executed when the event is triggered or ended.
      * @param {string[]} triggeredCommands - The bot commands to be executed when the event is triggered.
@@ -149,7 +155,7 @@ export default class Event extends GameEntity {
      * @param {number} row - The row of the event in the event sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshesStrings, triggeredNarration, endedNarration, row, game) {
+    constructor(id, ongoing, durationString, duration, remainingString, remaining, triggerTimesStrings, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshesStrings, triggeredNarration, endedNarration, row, game) {
         super(game, row);
         this.id = id;
         this.name = id;
@@ -158,8 +164,7 @@ export default class Event extends GameEntity {
         this.duration = duration;
         this.remainingString = remainingString;
         this.remaining = remaining;
-        this.triggerTimesString = triggerTimesString;
-        this.triggerTimes = triggerTimes;
+        this.triggerTimesStrings = triggerTimesStrings;
         this.roomTag = roomTag;
         this.commandsString = commandsString;
         this.triggeredCommands = triggeredCommands;
