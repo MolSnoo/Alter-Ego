@@ -1507,7 +1507,7 @@ export function loadPlayers (game, doErrorChecking) {
                 sheet[i][columnHidingSpot] ? sheet[i][columnHidingSpot].trim() : "",
                 [],
                 sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                [],
+                new Collection(),
                 spectateChannel && spectateChannel.type === ChannelType.GuildText ? spectateChannel : null,
                 i + 3,
                 game

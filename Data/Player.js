@@ -25,7 +25,7 @@ import * as messageHandler from '../Modules/messageHandler.js';
 
 import Timer from '../Classes/Timer.js';
 
-import { GuildMember, Message, TextChannel } from 'discord.js';
+import { Collection, GuildMember, Message, TextChannel } from 'discord.js';
 import dayjs from 'dayjs';
 
 dayjs().format();
@@ -205,10 +205,16 @@ export default class Player extends ItemContainer {
      */
     statusString;
     /**
-     * All of the player's {@link EquipmentSlot | equipment slots}.
+     * All of the player's {@link EquipmentSlot | equipment slots}. Deprecated. Use inventoryCollection instead.
+     * @deprecated
      * @type {EquipmentSlot[]}
      */
     inventory;
+    /**
+     * All of the player's {@link EquipmentSlot | equipment slots}. The key is the equipment slot's ID.
+     * @type {Collection<string, EquipmentSlot>}
+     */
+    inventoryCollection;
     /**
      * The spectate channel of the player.
      * @type {TextChannel | null}
@@ -281,7 +287,7 @@ export default class Player extends ItemContainer {
      * @param {string} hidingSpot - The name of the fixture the player is currently hiding in. The fixture doesn't actually have to exist.
      * @param {Status[]} status - All status effects the player currently has.
      * @param {string} description - The description of the player. Can contain two item lists: hands and equipment.
-     * @param {EquipmentSlot[]} inventory - All of the player's {@link EquipmentSlot | equipment slots}.
+     * @param {Collection<string, EquipmentSlot>} inventory - All of the player's {@link EquipmentSlot | equipment slots}.
      * @param {TextChannel | null} spectateChannel - The spectate channel of the player.
      * @param {number} row - The row of the player.
      * @param {Game} game - The game this belongs to.
@@ -336,7 +342,8 @@ export default class Player extends ItemContainer {
         this.status = status;
         this.statusString = "";
         this.description = description;
-        this.inventory = inventory;
+        this.inventory = [];
+        this.inventoryCollection = inventory;
         this.spectateChannel = spectateChannel;
         this.maxCarryWeight = this.getMaxCarryWeight();
         this.carryWeight = 0;
