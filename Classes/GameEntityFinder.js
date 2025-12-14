@@ -4,6 +4,7 @@ import Gesture from "../Data/Gesture.js";
 import Player from "../Data/Player.js";
 import Room from "../Data/Room.js";
 import Status from "../Data/Status.js";
+import Exit from "../Data/Exit.js";
 import * as matchers from '../Modules/matchers.js';
 
 /**
@@ -33,6 +34,16 @@ export default class GameEntityFinder {
 	 */
 	getRoom(id) {
 		return this.game.roomsCollection.get(Room.generateValidId(id));
+	}
+
+	/**
+	 * Gets a room exit.
+	 * @param {Room} room - The room to locate an exit in.
+	 * @param {string} name - The name to look up.
+	 * @returns {Exit} - The exit in the specified room with the specified name, if applicable. If no such exit exists, returns undefined.
+	 */
+	getExit(room, name) {
+		return room.exitCollection.get(Exit.generateValidName(name));
 	}
 
 	/**
