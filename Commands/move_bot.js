@@ -91,20 +91,14 @@ export async function execute (game, command, args, player, callee) {
         if (players[i].location !== desiredRoom) {
             const currentRoom = players[i].location;
             // Check to see if the given room is adjacent to the current player's room.
-            var exit = null;
-            let exitPuzzle = null;
-            var entrance = null;
-            for (let j = 0; j < currentRoom.exit.length; j++) {
-                if (currentRoom.exit[j].dest === desiredRoom) {
-                    exit = currentRoom.exit[j];
-                    exitPuzzle = game.puzzles.find(puzzle => puzzle.location.id === currentRoom.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
-                    for (let k = 0; k < desiredRoom.exit.length; k++) {
-                        if (desiredRoom.exit[k].name === exit.link) {
-                            entrance = desiredRoom.exit[k];
-                            break;
-                        }
-                    }
-                    break;
+            let exit;
+            let exitPuzzle;
+            let entrance;
+            for (const targetExit of currentRoom.exitCollection.values()) {
+                if (targetExit.dest.id === desiredRoom.id) {
+                    exit = targetExit;
+                    exitPuzzle = game.entityFinder.getPuzzles(exit.name, currentRoom.id, "restricted exit")[0];
+                    entrance = desiredRoom.exitCollection.get(exit.link);
                 }
             }
 
