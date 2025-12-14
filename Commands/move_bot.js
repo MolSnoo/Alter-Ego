@@ -98,7 +98,8 @@ export async function execute (game, command, args, player, callee) {
                 if (targetExit.dest.id === desiredRoom.id) {
                     exit = targetExit;
                     exitPuzzle = game.entityFinder.getPuzzles(exit.name, currentRoom.id, "restricted exit")[0];
-                    entrance = desiredRoom.exitCollection.get(exit.link);
+                    entrance = game.entityFinder.getExit(desiredRoom, exit.link);
+                    break;
                 }
             }
 

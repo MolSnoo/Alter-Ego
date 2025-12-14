@@ -463,7 +463,7 @@ export default class Player extends ItemContainer {
         }
         // Otherwise, check that the desired room is adjacent to the current room.
         else {
-            exit = currentRoom.exitCollection.get(destination.toUpperCase());
+            exit = this.game.entityFinder.getExit(currentRoom, destination);
             if (!exit) {
                 for (const targetExit of currentRoom.exitCollection.values()) {
                     if (targetExit.dest.id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
@@ -476,7 +476,7 @@ export default class Player extends ItemContainer {
                 adjacent = true;
                 exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
                 desiredRoom = exit.dest;
-                entrance = desiredRoom.exitCollection.get(exit.link);
+                entrance = this.game.entityFinder.getExit(desiredRoom, exit.link);
                 if (entrance)
                     entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
             }

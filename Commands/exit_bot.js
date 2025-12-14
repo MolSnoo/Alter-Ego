@@ -70,8 +70,8 @@ export async function execute (game, command, args, player, callee) {
     else if (args.length === 0) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
-    const exit = room.exitCollection.get(parsedInput);
-    const entrance = exit.dest.exitCollection.get(exit.link);
+    const exit = game.entityFinder.getExit(room, parsedInput);
+    const entrance = game.entityFinder.getExit(exit.dest, exit.link);
     if (exit === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.id}.`);
     if (entrance === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Found exit ${exit.name} in ${room.id}, but it doesn't have a corresponding entrance in ${exit.dest.id}.`);
     if (command === "unlock" && exit.unlocked && entrance.unlocked) return;

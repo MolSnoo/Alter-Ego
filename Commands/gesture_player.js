@@ -118,7 +118,7 @@ export async function execute (game, message, command, args, player) {
                 if (input2 !== "") {
                     for (let j = 0; j < gesture.requires.length; j++) {
                         if (gesture.requires[j] === "Exit") {
-                            target = player.location.exitCollection.get(Room.generateValidId(input2))
+                            target = game.entityFinder.getExit(player.location, input2);
                             if (target)
                                 targetType = "Exit";
                             else
