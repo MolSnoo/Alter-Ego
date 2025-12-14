@@ -2,6 +2,7 @@ import Game from "./Game.js";
 import InventorySlot from "./InventorySlot.js";
 import ItemContainer from "./ItemContainer.js";
 import Prefab from "./Prefab.js";
+import { Collection } from "discord.js";
 
 /**
  * @class ItemInstance
@@ -76,10 +77,16 @@ export default class ItemInstance extends ItemContainer {
 	 */
 	weight;
 	/**
-	 * An array of {@link InventorySlot|inventory slots} the item has.
+	 * An array of {@link InventorySlot|inventory slots} the item has. Deprecated. Use inventoryCollection instead.
+	 * @deprecated
 	 * @type {InventorySlot<ItemInstance>[]}
 	 */
 	inventory;
+	/**
+	 * A collection of {@link InventorySlot|inventory slots} the item has. The key is the inventory slot's ID.
+	 * @type {Collection<string, InventorySlot<ItemInstance>>}
+	 */
+	inventoryCollection;
 
 	/**
 	 * @constructor
@@ -101,6 +108,7 @@ export default class ItemInstance extends ItemContainer {
 		this.quantity = quantity;
 		this.uses = uses;
 		this.inventory = [];
+		this.inventoryCollection = new Collection();
 	}
 
 	/**

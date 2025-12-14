@@ -2,6 +2,7 @@
 import GameEntity from './GameEntity.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
+import { Collection } from 'discord.js';
 
 /**
  * @class Prefab
@@ -146,11 +147,18 @@ export default class Prefab extends GameEntity {
      */
     unequipCommands;
     /**
-     * {@link InventorySlot|Inventory slots} that instances of this prefab will have.
+     * {@link InventorySlot|Inventory slots} that instances of this prefab will have. Deprecated. Use inventoryCollection instead.
+     * @deprecated
      * @readonly
      * @type {InventorySlot[]}
      */
     inventory;
+    /**
+     * {@link InventorySlot|Inventory slots} that instances of this prefab will have. The key is the inventory slot's ID.
+     * @readonly
+     * @type {Collection<string, InventorySlot>}
+     */
+    inventoryCollection;
     /**
      * The preposition that will be used when a player puts an item into an instance of this prefab.
      * @readonly
@@ -186,7 +194,7 @@ export default class Prefab extends GameEntity {
      * @param {string} commandsString - Forward slash separated list of comma-separated bot commands to be executed when the an inventory item instance of this prefab is equipped or unequipped.
      * @param {string[]} equipCommands - The bot commands to be executed when an inventory item instance of this prefab is equipped by a player.
      * @param {string[]} unequipCommands - The bot commands to be executed when an inventory item instance of this prefab is unequipped by a player.
-     * @param {InventorySlot[]} inventory - {@link InventorySlot|Inventory slots} that instances of this prefab will have.
+     * @param {Collection<string, InventorySlot>} inventory - {@link InventorySlot|Inventory slots} that instances of this prefab will have.
      * @param {string} preposition - The preposition that will be used when a player puts an item into an instance of this prefab.
      * @param {string} description - The description of the prefab. Can contain multiple item lists named after its inventory slots.
      * @param {number} row - The row number of the prefab in the sheet.
@@ -217,9 +225,18 @@ export default class Prefab extends GameEntity {
         this.commandsString = commandsString;
         this.equipCommands = equipCommands;
         this.unequipCommands = unequipCommands;
-        this.inventory = inventory;
+        this.inventory = [];
+        this.inventoryCollection = inventory;
         this.preposition = preposition;
         this.description = description;
+    }
+
+    /**
+     * Sets the next stage.
+     * @param {Prefab} nextStage 
+     */
+    setNextStage(nextStage) {
+        this.nextStage = nextStage;
     }
 
     /** @returns {string} */
