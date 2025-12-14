@@ -43,14 +43,8 @@ export async function execute (game, message, command, args, player) {
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.statusString.includes("hidden") && command === "unhide") {
-        let fixture = null;
-        for (let i = 0; i < game.fixtures.length; i++) {
-            if (game.fixtures[i].location.id === player.location.id && game.fixtures[i].name === player.hidingSpot) {
-                fixture = game.fixtures[i];
-                break;
-            }
-        }
-        if (fixture !== null && (!fixture.accessible || fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved))
+        let fixture = game.entityFinder.getFixtures(player.hidingSpot, player.location.id, true)[0];
+        if (fixture !== undefined && (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved))
             return messageHandler.addReply(game, message, `You cannot come out of hiding right now.`);
         else player.cure("hidden", true, false, true);
     }

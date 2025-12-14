@@ -53,7 +53,7 @@ export const roomTagMatches = (room, tag, normalize = false) => {
  */
 export const roomOccupiedMatches = (room, includeNPCs) => {
 	if (room.occupants.length === 0) return false;
-	if (!includeNPCs) return room.occupants.filter(occupant => occupant.title !== "NPC").length > 0;
+	if (!includeNPCs) return room.occupants.filter(occupant => !occupant.isNPC).length > 0;
 	else return room.occupants.length > 0;
 };
 

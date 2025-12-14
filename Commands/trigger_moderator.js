@@ -35,14 +35,8 @@ export async function execute (game, message, command, args) {
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var event = null;
-    for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].id === parsedInput) {
-            event = game.events[i];
-            break;
-        }
-    }
-    if (event === null) return messageHandler.addReply(game, message, `Couldn't find event "${input}".`);
+    let event = game.entityFinder.getEvent(parsedInput);
+    if (event === undefined) return messageHandler.addReply(game, message, `Couldn't find event "${input}".`);
     if (event.ongoing) return messageHandler.addReply(game, message, `${event.id} is already ongoing.`);
 
     await event.trigger(true);

@@ -63,20 +63,16 @@ export async function execute (game, message, command, args) {
     // Some prefabs might have similar names. Make a list of all the ones that are found at the beginning of parsedInput.
     let prefab = null;
     let matches = [];
-    for (let i = 0; i < game.prefabs.length; i++) {
-        if (parsedInput.startsWith(`${game.prefabs[i].id} `))
-            matches.push(game.prefabs[i]);
+    for (let i = 1; i <= args.length; i++) {
+        let match = game.entityFinder.getPrefab(args.slice(0, i).join(" "));
+        if (match)
+            matches.push(match);
     }
 
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        const parsedRoomName = game.rooms[i].name.toUpperCase().replace(/-/g, " ");
-        if (undashedInput.endsWith(` AT ${parsedRoomName}`)) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${parsedRoomName}`));
-            break;
-        }
-    }
+    // Find room specified at the end of args.
+    let room = game.entityFinder.getRoom(input.substring(undashedInput.lastIndexOf(" AT ") + 4));
+    if (!room) room = null;
+    else parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${room.id.toUpperCase().replace(/-/g, " ")}`));
 
     // If a parenthetical expression is included, procedural options are being manually set.
     let proceduralSelections = new Map();
@@ -201,15 +197,17 @@ export async function execute (game, message, command, args) {
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated item.");
     }
     else {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            for (let j = 0; j < args.length; j++) {
-                if (args[j].toUpperCase() === `${game.players_alive[i].name.toUpperCase()}'S`) {
-                    player = game.players_alive[i];
-                    args.splice(j, 1);
-                    break;
-                }
+        for (let i = 0; i < args.length; i++) {
+            let playerName = args[i].toUpperCase();
+            if (playerName.endsWith("'S")) {
+                playerName = playerName.slice(0, -2);
             }
-            if (player !== null) break;
+
+            const fetchedPlayer = game.entityFinder.getLivingPlayer(playerName);
+            if (fetchedPlayer) {
+                player = fetchedPlayer
+                args.splice(i, 1);
+            }
         }
         if (player === null) return messageHandler.addReply(game, message, `Couldn't find a room or player in your input.`);
 

@@ -58,20 +58,16 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to specify a room and at least one tag. Usage:\n${usage(game.settings)}`);
 
     input = args.join(" ");
-    var parsedInput = input.replace(/ /g, "-").toLowerCase();
 
-    var room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            room = game.rooms[i];
-            break;
-        }
-        else if (command === "tags" && game.rooms[i].name === parsedInput) {
-            room = game.rooms[i];
+    let room;
+    for (let i = args.length - 1; i >= 0; i--) {
+        let searchString = args.slice(0, i).join(" ");
+        room = game.entityFinder.getRoom(searchString);
+        if (room) {
             break;
         }
     }
-    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     if (command === "tags") {
         let tags = room.tags.join(", ");

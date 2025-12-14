@@ -84,4 +84,12 @@ export default class Exit extends GameEntity {
     descriptionCell() {
         return this.game.constants.roomSheetDescriptionColumn + this.row;
     }
+
+    /**
+     * Make any string a valid Exit name.
+     * @param {string} name - A string, preferably the name of an exit.
+     */
+    static generateValidName(name) {
+        return name.toUpperCase().trim();
+    }
 }

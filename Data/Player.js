@@ -461,35 +461,31 @@ export default class Player extends ItemContainer {
         // If the player has the free movement role, they can move to any room they please.
         if (this.member.roles.resolve(this.game.guildContext.freeMovementRole)) {
             adjacent = true;
-            for (let i = 0; i < this.game.rooms.length; i++) {
-                if (this.game.rooms[i].id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
-                    desiredRoom = this.game.rooms[i];
+            let fetchedRoom = this.game.entityFinder.getRoom(destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase());
+            if (fetchedRoom) {
+                desiredRoom = fetchedRoom;
                     exitMessage = `${this.displayName} suddenly disappears${appendString}`;
                     entranceMessage = `${this.displayName} suddenly appears${appendString}`;
-                    break;
-                }
             }
         }
         // Otherwise, check that the desired room is adjacent to the current room.
         else {
-            for (let i = 0; i < currentRoom.exit.length; i++) {
-                if (currentRoom.exit[i].dest.id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()
-                    || currentRoom.exit[i].name === destination.toUpperCase()) {
-                    adjacent = true;
-                    exit = currentRoom.exit[i];
-                    exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
-                    desiredRoom = exit.dest;
-
-                    // Find the correct entrance.
-                    for (let j = 0; j < desiredRoom.exit.length; j++) {
-                        if (desiredRoom.exit[j].name === currentRoom.exit[i].link) {
-                            entrance = desiredRoom.exit[j];
-                            entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
-                            break;
-                        }
+            exit = this.game.entityFinder.getExit(currentRoom, destination);
+            if (!exit) {
+                for (const targetExit of currentRoom.exitCollection.values()) {
+                    if (targetExit.dest.id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
+                        exit = targetExit;
+                        break;
                     }
-                    break;
                 }
+            }
+            if (exit) {
+                adjacent = true;
+                exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
+                desiredRoom = exit.dest;
+                entrance = this.game.entityFinder.getExit(desiredRoom, exit.link);
+                if (entrance)
+                    entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
             }
         }
         if (!adjacent) {
@@ -713,13 +709,8 @@ export default class Player extends ItemContainer {
         let status = null;
         if (statusId instanceof Status) status = statusId;
         else {
-            for (let i = 0; i < this.game.statusEffects.length; i++) {
-                if (this.game.statusEffects[i].id.toLowerCase() === statusId.toLowerCase()) {
-                    status = this.game.statusEffects[i];
-                    break;
-                }
-            }
-            if (status === null) return `Couldn't find status effect "${statusId}".`;
+            this.game.entityFinder.getStatusEffect(statusId);
+            if (status === undefined) return `Couldn't find status effect "${statusId}".`;
         }
 
         for (let i = 0; i < status.overriders.length; i++) {
@@ -856,7 +847,7 @@ export default class Player extends ItemContainer {
         }
         if (status.attributes.includes("concealed")) {
             this.displayName = this.name;
-            if (this.title === "NPC") this.displayIcon = this.id;
+            if (this.isNPC) this.displayIcon = this.id;
             else this.displayIcon = null;
             if (item === null || item === undefined) item = { name: "MASK" };
             if (narrate) new Narration(this.game, this, this.location, `The ${item.name} comes off, revealing the figure to be ${this.displayName}.`).send();
@@ -1141,8 +1132,7 @@ export default class Player extends ItemContainer {
         }
         else if (container instanceof Room) {
             container.description = parser.removeItem(container.description, item);
-            for (let i = 0; i < container.exit.length; i++)
-                container.exit[i].description = parser.removeItem(container.exit[i].description, item);
+            container.exitCollection.forEach((exit) => (exit.description = parser.removeItem(exit.description, item)));
         }
 
         // Get the slot and row number of the EquipmentSlot that the item will go into.
@@ -2635,7 +2625,7 @@ export default class Player extends ItemContainer {
      * @param {boolean} [addSpectate=true] - Whether or not to mirror this message in the player's spectateChannel. Defaults to true.
      */
     notify(messageText, addSpectate = true) {
-        if (!this.hasAttribute("unconscious") && this.title !== "NPC")
+        if (!this.hasAttribute("unconscious") && !this.isNPC)
             messageHandler.addDirectNarration(this, messageText, addSpectate);
     }
 

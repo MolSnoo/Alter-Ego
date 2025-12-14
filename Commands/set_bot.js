@@ -82,13 +82,14 @@ export async function execute (game, command, args, player, callee) {
     // Check if a room name was specified.
     let room = null;
     const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.endsWith(game.rooms[i].name)) {
-            room = game.rooms[i];
-            input = input.substring(0, parsedInput.lastIndexOf(room.name) - 1);
+    for (let i = args.length - 1; i >= 0; i--) {
+        room = game.entityFinder.getRoom(args.splice(i).join(" "));
+        if (room) {
+            input = input.substring(0, parsedInput.lastIndexOf(room.id) - 1);
             break;
         }
     }
+    if (!room) room = null;
 
     let fixture = null;
     let puzzle = null;

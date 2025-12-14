@@ -4,6 +4,7 @@ import ItemInstance from '../Data/ItemInstance.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
+import Room from '../Data/Room.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -39,12 +40,9 @@ export async function execute (game, message, command, args) {
     var input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
     if (input === "list") {
-        var fields = [];
+        var fields = game.entityFinder.getGestures().map(gesture => gesture);
         var pages = [];
         var page = 0;
-
-        for (let i = 0; i < game.gestures.length; i++)
-            fields.push(game.gestures[i]);
 
         // Divide the fields into pages.
         for (let i = 0, pageNo = 0; i < fields.length; i++) {
@@ -96,21 +94,15 @@ export async function execute (game, message, command, args) {
         if (args.length < 2)
             return messageHandler.addReply(game, message, `You need to specify a player and a gesture. Usage:\n${usage(game.settings)}`);
 
-        var player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                args.splice(0, 1);
-                input = args.join(" ").toLowerCase().replace(/\'/g, "");
-                break;
-            }
-        }
-        if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+        var player = game.entityFinder.getLivingPlayer(args[0]);
+        if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+        args.splice(0, 1);
+        input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
         var gesture = null;
         var targetType = "";
         var target = null;
-        for (let i = 0; i < game.gestures.length; i++) {
+        for (let i = 0; i < game.gestures.length; i++) { // TODO: optimize this ENTIRE for block later!!! very evil!!!
             if (game.gestures[i].id.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
                     return messageHandler.addReply(game, message, `You need to specify a target for that gesture.`);
@@ -124,13 +116,11 @@ export async function execute (game, message, command, args) {
                 if (input2 !== "") {
                     for (let j = 0; j < gesture.requires.length; j++) {
                         if (gesture.requires[j] === "Exit") {
-                            for (let k = 0; k < player.location.exit.length; k++) {
-                                if (player.location.exit[k].name.toLowerCase() === input2) {
-                                    targetType = "Exit";
-                                    target = player.location.exit[k];
-                                    break;
-                                }
-                            }
+                            target = game.entityFinder.getExit(player.location, input2);
+                            if (target)
+                                targetType = "Exit";
+                            else
+                                target = null;
                         }
                         else if (gesture.requires[j] === "Fixture" || gesture.requires[j] === "Object") {
                             const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);

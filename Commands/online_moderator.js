@@ -28,11 +28,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var players = [];
-    for (let i = 0; i < game.players_alive.length; i++) {
-		if (game.players_alive[i].online)
-			players.push(game.players_alive[i].name);
-	}
+    let players = game.entityFinder.getLivingPlayers().filter((player) => {player.online}).map(player => player.name);
 	players.sort();
 	const playerList = players.join(", ");
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Players online:\n${playerList}`);

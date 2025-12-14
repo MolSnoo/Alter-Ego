@@ -55,22 +55,19 @@ export async function execute (game, command, args, player, callee) {
         players.push(player);
     else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].tags.includes(callee.roomTag) && game.rooms[i].occupants.length > 0)
-                players = players.concat(game.rooms[i].occupants);
-        }
+        game.entityFinder.getRooms(null, callee.roomTag, true).map((room) => {
+            players = players.concat(room.occupants);
+        });
     }
     else if (args[0].toLowerCase() === "room" && player !== null)
         players = player.location.occupants;
     else {
         player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            for (let j = 0; j < args.length; j++) {
-                if (args[j].toLowerCase() === game.players_alive[i].name.toLowerCase()) {
-                    players.push(game.players_alive[i]);
-                    args.splice(j, 1);
-                    break;
-                }
+        for (let i = args.length - 1; i >= 0; i--) {
+            let fetchedPlayer = game.entityFinder.getLivingPlayer(args[i]);
+            if (fetchedPlayer) {
+                players.push(fetchedPlayer);
+                args.splice(i, 1);
             }
         }
         if (args.length > 0) {
