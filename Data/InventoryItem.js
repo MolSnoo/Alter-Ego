@@ -4,6 +4,7 @@ import ItemInstance from './ItemInstance.js';
 import Player from './Player.js';
 import { replaceInventoryItem } from '../Modules/itemManager.js';
 import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
+import { Collection } from 'discord.js';
 
 /**
  * @class InventoryItem
@@ -38,11 +39,18 @@ export default class InventoryItem extends ItemInstance {
      */
     container = null;
     /**
-     * An array of {@link InventorySlot|inventory slots} the item has.
+     * An array of {@link InventorySlot|inventory slots} the item has. Deprecated. Use inventoryCollection instead.
+     * @deprecated
      * @override
      * @type {InventorySlot<InventoryItem>[]}
      */
     inventory = [];
+    /**
+	 * A collection of {@link InventorySlot|inventory slots} the item has. The key is the inventory slot's ID.
+     * @override
+	 * @type {Collection<string, InventorySlot<InventoryItem>>}
+	 */
+	inventoryCollection = new Collection();
 
     /**
      * @constructor
@@ -63,25 +71,25 @@ export default class InventoryItem extends ItemInstance {
         this.equipmentSlot = equipmentSlot;
         this.foundEquipmentSlot = false;
         this.inventory = [];
+        this.inventoryCollection = new Collection();
     }
 
     /**
      * Creates instances of all of the prefab's {@link InventorySlot|inventory slots} and inserts them into this instance's inventory.
      */
     initializeInventory() {
-        for (let i = 0; i < this.prefab.inventory.length; i++) {
+        this.prefab.inventoryCollection.forEach(prefabInventorySlot => {
             /** @type {InventoryItem[]} */
             const items = [];
-            this.inventory.push(
-                new InventorySlot(
-                    this.prefab.inventory[i].id,
-                    this.prefab.inventory[i].capacity,
-                    this.prefab.inventory[i].takenSpace,
-                    this.prefab.inventory[i].weight,
-                    items
-                )
+            const inventorySlot = new InventorySlot(
+                prefabInventorySlot.id,
+                prefabInventorySlot.capacity,
+                prefabInventorySlot.takenSpace,
+                prefabInventorySlot.weight,
+                items
             );
-        }
+            this.inventoryCollection.set(inventorySlot.id, inventorySlot);
+        });
     }
 
     /**

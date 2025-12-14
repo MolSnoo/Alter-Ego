@@ -110,20 +110,17 @@ export function loadRooms (game, doErrorChecking) {
             else game.roomsCollection.set(room.id, room);
         }
         // Now go through and make the dest for each exit an actual Room object.
-        // Also, add any occupants to the room.
         game.roomsCollection.forEach(room => {
-            for (const [_, exit] of room.exitCollection) {
+            room.exitCollection.forEach(exit => {
                 const dest = game.entityFinder.getRoom(exit.destDisplayName);
                 if (dest) exit.dest = dest;
-            }
+            });
             if (doErrorChecking) {
                 const error = checkRoom(room);
                 if (error instanceof Error) errors.push(error);
-                else {
-                    game.roomsCollection.set(room.id, room);
-                    game.entityManager.updateRoomReferences(room);
-                }
             }
+            game.roomsCollection.set(room.id, room);
+            game.entityManager.updateRoomReferences(room);
         });
         if (errors.length > 0) {
             game.loadedEntitiesHaveErrors = true;
@@ -290,42 +287,45 @@ export function loadPrefabs (game, doErrorChecking) {
         const columnUsable = 6;
         const columnUseVerb = 7;
         const columnUses = 8;
-        const columnEffect = 9;
+        const columnEffects = 9;
         const columnCures = 10;
         const columnNextStage = 11;
         const columnEquippable = 12;
-        const columnSlots = 13;
-        const columnCoveredSlots = 14;
+        const columnEquipmentSlots = 13;
+        const columnCoveredEquipmentSlots = 14;
         const columnEquipCommands = 15;
         const columnInventorySlots = 16;
         const columnPreposition = 17;
         const columnDescription = 18;
 
-        game.prefabs.length = 0;
-        game.prefabsCollection.clear();
-        for (let i = 0; i < sheet.length; i++) {
+        game.entityManager.clearPrefabs();
+        /** @type {Collection<string, string[]>} */
+        let nextStageAssignments = new Collection();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
             // Separate name and plural name.
-            const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
+            const name = sheet[row][columnName] ? sheet[row][columnName].split(',') : "";
             // Separate single containing phrase and plural containing phrase.
-            const containingPhrase = sheet[i][columnContainingPhrase] ? sheet[i][columnContainingPhrase].split(',') : "";
+            const containingPhrase = sheet[row][columnContainingPhrase] ? sheet[row][columnContainingPhrase].split(',') : "";
             // Create a list of all status effect IDs this prefab will inflict when used.
-            let effects = sheet[i][columnEffect] ? sheet[i][columnEffect].split(',') : [];
+            let effects = sheet[row][columnEffects] ? sheet[row][columnEffects].split(',') : [];
             for (let j = 0; j < effects.length; j++)
                 effects[j] = Status.generateValidId(effects[j]);
             // Create a list of all status effect IDs this prefab will cure when used.
-            let cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
+            let cures = sheet[row][columnCures] ? sheet[row][columnCures].split(',') : [];
             for (let j = 0; j < cures.length; j++)
                 cures[j] = Status.generateValidId(cures[j]);
             // Create a list of equipment slots this prefab can be equipped to.
-            let equipmentSlots = sheet[i][columnSlots] ? sheet[i][columnSlots].split(',') : [];
+            let equipmentSlots = sheet[row][columnEquipmentSlots] ? sheet[row][columnEquipmentSlots].split(',') : [];
             for (let j = 0; j < equipmentSlots.length; j++)
                 equipmentSlots[j] = Game.generateValidEntityName(equipmentSlots[j]);
             // Create a list of equipment slots this prefab covers when equipped.
-            let coveredEquipmentSlots = sheet[i][columnCoveredSlots] ? sheet[i][columnCoveredSlots].split(',') : [];
+            let coveredEquipmentSlots = sheet[row][columnCoveredEquipmentSlots] ? sheet[row][columnCoveredEquipmentSlots].split(',') : [];
             for (let j = 0; j < coveredEquipmentSlots.length; j++)
                 coveredEquipmentSlots[j] = Game.generateValidEntityName(coveredEquipmentSlots[j]);
             // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
-            const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
+            const commandString = sheet[row][columnEquipCommands] ? sheet[row][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
             const commands = commandString ? commandString.split('/') : ["", ""];
             let equipCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
             for (let j = 0; j < equipCommands.length; j++)
@@ -334,78 +334,84 @@ export function loadPrefabs (game, doErrorChecking) {
             for (let j = 0; j < unequipCommands.length; j++)
                 unequipCommands[j] = unequipCommands[j].trim();
             // Create a list of inventory slots this prefab contains.
-            let inventorySlotStrings = sheet[i][columnInventorySlots] ? sheet[i][columnInventorySlots].split(',') : [];
-            /** @type {InventorySlot[]} */
-            let inventorySlots = [];
-            for (let j = 0; j < inventorySlotStrings.length; j++) {
-                let inventorySlot = inventorySlotStrings[j].split(':');
-                if (inventorySlot.length === 1) inventorySlot = [inventorySlotStrings[j], ""];
-                inventorySlots.push(
-                    new InventorySlot(
-                        Game.generateValidEntityName(inventorySlot[0]),
-                        parseInt(inventorySlot[1]),
-                        0,
-                        0,
-                        []
-                    )
+            let inventorySlotStrings = sheet[row][columnInventorySlots] ? sheet[row][columnInventorySlots].split(',') : [];
+            /** @type {Collection<string, InventorySlot>} */
+            let inventorySlots = new Collection();
+            for (let i = 0; i < inventorySlotStrings.length; i++) {
+                let inventorySlotSplit = inventorySlotStrings[i].split(':');
+                if (inventorySlotSplit.length === 1) inventorySlotSplit = [inventorySlotStrings[i], ""];
+                const inventorySlot = new InventorySlot(
+                    Game.generateValidEntityName(inventorySlotSplit[0]),
+                    parseInt(inventorySlotSplit[1]),
+                    0,
+                    0,
+                    []
                 );
+                if (inventorySlots.get(inventorySlot.id))
+                    errors.push(new Error(`Couldn't load prefab on row ${row + 2}. The prefab already has an inventory slot with the ID "${inventorySlot.id}".`));
+                else inventorySlots.set(inventorySlot.id, inventorySlot);
             }
-
             const prefab = new Prefab(
-                sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",
+                sheet[row][columnID] ? Game.generateValidEntityName(sheet[row][columnID]) : "",
                 name[0] ? Game.generateValidEntityName(name[0]) : "",
                 name[1] ? Game.generateValidEntityName(name[1]) : "",
                 containingPhrase[0] ? containingPhrase[0].trim() : "",
                 containingPhrase[1] ? containingPhrase[1].trim() : "",
-                sheet[i][columnDiscreet] ? sheet[i][columnDiscreet].trim() === "TRUE" : false,
-                parseInt(sheet[i][columnSize]),
-                parseInt(sheet[i][columnWeight]),
-                sheet[i][columnUsable] ? sheet[i][columnUsable].trim() === "TRUE" : false,
-                sheet[i][columnUseVerb] ? sheet[i][columnUseVerb].trim() : "",
-                parseInt(sheet[i][columnUses]),
+                sheet[row][columnDiscreet] ? sheet[row][columnDiscreet].trim() === "TRUE" : false,
+                parseInt(sheet[row][columnSize]),
+                parseInt(sheet[row][columnWeight]),
+                sheet[row][columnUsable] ? sheet[row][columnUsable].trim() === "TRUE" : false,
+                sheet[row][columnUseVerb] ? sheet[row][columnUseVerb].trim() : "",
+                parseInt(sheet[row][columnUses]),
                 effects,
                 cures,
-                sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
-                sheet[i][columnEquippable] ? sheet[i][columnEquippable].trim() === "TRUE" : false,
+                sheet[row][columnNextStage] ? sheet[row][columnNextStage].trim() : "",
+                sheet[row][columnEquippable] ? sheet[row][columnEquippable].trim() === "TRUE" : false,
                 equipmentSlots,
                 coveredEquipmentSlots,
-                sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands] : "",
+                sheet[row][columnEquipCommands] ? sheet[row][columnEquipCommands] : "",
                 equipCommands,
                 unequipCommands,
                 inventorySlots,
-                sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
-                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                i + 2,
+                sheet[row][columnPreposition] ? sheet[row][columnPreposition].trim() : "",
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                row + 2,
                 game
             );
-            game.prefabs.push(prefab);
-            game.prefabsCollection.set(prefab.id, prefab);
-        }
-        let errors = [];
-        for (let i = 0; i < game.prefabs.length; i++) {
-            for (let j = 0; j < game.prefabs[i].effects.length; j++) {
-                const status = game.statusEffects.find(statusEffect => statusEffect.id === game.prefabs[i].effectsStrings[j]);
-                if (status) game.prefabs[i].effects[j] = status;
+            if (game.entityFinder.getPrefab(prefab.id)) {
+                errors.push(new Error(`Couldn't load prefab on row ${prefab.row}. Another prefab with this ID already exists.`));
+                continue;
             }
-            for (let j = 0; j < game.prefabs[i].cures.length; j++) {
-                const status = game.statusEffects.find(statusEffect => statusEffect.id === game.prefabs[i].curesStrings[j]);
-                if (status) game.prefabs[i].cures[j] = status;
+            prefab.effectsStrings.forEach((effectsString, i) => {
+                const effect = game.entityFinder.getStatusEffect(effectsString);
+                if (effect) prefab.effects[i] = effect;
+            });
+            prefab.curesStrings.forEach((curesString, i) => {
+                const cure = game.entityFinder.getStatusEffect(curesString);
+                if (cure) prefab.cures[i] = cure;
+            });
+            // If this prefab's ID is currently in the next stage assignments collection, we can finally set the next stage for the prefabs in its list.
+            const nextStageAssignment = nextStageAssignments.get(prefab.id);
+            if (nextStageAssignment) {
+                nextStageAssignment.forEach(prevStage => game.entityFinder.getPrefab(prevStage).setNextStage(prefab));
+                nextStageAssignments.delete(prefab.id);
             }
-            const nextStage = game.prefabs.find(prefab => prefab.id === game.prefabs[i].nextStageId);
-            if (nextStage) game.prefabs[i].nextStage = nextStage;
+            let nextStage = game.entityFinder.getPrefab(prefab.nextStageId);
+            if (nextStage) prefab.setNextStage(nextStage);
+            else {
+                // If the next stage wasn't found, it might have just not been loaded yet. Save it for later.
+                let assignmentsList = nextStageAssignments.get(prefab.nextStageId);
+                if (!assignmentsList) assignmentsList = [];
+                assignmentsList.push(prefab.id);
+                nextStageAssignments.set(prefab.nextStageId, assignmentsList);
+            }
             if (doErrorChecking) {
-                const error = checkPrefab(game.prefabs[i]);
+                const error = checkPrefab(prefab);
                 if (error instanceof Error) errors.push(error);
             }
-        }
-        for (let i = 0; i < game.puzzles.length; i++) {
-            for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                const requirementString = game.puzzles[i].requirementsStrings[j];
-                if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) {
-                    let requirement = game.prefabs.find(prefab => prefab.id === Game.generateValidEntityName(requirementString.substring(requirementString.indexOf(':') + 1)));
-                    if (requirement) game.puzzles[i].requirements[j] = requirement;
-                }
-            }
+            game.prefabs.push(prefab);
+            game.prefabsCollection.set(prefab.id, prefab);
+            game.entityManager.updatePrefabReferences(prefab);
         }
         if (errors.length > 0) {
             if (errors.length > 15) {
@@ -426,8 +432,6 @@ export function loadPrefabs (game, doErrorChecking) {
 export function checkPrefab (prefab) {
     if (prefab.id === "" || prefab.id === null || prefab.id === undefined)
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab ID was given.`);
-    if (prefab.game.prefabs.find(other => other.id === prefab.id && other.row < prefab.row))
-        return new Error(`Couldn't load prefab on row ${prefab.row}. Another prefab with this ID already exists.`);
     if (prefab.name === "" || prefab.name === null || prefab.name === undefined)
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab name was given.`);
     if (prefab.singleContainingPhrase === "")
@@ -446,13 +450,13 @@ export function checkPrefab (prefab) {
     }
     if (prefab.nextStageId !== "" && !(prefab.nextStage instanceof Prefab))
         return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStageId}" in turns into is not a prefab.`);
-    for (let i = 0; i < prefab.inventory.length; i++) {
-        if (prefab.inventory[i].id === "" || prefab.inventory[i].id === null || prefab.inventory[i].id === undefined)
+    prefab.inventoryCollection.forEach((inventorySlot, i) => {
+        if (inventorySlot.id === "" || inventorySlot.id === null || inventorySlot.id === undefined)
             return new Error(`Couldn't load prefab on row ${prefab.row}. No name was given for inventory slot ${i + 1}.`);
-        if (isNaN(prefab.inventory[i].capacity))
-            return new Error(`Couldn't load prefab on row ${prefab.row}. The capacity given for inventory slot "${prefab.inventory[i].id}" is not a number.`);
-    }
-    if (prefab.inventory.length !== 0 && prefab.preposition === "")
+        if (isNaN(inventorySlot.capacity))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. The capacity given for inventory slot "${inventorySlot.id}" is not a number.`);
+    });
+    if (prefab.inventoryCollection.size !== 0 && prefab.preposition === "")
         return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
 }
 

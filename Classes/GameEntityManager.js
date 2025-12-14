@@ -1,5 +1,6 @@
 import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
+import Prefab from "../Data/Prefab.js";
 import Room from "../Data/Room.js";
 
 /**
@@ -41,6 +42,14 @@ export default class GameEntityManager {
 				fixture.process.timer.stop();
 		});
 		this.game.fixtures.length = 0;
+	}
+
+	/**
+	 * Clears all prefab data from memory.
+	 */
+	clearPrefabs() {
+		this.game.prefabs.length = 0;
+		this.game.prefabsCollection.clear();
 	}
 
 	/** 
@@ -85,6 +94,32 @@ export default class GameEntityManager {
 		this.game.puzzles.forEach(puzzle => {
 			if (puzzle.location.id === fixture.location.id && puzzle.parentFixtureName !== "" && puzzle.parentFixtureName === fixture.name)
 				puzzle.setParentFixture;
+		});
+	}
+
+	/**
+	 * Updates references to a given prefab throughout the game.
+	 * @param {Prefab} prefab - The prefab to reference.
+	 */
+	updatePrefabReferences(prefab) {
+		this.game.roomItems.forEach(roomItem => {
+			if (roomItem.prefabId === prefab.id)
+				roomItem.setPrefab(prefab);
+		});
+		this.game.inventoryItems.forEach(inventoryItem => {
+			if (inventoryItem.prefabId !== "" && inventoryItem.prefabId === prefab.id)
+				inventoryItem.setPrefab(prefab);
+		});
+		this.game.puzzles.forEach(puzzle => {
+			puzzle.requirementsStrings.forEach((requirementsString, i) => {
+				if ((requirementsString.startsWith("Item:")
+						|| requirementsString.startsWith("RoomItem:")
+						|| requirementsString.startsWith("InventoryItem:")
+						|| requirementsString.startsWith("Prefab:"))
+					&& Game.generateValidEntityName(requirementsString.substring(requirementsString.indexOf(':') + 1)) === prefab.id) {
+						puzzle.requirements[i] = prefab;
+					}
+			});
 		});
 	}
 }
