@@ -50,61 +50,55 @@ export async function execute (game, message, command, args) {
     if (args.length < 4)
         return messageHandler.addReply(game, message, `You need to specify a room, an exit, another room, and another exit. Usage:\n${usage(game.settings)}`);
 
-    let input = args.join(" ");
-    let parsedInput = input.replace(/ /g, "-").toLowerCase();
-
     // First, find the room.
     let room;
     for (let i = args.length - 1; i >= 0; i--) {
         let searchString = args.slice(0, i).join(" ");
         room = game.entityFinder.getRoom(searchString);
         if (room) {
-            parsedInput = parsedInput.substring(room.id.length).replace(/-/g, " ").toUpperCase().trim();
-            input = input.substring(input.toUpperCase().indexOf(parsedInput));
             args = args.slice(i);
             break;
         }
     }
-    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${args.join(" ")}".`);
     else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify an exit in ${room.id}, another room, and another exit.`);
 
     // Now that the room has been found, find the exit.
-    let exit = null;
-    for (let i = 0; i < room.exit.length; i++) { // TODO: optimize this with exit collection lookups once feature/exitcollection is merged
-        if (parsedInput.startsWith(room.exit[i].name + ' ')) {
-            exit = room.exit[i];
-            parsedInput = parsedInput.substring(exit.name.length).toLowerCase().trim().replace(/ /g, "-");
-            input = input.substring(input.replace(/ /g, "-").toLowerCase().indexOf(parsedInput)).trim();
+    let exit;
+    for (let i = args.length - 1; i >= 0; i--) {
+        let searchString = args.slice(0, i).join(" ");
+        exit = game.entityFinder.getExit(room, searchString);
+        if (exit) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === room.exit[i].name) return messageHandler.addReply(game, message, `You need to specify another room and another exit for ${room.exit[i].name} of ${room.name} to lead to.`);
     }
-    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${input}" in ${room.name}.`);
+    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${room.name}.`);
+    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify another room and another exit for ${exit.name} of ${room.id} to lead to.`);
 
     // Now find the destination room.
-    let destRoom = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            destRoom = game.rooms[i];
-            parsedInput = parsedInput.substring(destRoom.name.length).replace(/-/g, " ").toUpperCase().trim();
-            input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
+    let destRoom;
+    for (let i = args.length - 1; i >= 0; i--) {
+        let searchString = args.slice(0, i).join(" ");
+        destRoom = game.entityFinder.getRoom(searchString);
+        if (destRoom) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return messageHandler.addReply(game, message, `You need to specify an exit in ${game.rooms[i].name} for ${exit.name} of ${room.name} to lead to.`);
     }
-    if (destRoom === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (destRoom === null) return messageHandler.addReply(game, message, `Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify an exit in ${destRoom.id} for ${exit.name} of ${room.id} to lead to.`);
 
     // Now that the destination room has been found, find the destination exit.
-    let destExit = null;
-    for (let i = 0; i < destRoom.exit.length; i++) {
-        if (destRoom.exit[i].name === parsedInput) {
-            destExit = destRoom.exit[i];
-            parsedInput = parsedInput.substring(destExit.name.length).toLowerCase().trim().replace(/ /g, "-");
-            input = input.substring(input.replace(/ /g, "-").toLowerCase().indexOf(parsedInput)).trim();
+    let destExit;
+    for (let i = args.length - 1; i >= 0; i--) {
+        let searchString = args.slice(0, i).join(" ");
+        destExit = game.entityFinder.getExit(destRoom, searchString);
+        if (destExit) {
             break;
         }
     }
-    if (destExit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${input}" in ${destRoom.name}.`);
+    if (destExit === undefined) return messageHandler.addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${destRoom.id}.`);
 
     exit.dest = destRoom;
     exit.link = destExit.name;
