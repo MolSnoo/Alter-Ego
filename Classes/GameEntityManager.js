@@ -52,6 +52,13 @@ export default class GameEntityManager {
 		this.game.prefabsCollection.clear();
 	}
 
+	/**
+	 * Clears all recipe data from memory.
+	 */
+	clearRecipes() {
+		this.game.recipes.length = 0;
+	}
+
 	/** 
 	 * Updates references to a given room throughout the game.
 	 * @param {Room} room - The room to reference.

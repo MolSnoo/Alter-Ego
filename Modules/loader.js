@@ -414,10 +414,8 @@ export function loadPrefabs (game, doErrorChecking) {
             game.entityManager.updatePrefabReferences(prefab);
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -480,13 +478,15 @@ export function loadRecipes (game, doErrorChecking) {
         const columnCompletedDescription = 6;
         const columnUncraftedDescription = 7;
 
-        game.recipes.length = 0;
-        for (let i = 0; i < sheet.length; i++) {
+        game.entityManager.clearRecipes();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
             // Separate the ingredients and sort them in alphabetical order.
-            let ingredientsStrings = sheet[i][columnIngredients] ? sheet[i][columnIngredients].split(',') : [];
-            ingredientsStrings.sort(function (a, b) {
-                let trimmedA = Game.generateValidEntityName(a);
-                let trimmedB = Game.generateValidEntityName(b);
+            let ingredientsStrings = sheet[row][columnIngredients] ? sheet[row][columnIngredients].split(',') : [];
+            ingredientsStrings.sort((a, b) => {
+                const trimmedA = Game.generateValidEntityName(a);
+                const trimmedB = Game.generateValidEntityName(b);
                 if (trimmedA < trimmedB) return -1;
                 if (trimmedA > trimmedB) return 1;
                 return 0;
@@ -495,7 +495,7 @@ export function loadRecipes (game, doErrorChecking) {
             for (let j = 0; j < ingredientsStrings.length; j++)
                 ingredientsStrings[j] = Game.generateValidEntityName(ingredientsStrings[j]);
             // Parse the duration.
-            const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
+            const durationString = sheet[row][columnDuration] ? sheet[row][columnDuration].toString() : "";
             let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
             let durationUnit = durationString.charAt(durationString.length - 1);
             /** @type {import('dayjs/plugin/duration.js').Duration} */
@@ -503,46 +503,39 @@ export function loadRecipes (game, doErrorChecking) {
             if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
                 duration = dayjs.duration(durationInt, durationUnit);
             // Separate the products.
-            let productsStrings = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
+            let productsStrings = sheet[row][columnProducts] ? sheet[row][columnProducts].split(',') : [];
             // For each product, convert the string to a valid entity name.
             for (let j = 0; j < productsStrings.length; j++)
                 productsStrings[j] = Game.generateValidEntityName(productsStrings[j]);
-
-            game.recipes.push(
-                new Recipe(
-                    ingredientsStrings,
-                    sheet[i][columnUncraftable] ? sheet[i][columnUncraftable].trim() === "TRUE" : false,
-                    sheet[i][columnFixtureTag] ? sheet[i][columnFixtureTag].trim() : "",
-                    duration,
-                    productsStrings,
-                    sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription].trim() : "",
-                    sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription].trim() : "",
-                    sheet[i][columnUncraftedDescription] ? sheet[i][columnUncraftedDescription].trim() : "",
-                    i + 2,
-                    game
-                )
+            let recipe = new Recipe(
+                ingredientsStrings,
+                sheet[row][columnUncraftable] ? sheet[row][columnUncraftable].trim() === "TRUE" : false,
+                sheet[row][columnFixtureTag] ? sheet[row][columnFixtureTag].trim() : "",
+                duration,
+                productsStrings,
+                sheet[row][columnInitiatedDescription] ? sheet[row][columnInitiatedDescription].trim() : "",
+                sheet[row][columnCompletedDescription] ? sheet[row][columnCompletedDescription].trim() : "",
+                sheet[row][columnUncraftedDescription] ? sheet[row][columnUncraftedDescription].trim() : "",
+                row + 2,
+                game
             );
-        }
-        let errors = [];
-        for (let i = 0; i < game.recipes.length; i++) {
-            for (let j = 0; j < game.recipes[i].ingredientsStrings.length; j++) {
-                const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === game.recipes[i].ingredientsStrings[j]);
-                if (prefab) game.recipes[i].ingredients[j] = prefab;
-            }
-            for (let j = 0; j < game.recipes[i].productsStrings.length; j++) {
-                const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === game.recipes[i].productsStrings[j]);
-                if (prefab) game.recipes[i].products[j] = prefab;
-            }
+            recipe.ingredientsStrings.forEach((ingredientsString, i) => {
+                const prefab = game.entityFinder.getPrefab(ingredientsString);
+                if (prefab) recipe.ingredients[i] = prefab;
+            });
+            recipe.productsStrings.forEach((productsString, i) => {
+                const prefab = game.entityFinder.getPrefab(productsString);
+                if (prefab) recipe.products[i] = prefab;
+            });
             if (doErrorChecking) {
-                const error = exports.checkRecipe(game.recipes[i]);
+                const error = exports.checkRecipe(recipe);
                 if (error instanceof Error) errors.push(error);
             }
+            game.recipes.push(recipe);
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -1332,7 +1325,7 @@ export function loadStatusEffects (game, doErrorChecking) {
                 if (curedCondition) game.statusEffects[i].curedCondition = curedCondition;
             }
             if (doErrorChecking) {
-                const error = exports.checkStatusEffect(game.statusEffects[i]);
+                const error = checkStatusEffect(game.statusEffects[i]);
                 if (error instanceof Error) errors.push(error);
             }
         }
