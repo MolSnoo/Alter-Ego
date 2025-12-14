@@ -80,21 +80,16 @@ export async function execute (game, message, command, args) {
             if (players[i].location !== currentRoom) return messageHandler.addReply(game, message, "All listed players must be in the same room to use an exit name.");
         }
         input = args.join(" ").toUpperCase();
-        for (let i = 0; i < currentRoom.exit.length; i++) {
-            if (input.endsWith(currentRoom.exit[i].name)) {
+        for (let i = 0; i <= args.length; i++) {
+            let searchString = args.slice(i).join(" ")
+            exit = game.entityFinder.getExit(currentRoom, searchString);
+            if (exit) {
                 isExit = true;
-                exit = currentRoom.exit[i];
-                exitPuzzle = game.puzzles.find(puzzle => puzzle.location.id === currentRoom.id && puzzle.name === exit.name && puzzle.type === "restricted exit");
+                exitPuzzle = game.entityFinder.getPuzzles(exit.name, currentRoom.id, "restricted exit")[0];
                 desiredRoom = exit.dest;
-                for (let j = 0; j < desiredRoom.exit.length; j++) {
-                    if (desiredRoom.exit[j].name === exit.link) {
-                        entrance = desiredRoom.exit[j];
-                        break;
-                    }
-                }
-
+                entrance = game.entityFinder.getExit(desiredRoom, exit.link);
                 input = input.substring(0, input.indexOf(exit.name));
-                args = input.split(" ");
+                args = input.split(" ")
                 break;
             }
         }
@@ -127,15 +122,10 @@ export async function execute (game, message, command, args) {
                 // Check to see if the given room is adjacent to the current player's room.
                 exit = null;
                 entrance = null;
-                for (let j = 0; j < currentRoom.exit.length; j++) {
-                    if (currentRoom.exit[j].dest === desiredRoom) {
-                        exit = currentRoom.exit[j];
-                        for (let k = 0; k < desiredRoom.exit.length; k++) {
-                            if (desiredRoom.exit[k].name === exit.link) {
-                                entrance = desiredRoom.exit[k];
-                                break;
-                            }
-                        }
+                for (const iterExit of currentRoom.exitCollection.values()) {
+                    if (iterExit.dest.id === desiredRoom.id) {
+                        exit = iterExit;
+                        entrance = game.entityFinder.getExit(desiredRoom, exit.link);
                         break;
                     }
                 }
