@@ -32,6 +32,11 @@ export default class RoomItem extends ItemInstance {
      */
     accessible;
     /**
+     * The type of the item's container. Either "Fixture", "RoomItem", or "Puzzle".
+     * @type {string}
+     */
+    containerType;
+    /**
      * The item's actual container.
      * @type {Fixture|Puzzle|RoomItem}
      */
@@ -56,6 +61,7 @@ export default class RoomItem extends ItemInstance {
      * @param {string} identifier - The unique identifier given to the item if it is capable of containing other items.
      * @param {string} locationDisplayName - The display name of the room the item can be found in.
      * @param {boolean} accessible - Whether the item can be interacted with.
+     * @param {string} containerType - The type of the item's container. Either "Fixture", "RoomItem", or "Puzzle".
      * @param {string} containerName - The type and identifier/name of the container the item can be found in, and the ID of the {@link InventorySlot|inventory slot} it belongs to, separated by a forward slash.
      * @param {number} quantity - How many identical instances of this item are in the given container.
      * @param {number} uses - The number of times this item can be used.
@@ -63,11 +69,12 @@ export default class RoomItem extends ItemInstance {
      * @param {number} row - The row number of the item in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(prefabId, identifier, locationDisplayName, accessible, containerName, quantity, uses, description, row, game) {
+    constructor(prefabId, identifier, locationDisplayName, accessible, containerType, containerName, quantity, uses, description, row, game) {
         super(game, row, description, prefabId, identifier, containerName, quantity, uses);
         this.locationDisplayName = locationDisplayName;
         this.location = null;
         this.accessible = accessible;
+        this.containerType = containerType;
         this.inventory = [];
         this.inventoryCollection = new Collection();
     }
@@ -132,11 +139,8 @@ export default class RoomItem extends ItemInstance {
      */
     insertItem(item, slotId) {
         if (item.quantity !== 0) {
-            for (let i = 0; i < this.inventory.length; i++) {
-                if (this.inventory[i].id === slotId) {
-                    this.inventory[i].insertItem(item);
-                }
-            }
+            const inventorySlot = this.inventoryCollection.get(slotId);
+            if (inventorySlot) inventorySlot.insertItem(item);
         }
     }
 
@@ -147,11 +151,8 @@ export default class RoomItem extends ItemInstance {
      * @param {number} removedQuantity - The quantity of this item to remove.
      */
     removeItem(item, slotId, removedQuantity) {
-        for (let i = 0; i < this.inventory.length; i++) {
-            if (this.inventory[i].id === slotId) {
-                this.inventory[i].removeItem(item, removedQuantity);
-            }
-        }
+        const inventorySlot = this.inventoryCollection.get(slotId);
+        if (inventorySlot) inventorySlot.removeItem(item, removedQuantity);
     }
 
     /**

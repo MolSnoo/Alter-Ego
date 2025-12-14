@@ -1,6 +1,7 @@
 import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
 import Prefab from "../Data/Prefab.js";
+import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 
 /**
@@ -59,6 +60,20 @@ export default class GameEntityManager {
 		this.game.recipes.length = 0;
 	}
 
+	/**
+	 * Clears all room item data from memory.
+	 */
+	clearRoomItems() {
+		this.game.roomItems.length = 0;
+	}
+
+	/**
+	 * Clears all puzzle data from memory.
+	 */
+	clearPuzzles() {
+		this.game.puzzles.length = 0;
+	}
+
 	/** 
 	 * Updates references to a given room throughout the game.
 	 * @param {Room} room - The room to reference.
@@ -92,15 +107,12 @@ export default class GameEntityManager {
 	 */
 	updateFixtureReferences(fixture) {
 		this.game.roomItems.forEach(roomItem => {
-			if (roomItem.location.id === fixture.location.id
-				&& (roomItem.containerName.startsWith("Fixture:") || roomItem.containerName.startsWith("Object:"))
-				&& Game.generateValidEntityName(roomItem.containerName.substring(roomItem.containerName.indexOf(':') + 1)) === fixture.name) {
-					roomItem.setContainer(fixture);
-			}
+			if (roomItem.location.id === fixture.location.id && roomItem.containerType === "Fixture" && roomItem.containerName === fixture.name)
+				roomItem.setContainer(fixture);
 		});
 		this.game.puzzles.forEach(puzzle => {
 			if (puzzle.location.id === fixture.location.id && puzzle.parentFixtureName !== "" && puzzle.parentFixtureName === fixture.name)
-				puzzle.setParentFixture;
+				puzzle.setParentFixture(fixture);
 		});
 	}
 
@@ -119,14 +131,24 @@ export default class GameEntityManager {
 		});
 		this.game.puzzles.forEach(puzzle => {
 			puzzle.requirementsStrings.forEach((requirementsString, i) => {
-				if ((requirementsString.startsWith("Item:")
-						|| requirementsString.startsWith("RoomItem:")
-						|| requirementsString.startsWith("InventoryItem:")
-						|| requirementsString.startsWith("Prefab:"))
-					&& Game.generateValidEntityName(requirementsString.substring(requirementsString.indexOf(':') + 1)) === prefab.id) {
-						puzzle.requirements[i] = prefab;
-					}
+				if (requirementsString.entityId === "Prefab" && requirementsString.entityId === prefab.id)
+					puzzle.requirements[i] = prefab;
 			});
+		});
+	}
+
+	/**
+	 * Updates references to a given puzzle throughout the game.
+	 * @param {Puzzle} puzzle - The puzzle to reference.
+	 */
+	updatePuzzleReferences(puzzle) {
+		this.game.fixtures.forEach(fixture => {
+			if (fixture.location.id === puzzle.location.id && fixture.childPuzzleName !== "" && fixture.childPuzzleName === puzzle.name)
+				fixture.setChildPuzzle(puzzle);
+		});
+		this.game.roomItems.forEach(roomItem => {
+			if (roomItem.location.id === puzzle.location.id && roomItem.containerType === "Puzzle" && roomItem.containerName === puzzle.name)
+				roomItem.setContainer(puzzle);
 		});
 	}
 }

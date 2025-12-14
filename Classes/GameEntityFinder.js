@@ -42,8 +42,8 @@ export default class GameEntityFinder {
 	 * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
 	 */
 	getFixture(name, location) {
-		if (location) this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
-		else this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
+		if (location) return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
+		else return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
 	}
 
 	/**

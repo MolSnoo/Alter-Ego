@@ -396,22 +396,26 @@ export function loadPrefabs (game, doErrorChecking) {
                 nextStageAssignment.forEach(prevStage => game.entityFinder.getPrefab(prevStage).setNextStage(prefab));
                 nextStageAssignments.delete(prefab.id);
             }
-            let nextStage = game.entityFinder.getPrefab(prefab.nextStageId);
-            if (nextStage) prefab.setNextStage(nextStage);
-            else {
-                // If the next stage wasn't found, it might have just not been loaded yet. Save it for later.
-                let assignmentsList = nextStageAssignments.get(prefab.nextStageId);
-                if (!assignmentsList) assignmentsList = [];
-                assignmentsList.push(prefab.id);
-                nextStageAssignments.set(prefab.nextStageId, assignmentsList);
-            }
-            if (doErrorChecking) {
-                const error = checkPrefab(prefab);
-                if (error instanceof Error) errors.push(error);
+            if (prefab.nextStageId !== "") {
+                let nextStage = game.entityFinder.getPrefab(prefab.nextStageId);
+                if (nextStage) prefab.setNextStage(nextStage);
+                else {
+                    // If the next stage wasn't found, it might have just not been loaded yet. Save it for later.
+                    let assignmentsList = nextStageAssignments.get(prefab.nextStageId);
+                    if (!assignmentsList) assignmentsList = [];
+                    assignmentsList.push(prefab.id);
+                    nextStageAssignments.set(prefab.nextStageId, assignmentsList);
+                }
             }
             game.prefabs.push(prefab);
             game.prefabsCollection.set(prefab.id, prefab);
             game.entityManager.updatePrefabReferences(prefab);
+        }
+        if (doErrorChecking) {
+            game.prefabsCollection.forEach(prefab => {
+                const error = checkPrefab(prefab);
+                if (error instanceof Error) errors.push(error);
+            });
         }
         if (errors.length > 0) {
             game.loadedEntitiesHaveErrors = true;
@@ -528,7 +532,7 @@ export function loadRecipes (game, doErrorChecking) {
                 if (prefab) recipe.products[i] = prefab;
             });
             if (doErrorChecking) {
-                const error = exports.checkRecipe(recipe);
+                const error = checkRecipe(recipe);
                 if (error instanceof Error) errors.push(error);
             }
             game.recipes.push(recipe);
@@ -583,168 +587,103 @@ export function loadRoomItems (game, doErrorChecking) {
         const response = await getSheetValues(game.constants.roomItemSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnPrefab = 0;
+        const columnPrefabId = 0;
         const columnIdentifier = 1;
-        const columnLocation = 2;
-        const columnAccessibility = 3;
+        const columnLocationDisplayName = 2;
+        const columnAccessible = 3;
         const columnContainer = 4;
         const columnQuantity = 5;
         const columnUses = 6;
         const columnDescription = 7;
 
-        game.roomItems.length = 0;
-        for (let i = 0; i < sheet.length; i++) {
-            game.roomItems.push(
-                new RoomItem(
-                    sheet[i][columnPrefab] ? Game.generateValidEntityName(sheet[i][columnPrefab]) : "",
-                    sheet[i][columnIdentifier] ? Game.generateValidEntityName(sheet[i][columnIdentifier]) : "",
-                    sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                    sheet[i][columnAccessibility] ? sheet[i][columnAccessibility].trim() === "TRUE" : false,
-                    sheet[i][columnContainer] ? sheet[i][columnContainer].trim() : "",
-                    parseInt(sheet[i][columnQuantity]),
-                    parseInt(sheet[i][columnUses]),
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    i + 2,
-                    game
-                )
-            );
-        }
+        game.entityManager.clearRoomItems();
+        /** @type {Collection<string, RoomItem>} */
+        let containerItems = new Collection();
+        /** @type {Collection<string, RoomItem[]>} */
+        let unloadedContainers = new Collection();
+        /** @type {Error[]} */
         let errors = [];
-        let childItemIndexes = [];
-        for (let i = 0; i < game.roomItems.length; i++) {
-            const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === game.roomItems[i].prefabId);
-            if (prefab) game.roomItems[i].setPrefab(prefab);
-            const location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.roomItems[i].locationDisplayName))
-            if (location) game.roomItems[i].location = location;
-            if (game.roomItems[i].prefab instanceof Prefab) {
-                game.roomItems[i].initializeInventory();
-            }
-            if (game.roomItems[i].containerName.startsWith("Object:")) {
-                const container = game.fixtures.find(fixture =>
-                    fixture.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Object:".length))
-                    && fixture.location instanceof Room
-                    && game.roomItems[i].location instanceof Room
-                    && fixture.location.id === game.roomItems[i].location.id
-                );
-                if (container) game.roomItems[i].container = container;
-            }
-            else if (game.roomItems[i].containerName.startsWith("Item:")) {
-                childItemIndexes.push(i);
-            }
-            else if (game.roomItems[i].containerName.startsWith("Puzzle:")) {
-                const container = game.puzzles.find(puzzle =>
-                    puzzle.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Puzzle:".length))
-                    && puzzle.location instanceof Room
-                    && game.roomItems[i].location instanceof Room
-                    && puzzle.location.id === game.roomItems[i].location.id
-                );
-                if (container) game.roomItems[i].container = container;
-            }
-        }
-        // Only assign child item containers once all items have been properly initialized.
-        for (let index = 0; index < childItemIndexes.length; index++) {
-            const i = childItemIndexes[index];
-            const containerName = game.roomItems[i].containerName.substring("Item:".length).trim().split("/");
-            const identifier = containerName[0] ? Game.generateValidEntityName(containerName[0]) : "";
-            const slotId = containerName[1] ? Game.generateValidEntityName(containerName[1]) : "";
-            let possibleContainers = game.roomItems.filter(item =>
-                item.identifier === identifier
-                && item.location instanceof Room
-                && game.roomItems[i].location instanceof Room
-                && item.location.id === game.roomItems[i].location.id);
-            let container = null;
-            for (let i = 0; i < possibleContainers.length; i++) {
-                if (possibleContainers[i].quantity > 0) {
-                    container = possibleContainers[i];
-                    break;
-                }
-            }
-            if (container === null && possibleContainers.length > 0) container = possibleContainers[0];
-            if (container) {
-                game.roomItems[i].container = container;
-                game.roomItems[i].slot = slotId;
-                // This is a pseudo-copy of the insertItems function without weight and takenSpace changing.
-                if (game.roomItems[i].quantity !== 0) {
-                    for (let j = 0; j < container.inventory.length; j++) {
-                        if (container.inventory[j].id === slotId)
-                            container.inventory[j].items.push(game.roomItems[i]);
-                    }
-                }
-            }
-        }
-        // Create a recursive function for properly inserting item inventories.
-        /** @param {RoomItem} item */
-        let insertInventory = function (item) {
-            let createdItem = new RoomItem(
-                item.prefab.id,
-                item.identifier,
-                item.locationDisplayName,
-                item.accessible,
-                item.containerName,
-                item.quantity,
-                item.uses,
-                item.description,
-                item.row,
+        for (let row = 0; row < sheet.length; row++) {
+            let containerDisplay = sheet[row][columnContainer] && sheet[row][columnContainer].split(':').length > 1 ? sheet[row][columnContainer].split(':') : ['', sheet[row][columnContainer]];
+            let containerType = containerDisplay[0].trim();
+            const containerTypeUpper = containerType.toUpperCase();
+            let containerName = Game.generateValidEntityName(containerDisplay[1]);
+            if (containerTypeUpper === "FIXTURE" || containerTypeUpper === "OBJECT") containerType = "Fixture";
+            else if (containerTypeUpper === "ROOMITEM" || containerTypeUpper === "ITEM") containerType = "RoomItem";
+            else if (containerTypeUpper === "PUZZLE") containerType = "Puzzle";
+            const roomItem = new RoomItem(
+                sheet[row][columnPrefabId] ? Game.generateValidEntityName(sheet[row][columnPrefabId]) : "",
+                sheet[row][columnIdentifier] ? Game.generateValidEntityName(sheet[row][columnIdentifier]) : "",
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnAccessible] ? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                containerType,
+                containerName,
+                parseInt(sheet[row][columnQuantity]),
+                parseInt(sheet[row][columnUses]),
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                row + 2,
                 game
             );
-            createdItem.setPrefab(item.prefab);
-            createdItem.location = item.location;
-            if (item.container instanceof RoomItem) createdItem.container = game.roomItems.find(gameItem => gameItem.row === item.container.row);
-            else createdItem.container = item.container;
-            createdItem.slot = item.slot;
-            createdItem.weight = item.weight;
-
-            // Initialize the item's inventory slots.
-            if (item.prefab instanceof Prefab)
-                item.initializeInventory();
-
-            for (let i = 0; i < item.inventory.length; i++) {
-                for (let j = 0; j < item.inventory[i].items.length; j++) {
-                    const inventoryItem = insertInventory(item.inventory[i].items[j]);
-                    let foundItem = false;
-                    let k = 0;
-                    for (k; k < game.roomItems.length; k++) {
-                        if (game.roomItems[k].row === inventoryItem.row) {
-                            foundItem = true;
-                            game.roomItems[k] = inventoryItem;
-                            break;
-                        }
-                    }
-                    if (foundItem) {
-                        game.roomItems[k].container = createdItem;
-                        if (game.roomItems[k].containerName !== "")
-                            createdItem.insertItem(game.roomItems[k], game.roomItems[k].slot);
-                        else createdItem.inventory[i].items.push(game.roomItems[k]);
-                    }
+            const prefab = game.entityFinder.getPrefab(roomItem.prefabId);
+            if (prefab) {
+                roomItem.setPrefab(prefab);
+                roomItem.initializeInventory();
+            }
+            const location = game.entityFinder.getRoom(roomItem.locationDisplayName);
+            if (location) roomItem.setLocation(location);
+            if (roomItem.identifier !== "" && roomItem.inventoryCollection.size > 0) {
+                if (containerItems.get(roomItem.identifier)) {
+                    errors.push(new Error(`Couldn't load room item on row ${roomItem.row}. Another room item with this container identifier already exists.`));
+                    continue;
+                }
+                containerItems.set(roomItem.identifier, roomItem);
+                // If this item's identifier is already in the unloadedContainers collection, we can set it as the container for its child items.
+                const unassignedChildItems = unloadedContainers.get(roomItem.identifier);
+                if (unassignedChildItems) {
+                    unassignedChildItems.forEach(childItem => {
+                        childItem.setContainer(roomItem);
+                        roomItem.insertItem(childItem, childItem.slot);
+                    });
+                    unloadedContainers.delete(roomItem.identifier);
                 }
             }
-            return createdItem;
-        };
-        // Run through items one more time to properly insert their inventories.
-        for (let i = 0; i < game.roomItems.length; i++) {
-            const container = game.roomItems[i].container;
-            if (container instanceof RoomItem) {
-                for (let slot = 0; slot < container.inventory.length; slot++) {
-                    for (let j = 0; j < container.inventory[slot].items.length; j++) {
-                        if (container.inventory[slot].items[j].row === game.roomItems[i].row) {
-                            game.roomItems[i] = container.inventory[slot].items[j];
-                            break;
-                        }
-                    }
+            if (roomItem.containerType === "Fixture") {
+                const container = game.entityFinder.getFixture(containerName, roomItem.locationDisplayName);
+                if (container) roomItem.setContainer(container);
+            }
+            else if (roomItem.containerType === "Puzzle") {
+                const container = game.entityFinder.getPuzzle(containerName, roomItem.locationDisplayName);
+                if (container) roomItem.setContainer(container);
+            }
+            else if (roomItem.containerType === "RoomItem") {
+                const containerNameSplit = roomItem.containerName.split('/').length > 1 ? roomItem.containerName.split('/') : [roomItem.containerName, ''];
+                const identifier = Game.generateValidEntityName(containerNameSplit[0]);
+                const slotId = Game.generateValidEntityName(containerNameSplit[1]);
+                if (slotId) roomItem.slot = slotId;
+                const container = containerItems.get(identifier);
+                if (container) {
+                    roomItem.setContainer(container);
+                    container.insertItem(roomItem, slotId);
+                }
+                else {
+                    // If the container item wasn't found, it might have just not been loaded yet. Save it for later.
+                    let unassignedChildItems = unloadedContainers.get(identifier);
+                    if (!unassignedChildItems) unassignedChildItems = [];
+                    unassignedChildItems.push(roomItem);
+                    unloadedContainers.set(identifier, unassignedChildItems);
                 }
             }
-            else game.roomItems[i] = insertInventory(game.roomItems[i]);
-
-            if (doErrorChecking) {
-                const error = exports.checkItem(game.roomItems[i], game);
+            game.roomItems.push(roomItem);
+        }
+        if (doErrorChecking) {
+            game.roomItems.forEach(roomItem => {
+                const error = checkRoomItem(roomItem);
                 if (error instanceof Error) errors.push(error);
-            }
+            });
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -759,13 +698,12 @@ export function loadRoomItems (game, doErrorChecking) {
 export function checkRoomItem (item) {
     if (!(item.prefab instanceof Prefab))
         return new Error(`Couldn't load room item on row ${item.row}. "${item.prefabId}" is not a prefab.`);
-    if (item.inventory.length > 0 && item.identifier === "")
+    if (item.inventoryCollection.size > 0 && item.identifier === "")
         return new Error(`Couldn't load room item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
-    if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+    if (item.inventoryCollection.size > 0 && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load room item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
     if (item.identifier !== "" && item.quantity !== 0 &&
-        item.game.roomItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length
-        + item.game.inventoryItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length > 0)
+        item.game.entityFinder.getRoomItems(item.identifier).length + item.game.entityFinder.getInventoryItems(item.identifier).length > 1)
         return new Error(`Couldn't load room item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
     if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load room item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
@@ -773,27 +711,25 @@ export function checkRoomItem (item) {
         return new Error(`Couldn't load room item on row ${item.row}. "${item.locationDisplayName}" is not a room.`);
     if (item.containerName === "")
         return new Error(`Couldn't load room item on row ${item.row}. No container was given.`);
-    if (item.containerName.startsWith("Object:") && !(item.container instanceof Fixture))
+    if (item.containerType === "")
+        return new Error(`Couldn't load room item on row ${item.row}. The container type wasn't specified.`);
+    if (item.containerType !== "Fixture" && item.containerType !== "RoomItem" && item.containerType !== "Puzzle")
+        return new Error(`Couldn't load room item on row ${item.row}. "${item.containerType}" is not a valid container type.`);
+    if (item.containerType === "Fixture" && !(item.container instanceof Fixture))
         return new Error(`Couldn't load room item on row ${item.row}. The container given is not a fixture.`);
-    if (item.containerName.startsWith("Item:") && !(item.container instanceof RoomItem))
+    if (item.containerType === "RoomItem" && !(item.container instanceof RoomItem))
         return new Error(`Couldn't load room item on row ${item.row}. The container given is not a room item.`);
-    if (item.containerName.startsWith("Puzzle:") && !(item.container instanceof Puzzle))
+    if (item.containerType === "Puzzle" && !(item.container instanceof Puzzle))
         return new Error(`Couldn't load room item on row ${item.row}. The container given is not a puzzle.`);
-    if (item.containerName !== "" && !item.containerName.startsWith("Object:") && !item.containerName.startsWith("Item:") && !item.containerName.startsWith("Puzzle:"))
-        return new Error(`Couldn't load room item on row ${item.row}. The given container type is invalid.`);
-    if (item.container instanceof RoomItem && item.container.inventory.length === 0)
+    if (item.container instanceof RoomItem && item.container.inventoryCollection.size === 0)
         return new Error(`Couldn't load room item on row ${item.row}. The item's container is a room item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
     if (item.container instanceof RoomItem) {
         if (item.slot === "") return new Error(`Couldn't load room item on row ${item.row}. The item's container is a room item, but a prefab inventory slot ID was not given.`);
-        let foundSlot = false;
-        for (let i = 0; i < item.container.inventory.length; i++) {
-            if (item.container.inventory[i].id === item.slot) {
-                foundSlot = true;
-                if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
-                    return new Error(`Couldn't load room item on row ${item.row}. The item's container is over capacity.`);
-            }
-        }
-        if (!foundSlot) return new Error(`Couldn't load room item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+        const inventorySlot = item.container.inventoryCollection.get(item.slot);
+        if (!inventorySlot)
+            return new Error(`Couldn't load room item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+        if (inventorySlot.takenSpace > inventorySlot.capacity)
+            return new Error(`Couldn't load room item on row ${item.row}. The item's container is over capacity.`);
     }
 }
 
@@ -812,26 +748,39 @@ export function loadPuzzles (game, doErrorChecking) {
         const columnSolved = 1;
         const columnOutcome = 2;
         const columnRequiresMod = 3;
-        const columnLocation = 4;
+        const columnLocationDisplayName = 4;
         const columnParentFixture = 5;
         const columnType = 6;
         const columnAccessible = 7;
         const columnRequires = 8;
         const columnSolution = 9;
         const columnAttempts = 10;
-        const columnWhenSolved = 11;
+        const columnCommandSets = 11;
         const columnCorrectDescription = 12;
         const columnAlreadySolvedDescription = 13;
         const columnIncorrectDescription = 14;
         const columnNoMoreAttemptsDescription = 15;
         const columnRequirementsNotMetDescription = 16;
 
-        game.puzzles.length = 0;
-        for (let i = 0; i < sheet.length; i++) {
-            let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
-            for (let j = 0; j < requirements.length; j++)
-                requirements[j] = requirements[j].trim();
-            const commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
+        game.entityManager.clearPuzzles();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            let requirements = sheet[row][columnRequires] ? sheet[row][columnRequires].split(',') : [];
+            /** @type {PuzzleRequirement[]} */
+            let requirementsStrings = [];
+            requirements.forEach(requirement => {
+                let requirementDisplay = requirement.split(':').length > 1 ? requirement.split(':') : ['', requirement];
+                let requirementType = requirementDisplay[0].trim();
+                const requirementTypeUpper = requirementType.toUpperCase();
+                let requirementId = Game.generateValidEntityName(requirementDisplay[1]);
+                if (requirementTypeUpper === "PUZZLE") requirementType = "Puzzle";
+                else if (requirementTypeUpper === "EVENT") requirementType = "Event";
+                else if (requirementTypeUpper === "FLAG") requirementType = "Flag";
+                else if (requirementTypeUpper === "PREFAB" || requirementTypeUpper === "ITEM" || requirementTypeUpper === "ROOMITEM" || requirementTypeUpper === "INVENTORYITEM") requirementType = "Prefab";
+                requirementsStrings.push({ type: requirementType, entityId: requirementId });
+            });
+            const commandString = sheet[row][columnCommandSets] ? sheet[row][columnCommandSets].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
             /** @type {PuzzleCommandSet[]} */
             let commandSets = [];
             /**
@@ -848,108 +797,79 @@ export function loadPuzzles (game, doErrorChecking) {
                     unsolvedCommands[j] = unsolvedCommands[j].trim();
                 return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
             };
-            const regex = new RegExp(/(\[((.*?)(?<!(?:(?:Inventory)?Item)|Prefab): (.*?))\],?)/g);
+            const regex = new RegExp(/(\[((.*?)(?<!(?:(?:Room|Inventory)?Item)|Prefab): (.*?))\],?)/g);
             if (!!commandString.match(regex)) {
                 let match;
                 while (match = regex.exec(commandString)) {
                     const commandSet = match[2];
                     let outcomes = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
-                    for (let j = 0; j < outcomes.length; j++)
-                        outcomes[j] = outcomes[j].trim();
+                    for (let i = 0; i < outcomes.length; i++)
+                        outcomes[i] = outcomes[i].trim();
                     const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
                     commandSets.push({ outcomes: outcomes, solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
                 }
             }
             else {
-                const commands = getCommands(sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "");
+                const commands = getCommands(sheet[row][columnCommandSets] ? sheet[row][columnCommandSets] : "");
                 commandSets.push({ outcomes: [], solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
             }
-            let solutions = sheet[i][columnSolution] ? sheet[i][columnSolution].toString().split(',') : [];
+            let solutions = sheet[row][columnSolution] ? sheet[row][columnSolution].toString().split(',') : [];
             for (let j = 0; j < solutions.length; j++) {
-                if (sheet[i][columnType] === "voice")
+                if (sheet[row][columnType] === "voice")
                     solutions[j] = solutions[j].replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
                 else
                     solutions[j] = solutions[j].trim();
             }
-            game.puzzles.push(
-                new Puzzle(
-                    sheet[i][columnName] ? Game.generateValidEntityName(sheet[i][columnName]) : "",
-                    sheet[i][columnSolved] ? sheet[i][columnSolved].trim() === "TRUE" : false,
-                    sheet[i][columnOutcome] ? sheet[i][columnOutcome].trim() : "",
-                    sheet[i][columnRequiresMod] ? sheet[i][columnRequiresMod].trim() === "TRUE" : false,
-                    sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                    sheet[i][columnParentFixture] ? Game.generateValidEntityName(sheet[i][columnParentFixture]) : "",
-                    sheet[i][columnType] ? sheet[i][columnType].trim() : "",
-                    sheet[i][columnAccessible] ? sheet[i][columnAccessible].trim() === "TRUE" : false,
-                    requirements,
-                    solutions,
-                    parseInt(sheet[i][columnAttempts]),
-                    sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "",
-                    commandSets,
-                    sheet[i][columnCorrectDescription] ? sheet[i][columnCorrectDescription].trim() : "",
-                    sheet[i][columnAlreadySolvedDescription] ? sheet[i][columnAlreadySolvedDescription].trim() : "",
-                    sheet[i][columnIncorrectDescription] ? sheet[i][columnIncorrectDescription].trim() : "",
-                    sheet[i][columnNoMoreAttemptsDescription] ? sheet[i][columnNoMoreAttemptsDescription].trim() : "",
-                    sheet[i][columnRequirementsNotMetDescription] ? sheet[i][columnRequirementsNotMetDescription].trim() : "",
-                    i + 2,
-                    game
-                )
+            const puzzle = new Puzzle(
+                sheet[row][columnName] ? Game.generateValidEntityName(sheet[row][columnName]) : "",
+                sheet[row][columnSolved] ? sheet[row][columnSolved].trim() === "TRUE" : false,
+                sheet[row][columnOutcome] ? sheet[row][columnOutcome].trim() : "",
+                sheet[row][columnRequiresMod] ? sheet[row][columnRequiresMod].trim() === "TRUE" : false,
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnParentFixture] ? Game.generateValidEntityName(sheet[row][columnParentFixture]) : "",
+                sheet[row][columnType] ? sheet[row][columnType].trim() : "",
+                sheet[row][columnAccessible] ? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                requirementsStrings,
+                solutions,
+                parseInt(sheet[row][columnAttempts]),
+                sheet[row][columnCommandSets] ? sheet[row][columnCommandSets] : "",
+                commandSets,
+                sheet[row][columnCorrectDescription] ? sheet[row][columnCorrectDescription].trim() : "",
+                sheet[row][columnAlreadySolvedDescription] ? sheet[row][columnAlreadySolvedDescription].trim() : "",
+                sheet[row][columnIncorrectDescription] ? sheet[row][columnIncorrectDescription].trim() : "",
+                sheet[row][columnNoMoreAttemptsDescription] ? sheet[row][columnNoMoreAttemptsDescription].trim() : "",
+                sheet[row][columnRequirementsNotMetDescription] ? sheet[row][columnRequirementsNotMetDescription].trim() : "",
+                row + 2,
+                game
             );
+            const location = game.entityFinder.getRoom(puzzle.locationDisplayName);
+            if (location) puzzle.setLocation(location);
+            const parentFixture = game.entityFinder.getFixture(puzzle.parentFixtureName, puzzle.locationDisplayName);
+            if (parentFixture) puzzle.setParentFixture(parentFixture);
+            game.puzzles.push(puzzle);
         }
-        let errors = [];
-        for (let i = 0; i < game.puzzles.length; i++) {
-            game.puzzles[i].location = game.rooms.find(room => room.id !== "" && room.id === Room.generateValidId(game.puzzles[i].locationDisplayName));
-            const parentFixture = game.fixtures.find(fixture =>
-                fixture.name === game.puzzles[i].parentFixtureName
-                && fixture.location instanceof Room
-                && game.puzzles[i].location instanceof Room
-                && fixture.location.id === game.puzzles[i].location.id
-            );
-            if (parentFixture) game.puzzles[i].parentFixture = parentFixture;
-            for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
+        game.puzzles.forEach(puzzle => {
+            puzzle.requirementsStrings.forEach((requirementString, i) => {
+                /** @type {Prefab|Event|Flag|Puzzle} */
                 let requirement = null;
-                const requirementString = game.puzzles[i].requirementsStrings[j];
-                const requirementSubstring = Game.generateValidEntityName(requirementString.substring(requirementString.indexOf(':') + 1));
-                if (requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:"))
-                    requirement = game.prefabs.find(prefab => prefab.id === requirementSubstring);
-                else if (requirementString.startsWith("Event:"))
-                    requirement = game.events.find(event => event.id === requirementSubstring);
-                else if (requirementString.startsWith("Flag:"))
-                    requirement = game.flags.get(requirementSubstring);
+                if (requirementString.type === "Prefab")
+                    requirement = game.entityFinder.getPrefab(requirementString.entityId);
+                else if (requirementString.type === "Event")
+                    requirement = game.entityFinder.getEvent(requirementString.entityId);
+                else if (requirementString.type === "Flag")
+                    requirement = game.flags.get(requirementString.entityId);
                 else
-                    requirement = game.puzzles.find(puzzle => puzzle.name === requirementString || requirementString === `Puzzle: ${puzzle.name}`);
-                if (requirement) game.puzzles[i].requirements[j] = requirement;
-            }
+                    requirement = game.entityFinder.getPuzzle(requirementString.entityId);
+                puzzle.requirements[i] = requirement;
+            });
             if (doErrorChecking) {
-                const error = exports.checkPuzzle(game.puzzles[i]);
+                const error = checkPuzzle(puzzle);
                 if (error instanceof Error) errors.push(error);
             }
-        }
-        for (let i = 0; i < game.fixtures.length; i++) {
-            if (game.fixtures[i].childPuzzleName !== "") {
-                game.fixtures[i].childPuzzle = game.puzzles.find(puzzle =>
-                    puzzle.name === game.fixtures[i].childPuzzleName
-                    && puzzle.location instanceof Room
-                    && game.fixtures[i].location instanceof Room
-                    && puzzle.location.id === game.fixtures[i].location.id
-                );
-            }
-        }
-        for (let i = 0; i < game.roomItems.length; i++) {
-            if (game.roomItems[i].containerName.startsWith("Puzzle:")) {
-                game.roomItems[i].container = game.puzzles.find(puzzle =>
-                    puzzle.name === Game.generateValidEntityName(game.roomItems[i].containerName.substring("Puzzle:".length))
-                    && puzzle.location instanceof Room
-                    && game.roomItems[i].location instanceof Room
-                    && puzzle.location.id === game.roomItems[i].location.id
-                );
-            }
-        }
+        });
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -989,7 +909,7 @@ export function checkPuzzle (puzzle) {
         puzzle.type !== "room player" &&
         puzzle.type !== "restricted exit" &&
         puzzle.type !== "matrix")
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if ((puzzle.type === "probability" || puzzle.type.endsWith(" probability")) && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
     if (puzzle.type.endsWith(" probability")) {
@@ -1010,8 +930,8 @@ export function checkPuzzle (puzzle) {
         for (let i = 0; i < puzzle.solutions.length; i++) {
             let requiredItems = puzzle.solutions[i].split('+');
             for (let j = 0; j < requiredItems.length; j++) {
-                if (!requiredItems[j].trim().startsWith("Item: ") && !requiredItems[j].trim().startsWith("InventoryItem: ") && !requiredItems[j].trim().startsWith("Prefab: "))
-                    return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItems[j]}" does not have the "Item: ", "InventoryItem: ", or "Prefab: " prefix.`);
+                if (!requiredItems[j].trim().startsWith("Item: ") && !requiredItems[j].trim().startsWith("Prefab: "))
+                    return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItems[j]}" does not have the "Item: " or "Prefab: " prefix.`);
             }
         }
     }
@@ -1023,8 +943,8 @@ export function checkPuzzle (puzzle) {
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but its outcome is not among the list of its solutions.`);
     if (puzzle.type === "media") {
         for (let i = 0; i < puzzle.solutions.length; i++) {
-            if (!puzzle.solutions[i].startsWith("Item: ") && !puzzle.solutions[i].startsWith("InventoryItem: ") && !puzzle.solutions[i].startsWith("Prefab: "))
-                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${puzzle.solutions[i]}" does not have the "Item: ", "InventoryItem: ", or "Prefab: " prefix.`);
+            if (!puzzle.solutions[i].startsWith("Item: ") && !puzzle.solutions[i].startsWith("Prefab: "))
+                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${puzzle.solutions[i]}" does not have the "Item: " or "Prefab: " prefix.`);
         }
         if (puzzle.solved === true && puzzle.outcome === "")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but it was solved without an outcome.`);
@@ -1039,14 +959,20 @@ export function checkPuzzle (puzzle) {
     }
     for (let i = 0; i < puzzle.requirements.length; i++) {
         const requirementString = puzzle.requirementsStrings[i];
-        if ((requirementString.startsWith("Item:") || requirementString.startsWith("InventoryItem:") || requirementString.startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a prefab.`);
-        else if (requirementString.startsWith("Event:") && !(puzzle.requirements[i] instanceof Event))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not an event.`);
-        else if (requirementString.startsWith("Flag:") && !(puzzle.requirements[i] instanceof Flag))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a flag.`);
-        else if ((!requirementString.includes(':') || requirementString.startsWith("Puzzle:")) && !(puzzle.requirements[i] instanceof Puzzle))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString}" in requires is not a puzzle.`);
+        if (requirementString.type === "Prefab" && !(puzzle.requirements[i] instanceof Prefab))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a prefab.`);
+        else if (requirementString.type === "Event" && !(puzzle.requirements[i] instanceof Event))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not an event.`);
+        else if (requirementString.type === "Flag" && !(puzzle.requirements[i] instanceof Flag))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a flag.`);
+        else if ((requirementString.type === "Puzzle" || requirementString.type === "") && !(puzzle.requirements[i] instanceof Puzzle))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a puzzle.`);
+        else if (requirementString.type !== "Prefab"
+            && requirementString.type !== "Event"
+            && requirementString.type !== "Flag"
+            && requirementString.type !== "Puzzle"
+            && requirementString.type !== "")
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.type}" is not a valid requirement type.`);
     }
 }
 
@@ -1143,17 +1069,17 @@ export function loadEvents (game, doErrorChecking) {
                 if (status) game.events[i].refreshes[j] = status;
             }
             if (doErrorChecking) {
-                const error = exports.checkEvent(game.events[i], game);
+                const error = checkEvent(game.events[i]);
                 if (error instanceof Error) errors.push(error);
             }
         }
         for (let i = 0; i < game.puzzles.length; i++) {
             for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
                 const requirementString = game.puzzles[i].requirementsStrings[j];
-                if (requirementString.startsWith("Event:")) {
+                /*if (requirementString.startsWith("Event:")) {
                     const requirement = game.events.find(event => event.id === Game.generateValidEntityName(requirementString.substring(requirementString.indexOf(':') + 1)));
                     if (requirement) game.puzzles[i].requirements[j] = requirement;
-                }
+                }*/
             }
         }
         if (errors.length > 0) {
@@ -1931,7 +1857,7 @@ export function loadGestures (game, doErrorChecking) {
                 if (disabledStatus) game.gestures[i].disabledStatuses[j] = disabledStatus;
             }
             if (doErrorChecking) {
-                let error = exports.checkGesture(game.gestures[i]);
+                let error = checkGesture(game.gestures[i]);
                 if (error instanceof Error) errors.push(error);
             }
         }
@@ -2053,10 +1979,10 @@ export function loadFlags (game, doErrorChecking) {
         for (let i = 0; i < game.puzzles.length; i++) {
             for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
                 const requirementString = game.puzzles[i].requirementsStrings[j];
-                if (requirementString.startsWith("Flag:")) {
+                /*if (requirementString.startsWith("Flag:")) {
                     let requirement = game.flags.get(Game.generateValidEntityName(requirementString.substring(requirementString.indexOf(':') + 1)));
                     if (requirement) game.puzzles[i].requirements[j] = requirement;
-                }
+                }*/
             }
         }
         if (errors.length > 0) {

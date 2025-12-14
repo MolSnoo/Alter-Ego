@@ -85,7 +85,6 @@ export default class InventorySlot {
 		if (!isNaN(item.quantity)) {
 			this.weight += item.weight * item.quantity;
 			this.takenSpace += item.prefab.size * item.quantity;
-			this.weight += item.weight * item.quantity;
 		}
     }
 

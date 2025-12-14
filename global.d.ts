@@ -1,15 +1,15 @@
 import type { ActivitiesOptions, ActivityType, GuildMember, Message, Snowflake } from "discord.js";
+import type GameSettings from "./Classes/GameSettings.js";
 import type Event from "./Data/Event.js";
 import type Flag from "./Data/Flag.js";
 import type Game from "./Data/Game.js";
+import type GameEntity from "./Data/GameEntity.js";
 import type InventoryItem from "./Data/InventoryItem.js";
 import type Player from "./Data/Player.js";
 import type Puzzle from "./Data/Puzzle.js";
-import type GameSettings from "./Classes/GameSettings.js";
 import type Recipe from "./Data/Recipe.js";
 import type RoomItem from "./Data/RoomItem.js";
 import type { Duration } from "dayjs/plugin/duration.js";
-import type GameEntity from "./Data/GameEntity.js";
 import type { Node } from "acorn";
 
 export {};
@@ -263,18 +263,10 @@ declare global {
 		ingredient2: InventoryItem | null;
 	}
 
-	/**
-     * @property {string} command - The command alias that was used
-     * @property {string} input - The combined arguments of the command
-     * @property {Message} [message] - The message that triggered the command
-     * @property {Player} [targetPlayer] - The player targeted by the command
-     */
-	interface Misc {
-        command: string;
-        input: string;
-        message?: Message;
-        targetPlayer?: Player;
-    }
+	interface PuzzleRequirement {
+		type: string;
+		entityId: string
+	}
 
 	/**
      * @property [outcomes] - Strings indicating which puzzle solutions will execute the commands in this command set.

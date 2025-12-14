@@ -62,7 +62,7 @@ export async function saveGame (game, deletedItemsCount = 0, deletedInventoryIte
                 game.items[i].identifier,
                 game.items[i].location.displayName,
                 game.items[i].accessible ? "TRUE" : "FALSE",
-                game.items[i].containerName,
+                `${game.items[i].containerType}: ${game.items[i].containerName}`,
                 !isNaN(game.items[i].quantity) ? String(game.items[i].quantity) : "",
                 !isNaN(game.items[i].uses) ? String(game.items[i].uses) : "",
                 game.items[i].description
@@ -89,6 +89,12 @@ export async function saveGame (game, deletedItemsCount = 0, deletedInventoryIte
         /** @type {string[][]} */
         let puzzleValues = [];
         for (let i = 0; i < game.puzzles.length; i++) {
+            /** @type {string[]} */
+            let requirementStrings = [];
+            game.puzzles[i].requirementsStrings.forEach(requirement => {
+                if (requirement.type === "") requirementStrings.push(requirement.entityId);
+                else requirementStrings.push(`${requirement.type}: ${requirement.entityId}`);
+            });
             puzzleValues.push([
                 game.puzzles[i].name,
                 game.puzzles[i].solved ? "TRUE" : "FALSE",
@@ -98,7 +104,7 @@ export async function saveGame (game, deletedItemsCount = 0, deletedInventoryIte
                 game.puzzles[i].parentFixtureName,
                 game.puzzles[i].type,
                 game.puzzles[i].accessible ? "TRUE" : "FALSE",
-                game.puzzles[i].requirementsStrings.join(", "),
+                requirementStrings.join(", "),
                 game.puzzles[i].solutions.join(", "),
                 !isNaN(game.puzzles[i].remainingAttempts) ? String(game.puzzles[i].remainingAttempts) : "",
                 game.puzzles[i].commandSetsString,
