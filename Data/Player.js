@@ -193,6 +193,12 @@ export default class Player extends ItemContainer {
      */
     hidingSpot;
     /**
+     * A list of the names of all status effects the player currently has, including those that aren't visible.
+     * Also contains a string representation of the {@link Status.remaining|remaining time} of each status.
+     * @type {StatusDisplay[]}
+     */
+    statusDisplays;
+    /**
      * All status effects the player currently has.
      * Every time a status is inflicted or cured, the player's stats are recalculated.
      * @type {Status[]}
@@ -201,6 +207,8 @@ export default class Player extends ItemContainer {
     /**
      * A comma-separated list of the names of all status effects the player currently has, including those that aren't visible.
      * Also contains a string representation of the {@link Status.remaining|remaining time} of the status.
+     * Deprecated. Use statusDisplays instead.
+     * @deprecated
      * @type {string}
      */
     statusString;
@@ -285,14 +293,14 @@ export default class Player extends ItemContainer {
      * @param {boolean} alive - Whether the player is alive or not.
      * @param {string} locationDisplayName - The display name of the room the player was loaded into.
      * @param {string} hidingSpot - The name of the fixture the player is currently hiding in. The fixture doesn't actually have to exist.
-     * @param {Status[]} status - All status effects the player currently has.
+     * @param {StatusDisplay[]} statusDisplays - A list of the names of all status effects the player currently has, including those that aren't visible. Also contains a string representation of the {@link Status.remaining|remaining time} of each status.
      * @param {string} description - The description of the player. Can contain two item lists: hands and equipment.
      * @param {Collection<string, EquipmentSlot>} inventory - All of the player's {@link EquipmentSlot | equipment slots}.
      * @param {TextChannel | null} spectateChannel - The spectate channel of the player.
      * @param {number} row - The row of the player.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, member, name, title, pronounString, originalVoiceString, stats, alive, locationDisplayName, hidingSpot, status, description, inventory, spectateChannel, row, game) {
+    constructor(id, member, name, title, pronounString, originalVoiceString, stats, alive, locationDisplayName, hidingSpot, statusDisplays, description, inventory, spectateChannel, row, game) {
         super(game, row, description);
         this.id = id;
         this.member = member;
@@ -339,7 +347,8 @@ export default class Player extends ItemContainer {
         this.location = null;
         this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
-        this.status = status;
+        this.statusDisplays = statusDisplays;
+        this.status = new Array(this.statusDisplays.length);
         this.statusString = "";
         this.description = description;
         this.inventory = [];

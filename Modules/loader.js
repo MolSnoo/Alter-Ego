@@ -1260,26 +1260,10 @@ export function checkStatusEffect (status) {
  */
 export function loadPlayers (game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
-        // Clear all player status effects and movement timers first.
-        for (let i = 0; i < game.players.length; i++) {
-            for (let j = 0; j < game.players[i].status.length; j++) {
-                if (game.players[i].status[j].hasOwnProperty("timer") && game.players[i].status[j].timer !== null)
-                    game.players[i].status[j].timer.stop();
-            }
-            game.players[i].isMoving = false;
-            clearInterval(game.players[i].moveTimer);
-            game.players[i].remainingTime = 0;
-            game.players[i].moveQueue.length = 0;
-            game.players[i].setOffline();
-        }
-        // Clear all rooms of their occupants.
-        for (let i = 0; i < game.rooms.length; i++)
-            game.rooms[i].occupants.length = 0;
-
         const response = await getSheetValues(game.constants.playerSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnID = 0;
+        const columnId = 0;
         const columnName = 1;
         const columnTitle = 2;
         const columnPronouns = 3;
@@ -1290,36 +1274,42 @@ export function loadPlayers (game, doErrorChecking) {
         const columnSpeed = 8;
         const columnStamina = 9;
         const columnAlive = 10;
-        const columnLocation = 11;
+        const columnLocationDisplayName = 11;
         const columnHidingSpot = 12;
-        const columnStatus = 13;
+        const columnStatusStrings = 13;
         const columnDescription = 14;
 
-        game.players.length = 0;
-        game.players_alive.length = 0;
-        game.players_dead.length = 0;
-        game.playersCollection.clear();
-        game.livingPlayersCollection.clear();
-        game.deadPlayersCollection.clear();
-
-        for (let i = 0; i < sheet.length; i++) {
+        game.entityManager.clearPlayers();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
             const stats = {
-                strength: parseInt(sheet[i][columnStrength]),
-                intelligence: parseInt(sheet[i][columnIntelligence]),
-                dexterity: parseInt(sheet[i][columnDexterity]),
-                speed: parseInt(sheet[i][columnSpeed]),
-                stamina: parseInt(sheet[i][columnStamina])
+                strength: parseInt(sheet[row][columnStrength]),
+                intelligence: parseInt(sheet[row][columnIntelligence]),
+                dexterity: parseInt(sheet[row][columnDexterity]),
+                speed: parseInt(sheet[row][columnSpeed]),
+                stamina: parseInt(sheet[row][columnStamina])
             };
-            let statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
-            for (let j = 0; j < statusList.length; j++)
-                statusList[j] = statusList[j].trim();
+            const statusStrings = sheet[row][columnStatusStrings] ? sheet[row][columnStatusStrings].split(',') : [];
+            /** @type {StatusDisplay[]} */
+            let statusDisplays = new Array(statusStrings.length);
+            statusStrings.forEach((statusString, i) => {
+                let statusId = "";
+                let timeRemaining = null;
+                if (statusString.includes('(')) {
+                    statusId = Status.generateValidId(statusString.substring(0, statusString.lastIndexOf('(')));
+                    timeRemaining = statusString.substring(statusString.lastIndexOf('(') + 1, statusString.lastIndexOf(')'));
+                }
+                else statusId = Status.generateValidId(statusString);
+                statusDisplays[i] = { id: statusId, timeRemaining: timeRemaining };
+            });
             let member = null;
             let spectateChannel = null;
-            if (sheet[i][columnName] && sheet[i][columnTitle] !== "NPC") {
+            if (sheet[row][columnName] && sheet[row][columnTitle] !== "NPC") {
                 try {
-                    member = sheet[i][columnID] ? game.guildContext.guild.members.resolve(sheet[i][columnID].trim()) : null;
+                    member = sheet[row][columnId] ? game.guildContext.guild.members.resolve(sheet[row][columnId].trim()) : null;
                 } catch (error) {}
-                const spectateChannelName = Room.generateValidId(sheet[i][columnName]);
+                const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
                 spectateChannel = game.guildContext.guild.channels.cache.find(channel =>
                     channel.parent
                     && channel.parentId === game.guildContext.spectateCategoryId
@@ -1335,58 +1325,50 @@ export function loadPlayers (game, doErrorChecking) {
                 }
             }
             const player = new Player(
-                sheet[i][columnID] ? sheet[i][columnID].trim() : "",
+                sheet[row][columnId] ? sheet[row][columnId].trim() : "",
                 member,
-                sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                sheet[i][columnTitle] ? sheet[i][columnTitle].trim() : "",
-                sheet[i][columnPronouns] ? sheet[i][columnPronouns].trim().toLowerCase() : "",
-                sheet[i][columnVoice] ? sheet[i][columnVoice].trim() : "",
+                sheet[row][columnName] ? sheet[row][columnName].trim() : "",
+                sheet[row][columnTitle] ? sheet[row][columnTitle].trim() : "",
+                sheet[row][columnPronouns] ? sheet[row][columnPronouns].trim().toLowerCase() : "",
+                sheet[row][columnVoice] ? sheet[row][columnVoice].trim() : "",
                 stats,
-                sheet[i][columnAlive] ? sheet[i][columnAlive].trim() === "TRUE" : false,
-                sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                sheet[i][columnHidingSpot] ? sheet[i][columnHidingSpot].trim() : "",
-                [],
-                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
+                sheet[row][columnAlive] ? sheet[row][columnAlive].trim() === "TRUE" : false,
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnHidingSpot] ? sheet[row][columnHidingSpot].trim() : "",
+                statusDisplays,
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
                 new Collection(),
                 spectateChannel && spectateChannel.type === ChannelType.GuildText ? spectateChannel : null,
-                i + 3,
+                row + 3,
                 game
             );
-            const location = game.rooms.find(room => room.id === Room.generateValidId(player.locationDisplayName));
-            if (location) player.location = location;
-            if (player.title === "NPC") player.displayIcon = player.id;
+            if (game.entityFinder.getPlayer(player.name)) {
+                errors.push(new Error(`Couldn't load player on row ${player.row}. Another player with this name already exists.`));
+                continue;
+            }
+            const location = game.entityFinder.getRoom(player.locationDisplayName);
+            if (location) player.setLocation(location);
+            if (player.isNPC) player.displayIcon = player.id;
             player.setPronouns(player.originalPronouns, player.pronounString);
             player.setPronouns(player.pronouns, player.pronounString);
             game.players.push(player);
             game.playersCollection.set(Game.generateValidEntityName(player.name), player);
 
             if (player.alive) {
+                if (player.member !== null || player.isNPC) {
+                    if (player.location instanceof Room)
+                        player.location.addPlayer(player, null, null, false);
+                    // Parse statuses and inflict the player with them.
+                    player.statusDisplays.forEach(statusDisplay => {
+                        const status = game.entityFinder.getStatusEffect(statusDisplay.id);
+                        if (status) {
+                            const timeRemaining = statusDisplay.timeRemaining ? dayjs.duration(statusDisplay.timeRemaining) : null;
+                            player.inflict(status, false, false, false, null, timeRemaining);
+                        }
+                    });
+                }
                 game.players_alive.push(player);
                 game.livingPlayersCollection.set(Game.generateValidEntityName(player.name), player);
-
-                if (player.member !== null || player.title === "NPC") {
-                    // Parse statuses and inflict the player with them.
-                    const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                    for (let j = 0; j < game.statusEffects.length; j++) {
-                        for (let k = 0; k < statusList.length; k++) {
-                            const statusId = statusList[k].includes('(') ? Status.generateValidId(statusList[k].substring(0, statusList[k].lastIndexOf('('))) : statusList[k];
-                            if (game.statusEffects[j].id === statusId) {
-                                const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                const timeRemaining = statusRemaining ? dayjs.duration(statusRemaining) : null;
-                                currentPlayer.inflict(statusId, false, false, false, null, timeRemaining);
-                            }
-                        }
-                    }
-
-                    if (currentPlayer.location instanceof Room) {
-                        for (let k = 0; k < game.rooms.length; k++) {
-                            if (game.rooms[k].id === currentPlayer.location.id) {
-                                game.rooms[k].addPlayer(currentPlayer, null, null, false);
-                                break;
-                            }
-                        }
-                    }
-                }
             }
             else {
                 game.players_dead.push(player);
@@ -1394,26 +1376,23 @@ export function loadPlayers (game, doErrorChecking) {
             }
         }
 
+        // Now load player inventories.
         await loadInventories(game, false);
-
-        let errors = [];
-        for (let i = 0; i < game.players.length; i++) {
-            if (doErrorChecking) {
-                let error = checkPlayer(game.players[i]);
+        if (doErrorChecking) {
+            game.playersCollection.forEach(player => {
+                let error = checkPlayer(player);
                 if (error instanceof Error) errors.push(error);
-
-                let playerInventory = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name);
-                for (let j = 0; j < playerInventory.length; j++) {
-                    error = checkInventoryItem(playerInventory[j]);
+                // Get all inventory items that are assigned to this player and check for errors on them.
+                const playerInventoryItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === player.name);
+                playerInventoryItems.forEach(inventoryItem => {
+                    error = checkInventoryItem(inventoryItem);
                     if (error instanceof Error) errors.push(error);
-                }
-            }
+                });
+            });
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -1426,12 +1405,12 @@ export function loadPlayers (game, doErrorChecking) {
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
 export function checkPlayer (player) {
-    if (player.title !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
+    if (!player.isNPC && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
-    if (player.title === "NPC" && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
+    if (player.isNPC && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
         return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg, .jpeg, .png, .webp, or .avif extension.`);
-    if (player.title !== "NPC" && (player.member === null || player.member === undefined))
+    if (!player.isNPC && (player.member === null || player.member === undefined))
         return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
     if (player.name === "" || player.name === null || player.name === undefined)
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
@@ -1463,6 +1442,13 @@ export function checkPlayer (player) {
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. "${player.locationDisplayName}" is not a room.`);
+    player.statusDisplays.forEach((statusDisplay, i) => {
+        if (!(player.status[i] instanceof Status))
+            return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`);
+        const timeRemaining = dayjs(statusDisplay.timeRemaining);
+        if (statusDisplay.timeRemaining !== null && !dayjs.isDuration(timeRemaining))
+            return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`);
+    });
 }
 
 /**

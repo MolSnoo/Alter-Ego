@@ -237,6 +237,15 @@ declare global {
 	}
 
 	/**
+	 * @property {string} id - The ID of the status effect.
+	 * @property {string} timeRemaining - The remaining time for the status effect.
+	 */
+	interface StatusDisplay {
+		id: string;
+		timeRemaining: string;
+	}
+
+	/**
 	 * @property {string} itemName - The name of the item attempted to be stolen.
 	 * @property {boolean} successful - Whether the steal attempt was successful.
 	 */

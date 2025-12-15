@@ -98,6 +98,33 @@ export default class GameEntityManager {
         this.game.statusEffectsCollection.clear();
 	}
 
+	/**
+	 * Clears all player data from memory.
+	 */
+	clearPlayers() {
+		this.game.playersCollection.forEach(player => {
+			player.status.forEach(status => {
+				if (status.timer !== null)
+					status.timer.stop();
+			});
+			if (player.moveTimer !== null)
+				clearInterval(player.moveTimer)
+			player.isMoving = false;
+			player.remainingTime = 0;
+			player.moveQueue.length = 0;
+			player.setOffline();
+		});
+		this.game.roomsCollection.forEach(room => {
+			room.occupants.length = 0;
+		});
+		this.game.players.length = 0;
+        this.game.players_alive.length = 0;
+        this.game.players_dead.length = 0;
+        this.game.playersCollection.clear();
+        this.game.livingPlayersCollection.clear();
+        this.game.deadPlayersCollection.clear();
+	}
+
 	/** 
 	 * Updates references to a given room throughout the game.
 	 * @param {Room} room - The room to reference.
