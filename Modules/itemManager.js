@@ -15,12 +15,12 @@ import { addLogMessage } from './messageHandler.js';
  * @param {Prefab} prefab - The prefab to instantiate as an item.
  * @param {Room} location - The room to instantiate the item in.
  * @param {Fixture|Puzzle|RoomItem} container - The container to instantiate the item in.
- * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
+ * @param {string} inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
  * @param {number} quantity - The quantity to instantiate.
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
  * @param {Player} [player] - The player who caused this item to be instantiated, if applicable.
  */
-export function instantiateItem(prefab, location, container, slotId, quantity, proceduralSelections, player = null) {
+export function instantiateItem(prefab, location, container, inventorySlotId, quantity, proceduralSelections, player = null) {
     let containerType = "";
     let containerName = "";
     let containerLogDisplay = "";
@@ -39,8 +39,8 @@ export function instantiateItem(prefab, location, container, slotId, quantity, p
     }
     else if (container instanceof RoomItem) {
         containerType = "RoomItem";
-        containerName = container.identifier + '/' + slotId;
-        containerLogDisplay = `${slotId} of ${container.identifier}`;
+        containerName = container.identifier + '/' + inventorySlotId;
+        containerLogDisplay = `${inventorySlotId} of ${container.identifier}`;
         if (container.prefab) preposition = container.prefab.preposition;
     }
 
@@ -61,12 +61,12 @@ export function instantiateItem(prefab, location, container, slotId, quantity, p
     createdItem.initializeInventory();
     createdItem.location = location;
     createdItem.container = container;
-    createdItem.slot = slotId;
+    createdItem.slot = inventorySlotId;
 
     if (container instanceof RoomItem)
-        container.insertItem(createdItem, slotId);
+        container.insertItem(createdItem, inventorySlotId);
     // Update the container's description.
-    container.setDescription(addItemToDescription(container.getDescription(), createdItem, slotId, quantity));
+    container.setDescription(addItemToDescription(container.getDescription(), createdItem, inventorySlotId, quantity));
 
     insertItems(location, [createdItem]);
 
@@ -79,21 +79,21 @@ export function instantiateItem(prefab, location, container, slotId, quantity, p
  * Instantiates a new inventory item in the player's inventory with the specified equipment slot and container.
  * @param {Prefab} prefab - The prefab to instantiate as an inventory item.
  * @param {Player} player - The player to give this inventory item to.
- * @param {string} equipmentSlot - The ID of the equipment slot this inventory item will belong to.
+ * @param {string} equipmentSlotId - The ID of the equipment slot this inventory item will belong to.
  * @param {InventoryItem} container - The container to instantiate the item in.
- * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
+ * @param {string} inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
  * @param {number} quantity - The quantity to instantiate.
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
  * @param {boolean} [notify] - Whether or not to notify the player that the item was added to their inventory. Defaults to true. 
  */
-export function instantiateInventoryItem(prefab, player, equipmentSlot, container, slotId, quantity, proceduralSelections, notify = true) {
+export function instantiateInventoryItem(prefab, player, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections, notify = true) {
     let createdItem = new InventoryItem(
         player.name,
         prefab.id,
         generateIdentifier(prefab),
-        equipmentSlot,
+        equipmentSlotId,
         container ? "InventoryItem" : "",
-        container ? container.identifier + '/' + slotId : "",
+        container ? container.identifier + '/' + inventorySlotId : "",
         quantity,
         prefab.uses,
         generateProceduralOutput(prefab.description, proceduralSelections, player),
@@ -104,25 +104,18 @@ export function instantiateInventoryItem(prefab, player, equipmentSlot, containe
     createdItem.setPrefab(prefab);
     createdItem.initializeInventory();
     createdItem.container = container;
-    createdItem.slot = slotId;
-
-    // Get the slot number of the EquipmentSlot that the item will go into.
-    let slot = 0;
-    for (slot; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === equipmentSlot)
-            break;
-    }
+    createdItem.slot = inventorySlotId;
 
     player.carryWeight += createdItem.weight * quantity;
 
     // Item is being stashed.
     if (container !== null) {
-        container.insertItem(createdItem, slotId);
-        container.setDescription(addItemToDescription(container.getDescription(), createdItem, slotId, quantity));
+        container.insertItem(createdItem, inventorySlotId);
+        container.setDescription(addItemToDescription(container.getDescription(), createdItem, inventorySlotId, quantity));
 
-        insertInventoryItems(player, [createdItem], slot);
+        insertInventoryItems(player, [createdItem], equipmentSlotId);
 
-        const containerName = `${slotId} of ${container.identifier}`;
+        const containerName = `${inventorySlotId} of ${container.identifier}`;
         const preposition = container.prefab ? container.prefab.preposition : "in";
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -130,11 +123,11 @@ export function instantiateInventoryItem(prefab, player, equipmentSlot, containe
     }
     // Item is being equipped.
     else {
-        player.directEquip(createdItem, equipmentSlot, notify);
+        player.directEquip(createdItem, equipmentSlotId, notify);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(prefab.game, `${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlot} in ${player.location.channel}`);
+        addLogMessage(prefab.game, `${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlotId} in ${player.location.channel}`);
     }
 }
 
@@ -161,7 +154,7 @@ export function replaceInventoryItem(item, newPrefab) {
         for (let i = 0; i < childItems.length; i++)
             destroyInventoryItem(childItems[i], childItems[i].quantity, false);
 
-        item.inventory.length = 0;
+        item.inventoryCollection.clear();
         item.initializeInventory();
         item.description = newPrefab.description;
     }
@@ -250,17 +243,17 @@ export function destroyInventoryItem(item, quantity, getChildren) {
  * Converts a room item to an inventory item and recursively converts all of the items it contains.
  * @param {ItemInstance} item - The item to convert.
  * @param {Player} player - The player who the new inventory item will belong to.
- * @param {string} equipmentSlot - The ID of the equipment slot the inventory item will be created in.
+ * @param {string} equipmentSlotId - The ID of the equipment slot the inventory item will be created in.
  * @param {number} quantity - The quantity of the new inventory item.
  * @returns {InventoryItem} The new inventory item.
  */
-export function convertRoomItem(item, player, equipmentSlot, quantity) {
+export function convertRoomItem(item, player, equipmentSlotId, quantity) {
     // Make a copy of the RoomItem as an InventoryItem.
     let createdItem = new InventoryItem(
         player.name,
         item.prefab.id,
         item.identifier,
-        equipmentSlot,
+        equipmentSlotId,
         item.container instanceof ItemInstance ? "InventoryItem" : "",
         item.container instanceof ItemInstance ? item.container.identifier + '/' + item.slot : "",
         quantity,
@@ -274,17 +267,17 @@ export function convertRoomItem(item, player, equipmentSlot, quantity) {
     createdItem.initializeInventory();
 
     // Now recursively run through all of the inventory items and convert them.
-    for (let i = 0; i < item.inventory.length; i++) {
-        for (let j = 0; j < item.inventory[i].items.length; j++) {
-            let inventoryItem = convertRoomItem(item.inventory[i].items[j], player, equipmentSlot, item.inventory[i].items[j].quantity);
+    item.inventoryCollection.forEach(inventorySlot => {
+        for (let childItem of inventorySlot.items) {
+            let inventoryItem = convertRoomItem(childItem, player, equipmentSlotId, childItem.quantity);
             if (inventoryItem.containerName !== "") {
                 inventoryItem.container = createdItem;
-                inventoryItem.slot = createdItem.inventory[i].id;
+                inventoryItem.slot = inventorySlot.id;
                 createdItem.insertItem(inventoryItem, inventoryItem.slot);
             }
-            else createdItem.inventory[i].items.push(inventoryItem);
+            else createdItem.inventoryCollection.get(inventorySlot.id).items.push(inventoryItem);
         }
-    }
+    });
 
     return createdItem;
 }
@@ -293,12 +286,12 @@ export function convertRoomItem(item, player, equipmentSlot, quantity) {
  * Copies an inventory item into the given equipment slot.
  * @param {InventoryItem} item - The inventory item to copy.
  * @param {Player} player - The player who the new inventory item will belong to.
- * @param {string} equipmentSlot - The ID of the equipment slot the inventory item will be created in.
+ * @param {string} equipmentSlotId - The ID of the equipment slot the inventory item will be created in.
  * @param {number} quantity - The quantity of the new inventory item.
  * @returns {InventoryItem} The new inventory item.
  */
-export function copyInventoryItem(item, player, equipmentSlot, quantity) {
-    return convertRoomItem(item, player, equipmentSlot, quantity);
+export function copyInventoryItem(item, player, equipmentSlotId, quantity) {
+    return convertRoomItem(item, player, equipmentSlotId, quantity);
 }
 
 /**
@@ -306,11 +299,11 @@ export function copyInventoryItem(item, player, equipmentSlot, quantity) {
  * @param {ItemInstance} item - The inventory item to convert.
  * @param {Player} player - The player the inventory item currently belongs to.
  * @param {Fixture|Puzzle|ItemInstance} container - The container to new item will be created in.
- * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
+ * @param {string} inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
  * @param {number} quantity - The quantity of the new item.
  * @returns {RoomItem} The new room item.
  */
-export function convertInventoryItem(item, player, container, slotId, quantity) {
+export function convertInventoryItem(item, player, container, inventorySlotId, quantity) {
     let containerType = "";
     let containerName = "";
     if (container instanceof Puzzle) {
@@ -323,7 +316,7 @@ export function convertInventoryItem(item, player, container, slotId, quantity) 
     }
     else if (container instanceof RoomItem) {
         containerType = "RoomItem";
-        containerName = container.identifier + '/' + slotId;
+        containerName = container.identifier + '/' + inventorySlotId;
     }
     else if (container instanceof InventoryItem) {
         containerType = "RoomItem";
@@ -348,17 +341,17 @@ export function convertInventoryItem(item, player, container, slotId, quantity) 
     createdItem.location = player.location;
 
     // Now recursively run through all of the inventory items and convert them.
-    for (let i = 0; i < item.inventory.length; i++) {
-        for (let j = 0; j < item.inventory[i].items.length; j++) {
-            let inventoryItem = convertInventoryItem(item.inventory[i].items[j], player, item, "", item.inventory[i].items[j].quantity);
+    item.inventoryCollection.forEach(inventorySlot => {
+        for (let childItem of inventorySlot.items) {
+            let inventoryItem = convertInventoryItem(childItem, player, item, "", childItem.quantity);
             if (inventoryItem.containerName !== "") {
                 inventoryItem.container = createdItem;
-                inventoryItem.slot = createdItem.inventory[i].id;
+                inventoryItem.slot = inventorySlot.id;
                 createdItem.insertItem(inventoryItem, inventoryItem.slot);
             }
-            else createdItem.inventory[i].items.push(inventoryItem);
+            else createdItem.inventoryCollection.get(inventorySlot.id).items.push(inventoryItem);
         }
-    }
+    });
 
     return createdItem;
 }
@@ -369,12 +362,12 @@ export function convertInventoryItem(item, player, container, slotId, quantity) 
  * @param {ItemInstance} item - The item whose child items are to be added.
  */
 export function getChildItems(items, item) {
-    for (let i = 0; i < item.inventory.length; i++) {
-        for (let j = 0; j < item.inventory[i].items.length; j++) {
-            items.push(item.inventory[i].items[j]);
-            getChildItems(items, item.inventory[i].items[j]);
+    item.inventoryCollection.forEach(inventorySlot => {
+        for (let childItem of inventorySlot.items) {
+            items.push(childItem);
+            getChildItems(items, childItem);
         }
-    }
+    });
 }
 
 /**
@@ -384,10 +377,9 @@ export function getChildItems(items, item) {
  */
 export function insertItems(location, items) {
     const game = location.game;
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+    for (let item of items) {
         // Check if the player is putting this item back in original spot unmodified.
-        const roomItems = game.items.filter(gameItem => gameItem.location.id === location.id);
+        const roomItems = game.roomItems.filter(gameItem => gameItem.location.id === location.id);
         let matchedItem = roomItems.find(roomItem =>
             roomItem.prefab.id === item.prefab.id &&
             roomItem.identifier === item.identifier &&
@@ -433,20 +425,20 @@ export function insertItems(location, items) {
             else itemContainer = item.container;
             matchedItem.container = itemContainer;
             matchedItem.weight = item.weight;
-            matchedItem.inventory = item.inventory;
+            matchedItem.inventoryCollection = item.inventoryCollection;
             // Update container's references to this item.
             if (item.container instanceof RoomItem) {
                 let foundItem = false;
-                for (let slot = 0; slot < item.container.inventory.length; slot++) {
-                    if (item.container.inventory[slot].id === item.slot) {
-                        const containerSlot = item.container.inventory[slot];
-                        for (let j = 0; j < containerSlot.items.length; j++) {
-                            if (containerSlot.items[j].prefab.id === item.prefab.id &&
-                                containerSlot.items[j].identifier === item.identifier &&
-                                (containerSlot.items[j].uses === item.uses || isNaN(containerSlot.items[j].uses) && isNaN(item.uses)) &&
-                                containerSlot.items[j].description === item.description) {
+                for (let inventorySlot of item.container.inventoryCollection.values()) {
+                    if (inventorySlot.id === item.slot) {
+                        const containerSlot = inventorySlot;
+                        for (let i = 0; i < containerSlot.items.length; i++) {
+                            if (containerSlot.items[i].prefab.id === item.prefab.id &&
+                                containerSlot.items[i].identifier === item.identifier &&
+                                (containerSlot.items[i].uses === item.uses || isNaN(containerSlot.items[i].uses) && isNaN(item.uses)) &&
+                                containerSlot.items[i].description === item.description) {
                                 foundItem = true;
-                                containerSlot.items.splice(j, 1, matchedItem);
+                                containerSlot.items.splice(i, 1, matchedItem);
                                 break;
                             }
                         }
@@ -462,7 +454,7 @@ export function insertItems(location, items) {
 
             const lastRoomItem = roomItems[roomItems.length - 1];
             const lastContainerItem = containerItems[containerItems.length - 1];
-            const lastGameItem = game.items[game.items.length - 1];
+            const lastGameItem = game.roomItems[game.roomItems.length - 1];
             let insertRow = -1;
             // If the list of items in that container isn't empty and isn't the last row of the spreadsheet, insert the new item.
             if (containerItems.length !== 0 && lastContainerItem.row !== lastGameItem.row)
@@ -476,15 +468,15 @@ export function insertItems(location, items) {
 
             // Insert the new item into the items list at the appropriate position.
             let insertIndex = 0;
-            for (insertIndex; insertIndex < game.items.length; insertIndex++) {
-                if (game.items[insertIndex].row === insertRow) {
-                    game.items.splice(insertIndex + 1, 0, item);
+            for (insertIndex; insertIndex < game.roomItems.length; insertIndex++) {
+                if (game.roomItems[insertIndex].row === insertRow) {
+                    game.roomItems.splice(insertIndex + 1, 0, item);
                     break;
                 }
             }
             // Update the rows for all of the items after this.
-            for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.items.length; j++, newRow++)
-                game.items[j].row = newRow;
+            for (let i = insertIndex + 1, newRow = insertRow + 1; i < game.roomItems.length; i++, newRow++)
+                game.roomItems[i].row = newRow;
         }
     }
 }
@@ -494,15 +486,14 @@ export function insertItems(location, items) {
  * Inserts an array of inventory items into the game at the correct position in the game's array of inventory items.
  * @param {Player} player - The player who these inventory items belong to.
  * @param {InventoryItem[]} items - The inventory items to insert.
- * @param {number} equipmentSlotIndex - The index of the equipment slot within the player's inventory.
+ * @param {string} equipmentSlotId - The index of the equipment slot within the player's inventory.
  */
-export function insertInventoryItems(player, items, equipmentSlotIndex) {
+export function insertInventoryItems(player, items, equipmentSlotId) {
     const game = player.game;
-    let lastNewItem = player.inventory[player.inventory.length - 1].equippedItem !== null ?
-        player.inventory[player.inventory.length - 1].equippedItem :
-        player.inventory[player.inventory.length - 1].items[0];
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+    let lastNewItem = player.inventoryCollection.last().equippedItem !== null ?
+        player.inventoryCollection.last().equippedItem :
+        player.inventoryCollection.last().items[0];
+    for (let item of items) {
         // Check if this item already exists in the player's inventory.
         const playerItems = game.inventoryItems.filter(gameItem => gameItem.player.name === player.name);
         let matchedItem = playerItems.find(playerItem =>
@@ -522,13 +513,13 @@ export function insertInventoryItems(player, items, equipmentSlotIndex) {
             matchedItem.container = item.container;
             if (containerRow !== 0 && item.container.row === 0) matchedItem.container.row = containerRow;
             matchedItem.weight = item.weight;
-            matchedItem.inventory = item.inventory;
+            matchedItem.inventoryCollection = item.inventoryCollection;
             // Update container's references to this item.
             if (item.container instanceof InventoryItem) {
                 let foundItem = false;
-                for (let slot = 0; slot < item.container.inventory.length; slot++) {
-                    if (item.container.inventory[slot].id === item.slot) {
-                        const containerSlot = item.container.inventory[slot];
+                for (let inventorySlot of item.container.inventoryCollection.values()) {
+                    if (inventorySlot.id === item.slot) {
+                        const containerSlot = inventorySlot;
                         for (let j = 0; j < containerSlot.items.length; j++) {
                             if (containerSlot.items[j].prefab.id === item.prefab.id &&
                                 containerSlot.items[j].identifier === item.identifier &&
@@ -543,7 +534,7 @@ export function insertInventoryItems(player, items, equipmentSlotIndex) {
                     }
                 }
             }
-            player.inventory[equipmentSlotIndex].items.splice(player.inventory[equipmentSlotIndex].items.length, 0, matchedItem);
+            player.inventoryCollection.get(equipmentSlotId).items.splice(player.inventoryCollection.get(equipmentSlotId).items.length, 0, matchedItem);
         }
         // The player hasn't picked this item up before or it's been modified somehow.
         else {
@@ -572,21 +563,21 @@ export function insertInventoryItems(player, items, equipmentSlotIndex) {
             for (insertIndex; insertIndex < game.inventoryItems.length; insertIndex++) {
                 if (game.inventoryItems[insertIndex].row === insertRow) {
                     game.inventoryItems.splice(insertIndex + 1, 0, item);
-                    player.inventory[equipmentSlotIndex].items.splice(player.inventory[equipmentSlotIndex].items.length, 0, item);
+                    player.inventoryCollection.get(equipmentSlotId).items.splice(player.inventoryCollection.get(equipmentSlotId).items.length, 0, item);
                     break;
                 }
             }
             // Update the rows for all of the inventoryItems after this.
-            for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++, newRow++)
-                game.inventoryItems[j].row = newRow;
+            for (let i = insertIndex + 1, newRow = insertRow + 1; i < game.inventoryItems.length; i++, newRow++)
+                game.inventoryItems[i].row = newRow;
 
             // Update the rows for all Player EquipmentSlots.
-            for (let j = 0; j < game.players.length; j++) {
-                for (let slot = 0; slot < game.players[j].inventory.length; slot++) {
-                    if (game.players[j].inventory[slot].equippedItem === null) game.players[j].inventory[slot].row = game.players[j].inventory[slot].items[0].row;
-                    else game.players[j].inventory[slot].row = game.players[j].inventory[slot].equippedItem.row;
-                }
-            }
+            game.playersCollection.forEach(player => {
+                player.inventoryCollection.forEach(equipmentSlot => {
+                    if (equipmentSlot.equippedItem === null) equipmentSlot.row = equipmentSlot.items[0].row;
+                    else equipmentSlot.row = equipmentSlot.equippedItem.row;
+                });
+            });
         }
     }
 }
@@ -598,10 +589,10 @@ export function insertInventoryItems(player, items, equipmentSlotIndex) {
  */
 function generateIdentifier(prefab) {
     let identifier = "";
-    if (prefab.inventory.length > 0) {
+    if (prefab.inventoryCollection.size > 0) {
         identifier = prefab.id;
         let number = 1;
-        while (prefab.game.items.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0) ||
+        while (prefab.game.roomItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0) ||
             prefab.game.inventoryItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0))
             number++;
         identifier = `${identifier} ${number}`;

@@ -1247,7 +1247,7 @@ export default class Player extends ItemContainer {
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(this, items, slot);
+        itemManager.insertInventoryItems(this, items, hand);
 
         this.carryWeight += createdItem.weight;
         if (notify) this.notify(`You take ${createdItem.singleContainingPhrase}.`);
@@ -1348,7 +1348,7 @@ export default class Player extends ItemContainer {
             for (let i = 0; i < oldChildItems.length; i++)
                 oldChildItems[i].quantity = 0;
 
-            itemManager.insertInventoryItems(this, items, slot);
+            itemManager.insertInventoryItems(this, items, hand);
 
             victim.carryWeight -= createdItem.weight;
             this.carryWeight += createdItem.weight;
@@ -1517,7 +1517,7 @@ export default class Player extends ItemContainer {
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(recipient, items, slot);
+        itemManager.insertInventoryItems(recipient, items, recipientHand);
 
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
@@ -1575,7 +1575,7 @@ export default class Player extends ItemContainer {
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(this, items, slot);
+        itemManager.insertInventoryItems(this, items, container.equipmentSlot);
 
         this.notify(`You stash ${createdItem.singleContainingPhrase}.`);
         if (!item.prefab.discreet) {
@@ -1655,7 +1655,7 @@ export default class Player extends ItemContainer {
         for (let i = 0; i < oldChildItems.length; i++)
             oldChildItems[i].quantity = 0;
 
-        itemManager.insertInventoryItems(this, items, slot);
+        itemManager.insertInventoryItems(this, items, hand);
 
         this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
@@ -1715,7 +1715,7 @@ export default class Player extends ItemContainer {
             oldChildItems[i].quantity = 0;
         item.quantity = 0;
 
-        itemManager.insertInventoryItems(this, items, slot);
+        itemManager.insertInventoryItems(this, items, slotId);
 
         if (notify) this.notify(`You equip the ${createdItem.name}.`);
         new Narration(this.game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
@@ -1945,7 +1945,7 @@ export default class Player extends ItemContainer {
                 oldChildItems[i].quantity = 0;
             item.quantity = 0;
 
-            itemManager.insertInventoryItems(this, items, slot);
+            itemManager.insertInventoryItems(this, items, hand);
 
             if (notify) this.notify(`You unequip the ${createdItem.name}.`);
             new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
