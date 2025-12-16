@@ -803,7 +803,7 @@ export default class Player extends ItemContainer {
                 let subtractedTime = 1000;
                 if (player.game.heated) subtractedTime = player.game.settings.heatedSlowdownRate * subtractedTime;
                 status.remaining.subtract(subtractedTime, 'ms');
-                player.statusString = player.generate_statusList(true, true);
+                player.statusDisplays = player.#generateStatusDisplays(true, true);
 
                 if (status.remaining.asMilliseconds() <= 0) {
                     if (status.nextStage) {
@@ -832,7 +832,7 @@ export default class Player extends ItemContainer {
         if (notify)
             this.sendDescription(status.inflictedDescription, status);
 
-        this.statusString = this.generate_statusList(true, true);
+        this.statusDisplays = this.#generateStatusDisplays(true, true);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -910,7 +910,7 @@ export default class Player extends ItemContainer {
         this.status.splice(statusIndex, 1);
         this.recalculateStats();
 
-        this.statusString = this.generate_statusList(true, true);
+        this.statusDisplays = this.#generateStatusDisplays(true, true);
 
         if (status.id === "heated") {
             let noMoreHeated = true;
@@ -930,34 +930,41 @@ export default class Player extends ItemContainer {
      * Creates a list of the player's status effects.
      * @param {boolean} includeHidden - Whether or not to include status effects that aren't visible.
      * @param {boolean} includeDurations - Whether or not to display the remaining time before the status effect expires.
+     * @returns {StatusDisplay[]}
+     */
+    #generateStatusDisplays(includeHidden, includeDurations) {
+        /** @type {StatusDisplay[]} */
+        let statusDisplays = [];
+        this.status.forEach(status => {
+            if (status.visible || includeHidden) {
+                const statusId = status.id;
+                let timeString;
+                if (includeDurations && status.remaining !== null) {
+                    const format = Math.floor(status.remaining.asDays()) !== 0 ? 'D HH:mm:ss' : 'HH:mm:ss';
+                    timeString = status.remaining.format(format);
+                }
+                statusDisplays.push({ id: statusId, timeRemaining: timeString });
+            }
+        });
+        return statusDisplays;
+    }
+
+    /**
+     * Creates a list of the player's status effects.
+     * @param {boolean} includeHidden - Whether or not to include status effects that aren't visible.
+     * @param {boolean} includeDurations - Whether or not to display the remaining time before the status effect expires.
      * @returns {string}
      */
-    generate_statusList(includeHidden, includeDurations) {
-        let statusList = "";
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].visible || includeHidden) {
-                statusList += this.status[i].id;
-                if (includeDurations && this.status[i].remaining !== null) {
-                    const days = Math.floor(this.status[i].remaining.asDays());
-                    const hours = this.status[i].remaining.hours();
-                    const minutes = this.status[i].remaining.minutes();
-                    const seconds = this.status[i].remaining.seconds();
-
-                    let timeString = "";
-                    if (days !== 0) timeString += `${days} `;
-                    if (hours >= 0 && hours < 10) timeString += '0';
-                    timeString += `${hours}:`;
-                    if (minutes >= 0 && minutes < 10) timeString += '0';
-                    timeString += `${minutes}:`;
-                    if (seconds >= 0 && seconds < 10) timeString += '0';
-                    timeString += `${seconds}`;
-
-                    statusList += ` (${timeString})`;
-                }
-                statusList += ", ";
-            }
-        }
-        return statusList.substring(0, statusList.lastIndexOf(", "));
+    getStatusList(includeHidden, includeDurations) {
+        const statusDisplays = this.#generateStatusDisplays(includeHidden, includeDurations);
+        /** @type {string[]} */
+        let statusStrings = [];
+        statusDisplays.forEach(statusDisplay => {
+            let statusString = statusDisplay.id;
+            if (statusDisplay.timeRemaining) statusString += ` (${statusDisplay.timeRemaining})`;
+            statusStrings.push(statusString);
+        });
+        return statusStrings.join(", ");
     }
 
     /**
@@ -972,6 +979,19 @@ export default class Player extends ItemContainer {
 
     /**
      * Returns true if the player has a status with the specified behavior attribute.
+     * @param {string} behaviorAttribute - The name of the behavior attribute.
+     * @returns {boolean}
+     */
+    hasBehaviorAttribute(behaviorAttribute) {
+        for (const status of this.status)
+            if (status.behaviorAttributes.includes(behaviorAttribute)) return true;
+        return false;
+    }
+
+    /**
+     * Returns true if the player has a status with the specified behavior attribute.
+     * Deprecated. Use hasBehaviorAttribute instead.
+     * @deprecated
      * @param {string} attribute - The name of the behavior attribute.
      * @returns {boolean}
      */
@@ -988,6 +1008,23 @@ export default class Player extends ItemContainer {
 
     /**
      * Returns list of status effects the player has with the specified behavior attribute.
+     * @param {string} behaviorAttribute - The name of the behavior attribute.
+     * @returns {Status[]}
+     */
+    getBehaviorAttributeStatusEffects(behaviorAttribute) {
+        /** @type {Status[]} */
+        let statusEffects = [];
+        for (const status of this.status) {
+            if (status.behaviorAttributes.includes(behaviorAttribute))
+                statusEffects.push(status);
+        }
+        return statusEffects;
+    }
+
+    /**
+     * Returns list of status effects the player has with the specified behavior attribute.
+     * Deprecated. Use getBehaviorAttributeStatusEffects instead.
+     * @deprecated
      * @param {string} attribute - The name of the behavior attribute.
      * @returns {Status[]}
      */
@@ -2056,9 +2093,9 @@ export default class Player extends ItemContainer {
      */
     viewInventory(possessive, useID) {
         let itemString = `__${possessive} inventory:__\n`;
-        for (let slot = 0; slot < this.inventory.length; slot++) {
-            itemString += `${this.inventory[slot].id}: `;
-            const equippedItem = this.inventory[slot].equippedItem;
+        this.inventoryCollection.forEach(equipmentSlot => {
+            itemString += `${equipmentSlot.id}: `;
+            const equippedItem = equipmentSlot.equippedItem;
             if (equippedItem === null) itemString += `[ ]\n`;
             else {
                 itemString += `[${useID ? equippedItem.identifier ? equippedItem.identifier : equippedItem.prefab.id : equippedItem.name}]\n`;
@@ -2069,37 +2106,34 @@ export default class Player extends ItemContainer {
                  */
                 let listChildItems = function (itemString, item) {
                     // If item is capable of holding other items, show what items it has inside.
-                    if (item.inventory.length > 0) {
-                        for (let i = 0; i < item.inventory.length; i++) {
-                            /** @type {number[]} */
-                            let parentItemIndexes = [];
-                            itemString += `    ${item.inventory[i].id}: `;
-                            if (item.inventory[i].items.length === 0) itemString += `[ ]`;
-                            else {
-                                for (let j = 0; j < item.inventory[i].items.length; j++) {
-                                    const childItem = item.inventory[i].items[j];
-                                    if (childItem.quantity === 1) itemString += `[${useID ? childItem.identifier ? childItem.identifier : childItem.prefab.id : childItem.name}] `;
-                                    else if (useID) itemString += `[${childItem.quantity} ${childItem.identifier ? childItem.identifier : childItem.prefab.id}] `;
-                                    else {
-                                        if (childItem.pluralName) itemString += `[${childItem.quantity} ${childItem.pluralName}] `;
-                                        else itemString += `[${childItem.quantity} ${childItem.name}] `;
-                                    }
-                                    if (childItem.inventory.length !== 0) parentItemIndexes.push(j);
+                    item.inventoryCollection.forEach(inventorySlot => {
+                        /** @type {number[]} */
+                        let parentItemIndexes = [];
+                        itemString += `    ${inventorySlot.id}: `;
+                        if (inventorySlot.items.length === 0) itemString += `[ ]`;
+                        else {
+                            inventorySlot.items.forEach((inventoryItem, i) => {
+                                const childItem = inventoryItem;
+                                if (childItem.quantity === 1) itemString += `[${useID ? childItem.identifier ? childItem.identifier : childItem.prefab.id : childItem.name}] `;
+                                else if (useID) itemString += `[${childItem.quantity} ${childItem.identifier ? childItem.identifier : childItem.prefab.id}] `;
+                                else {
+                                    if (childItem.pluralName) itemString += `[${childItem.quantity} ${childItem.pluralName}] `;
+                                    else itemString += `[${childItem.quantity} ${childItem.name}] `;
                                 }
-                                for (let j = 0; j < parentItemIndexes.length; j++) {
-                                    itemString += `\n`;
-                                    itemString = listChildItems(itemString, item.inventory[i].items[parentItemIndexes[j]]);
-                                }
+                                if (childItem.inventoryCollection.size !== 0) parentItemIndexes.push(i);
+                            });
+                            for (let i = 0; i < parentItemIndexes.length; i++) {
+                                itemString += `\n`;
+                                itemString = listChildItems(itemString, inventorySlot.items[parentItemIndexes[i]]);
                             }
-                            if (itemString[itemString.length - 1] !== '\n') itemString += '\n';
                         }
-                    }
+                        if (itemString[itemString.length - 1] !== '\n') itemString += '\n';
+                    });
                     return itemString;
                 };
                 itemString = listChildItems(itemString, equippedItem);
             }
-        }
-
+        });
         return itemString.replace(/\n{2,}/g, '\n');
     }
 

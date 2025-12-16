@@ -124,10 +124,11 @@ export function loadRooms(game, doErrorChecking) {
             game.entityManager.updateRoomReferences(room);
         });
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Rooms");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Rooms");
         resolve(game);
     });
 }
@@ -149,10 +150,7 @@ export function checkRoom(room) {
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
         return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
-    /** @type {string[]} */
-    let exitNames = [];
     room.exitCollection.forEach(exit => {
-        exitNames.push(exit.name);
         if (exit.name === "" || exit.name === null || exit.name === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No exit name was given.`);
         if (isNaN(exit.pos.x))
@@ -240,10 +238,11 @@ export function loadFixtures(game, doErrorChecking) {
             game.entityManager.updateFixtureReferences(fixture);
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Fixtures");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Fixtures");
         resolve(game);
     });
 }
@@ -422,10 +421,11 @@ export function loadPrefabs(game, doErrorChecking) {
             });
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Prefabs");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Prefabs");
         resolve(game);
     });
 }
@@ -537,10 +537,11 @@ export function loadRecipes(game, doErrorChecking) {
             game.recipes.push(recipe);
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Recipes");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Recipes");
         resolve(game);
     });
 }
@@ -681,10 +682,11 @@ export function loadRoomItems(game, doErrorChecking) {
             });
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("RoomItems");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("RoomItems");
         resolve(game);
     });
 }
@@ -869,10 +871,11 @@ export function loadPuzzles(game, doErrorChecking) {
             }
         });
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Puzzles");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Puzzles");
         resolve(game);
     });
 }
@@ -1058,10 +1061,11 @@ export function loadEvents(game, doErrorChecking) {
             game.entityManager.updateEventReferences(event);
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Events");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Events");
         resolve(game);
     });
 }
@@ -1163,9 +1167,9 @@ export function loadStatusEffects(game, doErrorChecking) {
                     modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
                 }
             }
-            let attributes = sheet[row][columnBehaviorAttributes] ? sheet[row][columnBehaviorAttributes].split(',') : [];
-            for (let i = 0; i < attributes.length; i++)
-                attributes[i] = attributes[i].trim();
+            let behaviorAttributes = sheet[row][columnBehaviorAttributes] ? sheet[row][columnBehaviorAttributes].split(',') : [];
+            for (let i = 0; i < behaviorAttributes.length; i++)
+                behaviorAttributes[i] = behaviorAttributes[i].trim();
             const status = new Status(
                 sheet[row][columnId] ? sheet[row][columnId].trim() : "",
                 duration,
@@ -1177,7 +1181,7 @@ export function loadStatusEffects(game, doErrorChecking) {
                 sheet[row][columnDuplicatedStatusId] ? sheet[row][columnDuplicatedStatusId].trim() : "",
                 sheet[row][columnCuredConditionId] ? sheet[row][columnCuredConditionId].trim() : "",
                 modifiers,
-                attributes,
+                behaviorAttributes,
                 sheet[row][columnInflictedDescription] ? sheet[row][columnInflictedDescription].trim() : "",
                 sheet[row][columnCuredDescription] ? sheet[row][columnCuredDescription].trim() : "",
                 row + 2,
@@ -1212,10 +1216,11 @@ export function loadStatusEffects(game, doErrorChecking) {
             }
         });
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("StatusEffects");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("StatusEffects");
         resolve(game);
     });
 }
@@ -1395,10 +1400,11 @@ export function loadPlayers(game, doErrorChecking) {
             });
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Players");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Players");
         resolve(game);
     });
 }
@@ -1629,10 +1635,11 @@ export function loadInventoryItems(game, doErrorChecking) {
             });
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("InventoryItems");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("InventoryItems");
         resolve(game);
     });
 }
@@ -1743,10 +1750,11 @@ export function loadGestures(game, doErrorChecking) {
             game.gesturesCollection.set(gesture.id, gesture);
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Gestures");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Gestures");
         resolve(game);
     });
 }
@@ -1857,10 +1865,11 @@ export function loadFlags(game, doErrorChecking) {
             });
         }
         if (errors.length > 0) {
-            game.loadedEntitiesHaveErrors = true;
+            game.loadedEntitiesWithErrors.add("Flags");
             errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
+        game.loadedEntitiesWithErrors.delete("Flags");
         resolve(game);
     });
 }

@@ -18,7 +18,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}status`;
 }
 
@@ -29,12 +29,10 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
-    const status = player.getAttributeStatusEffects("disable status");
+export async function execute(game, message, command, args, player) {
+    const status = player.getBehaviorAttributeStatusEffects("disable status");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    const statusMessage = `You are currently:\n${player.generate_statusList(false, false)}`;
+    const statusMessage = `You are currently:\n${player.getStatusList(false, false)}`;
     messageHandler.addDirectNarration(player, statusMessage, false);
-
-    return;
 }
