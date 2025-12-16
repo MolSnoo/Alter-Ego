@@ -329,7 +329,7 @@ export default class Player extends ItemContainer {
         };
         this.originalVoiceString = originalVoiceString;
         this.voiceString = this.originalVoiceString;
-        
+
         this.defaultStrength = stats.strength;
         this.strength = this.defaultStrength;
         this.defaultIntelligence = stats.intelligence;
@@ -348,7 +348,7 @@ export default class Player extends ItemContainer {
         this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
         this.statusDisplays = statusDisplays;
-        this.status = new Array(this.statusDisplays.length);
+        this.status = [];
         this.statusString = "";
         this.description = description;
         this.inventory = [];
@@ -382,6 +382,14 @@ export default class Player extends ItemContainer {
     setLocation(room) {
         this.location = room;
         this.locationDisplayName = room.displayName;
+    }
+
+    /**
+     * Sets the inventory.
+     * @param {Collection<string, EquipmentSlot>} inventory 
+     */
+    setInventory(inventory) {
+        this.inventoryCollection = inventory;
     }
 
     /**
@@ -917,7 +925,7 @@ export default class Player extends ItemContainer {
 
         return returnMessage;
     }
-    
+
     /**
      * Creates a list of the player's status effects.
      * @param {boolean} includeHidden - Whether or not to include status effects that aren't visible.
@@ -953,13 +961,23 @@ export default class Player extends ItemContainer {
     }
 
     /**
+     * Returns true if the player has a status with the specified ID.
+     * @param {string} statusId - The ID of the status to look for. 
+     */
+    hasStatus(statusId) {
+        for (const status of this.status)
+            if (status.id === statusId) return true;
+        return false;
+    }
+
+    /**
      * Returns true if the player has a status with the specified behavior attribute.
      * @param {string} attribute - The name of the behavior attribute.
      * @returns {boolean}
      */
     hasAttribute(attribute) {
         let hasAttribute = false;
-        for (let i = 0; i < this.status.length; i++) {         
+        for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].behaviorAttributes.includes(attribute)) {
                 hasAttribute = true;
                 break;
@@ -1122,7 +1140,7 @@ export default class Player extends ItemContainer {
         }
 
         if (!isNaN(item.uses))
-           item.decreaseUses();
+            item.decreaseUses();
 
         return;
     }
@@ -1399,7 +1417,7 @@ export default class Player extends ItemContainer {
         };
         deleteChildQuantities(item);
         item.quantity = 0;
-        
+
         itemManager.insertItems(this.location, items);
 
         this.carryWeight -= item.weight;
@@ -1409,7 +1427,7 @@ export default class Player extends ItemContainer {
             // Remove the item from the player's hands item list.
             this.description = parser.removeItem(this.description, item, "hands");
         }
-        
+
         return;
     }
 
@@ -1601,7 +1619,7 @@ export default class Player extends ItemContainer {
             oldChildItems[i].quantity = 0;
 
         itemManager.insertInventoryItems(this, items, slot);
-        
+
         this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
         if (!item.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
@@ -1833,6 +1851,7 @@ export default class Player extends ItemContainer {
             "",
             slotId,
             "",
+            "",
             null,
             null,
             "",
@@ -1959,6 +1978,7 @@ export default class Player extends ItemContainer {
             null,
             "",
             item.equipmentSlot,
+            "",
             "",
             null,
             null,
@@ -2149,7 +2169,7 @@ export default class Player extends ItemContainer {
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
-    
+
     /**
      * Reverses a crafting recipe to convert a single product into two ingredients.
      * @param {InventoryItem} item - The product to uncraft.
@@ -2339,8 +2359,8 @@ export default class Player extends ItemContainer {
             else hasRequiredItem = true;
 
             if (puzzle.solved || hasRequiredItem || puzzle.type === "media"
-                || (puzzle.type === "weight"|| puzzle.type === "container") && (command === "take" || command === "drop"))
-                    requirementsMet = true;
+                || (puzzle.type === "weight" || puzzle.type === "container") && (command === "take" || command === "drop"))
+                requirementsMet = true;
 
             // Puzzle is solvable.
             if (requirementsMet) {
@@ -2677,7 +2697,7 @@ export default class Player extends ItemContainer {
     descriptionCell() {
         return this.game.constants.playerSheetDescriptionColumn + this.row;
     }
-    
+
     /**
      * Converts the name of a stat to its abbreviated form in all lowercase.
      * @param {string} statName 

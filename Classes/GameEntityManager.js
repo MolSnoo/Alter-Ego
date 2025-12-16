@@ -25,7 +25,7 @@ export default class GameEntityManager {
 	constructor(game) {
 		this.game = game;
 	}
-	
+
 	/**
 	 * Clears all room data from memory.
 	 */
@@ -95,7 +95,7 @@ export default class GameEntityManager {
 	 */
 	clearStatusEffects() {
 		this.game.statusEffects.length = 0;
-        this.game.statusEffectsCollection.clear();
+		this.game.statusEffectsCollection.clear();
 	}
 
 	/**
@@ -118,11 +118,18 @@ export default class GameEntityManager {
 			room.occupants.length = 0;
 		});
 		this.game.players.length = 0;
-        this.game.players_alive.length = 0;
-        this.game.players_dead.length = 0;
-        this.game.playersCollection.clear();
-        this.game.livingPlayersCollection.clear();
-        this.game.deadPlayersCollection.clear();
+		this.game.players_alive.length = 0;
+		this.game.players_dead.length = 0;
+		this.game.playersCollection.clear();
+		this.game.livingPlayersCollection.clear();
+		this.game.deadPlayersCollection.clear();
+	}
+
+	/**
+	 * Clears all inventory item data from memory.
+	 */
+	clearInventoryItems() {
+		this.game.inventoryItems.length = 0;
 	}
 
 	/** 

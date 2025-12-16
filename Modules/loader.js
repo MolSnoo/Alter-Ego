@@ -27,7 +27,7 @@ dayjs().format();
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadRooms (game, doErrorChecking) {
+export function loadRooms(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.roomSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -57,7 +57,7 @@ export function loadRooms (game, doErrorChecking) {
                     z: parseInt(sheet[roomRow + exitRow][columnExitPosZ])
                 };
                 const exitName = sheet[roomRow + exitRow][columnExitName] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitName]) : "";
-                const exit =  new Exit(
+                const exit = new Exit(
                     exitName,
                     pos,
                     sheet[roomRow + exitRow][columnExitUnlocked] ? sheet[roomRow + exitRow][columnExitUnlocked].trim() === "TRUE" : false,
@@ -69,7 +69,7 @@ export function loadRooms (game, doErrorChecking) {
                 );
                 if (exits.get(exit.name))
                     errors.push(new Error(`Couldn't load exit on row ${exit.row}. The room already has an exit named "${exit.name}".`));
-                else exits.set(exit.name, exit); 
+                else exits.set(exit.name, exit);
             }
             const id = sheet[roomRow][columnRoomDisplayName] ? Room.generateValidId(sheet[roomRow][columnRoomDisplayName]) : "";
             let channel = game.guildContext.guild.channels.cache.find(channel => channel.name === id);
@@ -109,6 +109,7 @@ export function loadRooms (game, doErrorChecking) {
                 errors.push(new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`));
                 continue;
             }
+            game.roomsCollection.set(room.id, room);
         }
         // Now go through and make the dest for each exit an actual Room object.
         game.roomsCollection.forEach(room => {
@@ -120,7 +121,6 @@ export function loadRooms (game, doErrorChecking) {
                 const error = checkRoom(room);
                 if (error instanceof Error) errors.push(error);
             }
-            game.roomsCollection.set(room.id, room);
             game.entityManager.updateRoomReferences(room);
         });
         if (errors.length > 0) {
@@ -137,7 +137,7 @@ export function loadRooms (game, doErrorChecking) {
  * @param {Room} room - The room to check.
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkRoom (room) {
+export function checkRoom(room) {
     if (room.displayName === "" || room.displayName === null || room.displayName === undefined)
         return new Error(`Couldn't load room on row ${room.row}. No room display name was given.`);
     if (room.id === "" || room.id === null || room.id === undefined)
@@ -185,7 +185,7 @@ export function checkRoom (room) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadFixtures (game, doErrorChecking) {
+export function loadFixtures(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.fixtureSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -216,7 +216,7 @@ export function loadFixtures (game, doErrorChecking) {
             const fixture = new Fixture(
                 sheet[row][columnName] ? Game.generateValidEntityName(sheet[row][columnName]) : "",
                 sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
-                sheet[row][columnAccessible]? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                sheet[row][columnAccessible] ? sheet[row][columnAccessible].trim() === "TRUE" : false,
                 sheet[row][columnChildPuzzleName] ? Game.generateValidEntityName(sheet[row][columnChildPuzzleName]) : "",
                 sheet[row][columnRecipeTag] ? sheet[row][columnRecipeTag].trim() : "",
                 sheet[row][columnActivatable] ? sheet[row][columnActivatable].trim() === "TRUE" : false,
@@ -253,7 +253,7 @@ export function loadFixtures (game, doErrorChecking) {
  * @param {Fixture} fixture - The fixture to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkFixture (fixture) {
+export function checkFixture(fixture) {
     if (fixture.name === "" || fixture.name === null || fixture.name === undefined)
         return new Error(`Couldn't load fixture on row ${fixture.row}. No fixture name was given.`);
     if (!(fixture.location instanceof Room))
@@ -274,7 +274,7 @@ export function checkFixture (fixture) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadPrefabs (game, doErrorChecking) {
+export function loadPrefabs(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.prefabSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -432,7 +432,7 @@ export function loadPrefabs (game, doErrorChecking) {
  * @param {Prefab} prefab - The prefab to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkPrefab (prefab) {
+export function checkPrefab(prefab) {
     if (prefab.id === "" || prefab.id === null || prefab.id === undefined)
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab ID was given.`);
     if (prefab.name === "" || prefab.name === null || prefab.name === undefined)
@@ -469,7 +469,7 @@ export function checkPrefab (prefab) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadRecipes (game, doErrorChecking) {
+export function loadRecipes(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.recipeSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -547,7 +547,7 @@ export function loadRecipes (game, doErrorChecking) {
  * @param {Recipe} recipe - The recipe to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkRecipe (recipe) {
+export function checkRecipe(recipe) {
     if (recipe.ingredients.length === 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
     recipe.ingredients.forEach((ingredient, i) => {
@@ -578,7 +578,7 @@ export function checkRecipe (recipe) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadRoomItems (game, doErrorChecking) {
+export function loadRoomItems(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.roomItemSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -683,7 +683,7 @@ export function loadRoomItems (game, doErrorChecking) {
             reject(errors.join('\n'));
         }
         resolve(game);
-    }); 
+    });
 }
 
 /**
@@ -691,7 +691,7 @@ export function loadRoomItems (game, doErrorChecking) {
  * @param {RoomItem} item - The room item to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkRoomItem (item) {
+export function checkRoomItem(item) {
     if (!(item.prefab instanceof Prefab))
         return new Error(`Couldn't load room item on row ${item.row}. "${item.prefabId}" is not a prefab.`);
     if (item.inventoryCollection.size > 0 && item.identifier === "")
@@ -735,7 +735,7 @@ export function checkRoomItem (item) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadPuzzles (game, doErrorChecking) {
+export function loadPuzzles(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.puzzleSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -878,7 +878,7 @@ export function loadPuzzles (game, doErrorChecking) {
  * @param {Puzzle} puzzle - The puzzle to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkPuzzle (puzzle) {
+export function checkPuzzle(puzzle) {
     if (puzzle.name === "" || puzzle.name === null || puzzle.name === undefined)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. No puzzle name was given.`);
     if (!(puzzle.location instanceof Room))
@@ -906,7 +906,7 @@ export function checkPuzzle (puzzle) {
         puzzle.type !== "room player" &&
         puzzle.type !== "restricted exit" &&
         puzzle.type !== "matrix")
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid puzzle type.`);
     if ((puzzle.type === "probability" || puzzle.type.endsWith(" probability")) && puzzle.solutions.length < 1)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
     if (puzzle.type.endsWith(" probability")) {
@@ -973,7 +973,7 @@ export function checkPuzzle (puzzle) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadEvents (game, doErrorChecking) {
+export function loadEvents(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.eventSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -1067,7 +1067,7 @@ export function loadEvents (game, doErrorChecking) {
  * @param {Event} event - The event to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkEvent (event) {
+export function checkEvent(event) {
     if (event.id === "" || event.id === null || event.id === undefined)
         return new Error(`Couldn't load event on row ${event.row}. No event ID was given.`);
     if (event.duration !== null && !dayjs.isDuration(event.duration))
@@ -1099,7 +1099,7 @@ export function checkEvent (event) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadStatusEffects (game, doErrorChecking) {
+export function loadStatusEffects(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.statusSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -1221,7 +1221,7 @@ export function loadStatusEffects (game, doErrorChecking) {
  * @param {Status} status - The status effect to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkStatusEffect (status) {
+export function checkStatusEffect(status) {
     if (status.id === "" || status.id === null || status.id === undefined)
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect ID was given.`);
     if (status.duration !== null && !dayjs.isDuration(status.duration))
@@ -1258,7 +1258,7 @@ export function checkStatusEffect (status) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadPlayers (game, doErrorChecking) {
+export function loadPlayers(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.playerSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -1308,7 +1308,7 @@ export function loadPlayers (game, doErrorChecking) {
             if (sheet[row][columnName] && sheet[row][columnTitle] !== "NPC") {
                 try {
                     member = sheet[row][columnId] ? game.guildContext.guild.members.resolve(sheet[row][columnId].trim()) : null;
-                } catch (error) {}
+                } catch (error) { }
                 const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
                 spectateChannel = game.guildContext.guild.channels.cache.find(channel =>
                     channel.parent
@@ -1377,7 +1377,7 @@ export function loadPlayers (game, doErrorChecking) {
         }
 
         // Now load player inventories.
-        await loadInventories(game, false);
+        await loadInventoryItems(game, false);
         if (doErrorChecking) {
             game.playersCollection.forEach(player => {
                 let error = checkPlayer(player);
@@ -1404,7 +1404,7 @@ export function loadPlayers (game, doErrorChecking) {
  * @param {Player} player - The player to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkPlayer (player) {
+export function checkPlayer(player) {
     if (!player.isNPC && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
@@ -1442,8 +1442,8 @@ export function checkPlayer (player) {
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. "${player.locationDisplayName}" is not a room.`);
-    player.statusDisplays.forEach((statusDisplay, i) => {
-        if (!(player.status[i] instanceof Status))
+    player.statusDisplays.forEach((statusDisplay) => {
+        if (!player.hasStatus(statusDisplay.id))
             return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`);
         const timeRemaining = dayjs(statusDisplay.timeRemaining);
         if (statusDisplay.timeRemaining !== null && !dayjs.isDuration(timeRemaining))
@@ -1457,215 +1457,176 @@ export function checkPlayer (player) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadInventories (game, doErrorChecking) {
+export function loadInventoryItems(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.inventorySheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnPlayer = 0;
-        const columnPrefab = 1;
+        const columnPlayerName = 0;
+        const columnPrefabId = 1;
         const columnIdentifier = 2;
-        const columnEquipmentSlot = 3;
-        const columnContainer = 4;
+        const columnEquipmentSlotId = 3;
+        const columnContainerName = 4;
         const columnQuantity = 5;
         const columnUses = 6;
         const columnDescription = 7;
 
-        game.inventoryItems.length = 0;
-        for (let i = 0; i < sheet.length; i++) {
+        game.entityManager.clearInventoryItems();
+        /** @type {Collection<string, InventoryItem>} */
+        let containerItems = new Collection();
+        /** @type {Collection<string, InventoryItem[]>} */
+        let unloadedContainers = new Collection();
+        /** @type {Collection<string, Collection<string, EquipmentSlot>>} */
+        let equipmentSlots = new Collection();
+        /** @type {Collection<string, Collection<string, InventoryItem[]>>} */
+        let unloadedEquipmentSlots = new Collection();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            const containerName = sheet[row][columnContainerName] ? Game.generateValidEntityName(sheet[row][columnContainerName]) : "";
+            let containerType = "";
+            if (containerName) containerType = "InventoryItem";
             /** @type {InventoryItem} */
             let inventoryItem;
-            if (sheet[i][columnPrefab] && sheet[i][columnPrefab].trim() !== "NULL") {
+            if (sheet[row][columnPrefabId] && sheet[row][columnPrefabId].trim() !== "NULL") {
                 inventoryItem = new InventoryItem(
-                    sheet[i][columnPlayer] ? sheet[i][columnPlayer].trim() : "",
-                    sheet[i][columnPrefab] ? Game.generateValidEntityName(sheet[i][columnPrefab]) : "",
-                    sheet[i][columnIdentifier] ? Game.generateValidEntityName(sheet[i][columnIdentifier]) : "",
-                    sheet[i][columnEquipmentSlot] ? Game.generateValidEntityName(sheet[i][columnEquipmentSlot]) : "",
-                    sheet[i][columnContainer] ? sheet[i][columnContainer].trim() : "",
-                    parseInt(sheet[i][columnQuantity]),
-                    parseInt(sheet[i][columnUses]),
-                    sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                    i + 2,
+                    sheet[row][columnPlayerName] ? sheet[row][columnPlayerName].trim() : "",
+                    sheet[row][columnPrefabId] ? Game.generateValidEntityName(sheet[row][columnPrefabId]) : "",
+                    sheet[row][columnIdentifier] ? Game.generateValidEntityName(sheet[row][columnIdentifier]) : "",
+                    sheet[row][columnEquipmentSlotId] ? Game.generateValidEntityName(sheet[row][columnEquipmentSlotId]) : "",
+                    containerType,
+                    containerName,
+                    parseInt(sheet[row][columnQuantity]),
+                    parseInt(sheet[row][columnUses]),
+                    sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                    row + 2,
                     game
                 );
-                const prefab = game.prefabs.find(prefab => prefab.id !== "" && prefab.id === inventoryItem.prefabId);
-                if (prefab) inventoryItem.setPrefab(prefab);
+                const prefab = game.entityFinder.getPrefab(inventoryItem.prefabId);
+                if (prefab) {
+                    inventoryItem.setPrefab(prefab);
+                    inventoryItem.initializeInventory();
+                }
+                if (inventoryItem.identifier !== "" && inventoryItem.inventoryCollection.size > 0) {
+                    if (containerItems.get(inventoryItem.identifier)) {
+                        errors.push(new Error(`Couldn't load inventory item on row ${inventoryItem.row}. Another inventory item with this container identifier already exists.`));
+                        continue;
+                    }
+                    containerItems.set(inventoryItem.identifier, inventoryItem);
+                    // If this item's identifier is already in the unloadedContainers collection, we can set it as the container for its child items.
+                    const unassignedChildItems = unloadedContainers.get(inventoryItem.identifier);
+                    if (unassignedChildItems) {
+                        unassignedChildItems.forEach(childItem => {
+                            childItem.setContainer(inventoryItem);
+                            inventoryItem.insertItem(childItem, childItem.slot);
+                        });
+                        unloadedContainers.delete(inventoryItem.identifier);
+                    }
+                }
+                const containerNameSplit = inventoryItem.containerName.split('/').length > 1 ? inventoryItem.containerName.split('/') : [inventoryItem.containerName, ''];
+                const identifier = Game.generateValidEntityName(containerNameSplit[0]);
+                const slotId = Game.generateValidEntityName(containerNameSplit[1]);
+                if (slotId) inventoryItem.slot = slotId;
+                const container = containerItems.get(identifier);
+                if (container) {
+                    inventoryItem.setContainer(container);
+                    container.insertItem(inventoryItem, slotId);
+                }
+                else {
+                    // If the container item wasn't found, it might have just not been loaded yet. Save it for later.
+                    let unassignedChildItems = unloadedContainers.get(identifier);
+                    if (!unassignedChildItems) unassignedChildItems = [];
+                    unassignedChildItems.push(inventoryItem);
+                    unloadedContainers.set(identifier, unassignedChildItems);
+                }
             }
             else {
                 inventoryItem = new InventoryItem(
-                    sheet[i][columnPlayer] ? sheet[i][columnPlayer].trim() : "",
+                    sheet[row][columnPlayerName] ? sheet[row][columnPlayerName].trim() : "",
                     "",
                     "",
-                    sheet[i][columnEquipmentSlot] ? Game.generateValidEntityName(sheet[i][columnEquipmentSlot]) : "",
+                    sheet[row][columnEquipmentSlotId] ? Game.generateValidEntityName(sheet[row][columnEquipmentSlotId]) : "",
+                    "",
                     "",
                     null,
                     null,
                     "",
-                    i + 2,
+                    row + 2,
                     game
                 );
                 inventoryItem.prefab = null;
             }
-            const player = sheet[i][columnPlayer] ? game.players.find(player => player.name !== "" && player.name === sheet[i][columnPlayer].trim()) : null;
-            if (player) inventoryItem.player = player;
+            const player = sheet[row][columnPlayerName] ? game.entityFinder.getPlayer(sheet[row][columnPlayerName]) : null;
+            if (player) {
+                inventoryItem.setPlayer(player);
+                let foundEquipmentSlot = false;
+                const playerEquipmentSlots = equipmentSlots.get(player.name);
+                if (playerEquipmentSlots) {
+                    const equipmentSlot = playerEquipmentSlots.get(inventoryItem.equipmentSlot);
+                    if (equipmentSlot) {
+                        foundEquipmentSlot = true;
+                        equipmentSlot.insertItem(inventoryItem);
+                    }
+                }
+                if (!foundEquipmentSlot) {
+                    // If the equipment slot wasn't found, it might have just not been loaded yet. Save it for later.
+                    let unloadedPlayerEquipmentSlots = unloadedEquipmentSlots.get(player.name);
+                    if (!unloadedPlayerEquipmentSlots) unloadedPlayerEquipmentSlots = new Collection();
+                    let unassignedEquipmentSlotItems = unloadedPlayerEquipmentSlots.get(inventoryItem.equipmentSlot);
+                    if (!unassignedEquipmentSlotItems) unassignedEquipmentSlotItems = [];
+                    unassignedEquipmentSlotItems.push(inventoryItem);
+                    unloadedPlayerEquipmentSlots.set(inventoryItem.equipmentSlot, unassignedEquipmentSlotItems);
+                    unloadedEquipmentSlots.set(player.name, unloadedPlayerEquipmentSlots);
+                }
+            }
+            if (player && inventoryItem.equipmentSlot !== "" && inventoryItem.containerName === "") {
+                // Create the corresponding equipment slot for the player, if it doesn't already exist.
+                let playerEquipmentSlots = equipmentSlots.get(player.name);
+                if (!playerEquipmentSlots) playerEquipmentSlots = new Collection();
+                if (playerEquipmentSlots.get(inventoryItem.equipmentSlot)) {
+                    errors.push(new Error(`Couldn't load inventory item on row ${inventoryItem.row}. ${player.name} already has an equipment slot with this ID.`));
+                    continue;
+                }
+                const equipmentSlot = new EquipmentSlot(inventoryItem.equipmentSlot, inventoryItem.row, game);
+                equipmentSlot.equipItem(inventoryItem);
+                playerEquipmentSlots.set(equipmentSlot.id, equipmentSlot);
+                equipmentSlots.set(player.name, playerEquipmentSlots);
+                // If this equipment slot's ID is in the unloadedEquipmentSlots collection, we can insert any previously unassigned items into it.
+                const unloadedPlayerEquipmentSlots = unloadedEquipmentSlots.get(player.name);
+                if (unloadedPlayerEquipmentSlots) {
+                    const unassignedEquipmentSlotItems = unloadedPlayerEquipmentSlots.get(inventoryItem.equipmentSlot);
+                    if (unassignedEquipmentSlotItems) {
+                        unassignedEquipmentSlotItems.forEach(unassignedItem => {
+                            equipmentSlot.insertItem(unassignedItem);
+                        });
+                        unloadedEquipmentSlots.get(player.name).delete(inventoryItem.equipmentSlot);
+                    }
+                }
+            }
             game.inventoryItems.push(inventoryItem);
         }
-        // Create EquipmentSlots for each player.
-        for (let i = 0; i < game.players.length; i++) {
-            let inventory = [];
-            game.players[i].carryWeight = 0;
-            let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name && item.equipmentSlot !== "" && item.containerName === "");
-            for (let j = 0; j < equipmentItems.length; j++)
-                inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row, game));
-            game.players[i].inventory = inventory;
-        }
-        let errors = [];
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            const prefab = game.inventoryItems[i].prefab;
-            if (prefab instanceof Prefab) {
-                game.inventoryItems[i].initializeInventory();
+        game.playersCollection.forEach(player => {
+            const playerEquipmentSlots = equipmentSlots.get(player.name);
+            if (playerEquipmentSlots) {
+                player.setInventory(playerEquipmentSlots);
+                // Calculate the player's carry weight.
+                player.carryWeight = player.inventoryCollection.reduce((weight, equipmentSlot) => {
+                    let itemWeight = equipmentSlot.items.reduce((inventoryItemWeight, inventoryItem) => {
+                        return inventoryItem.prefab !== null ? inventoryItemWeight + inventoryItem.weight * inventoryItem.quantity : inventoryItemWeight;
+                    }, 0);
+                    return weight + itemWeight;
+                }, 0);
             }
-            if (game.inventoryItems[i].player instanceof Player) {
-                const player = game.inventoryItems[i].player;
-                for (let slot = 0; slot < player.inventory.length; slot++) {
-                    if (player.inventory[slot].id === game.inventoryItems[i].equipmentSlot) {
-                        game.inventoryItems[i].foundEquipmentSlot = true;
-                        if (game.inventoryItems[i].quantity !== 0) player.inventory[slot].items.push(game.inventoryItems[i]);
-                        if (game.inventoryItems[i].containerName === "") {
-                            if (prefab === null) player.inventory[slot].equippedItem = null;
-                            else player.inventory[slot].equippedItem = game.inventoryItems[i];
-                        }
-                        else {
-                            const splitContainer = game.inventoryItems[i].containerName.split('/');
-                            const containerItemIdentifier = splitContainer[0] ? Game.generateValidEntityName(splitContainer[0]) : "";
-                            const containerItemSlot = splitContainer[1] ? Game.generateValidEntityName(splitContainer[1]) : "";
-                            game.inventoryItems[i].slot = containerItemSlot;
-                            for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                                if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].identifier === containerItemIdentifier) {
-                                    game.inventoryItems[i].container = player.inventory[slot].items[j];
-                                    for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
-                                        if (game.inventoryItems[i].container.inventory[k].id === containerItemSlot)
-                                            game.inventoryItems[i].container.inventory[k].items.push(game.inventoryItems[i]);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // Create a recursive function for properly inserting item inventories.
-        /** @param {InventoryItem} item */
-        let insertInventory = function (item) {
-            let createdItem = new InventoryItem(
-                item.player.name,
-                item.prefab.id,
-                item.identifier,
-                item.equipmentSlot,
-                item.containerName,
-                item.quantity,
-                item.uses,
-                item.description,
-                item.row,
-                game
-            );
-            createdItem.player = item.player;
-            createdItem.setPrefab(item.prefab);
-            createdItem.foundEquipmentSlot = item.foundEquipmentSlot;
-            if (item.container instanceof InventoryItem) createdItem.container = game.inventoryItems.find(gameItem => gameItem.row === item.container.row);
-            else createdItem.container = item.container;
-            createdItem.slot = item.slot;
-            createdItem.weight = item.weight;
-
-            // Initialize the item's inventory slots.
-            createdItem.initializeInventory();
-
-            for (let i = 0; i < item.inventory.length; i++) {
-                for (let j = 0; j < item.inventory[i].items.length; j++) {
-                    let inventoryItem = insertInventory(item.inventory[i].items[j]);
-                    let foundItem = false;
-                    let k = 0;
-                    for (k; k < game.inventoryItems.length; k++) {
-                        if (game.inventoryItems[k].row === inventoryItem.row) {
-                            foundItem = true;
-                            game.inventoryItems[k] = inventoryItem;
-                            break;
-                        }
-                    }
-                    if (foundItem) {
-                        game.inventoryItems[k].container = createdItem;
-                        if (game.inventoryItems[k].containerName !== "")
-                            createdItem.insertItem(game.inventoryItems[k], game.inventoryItems[k].slot);
-                        else createdItem.inventory[i].items.push(game.inventoryItems[k]);
-                    }
-                }
-            }
-            return createdItem;
-        };
-        // Run through inventoryItems one more time to properly insert their inventories and assign them to players.
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].prefab instanceof Prefab) {
-                if (game.inventoryItems[i].quantity !== 0 && game.inventoryItems[i].containerName !== "" && game.inventoryItems[i].container === null) {
-                    const splitContainer = game.inventoryItems[i].containerName.split('/');
-                    const containerItemIdentifier = splitContainer[0] ? Game.generateValidEntityName(splitContainer[0]) : "";
-                    const containerItemSlot = splitContainer[1] ? Game.generateValidEntityName(splitContainer[1]) : "";
-                    let container = game.inventoryItems.find(item =>
-                        item.player instanceof Player &&
-                        item.player.name === game.inventoryItems[i].player.name &&
-                        item.identifier === containerItemIdentifier &&
-                        item.quantity !== 0
-                    );
-                    if (container) {
-                        game.inventoryItems[i].container = container;
-                        for (let j = 0; j < game.inventoryItems[i].container.inventory.length; j++) {
-                            if (game.inventoryItems[i].container.inventory[j].id === containerItemSlot)
-                                game.inventoryItems[i].container.inventory[j].items.push(game.inventoryItems[i]);
-                        }
-                    }
-                }
-                const container = game.inventoryItems[i].container;
-                if (container instanceof InventoryItem) {
-                    for (let slot = 0; slot < container.inventory.length; slot++) {
-                        for (let j = 0; j < container.inventory[slot].items.length; j++) {
-                            if (container.inventory[slot].items[j].row === game.inventoryItems[i].row) {
-                                game.inventoryItems[i] = container.inventory[slot].items[j];
-                                break;
-                            }
-                        }
-                    }
-                }
-                else game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
-            }
-            if (game.inventoryItems[i].player instanceof Player) {
-                const player = game.inventoryItems[i].player;
-                for (let slot = 0; slot < player.inventory.length; slot++) {
-                    if (player.inventory[slot].id === game.inventoryItems[i].equipmentSlot && game.inventoryItems[i].containerName === "" && game.inventoryItems[i].prefab !== null) {
-                        player.inventory[slot].equippedItem = game.inventoryItems[i];
-                        player.carryWeight += game.inventoryItems[i].weight * game.inventoryItems[i].quantity;
-                    }
-                    let foundItem = false;
-                    for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                        if (player.inventory[slot].items[j].row === game.inventoryItems[i].row) {
-                            foundItem = true;
-                            player.inventory[slot].items[j] = game.inventoryItems[i];
-                            break;
-                        }
-                    }
-                    if (foundItem) break;
-                }
-            }
-
-            if (doErrorChecking) {
-                const error = checkInventoryItem(game.inventoryItems[i]);
+        });
+        if (doErrorChecking) {
+            game.inventoryItems.forEach(inventoryItem => {
+                const error = checkInventoryItem(inventoryItem);
                 if (error instanceof Error) errors.push(error);
-            }
+            });
         }
-
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -1677,7 +1638,7 @@ export function loadInventories (game, doErrorChecking) {
  * @param {InventoryItem} item - The inventory item to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkInventoryItem (item) {
+export function checkInventoryItem(item) {
     if (item.playerName === "")
         return new Error(`Couldn't load inventory item on row ${item.row}. No player name was given.`);
     if (!(item.player instanceof Player))
@@ -1687,33 +1648,28 @@ export function checkInventoryItem (item) {
     if (item.prefab !== null) {
         if (!(item.prefab instanceof Prefab))
             return new Error(`Couldn't load inventory item on row ${item.row}. "${item.prefabId}" is not a prefab.`);
-        if (item.inventory.length > 0 && item.identifier === "")
+        if (item.inventoryCollection.size > 0 && item.identifier === "")
             return new Error(`Couldn't load inventory item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
-        if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+        if (item.inventoryCollection.size > 0 && (item.quantity > 1))
             return new Error(`Couldn't load inventory item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
         if (item.identifier !== "" && item.quantity !== 0 &&
-            item.game.roomItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length
-            + item.game.inventoryItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length > 0)
+            item.game.entityFinder.getRoomItems(item.identifier).length + item.game.entityFinder.getInventoryItems(item.identifier).length > 1)
             return new Error(`Couldn't load inventory item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
-        if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+        if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1))
             return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
-        if (!item.foundEquipmentSlot)
+        if (!item.player.inventoryCollection.get(item.equipmentSlot))
             return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find equipment slot "${item.equipmentSlot}".`);
-        //if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
-        //    return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
-        if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
+        if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
+            return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
+        if (item.container instanceof InventoryItem && item.container.inventoryCollection.size === 0)
             return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
         if (item.container instanceof InventoryItem) {
             if (item.slot === "") return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but a prefab inventory slot name was not given.`);
-            let foundSlot = false;
-            for (let i = 0; i < item.container.inventory.length; i++) {
-                if (item.container.inventory[i].id === item.slot) {
-                    foundSlot = true;
-                    if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
-                        return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is over capacity.`);
-                }
-            }
-            if (!foundSlot) return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+            const inventorySlot = item.container.inventoryCollection.get(item.slot);
+            if (!inventorySlot)
+                return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+            if (inventorySlot.takenSpace > inventorySlot.capacity)
+                return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is over capacity.`);
         }
     }
 }
@@ -1724,7 +1680,7 @@ export function checkInventoryItem (item) {
  * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
-export function loadGestures (game, doErrorChecking) {
+export function loadGestures(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.gestureSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
@@ -1784,7 +1740,7 @@ export function loadGestures (game, doErrorChecking) {
  * @param {Gesture} gesture - The gesture to check. 
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkGesture (gesture) {
+export function checkGesture(gesture) {
     if (gesture.id === "" || gesture.id === null || gesture.id === undefined)
         return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture ID was given.`);
     for (let i = 0; i < gesture.requires.length; i++) {
@@ -1809,7 +1765,7 @@ export function checkGesture (gesture) {
  * @param {boolean} doErrorChecking - Flags always undergo error checking. So, doErrorChecking simply determines if loadFlags trims the error messages itself.
  * @returns {Promise<Game>}
  */
-export function loadFlags (game, doErrorChecking) {
+export function loadFlags(game, doErrorChecking) {
     return new Promise(async (resolve, reject) => {
         const response = await getSheetValues(game.constants.flagSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response?.values : [];
@@ -1863,7 +1819,7 @@ export function loadFlags (game, doErrorChecking) {
             else if (valueString === "TRUE") value = true;
             else if (valueString === "FALSE") value = false;
             else value = valueString;
-            
+
             let flag = new Flag(
                 sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",
                 value,
@@ -1909,7 +1865,7 @@ export function loadFlags (game, doErrorChecking) {
  * @param {Flag[]} flags - An array of flags that have been loaded.
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkFlag (flag, flags) {
+export function checkFlag(flag, flags) {
     if (flag.id === "" || flag.id === null || flag.id === undefined)
         return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
     if (flags.find(other => other.id === flag.id && other.row !== flag.row))
@@ -1931,7 +1887,7 @@ export function checkFlag (flag, flags) {
  * @param {string} durationString - An integer and a unit. Acceptable units: y, M, w, d, h, m, s.
  * @returns A duration object, or null.
  */
-function parseDuration (durationString) {
+function parseDuration(durationString) {
     let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
     let durationUnit = durationString.charAt(durationString.length - 1);
     /** @type {import('dayjs/plugin/duration.js').Duration} */
@@ -1946,7 +1902,7 @@ function parseDuration (durationString) {
  * @param {Error[]} errors - An array of errors to trim.
  * @returns The trimmed array of errors.
  */
-function trimErrors (errors) {
+function trimErrors(errors) {
     const tooManyErrors = errors.length > 20 || errors.join('\n').length >= 1980;
     while (errors.length > 20 || errors.join('\n').length >= 1980)
         errors = errors.slice(0, errors.length - 1);

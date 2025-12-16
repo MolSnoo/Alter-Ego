@@ -20,22 +20,26 @@ import { addLogMessage } from './messageHandler.js';
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
  * @param {Player} [player] - The player who caused this item to be instantiated, if applicable.
  */
-export function instantiateItem (prefab, location, container, slotId, quantity, proceduralSelections, player = null) {
+export function instantiateItem(prefab, location, container, slotId, quantity, proceduralSelections, player = null) {
+    let containerType = "";
     let containerName = "";
     let containerLogDisplay = "";
     let preposition = "in";
     if (container instanceof Puzzle) {
-        containerName = "Puzzle: " + container.name;
+        containerType = "Puzzle";
+        containerName = container.name;
         containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
         if (container.parentFixture) preposition = container.parentFixture.preposition;
     }
     else if (container instanceof Fixture) {
-        containerName = "Object: " + container.name;
+        containerType = "Fixture";
+        containerName = container.name;
         containerLogDisplay = container.name;
         preposition = container.preposition;
     }
     else if (container instanceof RoomItem) {
-        containerName = "Item: " + container.identifier + '/' + slotId;
+        containerType = "RoomItem";
+        containerName = container.identifier + '/' + slotId;
         containerLogDisplay = `${slotId} of ${container.identifier}`;
         if (container.prefab) preposition = container.prefab.preposition;
     }
@@ -45,6 +49,7 @@ export function instantiateItem (prefab, location, container, slotId, quantity, 
         generateIdentifier(prefab),
         location.id,
         container instanceof Puzzle && container.type !== "weight" && container.type !== "container" ? container.accessible && container.solved : true,
+        containerType,
         containerName,
         quantity,
         prefab.uses,
@@ -81,12 +86,13 @@ export function instantiateItem (prefab, location, container, slotId, quantity, 
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
  * @param {boolean} [notify] - Whether or not to notify the player that the item was added to their inventory. Defaults to true. 
  */
-export function instantiateInventoryItem (prefab, player, equipmentSlot, container, slotId, quantity, proceduralSelections, notify = true) {
+export function instantiateInventoryItem(prefab, player, equipmentSlot, container, slotId, quantity, proceduralSelections, notify = true) {
     let createdItem = new InventoryItem(
         player.name,
         prefab.id,
         generateIdentifier(prefab),
         equipmentSlot,
+        container ? "InventoryItem" : "",
         container ? container.identifier + '/' + slotId : "",
         quantity,
         prefab.uses,
@@ -137,7 +143,7 @@ export function instantiateInventoryItem (prefab, player, equipmentSlot, contain
  * @param {InventoryItem} item - The inventory item to replace. 
  * @param {Prefab} [newPrefab] - The prefab to replace it with. If one isn't given, the inventory item is simply destroyed.
  */
-export function replaceInventoryItem (item, newPrefab) {
+export function replaceInventoryItem(item, newPrefab) {
     if (newPrefab === null || newPrefab === undefined) {
         destroyInventoryItem(item, item.quantity, true);
     }
@@ -167,7 +173,7 @@ export function replaceInventoryItem (item, newPrefab) {
  * @param {number} quantity - How many of this item to destroy.
  * @param {boolean} getChildren - Whether or not to recursively destroy all of the items it contains as well.
  */
-export function destroyItem (item, quantity, getChildren) {
+export function destroyItem(item, quantity, getChildren) {
     item.quantity -= quantity;
 
     let containerLogDisplay = "";
@@ -208,7 +214,7 @@ export function destroyItem (item, quantity, getChildren) {
  * @param {number} quantity - How many of this inventory item to destroy.
  * @param {boolean} getChildren - Whether or not to recursively destroy all of the inventory items it contains as well.
  */
-export function destroyInventoryItem (item, quantity, getChildren) {
+export function destroyInventoryItem(item, quantity, getChildren) {
     if (getChildren) {
         /** @type {InventoryItem[]} */
         let childItems = [];
@@ -248,13 +254,14 @@ export function destroyInventoryItem (item, quantity, getChildren) {
  * @param {number} quantity - The quantity of the new inventory item.
  * @returns {InventoryItem} The new inventory item.
  */
-export function convertRoomItem (item, player, equipmentSlot, quantity) {
+export function convertRoomItem(item, player, equipmentSlot, quantity) {
     // Make a copy of the RoomItem as an InventoryItem.
     let createdItem = new InventoryItem(
         player.name,
         item.prefab.id,
         item.identifier,
         equipmentSlot,
+        item.container instanceof ItemInstance ? "InventoryItem" : "",
         item.container instanceof ItemInstance ? item.container.identifier + '/' + item.slot : "",
         quantity,
         item.uses,
@@ -290,7 +297,7 @@ export function convertRoomItem (item, player, equipmentSlot, quantity) {
  * @param {number} quantity - The quantity of the new inventory item.
  * @returns {InventoryItem} The new inventory item.
  */
-export function copyInventoryItem (item, player, equipmentSlot, quantity) {
+export function copyInventoryItem(item, player, equipmentSlot, quantity) {
     return convertRoomItem(item, player, equipmentSlot, quantity);
 }
 
@@ -303,18 +310,32 @@ export function copyInventoryItem (item, player, equipmentSlot, quantity) {
  * @param {number} quantity - The quantity of the new item.
  * @returns {RoomItem} The new room item.
  */
-export function convertInventoryItem (item, player, container, slotId, quantity) {
+export function convertInventoryItem(item, player, container, slotId, quantity) {
+    let containerType = "";
     let containerName = "";
-    if (container instanceof Puzzle) containerName = "Puzzle: " + container.name;
-    else if (container instanceof Fixture) containerName = "Object: " + container.name;
-    else if (container instanceof RoomItem) containerName = "Item: " + container.identifier + '/' + slotId;
-    else if (container instanceof InventoryItem) containerName = "Item: " + container.identifier + '/' + item.slot;
+    if (container instanceof Puzzle) {
+        containerType = "Puzzle";
+        containerName = container.name;
+    }
+    else if (container instanceof Fixture) {
+        containerType = "Fixture";
+        containerName = container.name;
+    }
+    else if (container instanceof RoomItem) {
+        containerType = "RoomItem";
+        containerName = container.identifier + '/' + slotId;
+    }
+    else if (container instanceof InventoryItem) {
+        containerType = "RoomItem";
+        containerName = container.identifier + '/' + item.slot;
+    }
     // Make a copy of the InventoryItem as a RoomItem.
     let createdItem = new RoomItem(
         item.prefab.id,
         item.identifier,
         player.location.id,
         container instanceof Puzzle && container.type !== "weight" && container.type !== "container" ? container.accessible && container.solved : true,
+        containerType,
         containerName,
         quantity,
         item.uses,
@@ -347,7 +368,7 @@ export function convertInventoryItem (item, player, container, slotId, quantity)
  * @param {ItemInstance[]} items - The array to add child items to.
  * @param {ItemInstance} item - The item whose child items are to be added.
  */
-export function getChildItems (items, item) {
+export function getChildItems(items, item) {
     for (let i = 0; i < item.inventory.length; i++) {
         for (let j = 0; j < item.inventory[i].items.length; j++) {
             items.push(item.inventory[i].items[j]);
@@ -361,7 +382,7 @@ export function getChildItems (items, item) {
  * @param {Room} location - The room to insert items into. 
  * @param {RoomItem[]} items - The items to insert. 
  */
-export function insertItems (location, items) {
+export function insertItems(location, items) {
     const game = location.game;
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
@@ -462,7 +483,7 @@ export function insertItems (location, items) {
                 }
             }
             // Update the rows for all of the items after this.
-            for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.items.length; j++ , newRow++)
+            for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.items.length; j++, newRow++)
                 game.items[j].row = newRow;
         }
     }
@@ -475,7 +496,7 @@ export function insertItems (location, items) {
  * @param {InventoryItem[]} items - The inventory items to insert.
  * @param {number} equipmentSlotIndex - The index of the equipment slot within the player's inventory.
  */
-export function insertInventoryItems (player, items, equipmentSlotIndex) {
+export function insertInventoryItems(player, items, equipmentSlotIndex) {
     const game = player.game;
     let lastNewItem = player.inventory[player.inventory.length - 1].equippedItem !== null ?
         player.inventory[player.inventory.length - 1].equippedItem :
@@ -556,7 +577,7 @@ export function insertInventoryItems (player, items, equipmentSlotIndex) {
                 }
             }
             // Update the rows for all of the inventoryItems after this.
-            for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++ , newRow++)
+            for (let j = insertIndex + 1, newRow = insertRow + 1; j < game.inventoryItems.length; j++, newRow++)
                 game.inventoryItems[j].row = newRow;
 
             // Update the rows for all Player EquipmentSlots.
@@ -582,7 +603,7 @@ function generateIdentifier(prefab) {
         let number = 1;
         while (prefab.game.items.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0) ||
             prefab.game.inventoryItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0))
-                number++;
+            number++;
         identifier = `${identifier} ${number}`;
     }
     return identifier;

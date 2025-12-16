@@ -23,7 +23,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}load all start\n`
         + `${settings.commandPrefix}load all resume\n`
         + `${settings.commandPrefix}load all\n`
@@ -47,24 +47,29 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (command !== "las" && command !== "lar" && args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
 
     if (command === "las" || command === "lar" || args[0] === "all") {
         let errors = [];
-        await loader.loadRooms(game, false);
-        await loader.loadFixtures(game, false);
-        await loader.loadPrefabs(game, false);
-        await loader.loadRecipes(game, false);
-        await loader.loadRoomItems(game, false);
-        await loader.loadPuzzles(game, false);
-        await loader.loadEvents(game, false);
-        await loader.loadStatusEffects(game, false);
-        await loader.loadPlayers(game, false);
-        await loader.loadInventories(game, false);
-        await loader.loadGestures(game, false);
-        await loader.loadFlags(game, false);
+        try {
+            await loader.loadRooms(game, false);
+            await loader.loadFixtures(game, false);
+            await loader.loadPrefabs(game, false);
+            await loader.loadRecipes(game, false);
+            await loader.loadRoomItems(game, false);
+            await loader.loadPuzzles(game, false);
+            await loader.loadEvents(game, false);
+            await loader.loadStatusEffects(game, false);
+            await loader.loadPlayers(game, false);
+            await loader.loadInventoryItems(game, false);
+            await loader.loadGestures(game, false);
+            await loader.loadFlags(game, false);
+        }
+        catch (error) {
+            errors.push(error);
+        }
 
         game.roomsCollection.forEach(room => {
             let error = loader.checkRoom(room);
@@ -293,7 +298,7 @@ export async function execute (game, message, command, args) {
     }
     else if (args[0] === "inventories") {
         try {
-            await loader.loadInventories(game, true);
+            await loader.loadInventoryItems(game, true);
             if (game.settings.debug) printData(game.inventoryItems);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, game.inventoryItems.length + " inventory items retrieved.");
         }

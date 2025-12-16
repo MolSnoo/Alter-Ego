@@ -32,11 +32,6 @@ export default class RoomItem extends ItemInstance {
      */
     accessible;
     /**
-     * The type of the item's container. Either "Fixture", "RoomItem", or "Puzzle".
-     * @type {string}
-     */
-    containerType;
-    /**
      * The item's actual container.
      * @type {Fixture|Puzzle|RoomItem}
      */
@@ -49,11 +44,11 @@ export default class RoomItem extends ItemInstance {
      */
     inventory = [];
     /**
-	 * A collection of {@link InventorySlot|inventory slots} the item has. The key is the inventory slot's ID.
+     * A collection of {@link InventorySlot|inventory slots} the item has. The key is the inventory slot's ID.
      * @override
-	 * @type {Collection<string, InventorySlot<RoomItem>>}
-	 */
-	inventoryCollection = new Collection();
+     * @type {Collection<string, InventorySlot<RoomItem>>}
+     */
+    inventoryCollection = new Collection();
 
     /**
      * @constructor
@@ -70,11 +65,10 @@ export default class RoomItem extends ItemInstance {
      * @param {Game} game - The game this belongs to.
      */
     constructor(prefabId, identifier, locationDisplayName, accessible, containerType, containerName, quantity, uses, description, row, game) {
-        super(game, row, description, prefabId, identifier, containerName, quantity, uses);
+        super(game, row, description, prefabId, identifier, containerType, containerName, quantity, uses);
         this.locationDisplayName = locationDisplayName;
         this.location = null;
         this.accessible = accessible;
-        this.containerType = containerType;
         this.inventory = [];
         this.inventoryCollection = new Collection();
     }
