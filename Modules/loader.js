@@ -150,7 +150,7 @@ export function checkRoom(room) {
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
         return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
-    room.exitCollection.forEach(exit => {
+    for (const exit of room.exitCollection.values()) {
         if (exit.name === "" || exit.name === null || exit.name === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No exit name was given.`);
         if (isNaN(exit.pos.x))
@@ -174,7 +174,7 @@ export function checkRoom(room) {
         }
         if (!matchingExit)
             return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.displayName}"  does not have an exit that links back to it.`);
-    });
+    }
 }
 
 /**
@@ -446,22 +446,22 @@ export function checkPrefab(prefab) {
         return new Error(`Couldn't load prefab on row ${prefab.row}. The size given is not a number.`);
     if (isNaN(prefab.weight))
         return new Error(`Couldn't load prefab on row ${prefab.row}. The weight given is not a number.`);
-    prefab.effects.forEach((effect, i) => {
-        if (!(effect instanceof Status))
+    for (let i = 0; i < prefab.effects.length; i++) {
+        if (!(prefab.effects[i] instanceof Status))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.effectsStrings[i]}" in effects is not a status effect.`);
-    });
-    prefab.cures.forEach((cure, i) => {
-        if (!(cure instanceof Status))
+    }
+    for (let i = 0; i < prefab.cures.length; i++) {
+        if (!(prefab.cures[i] instanceof Status))
             return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.curesStrings[i]}" in cures is not a status effect.`);
-    });
+    }
     if (prefab.nextStageId !== "" && !(prefab.nextStage instanceof Prefab))
         return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStageId}" in turns into is not a prefab.`);
-    prefab.inventoryCollection.forEach((inventorySlot, i) => {
+    for (const [i, inventorySlot] of prefab.inventoryCollection.entries()) {
         if (inventorySlot.id === "" || inventorySlot.id === null || inventorySlot.id === undefined)
             return new Error(`Couldn't load prefab on row ${prefab.row}. No name was given for inventory slot ${i + 1}.`);
         if (isNaN(inventorySlot.capacity))
             return new Error(`Couldn't load prefab on row ${prefab.row}. The capacity given for inventory slot "${inventorySlot.id}" is not a number.`);
-    });
+    }
     if (prefab.inventoryCollection.size !== 0 && prefab.preposition === "")
         return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
 }
@@ -554,10 +554,10 @@ export function loadRecipes(game, doErrorChecking) {
 export function checkRecipe(recipe) {
     if (recipe.ingredients.length === 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
-    recipe.ingredients.forEach((ingredient, i) => {
-        if (!(ingredient instanceof Prefab))
+    for (let i = 0; i < recipe.ingredients.length; i++) {
+        if (!(recipe.ingredients[i] instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.ingredientsStrings[i]}" in ingredients is not a prefab.`);
-    });
+    }
     if (recipe.ingredients.length > 2 && recipe.fixtureTag === "")
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require a fixture tag.`);
     if (recipe.products.length > 2 && recipe.fixtureTag === "")
@@ -566,10 +566,10 @@ export function checkRecipe(recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
     if (recipe.fixtureTag === "" && recipe.duration !== null)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without a fixture tag cannot have a duration.`);
-    recipe.products.forEach((product, i) => {
-        if (!(product instanceof Prefab))
+    for (let i = 0; i < recipe.products.length; i++) {
+        if (!(recipe.products[i] instanceof Prefab))
             return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.productsStrings[i]}" in products is not a prefab.`);
-    });
+    }
     if (recipe.fixtureTag !== "" && recipe.uncraftable)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with a fixture tag cannot be uncraftable.`)
     if (recipe.products.length > 1 && recipe.uncraftable)
@@ -924,19 +924,19 @@ export function checkPuzzle(puzzle) {
             puzzle.type !== "sta probability" && puzzle.type !== "stamina probability")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid stat probability puzzle type.`);
     }
-    puzzle.solutions.forEach(solution => {
+    for (let solution of puzzle.solutions) {
         if (puzzle.type === "weight" && isNaN(parseInt(solution)))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${solution}" is not an integer.`);
         if (puzzle.type === "media" && !solution.startsWith("Item: ") && !solution.startsWith("Prefab: "))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${solution}" does not have the "Item: " or "Prefab: " prefix.`);
         if (puzzle.type === "container") {
             const requiredItems = solution.split('+');
-            requiredItems.forEach(requiredItem => {
+            for (let requiredItem of requiredItems) {
                 if (!requiredItem.trim().startsWith("Item: ") && !requiredItem.trim().startsWith("Prefab: "))
                     return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItem}" does not have the "Item: " or "Prefab: " prefix.`);
-            });
+            }
         }
-    });
+    }
     if (puzzle.type === "switch" && puzzle.solved === false)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but it not solved.`);
     if (puzzle.type === "switch" && puzzle.outcome === "")
@@ -949,13 +949,14 @@ export function checkPuzzle(puzzle) {
         if (puzzle.outcome !== "" && !puzzle.solutions.includes(puzzle.outcome))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but its outcome is not among the list of its solutions.`);
     }
-    puzzle.commandSets.forEach(commandSet => {
-        commandSet.outcomes.forEach(outcome => {
+    for (let commandSet of puzzle.commandSets) {
+        for (let outcome of commandSet.outcomes) {
             if (!puzzle.solutions.includes(outcome))
                 return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${outcome}" in command sets is not an outcome in the puzzle's solutions.`);
-        });
-    });
-    puzzle.requirements.forEach((requirement, i) => {
+        }
+    }
+    for (let i = 0; i < puzzle.requirements.length; i++) {
+        const requirement = puzzle.requirements[i];
         const requirementString = puzzle.requirementsStrings[i];
         if (requirementString.type === "Prefab" && !(requirement instanceof Prefab))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a prefab.`);
@@ -971,7 +972,7 @@ export function checkPuzzle(puzzle) {
             && requirementString.type !== "Puzzle"
             && requirementString.type !== "")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.type}" is not a valid requirement type.`);
-    });
+    }
 }
 
 /**
@@ -1086,19 +1087,19 @@ export function checkEvent(event) {
         return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
     if (event.ongoing && event.duration !== null && event.remaining === null)
         return new Error(`Couldn't load event on row ${event.row}. The event is ongoing and has a duration, but no amount of time remaining was given.`);
-    event.triggerTimesStrings.forEach(triggerTimeString => {
+    for (let triggerTimeString of event.triggerTimesStrings) {
         let triggerTime = dayjs(triggerTimeString, Event.formats);
         if (!triggerTime.isValid())
             return new Error(`Couldn't load event on row ${event.row}. "${triggerTimeString}" is not a valid time to trigger at.`);
-    });
-    event.effects.forEach((effect, i) => {
-        if (!(effect instanceof Status))
+    }
+    for (let i = 0; i < event.effects.length; i++) {
+        if (!(event.effects[i] instanceof Status))
             return new Error(`Couldn't load event on row ${event.row}. "${event.effectsStrings[i]}" in inflicted status effects is not a status effect.`);
-    });
-    event.refreshes.forEach((refreshes, i) => {
-        if (!(refreshes instanceof Status))
+    }
+    for (let i = 0; i < event.refreshes.length; i++) {
+        if (!(event.refreshes[i] instanceof Status))
             return new Error(`Couldn't load event on row ${event.row}. "${event.refreshesStrings[i]}" in refreshed status effects is not a status effect.`);
-    });
+    }
 }
 
 /**
@@ -1235,7 +1236,8 @@ export function checkStatusEffect(status) {
         return new Error(`Couldn't load status effect on row ${status.row}. No status effect ID was given.`);
     if (status.duration !== null && !dayjs.isDuration(status.duration))
         return new Error(`Couldn't load status effect on row ${status.row}. An invalid duration was given.`);
-    status.statModifiers.forEach((statModifier, i) => {
+    for (let i = 0; i < status.statModifiers.length; i++) {
+        const statModifier = status.statModifiers[i];
         if (statModifier.stat === null)
             return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
         if (statModifier.stat !== "str" && statModifier.stat !== "int" && statModifier.stat !== "dex" && statModifier.stat !== "spd" && statModifier.stat !== "sta")
@@ -1244,15 +1246,15 @@ export function checkStatusEffect(status) {
             return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
         if (isNaN(statModifier.value))
             return new Error(`Couldn't load status effect on row ${status.row}. The value given in stat modifier ${i + 1} is not an integer.`);
-    });
-    status.overriders.forEach((overrider, i) => {
-        if (!(overrider instanceof Status))
+    }
+    for (let i = 0; i < status.overriders.length; i++) {
+        if (!(status.overriders[i] instanceof Status))
             return new Error(`Couldn't load status effect on row ${status.row}. "${status.overridersStrings[i]}" in "don't inflict if" is not a status effect.`);
-    });
-    status.cures.forEach((cure, i) => {
-        if (!(cure instanceof Status))
+    }
+    for (let i = 0; i < status.cures.length; i++) {
+        if (!(status.cures[i] instanceof Status))
             return new Error(`Couldn't load status effect on row ${status.row}. "${status.curesStrings[i]}" in cures is not a status effect.`);
-    });
+    }
     if (status.nextStageId !== "" && !(status.nextStage instanceof Status))
         return new Error(`Couldn't load status effect on row ${status.row}. Next stage "${status.nextStageId}" is not a status effect.`);
     if (status.duplicatedStatusId !== "" && !(status.duplicatedStatus instanceof Status))
@@ -1452,13 +1454,13 @@ export function checkPlayer(player) {
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
         return new Error(`Couldn't load player on row ${player.row}. "${player.locationDisplayName}" is not a room.`);
-    player.statusDisplays.forEach((statusDisplay) => {
+    for (let statusDisplay of player.statusDisplays) {
         if (!player.hasStatus(statusDisplay.id))
             return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`);
         const timeRemaining = dayjs(statusDisplay.timeRemaining);
         if (statusDisplay.timeRemaining !== null && !dayjs.isDuration(timeRemaining))
             return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`);
-    });
+    }
 }
 
 /**
@@ -1767,14 +1769,14 @@ export function loadGestures(game, doErrorChecking) {
 export function checkGesture(gesture) {
     if (gesture.id === "" || gesture.id === null || gesture.id === undefined)
         return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture ID was given.`);
-    gesture.requires.forEach(requireType => {
+    for (let requireType of gesture.requires) {
         if (requireType !== "Exit" && requireType !== "Fixture" && requireType !== "RoomItem" && requireType !== "Player" && requireType !== "InventoryItem")
             return new Error(`Couldn't load gesture on row ${gesture.row}. "${requireType}" is not a valid requirement type.`);
-    });
-    gesture.disabledStatuses.forEach((status, i) => {
-        if (!(status instanceof Status))
+    }
+    for (let i = 0; i < gesture.disabledStatuses.length; i++) {
+        if (!(gesture.disabledStatuses[i] instanceof Status))
             return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.disabledStatusesStrings[i]}" in "don't allow if" is not a status effect.`);
-    });
+    }
     if (gesture.description === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No description was given.`);
     if (gesture.narration === "")
