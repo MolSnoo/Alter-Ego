@@ -1,4 +1,5 @@
 import Event from "../Data/Event.js";
+import Exit from "../Data/Exit.js";
 import Fixture from "../Data/Fixture.js";
 import Flag from "../Data/Flag.js";
 import Game from "../Data/Game.js";
@@ -56,6 +57,48 @@ export const roomOccupiedMatches = (room, includeNPCs) => {
 	if (!includeNPCs) return room.occupants.filter(occupant => !occupant.isNPC).length > 0;
 	else return room.occupants.length > 0;
 };
+
+/**
+ * Returns true if the exit's name matches the given name.
+ * @param {Exit} exit - The exit to match the name against.
+ * @param {string} name - The name to match.
+ * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
+ */
+export const exitNameMatches = (exit, name, normalize = false) => {
+	if (normalize) name = Exit.generateValidName(name);
+	return exit.name === name;
+}
+
+/**
+ * Returns true if the exit's name contains the given name.
+ * @param {Exit} exit - The exit to match the name against.
+ * @param {string} name - The name to match.
+ * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
+ */
+export const exitNameContains = (exit, name, normalize = false) => {
+	if (normalize) name = Exit.generateValidName(name);
+	return exit.name.includes(name);
+}
+
+/**
+ * Returns true if the exit's destination's ID contains the given ID.
+ * @param {Exit} exit - The exit to match the destination name against.
+ * @param {string} id - The destination ID to match.
+ * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
+ */
+export const exitDestMatches = (exit, id, normalize = false) => {
+	if (normalize) id = Room.generateValidId(id);
+	return exit.dest.id === id;
+}
+
+/**
+ * Returns true if the exit's locked.
+ * @param {Exit} exit - The exit for which to check the lock status.
+ * @param {boolean} lock - Whether or not the door should be locked.
+ */
+export const exitLockedMatches = (exit, lock) => {
+	return lock !== exit.unlocked;
+}
 
 /**
  * Returns true if the entity's name matches the given name.

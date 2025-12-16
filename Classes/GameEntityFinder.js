@@ -197,6 +197,23 @@ export default class GameEntityFinder {
 	}
 
 	/**
+	 * Gets all exits that match the given search queries.
+	 * @param {Room} room - Search for exits in this given room
+	 * @param {string} [name] - Filter the exits to only those whose name matches the given name.
+	 * @param {string} [dest] - Filter the exits to only those whose destination matches the given name.
+	 * @param {boolean} [locked] - Filter the exits to only those who are locked (if true) or unlocked (if false).
+	 * @param {boolean} [fuzzySearch] - Whether or not to include results whose name only contains the given name. Defaults to false.
+	 */
+	getExits(room, name, dest, locked, fuzzySearch = false) {
+		/** @type {Collection<string|boolean, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (name) selectedFilters.set(Exit.generateValidName(name), fuzzySearch ? matchers.exitNameContains : matchers.exitNameMatches);
+		if (dest) selectedFilters.set(Room.generateValidId(dest), matchers.exitDestMatches);
+		if (locked !== undefined && locked !== null) selectedFilters.set(locked, matchers.exitLockedMatches);
+		return room.exitCollection.filter(exit => selectedFilters.every((filterFunction, key) => filterFunction(room, key))).map(exit => exit);
+	}
+
+	/**
 	 * Gets all fixtures that match the given search queries.
 	 * @param {string} [name] - Filter the fixtures to only those whose name matches the given name.
 	 * @param {string} [location] - Filter the fixtures to only those whose location ID matches the given location ID.
