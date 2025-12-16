@@ -53,7 +53,7 @@ export default class Timer {
      */
     constructor(duration, attributes, callback) {
         if (dayjs.isDuration(duration))
-            this.timerDuration = duration.milliseconds();
+            this.timerDuration = duration.asMilliseconds();
         else 
             this.timerDuration = duration;
         this.attributes = { ...{ loop: false, start: false }, ...attributes };
@@ -70,7 +70,7 @@ export default class Timer {
 
     /**
      * Starts the timer.
-     * @returns {boolean} Success status
+     * @returns {boolean} Success status.
      */
     start() {
         if (this.started || !this.callback) return false;
@@ -95,7 +95,7 @@ export default class Timer {
 
     /**
      * Stops the timer.
-     * @returns {boolean} Success status
+     * @returns {boolean} Success status.
      */
     stop() {
         if (!this.started) return false;
@@ -110,7 +110,7 @@ export default class Timer {
 
     /**
      * Clears the internal timer.
-     * @returns {boolean} Success status
+     * @returns {boolean} Success status.
      */
     clearTimer() {
         if (this.timer) {
@@ -127,8 +127,8 @@ export default class Timer {
 
     /**
      * Update start and end ticks based on duration.
-     * @param {number} duration - Duration in milliseconds
-     * @returns {boolean} Success status
+     * @param {number} duration - Duration in milliseconds.
+     * @returns {boolean} Success status.
      */
     updateStartEndTickFromDuration(duration) {
         this.startTick = Date.now();
@@ -138,23 +138,23 @@ export default class Timer {
 
     /**
      * Set or get the timer duration.
-     * @param {number|import('dayjs/plugin/duration.js').Duration} [duration] - New duration
-     * @param {import('dayjs/plugin/duration.js').DurationUnitType} [unit] - Time unit if duration is a number
-     * @returns {boolean|void} Returns true if setting, nothing if getting
+     * @param {number|import('dayjs/plugin/duration.js').Duration} [duration] - New duration.
+     * @param {import('dayjs/plugin/duration.js').DurationUnitType} [unit] - Time unit if duration is a number.
+     * @returns {boolean|void} Returns true if setting, nothing if getting.
      */
     duration(duration, unit) {
         if (arguments.length > 0) {
             let ms;
 
             if (typeof duration === "number") {
-                // Convert based on unit if provided
+                // Convert based on unit if provided.
                 if (unit) {
                     ms = dayjs.duration(duration, unit).asMilliseconds();
                 } else {
                     ms = duration;
                 }
             } else if (duration && typeof duration.asMilliseconds === "function") {
-                // Dayjs duration object
+                // Dayjs duration object.
                 ms = duration.asMilliseconds();
             } else {
                 throw new Error("Invalid duration parameter");
@@ -168,7 +168,7 @@ export default class Timer {
 
     /**
      * Get the current duration.
-     * @returns {number} Duration in milliseconds
+     * @returns {number} Duration in milliseconds.
      */
     getDuration() {
         return this.timerDuration;
@@ -176,7 +176,7 @@ export default class Timer {
 
     /**
      * Get the remaining duration.
-     * @returns {number} Remaining time in milliseconds
+     * @returns {number} Remaining time in milliseconds.
      */
     getRemainingDuration() {
         if (this.startTick && this.endTick) {
@@ -187,7 +187,7 @@ export default class Timer {
 
     /**
      * Check if timer is stopped.
-     * @returns {boolean} True if stopped
+     * @returns {boolean} True if stopped.
      */
     isStopped() {
         return this.stopped;
@@ -195,7 +195,7 @@ export default class Timer {
 
     /**
      * Check if timer is started.
-     * @returns {boolean} True if started
+     * @returns {boolean} True if started.
      */
     isStarted() {
         return this.started;
