@@ -117,7 +117,7 @@ export default class GameEntityFinder {
 	getLivingPlayer(name) {
 		return this.game.livingPlayersCollection.get(Game.generateValidEntityName(name));
 	}
-	
+
 	/**
 	 * Gets a dead player.
 	 * @param {string} name - The player's name. 
@@ -157,16 +157,25 @@ export default class GameEntityFinder {
 	/**
 	 * Gets a flag.
 	 * @param {string} id - The flag's ID. 
-	 * @param {boolean} [evaluate] - Whether or not to also evaluate the flag's value script and update its value. Does not execute the flag's set commands. Defaults to false.
 	 * @returns The flag with the specified ID. If no such flag exists, returns undefined.
 	 */
-	getFlag(id, evaluate = false) {
-		const flag = this.game.flags.get(Game.generateValidEntityName(id));
+	getFlag(id) {
+		return this.game.flags.get(Game.generateValidEntityName(id));
+	}
+
+	/**
+	 * Gets the value of a flag.
+	 * @param {string} id - The flag's ID. 
+	 * @param {boolean} [evaluate] - Whether or not to also evaluate the flag's value script and update its value. Does not execute the flag's set commands. Defaults to false.
+	 * @returns The value of the flag with the specified ID. If no such flag exists, returns undefined.
+	 */
+	getFlagValue(id, evaluate = false) {
+		const flag = this.getFlag(id);
 		if (flag && flag.valueScript && evaluate) {
 			const value = flag.evaluate();
 			flag.setValue(value, false);
 		}
-		return flag ? flag.value : flag;
+		return flag ? flag.value : undefined;
 	}
 
 	/**

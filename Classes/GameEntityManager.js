@@ -1,5 +1,6 @@
 import Event from "../Data/Event.js";
 import Fixture from "../Data/Fixture.js";
+import Flag from "../Data/Flag.js";
 import Game from "../Data/Game.js";
 import Prefab from "../Data/Prefab.js";
 import Puzzle from "../Data/Puzzle.js";
@@ -132,6 +133,21 @@ export default class GameEntityManager {
 		this.game.inventoryItems.length = 0;
 	}
 
+	/**
+	 * Clears all gesture data from memory.
+	 */
+	clearGestures() {
+		this.game.gestures.length = 0;
+		this.game.gesturesCollection.clear();
+	}
+
+	/**
+	 * Clears all flag data from memory.
+	 */
+	clearFlags() {
+		this.game.flags.clear();
+	}
+
 	/** 
 	 * Updates references to a given room throughout the game.
 	 * @param {Room} room - The room to reference.
@@ -252,6 +268,19 @@ export default class GameEntityManager {
 			gesture.disabledStatusesStrings.forEach((disabledStatusString, i) => {
 				if (disabledStatusString === status.id)
 					gesture.disabledStatuses[i] = status;
+			});
+		});
+	}
+
+	/**
+	 * Updates references to a given flag throughout the game.
+	 * @param {Flag} flag 
+	 */
+	updateFlagReferences(flag) {
+		this.game.puzzles.forEach(puzzle => {
+			puzzle.requirementsStrings.forEach((requirementsString, i) => {
+				if (requirementsString.type === "Flag" && requirementsString.entityId === flag.id)
+					puzzle.requirements[i] = flag;
 			});
 		});
 	}

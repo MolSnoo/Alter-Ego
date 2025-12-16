@@ -310,17 +310,20 @@ export function loadPrefabs(game, doErrorChecking) {
             // Separate single containing phrase and plural containing phrase.
             const containingPhrase = sheet[row][columnContainingPhrase] ? sheet[row][columnContainingPhrase].split(',') : "";
             // Create a list of all status effect IDs this prefab will inflict when used.
-            let effects = sheet[row][columnEffectsStrings] ? sheet[row][columnEffectsStrings].split(',') : [];
-            for (let j = 0; j < effects.length; j++)
-                effects[j] = Status.generateValidId(effects[j]);
+            let effectsStrings = sheet[row][columnEffectsStrings] ? sheet[row][columnEffectsStrings].split(',') : [];
+            effectsStrings.forEach((effectString, i) => {
+                effectsStrings[i] = Status.generateValidId(effectString);
+            });
             // Create a list of all status effect IDs this prefab will cure when used.
-            let cures = sheet[row][columnCuresStrings] ? sheet[row][columnCuresStrings].split(',') : [];
-            for (let j = 0; j < cures.length; j++)
-                cures[j] = Status.generateValidId(cures[j]);
+            let curesStrings = sheet[row][columnCuresStrings] ? sheet[row][columnCuresStrings].split(',') : [];
+            curesStrings.forEach((cureString, i) => {
+                curesStrings[i] = Status.generateValidId(cureString);
+            });
             // Create a list of equipment slots this prefab can be equipped to.
             let equipmentSlots = sheet[row][columnEquipmentSlots] ? sheet[row][columnEquipmentSlots].split(',') : [];
-            for (let j = 0; j < equipmentSlots.length; j++)
-                equipmentSlots[j] = Game.generateValidEntityName(equipmentSlots[j]);
+            equipmentSlots.forEach((equipmentSlotId, i) => {
+                equipmentSlots[i] = Game.generateValidEntityName(equipmentSlotId);
+            });
             // Create a list of equipment slots this prefab covers when equipped.
             let coveredEquipmentSlots = sheet[row][columnCoveredEquipmentSlots] ? sheet[row][columnCoveredEquipmentSlots].split(',') : [];
             for (let j = 0; j < coveredEquipmentSlots.length; j++)
@@ -329,18 +332,18 @@ export function loadPrefabs(game, doErrorChecking) {
             const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
             const commands = commandString ? commandString.split('/') : ["", ""];
             let equipCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
-            for (let j = 0; j < equipCommands.length; j++)
-                equipCommands[j] = equipCommands[j].trim();
+            for (let i = 0; i < equipCommands.length; i++)
+                equipCommands[i] = equipCommands[i].trim();
             let unequipCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
-            for (let j = 0; j < unequipCommands.length; j++)
-                unequipCommands[j] = unequipCommands[j].trim();
+            for (let i = 0; i < unequipCommands.length; i++)
+                unequipCommands[i] = unequipCommands[i].trim();
             // Create a list of inventory slots this prefab contains.
             let inventorySlotStrings = sheet[row][columnInventorySlotsStrings] ? sheet[row][columnInventorySlotsStrings].split(',') : [];
             /** @type {Collection<string, InventorySlot>} */
             let inventorySlots = new Collection();
-            for (let i = 0; i < inventorySlotStrings.length; i++) {
-                let inventorySlotSplit = inventorySlotStrings[i].split(':');
-                if (inventorySlotSplit.length === 1) inventorySlotSplit = [inventorySlotStrings[i], ""];
+            inventorySlotStrings.forEach(inventorySlotString => {
+                let inventorySlotSplit = inventorySlotString.split(':');
+                if (inventorySlotSplit.length === 1) inventorySlotSplit = [inventorySlotString, ""];
                 const inventorySlot = new InventorySlot(
                     Game.generateValidEntityName(inventorySlotSplit[0]),
                     parseInt(inventorySlotSplit[1]),
@@ -351,7 +354,7 @@ export function loadPrefabs(game, doErrorChecking) {
                 if (inventorySlots.get(inventorySlot.id))
                     errors.push(new Error(`Couldn't load prefab on row ${row + 2}. The prefab already has an inventory slot with the ID "${inventorySlot.id}".`));
                 else inventorySlots.set(inventorySlot.id, inventorySlot);
-            }
+            });
             const prefab = new Prefab(
                 sheet[row][columnId] ? Game.generateValidEntityName(sheet[row][columnId]) : "",
                 name[0] ? Game.generateValidEntityName(name[0]) : "",
@@ -364,8 +367,8 @@ export function loadPrefabs(game, doErrorChecking) {
                 sheet[row][columnUsable] ? sheet[row][columnUsable].trim() === "TRUE" : false,
                 sheet[row][columnUseVerb] ? sheet[row][columnUseVerb].trim() : "",
                 parseInt(sheet[row][columnUses]),
-                effects,
-                cures,
+                effectsStrings,
+                curesStrings,
                 sheet[row][columnNextStageId] ? sheet[row][columnNextStageId].trim() : "",
                 sheet[row][columnEquippable] ? sheet[row][columnEquippable].trim() === "TRUE" : false,
                 equipmentSlots,
@@ -627,7 +630,7 @@ export function loadRoomItems(game, doErrorChecking) {
             }
             const location = game.entityFinder.getRoom(roomItem.locationDisplayName);
             if (location) roomItem.setLocation(location);
-            if (roomItem.identifier !== "" && roomItem.inventoryCollection.size > 0) {
+            if (roomItem.quantity !== 0 && roomItem.identifier !== "" && roomItem.inventoryCollection.size > 0) {
                 if (containerItems.get(roomItem.identifier)) {
                     errors.push(new Error(`Couldn't load room item on row ${roomItem.row}. Another room item with this container identifier already exists.`));
                     continue;
@@ -699,7 +702,8 @@ export function checkRoomItem(item) {
     if (item.inventoryCollection.size > 0 && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load room item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
     if (item.identifier !== "" && item.quantity !== 0 &&
-        item.game.entityFinder.getRoomItems(item.identifier).length + item.game.entityFinder.getInventoryItems(item.identifier).length > 1)
+        item.game.roomItems.filter(roomItem => roomItem.identifier === item.identifier && roomItem.quantity !== 0).length
+        + item.game.inventoryItems.filter(inventoryItem => inventoryItem.identifier === item.identifier && inventoryItem.quantity !== 0).length > 1)
         return new Error(`Couldn't load room item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
     if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
         return new Error(`Couldn't load room item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
@@ -786,11 +790,11 @@ export function loadPuzzles(game, doErrorChecking) {
             let getCommands = function (commandString) {
                 const commands = commandString.split('/');
                 let solvedCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
-                for (let j = 0; j < solvedCommands.length; j++)
-                    solvedCommands[j] = solvedCommands[j].trim();
+                for (let i = 0; i < solvedCommands.length; i++)
+                    solvedCommands[i] = solvedCommands[i].trim();
                 let unsolvedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
-                for (let j = 0; j < unsolvedCommands.length; j++)
-                    unsolvedCommands[j] = unsolvedCommands[j].trim();
+                for (let i = 0; i < unsolvedCommands.length; i++)
+                    unsolvedCommands[i] = unsolvedCommands[i].trim();
                 return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
             };
             const regex = new RegExp(/(\[((.*?)(?<!(?:(?:Room|Inventory)?Item)|Prefab): (.*?))\],?)/g);
@@ -854,7 +858,7 @@ export function loadPuzzles(game, doErrorChecking) {
                 else if (requirementString.type === "Event")
                     requirement = game.entityFinder.getEvent(requirementString.entityId);
                 else if (requirementString.type === "Flag")
-                    requirement = game.flags.get(requirementString.entityId);
+                    requirement = game.entityFinder.getFlag(requirementString.entityId);
                 else
                     requirement = game.entityFinder.getPuzzle(requirementString.entityId);
                 puzzle.requirements[i] = requirement;
@@ -1507,7 +1511,7 @@ export function loadInventoryItems(game, doErrorChecking) {
                     inventoryItem.setPrefab(prefab);
                     inventoryItem.initializeInventory();
                 }
-                if (inventoryItem.identifier !== "" && inventoryItem.inventoryCollection.size > 0) {
+                if (inventoryItem.quantity !== 0 && inventoryItem.identifier !== "" && inventoryItem.inventoryCollection.size > 0) {
                     if (containerItems.get(inventoryItem.identifier)) {
                         errors.push(new Error(`Couldn't load inventory item on row ${inventoryItem.row}. Another inventory item with this container identifier already exists.`));
                         continue;
@@ -1652,8 +1656,8 @@ export function checkInventoryItem(item) {
             return new Error(`Couldn't load inventory item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
         if (item.inventoryCollection.size > 0 && (item.quantity > 1))
             return new Error(`Couldn't load inventory item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
-        if (item.identifier !== "" && item.quantity !== 0 &&
-            item.game.entityFinder.getRoomItems(item.identifier).length + item.game.entityFinder.getInventoryItems(item.identifier).length > 1)
+        if (item.identifier !== "" && item.quantity !== 0 && item.game.roomItems.filter(roomItem => roomItem.identifier === item.identifier && roomItem.quantity !== 0).length
+            + item.game.inventoryItems.filter(inventoryItem => inventoryItem.identifier === item.identifier && inventoryItem.quantity !== 0).length > 1)
             return new Error(`Couldn't load inventory item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
         if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1))
             return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
@@ -1685,50 +1689,62 @@ export function loadGestures(game, doErrorChecking) {
         const response = await getSheetValues(game.constants.gestureSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnName = 0;
+        const columnId = 0;
         const columnRequires = 1;
-        const columnDontAllowIf = 2;
+        const columnDisabledStatusesStrings = 2;
         const columnDescription = 3;
         const columnNarration = 4;
 
-        game.gestures.length = 0;
-        game.gesturesCollection.clear();
-        for (let i = 0; i < sheet.length; i++) {
-            let requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
-            for (let j = 0; j < requires.length; j++)
-                requires[j] = requires[j].trim();
-            let disabledStatuses = sheet[i][columnDontAllowIf] ? sheet[i][columnDontAllowIf].split(',') : [];
-            for (let j = 0; j < disabledStatuses.length; j++)
-                disabledStatuses[j] = Status.generateValidId(disabledStatuses[j]);
+        game.entityManager.clearGestures();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            let requiresStrings = sheet[row][columnRequires] ? sheet[row][columnRequires].split(',') : [];
+            requiresStrings.forEach((requiresString, i) => {
+                const requiresStringUpper = requiresString.toUpperCase().trim();
+                if (requiresStringUpper === "EXIT")
+                    requiresStrings[i] = "Exit";
+                else if (requiresStringUpper === "FIXTURE" || requiresStringUpper === "OBJECT")
+                    requiresStrings[i] = "Fixture";
+                else if (requiresStringUpper === "ROOMITEM" || requiresStringUpper === "ROOM ITEM" || requiresStringUpper === "ITEM")
+                    requiresStrings[i] = "RoomItem";
+                else if (requiresStringUpper === "PLAYER")
+                    requiresStrings[i] = "Player";
+                else if (requiresStringUpper === "INVENTORYITEM" || requiresStringUpper === "INVENTORY ITEM")
+                    requiresStrings[i] = "InventoryItem";
+                else requiresStrings[i] = requiresString.trim();
+            });
+            let disabledStatusesStrings = sheet[row][columnDisabledStatusesStrings] ? sheet[row][columnDisabledStatusesStrings].split(',') : [];
+            disabledStatusesStrings.forEach((disabledStatusString, i) => {
+                disabledStatusesStrings[i] = Status.generateValidId(disabledStatusString);
+            });
             const gesture = new Gesture(
-                sheet[i][columnName] ? Gesture.generateValidId(sheet[i][columnName]) : "",
-                requires,
-                disabledStatuses,
-                sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                sheet[i][columnNarration] ? sheet[i][columnNarration].trim() : "",
-                i + 2,
+                sheet[row][columnId] ? Gesture.generateValidId(sheet[row][columnId]) : "",
+                requiresStrings,
+                disabledStatusesStrings,
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                sheet[row][columnNarration] ? sheet[row][columnNarration].trim() : "",
+                row + 2,
                 game
             );
+            if (game.entityFinder.getGesture(gesture.id)) {
+                errors.push(new Error(`Couldn't load gesture on row ${gesture.row}. No gesture ID was given.`));
+                continue;
+            }
+            gesture.disabledStatusesStrings.forEach((disabledStatusString, i) => {
+                const disabledStatus = game.entityFinder.getStatusEffect(disabledStatusString);
+                if (disabledStatus) gesture.disabledStatuses[i] = disabledStatus;
+            });
+            if (doErrorChecking) {
+                let error = checkGesture(gesture);
+                if (error instanceof Error) errors.push(error);
+            }
             game.gestures.push(gesture);
             game.gesturesCollection.set(gesture.id, gesture);
         }
-        // Now go through and make the disabledStatuses actual Status objects.
-        let errors = [];
-        for (let i = 0; i < game.gestures.length; i++) {
-            for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
-                let disabledStatus = game.statusEffects.find(statusEffect => statusEffect.id === game.gestures[i].disabledStatusesStrings[j]);
-                if (disabledStatus) game.gestures[i].disabledStatuses[j] = disabledStatus;
-            }
-            if (doErrorChecking) {
-                let error = checkGesture(game.gestures[i]);
-                if (error instanceof Error) errors.push(error);
-            }
-        }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -1743,26 +1759,24 @@ export function loadGestures(game, doErrorChecking) {
 export function checkGesture(gesture) {
     if (gesture.id === "" || gesture.id === null || gesture.id === undefined)
         return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture ID was given.`);
-    for (let i = 0; i < gesture.requires.length; i++) {
-        if (gesture.requires[i] !== "Exit" && gesture.requires[i] !== "Fixture" && gesture.requires[i] !== "Object" && gesture.requires[i] !== "Room Item" && gesture.requires[i] !== "Item" && gesture.requires[i] !== "Player" && gesture.requires[i] !== "Inventory Item")
-            return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.requires[i]}" is not a valid requirement.`);
-    }
-    if (gesture.disabledStatuses.length > 0) {
-        for (let i = 0; i < gesture.disabledStatuses.length; i++)
-            if (!(gesture.disabledStatuses[i] instanceof Status))
-                return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.disabledStatusesStrings[i]}" in "don't allow if" is not a status effect.`);
-    }
+    gesture.requires.forEach(requireType => {
+        if (requireType !== "Exit" && requireType !== "Fixture" && requireType !== "RoomItem" && requireType !== "Player" && requireType !== "InventoryItem")
+            return new Error(`Couldn't load gesture on row ${gesture.row}. "${requireType}" is not a valid requirement type.`);
+    });
+    gesture.disabledStatuses.forEach((status, i) => {
+        if (!(status instanceof Status))
+            return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.disabledStatusesStrings[i]}" in "don't allow if" is not a status effect.`);
+    });
     if (gesture.description === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No description was given.`);
     if (gesture.narration === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
-    return;
 }
 
 /**
  * Loads data from the Flags sheet into the game.
  * @param {Game} game - The game to load these entities into.
- * @param {boolean} doErrorChecking - Flags always undergo error checking. So, doErrorChecking simply determines if loadFlags trims the error messages itself.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
  * @returns {Promise<Game>}
  */
 export function loadFlags(game, doErrorChecking) {
@@ -1770,16 +1784,16 @@ export function loadFlags(game, doErrorChecking) {
         const response = await getSheetValues(game.constants.flagSheetDataCells, game.settings.spreadsheetID);
         const sheet = response?.values ? response?.values : [];
         // These constants are the column numbers corresponding to that data on the spreadsheet.
-        const columnID = 0;
+        const columnId = 0;
         const columnValue = 1;
         const columnValueScript = 2;
-        const columnCommands = 3;
+        const columnCommandsString = 3;
 
-        game.flags.clear();
-        /** @type {Flag[]} */
-        let flags = [];
-        for (let i = 0; i < sheet.length; i++) {
-            let commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
+        game.entityManager.clearFlags();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            let commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
             /** @type {FlagCommandSet[]} */
             let commandSets = [];
             /**
@@ -1789,11 +1803,11 @@ export function loadFlags(game, doErrorChecking) {
             let getCommands = function (commandString) {
                 const commands = commandString.split('/');
                 let setCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
-                for (let j = 0; j < setCommands.length; j++)
-                    setCommands[j] = setCommands[j].trim();
+                for (let i = 0; i < setCommands.length; i++)
+                    setCommands[i] = setCommands[i].trim();
                 let clearedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
-                for (let j = 0; j < clearedCommands.length; j++)
-                    clearedCommands[j] = clearedCommands[j].trim();
+                for (let i = 0; i < clearedCommands.length; i++)
+                    clearedCommands[i] = clearedCommands[i].trim();
                 return { setCommands: setCommands, clearedCommands: clearedCommands };
             };
             const regex = new RegExp(/(\[((.*?): (.*?))\],?)/g);
@@ -1809,10 +1823,10 @@ export function loadFlags(game, doErrorChecking) {
                 }
             }
             else {
-                const commands = getCommands(sheet[i][columnCommands] ? sheet[i][columnCommands] : "");
+                const commands = getCommands(sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "");
                 commandSets.push({ values: [], setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
             }
-            let valueString = sheet[i][columnValue] ? sheet[i][columnValue].trim() : null;
+            let valueString = sheet[row][columnValue] ? sheet[row][columnValue].trim() : null;
             /** @type {string|number|boolean} */
             let value;
             if (!isNaN(parseFloat(valueString))) value = parseFloat(valueString);
@@ -1821,38 +1835,30 @@ export function loadFlags(game, doErrorChecking) {
             else value = valueString;
 
             let flag = new Flag(
-                sheet[i][columnID] ? Game.generateValidEntityName(sheet[i][columnID]) : "",
+                sheet[row][columnId] ? Game.generateValidEntityName(sheet[row][columnId]) : "",
                 value,
-                sheet[i][columnValueScript] ? sheet[i][columnValueScript].trim() : "",
-                sheet[i][columnCommands] ? sheet[i][columnCommands].trim() : "",
+                sheet[row][columnValueScript] ? sheet[row][columnValueScript].trim() : "",
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].trim() : "",
                 commandSets,
-                i + 2,
+                row + 2,
                 game
             );
-            flags.push(flag);
+            if (game.entityFinder.getFlag(flag.id)) {
+                errors.push(new Error(`Couldn't get flag on row ${flag.row}. Another flag with this ID already exists.`));
+                continue;
+            }
+            game.flags.set(flag.id, flag);
+            game.entityManager.updateFlagReferences(flag);
         }
-        let errors = [];
-        for (let flag of flags) {
-            if (doErrorChecking) {
-                const error = checkFlag(flag, flags);
+        if (doErrorChecking) {
+            game.flags.forEach(flag => {
+                const error = checkFlag(flag);
                 if (error instanceof Error) errors.push(error);
-                else game.flags.set(flag.id, flag);
-            }
-        }
-        for (let i = 0; i < game.puzzles.length; i++) {
-            for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                const requirementString = game.puzzles[i].requirementsStrings[j];
-                /*if (requirementString.startsWith("Flag:")) {
-                    let requirement = game.flags.get(Game.generateValidEntityName(requirementString.substring(requirementString.indexOf(':') + 1)));
-                    if (requirement) game.puzzles[i].requirements[j] = requirement;
-                }*/
-            }
+            });
         }
         if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
+            game.loadedEntitiesHaveErrors = true;
+            errors = trimErrors(errors);
             reject(errors.join('\n'));
         }
         resolve(game);
@@ -1862,14 +1868,11 @@ export function loadFlags(game, doErrorChecking) {
 /**
  * Checks a Flag for errors.
  * @param {Flag} flag - The flag to check. 
- * @param {Flag[]} flags - An array of flags that have been loaded.
  * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
  */
-export function checkFlag(flag, flags) {
+export function checkFlag(flag) {
     if (flag.id === "" || flag.id === null || flag.id === undefined)
         return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
-    if (flags.find(other => other.id === flag.id && other.row !== flag.row))
-        return new Error(`Couldn't get flag on row ${flag.row}. Another flag with this ID already exists.`);
     if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
         return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
     if (flag.valueScript !== "") {
@@ -1878,8 +1881,6 @@ export function checkFlag(flag, flags) {
             flag.value = value;
         } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
     }
-
-    return;
 }
 
 /**

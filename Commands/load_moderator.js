@@ -155,7 +155,7 @@ export async function execute(game, message, command, args) {
 
             const privatePlayers = [];
             game.livingPlayersCollection.forEach(async player => {
-                const canDmPlayer = await checkCanDmPlayer(player);
+                const canDmPlayer = !player.isNPC ? await checkCanDmPlayer(player) : true;
                 if (!canDmPlayer) privatePlayers.push(player.name);
             });
             if (privatePlayers.length > 0) {
@@ -288,7 +288,7 @@ export async function execute(game, message, command, args) {
 
         const privatePlayers = [];
         game.livingPlayersCollection.forEach(async player => {
-            const canDmPlayer = await checkCanDmPlayer(player);
+            const canDmPlayer = !player.isNPC ? await checkCanDmPlayer(player) : true;
             if (!canDmPlayer) privatePlayers.push(player.name);
         });
         if (privatePlayers.length > 0) {

@@ -6,28 +6,28 @@ import Flag from '../Data/Flag.js';
 
 /** @type {CommandConfig} */
 export const config = {
-    name: "flag_moderator",
-    description: "Set and clear flags.",
-    details: 'Set and clear flags.\n\n'
-        + '-**set**: Sets the flag value as the specified input. If the flag does not already exist, then a new one '
+	name: "flag_moderator",
+	description: "Set and clear flags.",
+	details: 'Set and clear flags.\n\n'
+		+ '-**set**: Sets the flag value as the specified input. If the flag does not already exist, then a new one '
 		+ 'will be created with the specified name. The specified value must be a boolean, number, or string. '
 		+ 'String values must be surrounded by quotation marks. If you want to set the flag\'s value script, '
 		+ 'surround your input with `` `tics` ``. This script will immediately be evaluated, '
 		+ 'and the flag\'s value will be set accordingly. Whether the flag\'s value or value script '
 		+ 'is set, the flag\'s set commands will be executed, unless the flag was set by another flag.\n\n'
-        + '-**clear**: Clears the flag value. This will replace the flag\'s current value with `null`. '
+		+ '-**clear**: Clears the flag value. This will replace the flag\'s current value with `null`. '
 		+ 'When this is cleared, the flag\'s cleared commands will be executed unless the flag was cleared by another flag.',
-    usableBy: "Moderator",
-    aliases: ["flag", "setflag", "clearflag"],
-    requiresGame: true
+	usableBy: "Moderator",
+	aliases: ["flag", "setflag", "clearflag"],
+	requiresGame: true
 };
 
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
-    return `${settings.commandPrefix}flag set COLD SEASON FLAG true\n`
+export function usage(settings) {
+	return `${settings.commandPrefix}flag set COLD SEASON FLAG true\n`
 		+ `${settings.commandPrefix}setflag HOT SEASON FLAG False\n`
 		+ `${settings.commandPrefix}flag set TV PROGRAMMING 4\n`
 		+ `${settings.commandPrefix}setflag INDOOR TEMPERATURE 25.3\n`
@@ -45,7 +45,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
 	let input = args.join(" ");
 	if (command === "flag") {
 		if (args[0] === "set") command = "setflag";
@@ -84,8 +84,7 @@ export async function execute (game, message, command, args) {
 		}
 		if (valueScript === undefined && value === undefined) return messageHandler.addReply(game, message, `Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
 
-		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
-		let flag = game.flags.get(flagId);
+		let flag = game.entityFinder.getFlag(input);
 		// If no flag was found, create a new one.
 		let newFlag = false;
 		if (!flag) {
@@ -93,7 +92,7 @@ export async function execute (game, message, command, args) {
 			// It needs a row number. Get the flag with the highest row number and add 1.
 			const rowNumber = [...game.flags.values()].reduce((max, current) => max < current.row ? current.row : max, 0) + 1;
 			flag = new Flag(
-				flagId,
+				Game.generateValidEntityName(input),
 				value,
 				valueScript,
 				"",
@@ -105,7 +104,7 @@ export async function execute (game, message, command, args) {
 		if (valueScript) {
 			try {
 				value = flag.evaluate(valueScript);
-				if (newFlag) game.flags.set(flagId, flag);
+				if (newFlag) game.flags.set(flag.id, flag);
 				flag.valueScript = valueScript;
 				flag.setValue(value, true);
 			}
@@ -114,19 +113,18 @@ export async function execute (game, message, command, args) {
 			}
 		}
 		else {
-			if (newFlag) game.flags.set(flagId, flag);
+			if (newFlag) game.flags.set(flag.id, flag);
 			flag.setValue(value, true);
 		}
 
-		const valueDisplay = 
+		const valueDisplay =
 			typeof flag.value === "string" ? `"${flag.value}"` :
-			typeof flag.value === "boolean" ? `\`${flag.value}\`` :
-			flag.value;
+				typeof flag.value === "boolean" ? `\`${flag.value}\`` :
+					flag.value;
 		messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully set flag ${flag.id} with value ${valueDisplay}.`);
 	}
 	else if (command === "clearflag") {
-		const flagId = input.toUpperCase().replace(/[\'"“”`]/g, '').trim();
-		let flag = game.flags.get(flagId);
+		let flag = game.entityFinder.getFlag(input);
 		if (!flag) return messageHandler.addReply(game, message, `Couldn't find flag "${input}".`);
 
 		flag.clearValue(true);
