@@ -20,16 +20,18 @@ import { editSpectatorMessage } from './Modules/messageHandler.js';
 import { default as executeCommand } from './Modules/commandHandler.js';
 import { default as handleDialog } from './Modules/dialogHandler.js';
 
-import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChannel, Role} from 'discord.js';
+import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChannel, Role } from 'discord.js';
 import { readdir, readFileSync } from 'fs';
 
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration.js';
 import weekday from 'dayjs/plugin/weekday.js';
 import advancedFormat from 'dayjs/plugin/advancedFormat.js';
+import relativeTime from 'dayjs/plugin/relativeTime.js';
 dayjs.extend(duration);
 dayjs.extend(weekday);
 dayjs.extend(advancedFormat);
+dayjs.extend(relativeTime);
 
 const client = new Client({
     partials: [
