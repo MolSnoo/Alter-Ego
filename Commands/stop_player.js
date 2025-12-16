@@ -21,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}stop`;
 }
 
@@ -32,16 +32,14 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable stop");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (!player.isMoving) return messageHandler.addReply(game, message, `You cannot do that because you are not moving.`);
 
     // Stop the player's movement.
-    clearInterval(player.moveTimer);
-    player.isMoving = false;
-    player.moveQueue.length = 0;
+    player.stopMoving();
     // Narrate that the player stopped.
     new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
 

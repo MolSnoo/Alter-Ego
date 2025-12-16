@@ -41,10 +41,7 @@ export async function execute(game, message, command, args) {
             await saveGame(game);
             game.editMode = true;
             game.livingPlayersCollection.forEach(player => {
-                player.isMoving = false;
-                clearInterval(player.moveTimer);
-                player.remainingTime = 0;
-                player.moveQueue.length = 0;
+                player.stopMoving();
                 if (!player.hasBehaviorAttribute('unconscious'))
                     messageHandler.addDirectNarration(player, "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
             });

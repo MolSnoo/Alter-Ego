@@ -371,6 +371,19 @@ export function getChildItems(items, item) {
 }
 
 /**
+ * Sets the quantities of all child items to 0.
+ * @template {RoomItem|InventoryItem} T
+ * @param {T} item - The item whose child items are to have their quantities updated. 
+ */
+export function setChildItemQuantitiesZero(item) {
+    /** @type {T[]} */
+    let childItems = [];
+    getChildItems(childItems, item);
+    for (let i = 0; i < childItems.length; i++)
+        childItems[i].quantity = 0;
+}
+
+/**
  * Inserts an array of items into the game at the correct position in the game's array of items.
  * @param {Room} location - The room to insert items into. 
  * @param {RoomItem[]} items - The items to insert. 

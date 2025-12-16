@@ -21,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}setdisplayname usami Monomi\n`
         + `${settings.commandPrefix}setdisplayname faye An individual wearing a MINOTAUR MASK`;
 }
@@ -32,7 +32,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and a display name. Usage:\n${usage(game.settings)}`);
 
@@ -50,7 +50,7 @@ export async function execute (game, message, command, args) {
     if (input.length > 32) return messageHandler.addReply(game, message, `A name cannot exceed 32 characters.`);
 
     player.displayName = input;
-    player.location.occupantsString = player.location.generate_occupantsString(player.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
+    player.location.occupantsString = player.location.generateOccupantsString(player.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display name.`);
 
     return;

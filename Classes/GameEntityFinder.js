@@ -75,11 +75,18 @@ export default class GameEntityFinder {
 	 * Gets a puzzle.
 	 * @param {string} name - The name of the puzzle. 
 	 * @param {string} [location] - The ID or displayName of the room the puzzle is in. 
+	 * @param {string} [type] - The type of the puzzle.
+	 * @param {boolean} [accessible] - Whether the puzzle is accessible or not.
 	 * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
 	 */
-	getPuzzle(name, location) {
-		if (location) return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name) && puzzle.location.id === Room.generateValidId(location));
-		else return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name));
+	getPuzzle(name, location, type, accessible) {
+		/** @type {Collection<string|boolean, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (name) selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
+		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
+		if (type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
+		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
+		return this.game.puzzles.find(puzzle => selectedFilters.every((filterFunction, key) => filterFunction(puzzle, key)));
 	}
 
 	/**

@@ -108,11 +108,7 @@ export default class GameEntityManager {
 				if (status.timer !== null)
 					status.timer.stop();
 			});
-			if (player.moveTimer !== null)
-				clearInterval(player.moveTimer)
-			player.isMoving = false;
-			player.remainingTime = 0;
-			player.moveQueue.length = 0;
+			player.stopMoving();
 			player.setOffline();
 		});
 		this.game.roomsCollection.forEach(room => {
