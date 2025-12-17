@@ -139,13 +139,13 @@ export default class Prefab extends GameEntity {
      * @readonly
      * @type {string[]}
      */
-    equipCommands;
+    equippedCommands;
     /**
      * The bot commands to be executed when an inventory item instance of this prefab is unequipped by a player.
      * @readonly
      * @type {string[]}
      */
-    unequipCommands;
+    unequippedCommands;
     /**
      * {@link InventorySlot|Inventory slots} that instances of this prefab will have. Deprecated. Use inventoryCollection instead.
      * @deprecated
@@ -192,15 +192,15 @@ export default class Prefab extends GameEntity {
      * @param {string[]} equipmentSlots - The IDs of equipment slots that inventory item instances of this prefab can be equipped to.
      * @param {string[]} coveredEquipmentSlots - The IDs of equipment slots that inventory item instances of this prefab will cover when equipped. This prevents any inventory items equipped to those equipment slots from appearing in the player's equipment description.
      * @param {string} commandsString - Forward slash separated list of comma-separated bot commands to be executed when the an inventory item instance of this prefab is equipped or unequipped.
-     * @param {string[]} equipCommands - The bot commands to be executed when an inventory item instance of this prefab is equipped by a player.
-     * @param {string[]} unequipCommands - The bot commands to be executed when an inventory item instance of this prefab is unequipped by a player.
+     * @param {string[]} equippedCommands - The bot commands to be executed when an inventory item instance of this prefab is equipped by a player.
+     * @param {string[]} unequippedCommands - The bot commands to be executed when an inventory item instance of this prefab is unequipped by a player.
      * @param {Collection<string, InventorySlot>} inventory - {@link InventorySlot|Inventory slots} that instances of this prefab will have.
      * @param {string} preposition - The preposition that will be used when a player puts an item into an instance of this prefab.
      * @param {string} description - The description of the prefab. Can contain multiple item lists named after its inventory slots.
      * @param {number} row - The row number of the prefab in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, name, pluralName, singleContainingPhrase, pluralContainingPhrase, discreet, size, weight, usable, verb, uses, effectsStrings, curesStrings, nextStageId, equippable, equipmentSlots, coveredEquipmentSlots, commandsString, equipCommands, unequipCommands, inventory, preposition, description, row, game) {
+    constructor(id, name, pluralName, singleContainingPhrase, pluralContainingPhrase, discreet, size, weight, usable, verb, uses, effectsStrings, curesStrings, nextStageId, equippable, equipmentSlots, coveredEquipmentSlots, commandsString, equippedCommands, unequippedCommands, inventory, preposition, description, row, game) {
         super(game, row);
         this.id = id;
         this.name = name;
@@ -223,8 +223,8 @@ export default class Prefab extends GameEntity {
         this.equipmentSlots = equipmentSlots;
         this.coveredEquipmentSlots = coveredEquipmentSlots;
         this.commandsString = commandsString;
-        this.equipCommands = equipCommands;
-        this.unequipCommands = unequipCommands;
+        this.equippedCommands = equippedCommands;
+        this.unequippedCommands = unequippedCommands;
         this.inventory = [];
         this.inventoryCollection = inventory;
         this.preposition = preposition;

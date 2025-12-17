@@ -143,11 +143,11 @@ export default class Whisper {
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
                     let noChannel = false;
-                    if (players[i].statusString.includes("hidden") && players[i].getAttributeStatusEffects("no channel").length > 1
-                        || !players[i].statusString.includes("hidden") && players[i].hasAttribute("no channel")
-                        || players[i].hasAttribute("no hearing"))
+                    if (players[i].hasBehaviorAttribute("hidden") && players[i].getBehaviorAttributeStatusEffects("no channel").length > 1
+                        || !players[i].hasBehaviorAttribute("hidden") && players[i].hasBehaviorAttribute("no channel")
+                        || players[i].hasBehaviorAttribute("no hearing"))
                         noChannel = true;
-                    if (!noChannel && players[i].title !== "NPC") {
+                    if (!noChannel && !players[i].isNPC) {
                         channel.permissionOverwrites.create(players[i].id, {
                             ViewChannel: true,
                             ReadMessageHistory: true
@@ -197,7 +197,7 @@ export default class Whisper {
      * @param {Player} player
      */
     revokeAccess(player) {
-        if (player.title !== "NPC") {
+        if (!player.isNPC) {
             this.channel.permissionOverwrites.create(player.id, {
                 ViewChannel: null,
                 ReadMessageHistory: null

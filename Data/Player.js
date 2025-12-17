@@ -1422,7 +1422,7 @@ export default class Player extends ItemContainer {
         this.#coverEquippedItems(createdItem);
 
         // Execute equipped commands.
-        parseAndExecuteBotCommands(createdItem.prefab.equipCommands, this.game, createdItem, this);
+        parseAndExecuteBotCommands(createdItem.prefab.equippedCommands, this.game, createdItem, this);
     }
 
     /**
@@ -1452,7 +1452,7 @@ export default class Player extends ItemContainer {
             this.#coverEquippedItems(item);
 
             // Execute equipped commands.
-            parseAndExecuteBotCommands(item.prefab.equipCommands, this.game, item, this);
+            parseAndExecuteBotCommands(item.prefab.equippedCommands, this.game, item, this);
         }
     }
 
@@ -1512,7 +1512,7 @@ export default class Player extends ItemContainer {
         this.#uncoverEquippedItems(createdItem);
 
         // Execute unequipped commands.
-        parseAndExecuteBotCommands(createdItem.prefab.unequipCommands, this.game, createdItem, this);
+        parseAndExecuteBotCommands(createdItem.prefab.unequippedCommands, this.game, createdItem, this);
     }
 
     /**
@@ -1537,7 +1537,7 @@ export default class Player extends ItemContainer {
             this.#uncoverEquippedItems(item);
 
             // Execute unequipped commands.
-            parseAndExecuteBotCommands(item.prefab.unequipCommands, this.game, item, this);
+            parseAndExecuteBotCommands(item.prefab.unequippedCommands, this.game, item, this);
         }
     }
 

@@ -259,7 +259,7 @@ export default class Puzzle extends ItemContainer {
         if (player !== null)
             player.sendDescription(this.correctDescription, this);
         if (narration)
-            new Narration(this.game, player, this.game.rooms.find(room => room.id === this.location.id), narration).send();
+            new Narration(this.game, player, this.location, narration).send();
 
         if (player !== null) {
             // Post log message.
@@ -307,7 +307,7 @@ export default class Puzzle extends ItemContainer {
         if (player !== null && directMessage !== null) player.notify(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (narration)
-            new Narration(this.game, player, this.game.rooms.find(room => room.id === this.location.id), narration).send();
+            new Narration(this.game, player, this.location, narration).send();
 
         // Now mark it as unsolved.
         this.solved = false;

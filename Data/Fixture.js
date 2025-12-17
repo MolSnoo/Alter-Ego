@@ -168,8 +168,8 @@ export default class Fixture extends ItemContainer {
     activate(player, narrate) {
         this.activated = true;
         if (narrate) {
-            if (player) new Narration(this.game, player, this.game.rooms.find(room => room.id === this.location.id), `${player.displayName} turns on the ${this.name}.`).send();
-            else new Narration(this.game, null, this.game.rooms.find(room => room.id === this.location.id), `${this.name} turns on.`).send();
+            if (player) new Narration(this.game, player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
+            else new Narration(this.game, null, this.location, `${this.name} turns on.`).send();
         }
 
         const result = this.findRecipe();
@@ -203,8 +203,6 @@ export default class Fixture extends ItemContainer {
                     process(fixture, player);
             }
         });
-
-        return;
     }
 
     /**
@@ -215,8 +213,8 @@ export default class Fixture extends ItemContainer {
     deactivate(player, narrate) {
         this.activated = false;
         if (narrate) {
-            if (player) new Narration(this.game, player, this.game.rooms.find(room => room.id === this.location.id), `${player.displayName} turns off the ${this.name}.`).send();
-            else new Narration(this.game, null, this.game.rooms.find(room => room.id === this.location.id), `${this.name} turns off.`).send();
+            if (player) new Narration(this.game, player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
+            else new Narration(this.game, null, this.location, `${this.name} turns off.`).send();
         }
 
         this.process.recipe = null;
@@ -224,8 +222,6 @@ export default class Fixture extends ItemContainer {
         if (this.process.timer !== null)
             this.process.timer.stop();
         this.process.duration = null;
-
-        return;
     }
 
     /**
@@ -272,8 +268,6 @@ export default class Fixture extends ItemContainer {
                 });
             }
         }
-
-        return;
     }
 
     /**

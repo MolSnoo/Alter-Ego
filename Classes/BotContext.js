@@ -97,7 +97,7 @@ export default class BotContext {
 		let onlineSuffix = '';
 		if (this.game.settings.showOnlinePlayerCount && this.game.inProgress && !this.game.canJoin) {
 			let onlinePlayers = 0;
-			this.game.players_alive.forEach(player => {
+			this.game.livingPlayersCollection.forEach(player => {
 				if (player.online) onlinePlayers++;
 			});
 			const statusSuffix = onlinePlayers === 1 ? "player online" : "players online";

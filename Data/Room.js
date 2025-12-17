@@ -201,7 +201,7 @@ export default class Room extends GameEntity {
      * @param {Player} player
      */
     joinChannel(player) {
-        if (player.title !== "NPC") this.channel.permissionOverwrites.create(player.member, { ViewChannel: true });
+        if (!player.isNPC) this.channel.permissionOverwrites.create(player.member, { ViewChannel: true });
     }
 
     /**
@@ -209,7 +209,7 @@ export default class Room extends GameEntity {
      * @param {Player} player
      */
     leaveChannel(player) {
-        if (player.title !== "NPC") this.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
+        if (!player.isNPC) this.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
     }
 
     /**
