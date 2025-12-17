@@ -2,7 +2,6 @@ import GameEntity from '../Data/GameEntity.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
-import * as finder from './finder.js';
 import { default as evaluateScript } from './scriptParser.js';
 
 import { DOMParser, XMLSerializer } from '@xmldom/xmldom';

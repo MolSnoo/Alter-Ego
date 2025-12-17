@@ -18,7 +18,7 @@ import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
 
-import * as parser from '../Modules/parser.js';
+import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import * as itemManager from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -1169,7 +1169,7 @@ export default class Player extends ItemContainer {
             item.quantity--;
 
         // Update the container's description.
-        container.setDescription(parser.removeItem(container.getDescription(), item, inventorySlot ? inventorySlot.id : ""));
+        container.removeItemFromDescription(item, inventorySlot ? inventorySlot.id : "");
         if (container instanceof RoomItem)
             container.removeItem(item, inventorySlot.id, 1);
 
@@ -1182,7 +1182,7 @@ export default class Player extends ItemContainer {
         if (!createdItem.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase} from ${containerPhrase}.`).send();
             // Add the new item to the player's hands item list.
-            this.setDescription(parser.addItem(this.getDescription(), createdItem, "hands"));
+            this.addItemToDescription(createdItem, "hands");
         }
     }
 
@@ -1238,7 +1238,7 @@ export default class Player extends ItemContainer {
             }
             if (!createdItem.prefab.discreet) {
                 new Narration(this.game, this, this.location, `${narrationStarter}${slotDisplay}${victim.displayName}'s ${container.name}.`).send();
-                this.setDescription(parser.addItem(this.getDescription(), createdItem, "hands"));
+                this.addItemToDescription(createdItem, "hands");
             }
 
             return { itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id, successful: true };
@@ -1271,7 +1271,7 @@ export default class Player extends ItemContainer {
         createdItem.slot = inventorySlotId;
 
         // Update the container's description.
-        container.setDescription(parser.addItem(container.getDescription(), item, inventorySlotId));
+        container.addItemToDescription(item, inventorySlotId);
         if (container instanceof RoomItem)
             container.insertItem(createdItem, inventorySlot.id);
 
@@ -1293,7 +1293,7 @@ export default class Player extends ItemContainer {
         if (!item.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`).send();
             // Remove the item from the player's hands item list.
-            this.setDescription(parser.removeItem(this.getDescription(), item, "hands"));
+            this.removeItemFromDescription(item, "hands");
         }
     }
 
@@ -1318,9 +1318,9 @@ export default class Player extends ItemContainer {
         if (!createdItem.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
-            this.setDescription(parser.removeItem(this.getDescription(), createdItem, "hands"));
+            this.removeItemFromDescription(createdItem, "hands");
             // Add the item to the recipient's hands item list.
-            recipient.setDescription(parser.addItem(recipient.getDescription(), createdItem, "hands"));
+            recipient.addItemToDescription(createdItem, "hands");
         }
     }
 
@@ -1344,7 +1344,7 @@ export default class Player extends ItemContainer {
 
         // Update container.
         container.insertItem(createdItem, inventorySlot.id);
-        container.setDescription(parser.addItem(container.getDescription(), createdItem, inventorySlot.id));
+        container.addItemToDescription(createdItem, inventorySlot.id);
 
         // Create a list of all the child items.
         /** @type {InventoryItem[]} */
@@ -1361,7 +1361,7 @@ export default class Player extends ItemContainer {
         if (!item.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
             // Remove the item from the player's hands item list.
-            this.setDescription(parser.removeItem(this.getDescription(), item, "hands"));
+            this.removeItemFromDescription(item, "hands");
         }
     }
 
@@ -1382,7 +1382,7 @@ export default class Player extends ItemContainer {
         if (!item.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
-            this.setDescription(parser.addItem(this.getDescription(), item, "hands"));
+            this.addItemToDescription(item, "hands");
         }
     }
 
@@ -1418,7 +1418,7 @@ export default class Player extends ItemContainer {
 
         // Update the player's description.
         if (!item.prefab.discreet)
-            this.description = parser.removeItem(this.description, item, "hands");
+            this.removeItemFromDescription(item, "hands");
         this.#coverEquippedItems(createdItem);
 
         // Execute equipped commands.
@@ -1441,7 +1441,7 @@ export default class Player extends ItemContainer {
             if (!item.prefab.discreet && notify) {
                 new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
-                this.setDescription(parser.addItem(this.getDescription(), item, "hands"));
+                this.addItemToDescription(item, "hands");
             }
         }
         else {
@@ -1467,7 +1467,7 @@ export default class Player extends ItemContainer {
                 // Preserve quantity.
                 const quantity = coveredEquipmentSlot.equippedItem.quantity;
                 coveredEquipmentSlot.equippedItem.quantity = 0;
-                this.setDescription(parser.removeItem(this.getDescription(), coveredEquipmentSlot.equippedItem, "equipment"));
+                this.removeItemFromDescription(coveredEquipmentSlot.equippedItem, "equipment");
                 coveredEquipmentSlot.equippedItem.quantity = quantity;
             }
         }
@@ -1486,7 +1486,7 @@ export default class Player extends ItemContainer {
         });
         // If it's not covered, add mention of this item to the player's equipment item list.
         if (!isCovered)
-            this.setDescription(parser.addItem(this.getDescription(), item, "equipment"));
+            this.addItemToDescription(item, "equipment");
     }
 
     /**
@@ -1508,7 +1508,7 @@ export default class Player extends ItemContainer {
 
         // Update the player's description.
         if (!createdItem.prefab.discreet)
-            this.setDescription(parser.addItem(this.getDescription(), createdItem, "hands"));
+            this.addItemToDescription(createdItem, "hands");
         this.#uncoverEquippedItems(createdItem);
 
         // Execute unequipped commands.
@@ -1527,13 +1527,13 @@ export default class Player extends ItemContainer {
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
             // Remove the item from the player's hands item list.
             if (!item.prefab.discreet)
-                this.setDescription(parser.removeItem(this.getDescription(), item, "hands"));
+                this.removeItemFromDescription(item, "hands");
         }
         else {
             this.notify(`You unequip the ${item.name}.`);
             new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
-            this.setDescription(parser.removeItem(this.getDescription(), item, "equipment"));
+            this.removeItemFromDescription(item, "equipment");
             this.#uncoverEquippedItems(item);
 
             // Execute unequipped commands.
@@ -1546,7 +1546,7 @@ export default class Player extends ItemContainer {
      * @param {InventoryItem} item - The now unequipped item that covered other items.
      */
     #uncoverEquippedItems(item) {
-        this.setDescription(parser.removeItem(this.getDescription(), item, "equipment"));
+        this.removeItemFromDescription(item, "equipment");
         // Find any items that were covered by this item and add them to the equipment item list.
         for (const coveredEquipmentSlotId of item.prefab.coveredEquipmentSlots) {
             const coveredEquipmentSlot = this.inventoryCollection.get(coveredEquipmentSlotId);
@@ -1561,7 +1561,7 @@ export default class Player extends ItemContainer {
                     item.container === null &&
                     item.prefab.coveredEquipmentSlots.includes(coveredEquipmentSlotId)
                 );
-                if (coveringItems.length === 0) this.setDescription(parser.addItem(this.getDescription(), coveredEquipmentSlot.equippedItem, "equipment"));
+                if (coveringItems.length === 0) this.addItemToDescription(coveredEquipmentSlot.equippedItem, "equipment");
                 break;
             }
         }
@@ -1653,8 +1653,8 @@ export default class Player extends ItemContainer {
             else if (!isNaN(item2.uses)) item2Uses = item2.uses - 1;
         }
 
-        if (!item1.prefab.discreet) this.description = parser.removeItem(this.description, item1, "hands");
-        if (!item2.prefab.discreet) this.description = parser.removeItem(this.description, item2, "hands");
+        if (!item1.prefab.discreet) this.removeItemFromDescription(item1, "hands");
+        if (!item2.prefab.discreet) this.removeItemFromDescription(item2, "hands");
         itemManager.replaceInventoryItem(item1, product1);
         itemManager.replaceInventoryItem(item2, product2);
         if (item1Uses !== null)
@@ -1670,11 +1670,11 @@ export default class Player extends ItemContainer {
             let product2Phrase = "";
             if (product1 && !product1.discreet) {
                 product1Phrase = product1.singleContainingPhrase;
-                this.description = parser.addItem(this.description, item1, "hands");
+                this.addItemToDescription(item1, "hands");
             }
             if (product2 && !product2.discreet) {
                 product2Phrase = product2.singleContainingPhrase;
-                this.description = parser.addItem(this.description, item2, "hands");
+                this.addItemToDescription(item2, "hands");
             }
             if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
             else if (product1Phrase !== "") productPhrase = product1Phrase;
@@ -1702,11 +1702,11 @@ export default class Player extends ItemContainer {
         const originalItemPhrase = item.singleContainingPhrase;
         const itemDiscreet = item.prefab.discreet;
 
-        if (!itemDiscreet) this.description = parser.removeItem(this.description, item, "hands");
+        if (!itemDiscreet) this.removeItemFromDescription(item, "hands");
         const rightHand = this.inventoryCollection.get("RIGHT HAND");
         const leftHand = this.inventoryCollection.get("LEFT HAND");
-        itemManager.replaceInventoryItem(item, ingredient1);
-        itemManager.instantiateInventoryItem(
+        const ingredient1Instance = itemManager.replaceInventoryItem(item, ingredient1);
+        const ingredient2Instance = itemManager.instantiateInventoryItem(
             ingredient2,
             this,
             rightHand.equippedItem === null ? "RIGHT HAND" : "LEFT HAND",
@@ -1728,12 +1728,12 @@ export default class Player extends ItemContainer {
             if (!ingredient1.discreet) {
                 if (ingredient1.singleContainingPhrase !== originalItemPhrase || ingredient1.singleContainingPhrase !== itemPhrase)
                     ingredient1Phrase = ingredient1.singleContainingPhrase;
-                this.setDescription(parser.addItem(this.getDescription(), ingredient1, "hands"));
+                this.addItemToDescription(ingredient1Instance, "hands");
             }
             if (!ingredient2.discreet) {
                 if (ingredient2.singleContainingPhrase !== originalItemPhrase || ingredient2.singleContainingPhrase !== itemPhrase)
                     ingredient2Phrase = ingredient2.singleContainingPhrase;
-                this.setDescription(parser.addItem(this.getDescription(), ingredient2, "hands"));
+                this.addItemToDescription(ingredient2Instance, "hands");
             }
             if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
                 itemPhrase = originalItemPhrase;
@@ -1750,7 +1750,7 @@ export default class Player extends ItemContainer {
             }
         }
 
-        return { ingredient1: rightHand.equippedItem ? rightHand.equippedItem : null, ingredient2: leftHand.equippedItem ? leftHand.equippedItem : null };
+        return { ingredient1: ingredient1Instance ? ingredient1Instance : null, ingredient2: ingredient2Instance ? ingredient2Instance : null };
     }
 
     /**
@@ -1889,7 +1889,7 @@ export default class Player extends ItemContainer {
                 else if (puzzle.type === "toggle") {
                     if (puzzle.solved && hasRequiredItem) {
                         let message = null;
-                        if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
+                        if (puzzle.alreadySolvedDescription) message = parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
                         puzzle.unsolve(this, `${this.displayName} uses the ${puzzleName}.`, message, true);
                     }
                     else if (puzzle.solved) puzzle.requirementsNotMet(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, command, input, message);
@@ -2016,7 +2016,7 @@ export default class Player extends ItemContainer {
                 else if (puzzle.type === "media") {
                     if (puzzle.solved && item === null) {
                         let message = null;
-                        if (puzzle.alreadySolvedDescription) message = parser.parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
+                        if (puzzle.alreadySolvedDescription) message = parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
                         puzzle.unsolve(this, `${this.displayName} presses eject on the ${puzzleName}.`, message, true);
                     }
                     else if (puzzle.solved && item !== null)
@@ -2075,7 +2075,7 @@ export default class Player extends ItemContainer {
         let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
         newGesture.targetType = targetType;
         newGesture.target = target;
-        new Narration(this.game, this, this.location, parser.parseDescription(newGesture.narration, newGesture, this)).send();
+        new Narration(this.game, this, this.location, parseDescription(newGesture.narration, newGesture, this)).send();
     }
 
     /**
@@ -2152,11 +2152,11 @@ export default class Player extends ItemContainer {
                 let defaultDropFixtureString = "";
                 const defaultDropFixture = this.game.entityFinder.getFixture(this.game.settings.defaultDropFixture, container.id);
                 if (defaultDropFixture)
-                    defaultDropFixtureString = parser.parseDescription(defaultDropFixture.description, defaultDropFixture, this);
-                messageHandler.addRoomDescription(this, container, parser.parseDescription(description, container, this), defaultDropFixtureString);
+                    defaultDropFixtureString = parseDescription(defaultDropFixture.description, defaultDropFixture, this);
+                messageHandler.addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
             }
             else if (!this.hasBehaviorAttribute("unconscious") || (container && container instanceof Status))
-                messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
+                messageHandler.addDirectNarration(this, parseDescription(description, container, this));
         }
     }
 

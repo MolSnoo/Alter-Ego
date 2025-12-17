@@ -1,5 +1,7 @@
 import Game from "./Game.js";
 import GameEntity from "./GameEntity.js";
+import ItemInstance from "./ItemInstance.js";
+import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
 
 /**
  * @class ItemContainer
@@ -36,7 +38,27 @@ export default class ItemContainer extends GameEntity {
 	 * Sets the entity's description which can contain an item list.
 	 * @param {string} description - The new description.
 	 */
-	setDescription(description) {
+	#setDescription(description) {
 		this.description = description;
+	}
+
+	/**
+	 * Adds an item to the specified item list in the container's description.
+	 * @param {ItemInstance} item - The item to add.
+	 * @param {string} [list] - The item list to add the item to.
+	 * @param {number} [quantity] - The quantity of the item to add. If none is provided, defaults to 1.
+	 */
+	addItemToDescription(item, list, quantity) {
+		this.#setDescription(addItemToList(this.getDescription(), item, list, quantity));
+	}
+
+	/**
+	 * Removes an item from the specified item list in the container's description.
+	 * @param {ItemInstance} item - The item to remove.
+	 * @param {string} [list] - The item list to remove the item from.
+	 * @param {number} [quantity] - The quantity of the item to remove. If none is provided, defaults to 1.
+	 */
+	removeItemFromDescription(item, list, quantity) {
+		this.#setDescription(removeItemFromList(this.getDescription(), item, list, quantity));
 	}
 }

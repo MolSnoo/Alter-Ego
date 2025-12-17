@@ -6,7 +6,6 @@ import Player from './Player.js';
 import Puzzle from './Puzzle.js';
 import Room from './Room.js';
 import { instantiateItem, destroyItem } from '../Modules/itemManager.js';
-import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
 import { Collection } from 'discord.js';
 
 /**
@@ -119,8 +118,8 @@ export default class RoomItem extends ItemInstance {
             const container = this.container;
             const slot = this.slot;
             const quantity = this.quantity;
-            let description = removeItemFromDescription(container.getDescription(), this, slot);
-            container.setDescription(addItemToDescription(description, this, slot));
+            container.removeItemFromDescription(this, slot);
+            container.addItemToDescription(this, slot);
             destroyItem(this, this.quantity, true);
             instantiateItem(nextStage, location, container, slot, quantity, new Map(), player);
         }

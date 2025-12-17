@@ -3,14 +3,16 @@ import Fixture from './Fixture.js';
 import Flag from './Flag.js';
 import Game from './Game.js';
 import InventoryItem from './InventoryItem.js';
-import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
+import ItemInstance from './ItemInstance.js';
 import Narration from '../Data/Narration.js';
 import Player from './Player.js';
 import Prefab from './Prefab.js';
 import Room from './Room.js';
+import RoomItem from './RoomItem.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { addLogMessage, addReply } from '../Modules/messageHandler.js';
+import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
 import { Message } from 'discord.js';
 
 
@@ -404,11 +406,32 @@ export default class Puzzle extends ItemContainer {
 
     /**
      * Sets the alreadySolvedDescription.
-     * @override
      * @param {string} description 
      */
-    setDescription(description) {
+    #setDescription(description) {
         this.alreadySolvedDescription = description;
+    }
+
+    /**
+     * Adds an item to the specified item list in the puzzle's already solved description.
+     * @override
+     * @param {ItemInstance} item - The item to add.
+     * @param {string} [list] - The item list to add the item to.
+     * @param {number} [quantity] - The quantity of the item to add. If none is provided, defaults to 1.
+     */
+    addItemToDescription(item, list, quantity) {
+        this.#setDescription(addItemToList(this.getDescription(), item, list, quantity));
+    }
+
+    /**
+     * Removes an item from the specified item list in the puzzle's already solved description.
+     * @override
+     * @param {ItemInstance} item - The item to remove.
+     * @param {string} list - The item list to remove the item from.
+     * @param {number} [quantity] - The quantity of the item to remove. If none is provided, defaults to 1.
+     */
+    removeItemFromDescription(item, list, quantity) {
+        this.#setDescription(removeItemFromList(this.getDescription(), item, list, quantity));
     }
 
     /** @returns {string} */
