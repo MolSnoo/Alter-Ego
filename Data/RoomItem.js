@@ -150,6 +150,34 @@ export default class RoomItem extends ItemInstance {
     }
 
     /**
+     * Gets a phrase to refer to the container in narrations.
+     */
+    getContainerPhrase() {
+        let containerPhrase = "";
+        if (this.container instanceof Puzzle)
+            containerPhrase = `the ` + this.container.parentFixture ? this.container.parentFixture.name : this.container.name;
+        else if (this.container instanceof Fixture)
+            containerPhrase = `the ${this.container.name}`;
+        else if (this.container instanceof RoomItem)
+            containerPhrase = this.container.singleContainingPhrase;
+        return containerPhrase;
+    }
+
+    /**
+     * Gets the preposition of the container.
+     */
+    getContainerPreposition() {
+        let preposition = "in";
+        if (this.container instanceof Puzzle)
+            preposition = this.container.parentFixture ? this.container.parentFixture.preposition : "in";
+        else if (this.container instanceof Fixture)
+            preposition = this.container.preposition;
+        else if (this.container instanceof RoomItem)
+            preposition = this.container.prefab ? this.container.prefab.preposition : "in";
+        return preposition;
+    }
+
+    /**
      * Sets the item as accessible.
      */
     setAccessible() {

@@ -864,7 +864,7 @@ export default class Player extends ItemContainer {
         }
         if (status.behaviorAttributes.includes("concealed")) {
             this.displayName = this.name;
-            if (this.title === "NPC") this.displayIcon = this.id;
+            if (this.isNPC) this.displayIcon = this.id;
             else this.displayIcon = null;
             const maskName = item ? item.singleContainingPhrase : "a MASK";
             if (narrate) new Narration(this.game, this, this.location, `The ${maskName} comes off, revealing the figure to be ${this.displayName}.`).send();
@@ -1153,50 +1153,34 @@ export default class Player extends ItemContainer {
 
         if (!isNaN(item.uses))
             item.decreaseUses();
-
-        return;
     }
 
     /**
      * Takes an item and puts it in the player's inventory.
      * @param {RoomItem} item - The item to take.
-     * @param {string} hand - The ID of the hand equipment slot to put the item in.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
      * @param {Puzzle|Fixture|RoomItem} container - The item's current container.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
      * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
      */
-    take(item, hand, container, inventorySlot, notify = true) {
+    take(item, handEquipmentSlot, container, inventorySlot, notify = true) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
             item.quantity--;
 
-        if (container instanceof RoomItem) {
+        // Update the container's description.
+        container.setDescription(parser.removeItem(container.getDescription(), item, inventorySlot ? inventorySlot.id : ""));
+        if (container instanceof RoomItem)
             container.removeItem(item, inventorySlot.id, 1);
-            container.setDescription(parser.removeItem(container.getDescription(), item, inventorySlot.id));
-        }
-        else container.setDescription(parser.removeItem(container.getDescription(), item))
 
-        const handEquipmentSlot = this.inventoryCollection.get(hand);
-        let createdItem = itemManager.convertRoomItem(item, this, hand, 1);
-        createdItem.containerName = "";
-        createdItem.container = null;
-        createdItem.row = handEquipmentSlot.row;
-
-        // Equip the item and add it to the player's inventory.
-        handEquipmentSlot.equipItem(createdItem);
-        // Create a list of all the child items.
-        /** @type {InventoryItem[]} */
-        let items = [];
-        itemManager.getChildItems(items, createdItem);
-        // Now that the item has been converted, we can update the quantities of the old child items.
-        itemManager.setChildItemQuantitiesZero(item);
-        // Insert the new items into the game's list of inventory items.
-        itemManager.insertInventoryItems(this, items, hand);
-
+        // Put the item in the player's hand.
+        const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         this.carryWeight += createdItem.weight;
-        if (notify) this.notify(`You take ${createdItem.singleContainingPhrase}.`);
+
+        const containerPhrase = item.getContainerPhrase();
+        if (notify) this.notify(`You take ${createdItem.singleContainingPhrase} from ${containerPhrase}.`);
         if (!createdItem.prefab.discreet) {
-            new Narration(this.game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase}.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase} from ${containerPhrase}.`).send();
             // Add the new item to the player's hands item list.
             this.setDescription(parser.addItem(this.getDescription(), createdItem, "hands"));
         }
@@ -1204,13 +1188,13 @@ export default class Player extends ItemContainer {
 
     /**
      * Attempts to steal an inventory item from another player.
-     * @param {string} hand - The ID of the hand equipment slot to put the inventory item in.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
      * @param {Player} victim - The player to steal from.
      * @param {InventoryItem} container - An inventory item belonging to the victim that the player will attempt to steal from.
      * @param {InventorySlot<InventoryItem>} inventorySlot - The {@link InventorySlot|inventory slot} that the player will attempt to steal from.
      * @returns {StealResult}
      */
-    steal(hand, victim, container, inventorySlot) {
+    steal(handEquipmentSlot, victim, container, inventorySlot) {
         // There might be multiple of the same item, so we need to make an array where each item's index is inserted as many times as its quantity.
         /** @type {number[]} */
         let actualItems = [];
@@ -1229,110 +1213,40 @@ export default class Player extends ItemContainer {
         if (this.hasBehaviorAttribute("thief")) dieRoll.result = this.game.settings.diceMax;
         if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
+        // A fragment of a string that will be used later.
+        const slotDisplay = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+
         // Player didn't fail.
         if (dieRoll.result > failMax && item instanceof InventoryItem) {
-            // Reduce quantity if the quantity is finite.
-            if (!isNaN(item.quantity))
-                item.quantity--;
-
-            container.removeItem(item, inventorySlot.id, 1);
-            container.description = parser.removeItem(container.description, item, inventorySlot.id);
-
-            // Remove the item from its EquipmentSlot.
-            for (let slot = 0; slot < victim.inventory.length; slot++) {
-                let foundItem = false;
-                if (victim.inventory[slot].id === item.equipmentSlot) {
-                    for (let i = 0; i < victim.inventory[slot].items.length; i++) {
-                        if (victim.inventory[slot].items[i].row === item.row) {
-                            foundItem = true;
-                            victim.inventory[slot].items.splice(i, 1);
-                            break;
-                        }
-                    }
-                }
-                if (foundItem) break;
-            }
-            // Get the slot and row number of the EquipmentSlot that the item will go into.
-            let slot = 0;
-            let rowNumber = 0;
-            for (slot = 0; slot < this.inventory.length; slot++) {
-                if (this.inventory[slot].id === hand) {
-                    rowNumber = this.inventory[slot].row;
-                    break;
-                }
-            }
-
-            let createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
-            createdItem.containerName = "";
-            createdItem.container = null;
-            createdItem.row = rowNumber;
-
-            // Equip the item and add it to the player's inventory.
-            this.inventory[slot].equippedItem = createdItem;
-            this.inventory[slot].items.length = 0;
-            this.inventory[slot].items.push(createdItem);
-            // Replace the null entry in the inventoryItems list.
-            for (let i = 0; i < this.game.inventoryItems.length; i++) {
-                if (this.game.inventoryItems[i].row === createdItem.row) {
-                    this.game.inventoryItems.splice(i, 1, createdItem);
-                    break;
-                }
-            }
-            // Create a list of all the child items.
-            /** @type {InventoryItem[]} */
-            let items = [];
-            itemManager.getChildItems(items, createdItem);
-
-            // Now that the item has been converted, we can update the quantities of child items.
-            /** @type {InventoryItem[]} */
-            let oldChildItems = [];
-            itemManager.getChildItems(oldChildItems, item);
-            for (let i = 0; i < oldChildItems.length; i++)
-                oldChildItems[i].quantity = 0;
-
-            itemManager.insertInventoryItems(this, items, hand);
-
+            // Remove the item from its container.
+            itemManager.removeStashedItem(item, container, inventorySlot, victim.inventoryCollection.get(item.equipmentSlot));
+            // Put the item in the player's hand.
+            const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
             victim.carryWeight -= createdItem.weight;
             this.carryWeight += createdItem.weight;
-            // Decide what messages to send.
-            if (dieRoll.result > partialMax || victim.hasBehaviorAttribute("unconscious")) {
-                if (container.inventory.length === 1)
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
-                else
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slot].id} of ${victim.displayName}'s ${container.name} without ${victim.pronouns.obj} noticing!`);
-            }
-            else {
-                if (container.inventory.length === 1) {
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from your ${container.name}!`);
-                }
-                else {
-                    this.notify(`You steal ${createdItem.singleContainingPhrase} from ${container.inventory[slot].id} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`);
-                    victim.notify(`${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slot].id} of your ${container.name}!`);
-                }
+
+            // Form the messages to send.
+            const victimUnaware = dieRoll.result > partialMax || victim.hasBehaviorAttribute("unconscious");
+            const successDisplay = victimUnaware ? ` without ${victim.pronouns.obj} noticing!`
+                : `, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`;
+            const playerNotification = `You steal ${createdItem.singleContainingPhrase} from ${slotDisplay}${victim.displayName}'s ${container.name}${successDisplay}`;
+            this.notify(playerNotification);
+            const narrationStarter = `${this.displayName} steals ${createdItem.singleContainingPhrase} from `;
+            if (!victimUnaware) {
+                const victimNotification = `${narrationStarter}${slotDisplay}your${container.name}!`;
+                victim.notify(victimNotification);
             }
             if (!createdItem.prefab.discreet) {
-                if (container.inventory.length === 1)
-                    new Narration(this.game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${victim.displayName}'s ${container.name}.`).send();
-                else
-                    new Narration(this.game, this, this.location, `${this.displayName} steals ${createdItem.singleContainingPhrase} from ${container.inventory[slot].id} of ${victim.displayName}'s ${container.name}.`).send();
-
-                // Add the new item to the player's hands item list.
-                this.description = parser.addItem(this.description, createdItem, "hands");
+                new Narration(this.game, this, this.location, `${narrationStarter}${slotDisplay}${victim.displayName}'s ${container.name}.`).send();
+                this.setDescription(parser.addItem(this.getDescription(), createdItem, "hands"));
             }
 
             return { itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id, successful: true };
         }
         // Player failed to steal the item.
         else {
-            if (container.inventory.length === 1) {
-                this.notify(`You try to steal ${item.singleContainingPhrase} from ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from your ${container.name}, but you notice in time!`);
-            }
-            else {
-                this.notify(`You try to steal ${item.singleContainingPhrase} from ${inventorySlot.id} of ${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-                victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${inventorySlot.id} of your ${container.name}, but you notice in time!`);
-            }
+            this.notify(`You try to steal ${item.singleContainingPhrase} from ${slotDisplay}${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
+            victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${slotDisplay}your${container.name}, but you notice in time!`);
 
             return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
         }
@@ -1341,126 +1255,61 @@ export default class Player extends ItemContainer {
     /**
      * Drops an inventory item and puts it in the specified container in the room.
      * @param {InventoryItem} item - The inventory item to drop.
-     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {Puzzle|Fixture|RoomItem} container - The container to put the item in.
-     * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to put the item in.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to put the item in.
      * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
      */
-    drop(item, hand, container, slotId, notify = true) {
+    drop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
         // Unequip the item from the player's hand.
-        this.unequip(item, hand, null);
+        handEquipmentSlot.unequipItem(item);
 
         // Convert the InventoryItem to a RoomItem.
-        let createdItem = itemManager.convertInventoryItem(item, this, container, slotId, 1);
+        const inventorySlotId = inventorySlot ? inventorySlot.id : "";
+        let createdItem = itemManager.convertInventoryItem(item, this, container, inventorySlotId, 1);
         createdItem.container = container;
-        createdItem.slot = slotId;
+        createdItem.slot = inventorySlotId;
 
-        // These two variables are needed at the end, but since we're checking the data type of the container anyway, set them now.
-        let containerName = "";
-        let preposition = "in";
         // Update the container's description.
-        if (container instanceof Puzzle) {
-            container.alreadySolvedDescription = parser.addItem(container.alreadySolvedDescription, item);
-            containerName = container.parentFixture ? container.parentFixture.name : container.name;
-            preposition = container.parentFixture ? container.parentFixture.preposition : "in";
-        }
-        else if (container instanceof Fixture) {
-            container.description = parser.addItem(container.description, item);
-            containerName = container.name;
-            preposition = container.preposition;
-        }
-        else if (container instanceof RoomItem) {
-            container.insertItem(createdItem, slotId);
-            container.description = parser.addItem(container.description, item, slotId);
-            containerName = container.name;
-            preposition = container.prefab ? container.prefab.preposition : "in";
-        }
+        container.setDescription(parser.addItem(container.getDescription(), item, inventorySlotId));
+        if (container instanceof RoomItem)
+            container.insertItem(createdItem, inventorySlot.id);
 
         // Create a list of all the child items.
         /** @type {RoomItem[]} */
         let items = [];
         items.push(createdItem);
         itemManager.getChildItems(items, createdItem);
-
         // Now that the item has been converted, we can update the quantities of child items.
-        // We need a recursive function for this.
-        /** @param {InventoryItem} item */
-        let deleteChildQuantities = function (item) {
-            for (let slot = 0; slot < item.inventory.length; slot++) {
-                for (let i = 0; i < item.inventory[slot].items.length; i++) {
-                    deleteChildQuantities(item.inventory[slot].items[i]);
-                    item.inventory[slot].items[i].quantity = 0;
-                }
-            }
-            return;
-        };
-        deleteChildQuantities(item);
+        itemManager.setChildItemQuantitiesZero(item);
         item.quantity = 0;
-
-        itemManager.insertItems(this.location, items);
+        // Insert the new items into the game's list of room items.
+        itemManager.insertRoomItems(this.location, items);
 
         this.carryWeight -= item.weight;
-        if (notify) this.notify(`You discard ${item.singleContainingPhrase}.`);
+        const containerPhrase = createdItem.getContainerPhrase();
+        const preposition = createdItem.getContainerPreposition();
+        if (notify) this.notify(`You discard ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
         if (!item.prefab.discreet) {
-            new Narration(this.game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} the ${containerName}.`).send();
+            new Narration(this.game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`).send();
             // Remove the item from the player's hands item list.
-            this.description = parser.removeItem(this.description, item, "hands");
+            this.setDescription(parser.removeItem(this.getDescription(), item, "hands"));
         }
-
-        return;
     }
 
     /**
      * Gives an inventory item to another player.
      * @param {InventoryItem} item - The inventory item to give.
-     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {Player} recipient - The player to give the inventory item to.
-     * @param {string} recipientHand - The ID of the hand equipment slot of the recipient to put the item in.
+     * @param {EquipmentSlot} recipientHandEquipmentSlot - The hand equipment slot of the recipient to put the item in.
      */
-    give(item, hand, recipient, recipientHand) {
+    give(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot) {
         // Unequip the item from the player's hand.
-        this.unequip(item, hand, null);
+        handEquipmentSlot.unequipItem(item);
 
-        // Get the slot and row number of the EquipmentSlot that the item will go into.
-        let slot = 0;
-        let rowNumber = 0;
-        for (slot = 0; slot < recipient.inventory.length; slot++) {
-            if (recipient.inventory[slot].id === recipientHand) {
-                rowNumber = recipient.inventory[slot].row;
-                break;
-            }
-        }
-
-        let createdItem = itemManager.copyInventoryItem(item, recipient, recipientHand, 1);
-        createdItem.containerName = "";
-        createdItem.container = null;
-        createdItem.row = rowNumber;
-
-        // Equip the item and add it to the recipient's inventory.
-        recipient.inventory[slot].equippedItem = createdItem;
-        recipient.inventory[slot].items.length = 0;
-        recipient.inventory[slot].items.push(createdItem);
-        // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < this.game.inventoryItems.length; i++) {
-            if (this.game.inventoryItems[i].row === createdItem.row) {
-                this.game.inventoryItems.splice(i, 1, createdItem);
-                break;
-            }
-        }
-        // Create a list of all the child items.
-        /** @type {InventoryItem[]} */
-        let items = [];
-        itemManager.getChildItems(items, createdItem);
-
-        // Now that the item has been converted, we can update the quantities of child items.
-        /** @type {InventoryItem[]} */
-        let oldChildItems = [];
-        itemManager.getChildItems(oldChildItems, item);
-        for (let i = 0; i < oldChildItems.length; i++)
-            oldChildItems[i].quantity = 0;
-
-        itemManager.insertInventoryItems(recipient, items, recipientHand);
-
+        // Put the item in the recipient's hand.
+        const createdItem = itemManager.putItemInHand(item, recipient, recipientHandEquipmentSlot);
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
@@ -1469,231 +1318,108 @@ export default class Player extends ItemContainer {
         if (!createdItem.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
-            this.description = parser.removeItem(this.description, createdItem, "hands");
+            this.setDescription(parser.removeItem(this.getDescription(), createdItem, "hands"));
             // Add the item to the recipient's hands item list.
-            recipient.description = parser.addItem(recipient.description, createdItem, "hands");
+            recipient.setDescription(parser.addItem(recipient.getDescription(), createdItem, "hands"));
         }
-
-        return;
     }
 
     /**
      * Moves an inventory item from the player's hand into a container in their inventory.
      * @param {InventoryItem} item - The inventory item to stash. 
-     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {InventoryItem} container - The container to stash the inventory item in.
-     * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} to stash the inventory item in.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to stash the inventory item in.
      */
-    stash(item, hand, container, slotId) {
+    stash(item, handEquipmentSlot, container, inventorySlot) {
         // Unequip the item from the player's hand.
-        this.unequip(item, hand, null);
+        handEquipmentSlot.unequipItem(item);
 
-        // Get the slot number of the EquipmentSlot that the item will go into.
-        let slot = 0;
-        for (slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].id === container.equipmentSlot)
-                break;
-        }
-
-        let createdItem = itemManager.copyInventoryItem(item, this, this.inventory[slot].id, 1);
-        createdItem.containerName = container.identifier + '/' + slotId;
+        // Copy the inventory item to the given container.
+        const equipmentSlot = this.inventoryCollection.get(container.equipmentSlot);
+        let createdItem = itemManager.copyInventoryItem(item, this, equipmentSlot.id, 1);
+        createdItem.containerName = `${container.identifier}/${inventorySlot.id}`;
         createdItem.container = container;
-        createdItem.slot = slotId;
+        createdItem.slot = inventorySlot.id;
 
         // Update container.
-        container.insertItem(createdItem, slotId);
-        container.description = parser.addItem(container.description, createdItem, slotId);
+        container.insertItem(createdItem, inventorySlot.id);
+        container.setDescription(parser.addItem(container.getDescription(), createdItem, inventorySlot.id));
 
         // Create a list of all the child items.
         /** @type {InventoryItem[]} */
         let items = [];
         items.push(createdItem);
         itemManager.getChildItems(items, createdItem);
-
         // Now that the item has been converted, we can update the quantities of child items.
-        /** @type {InventoryItem[]} */
-        let oldChildItems = [];
-        itemManager.getChildItems(oldChildItems, item);
-        for (let i = 0; i < oldChildItems.length; i++)
-            oldChildItems[i].quantity = 0;
+        itemManager.setChildItemQuantitiesZero(item);
+        // Insert the new inventory items into the game's list of inventory items.
+        itemManager.insertInventoryItems(this, items, equipmentSlot);
 
-        itemManager.insertInventoryItems(this, items, container.equipmentSlot);
-
-        this.notify(`You stash ${createdItem.singleContainingPhrase}.`);
+        const preposition = container.prefab ? container.prefab.preposition : "in";
+        this.notify(`You stash ${createdItem.singleContainingPhrase} ${preposition} your ${container.name}.`);
         if (!item.prefab.discreet) {
-            let preposition = container.prefab ? container.prefab.preposition : "in";
             new Narration(this.game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
             // Remove the item from the player's hands item list.
-            this.description = parser.removeItem(this.description, item, "hands");
+            this.setDescription(parser.removeItem(this.getDescription(), item, "hands"));
         }
-
-        return;
     }
 
     /**
      * Moves an inventory item from a container in the player's inventory to the player's hand.
      * @param {InventoryItem} item - The inventory item to unstash. 
-     * @param {string} hand - The ID of the hand equipment slot to put the inventory item in.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
      * @param {InventoryItem} container - The inventory item's current container.
-     * @param {string} slotId - The ID of the {@link InventorySlot|inventory slot} the inventory item is currently in.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the inventory item is currently in.
      */
-    unstash(item, hand, container, slotId) {
-        // Reduce quantity if the quantity is finite.
-        if (!isNaN(item.quantity))
-            item.quantity--;
+    unstash(item, handEquipmentSlot, container, inventorySlot) {
+        // Remove the inventory item from its container.
+        itemManager.removeStashedItem(item, container, inventorySlot, this.inventoryCollection.get(item.equipmentSlot));
+        // Put the item in the player's hand.
+        itemManager.putItemInHand(item, this, handEquipmentSlot);
 
-        container.removeItem(item, slotId, 1);
-        container.description = parser.removeItem(container.description, item, slotId);
-
-        // Remove the item from its EquipmentSlot.
-        for (let slot = 0; slot < this.inventory.length; slot++) {
-            let foundItem = false;
-            if (this.inventory[slot].id === item.equipmentSlot) {
-                for (let i = 0; i < this.inventory[slot].items.length; i++) {
-                    if (this.inventory[slot].items[i].row === item.row) {
-                        foundItem = true;
-                        this.inventory[slot].items.splice(i, 1);
-                        break;
-                    }
-                }
-            }
-            if (foundItem) break;
-        }
-        // Get the slot and row number of the EquipmentSlot that the item will go into.
-        let slot = 0;
-        let rowNumber = 0;
-        for (slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].id === hand) {
-                rowNumber = this.inventory[slot].row;
-                break;
-            }
-        }
-
-        let createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
-        createdItem.containerName = "";
-        createdItem.container = null;
-        createdItem.row = rowNumber;
-
-        // Equip the item and add it to the player's inventory.
-        this.inventory[slot].equippedItem = createdItem;
-        this.inventory[slot].items.length = 0;
-        this.inventory[slot].items.push(createdItem);
-        // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < this.game.inventoryItems.length; i++) {
-            if (this.game.inventoryItems[i].row === createdItem.row) {
-                this.game.inventoryItems.splice(i, 1, createdItem);
-                break;
-            }
-        }
-        // Create a list of all the child items.
-        /** @type {InventoryItem[]} */
-        let items = [];
-        itemManager.getChildItems(items, createdItem);
-
-        // Now that the item has been converted, we can update the quantities of child items.
-        /** @type {InventoryItem[]} */
-        let oldChildItems = [];
-        itemManager.getChildItems(oldChildItems, item);
-        for (let i = 0; i < oldChildItems.length; i++)
-            oldChildItems[i].quantity = 0;
-
-        itemManager.insertInventoryItems(this, items, hand);
-
-        this.notify(`You take ${item.singleContainingPhrase} out of the ${container.name}.`);
+        this.notify(`You take ${item.singleContainingPhrase} out of your ${container.name}.`);
         if (!item.prefab.discreet) {
             new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
-            this.description = parser.addItem(this.description, item, "hands");
+            this.setDescription(parser.addItem(this.getDescription(), item, "hands"));
         }
-
-        return;
     }
 
     /**
      * Moves an inventory item from the player's hand to one of their {@link EquipmentSlot|equipment slots}.
      * @param {InventoryItem} item - The inventory item to equip.
-     * @param {string} slotId - The ID of the equipment slot to equip the inventory item to. 
-     * @param {string} hand - The ID of the hand equipment slot that the inventory item is currently in.
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
      */
-    async equip(item, slotId, hand, notify = true) {
+    async equip(item, equipmentSlot, handEquipmentSlot, notify = true) {
         // Unequip the item from the player's hand.
-        this.unequip(item, hand, null);
+        handEquipmentSlot.unequipItem(item);
 
-        // Get the slot and row number of the EquipmentSlot that the item will go into.
-        let slot = 0;
-        let rowNumber = 0;
-        for (slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].id === slotId) {
-                rowNumber = this.inventory[slot].row;
-                break;
-            }
-        }
-
-        let createdItem = itemManager.copyInventoryItem(item, this, slotId, 1);
-        createdItem.row = rowNumber;
+        // Copy the inventory item to the new equipment slot.
+        let createdItem = itemManager.copyInventoryItem(item, this, equipmentSlot.id, 1);
+        createdItem.row = equipmentSlot.row;
 
         // Equip the item to the player's equipment slot.
-        this.inventory[slot].equippedItem = createdItem;
-        this.inventory[slot].items.length = 0;
-        this.inventory[slot].items.push(createdItem);
-        // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < this.game.inventoryItems.length; i++) {
-            if (this.game.inventoryItems[i].row === createdItem.row) {
-                this.game.inventoryItems.splice(i, 1, createdItem);
-                break;
-            }
-        }
+        equipmentSlot.equipItem(createdItem);
         // Create a list of all the child items.
         /** @type {InventoryItem[]} */
         let items = [];
         itemManager.getChildItems(items, createdItem);
-
         // Update the quantities of child items.
-        /** @type {InventoryItem[]} */
-        let oldChildItems = [];
-        itemManager.getChildItems(oldChildItems, item);
-        for (let i = 0; i < oldChildItems.length; i++)
-            oldChildItems[i].quantity = 0;
+        itemManager.setChildItemQuantitiesZero(item);
         item.quantity = 0;
-
-        itemManager.insertInventoryItems(this, items, slotId);
+        // Insert the newly created item in the game's list of inventory items.
+        itemManager.insertInventoryItems(this, items, equipmentSlot);
 
         if (notify) this.notify(`You equip the ${createdItem.name}.`);
         new Narration(this.game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
-        // Remove mention of any equipped items that this item covers.
-        for (let i = 0; i < createdItem.prefab.coveredEquipmentSlots.length; i++) {
-            const coveredEquipmentSlot = createdItem.prefab.coveredEquipmentSlots[i];
-            for (let j = 0; j < this.inventory.length; j++) {
-                if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
-                    // Preserve quantity.
-                    const quantity = this.inventory[j].equippedItem.quantity;
-                    this.inventory[j].equippedItem.quantity = 0;
-                    this.description = parser.removeItem(this.description, this.inventory[j].equippedItem, "equipment");
-                    this.inventory[j].equippedItem.quantity = quantity;
-                    break;
-                }
-            }
-        }
-        // Remove the item from the player's hands item list.
+
+        // Update the player's description.
         if (!item.prefab.discreet)
             this.description = parser.removeItem(this.description, item, "hands");
-
-        // Check to make sure that this item isn't covered by something else the player has equipped.
-        let isCovered = false;
-        for (let i = 0; i < this.inventory.length; i++) {
-            if (this.inventory[i].equippedItem !== null) {
-                for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
-                    if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === createdItem.equipmentSlot && this.inventory[i].equippedItem.equipmentSlot !== "RIGHT HAND" && this.inventory[i].equippedItem.equipmentSlot !== "LEFT HAND") {
-                        isCovered = true;
-                        break;
-                    }
-                }
-            }
-        }
-        // If it's not covered, add mention of this item to the player's equipment item list.
-        if (!isCovered)
-            this.description = parser.addItem(this.description, createdItem, "equipment");
+        this.#coverEquippedItems(createdItem);
 
         // Run equip commands.
         for (let i = 0; i < createdItem.prefab.equipCommands.length; i++) {
@@ -1709,46 +1435,25 @@ export default class Player extends ItemContainer {
                 executeCommand(command, this.game, null, this, createdItem);
             }
         }
-        return;
     }
 
     /**
      * Equips an inventory item to any of the player's {@link EquipmentSlot|equipment slots}.
      * This should only be used for newly created inventory items.
      * @param {InventoryItem} item - The inventory item to equip.
-     * @param {string} slotId - The ID of the equipment slot to equip the inventory item to. 
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
      * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
      */
-    async directEquip(item, slotId, notify = true) {
-        // Get the slot and row number of the EquipmentSlot that the item will go into.
-        let slot = 0;
-        let rowNumber = 0;
-        for (slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].id === slotId) {
-                rowNumber = this.inventory[slot].row;
-                break;
-            }
-        }
-        item.row = rowNumber;
-
-        // Equip the item to the player's equipment slot.
-        this.inventory[slot].equippedItem = item;
-        this.inventory[slot].items.length = 0;
-        this.inventory[slot].items.push(item);
-        // Replace the null entry in the inventoryItems list.
-        for (let i = 0; i < this.game.inventoryItems.length; i++) {
-            if (this.game.inventoryItems[i].row === item.row) {
-                this.game.inventoryItems.splice(i, 1, item);
-                break;
-            }
-        }
+    async directEquip(item, equipmentSlot, notify = true) {
+        item.row = equipmentSlot.row;
+        equipmentSlot.equipItem(item);
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
             if (notify) this.notify(`You take ${item.singleContainingPhrase}.`);
             if (!item.prefab.discreet && notify) {
                 new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
-                this.description = parser.addItem(this.description, item, "hands");
+                this.setDescription(parser.addItem(this.getDescription(), item, "hands"));
             }
         }
         else {
@@ -1756,36 +1461,7 @@ export default class Player extends ItemContainer {
                 this.notify(`You equip the ${item.name}.`);
                 new Narration(this.game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             }
-            // Remove mention of any equipped items that this item covers.
-            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
-                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
-                for (let j = 0; j < this.inventory.length; j++) {
-                    if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
-                        // Preserve quantity.
-                        const quantity = this.inventory[j].equippedItem.quantity;
-                        this.inventory[j].equippedItem.quantity = 0;
-                        this.description = parser.removeItem(this.description, this.inventory[j].equippedItem, "equipment");
-                        this.inventory[j].equippedItem.quantity = quantity;
-                        break;
-                    }
-                }
-            }
-
-            // Check to make sure that this item isn't covered by something else the player has equipped.
-            let isCovered = false;
-            for (let i = 0; i < this.inventory.length; i++) {
-                if (this.inventory[i].equippedItem !== null) {
-                    for (let j = 0; j < this.inventory[i].equippedItem.prefab.coveredEquipmentSlots.length; j++) {
-                        if (this.inventory[i].equippedItem.prefab.coveredEquipmentSlots[j] === item.equipmentSlot && this.inventory[i].equippedItem.equipmentSlot !== "RIGHT HAND" && this.inventory[i].equippedItem.equipmentSlot !== "LEFT HAND") {
-                            isCovered = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            // If it's not covered, add mention of this item to the player's equipment item list.
-            if (!isCovered)
-                this.description = parser.addItem(this.description, item, "equipment");
+            this.#coverEquippedItems(item);
 
             // Run equip commands.
             for (let i = 0; i < item.prefab.equipCommands.length; i++) {
@@ -1802,137 +1478,77 @@ export default class Player extends ItemContainer {
                 }
             }
         }
-        return;
+    }
+
+    /**
+     * Removes equipped items that the given item covers from the player's description.
+     * @param {InventoryItem} item - The equipped item that covers other items.
+     */
+    #coverEquippedItems(item) {
+        for (const coveredEquipmentSlotId of item.prefab.coveredEquipmentSlots) {
+            const coveredEquipmentSlot = this.inventoryCollection.get(coveredEquipmentSlotId);
+            if (coveredEquipmentSlot && coveredEquipmentSlot.equippedItem !== null) {
+                // Preserve quantity.
+                const quantity = coveredEquipmentSlot.equippedItem.quantity;
+                coveredEquipmentSlot.equippedItem.quantity = 0;
+                this.setDescription(parser.removeItem(this.getDescription(), coveredEquipmentSlot.equippedItem, "equipment"));
+                coveredEquipmentSlot.equippedItem.quantity = quantity;
+            }
+        }
+
+        // Check to make sure that this item isn't covered by something else the player has equipped.
+        let isCovered = false;
+        this.inventoryCollection.forEach(equipmentSlot => {
+            if (equipmentSlot.equippedItem !== null && equipmentSlot.id !== "RIGHT HAND" && equipmentSlot.id !== "LEFT HAND") {
+                for (const coveredEquipmentSlotId of equipmentSlot.equippedItem.prefab.coveredEquipmentSlots) {
+                    if (coveredEquipmentSlotId === item.equipmentSlot) {
+                        isCovered = true;
+                        break;
+                    }
+                }
+            }
+        });
+        // If it's not covered, add mention of this item to the player's equipment item list.
+        if (!isCovered)
+            this.setDescription(parser.addItem(this.getDescription(), item, "equipment"));
     }
 
     /**
      * Moves an inventory item from a player's {@link EquipmentSlot|equipment slot} to their hand.
      * @param {InventoryItem} item - The inventory item to unequip.
-     * @param {string} slotId - The ID of the equipment slot the inventory item is currently equipped to. 
-     * @param {string} hand - The ID of the hand equipment slot to put the inventory item in.
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item is currently equipped to. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
      * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
      */
-    async unequip(item, slotId, hand, notify = true) {
-        // Get the slot and row number of the EquipmentSlot that the item is being unequipped from.
-        let slot = 0;
-        let rowNumber = 0;
-        for (slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].id === slotId) {
-                rowNumber = this.inventory[slot].row;
-                break;
+    async unequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+        equipmentSlot.unequipItem(item);
+
+        // Put the item in the player's hand.
+        let createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
+        item.quantity = 0;
+
+        if (notify) this.notify(`You unequip the ${createdItem.name}.`);
+        new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
+
+        // Update the player's description.
+        if (!createdItem.prefab.discreet)
+            this.setDescription(parser.addItem(this.getDescription(), createdItem, "hands"));
+        this.#uncoverEquippedItems(createdItem);
+
+        // Run unequip commands.
+        for (let i = 0; i < createdItem.prefab.unequipCommands.length; i++) {
+            const command = createdItem.prefab.unequipCommands[i];
+            if (command.startsWith("wait")) {
+                let args = command.split(" ");
+                if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+                const seconds = parseInt(args[1]);
+                if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+                await sleep(seconds);
+            }
+            else {
+                executeCommand(command, this.game, null, this, createdItem);
             }
         }
-
-        // Replace this inventory slot with a null item.
-        const nullItem = new InventoryItem(
-            this.name,
-            null,
-            "",
-            slotId,
-            "",
-            "",
-            null,
-            null,
-            "",
-            rowNumber,
-            this.game
-        );
-        nullItem.player = this;
-        this.inventory[slot].equippedItem = null;
-        this.inventory[slot].items.length = 0;
-        this.inventory[slot].items.push(nullItem);
-        // Replace the equipped item's entry in the inventoryItems list.
-        for (let i = 0; i < this.game.inventoryItems.length; i++) {
-            if (this.game.inventoryItems[i].row === item.row) {
-                this.game.inventoryItems.splice(i, 1, nullItem);
-                break;
-            }
-        }
-
-        // If the item is going to be put in the player's hand, move it.
-        if (hand !== null) {
-            // Get the row number of the EquipmentSlot that the item will go into.
-            rowNumber = 0;
-            for (slot = 0; slot < this.inventory.length; slot++) {
-                if (this.inventory[slot].id === hand) {
-                    rowNumber = this.inventory[slot].row;
-                    break;
-                }
-            }
-
-            let createdItem = itemManager.copyInventoryItem(item, this, hand, 1);
-            createdItem.row = rowNumber;
-
-            // Equip the item to the player's hand.
-            this.inventory[slot].equippedItem = createdItem;
-            this.inventory[slot].items.length = 0;
-            this.inventory[slot].items.push(createdItem);
-            // Replace the null entry in the inventoryItems list.
-            for (let i = 0; i < this.game.inventoryItems.length; i++) {
-                if (this.game.inventoryItems[i].row === createdItem.row) {
-                    this.game.inventoryItems.splice(i, 1, createdItem);
-                    break;
-                }
-            }
-            // Create a list of all the child items.
-            /** @type {InventoryItem[]} */
-            let items = [];
-            itemManager.getChildItems(items, createdItem);
-
-            // Update the quantities of child items.
-            /** @type {InventoryItem[]} */
-            let oldChildItems = [];
-            itemManager.getChildItems(oldChildItems, item);
-            for (let i = 0; i < oldChildItems.length; i++)
-                oldChildItems[i].quantity = 0;
-            item.quantity = 0;
-
-            itemManager.insertInventoryItems(this, items, hand);
-
-            if (notify) this.notify(`You unequip the ${createdItem.name}.`);
-            new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
-            // Remove mention of this item from the player's equipment item list.
-            this.description = parser.removeItem(this.description, item, "equipment");
-            // Add mention of this item to the player's hands item list.
-            if (!createdItem.prefab.discreet)
-                this.description = parser.addItem(this.description, createdItem, "hands");
-            // Find any items that were covered by this item and add them to the equipment item list.
-            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
-                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
-                for (let j = 0; j < this.inventory.length; j++) {
-                    if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
-                        // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
-                        const coveringItems = this.game.inventoryItems.filter(item =>
-                            item.player.name === this.name &&
-                            item.prefab !== null &&
-                            item.equipmentSlot !== "RIGHT HAND" &&
-                            item.equipmentSlot !== "LEFT HAND" &&
-                            item.containerName === "" &&
-                            item.container === null &&
-                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].id)
-                        );
-                        if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
-                        break;
-                    }
-                }
-            }
-
-            // Run unequip commands.
-            for (let i = 0; i < createdItem.prefab.unequipCommands.length; i++) {
-                const command = createdItem.prefab.unequipCommands[i];
-                if (command.startsWith("wait")) {
-                    let args = command.split(" ");
-                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(command, this.game, null, this, createdItem);
-                }
-            }
-        }
-        return;
     }
 
     /**
@@ -1941,73 +1557,20 @@ export default class Player extends ItemContainer {
      * @param {InventoryItem} item - The inventory item to unequip.
      */
     async directUnequip(item) {
-        // Get the row number of the EquipmentSlot that the item is being unequipped from.
-        let slot = 0;
-        let rowNumber = 0;
-        for (slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].id === item.equipmentSlot) {
-                rowNumber = this.inventory[slot].row;
-                break;
-            }
-        }
-
-        // Replace this inventory slot with a null item.
-        const nullItem = new InventoryItem(
-            this.name,
-            null,
-            "",
-            item.equipmentSlot,
-            "",
-            "",
-            null,
-            null,
-            "",
-            rowNumber,
-            this.game
-        );
-        nullItem.player = this;
-        this.inventory[slot].equippedItem = null;
-        this.inventory[slot].items.length = 0;
-        this.inventory[slot].items.push(nullItem);
-        this.carryWeight -= item.weight * item.quantity;
-        // Replace the equipped item's entry in the inventoryItems list.
-        for (let i = 0; i < this.game.inventoryItems.length; i++) {
-            if (this.game.inventoryItems[i].row === item.row) {
-                this.game.inventoryItems.splice(i, 1, nullItem);
-                break;
-            }
-        }
+        const equipmentSlot = this.inventoryCollection.get(item.equipmentSlot);
+        equipmentSlot.unequipItem(item);
 
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
             // Remove the item from the player's hands item list.
             if (!item.prefab.discreet)
-                this.description = parser.removeItem(this.description, item, "hands");
+                this.setDescription(parser.removeItem(this.getDescription(), item, "hands"));
         }
         else {
             this.notify(`You unequip the ${item.name}.`);
             new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
-            this.description = parser.removeItem(this.description, item, "equipment");
-            // Find any items that were covered by this item and add them to the equipment item list.
-            for (let i = 0; i < item.prefab.coveredEquipmentSlots.length; i++) {
-                const coveredEquipmentSlot = item.prefab.coveredEquipmentSlots[i];
-                for (let j = 0; j < this.inventory.length; j++) {
-                    if (this.inventory[j].id === coveredEquipmentSlot && this.inventory[j].equippedItem !== null) {
-                        // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
-                        const coveringItems = this.game.inventoryItems.filter(item =>
-                            item.player.name === this.name &&
-                            item.prefab !== null &&
-                            item.equipmentSlot !== "RIGHT HAND" &&
-                            item.equipmentSlot !== "LEFT HAND" &&
-                            item.containerName === "" &&
-                            item.container === null &&
-                            item.prefab.coveredEquipmentSlots.includes(this.inventory[j].id)
-                        );
-                        if (coveringItems.length === 0) this.description = parser.addItem(this.description, this.inventory[j].equippedItem, "equipment");
-                        break;
-                    }
-                }
-            }
+            this.setDescription(parser.removeItem(this.getDescription(), item, "equipment"));
+            this.#uncoverEquippedItems(item);
 
             // Run unequip commands.
             for (let i = 0; i < item.prefab.unequipCommands.length; i++) {
@@ -2024,7 +1587,32 @@ export default class Player extends ItemContainer {
                 }
             }
         }
-        return;
+    }
+
+    /**
+     * Adds any equipped items that were previously covered by the newly unequipped item back to the player's description.
+     * @param {InventoryItem} item - The now unequipped item that covered other items.
+     */
+    #uncoverEquippedItems(item) {
+        this.setDescription(parser.removeItem(this.getDescription(), item, "equipment"));
+        // Find any items that were covered by this item and add them to the equipment item list.
+        for (const coveredEquipmentSlotId of item.prefab.coveredEquipmentSlots) {
+            const coveredEquipmentSlot = this.inventoryCollection.get(coveredEquipmentSlotId);
+            if (coveredEquipmentSlot && coveredEquipmentSlot.equippedItem !== null) {
+                // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
+                const coveringItems = this.game.inventoryItems.filter(item =>
+                    item.player.name === this.name &&
+                    item.prefab !== null &&
+                    item.equipmentSlot !== "RIGHT HAND" &&
+                    item.equipmentSlot !== "LEFT HAND" &&
+                    item.containerName === "" &&
+                    item.container === null &&
+                    item.prefab.coveredEquipmentSlots.includes(coveredEquipmentSlotId)
+                );
+                if (coveringItems.length === 0) this.setDescription(parser.addItem(this.getDescription(), coveredEquipmentSlot.equippedItem, "equipment"));
+                break;
+            }
+        }
     }
 
     /**
@@ -2159,17 +1747,12 @@ export default class Player extends ItemContainer {
         let ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
         let ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
 
-        let rightHand = null;
-        let leftHand = null;
-        for (let slot = 0; slot < this.inventory.length; slot++) {
-            if (this.inventory[slot].id === "RIGHT HAND") rightHand = this.inventory[slot];
-            else if (this.inventory[slot].id === "LEFT HAND") leftHand = this.inventory[slot];
-        }
-
         const originalItemPhrase = item.singleContainingPhrase;
         const itemDiscreet = item.prefab.discreet;
 
         if (!itemDiscreet) this.description = parser.removeItem(this.description, item, "hands");
+        const rightHand = this.inventoryCollection.get("RIGHT HAND");
+        const leftHand = this.inventoryCollection.get("LEFT HAND");
         itemManager.replaceInventoryItem(item, ingredient1);
         itemManager.instantiateInventoryItem(
             ingredient2,
@@ -2193,12 +1776,12 @@ export default class Player extends ItemContainer {
             if (!ingredient1.discreet) {
                 if (ingredient1.singleContainingPhrase !== originalItemPhrase || ingredient1.singleContainingPhrase !== itemPhrase)
                     ingredient1Phrase = ingredient1.singleContainingPhrase;
-                this.description = parser.addItem(this.description, ingredient1, "hands");
+                this.setDescription(parser.addItem(this.getDescription(), ingredient1, "hands"));
             }
             if (!ingredient2.discreet) {
                 if (ingredient2.singleContainingPhrase !== originalItemPhrase || ingredient2.singleContainingPhrase !== itemPhrase)
                     ingredient2Phrase = ingredient2.singleContainingPhrase;
-                this.description = parser.addItem(this.description, ingredient2, "hands");
+                this.setDescription(parser.addItem(this.getDescription(), ingredient2, "hands"));
             }
             if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
                 itemPhrase = originalItemPhrase;
@@ -2220,11 +1803,10 @@ export default class Player extends ItemContainer {
 
     /**
      * Returns the player's inventory item whose prefab ID matches the given ID, if it exists.
-     * @private
      * @param {string} id - The prefab ID to search for.
      * @returns {InventoryItem}
      */
-    findItem(id) {
+    #findItem(id) {
         return this.game.inventoryItems.find(item =>
             item.player.name === this.name &&
             item.prefab !== null &&
@@ -2239,7 +1821,7 @@ export default class Player extends ItemContainer {
      * @returns {boolean}
      */
     hasItem(id) {
-        return !!this.findItem(id);
+        return !!this.#findItem(id);
     }
 
     /**
@@ -2281,7 +1863,7 @@ export default class Player extends ItemContainer {
                     break;
                 }
                 else if (item === null) {
-                    const requiredItem = this.findItem(requirement.id);
+                    const requiredItem = this.#findItem(requirement.id);
                     if (!requiredItem) {
                         allRequirementsMet = false;
                         break;
@@ -2319,7 +1901,7 @@ export default class Player extends ItemContainer {
                             break;
                         }
                         else if (item === null) {
-                            const requiredItem = this.findItem(solution.substring(solution.indexOf(':') + 1).trim());
+                            const requiredItem = this.#findItem(solution.substring(solution.indexOf(':') + 1).trim());
                             if (requiredItem) {
                                 hasRequiredItem = true;
                                 requiredItemName = solution;
@@ -2551,9 +2133,9 @@ export default class Player extends ItemContainer {
         // Remove player from their current channel.
         this.location.leaveChannel(this);
         this.location.occupants.splice(this.location.occupants.indexOf(this), 1);
-        this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
+        this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
         this.removeFromWhispers(`${this.displayName} dies.`);
-        if (!this.hasAttribute("hidden")) {
+        if (!this.hasBehaviorAttribute("hidden")) {
             new Narration(this.game, this, this.location, `${this.displayName} dies.`).send();
         }
 
@@ -2565,7 +2147,7 @@ export default class Player extends ItemContainer {
         this.alive = false;
         this.location = null;
         this.hidingSpot = "";
-        this.statusString = "";
+        this.statusDisplays.length = 0;
         this.stopMoving();
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].timer !== null)
@@ -2574,14 +2156,9 @@ export default class Player extends ItemContainer {
         this.status.length = 0;
 
         // Move player to dead list.
-        this.game.players_dead.push(this);
+        this.game.deadPlayersCollection.set(this.name, this);
         // Then remove them from living list.
-        for (let i = 0; i < this.game.players_alive.length; i++) {
-            if (this.game.players_alive[i].name === this.name) {
-                this.game.players_alive.splice(i, 1);
-                break;
-            }
-        }
+        this.game.livingPlayersCollection.delete(this.name);
 
         messageHandler.addDirectNarration(this, `You have died. When your body is discovered, you will be given the ${this.game.guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`);
     }
@@ -2619,14 +2196,14 @@ export default class Player extends ItemContainer {
      */
     sendDescription(description, container) {
         if (description) {
-            if (!this.hasAttribute("unconscious") && (container && container instanceof Room)) {
+            if (!this.hasBehaviorAttribute("unconscious") && (container && container instanceof Room)) {
                 let defaultDropFixtureString = "";
-                let defaultDropFixture = this.game.fixtures.find(fixture => fixture.name === this.game.settings.defaultDropFixture && fixture.location.id === container.id);
+                const defaultDropFixture = this.game.entityFinder.getFixture(this.game.settings.defaultDropFixture, container.id);
                 if (defaultDropFixture)
                     defaultDropFixtureString = parser.parseDescription(defaultDropFixture.description, defaultDropFixture, this);
                 messageHandler.addRoomDescription(this, container, parser.parseDescription(description, container, this), defaultDropFixtureString);
             }
-            else if (!this.hasAttribute("unconscious") || (container && container instanceof Status))
+            else if (!this.hasBehaviorAttribute("unconscious") || (container && container instanceof Status))
                 messageHandler.addDirectNarration(this, parser.parseDescription(description, container, this));
         }
     }
@@ -2637,7 +2214,7 @@ export default class Player extends ItemContainer {
      * @param {boolean} [addSpectate=true] - Whether or not to mirror this message in the player's spectateChannel. Defaults to true.
      */
     notify(messageText, addSpectate = true) {
-        if (!this.hasAttribute("unconscious") && this.title !== "NPC")
+        if (!this.hasBehaviorAttribute("unconscious") && !this.isNPC)
             messageHandler.addDirectNarration(this, messageText, addSpectate);
     }
 

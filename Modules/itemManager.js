@@ -1,10 +1,11 @@
+import EquipmentSlot from '../Data/EquipmentSlot.js';
 import Fixture from '../Data/Fixture.js';
-import RoomItem from '../Data/RoomItem.js';
 import Puzzle from '../Data/Puzzle.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import InventorySlot from '../Data/InventorySlot.js';
 import Prefab from '../Data/Prefab.js';
 import Room from '../Data/Room.js';
+import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import { addItem as addItemToDescription, generateProceduralOutput, removeItem as removeItemFromDescription } from '../Modules/parser.js';
@@ -68,7 +69,7 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
     // Update the container's description.
     container.setDescription(addItemToDescription(container.getDescription(), createdItem, inventorySlotId, quantity));
 
-    insertItems(location, [createdItem]);
+    insertRoomItems(location, [createdItem]);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
@@ -109,11 +110,12 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
     player.carryWeight += createdItem.weight * quantity;
 
     // Item is being stashed.
+    const equipmentSlot = player.inventoryCollection.get(equipmentSlotId);
     if (container !== null) {
         container.insertItem(createdItem, inventorySlotId);
         container.setDescription(addItemToDescription(container.getDescription(), createdItem, inventorySlotId, quantity));
 
-        insertInventoryItems(player, [createdItem], equipmentSlotId);
+        insertInventoryItems(player, [createdItem], equipmentSlot);
 
         const containerName = `${inventorySlotId} of ${container.identifier}`;
         const preposition = container.prefab ? container.prefab.preposition : "in";
@@ -123,7 +125,7 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
     }
     // Item is being equipped.
     else {
-        player.directEquip(createdItem, equipmentSlotId, notify);
+        player.directEquip(createdItem, equipmentSlot, notify);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
@@ -372,11 +374,10 @@ export function getChildItems(items, item) {
 
 /**
  * Sets the quantities of all child items to 0.
- * @template {RoomItem|InventoryItem} T
- * @param {T} item - The item whose child items are to have their quantities updated. 
+ * @param {ItemInstance} item - The item whose child items are to have their quantities updated. 
  */
 export function setChildItemQuantitiesZero(item) {
-    /** @type {T[]} */
+    /** @type {ItemInstance[]} */
     let childItems = [];
     getChildItems(childItems, item);
     for (let i = 0; i < childItems.length; i++)
@@ -384,11 +385,61 @@ export function setChildItemQuantitiesZero(item) {
 }
 
 /**
- * Inserts an array of items into the game at the correct position in the game's array of items.
+ * Removes a stashed inventory item from the inventory slot in its container.
+ * Also decrements the quantity, updates the container's description, and removes the item from its equipment slot.
+ * @param {InventoryItem} item - The item to remove.
+ * @param {InventoryItem} container - The item's container.
+ * @param {InventorySlot<InventoryItem>} inventorySlot - The inventory slot to remove the item from.
+ * @param {EquipmentSlot} equipmentSlot - The equipment slot to remove the item from.
+ */
+export function removeStashedItem(item, container, inventorySlot, equipmentSlot) {
+    // Reduce quantity if the quantity is finite.
+    if (!isNaN(item.quantity))
+        item.quantity--;
+
+    // Update container.
+    container.removeItem(item, inventorySlot.id, 1);
+    container.setDescription(removeItemFromDescription(container.getDescription(), item, inventorySlot.id));
+
+    // Remove the item from its equipment slot.
+    if (item.quantity === 0)
+        equipmentSlot.removeItem(item);
+}
+
+/**
+ * Converts the given item into an inventory item and puts it in the player's hand.
+ * Also converts its child items and inserts the newly created items into the game's list of inventory items.
+ * @param {ItemInstance} item - The item to put in the player's hand.
+ * @param {Player} player - The player whose hand the item will be put in.
+ * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
+ * @returns The created item in the player's hand.
+ */
+export function putItemInHand(item, player, handEquipmentSlot) {
+    // Copy the item into the player's hand.
+    let createdItem = convertRoomItem(item, player, handEquipmentSlot.id, 1);
+    createdItem.containerName = "";
+    createdItem.container = null;
+    createdItem.row = handEquipmentSlot.row;
+
+    // Equip the item and add it to the player's inventory.
+    handEquipmentSlot.equipItem(createdItem);
+    // Create a list of all the child items.
+    /** @type {InventoryItem[]} */
+    let items = [];
+    getChildItems(items, createdItem);
+    // Now that the item has been converted, we can update the quantities of child items.
+    setChildItemQuantitiesZero(item);
+    // Insert the new items into the game's list of inventory items.
+    insertInventoryItems(player, items, handEquipmentSlot);
+    return createdItem;
+}
+
+/**
+ * Inserts an array of items into the game at the correct position in the game's array of room items.
  * @param {Room} location - The room to insert items into. 
  * @param {RoomItem[]} items - The items to insert. 
  */
-export function insertItems(location, items) {
+export function insertRoomItems(location, items) {
     const game = location.game;
     for (let item of items) {
         // Check if the player is putting this item back in original spot unmodified.
@@ -499,9 +550,9 @@ export function insertItems(location, items) {
  * Inserts an array of inventory items into the game at the correct position in the game's array of inventory items.
  * @param {Player} player - The player who these inventory items belong to.
  * @param {InventoryItem[]} items - The inventory items to insert.
- * @param {string} equipmentSlotId - The index of the equipment slot within the player's inventory.
+ * @param {EquipmentSlot} equipmentSlot - The equipment slot within the player's inventory.
  */
-export function insertInventoryItems(player, items, equipmentSlotId) {
+export function insertInventoryItems(player, items, equipmentSlot) {
     const game = player.game;
     let lastNewItem = player.inventoryCollection.last().equippedItem !== null ?
         player.inventoryCollection.last().equippedItem :
@@ -547,7 +598,7 @@ export function insertInventoryItems(player, items, equipmentSlotId) {
                     }
                 }
             }
-            player.inventoryCollection.get(equipmentSlotId).items.splice(player.inventoryCollection.get(equipmentSlotId).items.length, 0, matchedItem);
+            equipmentSlot.items.splice(equipmentSlot.items.length, 0, matchedItem);
         }
         // The player hasn't picked this item up before or it's been modified somehow.
         else {
@@ -576,7 +627,7 @@ export function insertInventoryItems(player, items, equipmentSlotId) {
             for (insertIndex; insertIndex < game.inventoryItems.length; insertIndex++) {
                 if (game.inventoryItems[insertIndex].row === insertRow) {
                     game.inventoryItems.splice(insertIndex + 1, 0, item);
-                    player.inventoryCollection.get(equipmentSlotId).items.splice(player.inventoryCollection.get(equipmentSlotId).items.length, 0, item);
+                    equipmentSlot.items.splice(equipmentSlot.items.length, 0, item);
                     break;
                 }
             }

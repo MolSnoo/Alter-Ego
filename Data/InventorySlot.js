@@ -66,13 +66,13 @@ export default class InventorySlot {
 		this.items = items;
 		this.item = [];
 	}
-	
+
 	/** 
 	 * Inserts an item into this slot.
 	 * @param {T} item - The item to insert.
 	 */
 	insertItem(item) {
-        let matchedItem = this.items.find(inventoryItem =>
+		let matchedItem = this.items.find(inventoryItem =>
 			inventoryItem.prefab !== null && item.prefab !== null &&
 			inventoryItem.prefab.id === item.prefab.id &&
 			inventoryItem.identifier === item.identifier &&
@@ -86,7 +86,7 @@ export default class InventorySlot {
 			this.weight += item.weight * item.quantity;
 			this.takenSpace += item.prefab.size * item.quantity;
 		}
-    }
+	}
 
 	/**
 	 * Removes an item from this slot.
@@ -95,7 +95,7 @@ export default class InventorySlot {
 	 */
 	removeItem(item, removedQuantity) {
 		for (let i = 0; i < this.items.length; i++) {
-			if (this.items[i].name === item.name && this.items[i].description === item.description) {
+			if (this.items[i].row === item.row && this.items[i].description === item.description) {
 				if (item.quantity === 0) this.items.splice(i, 1);
 				this.weight -= item.weight * removedQuantity;
 				this.takenSpace -= item.prefab.size * removedQuantity;
