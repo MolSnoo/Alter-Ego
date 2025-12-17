@@ -19,7 +19,7 @@ import Narration from './Narration.js';
 import Die from './Die.js';
 
 import * as parser from '../Modules/parser.js';
-import { default as executeCommand } from '../Modules/commandHandler.js';
+import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import * as itemManager from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
@@ -1393,7 +1393,7 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
      */
-    async equip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+    equip(item, equipmentSlot, handEquipmentSlot, notify = true) {
         // Unequip the item from the player's hand.
         handEquipmentSlot.unequipItem(item);
 
@@ -1421,20 +1421,8 @@ export default class Player extends ItemContainer {
             this.description = parser.removeItem(this.description, item, "hands");
         this.#coverEquippedItems(createdItem);
 
-        // Run equip commands.
-        for (let i = 0; i < createdItem.prefab.equipCommands.length; i++) {
-            const command = createdItem.prefab.equipCommands[i];
-            if (command.startsWith("wait")) {
-                let args = command.split(" ");
-                if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
-                const seconds = parseInt(args[1]);
-                if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
-                await sleep(seconds);
-            }
-            else {
-                executeCommand(command, this.game, null, this, createdItem);
-            }
-        }
+        // Execute equipped commands.
+        parseAndExecuteBotCommands(createdItem.prefab.equipCommands, this.game, createdItem, this);
     }
 
     /**
@@ -1444,7 +1432,7 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
      * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
      */
-    async directEquip(item, equipmentSlot, notify = true) {
+    directEquip(item, equipmentSlot, notify = true) {
         item.row = equipmentSlot.row;
         equipmentSlot.equipItem(item);
 
@@ -1463,20 +1451,8 @@ export default class Player extends ItemContainer {
             }
             this.#coverEquippedItems(item);
 
-            // Run equip commands.
-            for (let i = 0; i < item.prefab.equipCommands.length; i++) {
-                const command = item.prefab.equipCommands[i];
-                if (command.startsWith("wait")) {
-                    let args = command.split(" ");
-                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(command, this.game, null, this, item);
-                }
-            }
+            // Execute equipped commands.
+            parseAndExecuteBotCommands(item.prefab.equipCommands, this.game, item, this);
         }
     }
 
@@ -1520,7 +1496,7 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
      * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
      */
-    async unequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+    unequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
         equipmentSlot.unequipItem(item);
 
         // Put the item in the player's hand.
@@ -1535,20 +1511,8 @@ export default class Player extends ItemContainer {
             this.setDescription(parser.addItem(this.getDescription(), createdItem, "hands"));
         this.#uncoverEquippedItems(createdItem);
 
-        // Run unequip commands.
-        for (let i = 0; i < createdItem.prefab.unequipCommands.length; i++) {
-            const command = createdItem.prefab.unequipCommands[i];
-            if (command.startsWith("wait")) {
-                let args = command.split(" ");
-                if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
-                const seconds = parseInt(args[1]);
-                if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
-                await sleep(seconds);
-            }
-            else {
-                executeCommand(command, this.game, null, this, createdItem);
-            }
-        }
+        // Execute unequipped commands.
+        parseAndExecuteBotCommands(createdItem.prefab.unequipCommands, this.game, createdItem, this);
     }
 
     /**
@@ -1556,7 +1520,7 @@ export default class Player extends ItemContainer {
      * This should only be used for inventory items that are about to be destroyed.
      * @param {InventoryItem} item - The inventory item to unequip.
      */
-    async directUnequip(item) {
+    directUnequip(item) {
         const equipmentSlot = this.inventoryCollection.get(item.equipmentSlot);
         equipmentSlot.unequipItem(item);
 
@@ -1572,20 +1536,8 @@ export default class Player extends ItemContainer {
             this.setDescription(parser.removeItem(this.getDescription(), item, "equipment"));
             this.#uncoverEquippedItems(item);
 
-            // Run unequip commands.
-            for (let i = 0; i < item.prefab.unequipCommands.length; i++) {
-                const command = item.prefab.unequipCommands[i];
-                if (command.startsWith("wait")) {
-                    let args = command.split(" ");
-                    if (!args[1]) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return messageHandler.addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(command, this.game, null, this, item);
-                }
-            }
+            // Execute unequipped commands.
+            parseAndExecuteBotCommands(item.prefab.unequipCommands, this.game, item, this);
         }
     }
 
@@ -2269,11 +2221,4 @@ export default class Player extends ItemContainer {
                 return statName;
         }
     }
-}
-
-/**
- * @param {number} seconds 
- */
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

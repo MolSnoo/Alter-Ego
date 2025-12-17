@@ -1,11 +1,11 @@
-﻿import { ChannelType, Message } from 'discord.js';
-import Event from '../Data/Event.js';
+﻿import Event from '../Data/Event.js';
 import Flag from '../Data/Flag.js';
 import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
-import * as messageHandler from './messageHandler.js';
+import { addReply, addGameMechanicMessage } from './messageHandler.js';
+import { ChannelType, Message } from 'discord.js';
 
 /**
  * Finds the right command file for the user and executes it.
@@ -16,13 +16,13 @@ import * as messageHandler from './messageHandler.js';
  * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable.
  * @returns {Promise<boolean>} Whether the command was successfully executed.
  */
-export default async function execute (commandStr, game, message, player, callee) {
+export async function executeCommand(commandStr, game, message, player, callee) {
     let isBot = false, isModerator = false, isPlayer = false, isEligible = false;
     // First, determine who is using the command.
     if (!message) isBot = true;
     else if ((message.channel.id === game.guildContext.commandChannel.id || commandStr.startsWith('delete'))
         && message.member.roles.resolve(game.guildContext.moderatorRole))
-            isModerator = true;
+        isModerator = true;
     else {
         // Don't attempt to find the member who sent this message if it was sent by a webhook.
         if (message.webhookId !== null) return false;
@@ -88,25 +88,25 @@ export default async function execute (commandStr, game, message, player, callee
         }
         if (message.channel.type === ChannelType.DM
             || message.channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(message.channel.parentId)) {
-            for (const livingPlayer of game.players_alive) {
+            for (const livingPlayer of game.livingPlayersCollection.values()) {
                 if (livingPlayer.id === message.author.id) {
                     player = livingPlayer;
                     break;
                 }
             }
             if (!player) {
-                messageHandler.addReply(game, message, "You are not on the list of living players.");
+                addReply(game, message, "You are not on the list of living players.");
                 return false;
             }
             const commandName = getCommandName(playerCommand);
-            const status = player.getAttributeStatusEffects("disable all");
-            if (status.length > 0 && !player.hasAttribute(`enable ${commandName}`)) {
-                if (player.statusString.includes("heated")) messageHandler.addReply(game, message, "The situation is **heated**. Moderator intervention is required.");
-                else messageHandler.addReply(game, message, `You cannot do that because you are **${status[0].id}**.`);
+            const status = player.getBehaviorAttributeStatusEffects("disable all");
+            if (status.length > 0 && !player.hasBehaviorAttribute(`enable ${commandName}`)) {
+                if (player.hasStatus("heated")) addReply(game, message, "The situation is **heated**. Moderator intervention is required.");
+                else addReply(game, message, `You cannot do that because you are **${status[0].id}**.`);
                 return false;
             }
             if (game.editMode && commandName !== "say") {
-                messageHandler.addReply(game, message, "You cannot do that because edit mode is currently enabled.");
+                addReply(game, message, "You cannot do that because edit mode is currently enabled.");
                 return false;
             }
 
@@ -116,7 +116,7 @@ export default async function execute (commandStr, game, message, player, callee
                 if (!game.settings.debug && commandName !== "say" && message.channel.type !== ChannelType.DM)
                     message.delete().catch();
             });
-            
+
             entry = {
                 timestamp: new Date(),
                 author: player.name,
@@ -151,4 +151,44 @@ export default async function execute (commandStr, game, message, player, callee
     }
 
     return false;
+}
+
+/**
+ * 
+ * @param {string[]} commandSet - A list of bot commands to pass into the command handler's execute function.
+ * @param {Game} game - The game in which the command is being executed.
+ * @param {Event|Flag|InventoryItem|Puzzle} callee - The in-game entity that caused the command to be executed.
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable.
+ */
+export async function parseAndExecuteBotCommands(commandSet, game, callee, player) {
+    for (let command of commandSet) {
+        if (command.startsWith("wait")) {
+            let args = command.split(" ");
+            if (!args[1]) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+            const seconds = parseInt(args[1]);
+            if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+            await sleep(seconds);
+        }
+        else {
+            if (callee instanceof Puzzle && callee.type === "matrix") {
+                const regex = /{([^{},/]+?)}/g;
+                let match;
+                while (match = regex.exec(command)) {
+                    for (const requirement of callee.requirements) {
+                        if (requirement instanceof Puzzle && requirement.name.toUpperCase() === match[1].toUpperCase() && requirement.outcome !== "") {
+                            command = command.replace(match[0], requirement.outcome);
+                        }
+                    }
+                }
+            }
+            executeCommand(command, game, null, player, callee);
+        }
+    }
+}
+
+/**
+ * @param {number} seconds 
+ */
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

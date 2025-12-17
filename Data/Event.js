@@ -2,8 +2,8 @@ import GameEntity from './GameEntity.js';
 import Game from './Game.js';
 import Narration from '../Data/Narration.js';
 import Status from './Status.js';
-import { default as executeCommand } from '../Modules/commandHandler.js';
-import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
+import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
+import { addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
 import Timer from '../Classes/Timer.js';
 import dayjs from 'dayjs';
@@ -212,21 +212,9 @@ export default class Event extends GameEntity {
             }
         }
 
-        if (doTriggeredCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.triggeredCommands.length; i++) {
-                if (this.triggeredCommands[i].startsWith("wait")) {
-                    let args = this.triggeredCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(this.triggeredCommands[i], this.game, null, null, this);
-                }
-            }
-        }
+        // Execute triggered commands.
+        if (doTriggeredCommands)
+            await parseAndExecuteBotCommands(this.triggeredCommands, this.game, this);
 
         // Begin the timer, if applicable.
         if (this.duration)
@@ -267,27 +255,13 @@ export default class Event extends GameEntity {
             }
         }
 
-        if (doEndedCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.endedCommands.length; i++) {
-                if (this.endedCommands[i].startsWith("wait")) {
-                    let args = this.endedCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(this.endedCommands[i], this.game, null, null, this);
-                }
-            }
-        }
+        // Execute ended commands.
+        if (doEndedCommands)
+            await parseAndExecuteBotCommands(this.endedCommands, this.game, this);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
         addLogMessage(this.game, `${time} - ${this.id} was ended.`);
-
-        return;
     }
 
     async startTimer() {
@@ -351,11 +325,4 @@ export default class Event extends GameEntity {
     endedCell() {
         return this.game.constants.eventSheetEndedColumn + this.row;
     }
-}
-
-/**
- * @param {number} seconds 
- */
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
