@@ -53,8 +53,8 @@ export default class GameEntityFinder {
 	 * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
 	 */
 	getFixture(name, location) {
-		if (location) this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
-		else this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
+		if (location) return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
+		else return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
 	}
 
 	/**
@@ -86,11 +86,18 @@ export default class GameEntityFinder {
 	 * Gets a puzzle.
 	 * @param {string} name - The name of the puzzle. 
 	 * @param {string} [location] - The ID or displayName of the room the puzzle is in. 
+	 * @param {string} [type] - The type of the puzzle.
+	 * @param {boolean} [accessible] - Whether the puzzle is accessible or not.
 	 * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
 	 */
-	getPuzzle(name, location) {
-		if (location) return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name) && puzzle.location.id === Room.generateValidId(location));
-		else return this.game.puzzles.find(puzzle => puzzle.name === Game.generateValidEntityName(name));
+	getPuzzle(name, location, type, accessible) {
+		/** @type {Collection<string|boolean, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (name) selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
+		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
+		if (type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
+		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
+		return this.game.puzzles.find(puzzle => selectedFilters.every((filterFunction, key) => filterFunction(puzzle, key)));
 	}
 
 	/**
@@ -128,7 +135,7 @@ export default class GameEntityFinder {
 	getLivingPlayer(name) {
 		return this.game.livingPlayersCollection.get(Game.generateValidEntityName(name));
 	}
-	
+
 	/**
 	 * Gets a dead player.
 	 * @param {string} name - The player's name. 
@@ -168,16 +175,25 @@ export default class GameEntityFinder {
 	/**
 	 * Gets a flag.
 	 * @param {string} id - The flag's ID. 
-	 * @param {boolean} [evaluate] - Whether or not to also evaluate the flag's value script and update its value. Does not execute the flag's set commands. Defaults to false.
 	 * @returns The flag with the specified ID. If no such flag exists, returns undefined.
 	 */
-	getFlag(id, evaluate = false) {
-		const flag = this.game.flags.get(Game.generateValidEntityName(id));
+	getFlag(id) {
+		return this.game.flags.get(Game.generateValidEntityName(id));
+	}
+
+	/**
+	 * Gets the value of a flag.
+	 * @param {string} id - The flag's ID. 
+	 * @param {boolean} [evaluate] - Whether or not to also evaluate the flag's value script and update its value. Does not execute the flag's set commands. Defaults to false.
+	 * @returns The value of the flag with the specified ID. If no such flag exists, returns undefined.
+	 */
+	getFlagValue(id, evaluate = false) {
+		const flag = this.getFlag(id);
 		if (flag && flag.valueScript && evaluate) {
 			const value = flag.evaluate();
 			flag.setValue(value, false);
 		}
-		return flag ? flag.value : flag;
+		return flag ? flag.value : undefined;
 	}
 
 	/**

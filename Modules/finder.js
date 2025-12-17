@@ -148,7 +148,7 @@ export function findGesture(container, id) {
  * @returns The flag with the specified ID. If no such flag exists, returns undefined.
  */
 export function findFlag(container, id, evaluate = false) {
-    return container.game.entityFinder.getFlag(id, evaluate);
+    return container.game.entityFinder.getFlagValue(id, evaluate);
 }
 
 /**

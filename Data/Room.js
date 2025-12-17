@@ -101,7 +101,7 @@ export default class Room extends GameEntity {
         this.exitCollection = exits;
         this.description = description;
 
-         /** @type {Player[]} */
+        /** @type {Player[]} */
         this.occupants = [];
         this.occupantsString = "";
     }
@@ -138,12 +138,12 @@ export default class Room extends GameEntity {
             player.pos = pos;
         }
         if (entranceMessage) new Narration(this.game, player, this, entranceMessage).send();
-        
-        if (player.getAttributeStatusEffects("no channel").length === 0)  
+
+        if (player.getBehaviorAttributeStatusEffects("no channel").length === 0)
             this.joinChannel(player);
 
         if (sendDescription) {
-            if (player.hasAttribute("no sight"))
+            if (player.hasBehaviorAttribute("no sight"))
                 player.notify("Fumbling against the wall, you make your way to the next room over.");
             else {
                 let description;
@@ -155,7 +155,7 @@ export default class Room extends GameEntity {
         }
 
         this.occupants.push(player);
-        this.occupantsString = this.generate_occupantsString(this.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
+        this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
     }
 
     /**
@@ -168,7 +168,7 @@ export default class Room extends GameEntity {
         if (exitMessage) new Narration(this.game, player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
-        this.occupantsString = this.generate_occupantsString(this.occupants.filter(occupant => !occupant.hasAttribute("hidden")));
+        this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
         player.removeFromWhispers(`${player.displayName} leaves the room.`);
     }
 
@@ -177,7 +177,7 @@ export default class Room extends GameEntity {
      * @param {Player[]} list
      * @returns {string}
      */
-    generate_occupantsString(list) {
+    generateOccupantsString(list) {
         list.sort(function (a, b) {
             let nameA = a.displayName.toLowerCase();
             let nameB = b.displayName.toLowerCase();

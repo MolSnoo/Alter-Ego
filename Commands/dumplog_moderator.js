@@ -2,7 +2,7 @@ import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import prettyFormat from 'pretty-format';
+import { format as prettyFormat } from 'pretty-format';
 import zlib from 'zlib';
 import fs from 'fs';
 
@@ -30,7 +30,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}dumplog`;
 }
 
@@ -40,13 +40,13 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
-    const dataGame = prettyFormat.format(game, {
+export async function execute(game, message, command, args) {
+    const dataGame = prettyFormat(game, {
         plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });
-    
-    const dataLog = prettyFormat.format(game.botContext.commandLog, {
+
+    const dataLog = prettyFormat(game.botContext.commandLog, {
         plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });
@@ -117,7 +117,7 @@ const simpleFilterPlugin = {
 
     print: (val) => {
         const constructorName = val.constructor?.name;
-        
+
         switch (constructorName) {
             case 'Guild':
                 return `<Guild "${val.name || 'unknown'}">`;
@@ -150,7 +150,7 @@ const complexFilterPlugin = {
 
     serialize: (val, config, indentation, depth, refs, printer) => {
         const constructorName = val.constructor?.name;
-        
+
         switch (constructorName) {
             case 'Player':
                 if (depth > 2) {

@@ -27,7 +27,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}status add mari heated\n`
         + `${settings.commandPrefix}inflict yume heated\n`
         + `${settings.commandPrefix}status add aki saay yuko haru asleep\n`
@@ -46,7 +46,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (command === "status") {
         if (args[0] === "add" || args[0] === "inflict") command = "inflict";
         else if (args[0] === "remove" || args[0] === "cure") command = "cure";
@@ -114,9 +114,7 @@ export async function execute (game, message, command, args) {
         }
     }
     else if (command === "view") {
-        const response = `${players[0].name}'s status:\n${players[0].generate_statusList(true, true)}`;
+        const response = `${players[0].name}'s status:\n${players[0].getStatusList(true, true)}`;
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
     }
-
-    return;
 }

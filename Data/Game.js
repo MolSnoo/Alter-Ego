@@ -95,10 +95,10 @@ export default class Game {
 	 */
 	editMode;
 	/**
-	 * Whether or not the entities currently loaded into memory have errors. The game is not playable while this is true.
-	 * @type {boolean}
+	 * A set of data types that have been loaded with errors. The game is not playable if this set isn't empty.
+	 * @type {Set<string>}
 	 */
-	loadedEntitiesHaveErrors;
+	loadedEntitiesWithErrors;
 	/** 
 	 * An array of all rooms in the game.
 	 * @deprecated
@@ -276,6 +276,7 @@ export default class Game {
 		this.endTimer = null;
 		this.heated = false;
 		this.editMode = false;
+		this.loadedEntitiesWithErrors = new Set();
 		this.rooms = [];
 		this.roomsCollection = new Collection();
 		this.objects = [];
@@ -320,15 +321,15 @@ export default class Game {
 				const now = dayjs();
 				this.eventsCollection.forEach(event => {
 					if (!event.ongoing) {
-						for (let triggerTime of event.triggerTimes) {
-							const time = dayjs(triggerTime, Event.formats);
+						for (let triggerTimeString of event.triggerTimesStrings) {
+							const time = dayjs(triggerTimeString, Event.formats);
 							if (now.month() === time.month()
 								&& now.weekday() === time.weekday()
 								&& now.date() === time.date()
 								&& now.hour() === time.hour()
 								&& now.minute() === time.minute()) {
-									event.trigger(true);
-									break;
+								event.trigger(true);
+								break;
 							}
 						}
 					}

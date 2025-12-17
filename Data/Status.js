@@ -108,12 +108,19 @@ export default class Status extends GameEntity {
      */
     statModifiers;
     /**
+     * The behavior attributes this status applies to the player. Deprecated. Use behaviorAttributes instead.
+     * @deprecated
+     * @readonly
+     * @type {string[]}
+     */
+    attributes;
+    /**
      * The behavior attributes this status applies to the player.
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes
      * @readonly
      * @type {string[]}
      */
-    attributes;
+    behaviorAttributes;
     /**
      * The description of the status when a player is inflicted with it.
      * @readonly
@@ -144,13 +151,13 @@ export default class Status extends GameEntity {
      * @param {string} duplicatedStatusId - The ID of the status that this Status will turn into if it is inflicted on a player who already has it.
      * @param {string} curedConditionId - The ID of the status that will be inflicted on the player if this one is cured.
      * @param {StatModifier[]} statModifiers - Stat modifiers to apply to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#stat-modifiers}
-     * @param {string[]} attributes - The behavior attributes this status applies to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes}
+     * @param {string[]} behaviorAttributes - The behavior attributes this status applies to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes}
      * @param {string} inflictedDescription - The description of the status when a player is inflicted with it.
      * @param {string} curedDescription - The description of the status when a player is cured of it.
      * @param {number} row - The row number of the status in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, duration, fatal, visible, overridersStrings, curesStrings, nextStageId, duplicatedStatusId, curedConditionId, statModifiers, attributes, inflictedDescription, curedDescription, row, game) {
+    constructor(id, duration, fatal, visible, overridersStrings, curesStrings, nextStageId, duplicatedStatusId, curedConditionId, statModifiers, behaviorAttributes, inflictedDescription, curedDescription, row, game) {
         super(game, row);
         this.id = id;
         this.name = id;
@@ -163,16 +170,43 @@ export default class Status extends GameEntity {
         this.curesStrings = curesStrings;
         this.cures = new Array(this.curesStrings.length);
         this.nextStageId = nextStageId;
+        this.nextStage = null;
         this.duplicatedStatusId = duplicatedStatusId;
+        this.duplicatedStatus = null;
         this.curedConditionId = curedConditionId;
+        this.curedCondition = null;
         this.statModifiers = statModifiers;
-        this.attributes = attributes;
+        this.behaviorAttributes = behaviorAttributes;
+        this.attributes = behaviorAttributes;
         this.inflictedDescription = inflictedDescription;
         this.curedDescription = curedDescription;
 
         this.timer = null;
     }
 
+    /**
+     * Sets the next stage.
+     * @param {Status} nextStage 
+     */
+    setNextStage(nextStage) {
+        this.nextStage = nextStage;
+    }
+
+    /**
+     * Sets the duplicated status.
+     * @param {Status} duplicatedStatus 
+     */
+    setDuplicatedStatus(duplicatedStatus) {
+        this.duplicatedStatus = duplicatedStatus;
+    }
+
+    /**
+     * Sets the cured condition.
+     * @param {Status} curedCondition 
+     */
+    setCuredCondition(curedCondition) {
+        this.curedCondition = curedCondition;
+    }
 
     inflictedCell() {
         return this.game.constants.statusSheetInflictedColumn + this.row;

@@ -93,11 +93,11 @@ export default class Puzzle extends ItemContainer {
     /**
      * Puzzle names, event IDs, prefab IDs or flag IDs that are required for the puzzle to be made accessible. 
      * @readonly
-     * @type {string[]} 
+     * @type {PuzzleRequirement[]} 
      */ 
     requirementsStrings;
     /** 
-     * An array of puzzles
+     * An array of game entities required for the puzzle to be solved when attempted.
      * @type {Array<Puzzle|Event|Prefab|Flag>}
      */
     requirements;
@@ -164,7 +164,7 @@ export default class Puzzle extends ItemContainer {
      * @param {string} parentFixtureName - The name of the fixture associated with the puzzle.
      * @param {string} type - The type of puzzle. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type}
      * @param {boolean} accessible - Whether the puzzle can be interacted with.
-     * @param {string[]} requirementsStrings - Puzzle names, event IDs, prefab IDs or flag IDs that are required for the puzzle to be made accessible.
+     * @param {PuzzleRequirement[]} requirementsStrings - Puzzle names, event IDs, prefab IDs or flag IDs that are required for the puzzle to be made accessible.
      * @param {string[]} solutions - The solutions to the puzzle.
      * @param {number} remainingAttempts - The number of attempts the player has left to solve the puzzle.
      * @param {string} commandSetsString - The string representation of the bot commands to be executed when the puzzle is solved or unsolved with specified outcomes.
@@ -192,7 +192,7 @@ export default class Puzzle extends ItemContainer {
         this.type = type;
         this.accessible = accessible;
         this.requirementsStrings = requirementsStrings;
-        this.requirements = [];
+        this.requirements = new Array(this.requirementsStrings.length);
         this.solutions = solutions;
         this.remainingAttempts = remainingAttempts;
         this.commandSetsString = commandSetsString;

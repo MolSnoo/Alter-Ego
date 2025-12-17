@@ -1,18 +1,18 @@
 import type { ActivitiesOptions, ActivityType, GuildMember, Message, Snowflake } from "discord.js";
+import type GameSettings from "./Classes/GameSettings.js";
 import type Event from "./Data/Event.js";
 import type Flag from "./Data/Flag.js";
 import type Game from "./Data/Game.js";
+import type GameEntity from "./Data/GameEntity.js";
 import type InventoryItem from "./Data/InventoryItem.js";
 import type Player from "./Data/Player.js";
 import type Puzzle from "./Data/Puzzle.js";
-import type GameSettings from "./Classes/GameSettings.js";
 import type Recipe from "./Data/Recipe.js";
 import type RoomItem from "./Data/RoomItem.js";
 import type { Duration } from "dayjs/plugin/duration.js";
-import type GameEntity from "./Data/GameEntity.js";
 import type { Node } from "acorn";
 
-export {};
+export { };
 
 declare global {
 	/**
@@ -21,7 +21,7 @@ declare global {
 	 * @property {string} type - The type of activity. {@link https://discord.com/developers/docs/events/gateway-events#activity-object-activity-types}
 	 * @property {string} [url] - The URL of the activity, if applicable.
 	 */
-	interface Activity extends ActivitiesOptions{
+	interface Activity extends ActivitiesOptions {
 		name: string;
 		type: ActivityType;
 		url?: string;
@@ -64,7 +64,7 @@ declare global {
 		aliases: string[];
 		requiresGame: boolean;
 	}
-	
+
 	/**
 	 * Represents an abstract command with its configuration.
 	 * @property {CommandConfig} config - The specific configuration of the command.
@@ -76,7 +76,7 @@ declare global {
 	}
 
 	interface IBotCommand extends Command {
-		execute: (game: Game, command: string, args: string[], player?: Player, callee?: Event|Flag|InventoryItem|Puzzle) => Promise<void>;
+		execute: (game: Game, command: string, args: string[], player?: Player, callee?: Event | Flag | InventoryItem | Puzzle) => Promise<void>;
 	}
 
 	interface IModeratorCommand extends Command {
@@ -117,7 +117,7 @@ declare global {
 	 * @param {boolean} [normalize] - Whether or not to normalize the criteria before matching. Defaults to false.
 	 * @returns {boolean} - Whether the entity matches the criteria.
 	 */
-	type GameEntityMatcher = (entity: GameEntity, criteria: string|number|boolean, normalize?: boolean) => boolean;
+	type GameEntityMatcher = (entity: GameEntity, criteria: string | number | boolean, normalize?: boolean) => boolean;
 
 	/**
 	 * Represents a range of values in a spreadsheet.
@@ -132,30 +132,30 @@ declare global {
 	}
 
 	/**
-     * Represents a 3D position.
-     * @property x - X coordinate
-     * @property y - Y coordinate
-     * @property z - Z coordinate
-     */
-    interface Pos {
+	 * Represents a 3D position.
+	 * @property x - X coordinate
+	 * @property y - Y coordinate
+	 * @property z - Z coordinate
+	 */
+	interface Pos {
 
-        x: number;
-        y: number;
-        z: number;
-    }
+		x: number;
+		y: number;
+		z: number;
+	}
 
 	/**
-     * @property recipe - The recipe being processed.
-     * @property ingredients - The ingredients used in the recipe.
-     * @property duration - The duration of the recipe.
-     * @property timer - The timer used to track the duration of the recipe.
-     */
-    interface Process {
-        recipe?: Recipe;
-        ingredients: RoomItem[];
-        duration?: Duration;
-        timer?: any;
-    }
+	 * @property recipe - The recipe being processed.
+	 * @property ingredients - The ingredients used in the recipe.
+	 * @property duration - The duration of the recipe.
+	 * @property timer - The timer used to track the duration of the recipe.
+	 */
+	interface Process {
+		recipe?: Recipe;
+		ingredients: RoomItem[];
+		duration?: Duration;
+		timer?: any;
+	}
 
 	/**
 	 * @property recipe - The recipe found.
@@ -180,48 +180,48 @@ declare global {
 	}
 
 	/**
-     * A player's third-person pronouns.
-     * @property sbj - The subjective pronoun.
-     * @property Sbj - The subjective pronoun with first letter capitalized.
-     * @property obj - The objective pronoun.
-     * @property Obj - The objective pronoun with first letter capitalized.
-     * @property dpos - The dependent possessive pronoun.
-     * @property Dpos - The dependent possessive pronoun with first letter capitalized.
-     * @property ipos - The independent possessive pronoun.
-     * @property Ipos - The independent possessive pronoun with first letter capitalized.
-     * @property ref - The reflexive pronoun.
-     * @property Ref - The reflexive pronoun with first letter capitalized.
-     * @property plural - Whether this set of pronouns turns verbs into their plural form.
-     */
-    interface Pronouns {
-        sbj?: string;
-        Sbj?: string;
-        obj?: string;
-        Obj?: string;
-        dpos?: string;
-        Dpos?: string;
-        ipos?: string;
-        Ipos?: string;
-        ref?: string;
-        Ref?: string;
-        plural?: boolean;
-    }
+	 * A player's third-person pronouns.
+	 * @property sbj - The subjective pronoun.
+	 * @property Sbj - The subjective pronoun with first letter capitalized.
+	 * @property obj - The objective pronoun.
+	 * @property Obj - The objective pronoun with first letter capitalized.
+	 * @property dpos - The dependent possessive pronoun.
+	 * @property Dpos - The dependent possessive pronoun with first letter capitalized.
+	 * @property ipos - The independent possessive pronoun.
+	 * @property Ipos - The independent possessive pronoun with first letter capitalized.
+	 * @property ref - The reflexive pronoun.
+	 * @property Ref - The reflexive pronoun with first letter capitalized.
+	 * @property plural - Whether this set of pronouns turns verbs into their plural form.
+	 */
+	interface Pronouns {
+		sbj?: string;
+		Sbj?: string;
+		obj?: string;
+		Obj?: string;
+		dpos?: string;
+		Dpos?: string;
+		ipos?: string;
+		Ipos?: string;
+		ref?: string;
+		Ref?: string;
+		plural?: boolean;
+	}
 
 	/**
-     * Represents a player's stats.
-     * @property {number} strength - Physical strength.
-     * @property {number} intelligence - Intelligence or perception.
-     * @property {number} dexterity - Agility or dexterity.
-     * @property {number} speed - Movement speed.
-     * @property {number} stamina - Physical stamina.
-     */
-    interface Stats {
-        strength: number;
-        intelligence: number;
-        dexterity: number;
-        speed: number;
-        stamina: number;
-    }
+	 * Represents a player's stats.
+	 * @property {number} strength - Physical strength.
+	 * @property {number} intelligence - Intelligence or perception.
+	 * @property {number} dexterity - Agility or dexterity.
+	 * @property {number} speed - Movement speed.
+	 * @property {number} stamina - Physical stamina.
+	 */
+	interface Stats {
+		strength: number;
+		intelligence: number;
+		dexterity: number;
+		speed: number;
+		stamina: number;
+	}
 
 	/**
 	 * @property {boolean} modifiesSelf - Whether the stat modifier modifies the player's own stat.
@@ -234,6 +234,15 @@ declare global {
 		stat: string;
 		assignValue: boolean;
 		value: number;
+	}
+
+	/**
+	 * @property {string} id - The ID of the status effect.
+	 * @property {string} timeRemaining - The remaining time for the status effect.
+	 */
+	interface StatusDisplay {
+		id: string;
+		timeRemaining: string;
 	}
 
 	/**
@@ -257,46 +266,38 @@ declare global {
 	/**
 	 * @property {InventoryItem|null} ingredient1 - The first ingredient recovered from uncrafting, or null if none.
 	 * @property {InventoryItem|null} ingredient2 - The second ingredient recovered from uncrafting, or null if none.
-	 */	
+	 */
 	interface UncraftingResult {
 		ingredient1: InventoryItem | null;
 		ingredient2: InventoryItem | null;
 	}
 
-	/**
-     * @property {string} command - The command alias that was used
-     * @property {string} input - The combined arguments of the command
-     * @property {Message} [message] - The message that triggered the command
-     * @property {Player} [targetPlayer] - The player targeted by the command
-     */
-	interface Misc {
-        command: string;
-        input: string;
-        message?: Message;
-        targetPlayer?: Player;
-    }
+	interface PuzzleRequirement {
+		type: string;
+		entityId: string
+	}
 
 	/**
-     * @property [outcomes] - Strings indicating which puzzle solutions will execute the commands in this command set.
-     * @property solvedCommands - Bot commands that will be executed when the puzzle is solved.
-     * @property unsolvedCommands - Bot commands that will be executed when the puzzle is unsolved.
-     */
-    interface PuzzleCommandSet {
-        outcomes?: string[];
-        solvedCommands: string[];
-        unsolvedCommands: string[];
-    }
+	 * @property [outcomes] - Strings indicating which puzzle solutions will execute the commands in this command set.
+	 * @property solvedCommands - Bot commands that will be executed when the puzzle is solved.
+	 * @property unsolvedCommands - Bot commands that will be executed when the puzzle is unsolved.
+	 */
+	interface PuzzleCommandSet {
+		outcomes?: string[];
+		solvedCommands: string[];
+		unsolvedCommands: string[];
+	}
 
 	/**
-     * @property [values] - Strings indicating which flag values will execute the commands in this command set.
-     * @property setCommands - Bot commands that will be executed when the flag is set.
-     * @property clearedCommands - Bot commands that will be executed when the flag is cleared.
-     */
-    interface FlagCommandSet {
-        values?: string[];
-        setCommands: string[];
-        clearedCommands: string[];
-    }
+	 * @property [values] - Strings indicating which flag values will execute the commands in this command set.
+	 * @property setCommands - Bot commands that will be executed when the flag is set.
+	 * @property clearedCommands - Bot commands that will be executed when the flag is cleared.
+	 */
+	interface FlagCommandSet {
+		values?: string[];
+		setCommands: string[];
+		clearedCommands: string[];
+	}
 
 	/**
 	 * @property {number} number - The total modifier value.
@@ -322,7 +323,7 @@ declare global {
 		singleContainingPhrase?: string,
 		pluralContainingPhrase?: string
 	}
-	
+
 	/**
 	 * Represents a simplified player object for use in various places.
 	 * @property {string} [name] - The name of the player.
@@ -356,10 +357,17 @@ declare global {
 		chance: number;
 	}
 
+	interface DayJsDurationInput {
+		days?: number;
+		hours?: number;
+		minutes?: number;
+		seconds?: number;
+	}
+
 	interface TimerAttributes {
 		loop: boolean;
 		start: boolean;
-  }
+	}
 
 	interface TestParserWarningOrError {
 		cell: string;
@@ -384,7 +392,7 @@ declare global {
 	 */
 	type ScriptEvaluationContext = {
 		container: GameEntity;
-		player: Player|PseudoPlayer;
+		player: Player | PseudoPlayer;
 	};
 
 	/**

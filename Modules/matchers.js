@@ -464,7 +464,7 @@ export const statusStatModifiersMatches = (status, statsString, normalize = fals
 export const statusAttributeMatches = (status, attributesString, normalize = false) => {
 	let attributes = attributesString.split(',');
 	if (normalize) attributes.forEach((attribute, i) => attributes[i] = attribute.trim());
-	return attributes.every(attribute => status.attributes.includes(attribute));
+	return attributes.every(attribute => status.behaviorAttributes.includes(attribute));
 };
 
 /**

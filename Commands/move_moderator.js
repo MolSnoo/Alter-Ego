@@ -20,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}move joshua door 2\n`
         + `${settings.commandPrefix}move val amber devyn trial grounds\n`
         + `${settings.commandPrefix}move living diner\n`
@@ -33,7 +33,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
 
@@ -132,17 +132,14 @@ export async function execute (game, message, command, args) {
             }
 
             const appendString = players[i].createMoveAppendString();
-            var exitMessage; 
+            var exitMessage;
             if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}${appendString}`;
             else exitMessage = `${players[i].displayName} exits${appendString}`;
             var entranceMessage;
             if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
             else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Clear the player's movement timer first.
-            players[i].isMoving = false;
-            clearInterval(players[i].moveTimer);
-            players[i].remainingTime = 0;
-            players[i].moveQueue.length = 0;
+            players[i].stopMoving();
             // Solve the exit puzzle, if applicable.
             if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
                 exitPuzzle.solve(players[i], "", players[i].name, true);
