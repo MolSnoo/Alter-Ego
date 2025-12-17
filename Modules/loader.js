@@ -16,7 +16,7 @@ import Status from '../Data/Status.js';
 import Player from '../Data/Player.js';
 import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
-
+import { convertTimeStringToDurationUnits, parseDuration } from './helpers.js';
 import { ChannelType, Collection } from 'discord.js';
 import dayjs from 'dayjs';
 dayjs().format();
@@ -1004,7 +1004,7 @@ export function loadEvents(game, doErrorChecking) {
         for (let row = 0; row < sheet.length; row++) {
             const durationString = sheet[row][columnDurationString] ? String(sheet[row][columnDurationString]) : "";
             const duration = parseDuration(durationString);
-            const timeRemaining = sheet[row][columnRemainingString] ? dayjs.duration(sheet[row][columnRemainingString]) : null;
+            const timeRemaining = sheet[row][columnRemainingString] ? dayjs.duration(convertTimeStringToDurationUnits(sheet[row][columnRemainingString])) : null;
             let triggerTimesStrings = sheet[row][columnTriggerTimesStrings] ? sheet[row][columnTriggerTimesStrings].split(',') : [];
             for (let i = 0; i < triggerTimesStrings.length; i++)
                 triggerTimesStrings[i] = triggerTimesStrings[i].trim();
@@ -1373,7 +1373,7 @@ export function loadPlayers(game, doErrorChecking) {
                     player.statusDisplays.forEach(statusDisplay => {
                         const status = game.entityFinder.getStatusEffect(statusDisplay.id);
                         if (status) {
-                            const timeRemaining = statusDisplay.timeRemaining ? dayjs.duration(statusDisplay.timeRemaining) : null;
+                            const timeRemaining = statusDisplay.timeRemaining ? dayjs.duration(convertTimeStringToDurationUnits(statusDisplay.timeRemaining)) : null;
                             player.inflict(status, false, false, false, null, timeRemaining);
                         }
                     });
@@ -1457,9 +1457,11 @@ export function checkPlayer(player) {
     for (let statusDisplay of player.statusDisplays) {
         if (!player.hasStatus(statusDisplay.id))
             return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`);
-        const timeRemaining = dayjs(statusDisplay.timeRemaining);
-        if (statusDisplay.timeRemaining !== null && !dayjs.isDuration(timeRemaining))
-            return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`);
+        if (statusDisplay.timeRemaining) {
+            const timeRemaining = dayjs.duration(convertTimeStringToDurationUnits(statusDisplay.timeRemaining));
+            if (!dayjs.isDuration(timeRemaining))
+                return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`);
+        }
     }
 }
 
@@ -1892,21 +1894,6 @@ export function checkFlag(flag) {
             flag.value = value;
         } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
     }
-}
-
-/**
- * Parses a duration string and returns a duration object.
- * @param {string} durationString - An integer and a unit. Acceptable units: y, M, w, d, h, m, s.
- * @returns A duration object, or null.
- */
-function parseDuration(durationString) {
-    let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
-    let durationUnit = durationString.charAt(durationString.length - 1);
-    /** @type {import('dayjs/plugin/duration.js').Duration} */
-    let duration = null;
-    if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
-        duration = dayjs.duration(durationInt, durationUnit);
-    return duration;
 }
 
 /**

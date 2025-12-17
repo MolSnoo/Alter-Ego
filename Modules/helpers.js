@@ -1,13 +1,52 @@
 import Game from "../Data/Game.js";
 import { EmbedBuilder } from "discord.js";
+import dayjs from 'dayjs';
+dayjs().format();
 
 /**
  * Gets a random string out of an array of possibilties.
  * @param {string[]} possibilities - A list of strings to choose from.
  * @returns A randomly chosen entry from possibilities.
  */
-export function getRandomString (possibilities = []) {
+export function getRandomString(possibilities = []) {
 	return possibilities[Math.floor(Math.random() * possibilities.length)];
+}
+
+/**
+ * Parses a duration string and returns a duration object.
+ * @param {string} durationString - An integer and a unit. Acceptable units: y, M, w, d, h, m, s.
+ * @returns A duration object, or null.
+ */
+export function parseDuration(durationString) {
+	let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
+	let durationUnit = durationString.charAt(durationString.length - 1);
+	/** @type {import('dayjs/plugin/duration.js').Duration} */
+	let duration = null;
+	if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
+		duration = dayjs.duration(durationInt, durationUnit);
+	return duration;
+}
+
+/**
+ * Converts a time string to a dayjs duration input object.
+ * @param {string} timeString - The string to convert. The format is `D? HH:mm:ss`, e.g. `1 23:59:59`.
+ * @returns {DayJsDurationInput} The input object to pass into the duration constructor.
+ */
+export function convertTimeStringToDurationUnits(timeString) {
+	const timeRegex = /^(?<days>\d+)? ?(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2})$/;
+	const timeMatch = timeString.match(timeRegex);
+	if (timeMatch?.groups) {
+		const daysValue = timeMatch.groups.days ? parseInt(timeMatch.groups.days) : 0;
+		const hoursValue = timeMatch.groups.hours ? parseInt(timeMatch.groups.hours) : 0;
+		const minutesValue = timeMatch.groups.minutes ? parseInt(timeMatch.groups.minutes) : 0;
+		const secondsValue = timeMatch.groups.seconds ? parseInt(timeMatch.groups.seconds) : 0;
+		return {
+			days: daysValue,
+			hours: hoursValue,
+			minutes: minutesValue,
+			seconds: secondsValue
+		};
+	}
 }
 
 /**
@@ -23,10 +62,10 @@ export function getRandomString (possibilities = []) {
  */
 export function createPaginatedEmbed(game, page, pages, authorName, authorIcon, description, getFieldName, getFieldValue) {
 	let embed = new EmbedBuilder()
-	.setColor(Number(`0x${game.settings.embedColor}`))
-	.setAuthor({ name: authorName, iconURL: authorIcon })
-	.setDescription(description)
-	.setFooter({ text: `Page ${page + 1}/${pages.length}` });
+		.setColor(Number(`0x${game.settings.embedColor}`))
+		.setAuthor({ name: authorName, iconURL: authorIcon })
+		.setDescription(description)
+		.setFooter({ text: `Page ${page + 1}/${pages.length}` });
 	let fields = [];
 	for (let entryIndex = 0; entryIndex < pages[page].length; entryIndex++)
 		fields.push({ name: getFieldName(entryIndex), value: getFieldValue(entryIndex) });
