@@ -8,7 +8,7 @@ import { ChannelType, Message } from 'discord.js';
 /**
  * Interprets a dialog message and executes behavior caused by it.
  * @param {Game} game - The game in which the dialog was sent.
- * @param {Message} message - The message which sent the dialog.
+ * @param {AEMessage} message - The message which sent the dialog.
  * @param {boolean} deletable - Whether the dialog message can be deleted by the bot. If it was sent in a DM channel, it can't be deleted.
  * @param {Player} [player] - The player who sent the dialog.
  * @param {string} [originalDisplayName] - The original displayName of the player who sent the dialog, in case their real displayName needs to be hidden.

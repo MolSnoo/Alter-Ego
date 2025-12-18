@@ -36,7 +36,7 @@ export function usage (settings) {
 
 /**
  * @param {Game} game - The game in which the command is being executed. 
- * @param {Message} message - The message in which the command was issued. 
+ * @param {AEMessage} message - The message in which the command was issued. 
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
@@ -122,7 +122,7 @@ export async function execute (game, message, command, args) {
 /**
  * 
  * @param {Game} game - The game the whisper is occurring in.
- * @param {Message} message - The Discord message that triggered this.
+ * @param {AEMessage} message - The Discord message that triggered this.
  * @param {string} messageText - The text of the message to send.
  * @param {Player} npc - The NPC player whispering this message.
  * @param {Whisper} whisper - The whisper this is occurring in.

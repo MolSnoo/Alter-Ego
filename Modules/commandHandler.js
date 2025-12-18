@@ -11,7 +11,7 @@ import { ChannelType, Message } from 'discord.js';
  * Finds the right command file for the user and executes it.
  * @param {string} commandStr - The full text of the command issued.
  * @param {Game} game - The game in which the command is being executed.
- * @param {Message} [message] - The message in which the command was issued, if applicable.
+ * @param {AEMessage} [message] - The message in which the command was issued, if applicable.
  * @param {Player} [player] - The player who issued the command, or caused it to be executed, if applicable.
  * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable.
  * @returns {Promise<boolean>} Whether the command was successfully executed.

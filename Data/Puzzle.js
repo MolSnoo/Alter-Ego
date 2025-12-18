@@ -382,7 +382,7 @@ export default class Puzzle extends ItemContainer {
      * @param {string} narration - The message to be narrated in the room.
      * @param {string} command - The command alias that was used to attempt the puzzle.
      * @param {string} input - The combined arguments of the command.
-     * @param {Message} [message] - The message that triggered the puzzle attempt.
+     * @param {AEMessage} [message] - The message that triggered the puzzle attempt.
      */
     requirementsNotMet(player, narration, command, input, message) {
         // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
