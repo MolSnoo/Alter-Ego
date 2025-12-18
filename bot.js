@@ -231,6 +231,7 @@ function loadGameSettings() {
         settings.autoDeleteWhisperChannels,
         embedColor,
         settings.showOnlinePlayerCount,
+        settings.autoLoad,
         onlineActivity,
         debugModeActivity,
         gameInProgressActivity
@@ -271,6 +272,14 @@ client.on('clientReady', async () => {
     game.setBotContext();
     botContext.updatePresence();
     if (doSendFirstBootMessage) sendFirstBootMessage();
+    if (game.settings.autoLoad) {
+        // commands seems to need time to "settle". the below snippet breaks if run synchronously
+        setTimeout(() => {
+            let loadcmd = botContext.moderatorCommands.get("load_moderator");
+            if (loadcmd)
+                loadcmd.execute(game, undefined, "lar", []);
+        }, 0);
+    }
 });
 
 client.on('messageCreate', async message => {
