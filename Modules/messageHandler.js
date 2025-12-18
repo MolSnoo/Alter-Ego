@@ -15,7 +15,9 @@ export async function addNarration(room, messageText, addSpectate = true, speake
     if (messageText !== "") {
         room.game.messageQueue.enqueue(
             {
-                fire: async () => await room.channel.send(messageText),
+                fire: async () => {
+                    await room.channel.send(messageText);
+                },
             },
             "tell"
         );
@@ -30,7 +32,9 @@ export async function addNarration(room, messageText, addSpectate = true, speake
                 ) {
                     room.game.messageQueue.enqueue(
                         {
-                            fire: async () => await player.spectateChannel.send(messageText),
+                            fire: async () => {
+                                await player.spectateChannel.send(messageText);
+                            },
                         },
                         "spectator"
                     );
@@ -50,7 +54,9 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
     if (messageText !== "") {
         whisper.game.messageQueue.enqueue(
             {
-                fire: async () => await whisper.channel.send(messageText),
+                fire: async () => {
+                    await whisper.channel.send(messageText);
+                },
             },
             "tell"
         );
@@ -64,7 +70,9 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
                 ) {
                     whisper.game.messageQueue.enqueue(
                         {
-                            fire: async () => await player.spectateChannel.send(spectateMessageText),
+                            fire: async () => {
+                                await player.spectateChannel.send(spectateMessageText);
+                            },
                         },
                         "spectator"
                     );
@@ -84,7 +92,9 @@ export async function addDirectNarration(player, messageText, addSpectate = true
     if (!player.isNPC) {
         player.game.messageQueue.enqueue(
             {
-                fire: async () => await player.member.send(messageText),
+                fire: async () => {
+                    await player.member.send(messageText);
+                },
             },
             "tell"
         );
@@ -92,7 +102,9 @@ export async function addDirectNarration(player, messageText, addSpectate = true
     if (addSpectate && player.spectateChannel !== null) {
         player.game.messageQueue.enqueue(
             {
-                fire: async () => await player.spectateChannel.send(messageText),
+                fire: async () => {
+                    await player.spectateChannel.send(messageText);
+                },
             },
             "spectator"
         );
@@ -113,10 +125,12 @@ export async function addDirectNarrationWithAttachments(player, messageText, att
         player.game.messageQueue.enqueue(
             {
                 fire: async () =>
-                    await player.member.send({
-                        content: messageText,
-                        files: files,
-                    }),
+                    {
+                        await player.member.send({
+                            content: messageText,
+                            files: files,
+                        });
+                    },
             },
             "tell"
         );
@@ -124,11 +138,12 @@ export async function addDirectNarrationWithAttachments(player, messageText, att
     if (addSpectate && player.spectateChannel !== null) {
         player.game.messageQueue.enqueue(
             {
-                fire: async () =>
+                fire: async () => {
                     await player.spectateChannel.send({
                         content: messageText,
                         files: files,
-                    }),
+                    });
+                },
             },
             "spectator"
         );
@@ -199,11 +214,12 @@ export async function addRoomDescription(player, location, descriptionText, defa
         if (!player.isNPC) {
             location.game.messageQueue.enqueue(
                 {
-                    fire: async () =>
+                    fire: async () => {
                         await player.member.send({
                             components: components,
-                            flags: MessageFlags.IsComponentsV2
-                        }),
+                            flags: MessageFlags.IsComponentsV2,
+                        });
+                    },
                 },
                 "tell"
             );
@@ -211,11 +227,12 @@ export async function addRoomDescription(player, location, descriptionText, defa
         if (addSpectate && player.spectateChannel !== null) {
             location.game.messageQueue.enqueue(
                 {
-                    fire: async () =>
+                    fire: async () => {
                         await player.spectateChannel.send({
                             components: components,
-                            flags: MessageFlags.IsComponentsV2
-                        }),
+                            flags: MessageFlags.IsComponentsV2,
+                        });
+                    },
                 },
                 "spectator"
             );
@@ -275,10 +292,12 @@ export async function addCommandHelp(game, channel, command) {
     game.messageQueue.enqueue(
         {
             fire: async () =>
-                await channel.send({
-                    components: components,
-                    flags: MessageFlags.IsComponentsV2
-                })
+                {
+                    await channel.send({
+                        components: components,
+                        flags: MessageFlags.IsComponentsV2,
+                    });
+                }
         },
         channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
@@ -292,7 +311,9 @@ export async function addCommandHelp(game, channel, command) {
 export async function addLogMessage(game, messageText) {
     game.messageQueue.enqueue(
         {
-            fire: async () => await game.guildContext.logChannel.send(messageText),
+            fire: async () => {
+                await game.guildContext.logChannel.send(messageText);
+            },
         },
         "log"
     );
@@ -307,7 +328,9 @@ export async function addLogMessage(game, messageText) {
 export function addGameMechanicMessage(game, channel, messageText) {
     game.messageQueue.enqueue(
         {
-            fire: async () => await channel.send(messageText),
+            fire: async () => {
+                await channel.send(messageText);
+            },
         },
         channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
@@ -324,9 +347,9 @@ export async function addReply(game, message, messageText) {
         {
             fire: async () => {
                 if (message.channel.type === ChannelType.GuildText && message.channel.id === game.guildContext.commandChannel.id) {
-                    return await message.reply(messageText);
+                    await message.reply(messageText);
                 } else {
-                    return await message.author.send(messageText);
+                    await message.author.send(messageText);
                 }
             },
         },
@@ -374,7 +397,6 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
                     });
                     const cachedMessage = speaker.game.dialogCache.find((entry) => entry.messageId === message.id);
                     if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
-                    return webhookMessage;
                 },
             },
             "spectator"
