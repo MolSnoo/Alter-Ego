@@ -72,7 +72,7 @@ export function usage (settings) {
 
 /**
  * @param {Game} game - The game in which the command is being executed. 
- * @param {AEMessage} message - The message in which the command was issued. 
+ * @param {UserMessage} message - The message in which the command was issued. 
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */

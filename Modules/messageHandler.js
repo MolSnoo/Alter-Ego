@@ -316,7 +316,7 @@ export function addGameMechanicMessage(game, channel, messageText) {
 /**
  * Replies to a message. This is usually done when a user has sent a message with an error.
  * @param {Game} game - The game this message was sent in.
- * @param {AEMessage} message - The message to reply to.
+ * @param {UserMessage} message - The message to reply to.
  * @param {string} messageText - The text to send in response.
  */
 export async function addReply(game, message, messageText) {
@@ -338,7 +338,7 @@ export async function addReply(game, message, messageText) {
  * Mirrors a dialog message in a spectate channel.
  * @param {Player} player - The player whose spectate channel this message is being sent to.
  * @param {Player|PseudoPlayer} speaker - The player who originally sent the dialog message.
- * @param {AEMessage} message - The message in which this dialog originated.
+ * @param {UserMessage} message - The message in which this dialog originated.
  * @param {Whisper} [whisper] - The whisper the dialog was sent in, if applicable.
  * @param {string} [displayName] - The displayName to use for the mirrored webhook message. If none is specified, the speaker's current displayName will be used.
  */
@@ -386,7 +386,7 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
  * Edits spectate messages when the dialog they mirror is edited.
  * @param {Game} game - The game this dialog belongs to.
  * @param {Message|import('discord.js').PartialMessage} messageOld - The original message being edited.
- * @param {AEMessage} messageNew - The new message after being edited.
+ * @param {UserMessage} messageNew - The new message after being edited.
  */
 export async function editSpectatorMessage(game, messageOld, messageNew) {
     const cachedMessage = game.dialogCache.find((entry) => entry.messageId === messageOld.id);

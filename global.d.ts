@@ -30,12 +30,12 @@ declare global {
 	/**
 	 * Represents a Discord message handled by Alter Ego.
 	 */
-	type AEMessage = OmitPartialGroupDMChannel<Message>;
+	type UserMessage = OmitPartialGroupDMChannel<Message>;
 
 	/**
 	 * Represents a Discord object that can be messaged.
 	 */
-	type Messageable = AEMessage['channel'];
+	type Messageable = UserMessage['channel'];
 
 	/**
 	 * A cached dialog message.
@@ -90,15 +90,15 @@ declare global {
 	}
 
 	interface IModeratorCommand extends Command {
-		execute: (game: Game, message: AEMessage, command: string, args: string[]) => Promise<void>;
+		execute: (game: Game, message: UserMessage, command: string, args: string[]) => Promise<void>;
 	}
 
 	interface IPlayerCommand extends Command {
-		execute: (game: Game, message: AEMessage, command: string, args: string[], player: Player) => Promise<void>;
+		execute: (game: Game, message: UserMessage, command: string, args: string[], player: Player) => Promise<void>;
 	}
 
 	interface IEligibleCommand extends Command {
-		execute: (game: Game, message: AEMessage, command: string, args: string[]) => Promise<void>;
+		execute: (game: Game, message: UserMessage, command: string, args: string[]) => Promise<void>;
 	}
 
 	/**
