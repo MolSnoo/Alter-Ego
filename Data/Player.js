@@ -25,7 +25,7 @@ import * as messageHandler from '../Modules/messageHandler.js';
 
 import Timer from '../Classes/Timer.js';
 
-import { Collection, GuildMember, Message, TextChannel } from 'discord.js';
+import { Collection, GuildMember, TextChannel } from 'discord.js';
 import dayjs from 'dayjs';
 
 dayjs().format();
@@ -1786,7 +1786,7 @@ export default class Player extends ItemContainer {
      * @param {string} password - The password the player entered to attempt the puzzle.
      * @param {string} command - The command alias that was used to attempt the puzzle.
      * @param {string} input - The combined arguments of the command.
-     * @param {Message} [message] - The message that triggered the puzzle attempt.
+     * @param {UserMessage} [message] - The message that triggered the puzzle attempt.
      * @param {Player} [targetPlayer] - The player who will be treated as the initiating player in subsequent bot command executions called by the puzzle's solved commands, if applicable.
      * @returns {string|void} A message to show to the player indicating why their attempt failed.
      */

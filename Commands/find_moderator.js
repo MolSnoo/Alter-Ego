@@ -8,7 +8,6 @@ import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import Recipe from '../Data/Recipe.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 import * as finder from '../Modules/finder.js';
@@ -72,7 +71,7 @@ export function usage (settings) {
 
 /**
  * @param {Game} game - The game in which the command is being executed. 
- * @param {Message} message - The message in which the command was issued. 
+ * @param {UserMessage} message - The message in which the command was issued. 
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */

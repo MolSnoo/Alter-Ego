@@ -1,4 +1,3 @@
-import { Message } from "discord.js";
 import Game from "../Data/Game.js";
 import GameSettings from "./GameSettings.js";
 
@@ -12,7 +11,7 @@ export default class ModeratorCommand {
 	 * @constructor
 	 * @param {CommandConfig} config 
 	 * @param {(settings: GameSettings) => string} usage 
-	 * @param {(game: Game, message: Message, command: string, args: string[]) => Promise<void>} execute 
+	 * @param {(game: Game, message: UserMessage, command: string, args: string[]) => Promise<void>} execute 
 	 */
 	constructor(config, usage, execute) {
 		this.config = config;

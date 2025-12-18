@@ -1,6 +1,7 @@
 {
   "commandPrefix": ".",
   "debug": false,
+  "autoLoad": false,
   "spreadsheetID": "",
   "pixelsPerMeter": 25,
   "staminaUseRate": -0.01,
