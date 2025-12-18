@@ -1,6 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import Player from '../Data/Player.js';
 

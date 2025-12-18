@@ -25,7 +25,7 @@ import * as messageHandler from '../Modules/messageHandler.js';
 
 import Timer from '../Classes/Timer.js';
 
-import { Collection, GuildMember, Message, TextChannel } from 'discord.js';
+import { Collection, GuildMember, TextChannel } from 'discord.js';
 import dayjs from 'dayjs';
 
 dayjs().format();

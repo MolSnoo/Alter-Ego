@@ -5,7 +5,6 @@ import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
 import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message } from "discord.js";
 import Narration from '../Data/Narration.js';
 
 /** @type {CommandConfig} */

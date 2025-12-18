@@ -2,7 +2,6 @@
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message } from "discord.js";
 import Whisper from '../Data/Whisper.js';
 
 /** @type {CommandConfig} */

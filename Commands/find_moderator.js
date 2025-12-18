@@ -8,7 +8,6 @@ import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import Recipe from '../Data/Recipe.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 import * as finder from '../Modules/finder.js';

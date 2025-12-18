@@ -13,7 +13,6 @@ import RoomItem from './RoomItem.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { addLogMessage, addReply } from '../Modules/messageHandler.js';
 import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
-import { Message } from 'discord.js';
 
 
 /**

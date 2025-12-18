@@ -1,7 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import RoomItem from '../Data/RoomItem.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
 

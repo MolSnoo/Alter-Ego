@@ -3,7 +3,7 @@ import Player from '../Data/Player.js';
 import Room from '../Data/Room.js';
 import Whisper from '../Data/Whisper.js';
 import * as messageHandler from './messageHandler.js';
-import { ChannelType, Message } from 'discord.js';
+import { ChannelType } from 'discord.js';
 
 /**
  * Interprets a dialog message and executes behavior caused by it.

@@ -3,7 +3,6 @@ import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 import Narration from '../Data/Narration.js';

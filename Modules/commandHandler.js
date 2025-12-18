@@ -5,7 +5,7 @@ import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import { addReply, addGameMechanicMessage } from './messageHandler.js';
-import { ChannelType, Message } from 'discord.js';
+import { ChannelType } from 'discord.js';
 
 /**
  * Finds the right command file for the user and executes it.

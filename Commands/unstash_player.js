@@ -3,7 +3,6 @@ import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message } from "discord.js";
 
 /** @type {CommandConfig} */
 export const config = {

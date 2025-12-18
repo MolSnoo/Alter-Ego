@@ -1,7 +1,6 @@
 import settings from '../Configs/settings.json' with { type: 'json' };
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 import fs from 'fs';

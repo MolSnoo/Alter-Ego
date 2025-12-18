@@ -1,4 +1,4 @@
-import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, Message, ChannelType, Attachment, Collection } from 'discord.js';
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection } from 'discord.js';
 import Player from '../Data/Player.js';
 import Whisper from '../Data/Whisper.js';
 import Game from '../Data/Game.js';
@@ -385,7 +385,7 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
 /**
  * Edits spectate messages when the dialog they mirror is edited.
  * @param {Game} game - The game this dialog belongs to.
- * @param {Message|import('discord.js').PartialMessage} messageOld - The original message being edited.
+ * @param {UserMessage|import('discord.js').PartialMessage} messageOld - The original message being edited.
  * @param {UserMessage} messageNew - The new message after being edited.
  */
 export async function editSpectatorMessage(game, messageOld, messageNew) {

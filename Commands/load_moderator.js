@@ -1,7 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import * as loader from '../Modules/loader.js';
 

@@ -2,7 +2,7 @@
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message, ChannelType } from "discord.js";
+import { ChannelType } from "discord.js";
 import { default as handleDialog } from '../Modules/dialogHandler.js';
 
 /** @type {CommandConfig} */
