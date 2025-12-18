@@ -21,6 +21,10 @@ start in debug mode. If this is `false`, it will start normally.
 
 This is a string that determines the color of embed messages sent by Alter Ego. String should be in the format of a 24-bit hexadecimal number without a hash symbol, e.g. `1F8B4C`
 
+### AUTO_LOAD
+
+This is a boolean that determines whether or not the bot automatically executes functionality equivalent to `.load all resume` upon startup.
+
 ## Other game data
 
 ### PIXELS_PER_M
