@@ -6,6 +6,28 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --tag "alter-ego:$(date +%s)"
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Build the Docker image
+        run: docker build . --tag "alter-ego:$(date +%s)"
+
+  mdbook:
+    runs-on: ubuntu-latest
+    name: Build mdBook
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup mdBook
+        uses: taiki-e/install-action@v2
+        with:
+          tool: mdbook@0.5
+
+      - name: Build Book
+        run: |
+          mdbook build

@@ -1,9 +1,13 @@
-const settings = include('Configs/settings.json');
-const {format: prettyFormat} = require('pretty-format');
-const zlib = require('zlib');
-const fs = require('fs');
+import GameSettings from '../Classes/GameSettings.js';
+import Game from '../Data/Game.js';
+import { Message } from 'discord.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { format as prettyFormat } from 'pretty-format';
+import zlib from 'zlib';
+import fs from 'fs';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "dumplog_moderator",
     description: "Dump current game state to file.",
     details: "Dumps a log of the most recently used commands, as well as current internal game state. "
@@ -17,19 +21,32 @@ module.exports.config = {
         + "This command is for debugging purposes, and has no use during regular gameplay. If you discover "
         + "a bug that was not caused by Moderator error, please use this command and attach these files to "
         + "a new Issue on the [Alter Ego GitHub page](https://github.com/MolSnoo/Alter-Ego/issues).",
-    usage: `${settings.commandPrefix}dumplog`,
     usableBy: "Moderator",
     aliases: ["dumplog"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}dumplog`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
     const dataGame = prettyFormat(game, {
         plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });
-    
-    const dataLog = prettyFormat(bot.commandLog, {
+
+    const dataLog = prettyFormat(game.botContext.commandLog, {
         plugins: [simpleFilterPlugin, complexFilterPlugin],
         indent: 4
     });
@@ -53,7 +70,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         });
     } catch (error) {
         console.error("Compression error:", error);
-        return game.messageHandler.addReply(message, "An error occurred while compressing the data.");
+        return messageHandler.addReply(game, message, "An error occurred while compressing the data.");
     }
 
     if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
@@ -62,22 +79,22 @@ module.exports.run = async (bot, game, message, command, args) => {
         fs.writeFile(fileGame, bufferGame, function (err) {
             if (err) {
                 console.log(err);
-                return game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_game.txt.gz`, see console for details!");
+                return messageHandler.addReply(game, message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_game.txt.gz`, see console for details!");
             }
         });
         fs.writeFile(fileLog, bufferLog, function (err) {
             if (err) {
                 console.log(err);
-                return game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_commands.log.gz`, see console for details!");
+                return messageHandler.addReply(game, message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_commands.log.gz`, see console for details!");
             }
         });
 
-        return game.messageHandler.addReply(message, "The compressed data exceeds Discord's file size limit. Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
+        return messageHandler.addReply(game, message, "The compressed data exceeds Discord's file size limit. Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
     } else {
         const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
         const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };
 
-        message.channel.send({ content: "Successfully generated log files.", files: [fileGame, fileLog] });
+        game.guildContext.commandChannel.send({ content: "Successfully generated log files.", files: [fileGame, fileLog] });
     }
 };
 
@@ -100,7 +117,7 @@ const simpleFilterPlugin = {
 
     print: (val) => {
         const constructorName = val.constructor?.name;
-        
+
         switch (constructorName) {
             case 'Guild':
                 return `<Guild "${val.name || 'unknown'}">`;
@@ -133,7 +150,7 @@ const complexFilterPlugin = {
 
     serialize: (val, config, indentation, depth, refs, printer) => {
         const constructorName = val.constructor?.name;
-        
+
         switch (constructorName) {
             case 'Player':
                 if (depth > 2) {
@@ -160,4 +177,4 @@ const complexFilterPlugin = {
                 return `<${constructorName || 'Unknown'}>`;
         }
     }
-};
+}

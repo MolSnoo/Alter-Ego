@@ -3,10 +3,6 @@
 Moderating a Neo World Program game is a difficult endeavor. Although Alter Ego was designed to make that process
 easier, it presents its own challenges. In this tutorial, the process will be explained.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Purpose
 
 The purpose of a moderator in the Neo World Program is to facilitate gameplay. While Alter Ego does most of the heavy
@@ -36,8 +32,8 @@ killing game role play, there are much simpler alternatives that you could use i
 Once you've decided that you want to be a Neo World Program moderator, your first step should be to install and set up
 Alter Ego. To do that, see the following articles:
 
-* [Installation and Setup](installation.md)
-* [Settings](../reference/settings/docker_settings.md)
+- [Installation and Setup](installation.md)
+- [Settings](../reference/settings/docker_settings.md)
 
 Once you're able to use Alter Ego, you must learn how it works. Alter Ego is a complex tool with many intricate
 behaviors that you need to familiarize yourself with. The best way to get started is to read all of the articles on this
@@ -88,14 +84,14 @@ writing [Gestures](../reference/data_structures/gesture.md) makes it easier for 
 need to personalize each [Player](../reference/data_structures/player.md)'s data to suit their character and give
 them [Inventory Items](../reference/data_structures/inventory_item.md) to start out with. When all of these features
 work together in harmony, it can create an experience that makes it easy for the players on the other side of the screen
-to feel like they really *are* a part of the world.
+to feel like they really _are_ a part of the world.
 
 Nevertheless, this is a very time-consuming process. It takes months of continuous work to create a functioning game.
 Remember that when the game occurs, it takes place in real-time; you will not have time to fix numerous bugs without
 severely disrupting gameplay. This is why you must get into the habit of loading, parsing, testing, and fixing your game
 during the writing process. This is game development - using Alter Ego is no different than using a game engine like RPG
 Maker. This means you have to test your game extensively. **Just because Alter Ego loads everything without giving you
-error messages does not mean everything works as intended, or at all.** It is *your* responsibility to ensure that your
+error messages does not mean everything works as intended, or at all.** It is _your_ responsibility to ensure that your
 game functions properly before you start running it. The more bugs you catch and fix before the game begins, the fewer
 you'll have to deal with during the game proper, and the less stressful the experience will be.
 
@@ -158,7 +154,7 @@ channels and from getting most messages related to the game, but be aware that t
 Effect [inflicted](../reference/data_structures/status.md#inflicted-description)
 and [cured](../reference/data_structures/status.md#cured-description) Effect messages unless their other Status Effects
 are manually removed from the sheet. For this reason, it's recommended that if you're not currently testing something,
-you should keep Alter Ego running *without* having any game data loaded until it's time to begin. Once you finish
+you should keep Alter Ego running _without_ having any game data loaded until it's time to begin. Once you finish
 testing, you can simply reboot Alter Ego to unload everything.
 
 During this step, you should consult with all of the players and decide when the game sessions will be held. For a
@@ -283,7 +279,7 @@ You won't have time to write in-depth clues for an investigation without turning
 time - this can tip players off out-of-character that something is going on, which can influence how they behave
 in-character. If you need to, you can always just write the victim's body into the Room description so that Players can
 discover it and save writing clues for after the session is over. There's nothing wrong with holding the investigation
-and trial the next day. When you *do* write clues, try to find ways to incorporate the
+and trial the next day. When you _do_ write clues, try to find ways to incorporate the
 Players' [intelligence stat](../reference/data_structures/player.md#intelligence) into the descriptions using if
 conditionals. For example, Players with a high intelligence stat may notice details about the body that other Players
 don't. This can make players who created characters with high intelligence stats feel like the investment was worth it.

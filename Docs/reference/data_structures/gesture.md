@@ -8,10 +8,6 @@ the [saver module](https://github.com/MolSnoo/Alter-Ego/blob/master/Modules/save
 Gestures sheet. As a result, the Gestures sheet can be freely edited
 without [edit mode](../../moderator_guide/edit_mode.md) being enabled.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 Gestures have very few attributes. Note that if an attribute is _internal_, that means it only exists within
@@ -21,8 +17,8 @@ spreadsheet. External attributes will be given in the "Spreadsheet label" bullet
 
 ### Name
 
-* Spreadsheet label: **Gesture Name**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Gesture Name**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.name`
 
 This is a name of the Gesture. This is what a Player must input in order to perform this Gesture. There are no rules for
@@ -32,18 +28,18 @@ instead bring up the list of all Gestures.
 
 ### Requires
 
-* Spreadsheet label: **Requires**
-* Class
+- Spreadsheet label: **Requires**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.requires`
 
 This is a comma-separated list of data types the Gesture can take as a target. Accepted data types are:
 
-* [Exit](exit.md)
-* [Object](object.md)
-* [Item](item.md)
-* [Player](player.md)
-* [Inventory Item](inventory_item.md)
+- [Exit](exit.md)
+- [Object](object.md)
+- [Item](item.md)
+- [Player](player.md)
+- [Inventory Item](inventory_item.md)
 
 If this is not blank, then a Player who attempts to perform this Gesture must supply something in the [Room](room.md)
 they're in of one of the accepted data types as a target. For example, if the Gesture requires an Object, then the
@@ -53,8 +49,8 @@ RIGHT HAND or LEFT HAND. If this is blank, then the Player can perform this Gest
 
 ### Disabled Statuses Strings
 
-* Spreadsheet label: **Don't Allow If**
-* Class
+- Spreadsheet label: **Don't Allow If**
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
   `this.disabledStatusesStrings`
 
@@ -64,7 +60,7 @@ do so.
 
 ### Disabled Statuses
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Status Effects](status.md)>
   `this.disabledStatuses`
 
@@ -73,8 +69,8 @@ This is an internal attribute which contains references to each of the Status Ef
 
 ### Description
 
-* Spreadsheet label: **Description**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Description**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.description`
 
 This is a plain string that describes what the Player will do when they perform this Gesture. This appears in the
@@ -83,8 +79,8 @@ and use as few words as possible.
 
 ### Narration
 
-* Spreadsheet label: **Narration**
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Spreadsheet label: **Narration**
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.narration`
 
 This is the [Narration]() that will be parsed and then sent to the Player's Room channel when this Gesture is performed.
@@ -92,14 +88,14 @@ See the article on [writing descriptions](../../moderator_guide/writing_descript
 
 ### Row
 
-* Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+- Class attribute: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
   `this.row`
 
 This is an internal attribute, but it can also be found on the spreadsheet. This is the row number of the Gesture.
 
 ### Target Type
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.targetType`
 
 This is an internal attribute which is only assigned when a Gesture is instantiated in
@@ -109,7 +105,7 @@ contain [conditional formatting](../../moderator_guide/writing_descriptions.md#i
 
 ### Target
 
-* Class
+- Class
   attribute: [Exit](exit.md)|[Object](object.md)|[Item](item.md)|[Player](player.md)|[Inventory Item](inventory_item.md)
   `this.target`
 

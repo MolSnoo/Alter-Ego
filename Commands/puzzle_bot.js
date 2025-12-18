@@ -1,4 +1,14 @@
-﻿module.exports.config = {
+﻿import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @type {CommandConfig} */
+export const config = {
     name: "puzzle_bot",
     description: "Solves or unsolves a puzzle.",
     details: 'Solves or unsolves a puzzle. You may specify an outcome, if the puzzle has more than one solution. '
@@ -12,7 +22,17 @@
         + 'You can also use a room name instead of a player name. In that case, only puzzles in the room '
         + 'you specify can be solved/unsolved. This is useful if you have multiple puzzles with the same name '
         + 'spread across the map.',
-    usage: `puzzle solve button\n`
+    usableBy: "Bot",
+    aliases: ["puzzle", "solve", "unsolve", "attempt"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `puzzle solve button\n`
         + `puzzle unsolve keypad\n`
         + `solve binder taylor\n`
         + `unsolve lever colin\n`
@@ -22,12 +42,17 @@
         + `puzzle unsolve lock men's locker room\n`
         + `solve paintings player "player removes the PAINTINGS from the wall."\n`
         + `unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"\n`
-        + `puzzle attempt cyptex lock 05-25-99 player`,
-    usableBy: "Bot",
-    aliases: ["puzzle", "solve", "unsolve", "attempt"]
-};
+        + `puzzle attempt cyptex lock 05-25-99 player`;
+}
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     var input = cmdString;
     if (command === "puzzle") {
@@ -40,7 +65,7 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     else input = args.join(" ");
 
     if (args.length === 0) {
-        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -101,20 +126,20 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     // Finally, find the puzzle.
     var puzzle = null;
     for (let i = 0; i < puzzles.length; i++) {
-        if ((player !== null && puzzles[i].location.name === player.location.name)
-            || (room !== null && puzzles[i].location.name === room.name)) {
+        if ((player !== null && puzzles[i].location.id === player.location.id)
+            || (room !== null && puzzles[i].location.id === room.id)) {
             puzzle = puzzles[i];
             break;
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    if (puzzle === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
+    if (puzzle === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
 
     var outcome = "";
     var targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].location.name === player.location.name &&
+            if (game.players_alive[i].location.id === player.location.id &&
                 (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() || game.players_alive[i].name.toLowerCase() === input.toLowerCase())) {
                 targetPlayer = game.players_alive[i];
                 break;
@@ -132,24 +157,19 @@ module.exports.run = async (bot, game, command, args, player, data) => {
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     var doCommands = false;
-    if (data && !data.hasOwnProperty("solved")) doCommands = true;
+    if (callee && !(callee instanceof Puzzle)) doCommands = true;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
-        puzzle.solve(bot, game, player, announcement, outcome, doCommands, targetPlayer);
+        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
+        puzzle.solve(player, announcement, outcome, doCommands, [], targetPlayer);
     }
     else if (command === "unsolve") {
-        puzzle.unsolve(bot, game, player, announcement, null, doCommands);
+        puzzle.unsolve(player, announcement, null, doCommands);
     }
     else if (command === "attempt") {
-        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
-        const misc = {
-            command: command,
-            input: input,
-            targetPlayer: targetPlayer
-        };
-        player.attemptPuzzle(bot, game, puzzle, null, input, command, misc);
+        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
+        player.attemptPuzzle(puzzle, null, input, command, input, null, targetPlayer);
     }
 
     return;
-};
+}

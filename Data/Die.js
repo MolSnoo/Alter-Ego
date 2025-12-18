@@ -1,16 +1,66 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-var game = include('game.json');
+﻿import Game from './Game.js';
+import Player from './Player.js';
+import Status from './Status.js';
 
-const Status = include(`${constants.dataDir}/Status.js`);
+/**
+ * @class Die
+ * @classdesc Represents a die that can be rolled for a semi-random number.
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/die.html
+ */
+export default class Die {
+    /**
+     * The game context this roll is occuring in.
+     * @readonly 
+     * @type {Game}
+     */
+    game;
+    /**
+     * The minimum possible base roll.
+     * @type {number}
+     */
+    min;
+    /**
+     * The maximum possible base roll.
+     * @type {number}
+     */
+    max;
+    /**
+     * The result of the die roll with no modifiers applied.
+     * @type {number}
+     */
+    baseRoll;
+    /**
+     * The calculated number to add to the baseRoll.
+     * @type {number}
+     */
+    modifier;
+    /**
+     * A string representation of all modifiers applied to the baseRoll, as well as the reasons they were applied.
+     * @type {string}
+     */
+    modifierString;
+    /**
+     * The final result of the die roll.
+     * @type {number}
+     */
+    result;
 
-class Die {
-    constructor(stat, attacker, defender) {
-        this.min = settings.diceMin;
-        this.max = settings.diceMax;
+    /**
+     * @constructor
+     * @param {Game} game - The game context this roll is occuring in. 
+     * @param {string} [stat] - The name of the stat to roll for. 
+     * @param {Player} [attacker] - The active player to roll for. In other words, the player attempting an action.
+     * @param {Player} [defender] - The passive player to roll for. Only used if the attacker is attempting to perform an action against another player.
+     */
+    constructor(game, stat, attacker, defender) {
+        this.game = game;
 
+        this.min = this.game.settings.diceMin;
+        this.max = this.game.settings.diceMax;
+
+        /** @type {number} */
         let baseRoll;
-        if (attacker && attacker.hasAttribute("all or nothing")) {
+        if (attacker && attacker.hasBehaviorAttribute("all or nothing")) {
             // Make the base roll either the minimum or maximum possible.
             baseRoll = this.doBaseRoll(0, 1);
             baseRoll = baseRoll * (this.max - 1);
@@ -25,24 +75,35 @@ class Die {
         this.result = this.baseRoll + this.modifier;
     }
 
-    doBaseRoll(min, max) {
-        if (min === null || min === undefined) min = this.min;
-        if (max === null || max === undefined) max = this.max;
+    /**
+     * Roll a die with no modifiers.
+     * @param {number} [min] - The minimum possible roll. Defaults to diceMin in the game's settings.
+     * @param {number} [max] - The maximum possible roll. Defaults to diceMax in the game's settings.
+     * @returns {number} A random number between min and max, inclusive.
+     */
+    doBaseRoll(min = this.min, max = this.max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    /**
+     * Calculates the modifiers to apply to the base roll.
+     * @param {string} [stat] - The stat which will modify the base roll.
+     * @param {Player} [attacker]
+     * @param {Player} [defender] 
+     * @returns {ModifierResult}
+     */
     calculateModifiers(stat, attacker, defender) {
-        var modifier = 0;
-        var modifierStrings = [];
+        let modifier = 0;
+        /** @type {string[]} */
+        let modifierStrings = [];
         if (attacker) {
-            if (attacker.hasAttribute("coin flipper")) {
+            if (attacker.hasBehaviorAttribute("coin flipper")) {
                 let hasCoin = false;
-                for (let i = 0; i < attacker.inventory.length; i++) {
-                    if ((attacker.inventory[i].name === "LEFT HAND" || attacker.inventory[i].name === "RIGHT HAND") &&
-                        attacker.inventory[i].equippedItem !== null && attacker.inventory[i].equippedItem.name.includes("COIN")) {
-                        hasCoin = true;
-                        break;
-                    }
+                const rightHand = attacker.inventoryCollection.get("RIGHT HAND");
+                const leftHand = attacker.inventoryCollection.get("LEFT HAND");
+                if (rightHand && rightHand.equippedItem !== null && rightHand.equippedItem.name.includes("COIN")
+                    || leftHand && leftHand.equippedItem !== null && leftHand.equippedItem.name.includes("COIN")) {
+                    hasCoin = true;
                 }
                 if (hasCoin) {
                     const coinModifier = this.doBaseRoll(0, 1);
@@ -53,8 +114,10 @@ class Die {
                 }
             }
 
-            var tempStatuses = [];
+            /** @type {Status[]} */
+            let tempStatuses = [];
             if (defender) {
+                // If the attacker is attacking the defender with their strength, use the defender's dexterity stat determines how well they dodged it.
                 if (stat === "str") {
                     const dexterityModifier = -1 * defender.getStatModifier(defender.dexterity);
                     modifier += dexterityModifier;
@@ -69,9 +132,9 @@ class Die {
                         const statModifier = defender.status[i].statModifiers[j];
                         // Get defender's modifiers that affect the attacker's roll.
                         if (!statModifier.modifiesSelf) {
-                            const tempStatus = new Status(`${defender.name} ${defender.status[i].name}`, "", false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], "", "", "", -1);
+                            const tempStatus = new Status(`${defender.name} ${defender.status[i].id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], [], "", "", -1, this.game);
                             tempStatuses.push(tempStatus);
-                            attacker.inflict(game, tempStatus, false, false, false);
+                            attacker.inflict(tempStatus, false, false, false);
                         }
                     }
                 }
@@ -96,11 +159,9 @@ class Die {
 
             // Cure attacker of all tempStatuses.
             for (let i = 0; i < tempStatuses.length; i++)
-                attacker.cure(game, tempStatuses[i].name, false, false, false);
+                attacker.cure(tempStatuses[i].id, false, false, false);
         }
 
         return { number: modifier, strings: modifierStrings };
     }
 }
-
-module.exports = Die;

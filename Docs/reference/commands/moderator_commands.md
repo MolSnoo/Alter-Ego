@@ -6,12 +6,7 @@ allow [moderators](../../moderator_guide/moderating.md) to control the game worl
 restrictions placed on Players' actions to be bypassed.
 
 Most moderator commands can only be used when a game is in progress, but some are able to be used when this isn't the
-case. With the exception of the delete command, all moderator commands must be sent to the [bot commands channel](
-../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-commands).
-
-## Table of Contents
-
-<!-- toc -->
+case. With the exception of the delete command, all moderator commands must be sent to the [bot commands channel](../../appendix/manual_installation/channel_and_role_creation.md#channel-bot-commands).
 
 ## addplayer
 
@@ -1123,9 +1118,9 @@ Deals with status effects on players.
 
 Deals with status effects on players.
 
--**add**/**inflict**: Inflicts the specified players with the given status effect. Those players will receive the 
-"Message When Inflicted" message for the specified status effect. If the status effect has a timer, the players will 
-be cured and then inflicted with the status effect in the "Develops Into" column when the timer reaches 0. If the 
+-**add**/**inflict**: Inflicts the specified players with the given status effect. Those players will receive the
+"Message When Inflicted" message for the specified status effect. If the status effect has a timer, the players will
+be cured and then inflicted with the status effect in the "Develops Into" column when the timer reaches 0. If the
 status effect is fatal, then they will simply die when the timer reaches 0 instead.
 
 -**remove**/**cure**: Cures the specified players of the given status effect. Those players will receive the "Message
@@ -1417,4 +1412,3 @@ will be removed from the channel. If everyone leaves the room, the whisper chann
 players listed has the talent "NPC", the remaining string after the list of players will be sent in the whisper channel.
 Once the channel is created, NPC players can only speak in the whisper using this command and the list of players in the
 whisper.
-
