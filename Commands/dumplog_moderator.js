@@ -109,7 +109,7 @@ const complexFilter = new Set([
 
 const complexProcessing = new Set()
 
-const simpleFilterPlugin = {
+const simpleFilterPlugin = { // TODO: type hint!
     test: (val) => {
         if (val === null || typeof val !== 'object') return false;
         return simpleFilter.has(val.constructor?.name);
@@ -141,7 +141,7 @@ const simpleFilterPlugin = {
     }
 };
 
-const complexFilterPlugin = {
+const complexFilterPlugin = { // TODO: type hint!
     test: (val) => {
         if (val === null || typeof val !== 'object') return false;
         if (complexProcessing.has(val)) return false;
