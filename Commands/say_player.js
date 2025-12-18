@@ -36,7 +36,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("enable say");
+    const status = player.getBehaviorAttributeStatusEffects("enable say");
     if (status.length === 0) return messageHandler.addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
     const input = args.join(" ");

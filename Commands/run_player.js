@@ -41,7 +41,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable run");
+    const status = player.getBehaviorAttributeStatusEffects("disable run");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.isMoving) return messageHandler.addReply(game, message, `You cannot do that because you are already moving.`);

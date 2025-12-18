@@ -40,7 +40,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify two items. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable stash");
+    const status = player.getBehaviorAttributeStatusEffects("disable stash");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(' ');

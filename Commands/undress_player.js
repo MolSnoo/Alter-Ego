@@ -38,7 +38,7 @@ export function usage (settings) {
  * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
-    const status = player.getAttributeStatusEffects("disable undress");
+    const status = player.getBehaviorAttributeStatusEffects("disable undress");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(' ');
@@ -129,7 +129,7 @@ export async function execute (game, message, command, args, player) {
         if (topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
             return messageHandler.addReply(game, message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
-    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
         if (topContainer !== null && topContainer instanceof Puzzle)
             topContainer = topContainer.parentFixture;

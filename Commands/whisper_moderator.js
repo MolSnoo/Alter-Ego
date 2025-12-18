@@ -61,11 +61,11 @@ export async function execute (game, message, command, args) {
                 if (recipients[j].location.id !== player.location.id)
                     return messageHandler.addReply(game, message, `The selected players aren't all in the same room.`);
                 // Check attributes that would prohibit the player from whispering to someone in the room.
-                let status = player.getAttributeStatusEffects("disable whisper");
+                let status = player.getBehaviorAttributeStatusEffects("disable whisper");
                 if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
-                status = player.getAttributeStatusEffects("no hearing");
+                status = player.getBehaviorAttributeStatusEffects("no hearing");
                 if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
-                status = player.getAttributeStatusEffects("unconscious");
+                status = player.getBehaviorAttributeStatusEffects("unconscious");
                 if (status.length > 0) return messageHandler.addReply(game, message, `${player.name} can't whisper because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? `are` : `is`) + ` **${status[1].id}**.`);
                 // If there are no attributes that prevent whispering, add them to the array.
                 playerExists = true;

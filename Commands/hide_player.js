@@ -39,7 +39,7 @@ export function usage (settings) {
  * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
-    const status = player.getAttributeStatusEffects("disable hide");
+    const status = player.getBehaviorAttributeStatusEffects("disable hide");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.statusString.includes("hidden") && command === "unhide") {

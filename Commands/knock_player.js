@@ -34,7 +34,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable knock");
+    const status = player.getBehaviorAttributeStatusEffects("disable knock");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(" ");

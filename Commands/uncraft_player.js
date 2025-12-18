@@ -38,7 +38,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify an item in your hand. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable uncraft");
+    const status = player.getBehaviorAttributeStatusEffects("disable uncraft");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(' ');

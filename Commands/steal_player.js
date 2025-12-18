@@ -45,11 +45,11 @@ export async function execute (game, message, command, args, player) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and one of their equipped items. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable steal");
+    const status = player.getBehaviorAttributeStatusEffects("disable steal");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
-    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
     // First, check if the player has a free hand.
     let hand = "";

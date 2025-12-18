@@ -36,7 +36,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a player to text and a message. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("enable text");
+    const status = player.getBehaviorAttributeStatusEffects("enable text");
     if (status.length === 0) return messageHandler.addReply(game, message, `You do not have a device with which to send a text message.`);
 
     const recipient = game.entityFinder.getLivingPlayer(args[0]);

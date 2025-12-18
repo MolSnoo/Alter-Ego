@@ -143,7 +143,7 @@ export async function execute (game, message, command, args) {
                             }
                         }
                         else if (gesture.requires[j] === "Player") {
-                            const hiddenStatus = player.getAttributeStatusEffects("hidden");
+                            const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
                             for (let k = 0; k < player.location.occupants.length; k++) {
                                 const occupant = player.location.occupants[k];
                                 if (occupant.name.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {

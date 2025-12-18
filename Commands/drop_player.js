@@ -45,7 +45,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable drop");
+    const status = player.getBehaviorAttributeStatusEffects("disable drop");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(" ");
@@ -167,7 +167,7 @@ export async function execute (game, message, command, args, player) {
         if (topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
             return messageHandler.addReply(game, message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
-    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
         if (topContainer !== null && topContainer instanceof Puzzle)
             topContainer = topContainer.parentFixture;
