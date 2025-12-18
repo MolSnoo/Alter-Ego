@@ -7,6 +7,7 @@ import InventoryItem from "../Data/InventoryItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
 
+/** @type {CommandConfig} */
 export const config = {
     name: "setroomicon_bot",
     description: "Sets a room's display icon.",
@@ -14,7 +15,8 @@ export const config = {
         + "The icon given must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif "
         + "extension. To reset a room's icon, simply do not specify a new icon.",
     usableBy: "Bot",
-    aliases: ["setroomicon"]
+    aliases: ["setroomicon"],
+    requiresGame: true
 };
 
 /**

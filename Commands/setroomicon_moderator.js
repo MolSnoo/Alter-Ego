@@ -3,6 +3,7 @@ import Game from '../Data/Game.js';
 import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
+/** @type {CommandConfig} */
 export const config = {
     name: "setroomicon_moderator",
     description: "Sets a room's icon.",
