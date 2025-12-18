@@ -6,8 +6,7 @@ import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
 import Timer from '../Classes/Timer.js';
-import dayjs from 'dayjs';
-dayjs().format();
+import { Duration } from 'luxon';
 
 /**
  * @class Event
@@ -41,7 +40,7 @@ export default class Event extends GameEntity {
     durationString;
     /**
      * The duration object of the event.
-     * @type {import('dayjs/plugin/duration.js').Duration}
+     * @type {Duration}
      */
     duration;
     /**
@@ -51,7 +50,7 @@ export default class Event extends GameEntity {
     remainingString;
     /**
      * The remaining time of the event.
-     * @type {import('dayjs/plugin/duration.js').Duration}
+     * @type {Duration}
      */
     remaining;
     /**
@@ -140,9 +139,9 @@ export default class Event extends GameEntity {
      * @param {string} id - The unique ID of the event.
      * @param {boolean} ongoing - Whether the event is ongoing.
      * @param {string} durationString - The string representation of how long the event lasts after being triggered.
-     * @param {import('dayjs/plugin/duration.js').Duration} duration - The duration object of the event.
+     * @param {Duration} duration - The duration object of the event.
      * @param {string} remainingString - The string representation of the remaining time of the event.
-     * @param {import('dayjs/plugin/duration.js').Duration} remaining - The remaining time of the event.
+     * @param {Duration} remaining - The remaining time of the event.
      * @param {string[]} triggerTimesStrings - The string representations of what times the event will be automatically triggered. Refer to this link for accepted formats: {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string}
      * @param {string} roomTag - The keyword or phrase assigned to the event that allows it to affect rooms.
      * @param {string} commandsString - Forward slash separated list of comma-separated bot commands to be executed when the event is triggered or ended.
@@ -264,15 +263,15 @@ export default class Event extends GameEntity {
 
     async startTimer() {
         if (this.remaining === null)
-            this.remaining = this.duration.clone();
+            this.remaining = this.duration;
         let event = this;
-        this.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, async function () {
-            event.remaining.subtract(1000, 'ms');
+        this.timer = new Timer(1000, { start: true, loop: true }, async function () {
+            event.remaining = event.remaining.minus(1000);
 
-            const days = Math.floor(event.remaining.asDays());
-            const hours = event.remaining.hours();
-            const minutes = event.remaining.minutes();
-            const seconds = event.remaining.seconds();
+            const days = Math.floor(event.remaining.as('days'));
+            const hours = event.remaining.hours;
+            const minutes = event.remaining.minutes;
+            const seconds = event.remaining.seconds;
 
             let displayString = "";
             if (days !== 0) displayString += `${days} `;
@@ -284,14 +283,14 @@ export default class Event extends GameEntity {
             displayString += `${seconds}`;
             event.remainingString = displayString;
 
-            if (event.remaining.asMilliseconds() <= 0)
+            if (event.remaining.as('milliseconds') <= 0)
                 await event.end(true);
         });
     }
 
     startEffectsTimer() {
         let event = this;
-        this.effectsTimer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
+        this.effectsTimer = new Timer(1000, { start: true, loop: true }, function () {
             const rooms = event.game.entityFinder.getRooms(null, event.roomTag, true);
             for (let room of rooms) {
                 for (let occupant of room.occupants) {
@@ -309,7 +308,7 @@ export default class Event extends GameEntity {
                             }
                         }
                         if (status !== null && status.remaining !== null)
-                            status.remaining = refresh.duration.clone();
+                            status.remaining = refresh.duration;
                     });
                 }
             }

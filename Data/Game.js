@@ -21,8 +21,7 @@ import Whisper from './Whisper.js';
 import { saveGame } from '../Modules/saver.js';
 import { sendQueuedMessages } from '../Modules/messageHandler.js';
 import { Collection } from 'discord.js';
-import dayjs from 'dayjs';
-dayjs().format();
+import { DateTime } from 'luxon';
 
 /**
  * @class Game
@@ -318,16 +317,15 @@ export default class Game {
 		// Check for any events that are supposed to trigger at this time of day.
 		this.#eventTriggerInterval = setInterval(() => {
 			if (this.inProgress) {
-				const now = dayjs();
+				const now = DateTime.now();
 				this.eventsCollection.forEach(event => {
 					if (!event.ongoing) {
 						for (let triggerTimeString of event.triggerTimesStrings) {
-							const time = dayjs(triggerTimeString, Event.formats);
-							if (now.month() === time.month()
-								&& now.weekday() === time.weekday()
-								&& now.date() === time.date()
-								&& now.hour() === time.hour()
-								&& now.minute() === time.minute()) {
+							const time = dayjs(triggerTimeString, Event.formats); // TODO: update to luxon ad-hoc parsing, date-fns parsing if needed
+							if (now.month === time.month()
+								&& now.weekday === time.weekday()
+								&& now.hour === time.hour()
+								&& now.minute === time.minute()) {
 								event.trigger(true);
 								break;
 							}
