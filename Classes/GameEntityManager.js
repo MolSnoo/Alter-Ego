@@ -29,6 +29,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all room data from memory.
+	 * @protected
 	 */
 	clearRooms() {
 		this.game.rooms.length = 0;
@@ -37,6 +38,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all fixture data from memory.
+	 * @protected
 	 */
 	clearFixtures() {
 		this.game.fixtures.forEach(fixture => {
@@ -50,6 +52,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all prefab data from memory.
+	 * @protected
 	 */
 	clearPrefabs() {
 		this.game.prefabs.length = 0;
@@ -58,6 +61,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all recipe data from memory.
+	 * @protected
 	 */
 	clearRecipes() {
 		this.game.recipes.length = 0;
@@ -65,6 +69,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all room item data from memory.
+	 * @protected
 	 */
 	clearRoomItems() {
 		this.game.roomItems.length = 0;
@@ -72,6 +77,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all puzzle data from memory.
+	 * @protected
 	 */
 	clearPuzzles() {
 		this.game.puzzles.length = 0;
@@ -79,6 +85,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all event data from memory.
+	 * @protected
 	 */
 	clearEvents() {
 		this.game.eventsCollection.forEach(event => {
@@ -93,6 +100,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all status effect data from memory.
+	 * @protected
 	 */
 	clearStatusEffects() {
 		this.game.statusEffects.length = 0;
@@ -101,6 +109,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all player data from memory.
+	 * @protected
 	 */
 	clearPlayers() {
 		this.game.playersCollection.forEach(player => {
@@ -124,6 +133,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all inventory item data from memory.
+	 * @protected
 	 */
 	clearInventoryItems() {
 		this.game.inventoryItems.length = 0;
@@ -131,6 +141,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all gesture data from memory.
+	 * @protected
 	 */
 	clearGestures() {
 		this.game.gestures.length = 0;
@@ -139,6 +150,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Clears all flag data from memory.
+	 * @protected
 	 */
 	clearFlags() {
 		this.game.flags.clear();
@@ -146,6 +158,7 @@ export default class GameEntityManager {
 
 	/** 
 	 * Updates references to a given room throughout the game.
+	 * @protected
 	 * @param {Room} room - The room to reference.
 	 */
 	updateRoomReferences(room) {
@@ -173,6 +186,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Updates references to a given fixture throughout the game.
+	 * @protected
 	 * @param {Fixture} fixture - The fixture to reference. 
 	 */
 	updateFixtureReferences(fixture) {
@@ -188,6 +202,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Updates references to a given prefab throughout the game.
+	 * @protected
 	 * @param {Prefab} prefab - The prefab to reference.
 	 */
 	updatePrefabReferences(prefab) {
@@ -209,6 +224,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Updates references to a given puzzle throughout the game.
+	 * @protected
 	 * @param {Puzzle} puzzle - The puzzle to reference.
 	 */
 	updatePuzzleReferences(puzzle) {
@@ -224,6 +240,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Updates references to a given event throughout the game.
+	 * @protected
 	 * @param {Event} event 
 	 */
 	updateEventReferences(event) {
@@ -237,6 +254,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Updates references to a given status effect throughout the game.
+	 * @protected
 	 * @param {Status} status 
 	 */
 	updateStatusEffectReferences(status) {
@@ -270,6 +288,7 @@ export default class GameEntityManager {
 
 	/**
 	 * Updates references to a given flag throughout the game.
+	 * @protected
 	 * @param {Flag} flag 
 	 */
 	updateFlagReferences(flag) {

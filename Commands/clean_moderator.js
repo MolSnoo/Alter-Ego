@@ -1,7 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { saveGame } from '../Modules/saver.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -21,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}clean\n`
         + `${settings.commandPrefix}autoclean`;
 }
@@ -32,7 +31,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (!game.editMode)
         return messageHandler.addReply(game, message, `You cannot clean the items and inventory items sheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
@@ -54,7 +53,7 @@ export async function execute (game, message, command, args) {
 
     try {
         // Pass deletedItemsCount and deletedInventoryItemsCount so the saver knows how many blank rows to append at the end.
-        await saveGame(game, deletedItemsCount, deletedInventoryItemsCount);
+        await game.entitySaver.saveGame(deletedItemsCount, deletedInventoryItemsCount);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
     }
     catch (err) {

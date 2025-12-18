@@ -1,7 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { saveGame } from '../Modules/saver.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -37,7 +36,7 @@ export function usage(settings) {
 export async function execute(game, message, command, args) {
     if (args.length === 0 && game.editMode === false || args.length > 0 && args[0].toLowerCase() === "on") {
         try {
-            await saveGame(game);
+            await game.entitySaver.saveGame();
             game.editMode = true;
             game.livingPlayersCollection.forEach(player => {
                 player.stopMoving();
