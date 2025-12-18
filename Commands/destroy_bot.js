@@ -312,20 +312,20 @@ export async function execute (game, command, args, player, callee) {
             else {
                 // Check if an equipment slot was specified.
                 let equipmentSlotName = "";
-                for (let i = 0; i < player.inventory.length; i++) {
-                    if (player.inventory[i].id === parsedInput2) {
-                        item = player.inventory[i].equippedItem;
-                        equipmentSlotName = player.inventory[i].id;
-                        if (item === null) gotoNext = true;
-                        if (destroyAll) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipment slot.`);
-                        break;
-                    }
-                    else if (player.inventory[i].equippedItem !== null &&
-                        (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === parsedInput2 || player.inventory[i].equippedItem.prefab.id === parsedInput2)) {
-                        item = player.inventory[i].equippedItem;
-                        equipmentSlotName = player.inventory[i].id;
-                        if (destroyAll) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipped item.`);
-                        break;
+                if (player.inventoryCollection.get(parsedInput2)) {
+                    item = player.inventoryCollection.get(parsedInput2).equippedItem
+                    equipmentSlotName = parsedInput2;
+                    if (item === null) gotoNext = true;
+                    if (destroyAll) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipment slot.`);
+                }
+                else {
+                    for (const [id, slot] of player.inventoryCollection) {
+                        if (slot.equippedItem !== null && slot.equippedItem.identifier === parsedInput2 || slot.equippedItem.prefab.id === parsedInput2) {
+                            item = slot.equippedItem
+                            equipmentSlotName = id
+                            if (destroyAll) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipped item.`);
+                            break;
+                        }
                     }
                 }
                 if (item !== null && equipmentSlotName !== "") {

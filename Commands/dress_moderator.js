@@ -45,22 +45,13 @@ export async function execute (game, message, command, args) {
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
-    let hand = "";
-    let handSlot = 0;
-    for (handSlot; handSlot < player.inventory.length; handSlot++) {
-        if (player.inventory[handSlot].id === "RIGHT HAND" && player.inventory[handSlot].equippedItem === null) {
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[handSlot].id === "LEFT HAND" && player.inventory[handSlot].equippedItem === null) {
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[handSlot].id === "LEFT HAND")
-            break;
-    }
-    if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
+    let hand =
+        player.inventoryCollection.get("RIGHT HAND").equippedItem === null
+            ? player.inventoryCollection.get("RIGHT HAND")
+            : player.inventoryCollection.get("LEFT HAND").equippedItem === null
+            ? player.inventoryCollection.get("LEFT HAND")
+            : null;
+    if (hand === null) return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -82,7 +73,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the player specified a container item.
-    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.roomItems.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     if (container === null) {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {
@@ -91,10 +82,10 @@ export async function execute (game, message, command, args) {
                 // Check if a slot was specified.
                 if (parsedInput.endsWith(" OF")) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
-                    for (let slot = 0; slot < container.inventory.length; slot++) {
-                        if (parsedInput.endsWith(container.inventory[slot].id)) {
-                            slotName = container.inventory[slot].id;
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(container.inventory[slot].id)).trimEnd();
+                    for (const slot of container.inventoryCollection.values()) {
+                        if (parsedInput.endsWith(slot.id)) {
+                            slotName = slot.id;
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(slot.id)).trimEnd();
                             break;
                         }
                     }
@@ -116,6 +107,9 @@ export async function execute (game, message, command, args) {
     }
 
     // Get all items in this container.
+    /**
+     * @type {Array<RoomItem>}
+     */
     let containerItems = [];
     if (container instanceof Fixture)
         containerItems = items.filter(item => item.containerName === `Object: ${container.name}` && item.prefab.equippable);
@@ -134,17 +128,16 @@ export async function execute (game, message, command, args) {
         let equipped = false;
         // Look for the player's equipment slots that the current item can be equipped to.
         for (let j = 0; j < containerItems[i].prefab.equipmentSlots.length; j++) {
-            for (let k = 0; k < player.inventory.length; k++) {
-                if (containerItems[i].prefab.equipmentSlots[j] === player.inventory[k].id) {
-                    // Ensure that this item will only be equipped once if it can be equipped to multiple slots.
-                    if (equipped) continue;
-                    // If something is already equipped to this equipment slot, move on.
-                    if (player.inventory[k].equippedItem !== null) break;
-                    // Take the item and equip it.
-                    player.take(containerItems[i], hand, container, containerItems[i].slot, false);
-                    player.equip(player.inventory[handSlot].equippedItem, player.inventory[k].id, hand, false);
-                    equipped = true;
-                }
+            let slot = player.inventoryCollection.get(containerItems[i].prefab.equipmentSlots[j])
+            if (slot) {
+                // Ensure that this item will only be equipped once if it can be equipped to multiple slots.
+                if (equipped) continue;
+                // If something is already equipped to this equipment slot, move on.
+                if (slot.equippedItem !== null) continue;
+                // Take the item and equip it.
+                player.take(containerItems[i], hand, container, containerItems[i].slot, false); // TODO: FIXME!
+                player.equip(hand.equippedItem, slot, hand, false);
+                equipped = true;
             }
         }
     }
@@ -160,13 +153,13 @@ export async function execute (game, message, command, args) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dressed from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
-            const weightItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const weightItems = game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = weightItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             player.attemptPuzzle(container, null, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
         else if (container instanceof Puzzle && container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+            const containerItems = game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;

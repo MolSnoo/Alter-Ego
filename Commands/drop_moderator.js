@@ -52,49 +52,43 @@ export async function execute (game, message, command, args) {
 
     // First, find the item in the player's inventory.
     let item = null;
-    let hand = "";
+    let hand = null;
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    let rightHand = null;
-    let leftHand = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND")
-            rightHand = player.inventory[slot];
-        else if (player.inventory[slot].id === "LEFT HAND")
-            leftHand = player.inventory[slot];
-    }
+    const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const leftHand = player.inventoryCollection.get("LEFT HAND");
     // Check for the identifier first.
     if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" &&
         (parsedInput.startsWith(rightHand.equippedItem.identifier + ' ') || rightHand.equippedItem.identifier === parsedInput)) {
         item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
+        hand = rightHand;
         parsedInput = parsedInput.substring(item.identifier.length).trim();
     }
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" &&
         (parsedInput.startsWith(leftHand.equippedItem.identifier + ' ') || leftHand.equippedItem.identifier === parsedInput)) {
         item = leftHand.equippedItem;
-        hand = "LEFT HAND";
+        hand = leftHand;
         parsedInput = parsedInput.substring(item.identifier.length).trim();
     }
     // Check for the prefab ID next.
     else if (item === null && rightHand.equippedItem !== null && (parsedInput.startsWith(rightHand.equippedItem.prefab.id + ' ') || rightHand.equippedItem.prefab.id === parsedInput)) {
         item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
+        hand = rightHand;
         parsedInput = parsedInput.substring(item.prefab.id.length).trim();
     }
     else if (item === null && leftHand.equippedItem !== null && (parsedInput.startsWith(leftHand.equippedItem.prefab.id + ' ') || leftHand.equippedItem.prefab.id === parsedInput)) {
         item = leftHand.equippedItem;
-        hand = "LEFT HAND";
+        hand = leftHand;
         parsedInput = parsedInput.substring(item.prefab.id.length).trim();
     }
     // Check for the name last.
     else if (item === null && rightHand.equippedItem !== null && (parsedInput.startsWith(rightHand.equippedItem.name + ' ') || rightHand.equippedItem.name === parsedInput)) {
         item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
+        hand = rightHand;
         parsedInput = parsedInput.substring(item.name.length).trim();
     }
     else if (item === null && leftHand.equippedItem !== null && (parsedInput.startsWith(leftHand.equippedItem.name + ' ') || leftHand.equippedItem.name === parsedInput)) {
         item = leftHand.equippedItem;
-        hand = "LEFT HAND";
+        hand = leftHand;
         parsedInput = parsedInput.substring(item.name.length).trim();
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${input}" in either of ${player.name}'s hands.`);
@@ -122,7 +116,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if a container item was specified.
-    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.roomItems.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     let containerItem = null;
     let containerItemSlot = null;
     if (parsedInput !== "") {
@@ -135,7 +129,7 @@ export async function execute (game, message, command, args) {
                 parsedInput.endsWith(items[i].name)) {
                 const itemContainer = items[i].container;
                 if (fixture === null || fixture !== null && itemContainer !== null && (itemContainer.name === fixture.name || itemContainer instanceof Puzzle && itemContainer.parentFixture.name === fixture.name)) {
-                    if (items[i].inventory.length === 0) return messageHandler.addReply(game, message, `${items[i].prefab.id} cannot hold items.`);
+                    if (items[i].inventoryCollection.size === 0) return messageHandler.addReply(game, message, `${items[i].prefab.id} cannot hold items.`);
                     containerItem = items[i];
 
                     if (items[i].identifier !== "" && parsedInput.endsWith(items[i].identifier))
@@ -149,9 +143,9 @@ export async function execute (game, message, command, args) {
                     if (parsedInput.endsWith(" OF")) {
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                         newArgs = parsedInput.split(' ');
-                        for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                            if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
-                                containerItemSlot = containerItem.inventory[slot];
+                        for (const [id, slot] of containerItem.inventoryCollection) {
+                            if (parsedInput.endsWith(id)) {
+                                containerItemSlot = slot;
                                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
                                 break;
                             }
@@ -169,7 +163,7 @@ export async function execute (game, message, command, args) {
 
     // Now decide what the container should be.
     let container = null;
-    let slotName = "";
+    let slot = null;
     if (fixture !== null && fixture.childPuzzle === null && containerItem === null)
         container = fixture;
     else if (fixture !== null && fixture.childPuzzle !== null && (fixture.childPuzzle.type === "weight" || fixture.childPuzzle.type === "container" || fixture.childPuzzle.accessible && fixture.childPuzzle.solved || player.hidingSpot === fixture.name) && containerItem === null)
@@ -177,7 +171,7 @@ export async function execute (game, message, command, args) {
     else if (containerItem !== null) {
         container = containerItem;
         if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-        slotName = containerItemSlot.id;
+        slot = containerItemSlot;
         if (item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because it is too large.`);
         else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because it is too large.`);
         else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because there isn't enough space left.`);
@@ -201,7 +195,7 @@ export async function execute (game, message, command, args) {
             return messageHandler.addReply(game, message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
-    player.drop(item, hand, container, slotName);
+    player.drop(item, hand, container, slot);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is a Fixture.
@@ -228,7 +222,7 @@ export async function execute (game, message, command, args) {
     }
     // Container is a RoomItem.
     else if (container instanceof RoomItem)
-        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slotName} of ${container.identifier} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slot} of ${container.identifier} in ${player.location.channel}`);
 
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dropped ${item.identifier ? item.identifier : item.prefab.id} for ${player.name}.`);
 

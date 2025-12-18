@@ -290,20 +290,20 @@ export async function execute (game, message, command, args) {
         else {
             // Check if an equipment slot was specified.
             let equipmentSlotName = "";
-            for (let i = 0; i < player.inventory.length; i++) {
-                if (player.inventory[i].id === parsedInput) {
-                    item = player.inventory[i].equippedItem;
-                    equipmentSlotName = player.inventory[i].id;
-                    if (item === null) return messageHandler.addReply(game, message, `Cannot destroy item equipped to ${equipmentSlotName} because nothing is equipped to it.`);
-                    if (destroyAll) return messageHandler.addReply(game, message, `The "all" argument cannot be used when the container is an equipment slot.`);
-                    break;
-                }
-                else if (player.inventory[i].equippedItem !== null &&
-                    (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === parsedInput || player.inventory[i].equippedItem.prefab.id === parsedInput)) {
-                    item = player.inventory[i].equippedItem;
-                    equipmentSlotName = player.inventory[i].id;
-                    if (destroyAll) return messageHandler.addReply(game, message, `The "all" argument cannot be used when the container is an equipped item.`);
-                    break;
+            if (player.inventoryCollection.get(parsedInput)) {
+                item = player.inventoryCollection.get(parsedInput).equippedItem
+                equipmentSlotName = parsedInput;
+                if (item === null) return messageHandler.addReply(game, message, `Cannot destroy item equipped to ${equipmentSlotName} because nothing is equipped to it.`);
+                if (destroyAll) return messageHandler.addReply(game, message, `The "all" argument cannot be used when the container is an equipment slot.`);
+            }
+            else {
+                for (const [id, slot] of player.inventoryCollection) {
+                    if (slot.equippedItem !== null && slot.equippedItem.identifier === parsedInput || slot.equippedItem.prefab.id === parsedInput) {
+                        item = slot.equippedItem
+                        equipmentSlotName = id
+                        if (destroyAll) return messageHandler.addReply(game, message, `The "all" argument cannot be used when the container is an equipped item.`);
+                        break;
+                    }
                 }
             }
             if (item !== null && equipmentSlotName !== "") {
