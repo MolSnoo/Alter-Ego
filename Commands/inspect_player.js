@@ -266,9 +266,9 @@ export async function execute (game, message, command, args, player) {
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
-        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasBehaviorAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
             return messageHandler.addReply(game, message, `Couldn't find "${input}".`);
-        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't const player inspect themselves.

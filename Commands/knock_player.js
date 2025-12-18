@@ -59,7 +59,7 @@ export async function execute (game, message, command, args, player) {
     const hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.
     for (let i = 0; i < room.occupants.length; i++) {
-        if (!room.occupants[i].hasAttribute("no hearing"))
+        if (!room.occupants[i].hasBehaviorAttribute("no hearing"))
             hearingPlayers.push(room.occupants[i]);
     }
 

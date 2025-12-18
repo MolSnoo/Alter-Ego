@@ -161,14 +161,14 @@ export async function execute (game, message, command, args, player) {
                             for (let k = 0; k < player.location.occupants.length; k++) {
                                 const occupant = player.location.occupants[k];
                                 // Make sure the player can only gesture to players hiding in the same fixture they're hiding in, if they're hidden.
-                                if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
+                                if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
                                     // Player cannot gesture toward themselves.
                                     if (occupant.name === player.name) return messageHandler.addReply(game, message, "You can't gesture toward yourself.");
                                     targetType = "Player";
                                     target = occupant;
                                     break;
                                 }
-                                else if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+                                else if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
                                     return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                             }
                         }

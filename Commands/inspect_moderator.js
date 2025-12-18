@@ -111,7 +111,7 @@ export async function execute (game, message, command, args) {
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${fixture.name} for ${player.name}.`);
 
         // Don't notify anyone if the player is inspecting the fixture that they're hiding in.
-        if (!player.hasAttribute("hidden") || player.hidingSpot !== fixture.name) {
+        if (!player.hasBehaviorAttribute("hidden") || player.hidingSpot !== fixture.name) {
             // Make sure the fixture isn't locked.
             if (fixture.childPuzzle === null || !fixture.childPuzzle.type.endsWith("lock") || fixture.childPuzzle.solved) {
                 const hiddenPlayers = game.entityFinder.getLivingPlayers(null, null, player.location.id, fixture.name);
@@ -258,7 +258,7 @@ export async function execute (game, message, command, args) {
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
         const possessive = occupant.name.toUpperCase() + "S ";
-        if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasAttribute("hidden"))
+        if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasBehaviorAttribute("hidden"))
             return messageHandler.addReply(game, message, `Couldn't find "${input}".`);
         if (occupant.name.toUpperCase() === parsedInput) {
             // Don't const player inspect themselves.

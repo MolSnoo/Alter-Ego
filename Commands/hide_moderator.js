@@ -85,7 +85,7 @@ export async function execute (game, message, command, args) {
             if (nameA > nameB) return 1;
             return 0;
         });
-        if (player.hasAttribute("no sight")) {
+        if (player.hasBehaviorAttribute("no sight")) {
             if (hiddenPlayers.length === 1)
                 player.notify(`When you hide in the ${fixture.name}, you find someone already there!`);
             else if (hiddenPlayers.length > 1)
@@ -105,7 +105,7 @@ export async function execute (game, message, command, args) {
             if (hiddenPlayers.length > 0) player.notify(`When you hide in the ${fixture.name}, you find ${hiddenPlayersString} already there!`);
         }
         for (let i = 0; i < hiddenPlayers.length; i++) {
-            if (hiddenPlayers[i].hasAttribute("no sight"))
+            if (hiddenPlayers[i].hasBehaviorAttribute("no sight"))
                 hiddenPlayers[i].notify(`Someone finds you! They hide with you.`);
             else
                 hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
