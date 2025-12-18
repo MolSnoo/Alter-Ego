@@ -72,47 +72,47 @@ export async function execute(game, message, command, args) {
         }
 
         game.roomsCollection.forEach(room => {
-            let error = loader.checkRoom(room);
+            const error = loader.checkRoom(room);
             if (error instanceof Error) errors.push(error);
         });
         game.fixtures.forEach(fixture => {
-            let error = loader.checkFixture(fixture);
+            const error = loader.checkFixture(fixture);
             if (error instanceof Error) errors.push(error);
         });
         game.prefabsCollection.forEach(prefab => {
-            let error = loader.checkPrefab(prefab);
+            const error = loader.checkPrefab(prefab);
             if (error instanceof Error) errors.push(error);
         });
         game.recipes.forEach(recipe => {
-            let error = loader.checkRecipe(recipe);
+            const error = loader.checkRecipe(recipe);
             if (error instanceof Error) errors.push(error);
         });
         game.roomItems.forEach(roomItem => {
-            let error = loader.checkRoomItem(roomItem);
+            const error = loader.checkRoomItem(roomItem);
             if (error instanceof Error) errors.push(error);
         });
         game.puzzles.forEach(puzzle => {
-            let error = loader.checkPuzzle(puzzle);
+            const error = loader.checkPuzzle(puzzle);
             if (error instanceof Error) errors.push(error);
         });
         game.eventsCollection.forEach(event => {
-            let error = loader.checkEvent(event);
+            const error = loader.checkEvent(event);
             if (error instanceof Error) errors.push(error);
         });
         game.statusEffectsCollection.forEach(statusEffect => {
-            let error = loader.checkStatusEffect(statusEffect);
+            const error = loader.checkStatusEffect(statusEffect);
             if (error instanceof Error) errors.push(error);
         });
         game.playersCollection.forEach(player => {
-            let error = loader.checkPlayer(player);
+            const error = loader.checkPlayer(player);
             if (error instanceof Error) errors.push(error);
         });
         game.inventoryItems.forEach(inventoryItem => {
-            let error = loader.checkInventoryItem(inventoryItem);
+            const error = loader.checkInventoryItem(inventoryItem);
             if (error instanceof Error) errors.push(error);
         });
         game.gesturesCollection.forEach(gesture => {
-            let error = loader.checkGesture(gesture);
+            const error = loader.checkGesture(gesture);
             if (error instanceof Error) errors.push(error);
         });
         if (errors.length > 0) {

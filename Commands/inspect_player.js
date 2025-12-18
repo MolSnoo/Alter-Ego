@@ -61,8 +61,8 @@ export async function execute (game, message, command, args, player) {
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
@@ -79,10 +79,10 @@ export async function execute (game, message, command, args, player) {
     // Check if the input is a fixture, or an item on a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
     const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
-    var fixture = null;
-    var item = null;
-    var container = null;
-    var slotName = "";
+    let fixture = null;
+    let item = null;
+    let container = null;
+    let slotName = "";
     for (let i = 0; i < fixtures.length; i++) {
         if (fixtures[i].name === parsedInput) {
             fixture = fixtures[i];
@@ -118,15 +118,15 @@ export async function execute (game, message, command, args, player) {
         if (hiddenStatus.length === 0 || player.hidingSpot !== fixture.name) {
             // Make sure the fixture isn't locked.
             if (fixture.childPuzzle === null || !fixture.childPuzzle.type.endsWith("lock") || fixture.childPuzzle.solved) {
-                let hiddenPlayers = game.entityFinder.getLivingPlayers(null, null, player.location.id, fixture.name);
+                const hiddenPlayers = game.entityFinder.getLivingPlayers(null, null, player.location.id, fixture.name);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     hiddenPlayers[i].notify(`You've been found by ${player.displayName}!`);
                 }
 
                 // Create a list string of players currently hiding in that hiding spot.
                 hiddenPlayers.sort(function (a, b) {
-                    let nameA = a.displayName.toLowerCase();
-                    let nameB = b.displayName.toLowerCase();
+                    const nameA = a.displayName.toLowerCase();
+                    const nameB = b.displayName.toLowerCase();
                     if (nameA < nameB) return -1;
                     if (nameA > nameB) return 1;
                     return 0;
@@ -152,7 +152,7 @@ export async function execute (game, message, command, args, player) {
         return;
     }
 
-    var onlySearchInventory = false;
+    let onlySearchInventory = false;
     if (parsedInput.startsWith("MY ")) onlySearchInventory = true;
 
     if (!onlySearchInventory) {
@@ -181,7 +181,7 @@ export async function execute (game, message, command, args, player) {
                 if (containerString !== "") {
                     // Slot name was specified.
                     if (parsedInput.endsWith(` OF ${itemContainer.name}`)) {
-                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${itemContainer.name}`)).trim();
+                        const tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${itemContainer.name}`)).trim();
                         for (let slot = 0; slot < itemContainer.inventory.length; slot++) {
                             if (itemContainer.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
                                 item = items[i];
@@ -264,14 +264,14 @@ export async function execute (game, message, command, args, player) {
 
     // Check if the input is a player in the room.
     for (let i = 0; i < player.location.occupants.length; i++) {
-        let occupant = player.location.occupants[i];
+        const occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
             return messageHandler.addReply(game, message, `Couldn't find "${input}".`);
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
-            // Don't let player inspect themselves.
+            // Don't const player inspect themselves.
             if (occupant.name === player.name) return messageHandler.addReply(game, message, `You can't inspect yourself.`);
             player.sendDescription(occupant.description, occupant);
 
@@ -281,7 +281,7 @@ export async function execute (game, message, command, args, player) {
             return;
         }
         else if (parsedInput.startsWith(possessive)) {
-            // Don't let the player inspect their own items this way.
+            // Don't const the player inspect their own items this way.
             if (occupant.name === player.name) return messageHandler.addReply(game, message, `You can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
@@ -296,7 +296,7 @@ export async function execute (game, message, command, args, player) {
                     );
                     if (coveringItems.length === 0) {
                         // Clear out any il tags in the description.
-                        let description = inventory[j].description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
+                        const description = inventory[j].description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
                         player.sendDescription(description, inventory[j]);
 
                         const time = new Date().toLocaleTimeString();

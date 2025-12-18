@@ -48,7 +48,7 @@ export async function execute(game, command, args, player, callee) {
     }
 
     // Get all listed players first.
-    var players = [];
+    let players = [];
     if (args[0].toLowerCase() === "player" && player !== null) {
         players.push(player);
         args.splice(0, 1);
@@ -80,8 +80,8 @@ export async function execute(game, command, args, player, callee) {
     }
     // Args at this point should only include the room name.
     // Check to see that the last argument is the name of a room.
-    var input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    let desiredRoom = game.entityFinder.getRoom(input);
+    let input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+    const desiredRoom = game.entityFinder.getRoom(input);
     if (desiredRoom === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
     input = input.substring(0, input.indexOf(desiredRoom.name));
     args = input.split("-");
@@ -104,10 +104,10 @@ export async function execute(game, command, args, player, callee) {
             }
 
             const appendString = players[i].createMoveAppendString();
-            var exitMessage;
+            let exitMessage;
             if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}${appendString}`;
             else exitMessage = `${players[i].displayName} exits${appendString}`;
-            var entranceMessage;
+            let entranceMessage;
             if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
             else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Clear the player's movement timer first.
@@ -122,7 +122,7 @@ export async function execute(game, command, args, player, callee) {
     }
 
     // Create a list of players moved for the log message.
-    var playerList = players[0].name;
+    let playerList = players[0].name;
     if (players.length === 2) playerList += ` and ${players[1].name}`;
     else if (players.length >= 3) {
         for (let i = 1; i < players.length; i++) {

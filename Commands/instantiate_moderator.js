@@ -56,15 +56,15 @@ export async function execute (game, message, command, args) {
         args.splice(0, 1);
     }
 
-    let input = args.join(" ");
+    const input = args.join(" ");
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
     const undashedInput = parsedInput.replace(/-/g, " ");
 
     // Some prefabs might have similar names. Make a list of all the ones that are found at the beginning of parsedInput.
     let prefab = null;
-    let matches = [];
+    const matches = [];
     for (let i = 1; i <= args.length; i++) {
-        let match = game.entityFinder.getPrefab(args.slice(0, i).join(" "));
+        const match = game.entityFinder.getPrefab(args.slice(0, i).join(" "));
         if (match)
             matches.push(match);
     }
@@ -75,10 +75,10 @@ export async function execute (game, message, command, args) {
     else parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(` AT ${room.id.toUpperCase().replace(/-/g, " ")}`));
 
     // If a parenthetical expression is included, procedural options are being manually set.
-    let proceduralSelections = new Map();
+    const proceduralSelections = new Map();
     if (parsedInput.indexOf('(') < parsedInput.indexOf(')')) {
         const proceduralString = parsedInput.substring(parsedInput.indexOf('(') + 1, parsedInput.indexOf(')'));
-        let proceduralList = proceduralString.split('+');
+        const proceduralList = proceduralString.split('+');
         for (let procedural of proceduralList) {
             const proceduralAssignment = procedural.split('=');
             if (proceduralAssignment.length !== 2)
@@ -250,7 +250,7 @@ export async function execute (game, message, command, args) {
             }
         }
         if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-        let slotName = containerItem !== null ? containerItemSlot.id : "";
+        const slotName = containerItem !== null ? containerItemSlot.id : "";
 
         // Check if an equipment slot was specified.
         let equipmentSlotName = "";
@@ -259,7 +259,7 @@ export async function execute (game, message, command, args) {
                 if (parsedInput.endsWith(player.inventory[i].id)) {
                     equipmentSlotName = player.inventory[i].id;
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(equipmentSlotName)).trimEnd();
-                    let newArgs = parsedInput.split(' ');
+                    const newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
                     parsedInput = newArgs.join(' ');
                     if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${equipmentSlotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);

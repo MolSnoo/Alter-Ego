@@ -38,7 +38,7 @@ export async function execute(game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
-    var players = [];
+    const players = [];
     if (args[0] === "all" || args[0] === "living") {
         game.entityFinder.getLivingPlayers(null, false).map((player) => {
             if (!player.member.roles.cache.find((role) => role.id === game.guildContext.freeMovementRole.id))
@@ -48,7 +48,7 @@ export async function execute(game, message, command, args) {
     }
     else {
         for (let i = args.length - 1; i >= 0; i--) {
-            let fetchedPlayer = game.entityFinder.getLivingPlayer(args[i]);
+            const fetchedPlayer = game.entityFinder.getLivingPlayer(args[i]);
             if (fetchedPlayer) {
                 players.push(fetchedPlayer);
                 args.splice(i, 1);
@@ -57,8 +57,8 @@ export async function execute(game, message, command, args) {
     }
     // Args at this point should only include the room/exit name, as well as any players that weren't found.
     // Check to see that the last argument is the name of a room.
-    var input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var desiredRoom = null;
+    let input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+    let desiredRoom = null;
     for (let i = 0; i < args.length; i++) {
         const searchString = args.slice(i).join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
         desiredRoom = game.entityFinder.getRoom(searchString);
@@ -70,10 +70,10 @@ export async function execute(game, message, command, args) {
     }
     // Now, if the room couldn't be found, try looking for the name of an exit.
     // All given players must be in the same room for this to work.
-    var isExit = false;
-    var exit = null;
-    var exitPuzzle = null;
-    var entrance = null;
+    let isExit = false;
+    let exit = null;
+    let exitPuzzle = null;
+    let entrance = null;
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
         for (let i = 1; i < players.length; i++) {
@@ -81,7 +81,7 @@ export async function execute(game, message, command, args) {
         }
         input = args.join(" ").toUpperCase();
         for (let i = 0; i <= args.length; i++) {
-            let searchString = args.slice(i).join(" ")
+            const searchString = args.slice(i).join(" ")
             exit = game.entityFinder.getExit(currentRoom, searchString);
             if (exit) {
                 isExit = true;
@@ -132,10 +132,10 @@ export async function execute(game, message, command, args) {
             }
 
             const appendString = players[i].createMoveAppendString();
-            var exitMessage;
+            let exitMessage;
             if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}${appendString}`;
             else exitMessage = `${players[i].displayName} exits${appendString}`;
-            var entranceMessage;
+            let entranceMessage;
             if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
             else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Clear the player's movement timer first.
@@ -152,7 +152,7 @@ export async function execute(game, message, command, args) {
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `The listed players have been moved to ${desiredRoom.channel}.`);
 
     // Create a list of players moved for the log message.
-    var playerList = players[0].name;
+    let playerList = players[0].name;
     if (players.length === 2) playerList += ` and ${players[1].name}`;
     else if (players.length >= 3) {
         for (let i = 1; i < players.length; i++) {

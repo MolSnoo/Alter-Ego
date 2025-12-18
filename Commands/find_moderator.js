@@ -326,10 +326,10 @@ export async function execute (game, message, command, args) {
  */
 function createPages(fields, results) {
 	// Divide the results into pages.
-	let pages = [];
+	const pages = [];
 	let page = [];
-	let header = [];
-	let headerEntryLength = [];
+	const header = [];
+	const headerEntryLength = [];
 	const fieldCount = Object.keys(fields).length;
 	const cellCharacterLimit = 
 		fieldCount <= 2 ? 80
@@ -342,11 +342,11 @@ function createPages(fields, results) {
 	});
 	page.push(header);
 
-	let widestEntryLength = [...headerEntryLength];
+	const widestEntryLength = [...headerEntryLength];
 	
 	for (let i = 0, pageNo = 0; i < results.length; i++) {
 		// Create a new row.
-		let row = [];
+		const row = [];
 		Object.keys(fields).forEach((key, j) => {
 			// Some fields require special access to get a string value. Handle those here.
 			let cellContents = "";

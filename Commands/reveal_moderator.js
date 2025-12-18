@@ -34,9 +34,9 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
-    var players = [];
+    const players = [];
     for (let i = args.length - 1; i >= 0; i--) {
-        let player = game.entityFinder.getDeadPlayer(args[i]);
+        const player = game.entityFinder.getDeadPlayer(args[i]);
         if (player) {
             players.push(player);
             args.splice(i, 1);

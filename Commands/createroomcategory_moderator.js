@@ -37,16 +37,16 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
 
-    var input = args.join(" ");
-    var channel = game.guildContext.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
+    const input = args.join(" ");
+    let channel = game.guildContext.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
     if (channel) {
-        let response = await registerRoomCategory(channel);
+        const response = await registerRoomCategory(channel);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
     }
     else {
         try {
             channel = await createCategory(game.guildContext.guild, input);
-            let response = await registerRoomCategory(channel);
+            const response = await registerRoomCategory(channel);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
         }
         catch (err) {

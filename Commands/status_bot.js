@@ -81,7 +81,7 @@ export async function execute (game, command, args, player, callee) {
     }
     args.splice(0, 1);
 
-    var statusName = args.join(" ").toLowerCase();
+    const statusName = args.join(" ").toLowerCase();
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict")
             players[i].inflict(statusName, true, true, true, callee);

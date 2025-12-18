@@ -36,11 +36,11 @@ export async function execute(game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and a display name. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    var input = args.join(" ");
+    const input = args.join(" ");
     if (input.length > 32) return messageHandler.addReply(game, message, `A name cannot exceed 32 characters.`);
 
     player.displayName = input;

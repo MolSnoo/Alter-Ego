@@ -66,8 +66,8 @@ export async function execute (game, message, command, args, player) {
     }
     if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
-    let input = args.join(" ");
-    let parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     let item = null;
     let container = null;
@@ -83,12 +83,12 @@ export async function execute (game, message, command, args, player) {
         }
         // A container was specified.
         if (parsedInput.startsWith(`${roomItems[i].name} FROM `)) {
-            let containerName = parsedInput.substring(`${roomItems[i].name} FROM `.length).trim();
+            const containerName = parsedInput.substring(`${roomItems[i].name} FROM `.length).trim();
             if (roomItems[i].container !== null) {
                 const roomItemContainer = roomItems[i].container;
                 // Slot name was specified.
                 if (containerName.endsWith(` OF ${roomItemContainer.name}`)) {
-                    let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
+                    const tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
                     if (roomItemContainer instanceof RoomItem) {
                         for (let slot = 0; slot < roomItemContainer.inventory.length; slot++) {
                             if (roomItemContainer.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
@@ -126,8 +126,8 @@ export async function execute (game, message, command, args, player) {
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
-            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
-            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return messageHandler.addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
         else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);

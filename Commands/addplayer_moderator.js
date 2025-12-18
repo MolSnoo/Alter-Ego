@@ -50,7 +50,7 @@ export async function execute (game, message, command, args) {
             return message.reply("That user is already playing.");
     }
 
-    var player = new Player(
+    const player = new Player(
         member.id,
         member,
         member.displayName,
@@ -74,8 +74,8 @@ export async function execute (game, message, command, args) {
     game.players_alive.push(player);
     member.roles.add(game.guildContext.playerRole);
 
-    var playerCells = [];
-    var inventoryCells = [];
+    const playerCells = [];
+    const inventoryCells = [];
     playerCells.push([
         player.id,
         player.name,

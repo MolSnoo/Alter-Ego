@@ -54,22 +54,22 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `Not enough arguments given. Usage:\n${usage(game.settings)}`);
 
-    var destroyAll = false;
+    let destroyAll = false;
     if (args[0].toLowerCase() === "all") {
         destroyAll = true;
         args.splice(0, 1);
     }
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
     const undashedInput = parsedInput.replace(/-/g, " ");
 
-    let room = game.entityFinder.getRooms(undashedInput.substring(undashedInput.lastIndexOf(" AT ") + 4), null, null, true)[0];
+    const room = game.entityFinder.getRooms(undashedInput.substring(undashedInput.lastIndexOf(" AT ") + 4), null, null, true)[0];
     if (room) {
         parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(" AT "));
     }
 
-    var item = null;
+    let item = null;
     let player = null;
     // Room was found. Look for the container in it.
     if (room !== null) {
@@ -257,7 +257,7 @@ export async function execute (game, message, command, args) {
             }
         }
         if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-        let slotName = containerItem !== null ? containerItemSlot.id : "";
+        const slotName = containerItem !== null ? containerItemSlot.id : "";
 
         let containerItems = [];
         let containerName = "";

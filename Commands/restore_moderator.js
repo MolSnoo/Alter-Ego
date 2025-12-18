@@ -31,7 +31,7 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0]);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     player.stamina = player.maxStamina;

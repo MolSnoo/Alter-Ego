@@ -37,7 +37,7 @@ export async function execute (game, message, command, args) {
 
     const member = await game.guildContext.guild.members.fetch(message.author.id);
 
-    var player = new Player(
+    const player = new Player(
         message.author.id,
         member,
         member.displayName,

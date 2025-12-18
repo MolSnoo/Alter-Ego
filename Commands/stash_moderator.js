@@ -38,18 +38,18 @@ export async function execute (game, message, command, args) {
     if (args.length < 3)
         return messageHandler.addReply(game, message, `You need to specify a player and two items. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = parsedInput.split(' ');
+    const input = args.join(' ');
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let newArgs = parsedInput.split(' ');
 
     // Look for the container item.
-    var items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
-    var containerItem = null;
-    var containerItemSlot = null;
+    const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
+    let containerItem = null;
+    let containerItemSlot = null;
     for (let i = 0; i < items.length; i++) {
         if (items[i].identifier !== "" && parsedInput.endsWith(items[i].identifier) && parsedInput !== items[i].identifier ||
             parsedInput.endsWith(items[i].prefab.id) && parsedInput !== items[i].prefab.id ||
@@ -78,7 +78,7 @@ export async function execute (game, message, command, args) {
                 if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier}.`);
             }
             newArgs = parsedInput.split(' ');
-            var itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
+            const itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
             newArgs.splice(newArgs.length - 1, 1);
             parsedInput = newArgs.join(' ');
             break;
@@ -95,11 +95,11 @@ export async function execute (game, message, command, args) {
     else if (containerItem.inventory.length === 0) return messageHandler.addReply(game, message, `${containerItem.prefab.id} cannot hold items.`);
 
     // Now find the item in the player's inventory.
-    var item = null;
-    var hand = "";
+    let item = null;
+    let hand = "";
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    var rightHand = null;
-    var leftHand = null;
+    let rightHand = null;
+    let leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND")
             rightHand = player.inventory[slot];

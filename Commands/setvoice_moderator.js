@@ -46,11 +46,11 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    var input = args.join(" ");
+    const input = args.join(" ");
     if (input === "" || input === null || input === undefined) {
         if (player.voiceString !== player.originalVoiceString) {
             player.voiceString = player.originalVoiceString;
@@ -60,7 +60,7 @@ export async function execute (game, message, command, args) {
     }
     else {
         if (args.length === 1) {
-            let fetchedPlayer = game.entityFinder.getPlayer(args[0]);
+            const fetchedPlayer = game.entityFinder.getPlayer(args[0]);
             if (fetchedPlayer) {
                 if (fetchedPlayer.name !== player.name) {
                     player.voiceString = fetchedPlayer.name;

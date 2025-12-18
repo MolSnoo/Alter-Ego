@@ -58,11 +58,11 @@ export async function execute (game, message, command, args, player) {
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase();
+    let input = args.join(" ");
+    let parsedInput = input.toUpperCase();
 
     // First find the item in the player's hand, if applicable.
-    var item = null;
+    let item = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
             if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
@@ -84,11 +84,11 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Now check to see if the player is trying to solve a puzzle.
-    var puzzle = null;
-    var password = "";
-    var targetPlayer = null;
+    let puzzle = null;
+    let password = "";
+    let targetPlayer = null;
     if (parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var puzzles = game.puzzles.filter(puzzle => puzzle.location.id === player.location.id);
+        let puzzles = game.puzzles.filter(puzzle => puzzle.location.id === player.location.id);
         if (command === "lock" || command === "unlock") puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
         else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
@@ -118,9 +118,9 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Check if the player specified a fixture.
-    var fixture = null;
+    let fixture = null;
     if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id);
+        const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id);
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput) {
                 fixture = fixtures[i];

@@ -53,7 +53,7 @@ export async function execute(game, command, args, player, callee) {
 
     args.splice(0, 1);
 
-    var input = args.join(" ");
+    let input = args.join(" ");
     if (input === "") input = player.name;
     if (input.length > 32) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". A name cannot exceed 32 characters.`);
 

@@ -36,22 +36,22 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = parsedInput.split(" TO ");
-    var itemName = newArgs[0].trim();
-    var slotName = newArgs[1] ? newArgs[1] : "";
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const newArgs = parsedInput.split(" TO ");
+    const itemName = newArgs[0].trim();
+    let slotName = newArgs[1] ? newArgs[1] : "";
 
     // First, find the item in the player's inventory.
-    var item = null;
-    var hand = "";
+    let item = null;
+    let hand = "";
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    var rightHand = null;
-    var leftHand = null;
+    let rightHand = null;
+    let leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND")
             rightHand = player.inventory[slot];

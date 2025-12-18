@@ -60,7 +60,7 @@ export async function execute (game, command, args, player, callee) {
     // First, find the room.
     let room;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         room = game.entityFinder.getRoom(searchString);
         if (room) {
             args = args.slice(i);
@@ -73,7 +73,7 @@ export async function execute (game, command, args, player, callee) {
     // Now that the room has been found, find the exit.
     let exit;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         exit = game.entityFinder.getExit(room, searchString);
         if (exit) {
             args = args.slice(i);
@@ -86,7 +86,7 @@ export async function execute (game, command, args, player, callee) {
     // Now find the destination room.
     let destRoom;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         destRoom = game.entityFinder.getRoom(searchString);
         if (destRoom) {
             args = args.slice(i);
@@ -99,7 +99,7 @@ export async function execute (game, command, args, player, callee) {
     // Now that the destination room has been found, find the destination exit.
     let destExit;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         destExit = game.entityFinder.getExit(destRoom, searchString);
         if (destExit) {
             break;

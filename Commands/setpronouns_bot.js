@@ -58,7 +58,7 @@ export async function execute (game, command, args, player, callee) {
 
     args.splice(0, 1);
 
-    let input = args.join(" ").toLowerCase().replace(/\\/g, "/");
+    const input = args.join(" ").toLowerCase().replace(/\\/g, "/");
     if (input !== "female" && input !== "male" && input !== "neutral" && input.split('/').length !== 6)
         return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The supplied pronoun string is invalid.`);
     player.setPronouns(player.pronouns, input);

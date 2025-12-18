@@ -51,8 +51,8 @@ export async function execute(game, message, command, args) {
         indent: 4
     });
 
-    var bufferGame = null
-    var bufferLog = null
+    let bufferGame = null
+    let bufferLog = null
 
     try {
         bufferGame = await new Promise((resolve, reject) => {
@@ -157,19 +157,19 @@ const complexFilterPlugin = { // TODO: type hint!
                     return `<Player ${val.name}>`;
                 } else {
                     complexProcessing.add(val);
-                    let serialized = printer(val, config, indentation, depth, refs);
+                    const serialized = printer(val, config, indentation, depth, refs);
                     complexProcessing.delete(val);
                     return serialized;
                 }
             case 'Room':
                 if (depth > 2) {
-                    let occupants = val.occupants.length
+                    const occupants = val.occupants.length
                         ? ` occupied by ${val.occupants.map(player => player.name).join(', ')}`
                         : '';
                     return `<Room ${val.name}${occupants}>`;
                 } else {
                     complexProcessing.add(val);
-                    let serialized = printer(val, config, indentation, depth, refs);
+                    const serialized = printer(val, config, indentation, depth, refs);
                     complexProcessing.delete(val);
                     return serialized;
                 }

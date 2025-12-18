@@ -42,11 +42,11 @@ export async function execute (game, message, command, args) {
     if (args.length !== 2)
         return messageHandler.addReply(game, message, `You need to specify a player and a pronoun set. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    let input = args.join(" ").toLowerCase();
+    const input = args.join(" ").toLowerCase();
     if (input !== "female" && input !== "male" && input !== "neutral" && input.split('/').length !== 6)
         return messageHandler.addReply(game, message, `The supplied pronoun string is invalid.`);
     player.setPronouns(player.pronouns, input);

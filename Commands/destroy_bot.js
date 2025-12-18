@@ -61,17 +61,17 @@ export async function execute (game, command, args, player, callee) {
         return;
     }
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
     const undashedInput = parsedInput.replace(/-/g, " ");
 
-    let room = game.entityFinder.getRooms(undashedInput.substring(undashedInput.lastIndexOf(" AT ") + 4), null, null, true)[0];
+    const room = game.entityFinder.getRooms(undashedInput.substring(undashedInput.lastIndexOf(" AT ") + 4), null, null, true)[0];
     if (room) {
         parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(" AT "));
     }
 
-    var destroyAll = false;
-    var item = null;
+    let destroyAll = false;
+    let item = null;
     // Room was found. Look for the container in it.
     if (room !== undefined) {
         let containerItem = null;
@@ -165,7 +165,7 @@ export async function execute (game, command, args, player, callee) {
         else if (container instanceof RoomItem)
             containerItems = roomItems.filter(item => item.containerName === `Item: ${container.identifier}/${slotName}`);
 
-        let newArgs = parsedInput.split(" ");
+        const newArgs = parsedInput.split(" ");
         if (newArgs[0] === "ALL") {
             destroyAll = true;
             newArgs.splice(0, 1);
@@ -193,7 +193,7 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     else {
-        var players = [];
+        let players = [];
         // Iterate in reverse so that the "all" argument for players doesn't conflict with the "all" argument for items.
         for (let i = args.length - 1; i >= 0; i--) {
             if (args[i].toLowerCase().replace(/'s/g, "") === "player" && player !== null) {
@@ -273,9 +273,9 @@ export async function execute (game, command, args, player, callee) {
                 }
             }
             if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-            let slotName = containerItem !== null ? containerItemSlot.id : "";
+            const slotName = containerItem !== null ? containerItemSlot.id : "";
 
-            let newArgs = parsedInput2.split(" ");
+            const newArgs = parsedInput2.split(" ");
             if (newArgs[0] === "ALL") {
                 destroyAll = true;
                 newArgs.splice(0, 1);

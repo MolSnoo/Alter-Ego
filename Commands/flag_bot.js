@@ -129,7 +129,7 @@ export async function execute(game, command, args, player, callee) {
 		}
 	}
 	else if (command === "clearflag") {
-		let flag = game.entityFinder.getFlag(input);
+		const flag = game.entityFinder.getFlag(input);
 		if (!flag) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
 
 		flag.clearValue(doCommands, player);

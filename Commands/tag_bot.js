@@ -41,7 +41,7 @@ export function usage (settings) {
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "tag") {
         if (args[0] === "add") command = "addtag";
         else if (args[0] === "remove") command = "removetag";
@@ -58,7 +58,7 @@ export async function execute (game, command, args, player, callee) {
 
     let room;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         room = game.entityFinder.getRoom(searchString);
         if (room) {
             break;

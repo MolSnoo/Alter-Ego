@@ -36,12 +36,12 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to specify two players and an item. Usage:\n${usage(game.settings)}`);
 
     // First, find the giver.
-    let giver = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const giver = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (giver === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // Next, find the recipient.
-    let recipient = game.entityFinder.getLivingPlayer(args[args.length - 1].toLowerCase().replace(/'s/g, ""));
+    const recipient = game.entityFinder.getLivingPlayer(args[args.length - 1].toLowerCase().replace(/'s/g, ""));
     if (recipient === undefined) return messageHandler.addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
     args.splice(args.length - 1, 1);
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);
@@ -50,7 +50,7 @@ export async function execute (game, message, command, args) {
     if (giver.location.id !== recipient.location.id) return messageHandler.addReply(game, message, `${giver.name} and ${recipient.name} are not in the same room.`);
 
     // Check to make sure that the recipient has a free hand.
-    var recipientHand = "";
+    let recipientHand = "";
     for (let slot = 0; slot < recipient.inventory.length; slot++) {
         if (recipient.inventory[slot].id === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
             recipientHand = "RIGHT HAND";
@@ -66,15 +66,15 @@ export async function execute (game, message, command, args) {
     }
     if (recipientHand === "") return messageHandler.addReply(game, message, `${recipient.name} does not have a free hand to receive an item.`);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Now find the item in the giver's inventory.
-    var item = null;
-    var giverHand = "";
+    let item = null;
+    let giverHand = "";
     // Get references to the right and left hand equipment slots so we don't have to iterate through the giver's inventory to find them every time.
-    var rightHand = null;
-    var leftHand = null;
+    let rightHand = null;
+    let leftHand = null;
     for (let slot = 0; slot < giver.inventory.length; slot++) {
         if (giver.inventory[slot].id === "RIGHT HAND")
             rightHand = giver.inventory[slot];

@@ -29,7 +29,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var playerList = "Living players:\n";
+    let playerList = "Living players:\n";
     if (game.players_alive.length > 0)
         playerList += game.players_alive[0].name;
     for (let i = 1; i < game.players_alive.length; i++)

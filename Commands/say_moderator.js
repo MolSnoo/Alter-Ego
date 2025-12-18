@@ -51,12 +51,12 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
-        let webHooks = await player.location.channel.fetchWebhooks();
+        const webHooks = await player.location.channel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
-        let files = [];
+        const files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         const displayName = player.displayName;

@@ -34,10 +34,10 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0]);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
-    var statsString = `__${player.name}'s default stats:__\n`;
+    let statsString = `__${player.name}'s default stats:__\n`;
     statsString += `Str: ${player.defaultStrength}\n`;
     statsString += `Int: ${player.defaultIntelligence}\n`;
     statsString += `Dex: ${player.defaultDexterity}\n`;

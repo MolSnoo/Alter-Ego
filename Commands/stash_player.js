@@ -43,14 +43,14 @@ export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable stash");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = parsedInput.split(' ');
+    const input = args.join(' ');
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let newArgs = parsedInput.split(' ');
 
     // Look for the container item.
-    var items = game.inventoryItems.filter(item => item.player.name === player.name);
-    var containerItem = null;
-    var containerItemSlot = null;
+    const items = game.inventoryItems.filter(item => item.player.name === player.name);
+    let containerItem = null;
+    let containerItemSlot = null;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab !== null && parsedInput.endsWith(items[i].name) && parsedInput !== items[i].name) {
             containerItem = items[i];
@@ -70,7 +70,7 @@ export async function execute (game, message, command, args, player) {
                 if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
             }
             newArgs = parsedInput.split(' ');
-            var itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
+            const itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
             newArgs.splice(newArgs.length - 1, 1);
             parsedInput = newArgs.join(' ');
             break;
@@ -82,8 +82,8 @@ export async function execute (game, message, command, args, player) {
     else if (containerItem.inventory.length === 0) return messageHandler.addReply(game, message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
-    var item = null;
-    var hand = "";
+    let item = null;
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
             item = player.inventory[slot].equippedItem;

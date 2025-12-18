@@ -44,7 +44,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "fixture" || command === "object") {
         if (args[0] === "activate") command = "activate";
         else if (args[0] === "deactivate") command = "deactivate";
@@ -58,8 +58,8 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('�');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -74,7 +74,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Find the prospective list of fixtures.
-    var fixtures = game.fixtures.filter(fixture => input.toUpperCase().startsWith(fixture.name + ' ') || input.toUpperCase() === fixture.name);
+    const fixtures = game.fixtures.filter(fixture => input.toUpperCase().startsWith(fixture.name + ' ') || input.toUpperCase() === fixture.name);
     if (fixtures.length > 0) {
         input = input.substring(fixtures[0].name.length).trim();
         args = input.split(" ");
@@ -89,7 +89,7 @@ export async function execute (game, message, command, args) {
         player = null;
 
     // If a player wasn't specified, check if a room name was.
-    var room = null;
+    let room = null;
     if (player === null) {
         const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
         for (let i = args.length - 1; i >= 0; i--) {
@@ -103,7 +103,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Finally, find the fixture.
-    var fixture = null;
+    let fixture = null;
     for (let i = 0; i < fixtures.length; i++) {
         if ((player !== null && fixtures[i].location.id === player.location.id)
             || (room !== null && fixtures[i].location.id === room.id)) {
@@ -115,7 +115,7 @@ export async function execute (game, message, command, args) {
     else if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find fixture "${input}".`);
     if (fixture.recipeTag === "") return messageHandler.addReply(game, message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
-    var narrate = false;
+    let narrate = false;
     if (announcement === "" && player !== null) narrate = true;
     else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.id === fixture.location.id), announcement).send();
 

@@ -35,7 +35,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "exit" || command === "room") {
         if (args[0] === "lock") command = "lock";
         else if (args[0] === "unlock") command = "unlock";
@@ -46,12 +46,12 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to input a room and an exit. Usage:\n${usage(game.settings)}`);
 
     input = args.join(" ");
-    var parsedInput = input.replace(/ /g, "-").toLowerCase();
+    let parsedInput = input.replace(/ /g, "-").toLowerCase();
 
     // First, find the room.
     let room;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         room = game.entityFinder.getRoom(searchString);
         if (room) {
             parsedInput = parsedInput.substring(room.id.length).replace(/-/g, " ").toUpperCase().trim();

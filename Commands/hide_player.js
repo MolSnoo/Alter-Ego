@@ -43,7 +43,7 @@ export async function execute (game, message, command, args, player) {
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.statusString.includes("hidden") && command === "unhide") {
-        let fixture = game.entityFinder.getFixtures(player.hidingSpot, player.location.id, true)[0];
+        const fixture = game.entityFinder.getFixtures(player.hidingSpot, player.location.id, true)[0];
         if (fixture !== undefined && (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved))
             return messageHandler.addReply(game, message, `You cannot come out of hiding right now.`);
         else player.cure("hidden", true, false, true);
@@ -57,12 +57,12 @@ export async function execute (game, message, command, args, player) {
         if (args.length === 0)
             return messageHandler.addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
 
-        var input = args.join(" ");
-        var parsedInput = input.toUpperCase().replace(/\'/g, "");
+        const input = args.join(" ");
+        const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
         // Check if the input is a fixture that the player can hide in.
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
-        var fixture = null;
+        let fixture = null;
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput && fixtures[i].hidingSpotCapacity > 0) {
                 fixture = fixtures[i];
@@ -78,7 +78,7 @@ export async function execute (game, message, command, args, player) {
             return messageHandler.addReply(game, message, `You cannot hide in ${fixture.name} right now.`);
 
         // Check to see if the hiding spot is already taken.
-        var hiddenPlayers = [];
+        const hiddenPlayers = [];
         for (let i = 0; i < player.location.occupants.length; i++) {
             if (player.location.occupants[i].hidingSpot === fixture.name)
                 hiddenPlayers.push(player.location.occupants[i]);
@@ -86,14 +86,14 @@ export async function execute (game, message, command, args, player) {
 
         // Create a list string of players currently hiding in that hiding spot.
         hiddenPlayers.sort(function (a, b) {
-            let nameA = a.displayName.toLowerCase();
-            let nameB = b.displayName.toLowerCase();
+            const nameA = a.displayName.toLowerCase();
+            const nameB = b.displayName.toLowerCase();
             if (nameA < nameB) return -1;
             if (nameA > nameB) return 1;
             return 0;
         });
         if (player.hasAttribute("no sight")) {
-            let hiddenPlayersString = hiddenPlayers.length > 1 ? "multiple people" : "someone";
+            const hiddenPlayersString = hiddenPlayers.length > 1 ? "multiple people" : "someone";
             if (hiddenPlayers.length + 1 > fixture.hidingSpotCapacity) {
                 player.notify(`You attempt to hide in the ${fixture.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
@@ -112,7 +112,7 @@ export async function execute (game, message, command, args, player) {
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {
-                    var whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
+                    const whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
                     await whisper.init();
                     game.whispers.push(whisper);
                 }
@@ -155,7 +155,7 @@ export async function execute (game, message, command, args, player) {
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {
-                    var whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
+                    const whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
                     await whisper.init();
                     game.whispers.push(whisper);
                 }

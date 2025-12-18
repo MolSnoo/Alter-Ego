@@ -124,7 +124,7 @@ export async function execute(game, message, command, args) {
 		messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully set flag ${flag.id} with value ${valueDisplay}.`);
 	}
 	else if (command === "clearflag") {
-		let flag = game.entityFinder.getFlag(input);
+		const flag = game.entityFinder.getFlag(input);
 		if (!flag) return messageHandler.addReply(game, message, `Couldn't find flag "${input}".`);
 
 		flag.clearValue(true);

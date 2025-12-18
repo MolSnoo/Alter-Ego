@@ -51,10 +51,10 @@ export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable recipes");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    var recipes = [];
+    const recipes = [];
     if (args.length > 0) {
-        var input = args.join(" ");
-        var parsedInput = input.toUpperCase().replace(/\'/g, "");
+        const input = args.join(" ");
+        const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
         let item = null;
         // Check if the input is an item in the player's inventory.
@@ -74,21 +74,21 @@ export async function execute (game, message, command, args, player) {
                     // Gather a list of fixtures in the room that can be used to process this recipe, if applicable.
                     let fixtures = [];
                     if (game.recipes[i].fixtureTag !== "") {
-                        let recipeFixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.recipeTag === game.recipes[i].fixtureTag);
+                        const recipeFixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.recipeTag === game.recipes[i].fixtureTag);
                         // If there are no fixtures in the room, provide the fixture tag.
                         if (recipeFixtures.length === 0) fixtures.push(game.recipes[i].fixtureTag);
                         else fixtures = recipeFixtures.map(fixture => fixture.name);
                     }
-                    let ingredients = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
-                    let products = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                    const ingredients = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
+                    const products = game.recipes[i].products.map(product => product.singleContainingPhrase);
                     recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: fixtures.join(', '), duration: game.recipes[i].duration.humanize(), uncraftable: false });
                     break;
                 }
             }
             if (game.recipes[i].uncraftable && game.recipes[i].products.length === 1 && game.recipes[i].products[0].id === item.prefab.id) {
                 // This recipe contains the given item as the sole product and is uncraftable.
-                let ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
-                let products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
+                const ingredients = game.recipes[i].products.map(product => product.singleContainingPhrase);
+                const products = game.recipes[i].ingredients.map(ingredient => ingredient.singleContainingPhrase);
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: "", duration: game.recipes[i].duration.humanize(), uncraftable: true });
             }
         }
@@ -101,13 +101,13 @@ export async function execute (game, message, command, args, player) {
     }
     else {
         // Get lists of all the player's inventory items and items in the room.
-        var inventoryItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && item.quantity > 0);
+        const inventoryItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && item.quantity > 0);
         inventoryItems.sort(function (a, b) {
             if (a.prefab.id < b.prefab.id) return -1;
             if (a.prefab.id > b.prefab.id) return 1;
             return 0;
         });
-        var roomItems = game.items.filter(item => item.location.id === player.location.id && (item.quantity > 0 || isNaN(item.quantity)));
+        const roomItems = game.items.filter(item => item.location.id === player.location.id && (item.quantity > 0 || isNaN(item.quantity)));
         roomItems.sort(function (a, b) {
             if (a.prefab.id < b.prefab.id) return -1;
             if (a.prefab.id > b.prefab.id) return 1;
@@ -145,7 +145,7 @@ export async function execute (game, message, command, args, player) {
                 // Gather a list of fixtures in the room that can be used to process this recipe, if applicable.
                 let fixtures = [];
                 if (game.recipes[i].fixtureTag !== "") {
-                    let recipeFixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.recipeTag === game.recipes[i].fixtureTag);
+                    const recipeFixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.recipeTag === game.recipes[i].fixtureTag);
                     if (recipeFixtures.length === 0) continue;
                     fixtures = recipeFixtures.map(fixture => fixture.name);
                 }
@@ -182,11 +182,11 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Create a rich embed for the Recipes.
-    var craftingFields = [];
-    var fixtureFields = [];
-    var uncraftingFields = [];
-    var pages = [];
-    var page = 0;
+    const craftingFields = [];
+    const fixtureFields = [];
+    const uncraftingFields = [];
+    const pages = [];
+    let page = 0;
 
     for (let i = 0; i < recipes.length; i++) {
         if (recipes[i].fixtures.length > 0) fixtureFields.push(recipes[i]);
@@ -276,7 +276,7 @@ export async function execute (game, message, command, args, player) {
  */
 function ingredientsMatch(items, ingredients) {
     if (items.length !== ingredients.length) return false;
-    var hasInventoryItem = false;
+    let hasInventoryItem = false;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab.id !== ingredients[i].id) return false;
         if (items[i] instanceof InventoryItem) hasInventoryItem = true;
@@ -292,7 +292,7 @@ function ingredientsMatch(items, ingredients) {
  */
 function productsMatch(items, products) {
     if (items.length !== products.length) return false;
-    var hasInventoryItem = false;
+    let hasInventoryItem = false;
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab.id !== products[i].id) return false;
         if (items[i] instanceof InventoryItem) hasInventoryItem = true;

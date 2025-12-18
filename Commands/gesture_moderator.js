@@ -37,12 +37,12 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var input = args.join(" ").toLowerCase().replace(/\'/g, "");
+    let input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
     if (input === "list") {
-        var fields = game.entityFinder.getGestures().map(gesture => gesture);
-        var pages = [];
-        var page = 0;
+        const fields = game.entityFinder.getGestures().map(gesture => gesture);
+        const pages = [];
+        let page = 0;
 
         // Divide the fields into pages.
         for (let i = 0, pageNo = 0; i < fields.length; i++) {
@@ -94,14 +94,14 @@ export async function execute (game, message, command, args) {
         if (args.length < 2)
             return messageHandler.addReply(game, message, `You need to specify a player and a gesture. Usage:\n${usage(game.settings)}`);
 
-        var player = game.entityFinder.getLivingPlayer(args[0]);
+        const player = game.entityFinder.getLivingPlayer(args[0]);
         if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
         args.splice(0, 1);
         input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
-        var gesture = null;
-        var targetType = "";
-        var target = null;
+        let gesture = null;
+        let targetType = "";
+        let target = null;
         for (let i = 0; i < game.gestures.length; i++) { // TODO: optimize this ENTIRE for block later!!! very evil!!!
             if (game.gestures[i].id.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
@@ -111,7 +111,7 @@ export async function execute (game, message, command, args) {
             }
             else if (input.startsWith(game.gestures[i].id.toLowerCase().replace(/\'/g, "") + ' ')) {
                 gesture = game.gestures[i];
-                let input2 = input.substring(game.gestures[i].id.toLowerCase().replace(/\'/g, "").length).trim();
+                const input2 = input.substring(game.gestures[i].id.toLowerCase().replace(/\'/g, "").length).trim();
 
                 if (input2 !== "") {
                     for (let j = 0; j < gesture.requires.length; j++) {
@@ -145,7 +145,7 @@ export async function execute (game, message, command, args) {
                         else if (gesture.requires[j] === "Player") {
                             const hiddenStatus = player.getAttributeStatusEffects("hidden");
                             for (let k = 0; k < player.location.occupants.length; k++) {
-                                let occupant = player.location.occupants[k];
+                                const occupant = player.location.occupants[k];
                                 if (occupant.name.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
                                     // Player cannot gesture toward themselves.
                                     if (occupant.name === player.name) return messageHandler.addReply(game, message, `${player.name} can't gesture toward ${player.originalPronouns.ref}.`);

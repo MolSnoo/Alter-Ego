@@ -70,7 +70,7 @@ export async function execute (game, message, command, args) {
  * @param {string} fileName - The name of the file to write the results to.
  */
 async function testplayers (game, fileName) {
-    var text = "";
+    let text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
         text += game.rooms[i].name + '\n';
@@ -82,7 +82,7 @@ async function testplayers (game, fileName) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 0; l < game.players.length; l++) {
-                        let player = game.players[l];
+                        const player = game.players[l];
                         // Save the original coordinates.
                         const x = player.pos.x;
                         const y = player.pos.y;
@@ -117,7 +117,7 @@ async function testplayers (game, fileName) {
  * @param {string} fileName - The name of the file to write the results to.
  */
 async function testspeeds (game, fileName) {
-    var text = "";
+    let text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
         text += game.rooms[i].name + '\n';
@@ -129,7 +129,7 @@ async function testspeeds (game, fileName) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 1; l <= 10; l++) {
-                        let player = new Player("", null, "", "", "neutral", "an average voice",{ speed: l, stamina: 5, strength: 5, intelligence: 5, dexterity: 5 }, true, room.id, "", [], "", [], null, 1, game);
+                        const player = new Player("", null, "", "", "neutral", "an average voice",{ speed: l, stamina: 5, strength: 5, intelligence: 5, dexterity: 5 }, true, room.id, "", [], "", [], null, 1, game);
                         player.pos.x = exit1.pos.x;
                         player.pos.y = exit1.pos.y;
                         player.pos.z = exit1.pos.z;

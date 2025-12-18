@@ -48,7 +48,7 @@ export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable drop");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    let input = args.join(" ");
+    const input = args.join(" ");
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
     let newArgs = null;
 
@@ -100,7 +100,7 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Check if the player specified a container item.
-    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     let containerItem = null;
     let containerItemSlot = null;
     if (parsedInput !== "") {

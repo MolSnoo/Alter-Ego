@@ -39,7 +39,7 @@ export function usage (settings) {
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
-    var input = cmdString;
+    let input = cmdString;
     if (command === "exit" || command === "room") {
         if (args[0] === "lock") command = "lock";
         else if (args[0] === "unlock") command = "unlock";
@@ -52,12 +52,12 @@ export async function execute (game, command, args, player, callee) {
     }
 
     input = args.join(" ");
-    var parsedInput = input.replace(/ /g, "-").toLowerCase();
+    let parsedInput = input.replace(/ /g, "-").toLowerCase();
 
     // First, find the room.
     let room;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         room = game.entityFinder.getRoom(searchString);
         if (room) {
             parsedInput = parsedInput.substring(room.id.length).replace(/-/g, " ").toUpperCase().trim();

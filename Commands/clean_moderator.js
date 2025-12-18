@@ -37,8 +37,8 @@ export async function execute (game, message, command, args) {
     if (!game.editMode)
         return messageHandler.addReply(game, message, `You cannot clean the items and inventory items sheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
-    var deletedItemsCount = 0;
-    var deletedInventoryItemsCount = 0;
+    let deletedItemsCount = 0;
+    let deletedInventoryItemsCount = 0;
     // Iterate through the lists backwards because the act of splicing ruins the order of iteration going forwards.
     for (let i = game.roomItems.length - 1; i >= 0; i--) {
         if (game.roomItems[i].quantity === 0) {

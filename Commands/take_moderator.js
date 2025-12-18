@@ -41,7 +41,7 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -62,8 +62,8 @@ export async function execute (game, message, command, args) {
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
-    let input = args.join(" ");
-    let parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     let item = null;
     let container = null;
@@ -150,8 +150,8 @@ export async function execute (game, message, command, args) {
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
-            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
-            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return messageHandler.addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
         else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);

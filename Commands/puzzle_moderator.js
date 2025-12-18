@@ -46,7 +46,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "puzzle") {
         if (args[0] === "solve") command = "solve";
         else if (args[0] === "unsolve") command = "unsolve";
@@ -60,8 +60,8 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('“');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -76,7 +76,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Find the prospective list of puzzles.
-    var puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
+    const puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
     if (puzzles.length > 0) {
         input = input.substring(puzzles[0].name.length).trim();
         args = input.split(" ");
@@ -91,7 +91,7 @@ export async function execute (game, message, command, args) {
         player = null;
 
     // If a player wasn't specified, check if a room name was.
-    var room = null;
+    let room = null;
     if (player === null) {
         const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
         for (let i = args.length - 1; i >= 0; i--) {
@@ -105,7 +105,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Finally, find the puzzle.
-    var puzzle = null;
+    let puzzle = null;
     for (let i = 0; i < puzzles.length; i++) {
         if ((player !== null && puzzles[i].location.id === player.location.id)
             || (room !== null && puzzles[i].location.id === room.id)) {
@@ -116,8 +116,8 @@ export async function execute (game, message, command, args) {
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
     else if (puzzle === null) return messageHandler.addReply(game, message, `Couldn't find puzzle "${input}".`);
 
-    var outcome = "";
-    var targetPlayer = null;
+    let outcome = "";
+    let targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
         targetPlayer = game.entityFinder.getLivingPlayers(null, null, player.location.id).filter((player) => {
             player.displayName.toLowerCase() === input.toLowerCase() ||

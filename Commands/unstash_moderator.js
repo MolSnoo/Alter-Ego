@@ -38,12 +38,12 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
-    var hand = "";
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
@@ -59,12 +59,12 @@ export async function execute (game, message, command, args) {
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to retrieve an item.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var item = null;
-    var container = null;
-    var slotName = "";
+    let item = null;
+    let container = null;
+    let slotName = "";
     const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < playerItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
@@ -128,8 +128,8 @@ export async function execute (game, message, command, args) {
     }
     if (item === null) {
         if (parsedInput.includes(" FROM ")) {
-            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
-            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return messageHandler.addReply(game, message, `Couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
         }
         else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);

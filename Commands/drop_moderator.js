@@ -42,11 +42,11 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    let input = args.join(" ");
+    const input = args.join(" ");
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
     let newArgs = null;
 
@@ -122,7 +122,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if a container item was specified.
-    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     let containerItem = null;
     let containerItemSlot = null;
     if (parsedInput !== "") {

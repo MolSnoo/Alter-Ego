@@ -38,15 +38,15 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and an item in their inventory. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    var input = args.join(" ");
+    let input = args.join(" ");
 
     // If an announcement is present, it's the next easiest thing to find.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('“');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -60,7 +60,7 @@ export async function execute (game, message, command, args) {
             announcement += '.';
     }
 
-    let target = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+    const target = game.entityFinder.getLivingPlayer(args[args.length - 1]);
     if (args.length > 1 && args[args.length - 2].toLowerCase() === "on")
         // If "on" precedes the target's name, remove both args.
         args.splice(args.length - 2, 2);
@@ -71,13 +71,13 @@ export async function execute (game, message, command, args) {
 
     // args should now only contain the name of the item.
     input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // First, find the item in the player's inventory.
-    var item = null;
+    let item = null;
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    var rightHand = null;
-    var leftHand = null;
+    let rightHand = null;
+    let leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND")
             rightHand = player.inventory[slot];

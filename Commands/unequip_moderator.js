@@ -36,12 +36,12 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
-    var hand = "";
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
@@ -57,15 +57,15 @@ export async function execute (game, message, command, args) {
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to unequip an item.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var item = null;
-    var slotName = "";
+    let item = null;
+    let slotName = "";
     for (let i = 0; i < player.inventory.length; i++) {
         if (parsedInput.endsWith(` FROM ${player.inventory[i].id}`)) {
             slotName = player.inventory[i].id;
-            let itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
+            const itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
             if (player.inventory[i].equippedItem === null) return messageHandler.addReply(game, message, `Nothing is equipped to ${slotName}.`);
             if (player.inventory[i].equippedItem.identifier !== "" && player.inventory[i].equippedItem.identifier === itemName ||
                 player.inventory[i].equippedItem.prefab.id === itemName ||

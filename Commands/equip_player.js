@@ -40,14 +40,14 @@ export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable equip");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = parsedInput.split(" TO ");
-    var itemName = newArgs[0].trim();
-    var slotName = newArgs[1] ? newArgs[1] : "";
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const newArgs = parsedInput.split(" TO ");
+    const itemName = newArgs[0].trim();
+    let slotName = newArgs[1] ? newArgs[1] : "";
 
-    var item = null;
-    var hand = "";
+    let item = null;
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
             item = player.inventory[slot].equippedItem;
@@ -73,7 +73,7 @@ export async function execute (game, message, command, args, player) {
     for (let i = 0; i < player.inventory.length; i++) {
         if (slotName && player.inventory[i].id === slotName) {
             foundSlot = true;
-            var acceptableSlot = false;
+            let acceptableSlot = false;
             for (let j = 0; j < item.prefab.equipmentSlots.length; j++) {
                 if (item.prefab.equipmentSlots[j] === player.inventory[i].id) {
                     acceptableSlot = true;

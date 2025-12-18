@@ -123,7 +123,7 @@ export async function execute (game, command, args, player, callee) {
             if (doItems) {
                 // Update all of the items contained in this fixture.
                 let items = game.items.filter(item => item.location.id === fixture.location.id && item.containerName === `Object: ${fixture.name}` && item.container !== null && item.container.name === fixture.name && item.quantity > 0 && !item.accessible);
-                let childItems = [];
+                const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
                 items = items.concat(childItems);
@@ -137,7 +137,7 @@ export async function execute (game, command, args, player, callee) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
                 let items = game.items.filter(item => item.location.id === puzzle.location.id && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && !item.accessible);
-                let childItems = [];
+                const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
                 items = items.concat(childItems);
@@ -153,7 +153,7 @@ export async function execute (game, command, args, player, callee) {
             if (doItems) {
                 // Update all of the items contained in this fixture.
                 let items = game.items.filter(item => item.location.id === fixture.location.id && item.containerName === `Object: ${fixture.name}` && item.container !== null && item.container.name === fixture.name && item.quantity > 0 && item.accessible);
-                let childItems = [];
+                const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
                 items = items.concat(childItems);
@@ -167,7 +167,7 @@ export async function execute (game, command, args, player, callee) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
                 let items = game.items.filter(item => item.location.id === puzzle.location.id && item.containerName === `Puzzle: ${puzzle.name}` && item.container !== null && item.container.name === puzzle.name && item.quantity > 0 && item.accessible);
-                let childItems = [];
+                const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
                 items = items.concat(childItems);

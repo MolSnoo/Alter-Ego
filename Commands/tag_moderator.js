@@ -39,7 +39,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "tag") {
         if (args[0] === "add") command = "addtag";
         else if (args[0] === "remove") command = "removetag";
@@ -61,7 +61,7 @@ export async function execute (game, message, command, args) {
 
     let room;
     for (let i = args.length - 1; i >= 0; i--) {
-        let searchString = args.slice(0, i).join(" ");
+        const searchString = args.slice(0, i).join(" ");
         room = game.entityFinder.getRoom(searchString);
         if (room) {
             break;
@@ -70,16 +70,16 @@ export async function execute (game, message, command, args) {
     if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     if (command === "tags") {
-        let tags = room.tags.join(", ");
+        const tags = room.tags.join(", ");
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `__Tags in ${room.name}:__\n${tags}`);
     }
     else {
         input = input.substring(room.name.length).trim();
         if (input === "") return messageHandler.addReply(game, message, `You need to specify at least one tag.`);
 
-        var tags = input.split(",");
+        const tags = input.split(",");
         if (command === "addtag") {
-            let addedTags = [];
+            const addedTags = [];
             for (let i = 0; i < tags.length; i++) {
                 if (room.tags.includes(tags[i].trim()) || tags[i].trim() === "")
                     continue;
@@ -87,11 +87,11 @@ export async function execute (game, message, command, args) {
                 room.tags.push(tags[i].trim());
             }
             if (addedTags.length === 0) return messageHandler.addReply(game, message, `${room.name} already has the given tag(s).`);
-            let addedTagsString = addedTags.join(", ");
+            const addedTagsString = addedTags.join(", ");
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully added the following tags to ${room.name}: ${addedTagsString}`);
         }
         else if (command === "removetag") {
-            let removedTags = [];
+            const removedTags = [];
             for (let i = 0; i < tags.length; i++) {
                 if (tags[i].trim() === "")
                     continue;
@@ -101,7 +101,7 @@ export async function execute (game, message, command, args) {
                 }
             }
             if (removedTags.length === 0) return messageHandler.addReply(game, message, `${room.name} doesn't have the given tag(s).`);
-            let removedTagsString = removedTags.join(", ");
+            const removedTagsString = removedTags.join(", ");
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully removed the following tags from ${room.name}: ${removedTagsString}`);
         }
     }

@@ -44,17 +44,17 @@ export async function execute (game, message, command, args, player) {
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // Get all players mentioned.
-    var recipients = new Array();
+    const recipients = new Array();
     recipients.push(player);
     for (let i = 0; i < args.length; i++) {
         // Player cannot whisper to themselves.
         if (args[i].toLowerCase() === player.name.toLowerCase()) return messageHandler.addReply(game, message, "You can't include yourself as a whisper recipient.");
         // Player cannot whisper to dead players.
-        let deadFetch = game.entityFinder.getDeadPlayer(args[i])
+        const deadFetch = game.entityFinder.getDeadPlayer(args[i])
         if (deadFetch)
             return messageHandler.addReply(game, message, `You can't whisper to ${deadFetch.name} because ${deadFetch.originalPronouns.sbj} ` + (deadFetch.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
         // Check if player exists and is in the same room.
-        let livingFetch = game.entityFinder.getLivingPlayer(args[i])
+        const livingFetch = game.entityFinder.getLivingPlayer(args[i])
         if (livingFetch) {
             if (livingFetch.location.id === player.location.id) {
                 // Check attributes that would prohibit the player from whispering to someone in the room.
@@ -91,7 +91,7 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Whisper does not exist, so create it.
-    var whisper = new Whisper(game, recipients, player.location.id, player.location);
+    const whisper = new Whisper(game, recipients, player.location.id, player.location);
     await whisper.init();
     game.whispers.push(whisper);
 

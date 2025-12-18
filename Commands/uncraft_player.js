@@ -41,20 +41,20 @@ export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable uncraft");
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var rightHand = null;
-    var leftHand = null;
+    let rightHand = null;
+    let leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND") rightHand = player.inventory[slot];
         else if (player.inventory[slot].id === "LEFT HAND") leftHand = player.inventory[slot];
     }
 
     // Now find the item in the player's inventory.
-    var item = null;
-    var rightEmpty = true;
-    var leftEmpty = true;
+    let item = null;
+    let rightEmpty = true;
+    let leftEmpty = true;
     if (rightHand.equippedItem !== null) {
         if (parsedInput === rightHand.equippedItem.name) {
             item = rightHand.equippedItem;
@@ -74,7 +74,7 @@ export async function execute (game, message, command, args, player) {
 
     // Locate uncrafting recipe.
     const recipes = game.recipes.filter(recipe => recipe.uncraftable === true && recipe.products.length === 1);
-    var recipe = null;
+    let recipe = null;
     for (let i = 0; i < recipes.length; i++) {
         if (recipes[i].products[0].id === item.prefab.id) {
             recipe = recipes[i];
@@ -87,7 +87,7 @@ export async function execute (game, message, command, args, player) {
         return messageHandler.addReply(game, message, `You do not have an empty hand to uncraft ${item.singleContainingPhrase}. Either drop the item in your other hand or stash it in one of your equipped items.`);
     }
 
-    let itemName = item.identifier ? item.identifier : item.prefab.id;
+    const itemName = item.identifier ? item.identifier : item.prefab.id;
 
     const ingredients = player.uncraft(item, recipe);
 

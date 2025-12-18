@@ -39,15 +39,15 @@ export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("enable say");
     if (status.length === 0) return messageHandler.addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
-    var input = args.join(" ");
+    const input = args.join(" ");
     if (!input.startsWith("(")) {
         // Create a webhook for this channel if necessary, or grab the existing one.
-        let webHooks = await player.location.channel.fetchWebhooks();
+        const webHooks = await player.location.channel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
-        var files = [];
+        const files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         const displayName = player.displayName;

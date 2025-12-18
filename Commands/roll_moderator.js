@@ -42,7 +42,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var statString = null, stat = null, attacker = null, defender = null;
+    let statString = null, stat = null, attacker = null, defender = null;
     if (args.length === 3) {
         statString = args[0].toLowerCase();
         attacker = game.entityFinder.getLivingPlayer(args[1]);

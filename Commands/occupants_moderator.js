@@ -38,24 +38,24 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
-    var input = args.join(" ");
-    var parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var room = game.entityFinder.getRoom(parsedInput);
+    const input = args.join(" ");
+    const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+    const room = game.entityFinder.getRoom(parsedInput);
     if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = room.occupants.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
-    var occupantsList = [];
+    const occupantsList = [];
     for (let i = 0; i < occupants.length; i++)
         occupantsList.push(occupants[i].name);
     // Generate a string of all hidden occupants in the room.
     const hidden = room.occupants.filter(occupant => occupant.hasAttribute("hidden")).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
-    var hiddenList = [];
+    const hiddenList = [];
     for (let i = 0; i < hidden.length; i++)
         hiddenList.push(`${hidden[i].name} (${hidden[i].hidingSpot})`);
     // Generate a string of all moving occupants in the room.
     const moving = room.occupants.filter(occupant => occupant.isMoving).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
-    var movingList = [];
+    const movingList = [];
     for (let i = 0; i < moving.length; i++) {
         const remaining = dayjs.duration(moving[i].remainingTime);
 
@@ -77,7 +77,7 @@ export async function execute (game, message, command, args) {
         movingList.push(`${moving[i].name} (${displayString}) [>${moveQueue}]`);
     }
 
-    var occupantsMessage = "";
+    let occupantsMessage = "";
     if (occupantsList.length === 0) occupantsMessage = `There is no one in ${room.name}.`;
     else occupantsMessage += `__All occupants in ${room.name}:__\n` + occupantsList.join(" ");
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");

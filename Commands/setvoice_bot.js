@@ -63,14 +63,14 @@ export async function execute (game, command, args, player, callee) {
 
     args.splice(0, 1);
 
-    var input = args.join(" ");
+    const input = args.join(" ");
     if (input === "" || input === null || input === undefined) {
         if (player.voiceString !== player.originalVoiceString)
             player.voiceString = player.originalVoiceString;
     }
     else {
         if (args.length === 1) {
-            let fetchedPlayer = game.entityFinder.getPlayer(args[0]);
+            const fetchedPlayer = game.entityFinder.getPlayer(args[0]);
             if (fetchedPlayer) {
                 if (fetchedPlayer.name !== player.name) {
                     player.voiceString = fetchedPlayer.name;

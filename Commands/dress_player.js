@@ -63,7 +63,7 @@ export async function execute (game, message, command, args, player) {
     }
     if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
-    let input = args.join(' ');
+    const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     let container = null;
@@ -83,7 +83,7 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Check if the player specified a container item.
-    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     if (container === null) {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {

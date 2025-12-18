@@ -43,11 +43,11 @@ export async function execute (game, message, command, args, player) {
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // First, find the recipient.
-    var recipient = null;
+    let recipient = null;
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
         if (parsedInput.startsWith(occupant.displayName.toUpperCase() + ' ') && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
@@ -64,7 +64,7 @@ export async function execute (game, message, command, args, player) {
     if (recipient === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // Check to make sure that the recipient has a free hand.
-    var recipientHand = "";
+    let recipientHand = "";
     for (let slot = 0; slot < recipient.inventory.length; slot++) {
         if (recipient.inventory[slot].id === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
             recipientHand = "RIGHT HAND";
@@ -81,8 +81,8 @@ export async function execute (game, message, command, args, player) {
     if (recipientHand === "") return messageHandler.addReply(game, message, `${recipient.displayName} does not have a free hand to receive an item.`);
 
     // Find the item in the player's inventory.
-    var item = null;
-    var giverHand = "";
+    let item = null;
+    let giverHand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
             if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {

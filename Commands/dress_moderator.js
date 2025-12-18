@@ -40,7 +40,7 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and a container with items. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -62,7 +62,7 @@ export async function execute (game, message, command, args) {
     }
     if (hand === "") return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
-    let input = args.join(' ');
+    const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     let container = null;
@@ -82,7 +82,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the player specified a container item.
-    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     if (container === null) {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {

@@ -53,12 +53,12 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return messageHandler.addReply(game, message, `You need to specify a player and a fixture/item/player. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
@@ -76,10 +76,10 @@ export async function execute (game, message, command, args) {
     // Check if the input is a fixture, or an item on a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
     const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
-    var fixture = null;
-    var item = null;
-    var container = null;
-    var slotName = "";
+    let fixture = null;
+    let item = null;
+    let container = null;
+    let slotName = "";
     for (let i = 0; i < fixtures.length; i++) {
         if (fixtures[i].name === parsedInput) {
             fixture = fixtures[i];
@@ -114,15 +114,15 @@ export async function execute (game, message, command, args) {
         if (!player.hasAttribute("hidden") || player.hidingSpot !== fixture.name) {
             // Make sure the fixture isn't locked.
             if (fixture.childPuzzle === null || !fixture.childPuzzle.type.endsWith("lock") || fixture.childPuzzle.solved) {
-                let hiddenPlayers = game.entityFinder.getLivingPlayers(null, null, player.location.id, fixture.name);
+                const hiddenPlayers = game.entityFinder.getLivingPlayers(null, null, player.location.id, fixture.name);
                 for (let i = 0; i < hiddenPlayers.length; i++) {
                     hiddenPlayers[i].notify(`You've been found by ${player.displayName}!`);
                 }
 
                 // Create a list string of players currently hiding in that hiding spot.
                 hiddenPlayers.sort(function (a, b) {
-                    let nameA = a.displayName.toLowerCase();
-                    let nameB = b.displayName.toLowerCase();
+                    const nameA = a.displayName.toLowerCase();
+                    const nameB = b.displayName.toLowerCase();
                     if (nameA < nameB) return -1;
                     if (nameA > nameB) return 1;
                     return 0;
@@ -148,7 +148,7 @@ export async function execute (game, message, command, args) {
         return;
     }
 
-    var onlySearchInventory = false;
+    let onlySearchInventory = false;
     if (parsedInput.startsWith(`${player.name.toUpperCase()}S `)) onlySearchInventory = true;
 
     if (!onlySearchInventory) {
@@ -182,7 +182,7 @@ export async function execute (game, message, command, args) {
                     else if (parsedInput.endsWith(` OF ${itemContainer.prefab.id}`))
                         containerName = itemContainer.prefab.id;
                     if (containerName !== "") {
-                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${containerName}`)).trim();
+                        const tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${containerName}`)).trim();
                         for (let slot = 0; slot < itemContainer.inventory.length; slot++) {
                             if (itemContainer.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
                                 item = items[i];
@@ -256,12 +256,12 @@ export async function execute (game, message, command, args) {
 
     // Check if the input is a player in the room.
     for (let i = 0; i < player.location.occupants.length; i++) {
-        let occupant = player.location.occupants[i];
+        const occupant = player.location.occupants[i];
         const possessive = occupant.name.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasAttribute("hidden"))
             return messageHandler.addReply(game, message, `Couldn't find "${input}".`);
         if (occupant.name.toUpperCase() === parsedInput) {
-            // Don't let player inspect themselves.
+            // Don't const player inspect themselves.
             if (occupant.name === player.name) return messageHandler.addReply(game, message, `${player.name} can't inspect ${player.originalPronouns.ref}.`);
             player.sendDescription(occupant.description, occupant);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${occupant.name} for ${player.name}.`);
@@ -286,7 +286,7 @@ export async function execute (game, message, command, args) {
                     );
                     if (coveringItems.length === 0) {
                         // Clear out any il tags in the description.
-                        let description = inventory[j].description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
+                        const description = inventory[j].description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
                         player.sendDescription(description, inventory[j]);
                         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${occupant.name}'s ` + (inventory[j].identifier !== "" ? inventory[j].identifier : inventory[j].prefab.id) + ` for ${player.name}.`);
 

@@ -52,7 +52,7 @@ export async function execute (game, message, command, args, player) {
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
 
     // First, check if the player has a free hand.
-    var hand = "";
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
         if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
@@ -69,13 +69,13 @@ export async function execute (game, message, command, args, player) {
     if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     if (args[0].toUpperCase() === "FROM") args.splice(0, 1);
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var victim = null;
+    let victim = null;
     // Check if the input is a player in the room.
     for (let i = 0; i < player.location.occupants.length; i++) {
-        let occupant = player.location.occupants[i];
+        const occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(possessive) && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot steal from themselves.
@@ -91,13 +91,13 @@ export async function execute (game, message, command, args, player) {
     if (victim === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // parsedInput should be the equipped item and possibly a slot name. Get the names of those.
-    var newArgs = parsedInput.split(" OF ");
+    const newArgs = parsedInput.split(" OF ");
     const itemName = newArgs[1] ? newArgs[1].trim() : newArgs[0].trim();
-    var slotName = newArgs[1] ? newArgs[0].trim() : "";
+    const slotName = newArgs[1] ? newArgs[0].trim() : "";
 
     // Find the equipped item to steal from.
     const inventory = game.inventoryItems.filter(item => item.player.name === victim.name && item.prefab !== null && item.containerName === "" && item.container === null);
-    var container = null;
+    let container = null;
     for (let i = 0; i < inventory.length; i++) {
         if (inventory[i].prefab.name === itemName && (inventory[i].equipmentSlot !== "LEFT HAND" && inventory[i].equipmentSlot !== "RIGHT HAND" || !inventory[i].prefab.discreet)) {
             // Make sure the item isn't covered by anything first.
@@ -113,7 +113,7 @@ export async function execute (game, message, command, args, player) {
     if (container.inventory.length === 0) return messageHandler.addReply(game, message, `${victim.displayName}'s ${container.name} cannot hold items.`);
 
     // If no slot name was specified, pick one.
-    var slotNo = -1;
+    let slotNo = -1;
     if (slotName === "")
         slotNo = Math.floor(Math.random() * container.inventory.length);
     else {

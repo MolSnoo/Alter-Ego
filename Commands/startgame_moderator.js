@@ -41,13 +41,13 @@ export async function execute (game, message, command, args) {
     if (isNaN(timeInt) || (!args[0].endsWith('m') && !args[0].endsWith('h')))
         return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
 
-    var channel;
+    let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;
     else channel = game.guildContext.generalChannel;
 
-    var time;
-    var halfTime;
-    var interval;
+    let time;
+    let halfTime;
+    let interval;
     if (args[0].endsWith('m')) {
         // Set the time in minutes.
         time = timeInt * 60000;
@@ -71,15 +71,15 @@ export async function execute (game, message, command, args) {
         channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
 
         game.players.sort(function (a, b) {
-            var nameA = a.name.toLowerCase();
-            var nameB = b.name.toLowerCase();
+            const nameA = a.name.toLowerCase();
+            const nameB = b.name.toLowerCase();
             if (nameA < nameB) return -1;
             if (nameA > nameB) return 1;
             return 0;
         });
 
-        var playerCells = [];
-        var inventoryCells = [];
+        const playerCells = [];
+        const inventoryCells = [];
         for (let i = 0; i < game.players.length; i++) {
             const player = game.players[i];
             const playerData = [
@@ -103,7 +103,7 @@ export async function execute (game, message, command, args) {
 
             for (let j = 0; j < playerdefaults.defaultInventory.length; j++) {
                 // Update this so it replaces the number smybol in any cell.
-                var row = [player.name];
+                let row = [player.name];
                 row = row.concat(playerdefaults.defaultInventory[j]);
                 for (let k = 0; k < row.length; k++) {
                     if (row[k].includes('#'))
@@ -119,7 +119,7 @@ export async function execute (game, message, command, args) {
 
     game.inProgress = true;
     game.canJoin = true;
-    let announcement = `${message.member.displayName} has started a game. You have ${timeInt} ${interval} to join the game with ${game.settings.commandPrefix}play.`;
+    const announcement = `${message.member.displayName} has started a game. You have ${timeInt} ${interval} to join the game with ${game.settings.commandPrefix}play.`;
     channel.send(announcement);
 
     if (game.settings.debug) game.guildContext.commandChannel.send("Started game in debug mode.");

@@ -48,11 +48,11 @@ export async function execute (game, message, command, args) {
     /**
      * @type {Array<Player>}
      */
-    var recipients = new Array();
-    var npc = null;
+    const recipients = new Array();
+    let npc = null;
     for (let i = 0; i < args.length; i++) {
         let playerExists = false;
-        let player = game.entityFinder.getLivingPlayer(args[i]);
+        const player = game.entityFinder.getLivingPlayer(args[i]);
         if (player) {
             for (let j = 0; j < recipients.length; j++) {
                 // Player cannot be included multiple times.
@@ -84,7 +84,7 @@ export async function execute (game, message, command, args) {
     }
     if (recipients.length < 2) return messageHandler.addReply(game, message, `Can't start a whisper with fewer than 2 players.`);
 
-    var string = args.join(' ');
+    const string = args.join(' ');
 
     // Check if whisper already exists.
     for (let i = 0; i < game.whispers.length; i++) {
@@ -110,7 +110,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Whisper does not exist, so create it.
-    var whisper = new Whisper(game, recipients, recipients[0].location.id, recipients[0].location);
+    const whisper = new Whisper(game, recipients, recipients[0].location.id, recipients[0].location);
     await whisper.init();
     game.whispers.push(whisper);
 
@@ -130,12 +130,12 @@ export async function execute (game, message, command, args) {
  */
 async function sendMessageToWhisper (game, message, messageText, npc, whisper) {
     // Create a webhook for this channel if necessary, or grab the existing one.
-    let webHooks = await whisper.channel.fetchWebhooks();
+    const webHooks = await whisper.channel.fetchWebhooks();
     let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
     if (webHook === null || webHook === undefined)
         webHook = await whisper.channel.createWebhook({ name: whisper.channelName });
 
-    var files = [];
+    const files = [];
     [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
     webHook.send({

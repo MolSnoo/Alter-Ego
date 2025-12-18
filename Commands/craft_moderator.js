@@ -36,12 +36,12 @@ export async function execute (game, message, command, args) {
     if (args.length < 4)
         return messageHandler.addReply(game, message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
         return messageHandler.addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
@@ -50,8 +50,8 @@ export async function execute (game, message, command, args) {
     const leftHand = player.inventoryCollection.get("LEFT HAND");
 
     // Now find the item in the player's inventory.
-    var item1 = null;
-    var item2 = null;
+    let item1 = null;
+    let item2 = null;
     let item1Id = "";
     let item2Id = "";
     let rightFirst = false;
@@ -123,14 +123,14 @@ export async function execute (game, message, command, args) {
         return messageHandler.addReply(game, message, `Couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
     }
 
-    let ingredients = [item1, item2].sort(function (a, b) {
+    const ingredients = [item1, item2].sort(function (a, b) {
         if (a.prefab.id < b.prefab.id) return -1;
         if (a.prefab.id > b.prefab.id) return 1;
         return 0;
     });
 
     const recipes = game.recipes.filter(recipe => recipe.ingredients.length === 2 && recipe.fixtureTag === "");
-    var recipe = null;
+    let recipe = null;
     for (let i = 0; i < recipes.length; i++) {
         if (recipes[i].ingredients[0].id === ingredients[0].prefab.id && recipes[i].ingredients[1].id === ingredients[1].prefab.id) {
             recipe = recipes[i];

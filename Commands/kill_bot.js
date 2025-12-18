@@ -50,7 +50,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // Determine which player(s) are being killed.
-    var players = [];
+    let players = [];
     if (args[0].toLowerCase() === "player" && player !== null)
         players.push(player);
     else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
@@ -64,7 +64,7 @@ export async function execute (game, command, args, player, callee) {
     else {
         player = null;
         for (let i = args.length - 1; i >= 0; i--) {
-            let fetchedPlayer = game.entityFinder.getLivingPlayer(args[i]);
+            const fetchedPlayer = game.entityFinder.getLivingPlayer(args[i]);
             if (fetchedPlayer) {
                 players.push(fetchedPlayer);
                 args.splice(i, 1);

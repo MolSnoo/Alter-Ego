@@ -33,7 +33,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     // Get all commands available to the user and sort them alphabetically.
-    let roleCommands = game.botContext.playerCommands;
+    const roleCommands = game.botContext.playerCommands;
     roleCommands.sort(function (a, b) {
         if (a.config.name < b.config.name) return -1;
         if (a.config.name > b.config.name) return 1;
@@ -41,9 +41,9 @@ export async function execute (game, message, command, args, player) {
     });
 
     if (args.length === 0) {
-        var fields = [];
-        var pages = [];
-        var page = 0;
+        const fields = [];
+        const pages = [];
+        let page = 0;
 
         roleCommands.forEach(function (value, key, map) {
             const commandName = key.substring(0, key.indexOf('_'));
@@ -93,7 +93,7 @@ export async function execute (game, message, command, args, player) {
         });
     }
     else {
-        let command = roleCommands.find(command => command.config.aliases.includes(args[0]));
+        const command = roleCommands.find(command => command.config.aliases.includes(args[0]));
         if (!command) return messageHandler.addReply(game, message, `Couldn't find command "${args[0]}".`);
         messageHandler.addCommandHelp(game, message.author.dmChannel, command);
     }

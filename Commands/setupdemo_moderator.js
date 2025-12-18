@@ -44,10 +44,10 @@ export async function execute (game, message, command, args) {
     if (game.inProgress) return messageHandler.addReply(game, message, `You can't use this command while a game is in progress.`);
 
     try {
-        var roomValues = await setupdemo(game);
+        const roomValues = await setupdemo(game);
 
         // Ensure that a room category exists.
-        let roomCategories = game.guildContext.roomCategories;
+        const roomCategories = game.guildContext.roomCategories;
         let roomCategory = null;
         if (roomCategories.length === 0 || roomCategories.length === 1 && roomCategories[0] === "") {
             try {
@@ -63,7 +63,7 @@ export async function execute (game, message, command, args) {
         // Create the room channels, if they don't already exist.
         if (roomCategory) {
             for (let i = 0; i < roomValues.length; i++) {
-                let channel = game.guildContext.guild.channels.cache.find(channel => channel.name === roomValues[i][0]);
+                const channel = game.guildContext.guild.channels.cache.find(channel => channel.name === roomValues[i][0]);
                 if (!channel) {
                     await game.guildContext.guild.channels.create({
                         name: roomValues[i][0],

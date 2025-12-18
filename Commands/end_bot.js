@@ -42,14 +42,14 @@ export async function execute (game, command, args, player, callee) {
         return;
     }
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    let event = game.entityFinder.getEvent(parsedInput);
+    const event = game.entityFinder.getEvent(parsedInput);
     if (event === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
     if (!event.ongoing) return;
 
-    var doEndedCommands = false;
+    let doEndedCommands = false;
     if (callee && !(callee instanceof Event)) doEndedCommands = true;
 
     await event.end(doEndedCommands);

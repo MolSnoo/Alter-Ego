@@ -37,7 +37,7 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -54,12 +54,12 @@ export async function execute (game, message, command, args) {
         if (args.length === 0)
             return messageHandler.addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
 
-        var input = args.join(" ");
-        var parsedInput = input.toUpperCase().replace(/\'/g, "");
+        const input = args.join(" ");
+        const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
         // Check if the input is a fixture that the player can hide in.
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
-        var fixture = null;
+        let fixture = null;
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput && fixtures[i].hidingSpotCapacity > 0) {
                 fixture = fixtures[i];
@@ -71,7 +71,7 @@ export async function execute (game, message, command, args) {
         if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find fixture "${input}".`);
 
         // Check to see if the hiding spot is already taken.
-        var hiddenPlayers = [];
+        const hiddenPlayers = [];
         for (let i = 0; i < player.location.occupants.length; i++) {
             if (player.location.occupants[i].hidingSpot === fixture.name)
                 hiddenPlayers.push(player.location.occupants[i]);
@@ -79,8 +79,8 @@ export async function execute (game, message, command, args) {
 
         // Create a list string of players currently hiding in that hiding spot.
         hiddenPlayers.sort(function (a, b) {
-            let nameA = a.displayName.toLowerCase();
-            let nameB = b.displayName.toLowerCase();
+            const nameA = a.displayName.toLowerCase();
+            const nameB = b.displayName.toLowerCase();
             if (nameA < nameB) return -1;
             if (nameA > nameB) return 1;
             return 0;
@@ -117,7 +117,7 @@ export async function execute (game, message, command, args) {
 
         // Create a whisper.
         if (hiddenPlayers.length > 0) {
-            var whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
+            const whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
             await whisper.init();
             game.whispers.push(whisper);
         }
