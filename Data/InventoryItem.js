@@ -3,7 +3,6 @@ import InventorySlot from './InventorySlot.js';
 import ItemInstance from './ItemInstance.js';
 import Player from './Player.js';
 import { replaceInventoryItem } from '../Modules/itemManager.js';
-import { addItem as addItemToDescription, removeItem as removeItemFromDescription } from '../Modules/parser.js';
 import { Collection } from 'discord.js';
 
 /**
@@ -120,10 +119,10 @@ export default class InventoryItem extends ItemInstance {
             const slot = this.container !== null ? this.slot :
                 this.equipmentSlot === "RIGHT HAND" || this.equipmentSlot === "LEFT HAND" ? "hands" : "equipment";
             if (nextStage && !this.prefab.discreet)
-                container.setDescription(removeItemFromDescription(container.getDescription(), this, slot));
+                container.removeItemFromDescription(this, slot);
             replaceInventoryItem(this, nextStage);
             if (nextStage && !nextStage.discreet)
-                container.setDescription(addItemToDescription(container.getDescription(), this, slot));
+                container.addItemToDescription(this, slot);
         }
     }
 
@@ -148,6 +147,14 @@ export default class InventoryItem extends ItemInstance {
     removeItem(item, slotId, removedQuantity) {
         const inventorySlot = this.inventoryCollection.get(slotId);
         if (inventorySlot) inventorySlot.removeItem(item, removedQuantity);
+    }
+
+    /**
+     * Sets the description.
+     * @param {string} description - The description to set.
+     */
+    setDescription(description) {
+        this.description = description;
     }
 
     /** @returns {string} */

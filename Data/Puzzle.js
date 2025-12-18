@@ -3,14 +3,16 @@ import Fixture from './Fixture.js';
 import Flag from './Flag.js';
 import Game from './Game.js';
 import InventoryItem from './InventoryItem.js';
-import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
+import ItemInstance from './ItemInstance.js';
 import Narration from '../Data/Narration.js';
 import Player from './Player.js';
 import Prefab from './Prefab.js';
 import Room from './Room.js';
-import { default as executeCommand } from '../Modules/commandHandler.js';
-import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
+import RoomItem from './RoomItem.js';
+import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
+import { addLogMessage, addReply } from '../Modules/messageHandler.js';
+import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
 import { Message } from 'discord.js';
 
 
@@ -25,23 +27,23 @@ export default class Puzzle extends ItemContainer {
      * The name of the puzzle. 
      * @readonly
      * @type {string} 
-     */ 
+     */
     name;
     /**
      * Whether the puzzle is solved. 
      * @type {boolean} 
-     */ 
+     */
     solved;
     /**
      * String indicating which solution the puzzle has been solved with. 
      * @type {string} 
-     */ 
+     */
     outcome;
     /**
      * Whether the puzzle requires a moderator to solve it.
      * @readonly 
      * @type {boolean} 
-     */ 
+     */
     requiresMod;
     /**
      * The display name of the location the puzzle is found in.
@@ -52,14 +54,14 @@ export default class Puzzle extends ItemContainer {
     /**
      * The location the puzzle is found in. 
      * @type {Room} 
-     */ 
+     */
     location;
     /**
      * The name of the object associated with the puzzle. Deprecated. Use parentFixtureName instead.
      * @deprecated
      * @readonly
      * @type {string} 
-     */ 
+     */
     parentObjectName;
     /**
      * The name of the fixture associated with the puzzle.
@@ -83,18 +85,18 @@ export default class Puzzle extends ItemContainer {
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html#type
      * @readonly
      * @type {string} 
-     */ 
+     */
     type;
     /**
      * Whether the puzzle can be interacted with. 
      * @type {boolean} 
-     */ 
+     */
     accessible;
     /**
      * Puzzle names, event IDs, prefab IDs or flag IDs that are required for the puzzle to be made accessible. 
      * @readonly
      * @type {PuzzleRequirement[]} 
-     */ 
+     */
     requirementsStrings;
     /** 
      * An array of game entities required for the puzzle to be solved when attempted.
@@ -105,55 +107,55 @@ export default class Puzzle extends ItemContainer {
      * The solutions to the puzzle. 
      * @readonly
      * @type {string[]} 
-     */ 
+     */
     solutions;
     /**
      * The number of attempts the player has left to solve the puzzle. 
      * @type {number} 
-     */ 
+     */
     remainingAttempts;
     /**
      * The string representation of the bot commands to be executed when the puzzle is solved or unsolved with specified outcomes.
      * @readonly 
      * @type {string} 
-     */ 
+     */
     commandSetsString;
     /**
      * Sets of commands to be executed when the puzzle is solved or unsolved with specified outcomes. 
      * @readonly
      * @type {PuzzleCommandSet[]} 
-     */ 
+     */
     commandSets;
     /**
      * The description of the puzzle when it is solved by a player. 
      * @readonly
      * @type {string} 
-     */ 
+     */
     correctDescription;
     /**
      * The description of the puzzle when it is already solved. Can contain an item list. 
      * @type {string} 
-     */ 
+     */
     alreadySolvedDescription;
     /**
      * The description of the puzzle when the incorrect answer is given. 
      * @readonly
      * @type {string} 
-     */ 
+     */
     incorrectDescription;
     /**
      * The description of the puzzle when the player attempts to solve it when the number of remainingAttempts is 0. 
      * @readonly
      * @type {string} 
-     */ 
+     */
     noMoreAttemptsDescription;
     /**
      * The description of the puzzle when a player attempts to solve it while all of the requirements are not met. 
      * @readonly
      * @type {string} 
-     */ 
+     */
     requirementsNotMetDescription;
-    
+
     /**
      * @constructor
      * @param {string} name - The name of the puzzle.
@@ -243,7 +245,7 @@ export default class Puzzle extends ItemContainer {
      * @param {Array<RoomItem|InventoryItem>} [requiredItems] - The actual item instances that were required for this puzzle to be solved.
      * @param {Player} [targetPlayer] - The player who will be treated as the initiating player in subsequent bot command executions called by this puzzle's solved commands, if applicable.
      */
-    async solve(player, narration, outcome, doSolvedCommands, requiredItems = [], targetPlayer = null) {
+    solve(player, narration, outcome, doSolvedCommands, requiredItems = [], targetPlayer = null) {
         // Mark it as solved.
         this.solved = true;
         // Set the outcome.
@@ -257,7 +259,7 @@ export default class Puzzle extends ItemContainer {
         if (player !== null)
             player.sendDescription(this.correctDescription, this);
         if (narration)
-            new Narration(this.game, player, this.game.rooms.find(room => room.id === this.location.id), narration).send();
+            new Narration(this.game, player, this.location, narration).send();
 
         if (player !== null) {
             // Post log message.
@@ -288,34 +290,9 @@ export default class Puzzle extends ItemContainer {
                 }
             }
             else commandSet = this.commandSets[0].solvedCommands;
-            // Run any needed commands.
-            for (let i = 0; i < commandSet.length; i++) {
-                if (commandSet[i].startsWith("wait")) {
-                    let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    let command = commandSet[i];
-                    if (this.type === "matrix") {
-                        const regex = /{([^{},/]+?)}/g;
-                        let match;
-                        while (match = regex.exec(commandSet[i])) {
-                            for (const requirement of this.requirements) {
-                                if (requirement instanceof Puzzle && requirement.name.toUpperCase() === match[1].toUpperCase() && requirement.outcome !== "") {
-                                    command = command.replace(match[0], requirement.outcome);
-                                }
-                            }
-                        }
-                    }
-                    executeCommand(command, this.game, null, targetPlayer ? targetPlayer : player, this);
-                }
-            }
+            // Execute the command set's solved commands.
+            parseAndExecuteBotCommands(commandSet, this.game, this, targetPlayer ? targetPlayer : player);
         }
-
-        return;
     }
 
     /**
@@ -325,12 +302,12 @@ export default class Puzzle extends ItemContainer {
      * @param {string} directMessage - The message that will be sent directly to the player for unsolving the puzzle.
      * @param {boolean} doUnsolvedCommands - Whether or not to execute the puzzle's unsolved commands.
      */
-    async unsolve(player, narration, directMessage, doUnsolvedCommands) {        
+    unsolve(player, narration, directMessage, doUnsolvedCommands) {
         // There's no message when unsolved cell, so let the player know what they did.
         if (player !== null && directMessage !== null) player.notify(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (narration)
-            new Narration(this.game, player, this.game.rooms.find(room => room.id === this.location.id), narration).send();
+            new Narration(this.game, player, this.location, narration).send();
 
         // Now mark it as unsolved.
         this.solved = false;
@@ -359,26 +336,13 @@ export default class Puzzle extends ItemContainer {
                 }
             }
             else commandSet = this.commandSets[0].unsolvedCommands;
-            // Run any needed commands.
-            for (let i = 0; i < commandSet.length; i++) {
-                if (commandSet[i].startsWith("wait")) {
-                    let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(commandSet[i], this.game, null, player, this);
-                }
-            }
+            // Execute the command set's unsolved commands.
+            parseAndExecuteBotCommands(commandSet, this.game, this, player);
         }
 
         // Clear the outcome.
         if (this.solutions.length > 1 && this.type !== "channels")
             this.outcome = "";
-
-        return;
     }
 
     /**
@@ -400,8 +364,6 @@ export default class Puzzle extends ItemContainer {
         // Post log message.
         const time = new Date().toLocaleTimeString();
         addLogMessage(this.game, `${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
-
-        return;
     }
 
     /**
@@ -412,8 +374,6 @@ export default class Puzzle extends ItemContainer {
     alreadySolved(player, narration) {
         player.sendDescription(this.alreadySolvedDescription, this);
         new Narration(this.game, player, player.location, narration).send();
-
-        return;
     }
 
     /**
@@ -433,7 +393,6 @@ export default class Puzzle extends ItemContainer {
             player.sendDescription(this.requirementsNotMetDescription, this);
             if (message) new Narration(this.game, player, player.location, narration).send();
         }
-        return;
     }
 
     /**
@@ -447,11 +406,32 @@ export default class Puzzle extends ItemContainer {
 
     /**
      * Sets the alreadySolvedDescription.
-     * @override
      * @param {string} description 
      */
-    setDescription(description) {
+    #setDescription(description) {
         this.alreadySolvedDescription = description;
+    }
+
+    /**
+     * Adds an item to the specified item list in the puzzle's already solved description.
+     * @override
+     * @param {ItemInstance} item - The item to add.
+     * @param {string} [list] - The item list to add the item to.
+     * @param {number} [quantity] - The quantity of the item to add. If none is provided, defaults to 1.
+     */
+    addItemToDescription(item, list, quantity) {
+        this.#setDescription(addItemToList(this.getDescription(), item, list, quantity));
+    }
+
+    /**
+     * Removes an item from the specified item list in the puzzle's already solved description.
+     * @override
+     * @param {ItemInstance} item - The item to remove.
+     * @param {string} list - The item list to remove the item from.
+     * @param {number} [quantity] - The quantity of the item to remove. If none is provided, defaults to 1.
+     */
+    removeItemFromDescription(item, list, quantity) {
+        this.#setDescription(removeItemFromList(this.getDescription(), item, list, quantity));
     }
 
     /** @returns {string} */
@@ -478,11 +458,4 @@ export default class Puzzle extends ItemContainer {
     requirementsNotMetCell() {
         return this.game.constants.puzzleSheetRequirementsNotMetColumn + this.row;
     }
-}
-
-/**
- * @param {number} seconds 
- */
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

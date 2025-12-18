@@ -8,7 +8,7 @@ import Room from '../Data/Room.js';
 import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
 import ItemInstance from '../Data/ItemInstance.js';
-import { addItem as addItemToDescription, generateProceduralOutput, removeItem as removeItemFromDescription } from '../Modules/parser.js';
+import { generateProceduralOutput } from '../Modules/parser.js';
 import { addLogMessage } from './messageHandler.js';
 
 /**
@@ -67,13 +67,14 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
     if (container instanceof RoomItem)
         container.insertItem(createdItem, inventorySlotId);
     // Update the container's description.
-    container.setDescription(addItemToDescription(container.getDescription(), createdItem, inventorySlotId, quantity));
+    container.addItemToDescription(createdItem, inventorySlotId, quantity);
 
     insertRoomItems(location, [createdItem]);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
     addLogMessage(prefab.game, `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerLogDisplay} in ${location.channel}`);
+    return createdItem;
 }
 
 /**
@@ -113,7 +114,7 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
     const equipmentSlot = player.inventoryCollection.get(equipmentSlotId);
     if (container !== null) {
         container.insertItem(createdItem, inventorySlotId);
-        container.setDescription(addItemToDescription(container.getDescription(), createdItem, inventorySlotId, quantity));
+        container.addItemToDescription(createdItem, inventorySlotId, quantity);
 
         insertInventoryItems(player, [createdItem], equipmentSlot);
 
@@ -131,6 +132,7 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
         const time = new Date().toLocaleTimeString();
         addLogMessage(prefab.game, `${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlotId} in ${player.location.channel}`);
     }
+    return createdItem;
 }
 
 /**
@@ -158,8 +160,9 @@ export function replaceInventoryItem(item, newPrefab) {
 
         item.inventoryCollection.clear();
         item.initializeInventory();
-        item.description = newPrefab.description;
+        item.setDescription(newPrefab.description);
     }
+    return item;
 }
 
 /**
@@ -175,7 +178,7 @@ export function destroyItem(item, quantity, getChildren) {
     let preposition = "in";
     const container = item.container;
 
-    container.setDescription(removeItemFromDescription(container.getDescription(), item, item.slot, quantity));
+    container.removeItemFromDescription(item, item.slot, quantity);
     if (container instanceof Puzzle) {
         containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
         if (container.parentFixture) preposition = container.parentFixture.preposition;
@@ -231,7 +234,7 @@ export function destroyInventoryItem(item, quantity, getChildren) {
 
         const container = item.container;
         container.removeItem(item, item.slot, quantity);
-        container.setDescription(removeItemFromDescription(container.getDescription(), item, item.slot, quantity));
+        container.removeItemFromDescription(item, item.slot, quantity);
         const containerName = `${item.slot} of ${container.identifier}`;
         const preposition = container.prefab ? container.prefab.preposition : "in";
 
@@ -399,7 +402,7 @@ export function removeStashedItem(item, container, inventorySlot, equipmentSlot)
 
     // Update container.
     container.removeItem(item, inventorySlot.id, 1);
-    container.setDescription(removeItemFromDescription(container.getDescription(), item, inventorySlot.id));
+    container.removeItemFromDescription(item, inventorySlot.id);
 
     // Remove the item from its equipment slot.
     if (item.quantity === 0)

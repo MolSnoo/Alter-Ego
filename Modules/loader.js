@@ -330,12 +330,12 @@ export function loadPrefabs(game, doErrorChecking) {
             // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
             const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
             const commands = commandString ? commandString.split('/') : ["", ""];
-            let equipCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
-            for (let i = 0; i < equipCommands.length; i++)
-                equipCommands[i] = equipCommands[i].trim();
-            let unequipCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
-            for (let i = 0; i < unequipCommands.length; i++)
-                unequipCommands[i] = unequipCommands[i].trim();
+            let equippedCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
+            for (let i = 0; i < equippedCommands.length; i++)
+                equippedCommands[i] = equippedCommands[i].trim();
+            let unequippedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
+            for (let i = 0; i < unequippedCommands.length; i++)
+                unequippedCommands[i] = unequippedCommands[i].trim();
             // Create a list of inventory slots this prefab contains.
             let inventorySlotStrings = sheet[row][columnInventorySlotsStrings] ? sheet[row][columnInventorySlotsStrings].split(',') : [];
             /** @type {Collection<string, InventorySlot>} */
@@ -373,8 +373,8 @@ export function loadPrefabs(game, doErrorChecking) {
                 equipmentSlots,
                 coveredEquipmentSlots,
                 sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "",
-                equipCommands,
-                unequipCommands,
+                equippedCommands,
+                unequippedCommands,
                 inventorySlots,
                 sheet[row][columnPreposition] ? sheet[row][columnPreposition].trim() : "",
                 sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",

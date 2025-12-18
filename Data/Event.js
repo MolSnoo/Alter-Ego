@@ -2,8 +2,8 @@ import GameEntity from './GameEntity.js';
 import Game from './Game.js';
 import Narration from '../Data/Narration.js';
 import Status from './Status.js';
-import { default as executeCommand } from '../Modules/commandHandler.js';
-import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
+import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
+import { addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
 import Timer from '../Classes/Timer.js';
 import dayjs from 'dayjs';
@@ -206,27 +206,14 @@ export default class Event extends GameEntity {
 
         // Send the triggered narration to all rooms with occupants.
         if (this.triggeredNarration !== "") {
-            for (let i = 0; i < this.game.rooms.length; i++) {
-                if (this.game.rooms[i].tags.includes(this.roomTag) && this.game.rooms[i].occupants.length > 0)
-                    new Narration(this.game, null, this.game.rooms[i], parseDescription(this.triggeredNarration, this, null)).send();
-            }
+            const rooms = this.game.entityFinder.getRooms(null, this.roomTag, false);
+            for (let room of rooms)
+                new Narration(this.game, null, room, parseDescription(this.triggeredNarration, this, null)).send();
         }
 
-        if (doTriggeredCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.triggeredCommands.length; i++) {
-                if (this.triggeredCommands[i].startsWith("wait")) {
-                    let args = this.triggeredCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(this.triggeredCommands[i], this.game, null, null, this);
-                }
-            }
-        }
+        // Execute triggered commands.
+        if (doTriggeredCommands)
+            await parseAndExecuteBotCommands(this.triggeredCommands, this.game, this);
 
         // Begin the timer, if applicable.
         if (this.duration)
@@ -261,33 +248,18 @@ export default class Event extends GameEntity {
 
         // Send the ended narration to all rooms with occupants.
         if (this.endedNarration !== "") {
-            for (let i = 0; i < this.game.rooms.length; i++) {
-                if (this.game.rooms[i].tags.includes(this.roomTag) && this.game.rooms[i].occupants.length > 0)
-                    new Narration(this.game, null, this.game.rooms[i], parseDescription(this.endedNarration, this, null)).send();
-            }
+            const rooms = this.game.entityFinder.getRooms(null, this.roomTag, false);
+            for (let room of rooms)
+                new Narration(this.game, null, room, parseDescription(this.endedNarration, this, null)).send();
         }
 
-        if (doEndedCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.endedCommands.length; i++) {
-                if (this.endedCommands[i].startsWith("wait")) {
-                    let args = this.endedCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(this.endedCommands[i], this.game, null, null, this);
-                }
-            }
-        }
+        // Execute ended commands.
+        if (doEndedCommands)
+            await parseAndExecuteBotCommands(this.endedCommands, this.game, this);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
         addLogMessage(this.game, `${time} - ${this.id} was ended.`);
-
-        return;
     }
 
     async startTimer() {
@@ -320,26 +292,25 @@ export default class Event extends GameEntity {
     startEffectsTimer() {
         let event = this;
         this.effectsTimer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
-            for (let i = 0; i < event.game.rooms.length; i++) {
-                if (event.game.rooms[i].tags.includes(event.roomTag)) {
-                    for (let j = 0; j < event.game.rooms[i].occupants.length; j++) {
-                        const occupant = event.game.rooms[i].occupants[j];
-                        for (let k = 0; k < event.effects.length; k++) {
-                            if (!occupant.statusString.includes(event.effects[k].id))
-                                occupant.inflict(event.effects[k], true, true, true);
-                        }
-                        for (let k = 0; k < event.refreshes.length; k++) {
-                            let status = null;
-                            for (let l = 0; l < occupant.status.length; l++) {
-                                if (occupant.status[l].id === event.refreshes[k].id) {
-                                    status = occupant.status[l];
-                                    break;
-                                }
+            const rooms = event.game.entityFinder.getRooms(null, event.roomTag, true);
+            for (let room of rooms) {
+                for (let occupant of room.occupants) {
+                    event.effects.forEach(effect => {
+                        if (!occupant.hasStatus(effect.id))
+                            occupant.inflict(effect, true, true, true);
+                    });
+                    event.refreshes.forEach(refresh => {
+                        /** @type {Status} */
+                        let status = null;
+                        for (let occupantStatus of occupant.status) {
+                            if (occupantStatus.id === refresh.id) {
+                                status = occupantStatus;
+                                break;
                             }
-                            if (status !== null && status.remaining !== null)
-                                status.remaining = event.effects[k].duration.clone();
                         }
-                    }
+                        if (status !== null && status.remaining !== null)
+                            status.remaining = refresh.duration.clone();
+                    });
                 }
             }
         });
@@ -351,11 +322,4 @@ export default class Event extends GameEntity {
     endedCell() {
         return this.game.constants.eventSheetEndedColumn + this.row;
     }
-}
-
-/**
- * @param {number} seconds 
- */
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

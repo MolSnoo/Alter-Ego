@@ -17,7 +17,7 @@ import EligibleCommand from './Classes/EligibleCommand.js';
 import { validateServerConfig } from './Modules/serverManager.js';
 import { default as autoUpdate } from './Modules/updateHandler.js';
 import { editSpectatorMessage } from './Modules/messageHandler.js';
-import { default as executeCommand } from './Modules/commandHandler.js';
+import { executeCommand } from './Modules/commandHandler.js';
 import { default as handleDialog } from './Modules/dialogHandler.js';
 
 import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChannel, Role } from 'discord.js';

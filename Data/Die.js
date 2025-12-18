@@ -54,13 +54,13 @@ export default class Die {
      */
     constructor(game, stat, attacker, defender) {
         this.game = game;
-        
+
         this.min = this.game.settings.diceMin;
         this.max = this.game.settings.diceMax;
 
         /** @type {number} */
         let baseRoll;
-        if (attacker && attacker.hasAttribute("all or nothing")) {
+        if (attacker && attacker.hasBehaviorAttribute("all or nothing")) {
             // Make the base roll either the minimum or maximum possible.
             baseRoll = this.doBaseRoll(0, 1);
             baseRoll = baseRoll * (this.max - 1);
@@ -97,14 +97,13 @@ export default class Die {
         /** @type {string[]} */
         let modifierStrings = [];
         if (attacker) {
-            if (attacker.hasAttribute("coin flipper")) {
+            if (attacker.hasBehaviorAttribute("coin flipper")) {
                 let hasCoin = false;
-                for (let i = 0; i < attacker.inventory.length; i++) {
-                    if ((attacker.inventory[i].id === "LEFT HAND" || attacker.inventory[i].id === "RIGHT HAND") &&
-                        attacker.inventory[i].equippedItem !== null && attacker.inventory[i].equippedItem.name.includes("COIN")) {
-                        hasCoin = true;
-                        break;
-                    }
+                const rightHand = attacker.inventoryCollection.get("RIGHT HAND");
+                const leftHand = attacker.inventoryCollection.get("LEFT HAND");
+                if (rightHand && rightHand.equippedItem !== null && rightHand.equippedItem.name.includes("COIN")
+                    || leftHand && leftHand.equippedItem !== null && leftHand.equippedItem.name.includes("COIN")) {
+                    hasCoin = true;
                 }
                 if (hasCoin) {
                     const coinModifier = this.doBaseRoll(0, 1);
