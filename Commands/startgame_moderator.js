@@ -21,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}startgame 24h\n`
         + `${settings.commandPrefix}start 0.25m`;
 }
@@ -32,10 +32,10 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0) return message.reply("remember to specify how long players have to join!");
     if (game.inProgress) return message.reply("there is already a game running.");
-    
+
     const timeInt = parseInt(args[0].substring(0, args[0].length - 1));
     if (isNaN(timeInt) || (!args[0].endsWith('m') && !args[0].endsWith('h')))
         return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
@@ -88,7 +88,7 @@ export async function execute (game, message, command, args) {
                 player.pronounString,
                 player.originalVoiceString,
                 String(player.strength),
-                String(player.intelligence),
+                String(player.perception),
                 String(player.dexterity),
                 String(player.speed),
                 String(player.stamina),

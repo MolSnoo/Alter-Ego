@@ -1285,6 +1285,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a probability-type puzzle, but no solutions were given.`);
 		if (puzzle.type.endsWith(" probability")) {
 			if (puzzle.type !== "str probability" && puzzle.type !== "strength probability" &&
+				puzzle.type !== "per probability" && puzzle.type !== "perception probability" &&
 				puzzle.type !== "int probability" && puzzle.type !== "intelligence probability" &&
 				puzzle.type !== "dex probability" && puzzle.type !== "dexterity probability" &&
 				puzzle.type !== "spd probability" && puzzle.type !== "speed probability" &&
@@ -1605,7 +1606,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			const statModifier = status.statModifiers[i];
 			if (statModifier.stat === null)
 				return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
-			if (statModifier.stat !== "str" && statModifier.stat !== "int" && statModifier.stat !== "dex" && statModifier.stat !== "spd" && statModifier.stat !== "sta")
+			if (statModifier.stat !== "str" && statModifier.stat !== "per" && statModifier.stat !== "dex" && statModifier.stat !== "spd" && statModifier.stat !== "sta")
 				return new Error(`Couldn't load status effect on row ${status.row}. "${statModifier.stat}" in stat modifier ${i + 1} is not a valid stat.`);
 			if (statModifier.value === null)
 				return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
@@ -1644,7 +1645,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			const columnPronouns = 3;
 			const columnVoice = 4;
 			const columnStrength = 5;
-			const columnIntelligence = 6;
+			const columnPerception = 6;
 			const columnDexterity = 7;
 			const columnSpeed = 8;
 			const columnStamina = 9;
@@ -1660,7 +1661,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			for (let row = 0; row < sheet.length; row++) {
 				const stats = {
 					strength: parseInt(sheet[row][columnStrength]),
-					intelligence: parseInt(sheet[row][columnIntelligence]),
+					perception: parseInt(sheet[row][columnPerception]),
 					dexterity: parseInt(sheet[row][columnDexterity]),
 					speed: parseInt(sheet[row][columnSpeed]),
 					stamina: parseInt(sheet[row][columnStamina])
@@ -1812,8 +1813,8 @@ export default class GameEntityLoader extends GameEntityManager {
 				reject(new Error(`Couldn't load player on row ${player.row}. No voice descriptor was given.`));
 			if (isNaN(player.strength))
 				reject(new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`));
-			if (isNaN(player.intelligence))
-				reject(new Error(`Couldn't load player on row ${player.row}. The intelligence stat given is not an integer.`));
+			if (isNaN(player.perception))
+				reject(new Error(`Couldn't load player on row ${player.row}. The perception stat given is not an integer.`));
 			if (isNaN(player.dexterity))
 				reject(new Error(`Couldn't load player on row ${player.row}. The dexterity stat given is not an integer.`));
 			if (isNaN(player.speed))

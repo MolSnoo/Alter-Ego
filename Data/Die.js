@@ -144,7 +144,7 @@ export default class Die {
             if (stat) {
                 let statValue = 0;
                 if (stat === "str") statValue = attacker.strength;
-                else if (stat === "int") statValue = attacker.intelligence;
+                else if (stat === "per") statValue = attacker.perception;
                 else if (stat === "dex") statValue = attacker.dexterity;
                 else if (stat === "spd") statValue = attacker.speed;
                 else if (stat === "sta") statValue = attacker.stamina;
