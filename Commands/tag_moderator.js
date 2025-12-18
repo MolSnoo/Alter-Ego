@@ -70,10 +70,10 @@ export async function execute (game, message, command, args) {
 
     if (command === "tags") {
         const tags = room.tags.join(", ");
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `__Tags in ${room.name}:__\n${tags}`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `__Tags in ${room.id}:__\n${tags}`);
     }
     else {
-        input = input.substring(room.name.length).trim();
+        input = input.substring(room.id.length).trim();
         if (input === "") return messageHandler.addReply(game, message, `You need to specify at least one tag.`);
 
         const tags = input.split(",");
@@ -85,9 +85,9 @@ export async function execute (game, message, command, args) {
                 addedTags.push(tags[i].trim());
                 room.tags.push(tags[i].trim());
             }
-            if (addedTags.length === 0) return messageHandler.addReply(game, message, `${room.name} already has the given tag(s).`);
+            if (addedTags.length === 0) return messageHandler.addReply(game, message, `${room.id} already has the given tag(s).`);
             const addedTagsString = addedTags.join(", ");
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully added the following tags to ${room.name}: ${addedTagsString}`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully added the following tags to ${room.id}: ${addedTagsString}`);
         }
         else if (command === "removetag") {
             const removedTags = [];
@@ -99,9 +99,9 @@ export async function execute (game, message, command, args) {
                     room.tags.splice(room.tags.indexOf(tags[i].trim()), 1);
                 }
             }
-            if (removedTags.length === 0) return messageHandler.addReply(game, message, `${room.name} doesn't have the given tag(s).`);
+            if (removedTags.length === 0) return messageHandler.addReply(game, message, `${room.id} doesn't have the given tag(s).`);
             const removedTagsString = removedTags.join(", ");
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully removed the following tags from ${room.name}: ${removedTagsString}`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully removed the following tags from ${room.id}: ${removedTagsString}`);
         }
     }
 

@@ -77,8 +77,8 @@ export async function execute (game, message, command, args) {
     }
 
     let occupantsMessage = "";
-    if (occupantsList.length === 0) occupantsMessage = `There is no one in ${room.name}.`;
-    else occupantsMessage += `__All occupants in ${room.name}:__\n` + occupantsList.join(" ");
+    if (occupantsList.length === 0) occupantsMessage = `There is no one in ${room.id}.`;
+    else occupantsMessage += `__All occupants in ${room.id}:__\n` + occupantsList.join(" ");
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");
     if (movingList.length > 0) occupantsMessage += `\n\n__Moving occupants:__\n` + movingList.join("\n");
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);

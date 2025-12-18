@@ -83,7 +83,7 @@ export async function execute(game, command, args, player, callee) {
     let input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
     const desiredRoom = game.entityFinder.getRoom(input);
     if (desiredRoom === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
-    input = input.substring(0, input.indexOf(desiredRoom.name));
+    input = input.substring(0, input.indexOf(desiredRoom.id));
     args = input.split("-");
 
     for (let i = 0; i < players.length; i++) {

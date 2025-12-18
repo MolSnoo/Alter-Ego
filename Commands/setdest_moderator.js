@@ -72,7 +72,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${room.name}.`);
+    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${room.id}.`);
     else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify another room and another exit for ${exit.name} of ${room.id} to lead to.`);
 
     // Now find the destination room.
@@ -104,7 +104,7 @@ export async function execute (game, message, command, args) {
     destExit.dest = room;
     destExit.link = exit.name;
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated destination of ${exit.name} in ${room.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated destination of ${exit.name} in ${room.id}.`);
 
     return;
 }

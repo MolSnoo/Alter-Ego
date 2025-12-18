@@ -63,7 +63,7 @@ export async function execute (game, message, command, args) {
     if (parsedInput === "ROOM") {
         new Narration(game, player, player.location, `${player.displayName} begins looking around the room.`).send();
         player.sendDescription(player.location.description, player.location);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${player.location.name} for ${player.name}.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${player.location.id} for ${player.name}.`);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();

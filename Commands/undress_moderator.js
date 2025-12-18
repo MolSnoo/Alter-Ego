@@ -116,7 +116,7 @@ export async function execute (game, message, command, args) {
     else {
         if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
         const defaultDropOpject = fixtures.find(fixture => fixture.name === game.settings.defaultDropFixture);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(game, message, `There is no default drop fixture "${game.settings.defaultDropFixture}" in ${player.location.name}.`);
+        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(game, message, `There is no default drop fixture "${game.settings.defaultDropFixture}" in ${player.location.id}.`);
         container = defaultDropOpject;
     }
 

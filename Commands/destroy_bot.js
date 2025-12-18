@@ -173,7 +173,7 @@ export async function execute (game, command, args, player, callee) {
         }
 
         if (destroyAll) {
-            if (parsedInput !== "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" at ${room.name}`);
+            if (parsedInput !== "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" at ${room.id}`);
             for (let i = 0; i < containerItems.length; i++)
                 destroyItem(containerItems[i], containerItems[i].quantity, true);
         }

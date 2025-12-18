@@ -154,30 +154,30 @@ export async function execute (game, message, command, args) {
         // Container is a Room.
         if (container === null) {
             containerItems = roomItems;
-            containerName = `${room.name}`;
+            containerName = `${room.id}`;
             preposition = "at";
         }
         // Container is a Fixture.
         else if (container instanceof Fixture) {
             containerItems = roomItems.filter(item => item.containerName === `Object: ${container.name}`);
-            containerName = `${container.name} at ${room.name}`;
+            containerName = `${container.name} at ${room.id}`;
             preposition = container.preposition ? container.preposition : "in";
         }
         // Container is a Puzzle.
         else if (container instanceof Puzzle) {
             containerItems = roomItems.filter(item => item.containerName === `Puzzle: ${container.name}`);
-            containerName = `${container.parentFixture.name} at ${room.name}`;
+            containerName = `${container.parentFixture.name} at ${room.id}`;
             preposition = container.parentFixture.preposition ? container.parentFixture.preposition : "in";
         }
         // Container is a RoomItem.
         else if (container instanceof RoomItem) {
             containerItems = roomItems.filter(item => item.containerName === `Item: ${container.identifier}/${slotName}`);
-            containerName = `${slotName} of ${container.identifier} at ${room.name}`;
+            containerName = `${slotName} of ${container.identifier} at ${room.id}`;
             preposition = container.prefab.preposition ? container.prefab.preposition : "in";
         }
 
         if (destroyAll) {
-            if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" at ${room.name}`);
+            if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" at ${room.id}`);
             for (let i = 0; i < containerItems.length; i++)
                 destroyItem(containerItems[i], containerItems[i].quantity, true);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
