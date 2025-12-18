@@ -1,4 +1,4 @@
-import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, Message, ChannelType, Attachment, TextChannel, DMChannel, Collection } from 'discord.js';
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection } from 'discord.js';
 import Player from '../Data/Player.js';
 import Whisper from '../Data/Whisper.js';
 import Game from '../Data/Game.js';
@@ -15,7 +15,9 @@ export async function addNarration(room, messageText, addSpectate = true, speake
     if (messageText !== "") {
         room.game.messageQueue.enqueue(
             {
-                fire: async () => await room.channel.send(messageText),
+                fire: async () => {
+                    await room.channel.send(messageText);
+                },
             },
             "tell"
         );
@@ -30,7 +32,9 @@ export async function addNarration(room, messageText, addSpectate = true, speake
                 ) {
                     room.game.messageQueue.enqueue(
                         {
-                            fire: async () => await player.spectateChannel.send(messageText),
+                            fire: async () => {
+                                await player.spectateChannel.send(messageText);
+                            },
                         },
                         "spectator"
                     );
@@ -50,7 +54,9 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
     if (messageText !== "") {
         whisper.game.messageQueue.enqueue(
             {
-                fire: async () => await whisper.channel.send(messageText),
+                fire: async () => {
+                    await whisper.channel.send(messageText);
+                },
             },
             "tell"
         );
@@ -64,7 +70,9 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
                 ) {
                     whisper.game.messageQueue.enqueue(
                         {
-                            fire: async () => await player.spectateChannel.send(spectateMessageText),
+                            fire: async () => {
+                                await player.spectateChannel.send(spectateMessageText);
+                            },
                         },
                         "spectator"
                     );
@@ -84,7 +92,9 @@ export async function addDirectNarration(player, messageText, addSpectate = true
     if (!player.isNPC) {
         player.game.messageQueue.enqueue(
             {
-                fire: async () => await player.member.send(messageText),
+                fire: async () => {
+                    await player.member.send(messageText);
+                },
             },
             "tell"
         );
@@ -92,7 +102,9 @@ export async function addDirectNarration(player, messageText, addSpectate = true
     if (addSpectate && player.spectateChannel !== null) {
         player.game.messageQueue.enqueue(
             {
-                fire: async () => await player.spectateChannel.send(messageText),
+                fire: async () => {
+                    await player.spectateChannel.send(messageText);
+                },
             },
             "spectator"
         );
@@ -113,10 +125,12 @@ export async function addDirectNarrationWithAttachments(player, messageText, att
         player.game.messageQueue.enqueue(
             {
                 fire: async () =>
-                    await player.member.send({
-                        content: messageText,
-                        files: files,
-                    }),
+                    {
+                        await player.member.send({
+                            content: messageText,
+                            files: files,
+                        });
+                    },
             },
             "tell"
         );
@@ -124,11 +138,12 @@ export async function addDirectNarrationWithAttachments(player, messageText, att
     if (addSpectate && player.spectateChannel !== null) {
         player.game.messageQueue.enqueue(
             {
-                fire: async () =>
+                fire: async () => {
                     await player.spectateChannel.send({
                         content: messageText,
                         files: files,
-                    }),
+                    });
+                },
             },
             "spectator"
         );
@@ -199,11 +214,12 @@ export async function addRoomDescription(player, location, descriptionText, defa
         if (!player.isNPC) {
             location.game.messageQueue.enqueue(
                 {
-                    fire: async () =>
+                    fire: async () => {
                         await player.member.send({
                             components: components,
-                            flags: MessageFlags.IsComponentsV2
-                        }),
+                            flags: MessageFlags.IsComponentsV2,
+                        });
+                    },
                 },
                 "tell"
             );
@@ -211,11 +227,12 @@ export async function addRoomDescription(player, location, descriptionText, defa
         if (addSpectate && player.spectateChannel !== null) {
             location.game.messageQueue.enqueue(
                 {
-                    fire: async () =>
+                    fire: async () => {
                         await player.spectateChannel.send({
                             components: components,
-                            flags: MessageFlags.IsComponentsV2
-                        }),
+                            flags: MessageFlags.IsComponentsV2,
+                        });
+                    },
                 },
                 "spectator"
             );
@@ -226,7 +243,7 @@ export async function addRoomDescription(player, location, descriptionText, defa
 /**
  * Sends the help menu for a command as an array of Discord Components.
  * @param {Game} game - The game context in which this help menu is being sent.
- * @param {TextChannel|DMChannel} channel - The channel to send the help menu to.
+ * @param {Messageable} channel - The channel to send the help menu to.
  * @param {Command} command - The command to display the help menu for.
  */
 export async function addCommandHelp(game, channel, command) {
@@ -275,10 +292,12 @@ export async function addCommandHelp(game, channel, command) {
     game.messageQueue.enqueue(
         {
             fire: async () =>
-                await channel.send({
-                    components: components,
-                    flags: MessageFlags.IsComponentsV2
-                })
+                {
+                    await channel.send({
+                        components: components,
+                        flags: MessageFlags.IsComponentsV2,
+                    });
+                }
         },
         channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
@@ -292,7 +311,9 @@ export async function addCommandHelp(game, channel, command) {
 export async function addLogMessage(game, messageText) {
     game.messageQueue.enqueue(
         {
-            fire: async () => await game.guildContext.logChannel.send(messageText),
+            fire: async () => {
+                await game.guildContext.logChannel.send(messageText);
+            },
         },
         "log"
     );
@@ -301,22 +322,24 @@ export async function addLogMessage(game, messageText) {
 /**
  * Sends a standard message indicating the outcome of a game mechanic in the specified channel.
  * @param {Game} game - The game in which this mechanic is occurring.
- * @param {TextChannel} channel - The channel to send the message to.
+ * @param {Messageable} channel - The channel to send the message to.
  * @param {string} messageText - The message to send.
  */
 export function addGameMechanicMessage(game, channel, messageText) {
     game.messageQueue.enqueue(
         {
-            fire: async () => await channel.send(messageText),
+            fire: async () => {
+                await channel.send(messageText);
+            },
         },
-        channel.parent !== undefined && channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
+        channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
 }
 
 /**
  * Replies to a message. This is usually done when a user has sent a message with an error.
  * @param {Game} game - The game this message was sent in.
- * @param {Message} message - The message to reply to.
+ * @param {UserMessage} message - The message to reply to.
  * @param {string} messageText - The text to send in response.
  */
 export async function addReply(game, message, messageText) {
@@ -324,9 +347,9 @@ export async function addReply(game, message, messageText) {
         {
             fire: async () => {
                 if (message.channel.type === ChannelType.GuildText && message.channel.id === game.guildContext.commandChannel.id) {
-                    return await message.reply(messageText);
+                    await message.reply(messageText);
                 } else {
-                    return await message.author.send(messageText);
+                    await message.author.send(messageText);
                 }
             },
         },
@@ -338,7 +361,7 @@ export async function addReply(game, message, messageText) {
  * Mirrors a dialog message in a spectate channel.
  * @param {Player} player - The player whose spectate channel this message is being sent to.
  * @param {Player|PseudoPlayer} speaker - The player who originally sent the dialog message.
- * @param {Message} message - The message in which this dialog originated.
+ * @param {UserMessage} message - The message in which this dialog originated.
  * @param {Whisper} [whisper] - The whisper the dialog was sent in, if applicable.
  * @param {string} [displayName] - The displayName to use for the mirrored webhook message. If none is specified, the speaker's current displayName will be used.
  */
@@ -374,7 +397,6 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
                     });
                     const cachedMessage = speaker.game.dialogCache.find((entry) => entry.messageId === message.id);
                     if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
-                    return webhookMessage;
                 },
             },
             "spectator"
@@ -385,8 +407,8 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
 /**
  * Edits spectate messages when the dialog they mirror is edited.
  * @param {Game} game - The game this dialog belongs to.
- * @param {Message|import('discord.js').PartialMessage} messageOld - The original message being edited.
- * @param {Message} messageNew - The new message after being edited.
+ * @param {UserMessage|import('discord.js').PartialMessage} messageOld - The original message being edited.
+ * @param {UserMessage} messageNew - The new message after being edited.
  */
 export async function editSpectatorMessage(game, messageOld, messageNew) {
     const cachedMessage = game.dialogCache.find((entry) => entry.messageId === messageOld.id);

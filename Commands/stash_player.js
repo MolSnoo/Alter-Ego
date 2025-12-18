@@ -2,7 +2,6 @@
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message } from "discord.js";
 
 /** @type {CommandConfig} */
 export const config = {
@@ -31,7 +30,7 @@ export function usage (settings) {
 
 /**
  * @param {Game} game - The game in which the command is being executed. 
- * @param {Message} message - The message in which the command was issued. 
+ * @param {UserMessage} message - The message in which the command was issued. 
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
