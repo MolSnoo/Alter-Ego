@@ -20,17 +20,13 @@ properties as a normal Whisper. When a Player comes out of hiding or is inflicte
 `no channel` or `no hearing` behavior attributes, they will be removed from the Whisper. When all Players are removed
 from the Whisper, it will be deleted.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Attributes
 
 Whispers have few attributes.
 
 ### Players
 
-* Class
+- Class
   attribute: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[Player](player.md)>
   `this.players`
 
@@ -38,13 +34,13 @@ This is an array of all Players currently in the Whisper.
 
 ### Location
 
-* Class attribute: [Room](room.md) `this.location`
+- Class attribute: [Room](room.md) `this.location`
 
 This is the Room the Whisper exists in. All of the Players in the Whisper must be in this Room.
 
 ### Channel Name
 
-* Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.channelName`
 
 This is the name that the channel will be set to. It is created using the [name](room.md#name) of the Whisper's location
@@ -53,7 +49,7 @@ hyphens (`-`). Whenever a Player is removed from the Whisper, the channel name i
 
 ### Channel
 
-* Class attribute: [TextChannel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class) `this.channel`
+- Class attribute: [TextChannel](https://discord.js.org/docs/packages/discord.js/main/TextChannel:Class) `this.channel`
 
 When the Whisper is initialized, a channel is created for it in
 the [Whisper category](../settings/docker_settings.md#whisper_category). In this channel, Players can speak to each

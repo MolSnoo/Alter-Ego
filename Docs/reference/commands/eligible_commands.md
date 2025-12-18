@@ -13,10 +13,6 @@ on). If Alter Ego accepts the user's command, the message in which the command w
 
 Below is a list of all eligible commands, as well as information about each one.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## help
 
 Lists all commands available to you.

@@ -1,26 +1,20 @@
 # Installation and Setup
 
-```admonish
-These instructions are for installing Alter Ego using Docker. If you wish not use Docker, please refer
-to the [node installation instructions](../appendix/manual_installation/node.md).
-```
+> [!NOTE]
+> These instructions are for installing Alter Ego using Docker. If you wish not use Docker, please refer
+> to the [node installation instructions](../appendix/manual_installation/node.md).
 
 Installation of Alter Ego is rather complicated, but is made significantly easier with Docker. This page will explain
 the process in detail.
 
-## Table of Contents
-
-<!-- toc -->
-
 ## Step 0: System Requirements
 
-```admonish
-The requirements below are for Linux servers. For system requirements for Windows and Mac, refer to their
-respective Docker Desktop [documentation](https://docs.docker.com/desktop/).
-```
+> [!NOTE]
+> The requirements below are for Linux servers. For system requirements for Windows and Mac, refer to their
+> respective Docker Desktop [documentation](https://docs.docker.com/desktop/).
 
 |              | Minimum        | Recommended    |
-|--------------|----------------|----------------|
+| ------------ | -------------- | -------------- |
 | Architecture | x86_64 / ARM64 | x86_64 / ARM64 |
 | CPUs         | 1              | 2              |
 | Memory       | 512 MB         | 2 GB           |
@@ -137,7 +131,7 @@ to [this page](../appendix/manual_installation/channel_and_role_creation.md).
 ### Enable Developer Mode
 
 You'll have to enable Developer Mode for your account for the next few steps. To do this, navigate to your User Settings
-in Discord. Open the **Appearance** tab and scroll to the bottom. Under **Advanced**, you'll see a switch labeled 
+in Discord. Open the **Appearance** tab and scroll to the bottom. Under **Advanced**, you'll see a switch labeled
 **Developer Mode**. Turn it on if it's not already.
 
 ## Step 5: Invite your bot to the server
@@ -179,7 +173,7 @@ Assuming you've done this correctly, you should arrive at a page that looks like
 ## Step 8: Create a service account
 
 In order to allow Alter Ego to make changes to the spreadsheet, you'll need to create a service account for it to use.
-To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the 
+To do that, navigate to the **Credentials** tab on the left-hand side of the page you were just taken to. Click the
 **Create credentials** button and select **Service account**. You should be brought to a page like this:
 
 ![](../images/xETtI3t.png)
@@ -193,7 +187,7 @@ the service account, and then click on the **Keys** tab, so that it brings you t
 ![](../images/XRC8QSC.png)
 
 Click the **Add Key** button and select **Create new key**. Make sure the key type is JSON, then click **Create**. This
-will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the 
+will download a file to your computer. Don't touch that just yet - there's one thing to do first. Return to the
 **Service Accounts** page.
 
 ## Step 9: Share the spreadsheet
@@ -271,16 +265,16 @@ like this:
 
 ```json
 {
-  "type": "service_account",
-  "project_id": "(CONFIDENTIAL)",
-  "private_key_id": "(CONFIDENTIAL)",
-  "private_key": "(CONFIDENTIAL)",
-  "client_email": "(CONFIDENTIAL)",
-  "client_id": "(CONFIDENTIAL)",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "(CONFIDENTIAL)"
+    "type": "service_account",
+    "project_id": "(CONFIDENTIAL)",
+    "private_key_id": "(CONFIDENTIAL)",
+    "private_key": "(CONFIDENTIAL)",
+    "client_email": "(CONFIDENTIAL)",
+    "client_id": "(CONFIDENTIAL)",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "(CONFIDENTIAL)"
 }
 ```
 
@@ -370,17 +364,17 @@ Next, open `docker-compose.yml`. You should see something like this.
 version: "3.8"
 
 services:
-  alterego:
-    image: ghcr.io/molsnoo/alter-ego:1.8.0
-    container_name: alterego
-    env_file:
-      - .env
-    volumes:
-      - data:/home/node/app/Configs
-    restart: unless-stopped
+    alterego:
+        image: ghcr.io/molsnoo/alter-ego:1.8.0
+        container_name: alterego
+        env_file:
+            - .env
+        volumes:
+            - data:/home/node/app/Configs
+        restart: unless-stopped
 
 volumes:
-  data:
+    data:
 ```
 
 Then, change the `image:` line so that it corresponds to the new version of Alter Ego. For instance, change `1.8.0` to

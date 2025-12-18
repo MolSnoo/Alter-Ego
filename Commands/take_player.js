@@ -1,57 +1,78 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Fixture from '../Data/Fixture.js';
+import Game from '../Data/Game.js';
+import RoomItem from '../Data/RoomItem.js';
+import Player from '../Data/Player.js';
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
+import { Message } from "discord.js";
+import Narration from '../Data/Narration.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
-
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "take_player",
     description: "Takes an item and puts it in your inventory.",
     details: "Adds an item from the room you're in to your inventory. You must have a free hand to take an item. "
         + "If there are multiple items with the same name in a room, you can specify which object or item you want to take it from. "
         + "Additionally, if the item is contained in another item with multiple inventory slots (such as pockets), you can specify which slot to "
         + "take it from. If you take a very large item (a sword, for example), people will see you pick it up and see you carrying it when you enter or exit a room.",
-    usage: `${settings.commandPrefix}take butcher's knife\n`
+    usableBy: "Player",
+    aliases: ["take", "get", "t"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}take butcher's knife\n`
         + `${settings.commandPrefix}get first aid kit\n`
         + `${settings.commandPrefix}take pill bottle from medicine cabinet\n`
         + `${settings.commandPrefix}get towel from benches\n`
         + `${settings.commandPrefix}take hammer from tool box\n`
         + `${settings.commandPrefix}get key from pants\n`
-        + `${settings.commandPrefix}take key from left pocket of pants`,
-    usableBy: "Player",
-    aliases: ["take", "get", "t"]
-};
+        + `${settings.commandPrefix}take key from left pocket of pants`;
+}
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {Message} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify an item. Usage:\n${exports.config.usage}`);
+        return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable take");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
-    var hand = "";
+    let hand = "";
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
+        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "RIGHT HAND";
             break;
         }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
+        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
             hand = "LEFT HAND";
             break;
         }
         // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
+        else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
-    if (hand === "") return game.messageHandler.addReply(message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    let input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var item = null;
-    var container = null;
-    var slotName = "";
-    const roomItems = game.items.filter(item => item.location.name === player.location.name && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    let item = null;
+    let container = null;
+    let slotName = "";
+    const roomItems = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
         if (roomItems[i].name === parsedInput) {
@@ -64,14 +85,15 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         if (parsedInput.startsWith(`${roomItems[i].name} FROM `)) {
             let containerName = parsedInput.substring(`${roomItems[i].name} FROM `.length).trim();
             if (roomItems[i].container !== null) {
+                const roomItemContainer = roomItems[i].container;
                 // Slot name was specified.
-                if (containerName.endsWith(` OF ${roomItems[i].container.name}`)) {
-                    let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItems[i].container.name}`));
-                    if (roomItems[i].container.hasOwnProperty("inventory")) {
-                        for (let slot = 0; slot < roomItems[i].container.inventory.length; slot++) {
-                            if (roomItems[i].container.inventory[slot].name === tempSlotName && roomItems[i].slot === tempSlotName) {
+                if (containerName.endsWith(` OF ${roomItemContainer.name}`)) {
+                    let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
+                    if (roomItemContainer instanceof RoomItem) {
+                        for (let slot = 0; slot < roomItemContainer.inventory.length; slot++) {
+                            if (roomItemContainer.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
                                 item = roomItems[i];
-                                container = roomItems[i].container;
+                                container = roomItemContainer;
                                 slotName = tempSlotName;
                                 break;
                             }
@@ -79,16 +101,16 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                     }
                     if (item !== null) break;
                 }
-                // A puzzle's parent object was specified.
-                else if (roomItems[i].container.hasOwnProperty("parentObject") && roomItems[i].container.parentObject.name === containerName) {
+                // A puzzle's parent fixture was specified.
+                else if (roomItemContainer instanceof Puzzle && roomItemContainer.parentFixture.name === containerName) {
                     item = roomItems[i];
-                    container = roomItems[i].container;
+                    container = roomItemContainer;
                     break;
                 }
                 // Only a container name was specified.
-                else if (roomItems[i].container.name === containerName) {
+                else if (roomItemContainer.name === containerName) {
                     item = roomItems[i];
-                    container = roomItems[i].container;
+                    container = roomItemContainer;
                     slotName = roomItems[i].slot;
                     break;
                 }
@@ -96,81 +118,73 @@ module.exports.run = async (bot, game, message, command, args, player) => {
         }
     }
     if (item === null) {
-        // Check if the player is trying to take an object.
-        const objects = game.objects.filter(object => object.location.name === player.location.name && object.accessible);
-        for (let i = 0; i < objects.length; i++) {
-            if (objects[i].name === parsedInput)
-                return game.messageHandler.addReply(message, `The ${objects[i].name} is not an item.`);
+        // Check if the player is trying to take a fixture.
+        const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
+        for (let i = 0; i < fixtures.length; i++) {
+            if (fixtures[i].name === parsedInput)
+                return messageHandler.addReply(game, message, `The ${fixtures[i].name} is not an item.`);
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
             let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return game.messageHandler.addReply(message, `Couldn't find "${containerName}" containing "${itemName}".`);
+            return messageHandler.addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
-        else return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in the room.`);
+        else return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
     }
     // If no container was found, make the container the Room.
     if (item !== null && item.container === null)
         container = item.location;
     
     let topContainer = container;
-    while (topContainer !== null && topContainer.hasOwnProperty("inventory"))
+    while (topContainer !== null && topContainer instanceof RoomItem)
         topContainer = topContainer.container;
 
-    if (topContainer !== null && topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.autoDeactivate && topContainer.activated)
-        return game.messageHandler.addReply(message, `You cannot take items from ${topContainer.name} while it is turned on.`);
+    if (topContainer !== null && topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
+        return messageHandler.addReply(game, message, `You cannot take items from ${topContainer.name} while it is turned on.`);
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
-        if (topContainer !== null && topContainer.hasOwnProperty("parentObject"))
-            topContainer = topContainer.parentObject;
+        if (topContainer !== null && topContainer instanceof Puzzle)
+            topContainer = topContainer.parentFixture;
 
-        if (topContainer === null || topContainer.hasOwnProperty("hidingSpotCapacity") && topContainer.name !== player.hidingSpot)
-            return game.messageHandler.addReply(message, `You cannot do that because you are **${hiddenStatus[0].name}**.`);
+        if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
+            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
     if (item.weight > player.maxCarryWeight) {
-        player.notify(game, `You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
+        player.notify(`You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
         if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();
         return;
     }
-    else if (player.carryWeight + item.weight > player.maxCarryWeight) return game.messageHandler.addReply(message, `You try to take ${item.singleContainingPhrase}, but you're carrying too much weight.`);
+    else if (player.carryWeight + item.weight > player.maxCarryWeight) return messageHandler.addReply(game, message, `You try to take ${item.singleContainingPhrase}, but you're carrying too much weight.`);
 
-    player.take(game, item, hand, container, slotName);
+    player.take(item, hand, container, slotName);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
-    // Container is an Object or Puzzle.
-    if (container.hasOwnProperty("hidingSpotCapacity") || container.hasOwnProperty("solved")) {
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
+    // Container is a Fixture or Puzzle.
+    if (container instanceof Fixture || container instanceof Puzzle) {
+        messageHandler.addLogMessage(game, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
-        if (container.hasOwnProperty("solved") && container.type === "weight") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+        if (container instanceof Puzzle && container.type === "weight") {
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-            const misc = {
-                command: "take",
-                input: input
-            };
-            player.attemptPuzzle(bot, game, container, item, weight.toString(), "take", misc);
+            player.attemptPuzzle(container, item, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
-        else if (container.hasOwnProperty("solved") && container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.name === container.location.name && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+        else if (container instanceof Puzzle && container.type === "container") {
+            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
-            });
-            const misc = {
-                command: "take",
-                input: input
-            };
-            player.attemptPuzzle(bot, game, container, item, containerItems, "take", misc);
+            }).map(item => item.prefab.id);
+            player.attemptPuzzle(container, item, containerItems.join(','), "take", input);
         }
     }
-    // Container is an Item.
-    else if (container.hasOwnProperty("inventory"))
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
+    // Container is a RoomItem.
+    else if (container instanceof RoomItem)
+        messageHandler.addLogMessage(game, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
     // Container is a Room.
     else
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${player.location.channel}`);
         
     return;
-};
+}

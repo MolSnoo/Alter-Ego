@@ -1,19 +1,44 @@
-module.exports.config = {
+import GameSettings from "../Classes/GameSettings.js";
+import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
+import Event from "../Data/Event.js";
+import Flag from "../Data/Flag.js";
+import InventoryItem from "../Data/InventoryItem.js";
+import Puzzle from "../Data/Puzzle.js";
+import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @type {CommandConfig} */
+export const config = {
     name: "end_bot",
     description: "Ends an event.",
     details: "Ends the specified event. The event must be ongoing. If it isn't, nothing will happen. "
         + "If the event has any ended commands, they will not be run if they were passed by another event. "
         + "They will be run if they were passed by anything else, however.",
-    usage: `end rain\n`
-        + `end explosion`,
     usableBy: "Bot",
-    aliases: ["end"]
+    aliases: ["end"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `end rain\n`
+        + `end explosion`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ */
+export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". No event was given.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No event was given.`);
         return;
     }
 
@@ -22,18 +47,18 @@ module.exports.run = async (bot, game, command, args, player, data) => {
 
     var event = null;
     for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].name === parsedInput) {
+        if (game.events[i].id === parsedInput) {
             event = game.events[i];
             break;
         }
     }
-    if (event === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
+    if (event === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
     if (!event.ongoing) return;
 
     var doEndedCommands = false;
-    if (data && !data.hasOwnProperty("ongoing")) doEndedCommands = true;
+    if (callee && !(callee instanceof Event)) doEndedCommands = true;
 
-    await event.end(bot, game, doEndedCommands);
+    await event.end(doEndedCommands);
 
     return;
-};
+}

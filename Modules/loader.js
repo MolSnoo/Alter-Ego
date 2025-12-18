@@ -1,125 +1,156 @@
-﻿const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const sheets = include(`${constants.modulesDir}/sheets.js`);
+﻿import { getSheetValues } from './sheets.js';
 
-const Exit = include(`${constants.dataDir}/Exit.js`);
-const Room = include(`${constants.dataDir}/Room.js`);
-const Object = include(`${constants.dataDir}/Object.js`);
-const Prefab = include(`${constants.dataDir}/Prefab.js`);
-const Recipe = include(`${constants.dataDir}/Recipe.js`);
-const Item = include(`${constants.dataDir}/Item.js`);
-const Puzzle = include(`${constants.dataDir}/Puzzle.js`);
-const Event = include(`${constants.dataDir}/Event.js`);
-const EquipmentSlot = include(`${constants.dataDir}/EquipmentSlot.js`);
-const InventoryItem = include(`${constants.dataDir}/InventoryItem.js`);
-const Status = include(`${constants.dataDir}/Status.js`);
-const Player = include(`${constants.dataDir}/Player.js`);
-const Gesture = include(`${constants.dataDir}/Gesture.js`);
+import Game from '../Data/Game.js';
+import Exit from '../Data/Exit.js';
+import Room from '../Data/Room.js';
+import Fixture from '../Data/Fixture.js';
+import Prefab from '../Data/Prefab.js';
+import InventorySlot from '../Data/InventorySlot.js';
+import Recipe from '../Data/Recipe.js';
+import RoomItem from '../Data/RoomItem.js';
+import Puzzle from '../Data/Puzzle.js';
+import Event from '../Data/Event.js';
+import EquipmentSlot from '../Data/EquipmentSlot.js';
+import InventoryItem from '../Data/InventoryItem.js';
+import Status from '../Data/Status.js';
+import Player from '../Data/Player.js';
+import Gesture from '../Data/Gesture.js';
+import Flag from '../Data/Flag.js';
+import { convertTimeStringToDurationUnits, parseDuration } from './helpers.js';
+import { ChannelType, Collection } from 'discord.js';
+import dayjs from 'dayjs';
+dayjs().format();
 
-const { ChannelType } = require('../node_modules/discord-api-types/v10');
-var moment = require('moment');
-moment().format();
+/**
+ * Loads data from the Rooms sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadRooms(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.roomSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnRoomDisplayName = 0;
+        const columnRoomTags = 1;
+        const columnRoomIconUrl = 2;
+        const columnExitName = 3;
+        const columnExitPosX = 4;
+        const columnExitPosY = 5;
+        const columnExitPosZ = 6;
+        const columnExitUnlocked = 7;
+        const columnExitDest = 8;
+        const columnExitLink = 9;
+        const columnExitDescription = 10;
 
-module.exports.loadRooms = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.roomSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnRoomName = 0;
-            const columnTags = 1;
-            const columnRoomIcon = 2;
-            const columnExits = 3;
-            const columnPosX = 4;
-            const columnPosY = 5;
-            const columnPosZ = 6;
-            const columnUnlocked = 7;
-            const columnLeadsTo = 8;
-            const columnFrom = 9;
-            const columnDescription = 10;
-
-            game.rooms.length = 0;
-            for (let i = 0, j = 0; i < sheet.length; i = i + j) {
-                var exits = [];
-                for (j = 0; i + j < sheet.length && (j === 0 || sheet[i + j][columnRoomName] === ""); j++) {
-                    const pos = {
-                        x: parseInt(sheet[i + j][columnPosX]),
-                        y: parseInt(sheet[i + j][columnPosY]),
-                        z: parseInt(sheet[i + j][columnPosZ])
-                    };
-                    exits.push(
-                        new Exit(
-                            sheet[i + j][columnExits] ? sheet[i + j][columnExits].trim() : "",
-                            pos,
-                            sheet[i + j][columnUnlocked] ? sheet[i + j][columnUnlocked].trim() === "TRUE" : false,
-                            sheet[i + j][columnLeadsTo] ? sheet[i + j][columnLeadsTo].trim() : "",
-                            sheet[i + j][columnFrom] ? sheet[i + j][columnFrom].trim() : "",
-                            sheet[i + j][columnDescription] ? sheet[i + j][columnDescription].trim() : "",
-                            i + j + 2
-                        ));
-                }
-                const channel = game.guild.channels.cache.find(channel => channel.name === sheet[i][columnRoomName]);
-                var tags = sheet[i][columnTags] ? sheet[i][columnTags].trim().split(',') : [];
-                for (let j = 0; j < tags.length; j++)
-                    tags[j] = tags[j].trim();
-                game.rooms.push(
-                    new Room(
-                        sheet[i][columnRoomName] ? sheet[i][columnRoomName].trim() : "",
-                        channel,
-                        tags,
-                        sheet[i][columnRoomIcon] ? sheet[i][columnRoomIcon].trim() : "",
-                        exits,
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 2
-                    )
+        game.entityManager.clearRooms();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let roomRow = 0, exitRow = 0; roomRow < sheet.length; roomRow = roomRow + exitRow) {
+            /** @type {Collection<string, Exit>} */
+            let exits = new Collection();
+            for (exitRow = 0; roomRow + exitRow < sheet.length && (exitRow === 0 || sheet[roomRow + exitRow][columnRoomDisplayName] === ""); exitRow++) {
+                const pos = {
+                    x: parseInt(sheet[roomRow + exitRow][columnExitPosX]),
+                    y: parseInt(sheet[roomRow + exitRow][columnExitPosY]),
+                    z: parseInt(sheet[roomRow + exitRow][columnExitPosZ])
+                };
+                const exitName = sheet[roomRow + exitRow][columnExitName] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitName]) : "";
+                const exit = new Exit(
+                    exitName,
+                    pos,
+                    sheet[roomRow + exitRow][columnExitUnlocked] ? sheet[roomRow + exitRow][columnExitUnlocked].trim() === "TRUE" : false,
+                    sheet[roomRow + exitRow][columnExitDest] ? sheet[roomRow + exitRow][columnExitDest].trim() : "",
+                    sheet[roomRow + exitRow][columnExitLink] ? Game.generateValidEntityName(sheet[roomRow + exitRow][columnExitLink]) : "",
+                    sheet[roomRow + exitRow][columnExitDescription] ? sheet[roomRow + exitRow][columnExitDescription].trim() : "",
+                    roomRow + exitRow + 2,
+                    game
                 );
+                if (exits.get(exit.name))
+                    errors.push(new Error(`Couldn't load exit on row ${exit.row}. The room already has an exit named "${exit.name}".`));
+                else exits.set(exit.name, exit);
             }
-            var errors = [];
-            // Now go through and make the dest for each exit an actual Room object.
-            // Also, add any occupants to the room.
-            for (let i = 0; i < game.rooms.length; i++) {
-                for (let j = 0; j < game.rooms[i].exit.length; j++) {
-                    let dest = game.rooms.find(room => room.name === game.rooms[i].exit[j].dest && room.name !== "");
-                    if (dest) game.rooms[i].exit[j].dest = dest;
-                }
-                if (doErrorChecking) {
-                    let error = exports.checkRoom(game.rooms[i]);
-                    if (error instanceof Error) errors.push(error);
-                }
-                for (let j = 0; j < game.players_alive.length; j++) {
-                    if (game.players_alive[j].location instanceof Room && game.players_alive[j].location.name === game.rooms[i].name) {
-                        game.rooms[i].addPlayer(game, game.players_alive[j], null, null, false);
+            const id = sheet[roomRow][columnRoomDisplayName] ? Room.generateValidId(sheet[roomRow][columnRoomDisplayName]) : "";
+            let channel = game.guildContext.guild.channels.cache.find(channel => channel.name === id);
+            if (channel === null || channel === undefined) {
+                for (const roomCategoryId of game.guildContext.roomCategories) {
+                    const roomCategory = game.guildContext.guild.channels.resolve(roomCategoryId);
+                    if (roomCategory === null || roomCategory === undefined)
+                        continue;
+                    const roomCategorySize = game.guildContext.guild.channels.cache.filter(
+                        (channel) => channel.parent && channel.parentId === roomCategory.id
+                    ).size;
+                    if (roomCategory.type === ChannelType.GuildCategory && roomCategorySize < 50) {
+                        channel = await game.guildContext.guild.channels.create({
+                            name: id,
+                            type: ChannelType.GuildText,
+                            parent: roomCategory,
+                        });
+                        break;
                     }
                 }
             }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
+            let tags = sheet[roomRow][columnRoomTags] ? sheet[roomRow][columnRoomTags].trim().split(',') : [];
+            for (let i = 0; i < tags.length; i++)
+                tags[i] = tags[i].trim();
+            const room = new Room(
+                id,
+                sheet[roomRow][columnRoomDisplayName] ? sheet[roomRow][columnRoomDisplayName].trim() : "",
+                channel && channel.type === ChannelType.GuildText ? channel : null,
+                tags,
+                sheet[roomRow][columnRoomIconUrl] ? sheet[roomRow][columnRoomIconUrl].trim() : "",
+                exits,
+                sheet[roomRow][columnExitDescription] ? sheet[roomRow][columnExitDescription].trim() : "",
+                roomRow + 2,
+                game
+            );
+            if (game.entityFinder.getRoom(room.id)) {
+                errors.push(new Error(`Couldn't load room on row ${room.row}. Another room with the same ID already exists.`));
+                continue;
             }
-            resolve(game);
+            game.roomsCollection.set(room.id, room);
+        }
+        // Now go through and make the dest for each exit an actual Room object.
+        game.roomsCollection.forEach(room => {
+            room.exitCollection.forEach(exit => {
+                const dest = game.entityFinder.getRoom(exit.destDisplayName);
+                if (dest) exit.dest = dest;
+            });
+            if (doErrorChecking) {
+                const error = checkRoom(room);
+                if (error instanceof Error) errors.push(error);
+            }
+            game.entityManager.updateRoomReferences(room);
         });
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Rooms");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Rooms");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkRoom = function (room) {
-    if (room.name === "" || room.name === null || room.name === undefined)
-        return new Error(`Couldn't load room on row ${room.row}. No room name was given.`);
-    if (room.name.toLowerCase() !== room.name)
-        return new Error(`Couldn't load room on row ${room.row}. The room name must be in all lowercase letters.`);
-    if (RegExp(/[^a-z0-9-_]/).test(room.name))
-        return new Error(`Couldn't load room on row ${room.row}. The room name has characters which are not permitted in a Discord channel name.`);
-    if (room.name.length > 100)
-        return new Error(`Couldn't load room on row ${room.row}. The room name exceeds 100 characters in length.`);
+/**
+ * Checks a Room for errors.
+ * @param {Room} room - The room to check.
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkRoom(room) {
+    if (room.displayName === "" || room.displayName === null || room.displayName === undefined)
+        return new Error(`Couldn't load room on row ${room.row}. No room display name was given.`);
+    if (room.id === "" || room.id === null || room.id === undefined)
+        return new Error(`Couldn't load room on row ${room.row}. The room display name resolved to a unique ID with an empty value.`);
+    if (room.id.length > 100)
+        return new Error(`Couldn't load room on row ${room.row}. The room ID exceeds 100 characters in length.`);
     if (room.channel === null || room.channel === undefined)
-        return new Error(`Couldn't load room "${room.name}". There is no corresponding channel on the server.`);
-    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png|gif))$');
+        return new Error(`Couldn't load room "${room.id}" on row ${room.row}. There is no corresponding channel on the server, and a channel to accommodate the room could not be automatically created.`);
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     if (room.iconURL !== "" && !iconURLSyntax.test(room.iconURL))
-        return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .png, or .gif extension.`);
-    for (let i = 0; i < room.exit.length; i++) {
-        let exit = room.exit[i];
+        return new Error(`Couldn't load room on row ${room.row}. The icon URL must have a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    for (const exit of room.exitCollection.values()) {
         if (exit.name === "" || exit.name === null || exit.name === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No exit name was given.`);
         if (isNaN(exit.pos.x))
@@ -130,256 +161,283 @@ module.exports.checkRoom = function (room) {
             return new Error(`Couldn't load exit on row ${exit.row}. The Z-coordinate given is not an integer.`);
         if (exit.link === "" || exit.link === null || exit.link === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No linked exit was given.`);
-        if (exit.dest === "" || exit.dest === null || exit.dest === undefined)
+        if (exit.destDisplayName === "" || exit.destDisplayName === null || exit.destDisplayName === undefined)
             return new Error(`Couldn't load exit on row ${exit.row}. No destination was given.`);
         if (!(exit.dest instanceof Room))
             return new Error(`Couldn't load exit on row ${exit.row}. The destination given is not a room.`);
         let matchingExit = false;
-        for (let j = 0; j < exit.dest.exit.length; j++) {
-            let dest = exit.dest;
-            if (dest.exit[j].link === exit.name) {
+        for (const destExit of exit.dest.exitCollection.values()) {
+            if (destExit.link === exit.name) {
                 matchingExit = true;
                 break;
             }
         }
         if (!matchingExit)
-            return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.name}"  does not have an exit that links back to it.`);
+            return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.displayName}"  does not have an exit that links back to it.`);
     }
-    return;
-};
+}
 
-module.exports.loadObjects = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        // Clear all recipe intervals so they don't continue after these objects are unloaded.
-        for (let i = 0; i < game.objects.length; i++) {
-            if (game.objects[i].recipeInterval !== null)
-                game.objects[i].recipeInterval.stop();
-            if (game.objects[i].process.timer !== null)
-                game.objects[i].process.timer.stop();
+/**
+ * Loads data from the Fixtures sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadFixtures(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.fixtureSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnName = 0;
+        const columnLocationDisplayName = 1;
+        const columnAccessible = 2;
+        const columnChildPuzzleName = 3;
+        const columnRecipeTag = 4;
+        const columnActivatable = 5;
+        const columnActivated = 6;
+        const columnAutoDeactivate = 7;
+        const columnHidingSpot = 8;
+        const columnPreposition = 9;
+        const columnDescription = 10;
+
+        game.entityManager.clearFixtures();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            // Convert old spreadsheet values.
+            let hidingSpotCapacity = NaN;
+            const hidingSpot = sheet[row][columnHidingSpot] ? sheet[row][columnHidingSpot].trim() : "";
+            if (hidingSpot === "TRUE")
+                hidingSpotCapacity = 1;
+            else if (hidingSpot === "FALSE" || hidingSpot === "")
+                hidingSpotCapacity = 0;
+            const fixture = new Fixture(
+                sheet[row][columnName] ? Game.generateValidEntityName(sheet[row][columnName]) : "",
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnAccessible] ? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                sheet[row][columnChildPuzzleName] ? Game.generateValidEntityName(sheet[row][columnChildPuzzleName]) : "",
+                sheet[row][columnRecipeTag] ? sheet[row][columnRecipeTag].trim() : "",
+                sheet[row][columnActivatable] ? sheet[row][columnActivatable].trim() === "TRUE" : false,
+                sheet[row][columnActivated] ? sheet[row][columnActivated].trim() === "TRUE" : false,
+                sheet[row][columnAutoDeactivate] ? sheet[row][columnAutoDeactivate].trim() === "TRUE" : false,
+                isNaN(hidingSpotCapacity) ? parseInt(sheet[row][columnHidingSpot]) : hidingSpotCapacity,
+                sheet[row][columnPreposition] ? sheet[row][columnPreposition].trim() : "",
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                row + 2,
+                game
+            );
+            const location = game.entityFinder.getRoom(fixture.locationDisplayName);
+            if (location) fixture.setLocation(location);
+            const childPuzzle = game.entityFinder.getPuzzle(fixture.childPuzzleName, fixture.locationDisplayName);
+            if (childPuzzle) fixture.setChildPuzzle(childPuzzle);
+            if (doErrorChecking) {
+                const error = checkFixture(fixture);
+                if (error instanceof Error) errors.push(error);
+            }
+            game.fixtures.push(fixture);
+            game.entityManager.updateFixtureReferences(fixture);
         }
-
-        sheets.getData(constants.objectSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnLocation = 1;
-            const columnAccessibility = 2;
-            const columnChildPuzzle = 3;
-            const columnRecipeTag = 4;
-            const columnActivatable = 5;
-            const columnActivated = 6;
-            const columnAutoDeactivate = 7;
-            const columnHidingSpot = 8;
-            const columnPreposition = 9;
-            const columnDescription = 10;
-
-            game.objects.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                // Convert old spreadsheet values.
-                let hidingSpotCapacity = NaN;
-                if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "TRUE")
-                    hidingSpotCapacity = 1;
-                else if (sheet[i][columnHidingSpot] && sheet[i][columnHidingSpot].trim() === "FALSE" || sheet[i][columnHidingSpot].trim() === "")
-                    hidingSpotCapacity = 0;
-                game.objects.push(
-                    new Object(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                        sheet[i][columnAccessibility]? sheet[i][columnAccessibility].trim() === "TRUE" : false,
-                        sheet[i][columnChildPuzzle] ? sheet[i][columnChildPuzzle].trim() : "",
-                        sheet[i][columnRecipeTag] ? sheet[i][columnRecipeTag].trim() : "",
-                        sheet[i][columnActivatable] ? sheet[i][columnActivatable].trim() === "TRUE" : false,
-                        sheet[i][columnActivated] ? sheet[i][columnActivated].trim() === "TRUE" : false,
-                        sheet[i][columnAutoDeactivate] ? sheet[i][columnAutoDeactivate].trim() === "TRUE" : false,
-                        isNaN(hidingSpotCapacity) ? parseInt(sheet[i][columnHidingSpot]) : hidingSpotCapacity,
-                        sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 2
-                    )
-                );
-            }
-            var errors = [];
-            for (let i = 0; i < game.objects.length; i++) {
-                game.objects[i].location = game.rooms.find(room => room.name === game.objects[i].location && room.name !== "");
-                let childPuzzle = game.puzzles.find(puzzle => puzzle.name === game.objects[i].childPuzzleName && puzzle.location instanceof Room && game.objects[i].location instanceof Room && puzzle.location.name === game.objects[i].location.name);
-                if (childPuzzle) game.objects[i].childPuzzle = childPuzzle;
-                if (doErrorChecking) {
-                    let error = exports.checkObject(game.objects[i]);
-                    if (error instanceof Error) errors.push(error);
-                }
-            }
-            for (let i = 0; i < game.items.length; i++) {
-                if (game.items[i].containerName.startsWith("Object:"))
-                    game.items[i].container = game.objects.find(object => object.name === game.items[i].containerName.substring("Object:".length).trim() && object.location instanceof Room && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
-            }
-            for (let i = 0; i < game.puzzles.length; i++) {
-                if (game.puzzles[i].parentObjectName !== "")
-                    game.puzzles[i].parentObject = game.objects.find(object => object.name === game.puzzles[i].parentObjectName && object.location instanceof Room && game.puzzles[i].location instanceof Room && object.location.name === game.puzzles[i].location.name);
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Fixtures");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Fixtures");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkObject = function (object) {
-    if (object.name === "" || object.name === null || object.name === undefined)
-        return new Error(`Couldn't load object on row ${object.row}. No object name was given.`);
-    if (!(object.location instanceof Room))
-        return new Error(`Couldn't load object on row ${object.row}. The location given is not a room.`);
-    if (object.childPuzzleName !== "" && !(object.childPuzzle instanceof Puzzle))
-        return new Error(`Couldn't load object on row ${object.row}. The child puzzle given is not a puzzle.`);
-    if (object.childPuzzle !== null && object.childPuzzle !== undefined && (object.childPuzzle.parentObject === null || object.childPuzzle.parentObject === undefined)) {
-        return new Error(`Couldn't load object on row ${object.row}. The child puzzle on row ${object.childPuzzle.row} has no parent object.`);
-    }
-    if (object.childPuzzle !== null && object.childPuzzle !== undefined && object.childPuzzle.parentObject !== null && object.childPuzzle.parentObject !== undefined && object.childPuzzle.parentObject.name !== object.name)
-        return new Error(`Couldn't load object on row ${object.row}. The child puzzle has a different parent object.`);
-    if (isNaN(object.hidingSpotCapacity))
-        return new Error(`Couldn't load object on row ${object.row}. The hiding spot capacity given is not a number.`);
-    return;
-};
+/**
+ * Checks a Fixture for errors.
+ * @param {Fixture} fixture - The fixture to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkFixture(fixture) {
+    if (fixture.name === "" || fixture.name === null || fixture.name === undefined)
+        return new Error(`Couldn't load fixture on row ${fixture.row}. No fixture name was given.`);
+    if (!(fixture.location instanceof Room))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The location given is not a room.`);
+    if (fixture.childPuzzleName !== "" && !(fixture.childPuzzle instanceof Puzzle))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle given is not a puzzle.`);
+    if (fixture.childPuzzle !== null && fixture.childPuzzle !== undefined && (fixture.childPuzzle.parentFixture === null || fixture.childPuzzle.parentFixture === undefined))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle on row ${fixture.childPuzzle.row} has no parent fixture.`);
+    if (fixture.childPuzzle !== null && fixture.childPuzzle !== undefined && fixture.childPuzzle.parentFixture !== null && fixture.childPuzzle.parentFixture !== undefined && fixture.childPuzzle.parentFixture.name !== fixture.name)
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle has a different parent fixture.`);
+    if (isNaN(fixture.hidingSpotCapacity))
+        return new Error(`Couldn't load fixture on row ${fixture.row}. The hiding spot capacity given is not a number.`);
+}
 
-module.exports.loadPrefabs = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.prefabSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnID = 0;
-            const columnName = 1;
-            const columnContainingPhrase = 2;
-            const columnDiscreet = 3;
-            const columnSize = 4;
-            const columnWeight = 5;
-            const columnUsable = 6;
-            const columnUseVerb = 7;
-            const columnUses = 8;
-            const columnEffect = 9;
-            const columnCures = 10;
-            const columnNextStage = 11;
-            const columnEquippable = 12;
-            const columnSlots = 13;
-            const columnCoveredSlots = 14;
-            const columnEquipCommands = 15;
-            const columnInventorySlots = 16;
-            const columnPreposition = 17;
-            const columnDescription = 18;
+/**
+ * Loads data from the Prefabs sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadPrefabs(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.prefabSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnId = 0;
+        const columnName = 1;
+        const columnContainingPhrase = 2;
+        const columnDiscreet = 3;
+        const columnSize = 4;
+        const columnWeight = 5;
+        const columnUsable = 6;
+        const columnUseVerb = 7;
+        const columnUses = 8;
+        const columnEffectsStrings = 9;
+        const columnCuresStrings = 10;
+        const columnNextStageId = 11;
+        const columnEquippable = 12;
+        const columnEquipmentSlots = 13;
+        const columnCoveredEquipmentSlots = 14;
+        const columnCommandsString = 15;
+        const columnInventorySlotsStrings = 16;
+        const columnPreposition = 17;
+        const columnDescription = 18;
 
-            game.prefabs.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                // Separate name and plural name.
-                const name = sheet[i][columnName] ? sheet[i][columnName].split(',') : "";
-                // Separate single containing phrase and plural containing phrase.
-                const containingPhrase = sheet[i][columnContainingPhrase] ? sheet[i][columnContainingPhrase].split(',') : "";
-                // Create a list of all status effect names this prefab will inflict when used.
-                var effects = sheet[i][columnEffect] ? sheet[i][columnEffect].split(',') : [];
-                for (let j = 0; j < effects.length; j++)
-                    effects[j] = effects[j].trim();
-                // Create a list of all status effect names this prefab will cure when used.
-                var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
-                for (let j = 0; j < cures.length; j++)
-                    cures[j] = cures[j].trim();
-                // Create a list of equipment slots this prefab can be equipped to.
-                var equipmentSlots = sheet[i][columnSlots] ? sheet[i][columnSlots].split(',') : [];
-                for (let j = 0; j < equipmentSlots.length; j++)
-                    equipmentSlots[j] = equipmentSlots[j].trim();
-                // Create a list of equipment slots this prefab covers when equipped.
-                var coveredEquipmentSlots = sheet[i][columnCoveredSlots] ? sheet[i][columnCoveredSlots].split(',') : [];
-                for (let j = 0; j < coveredEquipmentSlots.length; j++)
-                    coveredEquipmentSlots[j] = coveredEquipmentSlots[j].trim();
-                // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
-                const commandString = sheet[i][columnEquipCommands] ? sheet[i][columnEquipCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
-                const commands = commandString ? commandString.split('/') : new Array("", "");
-                var equipCommands = commands[0] ? commands[0].split(',') : "";
-                for (let j = 0; j < equipCommands.length; j++)
-                    equipCommands[j] = equipCommands[j].trim();
-                var unequipCommands = commands[1] ? commands[1].split(',') : "";
-                for (let j = 0; j < unequipCommands.length; j++)
-                    unequipCommands[j] = unequipCommands[j].trim();
-                // Create a list of inventory slots this prefab contains.
-                var inventorySlots = sheet[i][columnInventorySlots] ? sheet[i][columnInventorySlots].split(',') : [];
-                for (let j = 0; j < inventorySlots.length; j++) {
-                    const inventorySlot = inventorySlots[j].split(':');
-                    inventorySlots[j] = { name: inventorySlot[0].trim(), capacity: parseInt(inventorySlot[1]), takenSpace: 0, weight: 0, item: [] };
-                }
-
-                game.prefabs.push(
-                    new Prefab(
-                        sheet[i][columnID] ? sheet[i][columnID].trim() : "",
-                        name[0] ? name[0].trim() : "",
-                        name[1] ? name[1].trim() : "",
-                        containingPhrase[0] ? containingPhrase[0].trim() : "",
-                        containingPhrase[1] ? containingPhrase[1].trim() : "",
-                        sheet[i][columnDiscreet] ? sheet[i][columnDiscreet].trim() === "TRUE" : false,
-                        parseInt(sheet[i][columnSize]),
-                        parseInt(sheet[i][columnWeight]),
-                        sheet[i][columnUsable] ? sheet[i][columnUsable].trim() === "TRUE" : false,
-                        sheet[i][columnUseVerb] ? sheet[i][columnUseVerb].trim() : "",
-                        parseInt(sheet[i][columnUses]),
-                        effects,
-                        cures,
-                        sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : "",
-                        sheet[i][columnEquippable] ? sheet[i][columnEquippable].trim() === "TRUE" : false,
-                        equipmentSlots,
-                        coveredEquipmentSlots,
-                        equipCommands,
-                        unequipCommands,
-                        inventorySlots,
-                        sheet[i][columnPreposition] ? sheet[i][columnPreposition].trim() : "",
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 2
-                    )
+        game.entityManager.clearPrefabs();
+        /** @type {Collection<string, string[]>} */
+        let nextStageAssignments = new Collection();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            // Separate name and plural name.
+            const name = sheet[row][columnName] ? sheet[row][columnName].split(',') : "";
+            // Separate single containing phrase and plural containing phrase.
+            const containingPhrase = sheet[row][columnContainingPhrase] ? sheet[row][columnContainingPhrase].split(',') : "";
+            // Create a list of all status effect IDs this prefab will inflict when used.
+            let effectsStrings = sheet[row][columnEffectsStrings] ? sheet[row][columnEffectsStrings].split(',') : [];
+            effectsStrings.forEach((effectString, i) => {
+                effectsStrings[i] = Status.generateValidId(effectString);
+            });
+            // Create a list of all status effect IDs this prefab will cure when used.
+            let curesStrings = sheet[row][columnCuresStrings] ? sheet[row][columnCuresStrings].split(',') : [];
+            curesStrings.forEach((cureString, i) => {
+                curesStrings[i] = Status.generateValidId(cureString);
+            });
+            // Create a list of equipment slots this prefab can be equipped to.
+            let equipmentSlots = sheet[row][columnEquipmentSlots] ? sheet[row][columnEquipmentSlots].split(',') : [];
+            equipmentSlots.forEach((equipmentSlotId, i) => {
+                equipmentSlots[i] = Game.generateValidEntityName(equipmentSlotId);
+            });
+            // Create a list of equipment slots this prefab covers when equipped.
+            let coveredEquipmentSlots = sheet[row][columnCoveredEquipmentSlots] ? sheet[row][columnCoveredEquipmentSlots].split(',') : [];
+            for (let j = 0; j < coveredEquipmentSlots.length; j++)
+                coveredEquipmentSlots[j] = Game.generateValidEntityName(coveredEquipmentSlots[j]);
+            // Create a list of commands to run when this prefab is equipped/unequipped. Temporarily replace forward slashes in URLs with back slashes.
+            const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
+            const commands = commandString ? commandString.split('/') : ["", ""];
+            let equippedCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
+            for (let i = 0; i < equippedCommands.length; i++)
+                equippedCommands[i] = equippedCommands[i].trim();
+            let unequippedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
+            for (let i = 0; i < unequippedCommands.length; i++)
+                unequippedCommands[i] = unequippedCommands[i].trim();
+            // Create a list of inventory slots this prefab contains.
+            let inventorySlotStrings = sheet[row][columnInventorySlotsStrings] ? sheet[row][columnInventorySlotsStrings].split(',') : [];
+            /** @type {Collection<string, InventorySlot>} */
+            let inventorySlots = new Collection();
+            inventorySlotStrings.forEach(inventorySlotString => {
+                let inventorySlotSplit = inventorySlotString.split(':');
+                if (inventorySlotSplit.length === 1) inventorySlotSplit = [inventorySlotString, ""];
+                const inventorySlot = new InventorySlot(
+                    Game.generateValidEntityName(inventorySlotSplit[0]),
+                    parseInt(inventorySlotSplit[1]),
+                    0,
+                    0,
+                    []
                 );
+                if (inventorySlots.get(inventorySlot.id))
+                    errors.push(new Error(`Couldn't load prefab on row ${row + 2}. The prefab already has an inventory slot with the ID "${inventorySlot.id}".`));
+                else inventorySlots.set(inventorySlot.id, inventorySlot);
+            });
+            const prefab = new Prefab(
+                sheet[row][columnId] ? Game.generateValidEntityName(sheet[row][columnId]) : "",
+                name[0] ? Game.generateValidEntityName(name[0]) : "",
+                name[1] ? Game.generateValidEntityName(name[1]) : "",
+                containingPhrase[0] ? containingPhrase[0].trim() : "",
+                containingPhrase[1] ? containingPhrase[1].trim() : "",
+                sheet[row][columnDiscreet] ? sheet[row][columnDiscreet].trim() === "TRUE" : false,
+                parseInt(sheet[row][columnSize]),
+                parseInt(sheet[row][columnWeight]),
+                sheet[row][columnUsable] ? sheet[row][columnUsable].trim() === "TRUE" : false,
+                sheet[row][columnUseVerb] ? sheet[row][columnUseVerb].trim() : "",
+                parseInt(sheet[row][columnUses]),
+                effectsStrings,
+                curesStrings,
+                sheet[row][columnNextStageId] ? sheet[row][columnNextStageId].trim() : "",
+                sheet[row][columnEquippable] ? sheet[row][columnEquippable].trim() === "TRUE" : false,
+                equipmentSlots,
+                coveredEquipmentSlots,
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "",
+                equippedCommands,
+                unequippedCommands,
+                inventorySlots,
+                sheet[row][columnPreposition] ? sheet[row][columnPreposition].trim() : "",
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                row + 2,
+                game
+            );
+            if (game.entityFinder.getPrefab(prefab.id)) {
+                errors.push(new Error(`Couldn't load prefab on row ${prefab.row}. Another prefab with this ID already exists.`));
+                continue;
             }
-            var errors = [];
-            for (let i = 0; i < game.prefabs.length; i++) {
-                for (let j = 0; j < game.prefabs[i].effects.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].effects[j]);
-                    if (status) game.prefabs[i].effects[j] = status;
-                }
-                for (let j = 0; j < game.prefabs[i].cures.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].cures[j]);
-                    if (status) game.prefabs[i].cures[j] = status;
-                }
-                let nextStage = game.prefabs.find(prefab => prefab.id === game.prefabs[i].nextStageName);
-                if (nextStage) game.prefabs[i].nextStage = nextStage;
-                if (doErrorChecking) {
-                    let error = exports.checkPrefab(game.prefabs[i], game);
-                    if (error instanceof Error) errors.push(error);
+            prefab.effectsStrings.forEach((effectsString, i) => {
+                const effect = game.entityFinder.getStatusEffect(effectsString);
+                if (effect) prefab.effects[i] = effect;
+            });
+            prefab.curesStrings.forEach((curesString, i) => {
+                const cure = game.entityFinder.getStatusEffect(curesString);
+                if (cure) prefab.cures[i] = cure;
+            });
+            // If this prefab's ID is currently in the next stage assignments collection, we can finally set the next stage for the prefabs in its list.
+            const nextStageAssignment = nextStageAssignments.get(prefab.id);
+            if (nextStageAssignment) {
+                nextStageAssignment.forEach(prevStage => game.entityFinder.getPrefab(prevStage).setNextStage(prefab));
+                nextStageAssignments.delete(prefab.id);
+            }
+            if (prefab.nextStageId !== "") {
+                let nextStage = game.entityFinder.getPrefab(prefab.nextStageId);
+                if (nextStage) prefab.setNextStage(nextStage);
+                else {
+                    // If the next stage wasn't found, it might have just not been loaded yet. Save it for later.
+                    let assignmentsList = nextStageAssignments.get(prefab.nextStageId);
+                    if (!assignmentsList) assignmentsList = [];
+                    assignmentsList.push(prefab.id);
+                    nextStageAssignments.set(prefab.nextStageId, assignmentsList);
                 }
             }
-            for (let i = 0; i < game.puzzles.length; i++) {
-                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        let requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
-                        if (requirement) game.puzzles[i].requirements[j] = requirement;
-                    }
-                }
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
+            game.prefabs.push(prefab);
+            game.prefabsCollection.set(prefab.id, prefab);
+            game.entityManager.updatePrefabReferences(prefab);
+        }
+        if (doErrorChecking) {
+            game.prefabsCollection.forEach(prefab => {
+                const error = checkPrefab(prefab);
+                if (error instanceof Error) errors.push(error);
+            });
+        }
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Prefabs");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Prefabs");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkPrefab = function (prefab, game) {
+/**
+ * Checks a Prefab for errors.
+ * @param {Prefab} prefab - The prefab to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkPrefab(prefab) {
     if (prefab.id === "" || prefab.id === null || prefab.id === undefined)
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab ID was given.`);
-    if (game.prefabs.filter(other => other.id === prefab.id && other.row < prefab.row).length > 0)
-        return new Error(`Couldn't load prefab on row ${prefab.row}. Another prefab with this ID already exists.`);
     if (prefab.name === "" || prefab.name === null || prefab.name === undefined)
         return new Error(`Couldn't load prefab on row ${prefab.row}. No prefab name was given.`);
     if (prefab.singleContainingPhrase === "")
@@ -390,479 +448,454 @@ module.exports.checkPrefab = function (prefab, game) {
         return new Error(`Couldn't load prefab on row ${prefab.row}. The weight given is not a number.`);
     for (let i = 0; i < prefab.effects.length; i++) {
         if (!(prefab.effects[i] instanceof Status))
-            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.effects[i]}" in effects is not a status effect.`);
+            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.effectsStrings[i]}" in effects is not a status effect.`);
     }
     for (let i = 0; i < prefab.cures.length; i++) {
         if (!(prefab.cures[i] instanceof Status))
-            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.cures[i]}" in cures is not a status effect.`);
+            return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.curesStrings[i]}" in cures is not a status effect.`);
     }
-    if (prefab.nextStageName !== "" && !(prefab.nextStage instanceof Prefab))
-        return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStageName}" in turns into is not a prefab.`);
-    for (let i = 0; i < prefab.inventory.length; i++) {
-        if (prefab.inventory[i].name === "" || prefab.inventory[i].name === null || prefab.inventory[i].name === undefined)
+    if (prefab.nextStageId !== "" && !(prefab.nextStage instanceof Prefab))
+        return new Error(`Couldn't load prefab on row ${prefab.row}. "${prefab.nextStageId}" in turns into is not a prefab.`);
+    for (const [i, inventorySlot] of prefab.inventoryCollection.entries()) {
+        if (inventorySlot.id === "" || inventorySlot.id === null || inventorySlot.id === undefined)
             return new Error(`Couldn't load prefab on row ${prefab.row}. No name was given for inventory slot ${i + 1}.`);
-        if (isNaN(prefab.inventory[i].capacity))
-            return new Error(`Couldn't load prefab on row ${prefab.row}. The capacity given for inventory slot "${prefab.inventory[i].name}" is not a number.`);
+        if (isNaN(inventorySlot.capacity))
+            return new Error(`Couldn't load prefab on row ${prefab.row}. The capacity given for inventory slot "${inventorySlot.id}" is not a number.`);
     }
-    if (prefab.inventory.length !== 0 && prefab.preposition === "")
+    if (prefab.inventoryCollection.size !== 0 && prefab.preposition === "")
         return new Error(`Couldn't load prefab on row ${prefab.row}. ${prefab.id} has inventory slots, but no preposition was given.`);
-    return;
-};
+}
 
-module.exports.loadRecipes = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.recipeSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnIngredients = 0;
-            const columnUncraftable = 1;
-            const columnObjectTag = 2;
-            const columnDuration = 3;
-            const columnProducts = 4;
-            const columnInitiatedDescription = 5;
-            const columnCompletedDescription = 6;
-            const columnUncraftedDescription = 7;
+/**
+ * Loads data from the Recipes sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadRecipes(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.recipeSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnIngredients = 0;
+        const columnUncraftable = 1;
+        const columnFixtureTag = 2;
+        const columnDuration = 3;
+        const columnProducts = 4;
+        const columnInitiatedDescription = 5;
+        const columnCompletedDescription = 6;
+        const columnUncraftedDescription = 7;
 
-            game.recipes.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                // Separate the ingredients and sort them in alphabetical order.
-                var ingredients = sheet[i][columnIngredients] ? sheet[i][columnIngredients].split(',') : [];
-                ingredients.sort(function (a, b) {
-                    let trimmedA = a.trim();
-                    let trimmedB = b.trim();
-                    if (trimmedA < trimmedB) return -1;
-                    if (trimmedA > trimmedB) return 1;
-                    return 0;
-                });
-                // For each ingredient, find its Prefab.
-                for (let j = 0; j < ingredients.length; j++) {
-                    ingredients[j] = ingredients[j].trim();
-                    let prefab = game.prefabs.find(prefab => prefab.id === ingredients[j] && prefab.id !== "");
-                    if (prefab) ingredients[j] = prefab;
-                }
-                // Parse the duration.
-                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
-                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
-                let durationUnit = durationString.charAt(durationString.length - 1);
-                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
-                if (!"yMwdhms".includes(durationUnit)) {
-                    durationInt = NaN;
-                    durationUnit = NaN;
-                }
-                var duration = durationString ? moment.duration(durationInt, durationUnit) : moment.duration(0);
-                // Separate the products.
-                var products = sheet[i][columnProducts] ? sheet[i][columnProducts].split(',') : [];
-                // For each product, find its Prefab.
-                for (let j = 0; j < products.length; j++) {
-                    products[j] = products[j].trim();
-                    let prefab = game.prefabs.find(prefab => prefab.id === products[j] && prefab.id !== "");
-                    if (prefab) products[j] = prefab;
-                }
-
-                game.recipes.push(
-                    new Recipe(
-                        ingredients,
-                        sheet[i][columnUncraftable] ? sheet[i][columnUncraftable].trim() === "TRUE" : false,
-                        sheet[i][columnObjectTag] ? sheet[i][columnObjectTag].trim() : "",
-                        duration,
-                        products,
-                        sheet[i][columnInitiatedDescription] ? sheet[i][columnInitiatedDescription].trim() : "",
-                        sheet[i][columnCompletedDescription] ? sheet[i][columnCompletedDescription].trim() : "",
-                        sheet[i][columnUncraftedDescription] ? sheet[i][columnUncraftedDescription].trim() : "",
-                        i + 2
-                    )
-                );
+        game.entityManager.clearRecipes();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            // Separate the ingredients and sort them in alphabetical order.
+            let ingredientsStrings = sheet[row][columnIngredients] ? sheet[row][columnIngredients].split(',') : [];
+            ingredientsStrings.sort((a, b) => {
+                const trimmedA = Game.generateValidEntityName(a);
+                const trimmedB = Game.generateValidEntityName(b);
+                if (trimmedA < trimmedB) return -1;
+                if (trimmedA > trimmedB) return 1;
+                return 0;
+            });
+            // For each ingredient, convert the string to a valid entity name.
+            for (let j = 0; j < ingredientsStrings.length; j++)
+                ingredientsStrings[j] = Game.generateValidEntityName(ingredientsStrings[j]);
+            // Parse the duration.
+            const durationString = sheet[row][columnDuration] ? String(sheet[row][columnDuration]) : "";
+            const duration = parseDuration(durationString);
+            // Separate the products.
+            let productsStrings = sheet[row][columnProducts] ? sheet[row][columnProducts].split(',') : [];
+            // For each product, convert the string to a valid entity name.
+            for (let j = 0; j < productsStrings.length; j++)
+                productsStrings[j] = Game.generateValidEntityName(productsStrings[j]);
+            let recipe = new Recipe(
+                ingredientsStrings,
+                sheet[row][columnUncraftable] ? sheet[row][columnUncraftable].trim() === "TRUE" : false,
+                sheet[row][columnFixtureTag] ? sheet[row][columnFixtureTag].trim() : "",
+                duration,
+                productsStrings,
+                sheet[row][columnInitiatedDescription] ? sheet[row][columnInitiatedDescription].trim() : "",
+                sheet[row][columnCompletedDescription] ? sheet[row][columnCompletedDescription].trim() : "",
+                sheet[row][columnUncraftedDescription] ? sheet[row][columnUncraftedDescription].trim() : "",
+                row + 2,
+                game
+            );
+            recipe.ingredientsStrings.forEach((ingredientsString, i) => {
+                const prefab = game.entityFinder.getPrefab(ingredientsString);
+                if (prefab) recipe.ingredients[i] = prefab;
+            });
+            recipe.productsStrings.forEach((productsString, i) => {
+                const prefab = game.entityFinder.getPrefab(productsString);
+                if (prefab) recipe.products[i] = prefab;
+            });
+            if (doErrorChecking) {
+                const error = checkRecipe(recipe);
+                if (error instanceof Error) errors.push(error);
             }
-            var errors = [];
-            for (let i = 0; i < game.recipes.length; i++) {
-                if (doErrorChecking) {
-                    let error = exports.checkRecipe(game.recipes[i]);
-                    if (error instanceof Error) errors.push(error);
-                }
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
+            game.recipes.push(recipe);
+        }
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Recipes");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Recipes");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkRecipe = function (recipe) {
+/**
+ * Checks a Recipe for errors.
+ * @param {Recipe} recipe - The recipe to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkRecipe(recipe) {
     if (recipe.ingredients.length === 0)
         return new Error(`Couldn't load recipe on row ${recipe.row}. No ingredients were given.`);
     for (let i = 0; i < recipe.ingredients.length; i++) {
         if (!(recipe.ingredients[i] instanceof Prefab))
-            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.ingredients[i]}" in ingredients is not a prefab.`);
+            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.ingredientsStrings[i]}" in ingredients is not a prefab.`);
     }
-    if (recipe.ingredients.length > 2 && recipe.objectTag === "")
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require an object tag.`);
-    if (recipe.products.length > 2 && recipe.objectTag === "")
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require an object tag.`);
-    if (recipe.duration !== null && !recipe.duration.isValid())
+    if (recipe.ingredients.length > 2 && recipe.fixtureTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require a fixture tag.`);
+    if (recipe.products.length > 2 && recipe.fixtureTag === "")
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require a fixture tag.`);
+    if (recipe.duration !== null && !dayjs.isDuration(recipe.duration))
         return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
-    if (recipe.objectTag === "" && recipe.duration.asMilliseconds() !== 0)
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without an object tag cannot have a duration.`);
+    if (recipe.fixtureTag === "" && recipe.duration !== null)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without a fixture tag cannot have a duration.`);
     for (let i = 0; i < recipe.products.length; i++) {
         if (!(recipe.products[i] instanceof Prefab))
-            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.products[i]}" in products is not a prefab.`);
+            return new Error(`Couldn't load recipe on row ${recipe.row}. "${recipe.productsStrings[i]}" in products is not a prefab.`);
     }
-    if (recipe.objectTag !== "" && recipe.uncraftable)
-        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with an object tag cannot be uncraftable.`)
+    if (recipe.fixtureTag !== "" && recipe.uncraftable)
+        return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with a fixture tag cannot be uncraftable.`)
     if (recipe.products.length > 1 && recipe.uncraftable)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than one product cannot be uncraftable.`)
-};
+}
 
-module.exports.loadItems = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.itemSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnPrefab = 0;
-            const columnIdentifier = 1;
-            const columnLocation = 2;
-            const columnAccessibility = 3;
-            const columnContainer = 4;
-            const columnQuantity = 5;
-            const columnUses = 6;
-            const columnDescription = 7;
+/**
+ * Loads data from the Room Items sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadRoomItems(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.roomItemSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnPrefabId = 0;
+        const columnIdentifier = 1;
+        const columnLocationDisplayName = 2;
+        const columnAccessible = 3;
+        const columnContainerName = 4;
+        const columnQuantity = 5;
+        const columnUses = 6;
+        const columnDescription = 7;
 
-            game.items.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                // Find the prefab first.
-                const prefab = sheet[i][columnPrefab] ? game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab].trim() && prefab.id !== "") : null;
-
-                game.items.push(
-                    new Item(
-                        prefab ? prefab : sheet[i][columnPrefab] ? sheet[i][columnPrefab].trim() : "",
-                        sheet[i][columnIdentifier] ? sheet[i][columnIdentifier].trim() : "",
-                        sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                        sheet[i][columnAccessibility] ? sheet[i][columnAccessibility].trim() === "TRUE" : false,
-                        sheet[i][columnContainer] ? sheet[i][columnContainer].trim() : "",
-                        parseInt(sheet[i][columnQuantity]),
-                        parseInt(sheet[i][columnUses]),
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        i + 2
-                    )
-                );
+        game.entityManager.clearRoomItems();
+        /** @type {Collection<string, RoomItem>} */
+        let containerItems = new Collection();
+        /** @type {Collection<string, RoomItem[]>} */
+        let unloadedContainers = new Collection();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            let containerDisplay = sheet[row][columnContainerName] && sheet[row][columnContainerName].split(':').length > 1 ? sheet[row][columnContainerName].split(':') : ['', sheet[row][columnContainerName]];
+            let containerType = containerDisplay[0].trim();
+            const containerTypeUpper = containerType.toUpperCase();
+            let containerName = Game.generateValidEntityName(containerDisplay[1]);
+            if (containerTypeUpper === "FIXTURE" || containerTypeUpper === "OBJECT") containerType = "Fixture";
+            else if (containerTypeUpper === "ROOMITEM" || containerTypeUpper === "ITEM") containerType = "RoomItem";
+            else if (containerTypeUpper === "PUZZLE") containerType = "Puzzle";
+            const roomItem = new RoomItem(
+                sheet[row][columnPrefabId] ? Game.generateValidEntityName(sheet[row][columnPrefabId]) : "",
+                sheet[row][columnIdentifier] ? Game.generateValidEntityName(sheet[row][columnIdentifier]) : "",
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnAccessible] ? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                containerType,
+                containerName,
+                parseInt(sheet[row][columnQuantity]),
+                parseInt(sheet[row][columnUses]),
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                row + 2,
+                game
+            );
+            const prefab = game.entityFinder.getPrefab(roomItem.prefabId);
+            if (prefab) {
+                roomItem.setPrefab(prefab);
+                roomItem.initializeInventory();
             }
-            var errors = [];
-            var childItemIndexes = [];
-            for (let i = 0; i < game.items.length; i++) {
-                game.items[i].location = game.rooms.find(room => room.name === game.items[i].location && room.name !== "");
-                if (game.items[i].prefab instanceof Prefab) {
-                    const prefab = game.items[i].prefab;
-                    game.items[i].weight = game.items[i].prefab.weight;
-                    for (let j = 0; j < prefab.inventory.length; j++)
-                        game.items[i].inventory.push({ name: prefab.inventory[j].name, capacity: prefab.inventory[j].capacity, takenSpace: prefab.inventory[j].takenSpace, weight: prefab.inventory[j].weight, item: [] });
+            const location = game.entityFinder.getRoom(roomItem.locationDisplayName);
+            if (location) roomItem.setLocation(location);
+            if (roomItem.quantity !== 0 && roomItem.identifier !== "" && roomItem.inventoryCollection.size > 0) {
+                if (containerItems.get(roomItem.identifier)) {
+                    errors.push(new Error(`Couldn't load room item on row ${roomItem.row}. Another room item with this container identifier already exists.`));
+                    continue;
                 }
-                if (game.items[i].containerName.startsWith("Object:")) {
-                    let container = game.objects.find(object => object.name === game.items[i].containerName.substring("Object:".length).trim() && object.location instanceof Room && game.items[i].location instanceof Room && object.location.name === game.items[i].location.name);
-                    if (container) game.items[i].container = container;
-                }
-                else if (game.items[i].containerName.startsWith("Item:")) {
-                    childItemIndexes.push(i);
-                }
-                else if (game.items[i].containerName.startsWith("Puzzle:")) {
-                    let container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location instanceof Room && game.items[i].location instanceof Room && puzzle.location.name === game.items[i].location.name);
-                    if (container) game.items[i].container = container;
+                containerItems.set(roomItem.identifier, roomItem);
+                // If this item's identifier is already in the unloadedContainers collection, we can set it as the container for its child items.
+                const unassignedChildItems = unloadedContainers.get(roomItem.identifier);
+                if (unassignedChildItems) {
+                    unassignedChildItems.forEach(childItem => {
+                        childItem.setContainer(roomItem);
+                        roomItem.insertItem(childItem, childItem.slot);
+                    });
+                    unloadedContainers.delete(roomItem.identifier);
                 }
             }
-            // Only assign child item containers once all items have been properly initialized.
-            for (let index = 0; index < childItemIndexes.length; index++) {
-                const i = childItemIndexes[index];
-                const containerName = game.items[i].containerName.substring("Item:".length).trim().split("/");
-                const identifier = containerName[0] ? containerName[0].trim() : "";
-                const slotName = containerName[1] ? containerName[1].trim() : "";
-                let possibleContainers = game.items.filter(item => item.identifier === identifier && item.location instanceof Room && game.items[i].location instanceof Room && item.location.name === game.items[i].location.name);
-                let container = null;
-                for (let i = 0; i < possibleContainers.length; i++) {
-                    if (possibleContainers[i].quantity > 0) {
-                        container = possibleContainers[i];
-                        break;
-                    }
-                }
-                if (container === null && possibleContainers.length > 0) container = possibleContainers[0];
+            if (roomItem.containerType === "Fixture") {
+                const container = game.entityFinder.getFixture(containerName, roomItem.locationDisplayName);
+                if (container) roomItem.setContainer(container);
+            }
+            else if (roomItem.containerType === "Puzzle") {
+                const container = game.entityFinder.getPuzzle(containerName, roomItem.locationDisplayName);
+                if (container) roomItem.setContainer(container);
+            }
+            else if (roomItem.containerType === "RoomItem") {
+                const containerNameSplit = roomItem.containerName.split('/').length > 1 ? roomItem.containerName.split('/') : [roomItem.containerName, ''];
+                const identifier = Game.generateValidEntityName(containerNameSplit[0]);
+                const slotId = Game.generateValidEntityName(containerNameSplit[1]);
+                if (slotId) roomItem.slot = slotId;
+                const container = containerItems.get(identifier);
                 if (container) {
-                    game.items[i].container = container;
-                    game.items[i].slot = slotName;
-                    // This is a pseudo-copy of the insertItems function without weight and takenSpace changing.
-                    if (game.items[i].quantity !== 0) {
-                        for (let j = 0; j < container.inventory.length; j++) {
-                            if (container.inventory[j].name === slotName)
-                                container.inventory[j].item.push(game.items[i]);
-                        }
-                    }
-                }
-            }
-            // Create a recursive function for properly inserting item inventories.
-            let insertInventory = function (item) {
-                var createdItem = new Item(
-                    item.prefab,
-                    item.identifier,
-                    item.location,
-                    item.accessible,
-                    item.containerName,
-                    item.quantity,
-                    item.uses,
-                    item.description,
-                    item.row
-                );
-                if (item.container instanceof Item) createdItem.container = game.items.find(gameItem => gameItem.row === item.container.row);
-                else createdItem.container = item.container;
-                createdItem.slot = item.slot;
-                createdItem.weight = item.weight;
-
-                // Initialize the item's inventory slots.
-                if (item.prefab instanceof Prefab) {
-                    for (let i = 0; i < item.prefab.inventory.length; i++)
-                        createdItem.inventory.push({
-                            name: item.prefab.inventory[i].name,
-                            capacity: item.prefab.inventory[i].capacity,
-                            takenSpace: item.prefab.inventory[i].takenSpace,
-                            weight: item.prefab.inventory[i].weight,
-                            item: []
-                        });
-                }
-
-                for (let i = 0; i < item.inventory.length; i++) {
-                    for (let j = 0; j < item.inventory[i].item.length; j++) {
-                        let inventoryItem = insertInventory(item.inventory[i].item[j]);
-                        let foundItem = false;
-                        for (var k = 0; k < game.items.length; k++) {
-                            if (game.items[k].row === inventoryItem.row) {
-                                foundItem = true;
-                                game.items[k] = inventoryItem;
-                                break;
-                            }
-                        }
-                        if (foundItem) {
-                            game.items[k].container = createdItem;
-                            if (game.items[k].containerName !== "")
-                                createdItem.insertItem(game.items[k], game.items[k].slot);
-                            else createdItem.inventory[i].item.push(game.items[k]);
-                        }
-                    }
-                }
-                return createdItem;
-            };
-            // Run through items one more time to properly insert their inventories.
-            for (let i = 0; i < game.items.length; i++) {
-                if (game.items[i].container instanceof Item) {
-                    let container = game.items[i].container;
-                    for (let slot = 0; slot < container.inventory.length; slot++) {
-                        for (let j = 0; j < container.inventory[slot].item.length; j++) {
-                            if (container.inventory[slot].item[j].row === game.items[i].row) {
-                                game.items[i] = container.inventory[slot].item[j];
-                                break;
-                            }
-                        }
-                    }
-                }
-                else game.items[i] = insertInventory(game.items[i]);
-
-                if (doErrorChecking) {
-                    let error = exports.checkItem(game.items[i], game);
-                    if (error instanceof Error) errors.push(error);
-                }
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
-    }); 
-};
-
-module.exports.checkItem = function (item, game) {
-    if (!(item.prefab instanceof Prefab))
-        return new Error(`Couldn't load item on row ${item.row}. The prefab given is not a prefab.`);
-    if (item.inventory.length > 0 && item.identifier === "")
-        return new Error(`Couldn't load item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
-    if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
-        return new Error(`Couldn't load item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
-    if (item.identifier !== "" && item.quantity !== 0 &&
-        game.items.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length
-        + game.inventoryItems.filter(other => other.identifier === item.identifier && other.quantity !== 0).length > 0)
-        return new Error(`Couldn't load item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
-    if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
-        return new Error(`Couldn't load item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
-    if (!(item.location instanceof Room))
-        return new Error(`Couldn't load item on row ${item.row}. The location given is not a room.`);
-    if (item.containerName.startsWith("Object:") && !(item.container instanceof Object))
-        return new Error(`Couldn't load item on row ${item.row}. The container given is not an object.`);
-    if (item.containerName.startsWith("Item:") && !(item.container instanceof Item))
-        return new Error(`Couldn't load item on row ${item.row}. The container given is not an item.`);
-    if (item.containerName.startsWith("Puzzle:") && !(item.container instanceof Puzzle))
-        return new Error(`Couldn't load item on row ${item.row}. The container given is not a puzzle.`);
-    if (item.containerName !== "" && !item.containerName.startsWith("Object:") && !item.containerName.startsWith("Item:") && !item.containerName.startsWith("Puzzle:"))
-        return new Error(`Couldn't load item on row ${item.row}. The given container type is invalid.`);
-    if (item.container instanceof Item && item.container.inventory.length === 0)
-        return new Error(`Couldn't load item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
-    if (item.container instanceof Item) {
-        if (item.slot === "") return new Error(`Couldn't load item on row ${item.row}. The item's container is an item, but a prefab inventory slot name was not given.`);
-        let foundSlot = false;
-        for (let i = 0; i < item.container.inventory.length; i++) {
-            if (item.container.inventory[i].name === item.slot) {
-                foundSlot = true;
-                if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
-                    return new Error(`Couldn't load item on row ${item.row}. The item's container is over capacity.`);
-            }
-        }
-        if (!foundSlot) return new Error(`Couldn't load item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
-    }
-    return;
-};
-
-module.exports.loadPuzzles = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.puzzleSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnSolved = 1;
-            const columnOutcome = 2;
-            const columnRequiresMod = 3;
-            const columnLocation = 4;
-            const columnParentObject = 5;
-            const columnType = 6;
-            const columnAccessible = 7;
-            const columnRequires = 8;
-            const columnSolution = 9;
-            const columnAttempts = 10;
-            const columnWhenSolved = 11;
-            const columnCorrectDescription = 12;
-            const columnAlreadySolvedDescription = 13;
-            const columnIncorrectDescription = 14;
-            const columnNoMoreAttemptsDescription = 15;
-            const columnRequirementsNotMetDescription = 16;
-
-            game.puzzles.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                let requirements = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
-                for (let j = 0; j < requirements.length; j++)
-                    requirements[j] = requirements[j].trim();
-                let commandString = sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|png))/g, '@') : "";
-                let commandSets = [];
-                let getCommands = function (commandString) {
-                    const commands = commandString.split('/');
-                    let solvedCommands = commands[0] ? commands[0].split(',') : [];
-                    for (let j = 0; j < solvedCommands.length; j++)
-                        solvedCommands[j] = solvedCommands[j].trim();
-                    let unsolvedCommands = commands[1] ? commands[1].split(',') : [];
-                    for (let j = 0; j < unsolvedCommands.length; j++)
-                        unsolvedCommands[j] = unsolvedCommands[j].trim();
-                    return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
-                };
-                const regex = new RegExp(/(\[((.*?)(?<!Item): (.*?))\],?)/);
-                if (regex.test(commandString)) {
-                    while (regex.test(commandString)) {
-                        const commandSet = RegExp.$2;
-                        let outcomes = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
-                        for (let j = 0; j < outcomes.length; j++)
-                            outcomes[j] = outcomes[j].trim();
-                        const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
-                        commandSets.push({ outcomes: outcomes, solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
-                        commandString = commandString.replace(RegExp.$1, "").trim();
-                    }
+                    roomItem.setContainer(container);
+                    container.insertItem(roomItem, slotId);
                 }
                 else {
-                    const commands = getCommands(sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "");
-                    commandSets.push({ outcomes: [], solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
-                }
-                let solutions = sheet[i][columnSolution] ? sheet[i][columnSolution].toString().split(',') : [];
-                for (let j = 0; j < solutions.length; j++) {
-                    if (sheet[i][columnType] === "voice")
-                        solutions[j] = solutions[j].replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
-                    else
-                        solutions[j] = solutions[j].trim();
-                }
-                game.puzzles.push(
-                    new Puzzle(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        sheet[i][columnSolved] ? sheet[i][columnSolved].trim() === "TRUE" : false,
-                        sheet[i][columnOutcome] ? sheet[i][columnOutcome].trim() : "",
-                        sheet[i][columnRequiresMod] ? sheet[i][columnRequiresMod].trim() === "TRUE" : false,
-                        sheet[i][columnLocation] ? sheet[i][columnLocation].trim() : "",
-                        sheet[i][columnParentObject] ? sheet[i][columnParentObject].trim() : "",
-                        sheet[i][columnType] ? sheet[i][columnType].trim() : "",
-                        sheet[i][columnAccessible] ? sheet[i][columnAccessible].trim() === "TRUE" : false,
-                        requirements,
-                        solutions,
-                        parseInt(sheet[i][columnAttempts]),
-                        sheet[i][columnWhenSolved] ? sheet[i][columnWhenSolved] : "",
-                        commandSets,
-                        sheet[i][columnCorrectDescription] ? sheet[i][columnCorrectDescription].trim() : "",
-                        sheet[i][columnAlreadySolvedDescription] ? sheet[i][columnAlreadySolvedDescription].trim() : "",
-                        sheet[i][columnIncorrectDescription] ? sheet[i][columnIncorrectDescription].trim() : "",
-                        sheet[i][columnNoMoreAttemptsDescription] ? sheet[i][columnNoMoreAttemptsDescription].trim() : "",
-                        sheet[i][columnRequirementsNotMetDescription] ? sheet[i][columnRequirementsNotMetDescription].trim() : "",
-                        i + 2
-                    )
-                );
-            }
-            var errors = [];
-            for (let i = 0; i < game.puzzles.length; i++) {
-                game.puzzles[i].location = game.rooms.find(room => room.name === game.puzzles[i].location && room.name !== "");
-                let parentObject = game.objects.find(object => object.name === game.puzzles[i].parentObjectName && object.location instanceof Room && game.puzzles[i].location instanceof Room && object.location.name === game.puzzles[i].location.name);
-                if (parentObject) game.puzzles[i].parentObject = parentObject;
-                for (let j = 0; j < game.puzzles[i].requirementsStrings.length; j++) {
-                    let requirement = null;
-                    if (game.puzzles[i].requirementsStrings[j].startsWith("Item:") || game.puzzles[i].requirementsStrings[j].startsWith("Prefab:")) {
-                        requirement = game.prefabs.find(prefab => prefab.id === game.puzzles[i].requirementsStrings[j].substring(game.puzzles[i].requirementsStrings[j].indexOf(':') + 1).trim());
-                        if (requirement) game.puzzles[i].requirements[j] = requirement;
-                    }
-                    else
-                        requirement = game.puzzles.find(puzzle => puzzle.name === game.puzzles[i].requirementsStrings[j] || game.puzzles[i].requirementsStrings[j] === `Puzzle: ${puzzle.name}`);
-                    if (requirement) game.puzzles[i].requirements[j] = requirement;
-                }
-                if (doErrorChecking) {
-                    let error = exports.checkPuzzle(game.puzzles[i]);
-                    if (error instanceof Error) errors.push(error);
+                    // If the container item wasn't found, it might have just not been loaded yet. Save it for later.
+                    let unassignedChildItems = unloadedContainers.get(identifier);
+                    if (!unassignedChildItems) unassignedChildItems = [];
+                    unassignedChildItems.push(roomItem);
+                    unloadedContainers.set(identifier, unassignedChildItems);
                 }
             }
-            for (let i = 0; i < game.objects.length; i++) {
-                if (game.objects[i].childPuzzleName !== "")
-                    game.objects[i].childPuzzle = game.puzzles.find(puzzle => puzzle.name === game.objects[i].childPuzzleName && puzzle.location instanceof Room && game.objects[i].location instanceof Room && puzzle.location.name === game.objects[i].location.name);
-            }
-            for (let i = 0; i < game.items.length; i++) {
-                if (game.items[i].containerName.startsWith("Puzzle:"))
-                    game.items[i].container = game.puzzles.find(puzzle => puzzle.name === game.items[i].containerName.substring("Puzzle:".length).trim() && puzzle.location instanceof Room && game.items[i].location instanceof Room && puzzle.location.name === game.items[i].location.name);
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
+            game.roomItems.push(roomItem);
+        }
+        if (doErrorChecking) {
+            game.roomItems.forEach(roomItem => {
+                const error = checkRoomItem(roomItem);
+                if (error instanceof Error) errors.push(error);
+            });
+        }
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("RoomItems");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("RoomItems");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkPuzzle = function (puzzle) {
+/**
+ * Checks a RoomItem for errors.
+ * @param {RoomItem} item - The room item to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkRoomItem(item) {
+    if (!(item.prefab instanceof Prefab))
+        return new Error(`Couldn't load room item on row ${item.row}. "${item.prefabId}" is not a prefab.`);
+    if (item.inventoryCollection.size > 0 && item.identifier === "")
+        return new Error(`Couldn't load room item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
+    if (item.inventoryCollection.size > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+        return new Error(`Couldn't load room item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
+    if (item.identifier !== "" && item.quantity !== 0 &&
+        item.game.roomItems.filter(roomItem => roomItem.identifier === item.identifier && roomItem.quantity !== 0).length
+        + item.game.inventoryItems.filter(inventoryItem => inventoryItem.identifier === item.identifier && inventoryItem.quantity !== 0).length > 1)
+        return new Error(`Couldn't load room item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
+    if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+        return new Error(`Couldn't load room item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
+    if (!(item.location instanceof Room))
+        return new Error(`Couldn't load room item on row ${item.row}. "${item.locationDisplayName}" is not a room.`);
+    if (item.containerName === "")
+        return new Error(`Couldn't load room item on row ${item.row}. No container was given.`);
+    if (item.containerType === "")
+        return new Error(`Couldn't load room item on row ${item.row}. The container type wasn't specified.`);
+    if (item.containerType !== "Fixture" && item.containerType !== "RoomItem" && item.containerType !== "Puzzle")
+        return new Error(`Couldn't load room item on row ${item.row}. "${item.containerType}" is not a valid container type.`);
+    if (item.containerType === "Fixture" && !(item.container instanceof Fixture))
+        return new Error(`Couldn't load room item on row ${item.row}. The container given is not a fixture.`);
+    if (item.containerType === "RoomItem" && !(item.container instanceof RoomItem))
+        return new Error(`Couldn't load room item on row ${item.row}. The container given is not a room item.`);
+    if (item.containerType === "Puzzle" && !(item.container instanceof Puzzle))
+        return new Error(`Couldn't load room item on row ${item.row}. The container given is not a puzzle.`);
+    if (item.container instanceof RoomItem && item.container.inventoryCollection.size === 0)
+        return new Error(`Couldn't load room item on row ${item.row}. The item's container is a room item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
+    if (item.container instanceof RoomItem) {
+        if (item.slot === "") return new Error(`Couldn't load room item on row ${item.row}. The item's container is a room item, but a prefab inventory slot ID was not given.`);
+        const inventorySlot = item.container.inventoryCollection.get(item.slot);
+        if (!inventorySlot)
+            return new Error(`Couldn't load room item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+        if (inventorySlot.takenSpace > inventorySlot.capacity)
+            return new Error(`Couldn't load room item on row ${item.row}. The item's container is over capacity.`);
+    }
+}
+
+/**
+ * Loads data from the Puzzles sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadPuzzles(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.puzzleSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnName = 0;
+        const columnSolved = 1;
+        const columnOutcome = 2;
+        const columnRequiresMod = 3;
+        const columnLocationDisplayName = 4;
+        const columnParentFixtureName = 5;
+        const columnType = 6;
+        const columnAccessible = 7;
+        const columnRequiresStrings = 8;
+        const columnSolution = 9;
+        const columnAttempts = 10;
+        const columnCommandsString = 11;
+        const columnCorrectDescription = 12;
+        const columnAlreadySolvedDescription = 13;
+        const columnIncorrectDescription = 14;
+        const columnNoMoreAttemptsDescription = 15;
+        const columnRequirementsNotMetDescription = 16;
+
+        game.entityManager.clearPuzzles();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            let requirements = sheet[row][columnRequiresStrings] ? sheet[row][columnRequiresStrings].split(',') : [];
+            /** @type {PuzzleRequirement[]} */
+            let requirementsStrings = [];
+            requirements.forEach(requirement => {
+                let requirementDisplay = requirement.split(':').length > 1 ? requirement.split(':') : ['', requirement];
+                let requirementType = requirementDisplay[0].trim();
+                const requirementTypeUpper = requirementType.toUpperCase();
+                let requirementId = Game.generateValidEntityName(requirementDisplay[1]);
+                if (requirementTypeUpper === "PUZZLE") requirementType = "Puzzle";
+                else if (requirementTypeUpper === "EVENT") requirementType = "Event";
+                else if (requirementTypeUpper === "FLAG") requirementType = "Flag";
+                else if (requirementTypeUpper === "PREFAB" || requirementTypeUpper === "ITEM" || requirementTypeUpper === "ROOMITEM" || requirementTypeUpper === "INVENTORYITEM") requirementType = "Prefab";
+                requirementsStrings.push({ type: requirementType, entityId: requirementId });
+            });
+            const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
+            /** @type {PuzzleCommandSet[]} */
+            let commandSets = [];
+            /**
+             * @param {string} commandString
+             * @returns {PuzzleCommandSet}
+             */
+            let getCommands = function (commandString) {
+                const commands = commandString.split('/');
+                let solvedCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
+                for (let i = 0; i < solvedCommands.length; i++)
+                    solvedCommands[i] = solvedCommands[i].trim();
+                let unsolvedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
+                for (let i = 0; i < unsolvedCommands.length; i++)
+                    unsolvedCommands[i] = unsolvedCommands[i].trim();
+                return { solvedCommands: solvedCommands, unsolvedCommands: unsolvedCommands };
+            };
+            const regex = new RegExp(/(\[((.*?)(?<!(?:(?:Room|Inventory)?Item)|Prefab): (.*?))\],?)/g);
+            if (!!commandString.match(regex)) {
+                let match;
+                while (match = regex.exec(commandString)) {
+                    const commandSet = match[2];
+                    let outcomes = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
+                    for (let i = 0; i < outcomes.length; i++)
+                        outcomes[i] = outcomes[i].trim();
+                    const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
+                    commandSets.push({ outcomes: outcomes, solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
+                }
+            }
+            else {
+                const commands = getCommands(sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "");
+                commandSets.push({ outcomes: [], solvedCommands: commands.solvedCommands, unsolvedCommands: commands.unsolvedCommands });
+            }
+            let solutions = sheet[row][columnSolution] ? sheet[row][columnSolution].toString().split(',') : [];
+            for (let j = 0; j < solutions.length; j++) {
+                if (sheet[row][columnType] === "voice")
+                    solutions[j] = solutions[j].replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
+                else
+                    solutions[j] = solutions[j].trim();
+            }
+            const puzzle = new Puzzle(
+                sheet[row][columnName] ? Game.generateValidEntityName(sheet[row][columnName]) : "",
+                sheet[row][columnSolved] ? sheet[row][columnSolved].trim() === "TRUE" : false,
+                sheet[row][columnOutcome] ? sheet[row][columnOutcome].trim() : "",
+                sheet[row][columnRequiresMod] ? sheet[row][columnRequiresMod].trim() === "TRUE" : false,
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnParentFixtureName] ? Game.generateValidEntityName(sheet[row][columnParentFixtureName]) : "",
+                sheet[row][columnType] ? sheet[row][columnType].trim() : "",
+                sheet[row][columnAccessible] ? sheet[row][columnAccessible].trim() === "TRUE" : false,
+                requirementsStrings,
+                solutions,
+                parseInt(sheet[row][columnAttempts]),
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "",
+                commandSets,
+                sheet[row][columnCorrectDescription] ? sheet[row][columnCorrectDescription].trim() : "",
+                sheet[row][columnAlreadySolvedDescription] ? sheet[row][columnAlreadySolvedDescription].trim() : "",
+                sheet[row][columnIncorrectDescription] ? sheet[row][columnIncorrectDescription].trim() : "",
+                sheet[row][columnNoMoreAttemptsDescription] ? sheet[row][columnNoMoreAttemptsDescription].trim() : "",
+                sheet[row][columnRequirementsNotMetDescription] ? sheet[row][columnRequirementsNotMetDescription].trim() : "",
+                row + 2,
+                game
+            );
+            const location = game.entityFinder.getRoom(puzzle.locationDisplayName);
+            if (location) puzzle.setLocation(location);
+            const parentFixture = game.entityFinder.getFixture(puzzle.parentFixtureName, puzzle.locationDisplayName);
+            if (parentFixture) puzzle.setParentFixture(parentFixture);
+            game.puzzles.push(puzzle);
+            game.entityManager.updatePuzzleReferences(puzzle);
+        }
+        game.puzzles.forEach(puzzle => {
+            puzzle.requirementsStrings.forEach((requirementString, i) => {
+                /** @type {Prefab|Event|Flag|Puzzle} */
+                let requirement = null;
+                if (requirementString.type === "Prefab")
+                    requirement = game.entityFinder.getPrefab(requirementString.entityId);
+                else if (requirementString.type === "Event")
+                    requirement = game.entityFinder.getEvent(requirementString.entityId);
+                else if (requirementString.type === "Flag")
+                    requirement = game.entityFinder.getFlag(requirementString.entityId);
+                else
+                    requirement = game.entityFinder.getPuzzle(requirementString.entityId);
+                puzzle.requirements[i] = requirement;
+            });
+            if (doErrorChecking) {
+                const error = checkPuzzle(puzzle);
+                if (error instanceof Error) errors.push(error);
+            }
+        });
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Puzzles");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Puzzles");
+        resolve(game);
+    });
+}
+
+/**
+ * Checks a Puzzle for errors.
+ * @param {Puzzle} puzzle - The puzzle to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkPuzzle(puzzle) {
     if (puzzle.name === "" || puzzle.name === null || puzzle.name === undefined)
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. No puzzle name was given.`);
     if (!(puzzle.location instanceof Room))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The location given is not a room.`);
-    if (puzzle.parentObjectName !== "" && !(puzzle.parentObject instanceof Object))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object given is not an object.`);
-    if (puzzle.parentObject !== null && puzzle.parentObject !== undefined && (puzzle.parentObject.childPuzzle === null || puzzle.parentObject.childPuzzle === undefined))
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object on row ${puzzle.parentObject.row} has no child puzzle.`);
-    if (puzzle.parentObject !== null && puzzle.parentObject !== undefined && puzzle.parentObject.childPuzzle !== null && puzzle.parentObject.childPuzzle !== undefined && puzzle.parentObject.childPuzzle.name !== puzzle.name)
-        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent object has a different child puzzle.`);
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.locationDisplayName}" is not a room.`);
+    if (puzzle.parentFixtureName !== "" && !(puzzle.parentFixture instanceof Fixture))
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent fixture given is not a fixture.`);
+    if (puzzle.parentFixture !== null && puzzle.parentFixture !== undefined && (puzzle.parentFixture.childPuzzle === null || puzzle.parentFixture.childPuzzle === undefined))
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent fixture on row ${puzzle.parentFixture.row} has no child puzzle.`);
+    if (puzzle.parentFixture !== null && puzzle.parentFixture !== undefined && puzzle.parentFixture.childPuzzle !== null && puzzle.parentFixture.childPuzzle !== undefined && puzzle.parentFixture.childPuzzle.name !== puzzle.name)
+        return new Error(`Couldn't load puzzle on row ${puzzle.row}. The parent fixture has a different child puzzle.`);
     if (puzzle.type !== "password" &&
         puzzle.type !== "interact" &&
         puzzle.type !== "toggle" &&
@@ -891,18 +924,16 @@ module.exports.checkPuzzle = function (puzzle) {
             puzzle.type !== "sta probability" && puzzle.type !== "stamina probability")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.type}" is not a valid stat probability puzzle type.`);
     }
-    if (puzzle.type === "weight") {
-        for (let i = 0; i < puzzle.solutions.length; i++) {
-            if (isNaN(parseInt(puzzle.solutions[i])))
-                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${puzzle.solutions[i]}" is not an integer.`);
-        }
-    }
-    if (puzzle.type === "container") {
-        for (let i = 0; i < puzzle.solutions.length; i++) {
-            let requiredItems = puzzle.solutions[i].split('+');
-            for (let j = 0; j < requiredItems.length; j++) {
-                if (!requiredItems[j].trim().startsWith("Item: "))
-                    return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItems[j]}" does not have the "Item: " prefix.`);
+    for (let solution of puzzle.solutions) {
+        if (puzzle.type === "weight" && isNaN(parseInt(solution)))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a weight-type puzzle, but the solution "${solution}" is not an integer.`);
+        if (puzzle.type === "media" && !solution.startsWith("Item: ") && !solution.startsWith("Prefab: "))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${solution}" does not have the "Item: " or "Prefab: " prefix.`);
+        if (puzzle.type === "container") {
+            const requiredItems = solution.split('+');
+            for (let requiredItem of requiredItems) {
+                if (!requiredItem.trim().startsWith("Item: ") && !requiredItem.trim().startsWith("Prefab: "))
+                    return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a container-type puzzle, but the solution "${requiredItem}" does not have the "Item: " or "Prefab: " prefix.`);
             }
         }
     }
@@ -913,515 +944,485 @@ module.exports.checkPuzzle = function (puzzle) {
     if (puzzle.type === "switch" && !puzzle.solutions.includes(puzzle.outcome))
         return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a switch-type puzzle, but its outcome is not among the list of its solutions.`);
     if (puzzle.type === "media") {
-        for (let i = 0; i < puzzle.solutions.length; i++) {
-            if (!puzzle.solutions[i].startsWith("Item: "))
-                return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but the solution "${puzzle.solutions[i]}" does not have the "Item: " prefix.`);
-        }
         if (puzzle.solved === true && puzzle.outcome === "")
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but it was solved without an outcome.`);
         if (puzzle.outcome !== "" && !puzzle.solutions.includes(puzzle.outcome))
             return new Error(`Couldn't load puzzle on row ${puzzle.row}. The puzzle is a media-type puzzle, but its outcome is not among the list of its solutions.`);
     }
-    for (let i = 0; i < puzzle.commandSets.length; i++) {
-        for (let j = 0; j < puzzle.commandSets[i].outcomes.length; j++) {
-            if (!puzzle.solutions.includes(puzzle.commandSets[i].outcomes[j]))
-                return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.commandSets[i].outcomes[j]}" in command sets is not an outcome in the puzzle's solutions.`);
+    for (let commandSet of puzzle.commandSets) {
+        for (let outcome of commandSet.outcomes) {
+            if (!puzzle.solutions.includes(outcome))
+                return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${outcome}" in command sets is not an outcome in the puzzle's solutions.`);
         }
     }
     for (let i = 0; i < puzzle.requirements.length; i++) {
-        if ((puzzle.requirementsStrings[i].startsWith("Item:") || puzzle.requirementsStrings[i].startsWith("Prefab:")) && !(puzzle.requirements[i] instanceof Prefab))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a prefab.`);
-        else if (!puzzle.requirementsStrings[i].startsWith("Item:") && !puzzle.requirementsStrings[i].startsWith("Prefab:") && !(puzzle.requirements[i] instanceof Puzzle))
-            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${puzzle.requirementsStrings[i]}" in requires is not a puzzle.`);
+        const requirement = puzzle.requirements[i];
+        const requirementString = puzzle.requirementsStrings[i];
+        if (requirementString.type === "Prefab" && !(requirement instanceof Prefab))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a prefab.`);
+        else if (requirementString.type === "Event" && !(requirement instanceof Event))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not an event.`);
+        else if (requirementString.type === "Flag" && !(requirement instanceof Flag))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a flag.`);
+        else if ((requirementString.type === "Puzzle" || requirementString.type === "") && !(requirement instanceof Puzzle))
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.entityId}" in requires is not a puzzle.`);
+        else if (requirementString.type !== "Prefab"
+            && requirementString.type !== "Event"
+            && requirementString.type !== "Flag"
+            && requirementString.type !== "Puzzle"
+            && requirementString.type !== "")
+            return new Error(`Couldn't load puzzle on row ${puzzle.row}. "${requirementString.type}" is not a valid requirement type.`);
     }
-    return;
-};
+}
 
-module.exports.loadEvents = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        // Clear timers for all events first.
-        for (let i = 0; i < game.events.length; i++) {
-            if (game.events[i].timer !== null)
-                game.events[i].timer.stop();
-            if (game.events[i].effectsTimer !== null)
-                game.events[i].effectsTimer.stop();
+/**
+ * Loads data from the Events sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadEvents(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.eventSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnId = 0;
+        const columnOngoing = 1;
+        const columnDurationString = 2;
+        const columnRemainingString = 3;
+        const columnTriggerTimesStrings = 4;
+        const columnRoomTag = 5;
+        const columnCommandsString = 6;
+        const columnEffectsStrings = 7;
+        const columnRefreshedStrings = 8;
+        const columnTriggeredNarration = 9;
+        const columnEndedNarration = 10;
+
+        game.entityManager.clearEvents();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            const durationString = sheet[row][columnDurationString] ? String(sheet[row][columnDurationString]) : "";
+            const duration = parseDuration(durationString);
+            const timeRemaining = sheet[row][columnRemainingString] ? dayjs.duration(convertTimeStringToDurationUnits(sheet[row][columnRemainingString])) : null;
+            let triggerTimesStrings = sheet[row][columnTriggerTimesStrings] ? sheet[row][columnTriggerTimesStrings].split(',') : [];
+            for (let i = 0; i < triggerTimesStrings.length; i++)
+                triggerTimesStrings[i] = triggerTimesStrings[i].trim();
+            const commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\') : "";
+            const commands = commandString ? commandString.split('/') : ["", ""];
+            let triggeredCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
+            for (let i = 0; i < triggeredCommands.length; i++)
+                triggeredCommands[i] = triggeredCommands[i].trim();
+            let endedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
+            for (let i = 0; i < endedCommands.length; i++)
+                endedCommands[i] = endedCommands[i].trim();
+            let effectsStrings = sheet[row][columnEffectsStrings] ? sheet[row][columnEffectsStrings].split(',') : [];
+            for (let i = 0; i < effectsStrings.length; i++)
+                effectsStrings[i] = Status.generateValidId(effectsStrings[i]);
+            let refreshesStrings = sheet[row][columnRefreshedStrings] ? sheet[row][columnRefreshedStrings].split(',') : [];
+            for (let i = 0; i < refreshesStrings.length; i++)
+                refreshesStrings[i] = Status.generateValidId(refreshesStrings[i]);
+            const event = new Event(
+                sheet[row][columnId] ? Game.generateValidEntityName(sheet[row][columnId]) : "",
+                sheet[row][columnOngoing] ? sheet[row][columnOngoing].trim() === "TRUE" : false,
+                durationString,
+                duration,
+                sheet[row][columnRemainingString] ? sheet[row][columnRemainingString] : "",
+                timeRemaining,
+                triggerTimesStrings,
+                sheet[row][columnRoomTag] ? sheet[row][columnRoomTag].trim() : "",
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "",
+                triggeredCommands,
+                endedCommands,
+                effectsStrings,
+                refreshesStrings,
+                sheet[row][columnTriggeredNarration] ? sheet[row][columnTriggeredNarration].trim() : "",
+                sheet[row][columnEndedNarration] ? sheet[row][columnEndedNarration].trim() : "",
+                row + 2,
+                game
+            );
+            if (game.entityFinder.getEvent(event.id)) {
+                errors.push(new Error(`Couldn't load event on row ${event.row}. Another event with this ID already exists.`));
+                continue;
+            }
+            event.effectsStrings.forEach((effectsString, i) => {
+                const effect = game.entityFinder.getStatusEffect(effectsString);
+                if (effect) event.effects[i] = effect;
+            });
+            event.refreshesStrings.forEach((refreshesString, i) => {
+                const refreshes = game.entityFinder.getStatusEffect(refreshesString);
+                if (refreshes) event.refreshes[i] = refreshes;
+            });
+            if (doErrorChecking) {
+                const error = checkEvent(event);
+                if (error instanceof Error) errors.push(error);
+            }
+            game.events.push(event);
+            game.eventsCollection.set(event.id, event);
+            game.entityManager.updateEventReferences(event);
         }
-
-        sheets.getData(constants.eventSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnOngoing = 1;
-            const columnDuration = 2;
-            const columnTimeRemaining = 3;
-            const columnTriggersAt = 4;
-            const columnRoomTag = 5;
-            const columnCommands = 6;
-            const columnStatusEffects = 7;
-            const columnRefreshedEffects = 8;
-            const columnTriggeredNarration = 9;
-            const columnEndedNarration = 10;
-
-            game.events.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
-                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
-                let durationUnit = durationString.charAt(durationString.length - 1);
-                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
-                if (!"yMwdhms".includes(durationUnit)) {
-                    durationInt = NaN;
-                    durationUnit = NaN;
-                }
-                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
-                var timeRemaining = sheet[i][columnTimeRemaining] ? moment.duration(sheet[i][columnTimeRemaining]) : null;
-                var triggerTimes = sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt].split(',') : [];
-                for (let j = 0; j < triggerTimes.length; j++)
-                    triggerTimes[j] = triggerTimes[j].trim();
-                const commandString = sheet[i][columnCommands] ? sheet[i][columnCommands].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|png))/g, '\\') : "";
-                const commands = commandString ? commandString.split('/') : ["", ""];
-                var triggeredCommands = commands[0] ? commands[0].split(',') : [];
-                for (let j = 0; j < triggeredCommands.length; j++)
-                    triggeredCommands[j] = triggeredCommands[j].trim();
-                var endedCommands = commands[1] ? commands[1].split(',') : [];
-                for (let j = 0; j < endedCommands.length; j++)
-                    endedCommands[j] = endedCommands[j].trim();
-                var effects = sheet[i][columnStatusEffects] ? sheet[i][columnStatusEffects].split(',') : [];
-                for (let j = 0; j < effects.length; j++)
-                    effects[j] = effects[j].trim();
-                var refreshes = sheet[i][columnRefreshedEffects] ? sheet[i][columnRefreshedEffects].split(',') : [];
-                for (let j = 0; j < refreshes.length; j++)
-                    refreshes[j] = refreshes[j].trim();
-                game.events.push(
-                    new Event(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        sheet[i][columnOngoing] ? sheet[i][columnOngoing].trim() === "TRUE" : false,
-                        durationString,
-                        duration,
-                        sheet[i][columnTimeRemaining] ? sheet[i][columnTimeRemaining] : "",
-                        timeRemaining,
-                        sheet[i][columnTriggersAt] ? sheet[i][columnTriggersAt] : "",
-                        triggerTimes,
-                        sheet[i][columnRoomTag] ? sheet[i][columnRoomTag].trim() : "",
-                        sheet[i][columnCommands] ? sheet[i][columnCommands] : "",
-                        triggeredCommands,
-                        endedCommands,
-                        effects,
-                        refreshes,
-                        sheet[i][columnTriggeredNarration] ? sheet[i][columnTriggeredNarration].trim() : "",
-                        sheet[i][columnEndedNarration] ? sheet[i][columnEndedNarration].trim() : "",
-                        i + 2
-                    )
-                );
-            }
-            var errors = [];
-            for (let i = 0; i < game.events.length; i++) {
-                for (let j = 0; j < game.events[i].effects.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effects[j]);
-                    if (status) game.events[i].effects[j] = status;
-                }
-                for (let j = 0; j < game.events[i].refreshes.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].refreshes[j]);
-                    if (status) game.events[i].refreshes[j] = status;
-                }
-                if (doErrorChecking) {
-                    let error = exports.checkEvent(game.events[i], game);
-                    if (error instanceof Error) errors.push(error);
-                }
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Events");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Events");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkEvent = function (event, game) {
-    if (event.name === "" || event.name === null || event.name === undefined)
-        return new Error(`Couldn't load event on row ${event.row}. No event name was given.`);
-    if (game.events.filter(other => other.name === event.name && other.row < event.row).length > 0)
-        return new Error(`Couldn't load event on row ${event.row}. Another event with this name already exists.`);
-    if (event.duration !== null && !event.duration.isValid())
-        return new Error(`Couldn't load event on row ${event.row}. An invalid duration was given.`);
-    if (event.remaining !== null && !event.remaining.isValid())
-        return new Error(`Couldn't load event on row ${event.row}. An invalid time remaining was given.`);
+/**
+ * Checks an Event for errors.
+ * @param {Event} event - The event to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkEvent(event) {
+    if (event.id === "" || event.id === null || event.id === undefined)
+        return new Error(`Couldn't load event on row ${event.row}. No event ID was given.`);
+    if (event.duration !== null && !dayjs.isDuration(event.duration))
+        return new Error(`Couldn't load event on row ${event.row}. "${event.durationString}" is not a valid duration.`);
+    if (event.remaining !== null && !dayjs.isDuration(event.remaining))
+        return new Error(`Couldn't load event on row ${event.row}. "${event.remainingString}" is not a valid representation of the time remaining.`);
     if (!event.ongoing && event.remaining !== null)
         return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
     if (event.ongoing && event.duration !== null && event.remaining === null)
-        return new Error(`Couldn't load event on row ${event.row}. The event is ongoing, but no amount of time remaining was given.`);
-    for (let i = 0; i < event.triggerTimes.length; i++) {
-        let triggerTime = moment(event.triggerTimes[i], Event.formats);
-        if (!triggerTime.isValid()) {
-            let timeString = triggerTime.inspect().replace(/moment.invalid\(\/\* (.*)\*\/\)/g, '$1').trim();
-            return new Error(`Couldn't load event on row ${event.row}. "${timeString}" is not a valid time to trigger at.`);
-        }
+        return new Error(`Couldn't load event on row ${event.row}. The event is ongoing and has a duration, but no amount of time remaining was given.`);
+    for (let triggerTimeString of event.triggerTimesStrings) {
+        let triggerTime = dayjs(triggerTimeString, Event.formats);
+        if (!triggerTime.isValid())
+            return new Error(`Couldn't load event on row ${event.row}. "${triggerTimeString}" is not a valid time to trigger at.`);
     }
     for (let i = 0; i < event.effects.length; i++) {
         if (!(event.effects[i] instanceof Status))
-            return new Error(`Couldn't load event on row ${event.row}. "${event.effects[i]}" in inflicted status effects is not a status effect.`);
+            return new Error(`Couldn't load event on row ${event.row}. "${event.effectsStrings[i]}" in inflicted status effects is not a status effect.`);
     }
     for (let i = 0; i < event.refreshes.length; i++) {
         if (!(event.refreshes[i] instanceof Status))
-            return new Error(`Couldn't load event on row ${event.row}. "${event.refreshes[i]}" in refreshing status effects is not a status effect.`);
+            return new Error(`Couldn't load event on row ${event.row}. "${event.refreshesStrings[i]}" in refreshed status effects is not a status effect.`);
     }
-    return;
-};
+}
 
-module.exports.loadStatusEffects = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.statusSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnDuration = 1;
-            const columnFatal = 2;
-            const columnVisible = 3;
-            const columnOverriders = 4;
-            const columnCures = 5;
-            const columnNextStage = 6;
-            const columnDuplicatedStatus = 7;
-            const columnCuredCondition = 8;
-            const columnStatModifier = 9;
-            const columnAttributes = 10;
-            const columnInflictedDescription = 12;
-            const columnCuredDescription = 13;
+/**
+ * Loads data from the Status Effects sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadStatusEffects(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.statusSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnId = 0;
+        const columnDuration = 1;
+        const columnFatal = 2;
+        const columnVisible = 3;
+        const columnOverridersStrings = 4;
+        const columnCuresStrings = 5;
+        const columnNextStageId = 6;
+        const columnDuplicatedStatusId = 7;
+        const columnCuredConditionId = 8;
+        const columnStatModifiersString = 9;
+        const columnBehaviorAttributes = 10;
+        const columnInflictedDescription = 12;
+        const columnCuredDescription = 13;
 
-            game.statusEffects.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                const durationString = sheet[i][columnDuration] ? sheet[i][columnDuration].toString() : "";
-                let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
-                let durationUnit = durationString.charAt(durationString.length - 1);
-                // If an invalid unit was given, pass NaN for both parameters. This produces an invalid duration.
-                if (!"yMwdhms".includes(durationUnit)) {
-                    durationInt = NaN;
-                    durationUnit = NaN;
-                }
-                var duration = durationString ? moment.duration(durationInt, durationUnit) : null;
-                var overriders = sheet[i][columnOverriders] ? sheet[i][columnOverriders].split(',') : [];
-                for (let j = 0; j < overriders.length; j++)
-                    overriders[j] = overriders[j].trim();
-                var cures = sheet[i][columnCures] ? sheet[i][columnCures].split(',') : [];
-                for (let j = 0; j < cures.length; j++)
-                    cures[j] = cures[j].trim();
-                var modifierStrings = sheet[i][columnStatModifier] ? sheet[i][columnStatModifier].split(',') : [];
-                var modifiers = [];
-                for (let j = 0; j < modifierStrings.length; j++) {
-                    modifierStrings[j] = modifierStrings[j].toLowerCase().trim();
-
-                    var modifiesSelf = true;
-                    if (modifierStrings[j].charAt(0) === '@') {
+        game.entityManager.clearStatusEffects();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            const durationString = sheet[row][columnDuration] ? String(sheet[row][columnDuration]) : "";
+            const duration = parseDuration(durationString);
+            let overriders = sheet[row][columnOverridersStrings] ? sheet[row][columnOverridersStrings].split(',') : [];
+            for (let i = 0; i < overriders.length; i++)
+                overriders[i] = Status.generateValidId(overriders[i]);
+            let cures = sheet[row][columnCuresStrings] ? sheet[row][columnCuresStrings].split(',') : [];
+            for (let i = 0; i < cures.length; i++)
+                cures[i] = Status.generateValidId(cures[i]);
+            const modifierStrings = sheet[row][columnStatModifiersString] ? sheet[row][columnStatModifiersString].split(',') : [];
+            const regex = /(@)?(.*)(\+|-|=)(.*)/gi;
+            /** @type {StatModifier[]} */
+            let modifiers = [];
+            for (const modifierString of modifierStrings) {
+                const matches = modifierString.trim().matchAll(regex);
+                for (const match of matches) {
+                    // Determine if the modifier modifies the player it's applied to or not.
+                    let modifiesSelf = true;
+                    if (match[1] && match[1] === '@')
                         modifiesSelf = false;
-                        modifierStrings[j] = modifierStrings[j].substring(1);
-                    }
-
-                    var stat = null;
-                    var assignValue = false;
-                    var value = null;
-                    if (modifierStrings[j].includes('+')) {
-                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('+'));
-                        value = parseInt(modifierStrings[j].substring(stat.length));
-                    }
-                    else if (modifierStrings[j].includes('-')) {
-                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('-'));
-                        value = parseInt(modifierStrings[j].substring(stat.length));
-                    }
-                    else if (modifierStrings[j].includes('=')) {
-                        stat = modifierStrings[j].substring(0, modifierStrings[j].indexOf('='));
+                    // Parse the stat.
+                    let stat = null;
+                    if (match[2])
+                        stat = Player.abbreviateStatName(match[2]);
+                    // Determine if the modifier assigns the value to the player's stat, or just modifies it.
+                    let assignValue = false;
+                    if (match[3] && match[3] === '=')
                         assignValue = true;
-                        value = parseInt(modifierStrings[j].substring(stat.length + 1));
+                    // Parse the value.
+                    let value = null;
+                    if (match[4]) {
+                        value = parseInt(match[4]);
+                        if (match[3] && match[3] === '-')
+                            value *= -1;
                     }
-
-                    if (stat === "strength") stat = "str";
-                    else if (stat === "intelligence") stat = "int";
-                    else if (stat === "dexterity") stat = "dex";
-                    else if (stat === "speed") stat = "spd";
-                    else if (stat === "stamina") stat = "sta";
-
                     modifiers.push({ modifiesSelf: modifiesSelf, stat: stat, assignValue: assignValue, value: value });
                 }
-                game.statusEffects.push(
-                    new Status(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        duration,
-                        sheet[i][columnFatal] ? sheet[i][columnFatal].trim() === "TRUE" : false,
-                        sheet[i][columnVisible] ? sheet[i][columnVisible].trim() === "TRUE" : false,
-                        overriders,
-                        cures,
-                        sheet[i][columnNextStage] ? sheet[i][columnNextStage].trim() : null,
-                        sheet[i][columnDuplicatedStatus] ? sheet[i][columnDuplicatedStatus].trim() : null,
-                        sheet[i][columnCuredCondition] ? sheet[i][columnCuredCondition].trim() : null,
-                        modifiers,
-                        sheet[i][columnAttributes] ? sheet[i][columnAttributes].trim() : "",
-                        sheet[i][columnInflictedDescription] ? sheet[i][columnInflictedDescription].trim() : "",
-                        sheet[i][columnCuredDescription] ? sheet[i][columnCuredDescription].trim() : "",
-                        i + 2
-                    )
-                );
             }
-            // Now go through and make the nextStage and curedCondition an actual Status object.
-            var errors = [];
-            for (let i = 0; i < game.statusEffects.length; i++) {
-                for (let j = 0; j < game.statusEffects[i].overriders.length; j++) {
-                    let overrider = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].overriders[j]);
-                    if (overrider) game.statusEffects[i].overriders[j] = overrider;
-                }
-                for (let j = 0; j < game.statusEffects[i].cures.length; j++) {
-                    let cure = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].cures[j]);
-                    if (cure) game.statusEffects[i].cures[j] = cure;
-                }
-                if (game.statusEffects[i].nextStage) {
-                    let nextStage = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].nextStage);
-                    if (nextStage) game.statusEffects[i].nextStage = nextStage;
-                }
-                if (game.statusEffects[i].duplicatedStatus) {
-                    let duplicatedStatus = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].duplicatedStatus);
-                    if (duplicatedStatus) game.statusEffects[i].duplicatedStatus = duplicatedStatus;
-                }
-                if (game.statusEffects[i].curedCondition) {
-                    let curedCondition = game.statusEffects.find(statusEffect => statusEffect.name === game.statusEffects[i].curedCondition);
-                    if (curedCondition) game.statusEffects[i].curedCondition = curedCondition;
-                }
-                if (doErrorChecking) {
-                    let error = exports.checkStatusEffect(game.statusEffects[i]);
-                    if (error instanceof Error) errors.push(error);
-                }
+            let behaviorAttributes = sheet[row][columnBehaviorAttributes] ? sheet[row][columnBehaviorAttributes].split(',') : [];
+            for (let i = 0; i < behaviorAttributes.length; i++)
+                behaviorAttributes[i] = behaviorAttributes[i].trim();
+            const status = new Status(
+                sheet[row][columnId] ? sheet[row][columnId].trim() : "",
+                duration,
+                sheet[row][columnFatal] ? sheet[row][columnFatal].trim() === "TRUE" : false,
+                sheet[row][columnVisible] ? sheet[row][columnVisible].trim() === "TRUE" : false,
+                overriders,
+                cures,
+                sheet[row][columnNextStageId] ? sheet[row][columnNextStageId].trim() : "",
+                sheet[row][columnDuplicatedStatusId] ? sheet[row][columnDuplicatedStatusId].trim() : "",
+                sheet[row][columnCuredConditionId] ? sheet[row][columnCuredConditionId].trim() : "",
+                modifiers,
+                behaviorAttributes,
+                sheet[row][columnInflictedDescription] ? sheet[row][columnInflictedDescription].trim() : "",
+                sheet[row][columnCuredDescription] ? sheet[row][columnCuredDescription].trim() : "",
+                row + 2,
+                game
+            );
+            if (game.entityFinder.getStatusEffect(status.id)) {
+                errors.push(new Error(`Couldn't load status effect on row ${status.row}. Another status effect with this ID already exists.`));
+                continue;
             }
-            for (let i = 0; i < game.prefabs.length; i++) {
-                for (let j = 0; j < game.prefabs[i].effectsStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].effectsStrings[j]);
-                    if (status) game.prefabs[i].effects[j] = status;
-                }
-                for (let j = 0; j < game.prefabs[i].curesStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.prefabs[i].curesStrings[j]);
-                    if (status) game.prefabs[i].cures[j] = status;
-                }
+            game.statusEffects.push(status);
+            game.statusEffectsCollection.set(status.id, status);
+            game.entityManager.updateStatusEffectReferences(status);
+        }
+        game.statusEffectsCollection.forEach(status => {
+            status.overridersStrings.forEach((overriderString, i) => {
+                const overrider = game.entityFinder.getStatusEffect(overriderString);
+                if (overrider) status.overriders[i] = overrider;
+            });
+            status.curesStrings.forEach((curesString, i) => {
+                const cure = game.entityFinder.getStatusEffect(curesString);
+                if (cure) status.cures[i] = cure;
+            });
+            const nextStage = game.entityFinder.getStatusEffect(status.nextStageId);
+            if (nextStage) status.setNextStage(nextStage);
+            const duplicatedStatus = game.entityFinder.getStatusEffect(status.duplicatedStatusId);
+            if (duplicatedStatus) status.setDuplicatedStatus(duplicatedStatus);
+            const curedCondition = game.entityFinder.getStatusEffect(status.curedConditionId);
+            if (curedCondition) status.setCuredCondition(curedCondition);
+            if (doErrorChecking) {
+                const error = checkStatusEffect(status);
+                if (error instanceof Error) errors.push(error);
             }
-            for (let i = 0; i < game.events.length; i++) {
-                for (let j = 0; j < game.events[i].effectsStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].effectsStrings[j]);
-                    if (status) game.events[i].effects[j] = status;
-                }
-                for (let j = 0; j < game.events[i].refreshesStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.events[i].refreshesStrings[j]);
-                    if (status) game.events[i].refreshes[j] = status;
-                }
-            }
-            for (let i = 0; i < game.gestures.length; i++) {
-                for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
-                    let status = game.statusEffects.find(statusEffect => statusEffect.name === game.gestures[i].disabledStatusesStrings[j]);
-                    if (status) game.gestures[i].disabledStatuses[j] = status;
-                }
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
         });
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("StatusEffects");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("StatusEffects");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkStatusEffect = function (status) {
-    if (status.name === "" || status.name === null || status.name === undefined)
-        return new Error(`Couldn't load status effect on row ${status.row}. No status effect name was given.`);
-    if (status.duration !== null && !status.duration.isValid())
+/**
+ * Checks a Status Effect for errors.
+ * @param {Status} status - The status effect to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkStatusEffect(status) {
+    if (status.id === "" || status.id === null || status.id === undefined)
+        return new Error(`Couldn't load status effect on row ${status.row}. No status effect ID was given.`);
+    if (status.duration !== null && !dayjs.isDuration(status.duration))
         return new Error(`Couldn't load status effect on row ${status.row}. An invalid duration was given.`);
     for (let i = 0; i < status.statModifiers.length; i++) {
-        if (status.statModifiers[i].stat === null)
+        const statModifier = status.statModifiers[i];
+        if (statModifier.stat === null)
             return new Error(`Couldn't load status effect on row ${status.row}. No stat in stat modifier ${i + 1} was given.`);
-        if (status.statModifiers[i].stat !== "str" && status.statModifiers[i].stat !== "int" && status.statModifiers[i].stat !== "dex" && status.statModifiers[i].stat !== "spd" && status.statModifiers[i].stat !== "sta")
-            return new Error(`Couldn't load status effect on row ${status.row}. "${status.statModifiers[i].stat}" in stat modifier ${i + 1} is not a valid stat.`);
-        if (status.statModifiers[i].value === null)
+        if (statModifier.stat !== "str" && statModifier.stat !== "int" && statModifier.stat !== "dex" && statModifier.stat !== "spd" && statModifier.stat !== "sta")
+            return new Error(`Couldn't load status effect on row ${status.row}. "${statModifier.stat}" in stat modifier ${i + 1} is not a valid stat.`);
+        if (statModifier.value === null)
             return new Error(`Couldn't load status effect on row ${status.row}. No number was given in stat modifier ${i + 1}.`);
-        if (isNaN(status.statModifiers[i].value))
+        if (isNaN(statModifier.value))
             return new Error(`Couldn't load status effect on row ${status.row}. The value given in stat modifier ${i + 1} is not an integer.`);
     }
-    if (status.overriders.length > 0) {
-        for (let i = 0; i < status.overriders.length; i++)
-            if (!(status.overriders[i] instanceof Status))
-                return new Error(`Couldn't load status effect on row ${status.row}. "${status.overriders[i]}" in "don't inflict if" is not a status effect.`);
+    for (let i = 0; i < status.overriders.length; i++) {
+        if (!(status.overriders[i] instanceof Status))
+            return new Error(`Couldn't load status effect on row ${status.row}. "${status.overridersStrings[i]}" in "don't inflict if" is not a status effect.`);
     }
-    if (status.cures.length > 0) {
-        for (let i = 0; i < status.cures.length; i++)
-            if (!(status.cures[i] instanceof Status))
-                return new Error(`Couldn't load status effect on row ${status.row}. "${status.cures[i]}" in cures is not a status effect.`);
+    for (let i = 0; i < status.cures.length; i++) {
+        if (!(status.cures[i] instanceof Status))
+            return new Error(`Couldn't load status effect on row ${status.row}. "${status.curesStrings[i]}" in cures is not a status effect.`);
     }
-    if (status.nextStage !== null && !(status.nextStage instanceof Status))
-        return new Error(`Couldn't load status effect on row ${status.row}. Next stage "${status.nextStage}" is not a status effect.`);
-    if (status.duplicatedStatus !== null && !(status.duplicatedStatus instanceof Status))
-        return new Error(`Couldn't load status effect on row ${status.row}. Duplicated status "${status.duplicatedStatus}" is not a status effect.`);
-    if (status.curedCondition !== null && !(status.curedCondition instanceof Status))
-        return new Error(`Couldn't load status effect on row ${status.row}. Cured condition "${status.curedCondition}" is not a status effect.`);
-    return;
-};
+    if (status.nextStageId !== "" && !(status.nextStage instanceof Status))
+        return new Error(`Couldn't load status effect on row ${status.row}. Next stage "${status.nextStageId}" is not a status effect.`);
+    if (status.duplicatedStatusId !== "" && !(status.duplicatedStatus instanceof Status))
+        return new Error(`Couldn't load status effect on row ${status.row}. Duplicated status "${status.duplicatedStatusId}" is not a status effect.`);
+    if (status.curedConditionId !== "" && !(status.curedCondition instanceof Status))
+        return new Error(`Couldn't load status effect on row ${status.row}. Cured condition "${status.curedConditionId}" is not a status effect.`);
+}
 
-module.exports.loadPlayers = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        // Clear all player status effects and movement timers first.
-        for (let i = 0; i < game.players.length; i++) {
-            for (let j = 0; j < game.players[i].status.length; j++) {
-                if (game.players[i].status[j].hasOwnProperty("timer") && game.players[i].status[j].timer !== null)
-                    game.players[i].status[j].timer.stop();
+/**
+ * Loads data from the Players sheet into the game. Also loads the Inventory Items sheet.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadPlayers(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.playerSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnId = 0;
+        const columnName = 1;
+        const columnTitle = 2;
+        const columnPronouns = 3;
+        const columnVoice = 4;
+        const columnStrength = 5;
+        const columnIntelligence = 6;
+        const columnDexterity = 7;
+        const columnSpeed = 8;
+        const columnStamina = 9;
+        const columnAlive = 10;
+        const columnLocationDisplayName = 11;
+        const columnHidingSpot = 12;
+        const columnStatusStrings = 13;
+        const columnDescription = 14;
+
+        game.entityManager.clearPlayers();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            const stats = {
+                strength: parseInt(sheet[row][columnStrength]),
+                intelligence: parseInt(sheet[row][columnIntelligence]),
+                dexterity: parseInt(sheet[row][columnDexterity]),
+                speed: parseInt(sheet[row][columnSpeed]),
+                stamina: parseInt(sheet[row][columnStamina])
+            };
+            const statusStrings = sheet[row][columnStatusStrings] ? sheet[row][columnStatusStrings].split(',') : [];
+            /** @type {StatusDisplay[]} */
+            let statusDisplays = new Array(statusStrings.length);
+            statusStrings.forEach((statusString, i) => {
+                let statusId = "";
+                let timeRemaining = null;
+                if (statusString.includes('(')) {
+                    statusId = Status.generateValidId(statusString.substring(0, statusString.lastIndexOf('(')));
+                    timeRemaining = statusString.substring(statusString.lastIndexOf('(') + 1, statusString.lastIndexOf(')'));
+                }
+                else statusId = Status.generateValidId(statusString);
+                statusDisplays[i] = { id: statusId, timeRemaining: timeRemaining };
+            });
+            let member = null;
+            let spectateChannel = null;
+            if (sheet[row][columnName] && sheet[row][columnTitle] !== "NPC") {
+                try {
+                    member = sheet[row][columnId] ? game.guildContext.guild.members.resolve(sheet[row][columnId].trim()) : null;
+                } catch (error) { }
+                const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
+                spectateChannel = game.guildContext.guild.channels.cache.find(channel =>
+                    channel.parent
+                    && channel.parentId === game.guildContext.spectateCategoryId
+                    && channel.name === spectateChannelName
+                );
+                const spectateChannelCount = game.guildContext.guild.channels.cache.filter(channel => channel.parent && channel.parentId === game.guildContext.spectateCategoryId).size;
+                if (!spectateChannel && spectateChannelCount < 50) {
+                    spectateChannel = await game.guildContext.guild.channels.create({
+                        name: spectateChannelName,
+                        type: ChannelType.GuildText,
+                        parent: game.guildContext.spectateCategoryId
+                    });
+                }
             }
-            game.players[i].isMoving = false;
-            clearInterval(game.players[i].moveTimer);
-            game.players[i].remainingTime = 0;
-            game.players[i].moveQueue.length = 0;
-            game.players[i].setOffline();
+            const player = new Player(
+                sheet[row][columnId] ? sheet[row][columnId].trim() : "",
+                member,
+                sheet[row][columnName] ? sheet[row][columnName].trim() : "",
+                sheet[row][columnTitle] ? sheet[row][columnTitle].trim() : "",
+                sheet[row][columnPronouns] ? sheet[row][columnPronouns].trim().toLowerCase() : "",
+                sheet[row][columnVoice] ? sheet[row][columnVoice].trim() : "",
+                stats,
+                sheet[row][columnAlive] ? sheet[row][columnAlive].trim() === "TRUE" : false,
+                sheet[row][columnLocationDisplayName] ? sheet[row][columnLocationDisplayName].trim() : "",
+                sheet[row][columnHidingSpot] ? sheet[row][columnHidingSpot].trim() : "",
+                statusDisplays,
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                new Collection(),
+                spectateChannel && spectateChannel.type === ChannelType.GuildText ? spectateChannel : null,
+                row + 3,
+                game
+            );
+            if (game.entityFinder.getPlayer(player.name)) {
+                errors.push(new Error(`Couldn't load player on row ${player.row}. Another player with this name already exists.`));
+                continue;
+            }
+            const location = game.entityFinder.getRoom(player.locationDisplayName);
+            if (location) player.setLocation(location);
+            if (player.isNPC) player.displayIcon = player.id;
+            player.setPronouns(player.originalPronouns, player.pronounString);
+            player.setPronouns(player.pronouns, player.pronounString);
+            game.players.push(player);
+            game.playersCollection.set(Game.generateValidEntityName(player.name), player);
+
+            if (player.alive) {
+                if (player.member !== null || player.isNPC) {
+                    if (player.location instanceof Room)
+                        player.location.addPlayer(player, null, null, false);
+                    // Parse statuses and inflict the player with them.
+                    player.statusDisplays.forEach(statusDisplay => {
+                        const status = game.entityFinder.getStatusEffect(statusDisplay.id);
+                        if (status) {
+                            const timeRemaining = statusDisplay.timeRemaining ? dayjs.duration(convertTimeStringToDurationUnits(statusDisplay.timeRemaining)) : null;
+                            player.inflict(status, false, false, false, null, timeRemaining);
+                        }
+                    });
+                }
+                game.players_alive.push(player);
+                game.livingPlayersCollection.set(Game.generateValidEntityName(player.name), player);
+            }
+            else {
+                game.players_dead.push(player);
+                game.deadPlayersCollection.set(Game.generateValidEntityName(player.name), player);
+            }
         }
-        // Clear all rooms of their occupants.
-        for (let i = 0; i < game.rooms.length; i++)
-            game.rooms[i].occupants.length = 0;
 
-        sheets.getData(constants.playerSheetDataCells, async function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnID = 0;
-            const columnName = 1;
-            const columnTalent = 2;
-            const columnPronouns = 3;
-            const columnVoice = 4;
-            const columnStrength = 5;
-            const columnIntelligence = 6;
-            const columnDexterity = 7;
-            const columnSpeed = 8;
-            const columnStamina = 9;
-            const columnAlive = 10;
-            const columnLocation = 11;
-            const columnHidingSpot = 12;
-            const columnStatus = 13;
-            const columnDescription = 14;
-
-            game.players.length = 0;
-            game.players_alive.length = 0;
-            game.players_dead.length = 0;
-
-            for (let i = 0; i < sheet.length; i++) {
-                const stats = {
-                    strength: parseInt(sheet[i][columnStrength]),
-                    intelligence: parseInt(sheet[i][columnIntelligence]),
-                    dexterity: parseInt(sheet[i][columnDexterity]),
-                    speed: parseInt(sheet[i][columnSpeed]),
-                    stamina: parseInt(sheet[i][columnStamina])
-                };
-                var statusList = sheet[i][columnStatus] ? sheet[i][columnStatus].split(',') : [];
-                for (let j = 0; j < statusList.length; j++)
-                    statusList[j] = statusList[j].trim();
-                var member = null;
-                var spectateChannel = null;
-                if (sheet[i][columnName] && sheet[i][columnTalent] !== "NPC") {
-                    try {
-                        member = sheet[i][columnID] ? await game.guild.members.fetch(sheet[i][columnID].trim()) : null;
-                    } catch (error) {}
-                    spectateChannel = game.guild.channels.cache.find(channel => channel.parent && channel.parentId === serverconfig.spectateCategory && channel.name === sheet[i][columnName].toLowerCase());
-                    const noSpectateChannels = game.guild.channels.cache.filter(channel => channel.parent && channel.parentId === serverconfig.spectateCategory).size;
-                    if (!spectateChannel && noSpectateChannels < 50) {
-                        spectateChannel = await game.guild.channels.create({
-                            name: sheet[i][columnName].toLowerCase(),
-                            type: ChannelType.GuildText,
-                            parent: serverconfig.spectateCategory
-                        });
-                    }
-                }
-                const player =
-                    new Player(
-                        sheet[i][columnID] ? sheet[i][columnID].trim() : "",
-                        member,
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        sheet[i][columnTalent] ? sheet[i][columnTalent].trim() : "",
-                        sheet[i][columnPronouns] ? sheet[i][columnPronouns].trim().toLowerCase() : "",
-                        sheet[i][columnVoice] ? sheet[i][columnVoice].trim() : "",
-                        stats,
-                        sheet[i][columnAlive] ? sheet[i][columnAlive].trim() === "TRUE" : "",
-                        sheet[i][columnLocation] ? game.rooms.find(room => room.name === sheet[i][columnLocation].trim()) : null,
-                        sheet[i][columnHidingSpot] ? sheet[i][columnHidingSpot].trim() : "",
-                        [],
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        [],
-                        spectateChannel,
-                        i + 3
-                    );
-                if (player.talent === "NPC") player.displayIcon = player.id;
-                player.setPronouns(player.originalPronouns, player.pronounString);
-                player.setPronouns(player.pronouns, player.pronounString);
-                game.players.push(player);
-
-                if (player.alive) {
-                    game.players_alive.push(player);
-
-                    if (player.member !== null || player.talent === "NPC") {
-                        // Parse statuses and inflict the player with them.
-                        const currentPlayer = game.players_alive[game.players_alive.length - 1];
-                        for (let j = 0; j < game.statusEffects.length; j++) {
-                            for (let k = 0; k < statusList.length; k++) {
-                                const statusName = statusList[k].includes('(') ? statusList[k].substring(0, statusList[k].lastIndexOf('(')).trim() : statusList[k];
-                                if (game.statusEffects[j].name === statusName) {
-                                    const statusRemaining = statusList[k].includes('(') ? statusList[k].substring(statusList[k].lastIndexOf('(') + 1, statusList[k].lastIndexOf(')')) : null;
-                                    const timeRemaining = statusRemaining ? moment.duration(statusRemaining) : null;
-                                    currentPlayer.inflict(game, statusName, false, false, false, null, timeRemaining);
-                                }
-                            }
-                        }
-
-                        if (currentPlayer.location instanceof Room) {
-                            for (let k = 0; k < game.rooms.length; k++) {
-                                if (game.rooms[k].name === currentPlayer.location.name) {
-                                    game.rooms[k].addPlayer(game, currentPlayer, null, null, false);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                    game.players_dead.push(player);
-            }
-
-            await exports.loadInventories(game, false);
-
-            var errors = [];
-            for (let i = 0; i < game.players.length; i++) {
-                if (doErrorChecking) {
-                    let error = exports.checkPlayer(game.players[i]);
+        // Now load player inventories.
+        await loadInventoryItems(game, false);
+        if (doErrorChecking) {
+            game.playersCollection.forEach(player => {
+                let error = checkPlayer(player);
+                if (error instanceof Error) errors.push(error);
+                // Get all inventory items that are assigned to this player and check for errors on them.
+                const playerInventoryItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === player.name);
+                playerInventoryItems.forEach(inventoryItem => {
+                    error = checkInventoryItem(inventoryItem);
                     if (error instanceof Error) errors.push(error);
-
-                    let playerInventory = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name);
-                    for (let j = 0; j < playerInventory.length; j++) {
-                        error = exports.checkInventoryItem(playerInventory[j], game);
-                        if (error instanceof Error) errors.push(error);
-                    }
-                }
-            }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
+                });
+            });
+        }
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Players");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Players");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkPlayer = function (player) {
-    if (player.talent !== "NPC" && (player.id === "" || player.id === null || player.id === undefined))
+/**
+ * Checks a Player for errors.
+ * @param {Player} player - The player to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkPlayer(player) {
+    if (!player.isNPC && (player.id === "" || player.id === null || player.id === undefined))
         return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
-    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|png))$');
-    if (player.talent === "NPC" && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
-        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg or .png extension.`);
-    if (player.talent !== "NPC" && (player.member === null || player.member === undefined))
+    const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
+    if (player.isNPC && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
+        return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg, .jpeg, .png, .webp, or .avif extension.`);
+    if (!player.isNPC && (player.member === null || player.member === undefined))
         return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
     if (player.name === "" || player.name === null || player.name === undefined)
         return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
@@ -1437,7 +1438,7 @@ module.exports.checkPlayer = function (player) {
         return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
     if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
         return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
-    if (player.originalPronouns.plural === null || player.originalPronouns.plural === "")
+    if (player.originalPronouns.plural === null)
         return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
     if (player.originalVoiceString === "" || player.originalVoiceString === null || player.originalVoiceString === undefined)
         return new Error(`Couldn't load player on row ${player.row}. No voice descriptor was given.`);
@@ -1452,346 +1453,459 @@ module.exports.checkPlayer = function (player) {
     if (isNaN(player.stamina))
         return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
     if (player.alive && !(player.location instanceof Room))
-        return new Error(`Couldn't load player on row ${player.row}. The location given is not a room.`);
-    return;
-};
+        return new Error(`Couldn't load player on row ${player.row}. "${player.locationDisplayName}" is not a room.`);
+    for (let statusDisplay of player.statusDisplays) {
+        if (!player.hasStatus(statusDisplay.id))
+            return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`);
+        if (statusDisplay.timeRemaining) {
+            const timeRemaining = dayjs.duration(convertTimeStringToDurationUnits(statusDisplay.timeRemaining));
+            if (!dayjs.isDuration(timeRemaining))
+                return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`);
+        }
+    }
+}
 
-module.exports.loadInventories = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.inventorySheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnPlayer = 0;
-            const columnPrefab = 1;
-            const columnIdentifier = 2;
-            const columnEquipmentSlot = 3;
-            const columnContainer = 4;
-            const columnQuantity = 5;
-            const columnUses = 6;
-            const columnDescription = 7;
+/**
+ * Loads data from the Inventory Items sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadInventoryItems(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.inventorySheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnPlayerName = 0;
+        const columnPrefabId = 1;
+        const columnIdentifier = 2;
+        const columnEquipmentSlotId = 3;
+        const columnContainerName = 4;
+        const columnQuantity = 5;
+        const columnUses = 6;
+        const columnDescription = 7;
 
-            game.inventoryItems.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                const player = sheet[i][columnPlayer] ? game.players.find(player => player.name === sheet[i][columnPlayer].trim() && player.name !== "") : null;
-                if (sheet[i][columnPrefab] && sheet[i][columnPrefab].trim() !== "NULL") {
-                    // Find the prefab first.
-                    const prefab = game.prefabs.find(prefab => prefab.id === sheet[i][columnPrefab].trim() && prefab.id !== "");
-
-                    game.inventoryItems.push(
-                        new InventoryItem(
-                            player ? player : sheet[i][columnPlayer].trim(),
-                            prefab ? prefab : sheet[i][columnPrefab].trim(),
-                            sheet[i][columnIdentifier] ? sheet[i][columnIdentifier].trim() : "",
-                            sheet[i][columnEquipmentSlot] ? sheet[i][columnEquipmentSlot].trim() : "",
-                            sheet[i][columnContainer] ? sheet[i][columnContainer].trim() : "",
-                            parseInt(sheet[i][columnQuantity]),
-                            parseInt(sheet[i][columnUses]),
-                            sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                            i + 2
-                        )
-                    );
+        game.entityManager.clearInventoryItems();
+        /** @type {Collection<string, InventoryItem>} */
+        let containerItems = new Collection();
+        /** @type {Collection<string, InventoryItem[]>} */
+        let unloadedContainers = new Collection();
+        /** @type {Collection<string, Collection<string, EquipmentSlot>>} */
+        let equipmentSlots = new Collection();
+        /** @type {Collection<string, Collection<string, InventoryItem[]>>} */
+        let unloadedEquipmentSlots = new Collection();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            const containerName = sheet[row][columnContainerName] ? Game.generateValidEntityName(sheet[row][columnContainerName]) : "";
+            let containerType = "";
+            if (containerName) containerType = "InventoryItem";
+            /** @type {InventoryItem} */
+            let inventoryItem;
+            if (sheet[row][columnPrefabId] && sheet[row][columnPrefabId].trim() !== "NULL") {
+                inventoryItem = new InventoryItem(
+                    sheet[row][columnPlayerName] ? sheet[row][columnPlayerName].trim() : "",
+                    sheet[row][columnPrefabId] ? Game.generateValidEntityName(sheet[row][columnPrefabId]) : "",
+                    sheet[row][columnIdentifier] ? Game.generateValidEntityName(sheet[row][columnIdentifier]) : "",
+                    sheet[row][columnEquipmentSlotId] ? Game.generateValidEntityName(sheet[row][columnEquipmentSlotId]) : "",
+                    containerType,
+                    containerName,
+                    parseInt(sheet[row][columnQuantity]),
+                    parseInt(sheet[row][columnUses]),
+                    sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                    row + 2,
+                    game
+                );
+                const prefab = game.entityFinder.getPrefab(inventoryItem.prefabId);
+                if (prefab) {
+                    inventoryItem.setPrefab(prefab);
+                    inventoryItem.initializeInventory();
+                }
+                if (inventoryItem.quantity !== 0 && inventoryItem.identifier !== "" && inventoryItem.inventoryCollection.size > 0) {
+                    if (containerItems.get(inventoryItem.identifier)) {
+                        errors.push(new Error(`Couldn't load inventory item on row ${inventoryItem.row}. Another inventory item with this container identifier already exists.`));
+                        continue;
+                    }
+                    containerItems.set(inventoryItem.identifier, inventoryItem);
+                    // If this item's identifier is already in the unloadedContainers collection, we can set it as the container for its child items.
+                    const unassignedChildItems = unloadedContainers.get(inventoryItem.identifier);
+                    if (unassignedChildItems) {
+                        unassignedChildItems.forEach(childItem => {
+                            childItem.setContainer(inventoryItem);
+                            inventoryItem.insertItem(childItem, childItem.slot);
+                        });
+                        unloadedContainers.delete(inventoryItem.identifier);
+                    }
+                }
+                const containerNameSplit = inventoryItem.containerName.split('/').length > 1 ? inventoryItem.containerName.split('/') : [inventoryItem.containerName, ''];
+                const identifier = Game.generateValidEntityName(containerNameSplit[0]);
+                const slotId = Game.generateValidEntityName(containerNameSplit[1]);
+                if (slotId) inventoryItem.slot = slotId;
+                const container = containerItems.get(identifier);
+                if (container) {
+                    inventoryItem.setContainer(container);
+                    container.insertItem(inventoryItem, slotId);
                 }
                 else {
-                    game.inventoryItems.push(
-                        new InventoryItem(
-                            player ? player : sheet[i][columnPlayer] ? sheet[i][columnPlayer].trim() : "",
-                            null,
-                            "",
-                            sheet[i][columnEquipmentSlot] ? sheet[i][columnEquipmentSlot].trim() : "",
-                            "",
-                            null,
-                            null,
-                            "",
-                            i + 2
-                        )
-                    );
+                    // If the container item wasn't found, it might have just not been loaded yet. Save it for later.
+                    let unassignedChildItems = unloadedContainers.get(identifier);
+                    if (!unassignedChildItems) unassignedChildItems = [];
+                    unassignedChildItems.push(inventoryItem);
+                    unloadedContainers.set(identifier, unassignedChildItems);
                 }
             }
-            // Create EquipmentSlots for each player.
-            for (let i = 0; i < game.players.length; i++) {
-                let inventory = [];
-                game.players[i].carryWeight = 0;
-                let equipmentItems = game.inventoryItems.filter(item => item.player instanceof Player && item.player.name === game.players[i].name && item.equipmentSlot !== "" && item.containerName === "");
-                for (let j = 0; j < equipmentItems.length; j++)
-                    inventory.push(new EquipmentSlot(equipmentItems[j].equipmentSlot, equipmentItems[j].row));
-                game.players[i].inventory = inventory;
-            }
-            var errors = [];
-            for (let i = 0; i < game.inventoryItems.length; i++) {
-                const prefab = game.inventoryItems[i].prefab;
-                if (prefab instanceof Prefab) {
-                    for (let j = 0; j < prefab.inventory.length; j++)
-                        game.inventoryItems[i].inventory.push({
-                            name: prefab.inventory[j].name,
-                            capacity: prefab.inventory[j].capacity,
-                            takenSpace: prefab.inventory[j].takenSpace,
-                            weight: prefab.inventory[j].weight,
-                            item: []
-                        });
-                }
-                if (game.inventoryItems[i].player instanceof Player) {
-                    const player = game.inventoryItems[i].player;
-                    for (let slot = 0; slot < player.inventory.length; slot++) {
-                        if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot) {
-                            game.inventoryItems[i].foundEquipmentSlot = true;
-                            if (game.inventoryItems[i].quantity !== 0) player.inventory[slot].items.push(game.inventoryItems[i]);
-                            if (game.inventoryItems[i].containerName === "") {
-                                if (prefab === null) player.inventory[slot].equippedItem = null;
-                                else player.inventory[slot].equippedItem = game.inventoryItems[i];
-                            }
-                            else {
-                                const splitContainer = game.inventoryItems[i].containerName.split('/');
-                                const containerItemIdentifier = splitContainer[0] ? splitContainer[0].trim() : "";
-                                const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
-                                game.inventoryItems[i].slot = containerItemSlot;
-                                for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                                    if (player.inventory[slot].items[j].prefab && player.inventory[slot].items[j].identifier === containerItemIdentifier) {
-                                        game.inventoryItems[i].container = player.inventory[slot].items[j];
-                                        for (let k = 0; k < game.inventoryItems[i].container.inventory.length; k++) {
-                                            if (game.inventoryItems[i].container.inventory[k].name === containerItemSlot)
-                                                game.inventoryItems[i].container.inventory[k].item.push(game.inventoryItems[i]);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            // Create a recursive function for properly inserting item inventories.
-            let insertInventory = function (item) {
-                var createdItem = new InventoryItem(
-                    item.player,
-                    item.prefab,
-                    item.identifier,
-                    item.equipmentSlot,
-                    item.containerName,
-                    item.quantity,
-                    item.uses,
-                    item.description,
-                    item.row
+            else {
+                inventoryItem = new InventoryItem(
+                    sheet[row][columnPlayerName] ? sheet[row][columnPlayerName].trim() : "",
+                    "",
+                    "",
+                    sheet[row][columnEquipmentSlotId] ? Game.generateValidEntityName(sheet[row][columnEquipmentSlotId]) : "",
+                    "",
+                    "",
+                    null,
+                    null,
+                    "",
+                    row + 2,
+                    game
                 );
-                createdItem.foundEquipmentSlot = item.foundEquipmentSlot;
-                if (item.container instanceof InventoryItem) createdItem.container = game.inventoryItems.find(gameItem => gameItem.row === item.container.row);
-                else createdItem.container = item.container;
-                createdItem.slot = item.slot;
-                createdItem.weight = item.weight;
-
-                // Initialize the item's inventory slots.
-                for (let i = 0; i < item.prefab.inventory.length; i++)
-                    createdItem.inventory.push({
-                        name: item.prefab.inventory[i].name,
-                        capacity: item.prefab.inventory[i].capacity,
-                        takenSpace: item.prefab.inventory[i].takenSpace,
-                        weight: item.prefab.inventory[i].weight,
-                        item: []
-                    });
-
-                for (let i = 0; i < item.inventory.length; i++) {
-                    for (let j = 0; j < item.inventory[i].item.length; j++) {
-                        let inventoryItem = insertInventory(item.inventory[i].item[j]);
-                        let foundItem = false;
-                        for (var k = 0; k < game.inventoryItems.length; k++) {
-                            if (game.inventoryItems[k].row === inventoryItem.row) {
-                                foundItem = true;
-                                game.inventoryItems[k] = inventoryItem;
-                                break;
-                            }
-                        }
-                        if (foundItem) {
-                            game.inventoryItems[k].container = createdItem;
-                            if (game.inventoryItems[k].containerName !== "")
-                                createdItem.insertItem(game.inventoryItems[k], game.inventoryItems[k].slot);
-                            else createdItem.inventory[i].item.push(game.inventoryItems[k]);
-                        }
+                inventoryItem.prefab = null;
+            }
+            const player = sheet[row][columnPlayerName] ? game.entityFinder.getPlayer(sheet[row][columnPlayerName]) : null;
+            if (player) {
+                inventoryItem.setPlayer(player);
+                let foundEquipmentSlot = false;
+                const playerEquipmentSlots = equipmentSlots.get(player.name);
+                if (playerEquipmentSlots) {
+                    const equipmentSlot = playerEquipmentSlots.get(inventoryItem.equipmentSlot);
+                    if (equipmentSlot) {
+                        foundEquipmentSlot = true;
+                        equipmentSlot.insertItem(inventoryItem);
                     }
                 }
-                return createdItem;
-            };
-            // Run through inventoryItems one more time to properly insert their inventories and assign them to players.
-            for (let i = 0; i < game.inventoryItems.length; i++) {
-                if (game.inventoryItems[i].prefab instanceof Prefab) {
-                    if (game.inventoryItems[i].quantity !== 0 && game.inventoryItems[i].containerName !== "" && game.inventoryItems[i].container === null) {
-                        const splitContainer = game.inventoryItems[i].containerName.split('/');
-                        const containerItemIdentifier = splitContainer[0] ? splitContainer[0].trim() : "";
-                        const containerItemSlot = splitContainer[1] ? splitContainer[1].trim() : "";
-                        let container = game.inventoryItems.find(item =>
-                            item.player instanceof Player &&
-                            item.player.name === game.inventoryItems[i].player.name &&
-                            item.identifier === containerItemIdentifier &&
-                            item.quantity !== 0
-                        );
-                        if (container) {
-                            game.inventoryItems[i].container = container;
-                            for (let j = 0; j < game.inventoryItems[i].container.inventory.length; j++) {
-                                if (game.inventoryItems[i].container.inventory[j].name === containerItemSlot)
-                                    game.inventoryItems[i].container.inventory[j].item.push(game.inventoryItems[i]);
-                            }
-                        }
-                    }
-                    let container = game.inventoryItems[i].container;
-                    if (game.inventoryItems[i].container instanceof InventoryItem) {
-                        for (let slot = 0; slot < container.inventory.length; slot++) {
-                            for (let j = 0; j < container.inventory[slot].item.length; j++) {
-                                if (container.inventory[slot].item[j].row === game.inventoryItems[i].row) {
-                                    game.inventoryItems[i] = container.inventory[slot].item[j];
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    else game.inventoryItems[i] = insertInventory(game.inventoryItems[i]);
-                }
-                if (game.inventoryItems[i].player instanceof Player) {
-                    const player = game.inventoryItems[i].player;
-                    for (let slot = 0; slot < player.inventory.length; slot++) {
-                        if (player.inventory[slot].name === game.inventoryItems[i].equipmentSlot && game.inventoryItems[i].containerName === "" && game.inventoryItems[i].prefab !== null) {
-                            player.inventory[slot].equippedItem = game.inventoryItems[i];
-                            player.carryWeight += game.inventoryItems[i].weight * game.inventoryItems[i].quantity;
-                        }
-                        let foundItem = false;
-                        for (let j = 0; j < player.inventory[slot].items.length; j++) {
-                            if (player.inventory[slot].items[j].row === game.inventoryItems[i].row) {
-                                foundItem = true;
-                                player.inventory[slot].items[j] = game.inventoryItems[i];
-                                break;
-                            }
-                        }
-                        if (foundItem) break;
-                    }
-                }
-
-                if (doErrorChecking) {
-                    let error = exports.checkInventoryItem(game.inventoryItems[i], game);
-                    if (error instanceof Error) errors.push(error);
+                if (!foundEquipmentSlot) {
+                    // If the equipment slot wasn't found, it might have just not been loaded yet. Save it for later.
+                    let unloadedPlayerEquipmentSlots = unloadedEquipmentSlots.get(player.name);
+                    if (!unloadedPlayerEquipmentSlots) unloadedPlayerEquipmentSlots = new Collection();
+                    let unassignedEquipmentSlotItems = unloadedPlayerEquipmentSlots.get(inventoryItem.equipmentSlot);
+                    if (!unassignedEquipmentSlotItems) unassignedEquipmentSlotItems = [];
+                    unassignedEquipmentSlotItems.push(inventoryItem);
+                    unloadedPlayerEquipmentSlots.set(inventoryItem.equipmentSlot, unassignedEquipmentSlotItems);
+                    unloadedEquipmentSlots.set(player.name, unloadedPlayerEquipmentSlots);
                 }
             }
-
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
+            if (player && inventoryItem.equipmentSlot !== "" && inventoryItem.containerName === "") {
+                // Create the corresponding equipment slot for the player, if it doesn't already exist.
+                let playerEquipmentSlots = equipmentSlots.get(player.name);
+                if (!playerEquipmentSlots) playerEquipmentSlots = new Collection();
+                if (playerEquipmentSlots.get(inventoryItem.equipmentSlot)) {
+                    errors.push(new Error(`Couldn't load inventory item on row ${inventoryItem.row}. ${player.name} already has an equipment slot with this ID.`));
+                    continue;
                 }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
+                const equipmentSlot = new EquipmentSlot(inventoryItem.equipmentSlot, inventoryItem.row, game);
+                equipmentSlot.equipItem(inventoryItem);
+                playerEquipmentSlots.set(equipmentSlot.id, equipmentSlot);
+                equipmentSlots.set(player.name, playerEquipmentSlots);
+                // If this equipment slot's ID is in the unloadedEquipmentSlots collection, we can insert any previously unassigned items into it.
+                const unloadedPlayerEquipmentSlots = unloadedEquipmentSlots.get(player.name);
+                if (unloadedPlayerEquipmentSlots) {
+                    const unassignedEquipmentSlotItems = unloadedPlayerEquipmentSlots.get(inventoryItem.equipmentSlot);
+                    if (unassignedEquipmentSlotItems) {
+                        unassignedEquipmentSlotItems.forEach(unassignedItem => {
+                            equipmentSlot.insertItem(unassignedItem);
+                        });
+                        unloadedEquipmentSlots.get(player.name).delete(inventoryItem.equipmentSlot);
+                    }
+                }
             }
-            resolve(game);
+            game.inventoryItems.push(inventoryItem);
+        }
+        game.playersCollection.forEach(player => {
+            const playerEquipmentSlots = equipmentSlots.get(player.name);
+            if (playerEquipmentSlots) {
+                player.setInventory(playerEquipmentSlots);
+                // Calculate the player's carry weight.
+                player.carryWeight = player.inventoryCollection.reduce((weight, equipmentSlot) => {
+                    let itemWeight = equipmentSlot.items.reduce((inventoryItemWeight, inventoryItem) => {
+                        return inventoryItem.prefab !== null ? inventoryItemWeight + inventoryItem.weight * inventoryItem.quantity : inventoryItemWeight;
+                    }, 0);
+                    return weight + itemWeight;
+                }, 0);
+            }
         });
+        if (doErrorChecking) {
+            game.inventoryItems.forEach(inventoryItem => {
+                const error = checkInventoryItem(inventoryItem);
+                if (error instanceof Error) errors.push(error);
+            });
+        }
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("InventoryItems");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("InventoryItems");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkInventoryItem = function (item, game) {
-    if (item.player === "")
+/**
+ * Checks an InventoryItem for errors.
+ * @param {InventoryItem} item - The inventory item to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkInventoryItem(item) {
+    if (item.playerName === "")
         return new Error(`Couldn't load inventory item on row ${item.row}. No player name was given.`);
     if (!(item.player instanceof Player))
-        return new Error(`Couldn't load inventory item on row ${item.row}. The player name given is not a player.`);
+        return new Error(`Couldn't load inventory item on row ${item.row}. "${item.playerName}" is not a player.`);
     if (isNaN(item.quantity))
         return new Error(`Couldn't load inventory item on row ${item.row}. No quantity was given.`);
     if (item.prefab !== null) {
         if (!(item.prefab instanceof Prefab))
-            return new Error(`Couldn't load inventory item on row ${item.row}. The prefab given is not a prefab.`);
-        if (item.inventory.length > 0 && item.identifier === "")
+            return new Error(`Couldn't load inventory item on row ${item.row}. "${item.prefabId}" is not a prefab.`);
+        if (item.inventoryCollection.size > 0 && item.identifier === "")
             return new Error(`Couldn't load inventory item on row ${item.row}. This item is capable of containing items, but no container identifier was given.`);
-        if (item.inventory.length > 0 && (item.quantity > 1 || isNaN(item.quantity)))
+        if (item.inventoryCollection.size > 0 && (item.quantity > 1))
             return new Error(`Couldn't load inventory item on row ${item.row}. Items capable of containing items must have a quantity of 1.`);
-        if (item.identifier !== "" && item.quantity !== 0 &&
-            game.items.filter(other => other.identifier === item.identifier && other.quantity !== 0).length
-            + game.inventoryItems.filter(other => other.identifier === item.identifier && other.row < item.row && other.quantity !== 0).length > 0)
+        if (item.identifier !== "" && item.quantity !== 0 && item.game.roomItems.filter(roomItem => roomItem.identifier === item.identifier && roomItem.quantity !== 0).length
+            + item.game.inventoryItems.filter(inventoryItem => inventoryItem.identifier === item.identifier && inventoryItem.quantity !== 0).length > 1)
             return new Error(`Couldn't load inventory item on row ${item.row}. Another item or inventory item with this container identifier already exists.`);
-        if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1 || isNaN(item.quantity)))
+        if (item.prefab.pluralContainingPhrase === "" && (item.quantity > 1))
             return new Error(`Couldn't load inventory item on row ${item.row}. Quantity is higher than 1, but its prefab on row ${item.prefab.row} has no plural containing phrase.`);
-        if (!item.foundEquipmentSlot)
+        if (!item.player.inventoryCollection.get(item.equipmentSlot))
             return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find equipment slot "${item.equipmentSlot}".`);
-        //if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
-        //    return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
-        if (item.container instanceof InventoryItem && item.container.inventory.length === 0)
+        if (item.equipmentSlot !== "RIGHT HAND" && item.equipmentSlot !== "LEFT HAND" && item.containerName !== "" && (item.container === null || item.container === undefined))
+            return new Error(`Couldn't load inventory item on row ${item.row}. Couldn't find container "${item.containerName}".`);
+        if (item.container instanceof InventoryItem && item.container.inventoryCollection.size === 0)
             return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but the item container's prefab on row ${item.container.prefab.row} has no inventory slots.`);
         if (item.container instanceof InventoryItem) {
             if (item.slot === "") return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is an inventory item, but a prefab inventory slot name was not given.`);
-            let foundSlot = false;
-            for (let i = 0; i < item.container.inventory.length; i++) {
-                if (item.container.inventory[i].name === item.slot) {
-                    foundSlot = true;
-                    if (item.container.inventory[i].takenSpace > item.container.inventory[i].capacity)
-                        return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is over capacity.`);
-                }
-            }
-            if (!foundSlot) return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+            const inventorySlot = item.container.inventoryCollection.get(item.slot);
+            if (!inventorySlot)
+                return new Error(`Couldn't load inventory item on row ${item.row}. The item's container prefab on row ${item.container.prefab.row} has no inventory slot "${item.slot}".`);
+            if (inventorySlot.takenSpace > inventorySlot.capacity)
+                return new Error(`Couldn't load inventory item on row ${item.row}. The item's container is over capacity.`);
         }
     }
-    return;
-};
+}
 
-module.exports.loadGestures = function (game, doErrorChecking) {
-    return new Promise((resolve, reject) => {
-        sheets.getData(constants.gestureSheetDataCells, function (response) {
-            const sheet = response.data.values ? response.data.values : [];
-            // These constants are the column numbers corresponding to that data on the spreadsheet.
-            const columnName = 0;
-            const columnRequires = 1;
-            const columnDontAllowIf = 2;
-            const columnDescription = 3;
-            const columnNarration = 4;
+/**
+ * Loads data from the Gestures sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadGestures(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.gestureSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnId = 0;
+        const columnRequires = 1;
+        const columnDisabledStatusesStrings = 2;
+        const columnDescription = 3;
+        const columnNarration = 4;
 
-            game.gestures.length = 0;
-            for (let i = 0; i < sheet.length; i++) {
-                var requires = sheet[i][columnRequires] ? sheet[i][columnRequires].split(',') : [];
-                for (let j = 0; j < requires.length; j++)
-                    requires[j] = requires[j].trim();
-                var disabledStatuses = sheet[i][columnDontAllowIf] ? sheet[i][columnDontAllowIf].split(',') : [];
-                for (let j = 0; j < disabledStatuses.length; j++)
-                    disabledStatuses[j] = disabledStatuses[j].trim();
-                game.gestures.push(
-                    new Gesture(
-                        sheet[i][columnName] ? sheet[i][columnName].trim() : "",
-                        requires,
-                        disabledStatuses,
-                        sheet[i][columnDescription] ? sheet[i][columnDescription].trim() : "",
-                        sheet[i][columnNarration] ? sheet[i][columnNarration].trim() : "",
-                        i + 2
-                    )
-                );
+        game.entityManager.clearGestures();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            let requiresStrings = sheet[row][columnRequires] ? sheet[row][columnRequires].split(',') : [];
+            requiresStrings.forEach((requiresString, i) => {
+                const requiresStringUpper = requiresString.toUpperCase().trim();
+                if (requiresStringUpper === "EXIT")
+                    requiresStrings[i] = "Exit";
+                else if (requiresStringUpper === "FIXTURE" || requiresStringUpper === "OBJECT")
+                    requiresStrings[i] = "Fixture";
+                else if (requiresStringUpper === "ROOMITEM" || requiresStringUpper === "ROOM ITEM" || requiresStringUpper === "ITEM")
+                    requiresStrings[i] = "RoomItem";
+                else if (requiresStringUpper === "PLAYER")
+                    requiresStrings[i] = "Player";
+                else if (requiresStringUpper === "INVENTORYITEM" || requiresStringUpper === "INVENTORY ITEM")
+                    requiresStrings[i] = "InventoryItem";
+                else requiresStrings[i] = requiresString.trim();
+            });
+            let disabledStatusesStrings = sheet[row][columnDisabledStatusesStrings] ? sheet[row][columnDisabledStatusesStrings].split(',') : [];
+            disabledStatusesStrings.forEach((disabledStatusString, i) => {
+                disabledStatusesStrings[i] = Status.generateValidId(disabledStatusString);
+            });
+            const gesture = new Gesture(
+                sheet[row][columnId] ? Gesture.generateValidId(sheet[row][columnId]) : "",
+                requiresStrings,
+                disabledStatusesStrings,
+                sheet[row][columnDescription] ? sheet[row][columnDescription].trim() : "",
+                sheet[row][columnNarration] ? sheet[row][columnNarration].trim() : "",
+                row + 2,
+                game
+            );
+            if (game.entityFinder.getGesture(gesture.id)) {
+                errors.push(new Error(`Couldn't load gesture on row ${gesture.row}. No gesture ID was given.`));
+                continue;
             }
-            // Now go through and make the disabledStatuses actual Status objects.
-            var errors = [];
-            for (let i = 0; i < game.gestures.length; i++) {
-                for (let j = 0; j < game.gestures[i].disabledStatusesStrings.length; j++) {
-                    let disabledStatus = game.statusEffects.find(statusEffect => statusEffect.name === game.gestures[i].disabledStatusesStrings[j]);
-                    if (disabledStatus) game.gestures[i].disabledStatuses[j] = disabledStatus;
-                }
-                if (doErrorChecking) {
-                    let error = exports.checkGesture(game.gestures[i]);
-                    if (error instanceof Error) errors.push(error);
-                }
+            gesture.disabledStatusesStrings.forEach((disabledStatusString, i) => {
+                const disabledStatus = game.entityFinder.getStatusEffect(disabledStatusString);
+                if (disabledStatus) gesture.disabledStatuses[i] = disabledStatus;
+            });
+            if (doErrorChecking) {
+                let error = checkGesture(gesture);
+                if (error instanceof Error) errors.push(error);
             }
-            if (errors.length > 0) {
-                if (errors.length > 15) {
-                    errors = errors.slice(0, 15);
-                    errors.push(new Error("Too many errors."));
-                }
-                let errorMessage = errors.join('\n');
-                reject(errorMessage);
-            }
-            resolve(game);
-        });
+            game.gestures.push(gesture);
+            game.gesturesCollection.set(gesture.id, gesture);
+        }
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Gestures");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Gestures");
+        resolve(game);
     });
-};
+}
 
-module.exports.checkGesture = function (gesture) {
-    if (gesture.name === "" || gesture.name === null || gesture.name === undefined)
-        return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture name was given.`);
-    for (let i = 0; i < gesture.requires.length; i++) {
-        if (gesture.requires[i] !== "Exit" && gesture.requires[i] !== "Object" && gesture.requires[i] !== "Item" && gesture.requires[i] !== "Player" && gesture.requires[i] !== "Inventory Item")
-            return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.requires[i]}" is not a valid requirement.`);
+/**
+ * Checks a Gesture for errors.
+ * @param {Gesture} gesture - The gesture to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkGesture(gesture) {
+    if (gesture.id === "" || gesture.id === null || gesture.id === undefined)
+        return new Error(`Couldn't load gesture on row ${gesture.row}. No gesture ID was given.`);
+    for (let requireType of gesture.requires) {
+        if (requireType !== "Exit" && requireType !== "Fixture" && requireType !== "RoomItem" && requireType !== "Player" && requireType !== "InventoryItem")
+            return new Error(`Couldn't load gesture on row ${gesture.row}. "${requireType}" is not a valid requirement type.`);
     }
-    if (gesture.disabledStatuses.length > 0) {
-        for (let i = 0; i < gesture.disabledStatuses.length; i++)
-            if (!(gesture.disabledStatuses[i] instanceof Status))
-                return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.disabledStatuses[i]}" in "don't allow if" is not a status effect.`);
+    for (let i = 0; i < gesture.disabledStatuses.length; i++) {
+        if (!(gesture.disabledStatuses[i] instanceof Status))
+            return new Error(`Couldn't load gesture on row ${gesture.row}. "${gesture.disabledStatusesStrings[i]}" in "don't allow if" is not a status effect.`);
     }
     if (gesture.description === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No description was given.`);
     if (gesture.narration === "")
         return new Error(`Couldn't load gesture on row ${gesture.row}. No narration was given.`);
-    return;
-};
+}
+
+/**
+ * Loads data from the Flags sheet into the game.
+ * @param {Game} game - The game to load these entities into.
+ * @param {boolean} doErrorChecking - Whether or not to check for errors.
+ * @returns {Promise<Game>}
+ */
+export function loadFlags(game, doErrorChecking) {
+    return new Promise(async (resolve, reject) => {
+        const response = await getSheetValues(game.constants.flagSheetDataCells, game.settings.spreadsheetID);
+        const sheet = response?.values ? response?.values : [];
+        // These constants are the column numbers corresponding to that data on the spreadsheet.
+        const columnId = 0;
+        const columnValue = 1;
+        const columnValueScript = 2;
+        const columnCommandsString = 3;
+
+        game.entityManager.clearFlags();
+        /** @type {Error[]} */
+        let errors = [];
+        for (let row = 0; row < sheet.length; row++) {
+            let commandString = sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].replace(/(?<=http(s?):.*?)\/(?! )(?=.*?(jpg|jpeg|png|webp|avif))/g, '\\').replace(/(?<=http(s?)):(?=.*?(jpg|jpeg|png|webp|avif))/g, '@') : "";
+            /** @type {FlagCommandSet[]} */
+            let commandSets = [];
+            /**
+             * @param {string} commandString 
+             * @returns {FlagCommandSet}
+             */
+            let getCommands = function (commandString) {
+                const commands = commandString.split('/');
+                let setCommands = commands[0] ? commands[0].split(/(?<!`.*?[^`])\s*?,/) : [];
+                for (let i = 0; i < setCommands.length; i++)
+                    setCommands[i] = setCommands[i].trim();
+                let clearedCommands = commands[1] ? commands[1].split(/(?<!`.*?[^`])\s*?,/) : [];
+                for (let i = 0; i < clearedCommands.length; i++)
+                    clearedCommands[i] = clearedCommands[i].trim();
+                return { setCommands: setCommands, clearedCommands: clearedCommands };
+            };
+            const regex = new RegExp(/(\[((.*?): (.*?))\],?)/g);
+            if (!!commandString.match(regex)) {
+                let match;
+                while (match = regex.exec(commandString)) {
+                    const commandSet = match[2];
+                    let values = commandSet.substring(0, commandSet.lastIndexOf(':')).split(',');
+                    for (let j = 0; j < values.length; j++)
+                        values[j] = values[j].trim();
+                    const commands = getCommands(commandSet.substring(commandSet.lastIndexOf(':') + 1));
+                    commandSets.push({ values: values, setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
+                }
+            }
+            else {
+                const commands = getCommands(sheet[row][columnCommandsString] ? sheet[row][columnCommandsString] : "");
+                commandSets.push({ values: [], setCommands: commands.setCommands, clearedCommands: commands.clearedCommands });
+            }
+            let valueString = sheet[row][columnValue] ? sheet[row][columnValue].trim() : null;
+            /** @type {string|number|boolean} */
+            let value;
+            if (!isNaN(parseFloat(valueString))) value = parseFloat(valueString);
+            else if (valueString === "TRUE") value = true;
+            else if (valueString === "FALSE") value = false;
+            else value = valueString;
+
+            let flag = new Flag(
+                sheet[row][columnId] ? Game.generateValidEntityName(sheet[row][columnId]) : "",
+                value,
+                sheet[row][columnValueScript] ? sheet[row][columnValueScript].trim() : "",
+                sheet[row][columnCommandsString] ? sheet[row][columnCommandsString].trim() : "",
+                commandSets,
+                row + 2,
+                game
+            );
+            if (game.entityFinder.getFlag(flag.id)) {
+                errors.push(new Error(`Couldn't get flag on row ${flag.row}. Another flag with this ID already exists.`));
+                continue;
+            }
+            game.flags.set(flag.id, flag);
+            game.entityManager.updateFlagReferences(flag);
+        }
+        if (doErrorChecking) {
+            game.flags.forEach(flag => {
+                const error = checkFlag(flag);
+                if (error instanceof Error) errors.push(error);
+            });
+        }
+        if (errors.length > 0) {
+            game.loadedEntitiesWithErrors.add("Flags");
+            errors = trimErrors(errors);
+            reject(errors.join('\n'));
+        }
+        game.loadedEntitiesWithErrors.delete("Flags");
+        resolve(game);
+    });
+}
+
+/**
+ * Checks a Flag for errors.
+ * @param {Flag} flag - The flag to check. 
+ * @returns {Error|void} An Error, if there is one. Otherwise, returns nothing.
+ */
+export function checkFlag(flag) {
+    if (flag.id === "" || flag.id === null || flag.id === undefined)
+        return new Error(`Couldn't load flag on row ${flag.row}. No flag ID was given.`);
+    if (flag.value !== null && typeof flag.value !== "string" && typeof flag.value !== "number" && typeof flag.value !== "boolean")
+        return new Error(`Couldn't load flag on row ${flag.row}. The value is not a string, number, boolean, or null.`);
+    if (flag.valueScript !== "") {
+        try {
+            const value = flag.evaluate(flag.valueScript);
+            flag.value = value;
+        } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
+    }
+}
+
+/**
+ * Trims the number of errors to fit in a single Discord message.
+ * @param {Error[]} errors - An array of errors to trim.
+ * @returns The trimmed array of errors.
+ */
+function trimErrors(errors) {
+    const tooManyErrors = errors.length > 20 || errors.join('\n').length >= 1980;
+    while (errors.length > 20 || errors.join('\n').length >= 1980)
+        errors = errors.slice(0, errors.length - 1);
+    if (tooManyErrors)
+        errors.push(new Error("Too many errors."));
+    return errors;
+}
