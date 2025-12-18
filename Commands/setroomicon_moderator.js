@@ -34,17 +34,14 @@ export async function execute(game, message, command, args) {
         return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${exports.config.usage}`);
 
     let input = args.join(" ");
-    let parsedInput = input.replace(/ /g, "-").toLowerCase();
 
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === parsedInput || parsedInput.startsWith(game.rooms[i].name + '-')) {
-            room = game.rooms[i];
-            input = input.substring(game.rooms[i].name.length).trim();
+    let room = undefined;
+    for (let i = args.length; i > 0; i--) {
+        room = game.entityFinder.getRoom(args.slice(0, i).join(" "));
+        if (room)
             break;
-        }
     }
-    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?\\.(jpg|jpeg|png|gif|webp|avif))(\\?.*)?$');
     input = input.replace(iconURLSyntax, '$1');
@@ -55,7 +52,7 @@ export async function execute(game, message, command, args) {
     if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
     room.iconURL = input;
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the icon for ${room.name}.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the icon for ${room.id}.`);
 
     return;
 };

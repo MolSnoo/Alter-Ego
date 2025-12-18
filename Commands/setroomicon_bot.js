@@ -39,19 +39,16 @@ export async function execute (game, command, args, player, callee) {
         return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     let input = args.join(" ");
-    let parsedInput = input.replace(/ /g, "-").toLowerCase();
 
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === parsedInput || parsedInput.startsWith(game.rooms[i].name + '-')) {
-            room = game.rooms[i];
-            input = input.substring(game.rooms[i].name.length).trim();
+    let room = undefined;
+    for (let i = args.length; i > 0; i--) {
+        room = game.entityFinder.getRoom(args.slice(0, i).join(" "));
+        if (room)
             break;
-        }
     }
 
-    if (room === null)
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Room "${args[0]}" not found.`);
+    if (room === undefined)
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Room "${input}" not found.`);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|gif|webp|avif))$');
     input = input.replace(iconURLSyntax, '$1').replace(/(?<=http(s?))@(?=.*?(jpg|jpeg|png|gif|webp|avif))/g, ':').replace(/(?<=http(s?):.*?)\\(?=.*?(jpg|jpeg|png|gif|webp|avif))/g, '/');
