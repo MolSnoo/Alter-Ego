@@ -19,8 +19,7 @@ import { getSheetValues } from '../Modules/sheets.js';
 import { convertTimeStringToDurationUnits, parseDuration } from '../Modules/helpers.js';
 import { prettyObject } from '../Modules/prettyPrinter.js';
 import { ChannelType, Collection } from 'discord.js';
-import dayjs from 'dayjs';
-dayjs().format();
+import { Duration } from 'luxon';
 
 /**
  * @class GameEntityLoader
@@ -931,7 +930,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require a fixture tag.`);
 		if (recipe.products.length > 2 && recipe.fixtureTag === "")
 			return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require a fixture tag.`);
-		if (recipe.duration !== null && !dayjs.isDuration(recipe.duration))
+		if (recipe.duration !== null && !Duration.isDuration(recipe.duration))
 			return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
 		if (recipe.fixtureTag === "" && recipe.duration !== null)
 			return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without a fixture tag cannot have a duration.`);
@@ -1370,7 +1369,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			for (let row = 0; row < sheet.length; row++) {
 				const durationString = sheet[row][columnDurationString] ? String(sheet[row][columnDurationString]) : "";
 				const duration = parseDuration(durationString);
-				const timeRemaining = sheet[row][columnRemainingString] ? dayjs.duration(convertTimeStringToDurationUnits(sheet[row][columnRemainingString])) : null;
+				const timeRemaining = sheet[row][columnRemainingString] ? Duration.fromObject(convertTimeStringToDurationUnits(sheet[row][columnRemainingString])) : null;
 				let triggerTimesStrings = sheet[row][columnTriggerTimesStrings] ? sheet[row][columnTriggerTimesStrings].split(',') : [];
 				for (let i = 0; i < triggerTimesStrings.length; i++)
 					triggerTimesStrings[i] = triggerTimesStrings[i].trim();
@@ -1445,9 +1444,9 @@ export default class GameEntityLoader extends GameEntityManager {
 	checkEvent(event) {
 		if (event.id === "" || event.id === null || event.id === undefined)
 			return new Error(`Couldn't load event on row ${event.row}. No event ID was given.`);
-		if (event.duration !== null && !dayjs.isDuration(event.duration))
+		if (event.duration !== null && !Duration.isDuration(event.duration))
 			return new Error(`Couldn't load event on row ${event.row}. "${event.durationString}" is not a valid duration.`);
-		if (event.remaining !== null && !dayjs.isDuration(event.remaining))
+		if (event.remaining !== null && !Duration.isDuration(event.remaining))
 			return new Error(`Couldn't load event on row ${event.row}. "${event.remainingString}" is not a valid representation of the time remaining.`);
 		if (!event.ongoing && event.remaining !== null)
 			return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
@@ -1599,7 +1598,7 @@ export default class GameEntityLoader extends GameEntityManager {
 	checkStatusEffect(status) {
 		if (status.id === "" || status.id === null || status.id === undefined)
 			return new Error(`Couldn't load status effect on row ${status.row}. No status effect ID was given.`);
-		if (status.duration !== null && !dayjs.isDuration(status.duration))
+		if (status.duration !== null && !Duration.isDuration(status.duration))
 			return new Error(`Couldn't load status effect on row ${status.row}. An invalid duration was given.`);
 		for (let i = 0; i < status.statModifiers.length; i++) {
 			const statModifier = status.statModifiers[i];
@@ -1737,7 +1736,7 @@ export default class GameEntityLoader extends GameEntityManager {
 						player.statusDisplays.forEach(statusDisplay => {
 							const status = this.game.entityFinder.getStatusEffect(statusDisplay.id);
 							if (status) {
-								const timeRemaining = statusDisplay.timeRemaining ? dayjs.duration(convertTimeStringToDurationUnits(statusDisplay.timeRemaining)) : null;
+								const timeRemaining = statusDisplay.timeRemaining ? Duration.fromObject(convertTimeStringToDurationUnits(statusDisplay.timeRemaining)) : null;
 								player.inflict(status, false, false, false, null, timeRemaining);
 							}
 						});
@@ -1826,8 +1825,8 @@ export default class GameEntityLoader extends GameEntityManager {
 				if (!player.hasStatus(statusDisplay.id))
 					reject(new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`));
 				if (statusDisplay.timeRemaining) {
-					const timeRemaining = dayjs.duration(convertTimeStringToDurationUnits(statusDisplay.timeRemaining));
-					if (!dayjs.isDuration(timeRemaining))
+					const timeRemaining = Duration.fromObject(convertTimeStringToDurationUnits(statusDisplay.timeRemaining));
+					if (!Duration.isDuration(timeRemaining))
 						reject(new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`));
 				}
 			}
