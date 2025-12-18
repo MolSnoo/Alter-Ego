@@ -18,8 +18,7 @@ import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
 import { convertTimeStringToDurationUnits, parseDuration } from './helpers.js';
 import { ChannelType, Collection } from 'discord.js';
-import dayjs from 'dayjs';
-dayjs().format();
+import { Duration, DateTime } from 'luxon';
 
 /**
  * Loads data from the Rooms sheet into the game.
@@ -562,7 +561,7 @@ export function checkRecipe(recipe) {
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 ingredients must require a fixture tag.`);
     if (recipe.products.length > 2 && recipe.fixtureTag === "")
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes with more than 2 products must require a fixture tag.`);
-    if (recipe.duration !== null && !dayjs.isDuration(recipe.duration))
+    if (recipe.duration !== null && !Duration.isDuration(recipe.duration))
         return new Error(`Couldn't load recipe on row ${recipe.row}. An invalid duration was given.`);
     if (recipe.fixtureTag === "" && recipe.duration !== null)
         return new Error(`Couldn't load recipe on row ${recipe.row}. Recipes without a fixture tag cannot have a duration.`);
@@ -1079,9 +1078,9 @@ export function loadEvents(game, doErrorChecking) {
 export function checkEvent(event) {
     if (event.id === "" || event.id === null || event.id === undefined)
         return new Error(`Couldn't load event on row ${event.row}. No event ID was given.`);
-    if (event.duration !== null && !dayjs.isDuration(event.duration))
+    if (event.duration !== null && !Duration.isDuration(event.duration))
         return new Error(`Couldn't load event on row ${event.row}. "${event.durationString}" is not a valid duration.`);
-    if (event.remaining !== null && !dayjs.isDuration(event.remaining))
+    if (event.remaining !== null && !Duration.isDuration(event.remaining))
         return new Error(`Couldn't load event on row ${event.row}. "${event.remainingString}" is not a valid representation of the time remaining.`);
     if (!event.ongoing && event.remaining !== null)
         return new Error(`Couldn't load event on row ${event.row}. The event is not ongoing, but an amount of time remaining was given.`);
