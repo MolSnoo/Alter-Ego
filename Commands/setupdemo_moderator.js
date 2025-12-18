@@ -1,7 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { setupdemo } from '../Modules/saver.js';
 import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 
 import { ChannelType } from 'discord.js';
@@ -29,7 +28,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}setupdemo`;
 }
 
@@ -39,11 +38,11 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (game.inProgress) return messageHandler.addReply(game, message, `You can't use this command while a game is in progress.`);
 
     try {
-        var roomValues = await setupdemo(game);
+        const roomValues = await game.entitySaver.setupdemo();
 
         // Ensure that a room category exists.
         let roomCategories = game.guildContext.roomCategories;

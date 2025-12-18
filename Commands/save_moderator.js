@@ -1,7 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { saveGame } from '../Modules/saver.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -19,7 +18,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}save`;
 }
 
@@ -29,9 +28,9 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     try {
-        await saveGame(game);
+        await game.entitySaver.saveGame();
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully saved game data to the spreadsheet.");
     }
     catch (err) {
