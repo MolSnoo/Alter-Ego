@@ -40,9 +40,9 @@ export async function execute (game, message, command, args) {
     var deletedItemsCount = 0;
     var deletedInventoryItemsCount = 0;
     // Iterate through the lists backwards because the act of splicing ruins the order of iteration going forwards.
-    for (let i = game.items.length - 1; i >= 0; i--) {
-        if (game.items[i].quantity === 0) {
-            game.items.splice(i, 1);
+    for (let i = game.roomItems.length - 1; i >= 0; i--) {
+        if (game.roomItems[i].quantity === 0) {
+            game.roomItems.splice(i, 1);
             deletedItemsCount++;
         }
     }
