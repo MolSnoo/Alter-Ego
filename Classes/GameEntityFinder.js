@@ -53,7 +53,7 @@ export default class GameEntityFinder {
 	 * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
 	 */
 	getFixture(name, location) {
-		if (location) return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
+		if (name && location) return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
 		else return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
 	}
 
@@ -77,8 +77,8 @@ export default class GameEntityFinder {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
-		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
-		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
+		if (identifier && location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
+		if (identifier && containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
 		return this.game.roomItems.find(roomItem => roomItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(roomItem, key)));
 	}
 
@@ -93,10 +93,10 @@ export default class GameEntityFinder {
 	getPuzzle(name, location, type, accessible) {
 		/** @type {Collection<string|boolean, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
-		if (name) selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
-		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
-		if (type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
-		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
+		selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
+		if (name && location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
+		if (name && type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
+		if (name && accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
 		return this.game.puzzles.find(puzzle => selectedFilters.every((filterFunction, key) => filterFunction(puzzle, key)));
 	}
 
@@ -157,9 +157,9 @@ export default class GameEntityFinder {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
-		if (player) selectedFilters.set(Game.generateValidEntityName(player), matchers.inventoryItemPlayerNameMatches);
-		if (containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
-		if (equipmentSlotId) selectedFilters.set(Game.generateValidEntityName(equipmentSlotId), matchers.inventoryItemEquipmentSlotMatches);
+		if (identifier && player) selectedFilters.set(Game.generateValidEntityName(player), matchers.inventoryItemPlayerNameMatches);
+		if (identifier && containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
+		if (identifier && equipmentSlotId) selectedFilters.set(Game.generateValidEntityName(equipmentSlotId), matchers.inventoryItemEquipmentSlotMatches);
 		return this.game.inventoryItems.find(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0 && selectedFilters.every((filterFunction, key) => filterFunction(inventoryItem, key)));
 	}
 

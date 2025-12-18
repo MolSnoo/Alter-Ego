@@ -1,7 +1,8 @@
 import BotContext from '../Classes/BotContext.js';
 import GameConstants from '../Classes/GameConstants.js';
 import GameEntityFinder from '../Classes/GameEntityFinder.js';
-import GameEntityManager from '../Classes/GameEntityManager.js';
+import GameEntityLoader from '../Classes/GameEntityLoader.js';
+import GameEntitySaver from '../Classes/GameEntitySaver.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
@@ -18,7 +19,6 @@ import InventoryItem from './InventoryItem.js';
 import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Whisper from './Whisper.js';
-import { saveGame } from '../Modules/saver.js';
 import { sendQueuedMessages } from '../Modules/messageHandler.js';
 import { Collection } from 'discord.js';
 import dayjs from 'dayjs';
@@ -59,11 +59,17 @@ export default class Game {
 	 */
 	entityFinder;
 	/**
-	 * A set of functions to manage game entities.
+	 * A set of functions to load game entities from the sheet.
 	 * @readonly
-	 * @type {GameEntityManager}
+	 * @type {GameEntityLoader}
 	 */
-	entityManager;
+	entityLoader;
+	/**
+	 * A set of functions to save game entities to the sheet.
+	 * @readonly
+	 * @type {GameEntitySaver}
+	 */
+	entitySaver;
 	/**
 	 * Whether or not the game is currently in progress.
 	 * @type {boolean}
@@ -269,7 +275,8 @@ export default class Game {
 		this.settings = settings;
 		this.constants = new GameConstants();
 		this.entityFinder = new GameEntityFinder(this);
-		this.entityManager = new GameEntityManager(this);
+		this.entityLoader = new GameEntityLoader(this);
+		this.entitySaver = new GameEntitySaver(this);
 		this.inProgress = false;
 		this.canJoin = false;
 		this.halfTimer = null;
@@ -312,7 +319,7 @@ export default class Game {
 		);
 		// Save data to the sheet periodically.
 		this.#autoSaveInterval = setInterval(
-			() => { if (this.inProgress && !this.editMode) saveGame(this); },
+			() => { if (this.inProgress && !this.editMode) this.entitySaver.saveGame(); },
 			this.settings.autoSaveInterval * 1000
 		);
 		// Check for any events that are supposed to trigger at this time of day.
