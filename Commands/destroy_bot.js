@@ -86,7 +86,7 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
             if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "") {
-                if (roomItems[i].inventory.length === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
+                if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
                 containerItem = roomItems[i];
 
                 if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "")
@@ -98,10 +98,10 @@ export async function execute (game, command, args, player, callee) {
                 if (parsedInput.endsWith(" OF")) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                     newArgs = parsedInput.split(' ');
-                    for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                        if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
-                            containerItemSlot = containerItem.inventory[slot];
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
+                    for (const [id, slot] of containerItem.inventoryCollection) {
+                        if (parsedInput.endsWith(id)) { // TODO: optimize with arg slicing
+                            containerItemSlot = slot;
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                             break;
                         }
                     }
@@ -114,7 +114,7 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
         }
-        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
+        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
 
         // Check if a fixture was specified.
         let fixture = null;
@@ -244,7 +244,7 @@ export async function execute (game, command, args, player, callee) {
                     break;
                 }
                 if (parsedInput2.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "" || parsedInput2.endsWith(playerItems[i].prefab.id)) {
-                    if (playerItems[i].inventory.length === 0 || playerItems[i].prefab.preposition === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${playerItems[i].identifier ? playerItems[i].identifier : playerItems[i].prefab.id} cannot hold items.`);
+                    if (playerItems[i].inventoryCollection.size === 0 || playerItems[i].prefab.preposition === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${playerItems[i].identifier ? playerItems[i].identifier : playerItems[i].prefab.id} cannot hold items.`);
                     containerItem = playerItems[i];
 
                     if (parsedInput2.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "")
@@ -256,10 +256,10 @@ export async function execute (game, command, args, player, callee) {
                     if (parsedInput2.endsWith(" OF")) {
                         parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(" OF")).trimEnd();
                         newArgs = parsedInput2.split(' ');
-                        for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                            if (parsedInput2.endsWith(containerItem.inventory[slot].id)) {
-                                containerItemSlot = containerItem.inventory[slot];
-                                parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(containerItemSlot.id)).trimEnd();
+                        for (const [id, slot] of containerItem.inventoryCollection) {
+                            if (parsedInput2.endsWith(id)) {
+                                containerItemSlot = slot;
+                                parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(id)).trimEnd();
                                 break;
                             }
                         }
@@ -272,7 +272,7 @@ export async function execute (game, command, args, player, callee) {
                     break;
                 }
             }
-            if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
+            if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
             const slotName = containerItem !== null ? containerItemSlot.id : "";
 
             const newArgs = parsedInput2.split(" ");

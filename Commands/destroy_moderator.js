@@ -83,7 +83,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
             if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "") {
-                if (roomItems[i].inventory.length === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
+                if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
                 containerItem = roomItems[i];
 
                 if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "")
@@ -95,10 +95,10 @@ export async function execute (game, message, command, args) {
                 if (parsedInput.endsWith(" OF")) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                     newArgs = parsedInput.split(' ');
-                    for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                        if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
-                            containerItemSlot = containerItem.inventory[slot];
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
+                    for (const [id, slot] of containerItem.inventoryCollection) {
+                        if (parsedInput.endsWith(id)) {
+                            containerItemSlot = slot;
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                             break;
                         }
                     }
@@ -111,7 +111,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
         }
-        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
+        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
 
         // Check if a fixture was specified.
         let fixture = null;
@@ -227,7 +227,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
             if (parsedInput.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "" || parsedInput.endsWith(playerItems[i].prefab.id)) {
-                if (playerItems[i].inventory.length === 0 || playerItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${playerItems[i].identifier ? playerItems[i].identifier : playerItems[i].prefab.id} cannot hold items.`);
+                if (playerItems[i].inventoryCollection.size === 0 || playerItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${playerItems[i].identifier ? playerItems[i].identifier : playerItems[i].prefab.id} cannot hold items.`);
                 containerItem = playerItems[i];
 
                 if (parsedInput.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "")
@@ -239,10 +239,10 @@ export async function execute (game, message, command, args) {
                 if (parsedInput.endsWith(" OF")) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                     newArgs = parsedInput.split(' ');
-                    for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                        if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
-                            containerItemSlot = containerItem.inventory[slot];
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
+                    for (const [id, slot] of containerItem.inventoryCollection) {
+                        if (parsedInput.endsWith(id)) {
+                            containerItemSlot = slot;
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                             break;
                         }
                     }
@@ -255,7 +255,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
         }
-        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
+        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
         const slotName = containerItem !== null ? containerItemSlot.id : "";
 
         let containerItems = [];

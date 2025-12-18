@@ -182,15 +182,21 @@ export async function execute (game, message, command, args) {
                         containerName = itemContainer.prefab.id;
                     if (containerName !== "") {
                         const tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${containerName}`)).trim();
-                        for (let slot = 0; slot < itemContainer.inventory.length; slot++) {
-                            if (itemContainer.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
-                                item = items[i];
-                                container = item.container;
-                                slotName = item.slot;
-                                break;
+                        container = itemContainer.inventoryCollection.get(tempSlotName)
+                        if (container && items[i].slot === tempSlotName) {
+                            item = items[i];
+                            slotName = item.slot;
+                        } else {
+                            for (const [id, slot] of itemContainer.inventoryCollection) {
+                                if (id === tempSlotName && items[i].slot === tempSlotName) {
+                                    item = items[i];
+                                    container = item.container;
+                                    slotName = item.slot;
+                                    break;
+                                }
                             }
                         }
-                        if (item !== null) break;
+                        if (!(item === null || item === undefined)) break;
                     }
                     // Only a container was specified.
                     else if (itemContainer.identifier !== "" && itemContainer.identifier === containerString || itemContainer.prefab.id === containerString) {
