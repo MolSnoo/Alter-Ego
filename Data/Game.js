@@ -22,6 +22,7 @@ import Whisper from './Whisper.js';
 import { sendQueuedMessages } from '../Modules/messageHandler.js';
 import { Collection } from 'discord.js';
 import { DateTime } from 'luxon';
+import { parseTriggerTime } from '../Modules/helpers.js';
 
 /**
  * @class Game
@@ -328,11 +329,12 @@ export default class Game {
 				this.eventsCollection.forEach(event => {
 					if (!event.ongoing) {
 						for (let triggerTimeString of event.triggerTimesStrings) {
-							const time = dayjs(triggerTimeString, Event.formats); // TODO: update to luxon ad-hoc parsing, date-fns parsing if needed
-							if (now.month === time.month()
-								&& now.weekday === time.weekday()
-								&& now.hour === time.hour()
-								&& now.minute === time.minute()) {
+							const time = parseTriggerTime(triggerTimeString);
+							if (time.valid
+								&& now.month === time.datetime.month
+								&& now.weekday === time.datetime.weekday
+								&& now.hour === time.datetime.hour
+								&& now.minute === time.datetime.minute) {
 								event.trigger(true);
 								break;
 							}

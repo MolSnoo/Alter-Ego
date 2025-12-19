@@ -16,7 +16,7 @@ import Player from '../Data/Player.js';
 import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
 import { getSheetValues } from '../Modules/sheets.js';
-import { convertTimeStringToDurationUnits, parseDuration } from '../Modules/helpers.js';
+import { convertTimeStringToDurationUnits, parseDuration, parseTriggerTime } from '../Modules/helpers.js';
 import { prettyObject } from '../Modules/prettyPrinter.js';
 import { ChannelType, Collection } from 'discord.js';
 import { Duration } from 'luxon';
@@ -1453,8 +1453,8 @@ export default class GameEntityLoader extends GameEntityManager {
 		if (event.ongoing && event.duration !== null && event.remaining === null)
 			return new Error(`Couldn't load event on row ${event.row}. The event is ongoing and has a duration, but no amount of time remaining was given.`);
 		for (let triggerTimeString of event.triggerTimesStrings) {
-			let triggerTime = dayjs(triggerTimeString, Event.formats);
-			if (!triggerTime.isValid())
+			let triggerTime = parseTriggerTime(triggerTimeString);
+			if (!triggerTime.valid)
 				return new Error(`Couldn't load event on row ${event.row}. "${triggerTimeString}" is not a valid time to trigger at.`);
 		}
 		for (let i = 0; i < event.effects.length; i++) {

@@ -181,18 +181,18 @@ export default class Event extends GameEntity {
 
     /** A list of acceptable formats for triggerTimes. */
     static formats = [
-        "LT",           "LTS",          "HH:mm",            "hh:mm a",
-        "ddd LT",       "ddd LTS",      "ddd HH:mm",        "ddd hh:mm a",
-        "dddd LT",      "dddd LTS",     "dddd HH:mm",       "dddd hh:mm a",
-        "Do LT",        "Do LTS",       "Do HH:mm",         "Do hh:mm a",
-        "Do MMM LT",    "Do MMM LTS",   "Do MMM HH:mm",     "Do MMM hh:mm a",
-        "Do MMMM LT",   "Do MMMM LTS",  "Do MMMM HH:mm",    "Do MMMM hh:mm a",
-        "D MMM LT",     "D MMM LTS",    "D MMM HH:mm",      "D MMM hh:mm a",
-        "D MMMM LT",    "D MMMM LTS",   "D MMMM HH:mm",     "D MMMM hh:mm a",
-        "MMM Do LT",    "MMM Do LTS",   "MMM Do HH:mm",     "MMM Do hh:mm a",
-        "MMMM Do LT",   "MMMM Do LTS",  "MMMM Do HH:mm",    "MMMM Do hh:mm a",
-        "MMM D LT",     "MMM D LTS",    "MMM D HH:mm",      "MMM D hh:mm a",
-        "MMMM D LT",    "MMMM D LTS",   "MMMM D HH:mm",     "MMMM D hh:mm a"
+        "p",           "pp",          "HH:mm",            "hh:mm a",
+        "ccc p",       "ccc pp",      "ccc HH:mm",        "ccc hh:mm a",
+        "cccc p",      "cccc pp",     "cccc HH:mm",       "cccc hh:mm a",
+        "do p",        "do pp",       "do HH:mm",         "do hh:mm a",
+        "do MMM p",    "do MMM pp",   "do MMM HH:mm",     "do MMM hh:mm a",
+        "do MMMM p",   "do MMMM pp",  "do MMMM HH:mm",    "do MMMM hh:mm a",
+        "d MMM p",     "d MMM pp",    "d MMM HH:mm",      "d MMM hh:mm a",
+        "d MMMM p",    "d MMMM pp",   "d MMMM HH:mm",     "d MMMM hh:mm a",
+        "MMM do p",    "MMM do pp",   "MMM do HH:mm",     "MMM do hh:mm a",
+        "MMMM do p",   "MMMM do pp",  "MMMM do HH:mm",    "MMMM do hh:mm a",
+        "MMM d p",     "MMM d pp",    "MMM d HH:mm",      "MMM d hh:mm a",
+        "MMMM d p",    "MMMM d pp",   "MMMM d HH:mm",     "MMMM d hh:mm a"
     ];
 
     /**
