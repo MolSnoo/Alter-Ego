@@ -28,6 +28,25 @@ export default class GameEntityManager {
 	}
 
 	/**
+	 * Clears all game data from memory.
+	 * @protected
+	 */
+	clearGame() {
+		this.clearRooms();
+		this.clearFixtures();
+		this.clearPrefabs();
+		this.clearRecipes();
+		this.clearRoomItems();
+		this.clearPuzzles();
+		this.clearEvents();
+		this.clearStatusEffects();
+		this.clearPlayers();
+		this.clearInventoryItems();
+		this.clearGestures();
+		this.clearFlags();
+	}
+
+	/**
 	 * Clears all room data from memory.
 	 * @protected
 	 */

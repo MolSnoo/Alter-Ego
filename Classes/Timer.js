@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import { Duration } from 'luxon';
 
 /**
  * @class Timer
@@ -47,13 +47,13 @@ export default class Timer {
      */
     endTick;
     /**
-     * @param {number|import("dayjs/plugin/duration.js").Duration} duration - Timer duration in milliseconds.
+     * @param {number|Duration} duration - Timer duration in milliseconds.
      * @param {TimerAttributes} attributes - Timer attributes.
      * @param {Function} [callback] - Timer callback function.
      */
     constructor(duration, attributes, callback) {
-        if (dayjs.isDuration(duration))
-            this.timerDuration = duration.asMilliseconds();
+        if (Duration.isDuration(duration))
+            this.timerDuration = duration.as('milliseconds');
         else 
             this.timerDuration = duration;
         this.attributes = { ...{ loop: false, start: false }, ...attributes };
@@ -138,8 +138,8 @@ export default class Timer {
 
     /**
      * Set or get the timer duration.
-     * @param {number|import('dayjs/plugin/duration.js').Duration} [duration] - New duration.
-     * @param {import('dayjs/plugin/duration.js').DurationUnitType} [unit] - Time unit if duration is a number.
+     * @param {number|Duration} [duration] - New duration.
+     * @param {import('luxon').DurationUnits} [unit] - Time unit if duration is a number.
      * @returns {boolean|void} Returns true if setting, nothing if getting.
      */
     duration(duration, unit) {
@@ -149,13 +149,15 @@ export default class Timer {
             if (typeof duration === "number") {
                 // Convert based on unit if provided.
                 if (unit) {
-                    ms = dayjs.duration(duration, unit).asMilliseconds();
+                    let durationInput = {}
+                    durationInput[unit] = duration;
+                    ms = Duration.fromObject(durationInput).as('milliseconds');
                 } else {
                     ms = duration;
                 }
-            } else if (duration && typeof duration.asMilliseconds === "function") {
-                // Dayjs duration object.
-                ms = duration.asMilliseconds();
+            } else if (duration && Duration.isDuration(duration)) {
+                // Luxon duration object.
+                ms = duration.as('milliseconds');
             } else {
                 throw new Error("Invalid duration parameter");
             }
