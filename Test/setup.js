@@ -8,7 +8,6 @@ import settings from './__mocks__/configs/settings.js';
 
 import toBeWithinRange from './__extenders__/toBeWithinRange.js';
 import toHaveSize from './__extenders__/toHaveSize.js';
-import { getSheetValues } from '../Modules/sheets.js';
 
 import GuildContext from '../Classes/GuildContext.js';
 import GameSettings from '../Classes/GameSettings.js';
