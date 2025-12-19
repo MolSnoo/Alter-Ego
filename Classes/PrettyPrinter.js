@@ -1,6 +1,7 @@
 import { Collection, Guild, GuildMember, TextChannel } from "discord.js";
 import { format } from "pretty-format";
 import { Duration } from 'luxon';
+import humanize from 'humanize-duration';
 import Timer from "./Timer.js";
 import Status from "../Data/Status.js";
 import Gesture from "../Data/Gesture.js";
@@ -57,7 +58,7 @@ class GameFilterPlugin {
             [
                 (value) => Duration.isDuration(value),
                 (/** @type {Duration} */ value) =>
-                    `<Duration ${value.humanize() || "unknown"}>`,
+                    `<Duration ${humanize(value.as('milliseconds')) || "unknown"}>`,
             ],
             [
                 // @ts-ignore
@@ -69,7 +70,7 @@ class GameFilterPlugin {
             [
                 (value) => value instanceof Status,
                 (/** @type {Status} */ value) =>
-                    `<Status "${value.id}" lasting ${value.duration?.humanize() || "unknown"}>`,
+                    `<Status "${value.id}" lasting ${humanize(value.duration?.as('milliseconds')) || "unknown"}>`,
             ],
             [(value) => value instanceof Gesture, (/** @type {Gesture} */ value) => `<Gesture "${value.id}">`],
             [
