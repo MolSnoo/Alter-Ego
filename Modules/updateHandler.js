@@ -1,14 +1,24 @@
-import constants from '../Configs/constants.json' with { type: 'json' };
-import { batchUpdateSheet, batchUpdateSheetValues, getSheetWithProperties } from './sheets.js';
+import GameConstants from '../Classes/GameConstants.js';
+import GameSettings from '../Classes/GameSettings.js';
+import { batchUpdateSheet, getSheetWithProperties } from './sheets.js';
 
 import fs from 'fs';
 
-export default async function autoUpdate () {
-    await v1_9Update();
-    await v1_10Update();
+/**
+ * Automatically updates config files and the sheet.
+ * @param {GameSettings} settings 
+ */
+export default async function autoUpdate (settings) {
+    const constants = new GameConstants();
+    await v1_9Update(settings, constants);
+    await v1_10Update(settings, constants);
 }
 
-async function v1_10Update() {
+/**
+ * @param {GameSettings} settings 
+ * @param {GameConstants} constants
+ */
+async function v1_10Update(settings, constants) {
     // Update constants file. This shouldn't be necessary if Docker is used.
     if (constants.recipeSheetDataCells === "Recipes!A2:F" ||
         constants.recipeSheetInitiatedColumn === "Recipes!E" ||
@@ -24,7 +34,7 @@ async function v1_10Update() {
         console.log("Updated constants file with new Recipes sheet coordinates.");
     }
     // Updated Recipes sheet with the new columns.
-    const response = await getSheetWithProperties("Recipes!A1:H1");
+    const response = await getSheetWithProperties("Recipes!A1:H1", settings.spreadsheetID);
     const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
     if (sheetProperties.gridProperties.columnCount === 6) {
         var requests = [
@@ -75,14 +85,18 @@ async function v1_10Update() {
                 }
             }
         ];
-        batchUpdateSheet(requests).then(() => {
+        batchUpdateSheet(requests, settings.spreadsheetID).then(() => {
             console.log("Inserted Uncraftable and Message When Uncrafted columns on Recipes sheet.");
         }).catch(err => console.error(err));
         
     }
 }
 
-async function v1_9Update() {
+/**
+ * @param {GameSettings} settings 
+ * @param {GameConstants} constants
+ */
+async function v1_9Update(settings, constants) {
     // Update constants file. This shouldn't be necessary if Docker is used.
     if (constants.playerSheetDataCells === "Players!A3:N" ||
         constants.playerSheetDescriptionColumn === "Players!N"
@@ -90,11 +104,11 @@ async function v1_9Update() {
         constants.playerSheetDataCells = "Players!A3:O";
         constants.playerSheetDescriptionColumn = "Players!O";
         let json = JSON.stringify(constants);
-        await fs.writeFileSync('Configs/constants.json', json, 'utf8');
+        fs.writeFileSync('Configs/constants.json', json, 'utf8');
         console.log("Updated constants file with new Players sheet coordinates.");
     }
     // Update Players sheet with the new voice column.
-    const response = await getSheetWithProperties("Players!A1:O1");
+    const response = await getSheetWithProperties("Players!A1:O1", settings.spreadsheetID);
     const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
     if (sheetProperties.gridProperties.columnCount === 14) {
         var requests = [
@@ -134,7 +148,7 @@ async function v1_9Update() {
                 }
             }
         ];
-        batchUpdateSheetValues(requests).then(() => {
+        batchUpdateSheet(requests, settings.spreadsheetID).then(() => {
             console.log("Inserted Voice column on Players sheet.");
         }).catch(err => console.error(err));
     }
