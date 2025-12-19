@@ -18,7 +18,6 @@ import Game from '../Data/Game.js';
 import BotContext from '../Classes/BotContext.js';
 import { Collection } from 'discord.js';
 
-
 vi.mock('../Configs/credentials.json', () => ({ default: credentials }));
 vi.mock('../Configs/demodata.json', () => ({ default: demodata }));
 vi.mock('../Configs/playerdefaults.json', () => ({ default: playerdefaults }));

@@ -7,7 +7,7 @@
   "scripts": {
     "run": "node bot.js",
     "start": "node bot.js",
-    "pretest": "node Test/pretest.js",
+    "createLocalFiles": "node Test/createLocalFiles.js",
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage"
