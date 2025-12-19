@@ -1,8 +1,6 @@
 import Game from "../Data/Game.js";
 import { EmbedBuilder } from "discord.js";
-import { DateTime, Duration } from 'luxon';
-import Event from "../Data/Event.js";
-import { parse } from "date-fns";
+import { Duration } from 'luxon';
 
 /**
  * Gets a random string out of an array of possibilties.
@@ -64,21 +62,6 @@ export function convertTimeStringToDurationUnits(timeString) {
 			seconds: secondsValue
 		};
 	}
-}
-
-/**
- * Parses a triggerTime string and returns an object that stores the parsed time and the format used to parse it.
- * @param {string} timeString - The string to parse. 
- * @returns {ParsedTriggerTime}
- */
-export function parseTriggerTime(timeString) {
-    for (const format of Event.formats) {
-        let parsedTime = DateTime.fromJSDate(parse(timeString, format, new Date()));
-        if (parsedTime.isValid) {
-            return { format: format, datetime: parsedTime, valid: true };
-        }
-    }
-    return { format: null, datetime: undefined, valid: false };
 }
 
 /**

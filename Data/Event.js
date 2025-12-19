@@ -6,7 +6,8 @@ import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
 import Timer from '../Classes/Timer.js';
-import { Duration } from 'luxon';
+import { DateTime, Duration } from 'luxon';
+import { parse } from 'date-fns';
 
 /**
  * @class Event
@@ -320,5 +321,20 @@ export default class Event extends GameEntity {
     }
     endedCell() {
         return this.game.constants.eventSheetEndedColumn + this.row;
+    }
+
+    /**
+     * Parses a triggerTime string and returns an object that stores the parsed time and the format used to parse it.
+     * @param {string} timeString - The string to parse. 
+     * @returns {ParsedTriggerTime}
+     */
+    static parseTriggerTime(timeString) {
+        for (const format of Event.formats) {
+            let parsedTime = DateTime.fromJSDate(parse(timeString, format, new Date()));
+            if (parsedTime.isValid) {
+                return { format: format, datetime: parsedTime, valid: true };
+            }
+        }
+        return { format: null, datetime: undefined, valid: false };
     }
 }

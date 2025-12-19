@@ -22,7 +22,6 @@ import Whisper from './Whisper.js';
 import { sendQueuedMessages } from '../Modules/messageHandler.js';
 import { Collection } from 'discord.js';
 import { DateTime } from 'luxon';
-import { parseTriggerTime } from '../Modules/helpers.js';
 
 /**
  * @class Game
@@ -329,7 +328,7 @@ export default class Game {
 				this.eventsCollection.forEach(event => {
 					if (!event.ongoing) {
 						for (let triggerTimeString of event.triggerTimesStrings) {
-							const time = parseTriggerTime(triggerTimeString);
+							const time = Event.parseTriggerTime(triggerTimeString);
 							if (time.valid
 								&& now.month === time.datetime.month
 								&& now.weekday === time.datetime.weekday
