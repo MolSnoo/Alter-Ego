@@ -15,6 +15,7 @@ describe('trigger times', () => {
 		return moment1 && moment2 &&
 		moment1.isValid && moment2.isValid &&
 		moment1.month === moment2.month &&
+		moment1.day === moment2.day &&
 		moment1.weekday === moment2.weekday &&
 		moment1.hour === moment2.hour &&
 		moment1.minute === moment2.minute;
@@ -243,7 +244,7 @@ describe('trigger times', () => {
 			expect(momentsEqual(now, badEvent)).not.toBeTruthy();
 		});
 
-		test('test_trigger_times_27', () => { // TODO: investigate failure
+		test('test_trigger_times_27', () => {
 			const event = Event.parseTriggerTime("11 Oct 08:30 PM").datetime;	
 			expect(momentsEqual(now, event)).toBeTruthy();
 
@@ -251,7 +252,7 @@ describe('trigger times', () => {
 			expect(momentsEqual(now, badEvent)).not.toBeTruthy();
 		});
 
-		test('test_trigger_times_28', () => { // TODO: investigate failureq
+		test('test_trigger_times_28', () => {
 			const event = Event.parseTriggerTime("11 October 8:30 PM").datetime;	
 			expect(momentsEqual(now, event)).toBeTruthy();
 
