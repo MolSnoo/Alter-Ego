@@ -2,12 +2,12 @@ import GameEntity from './GameEntity.js';
 import Game from './Game.js';
 import Narration from '../Data/Narration.js';
 import Status from './Status.js';
-import { default as executeCommand } from '../Modules/commandHandler.js';
-import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
+import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
+import { addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
-import moment from 'moment';
-import timer from 'moment-timer';
-moment().format();
+import Timer from '../Classes/Timer.js';
+import dayjs from 'dayjs';
+dayjs().format();
 
 /**
  * @class Event
@@ -18,12 +18,14 @@ moment().format();
 export default class Event extends GameEntity {
     /**
      * The unique ID of the event.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The unique name of the event. Deprecated. Use `id` instead.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     name;
@@ -39,7 +41,7 @@ export default class Event extends GameEntity {
     durationString;
     /**
      * The duration object of the event.
-     * @type {import('moment').Duration}
+     * @type {import('dayjs/plugin/duration.js').Duration}
      */
     duration;
     /**
@@ -49,20 +51,27 @@ export default class Event extends GameEntity {
     remainingString;
     /**
      * The remaining time of the event.
-     * @type {import('moment').Duration}
+     * @type {import('dayjs/plugin/duration.js').Duration}
      */
     remaining;
     /**
-     * The string representation of what times the event will be automatically triggered.
-     * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string
+     * The string representation of what times the event will be automatically triggered. Deprecated. Use triggerTimesStrings instead.
+     * @deprecated
      * @type {string}
      */
     triggerTimesString;
     /**
-     * What times the event will be automatically triggered.
+     * What times the event will be automatically triggered. Deprecated. Use triggerTimesStrings instead.
+     * @deprecated
      * @type {string[]}
      */
     triggerTimes;
+    /**
+     * The string representations of what times the event will be automatically triggered.
+     * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-strings
+     * @type {string[]}
+     */
+    triggerTimesStrings;
     /**
      * The keyword or phrase assigned to the event that allows it to affect rooms.
      * @type {string}
@@ -105,22 +114,24 @@ export default class Event extends GameEntity {
     refreshes;
     /**
      * The narration to be sent to affected rooms when the event is triggered.
+     * @readonly
      * @type {string}
      */
     triggeredNarration;
     /**
      * The narration to be sent to affected rooms when the event is ended.
+     * @readonly
      * @type {string}
      */
     endedNarration;
     /** 
      * A timer counting down from the event's initial duration every second. When it reaches 0, the event ends, and this becomes `null`.
-     * @type {timer | null} 
+     * @type {Timer | null} 
      */
     timer;
     /** 
      * A timer that inflicts and refreshes status effects every second whil the event is ongoing.
-     * @type {timer | null}
+     * @type {Timer | null}
      */
     effectsTimer;
 
@@ -129,11 +140,10 @@ export default class Event extends GameEntity {
      * @param {string} id - The unique ID of the event.
      * @param {boolean} ongoing - Whether the event is ongoing.
      * @param {string} durationString - The string representation of how long the event lasts after being triggered.
-     * @param {import('moment').Duration} duration - The duration object of the event.
+     * @param {import('dayjs/plugin/duration.js').Duration} duration - The duration object of the event.
      * @param {string} remainingString - The string representation of the remaining time of the event.
-     * @param {import('moment').Duration} remaining - The remaining time of the event.
-     * @param {string} triggerTimesString - The string representation of what times the event will be automatically triggered. Refer to this link for accepted formats: {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string}
-     * @param {string[]} triggerTimes - What times the event will be automatically triggered.
+     * @param {import('dayjs/plugin/duration.js').Duration} remaining - The remaining time of the event.
+     * @param {string[]} triggerTimesStrings - The string representations of what times the event will be automatically triggered. Refer to this link for accepted formats: {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string}
      * @param {string} roomTag - The keyword or phrase assigned to the event that allows it to affect rooms.
      * @param {string} commandsString - Forward slash separated list of comma-separated bot commands to be executed when the event is triggered or ended.
      * @param {string[]} triggeredCommands - The bot commands to be executed when the event is triggered.
@@ -145,7 +155,7 @@ export default class Event extends GameEntity {
      * @param {number} row - The row of the event in the event sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(id, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshesStrings, triggeredNarration, endedNarration, row, game) {
+    constructor(id, ongoing, durationString, duration, remainingString, remaining, triggerTimesStrings, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshesStrings, triggeredNarration, endedNarration, row, game) {
         super(game, row);
         this.id = id;
         this.name = id;
@@ -154,8 +164,7 @@ export default class Event extends GameEntity {
         this.duration = duration;
         this.remainingString = remainingString;
         this.remaining = remaining;
-        this.triggerTimesString = triggerTimesString;
-        this.triggerTimes = triggerTimes;
+        this.triggerTimesStrings = triggerTimesStrings;
         this.roomTag = roomTag;
         this.commandsString = commandsString;
         this.triggeredCommands = triggeredCommands;
@@ -197,27 +206,14 @@ export default class Event extends GameEntity {
 
         // Send the triggered narration to all rooms with occupants.
         if (this.triggeredNarration !== "") {
-            for (let i = 0; i < this.game.rooms.length; i++) {
-                if (this.game.rooms[i].tags.includes(this.roomTag) && this.game.rooms[i].occupants.length > 0)
-                    new Narration(this.game, null, this.game.rooms[i], parseDescription(this.triggeredNarration, this, null)).send();
-            }
+            const rooms = this.game.entityFinder.getRooms(null, this.roomTag, false);
+            for (let room of rooms)
+                new Narration(this.game, null, room, parseDescription(this.triggeredNarration, this, null)).send();
         }
 
-        if (doTriggeredCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.triggeredCommands.length; i++) {
-                if (this.triggeredCommands[i].startsWith("wait")) {
-                    let args = this.triggeredCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(this.triggeredCommands[i], this.game, null, null, this);
-                }
-            }
-        }
+        // Execute triggered commands.
+        if (doTriggeredCommands)
+            await parseAndExecuteBotCommands(this.triggeredCommands, this.game, this);
 
         // Begin the timer, if applicable.
         if (this.duration)
@@ -252,40 +248,25 @@ export default class Event extends GameEntity {
 
         // Send the ended narration to all rooms with occupants.
         if (this.endedNarration !== "") {
-            for (let i = 0; i < this.game.rooms.length; i++) {
-                if (this.game.rooms[i].tags.includes(this.roomTag) && this.game.rooms[i].occupants.length > 0)
-                    new Narration(this.game, null, this.game.rooms[i], parseDescription(this.endedNarration, this, null)).send();
-            }
+            const rooms = this.game.entityFinder.getRooms(null, this.roomTag, false);
+            for (let room of rooms)
+                new Narration(this.game, null, room, parseDescription(this.endedNarration, this, null)).send();
         }
 
-        if (doEndedCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.endedCommands.length; i++) {
-                if (this.endedCommands[i].startsWith("wait")) {
-                    let args = this.endedCommands[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    executeCommand(this.endedCommands[i], this.game, null, null, this);
-                }
-            }
-        }
+        // Execute ended commands.
+        if (doEndedCommands)
+            await parseAndExecuteBotCommands(this.endedCommands, this.game, this);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
         addLogMessage(this.game, `${time} - ${this.id} was ended.`);
-
-        return;
     }
 
     async startTimer() {
         if (this.remaining === null)
             this.remaining = this.duration.clone();
         let event = this;
-        this.timer = moment.duration(1000).timer({ start: true, loop: true }, async function () {
+        this.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, async function () {
             event.remaining.subtract(1000, 'ms');
 
             const days = Math.floor(event.remaining.asDays());
@@ -310,27 +291,26 @@ export default class Event extends GameEntity {
 
     startEffectsTimer() {
         let event = this;
-        this.effectsTimer = moment.duration(1000).timer({ start: true, loop: true }, function () {
-            for (let i = 0; i < event.game.rooms.length; i++) {
-                if (event.game.rooms[i].tags.includes(event.roomTag)) {
-                    for (let j = 0; j < event.game.rooms[i].occupants.length; j++) {
-                        const occupant = event.game.rooms[i].occupants[j];
-                        for (let k = 0; k < event.effects.length; k++) {
-                            if (!occupant.statusString.includes(event.effects[k].name))
-                                occupant.inflict(event.effects[k], true, true, true);
-                        }
-                        for (let k = 0; k < event.refreshes.length; k++) {
-                            let status = null;
-                            for (let l = 0; l < occupant.status.length; l++) {
-                                if (occupant.status[l].name === event.refreshes[k].name) {
-                                    status = occupant.status[l];
-                                    break;
-                                }
+        this.effectsTimer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
+            const rooms = event.game.entityFinder.getRooms(null, event.roomTag, true);
+            for (let room of rooms) {
+                for (let occupant of room.occupants) {
+                    event.effects.forEach(effect => {
+                        if (!occupant.hasStatus(effect.id))
+                            occupant.inflict(effect, true, true, true);
+                    });
+                    event.refreshes.forEach(refresh => {
+                        /** @type {Status} */
+                        let status = null;
+                        for (let occupantStatus of occupant.status) {
+                            if (occupantStatus.id === refresh.id) {
+                                status = occupantStatus;
+                                break;
                             }
-                            if (status !== null && status.remaining !== null)
-                                status.remaining = event.effects[k].duration.clone();
                         }
-                    }
+                        if (status !== null && status.remaining !== null)
+                            status.remaining = refresh.duration.clone();
+                    });
                 }
             }
         });
@@ -342,11 +322,4 @@ export default class Event extends GameEntity {
     endedCell() {
         return this.game.constants.eventSheetEndedColumn + this.row;
     }
-}
-
-/**
- * @param {number} seconds 
- */
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

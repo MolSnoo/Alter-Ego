@@ -2,7 +2,7 @@
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message, ChannelType } from "discord.js";
+import { ChannelType } from "discord.js";
 import { default as handleDialog } from '../Modules/dialogHandler.js';
 
 /** @type {CommandConfig} */
@@ -26,18 +26,18 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("enable say");
-    if (status.length === 0) return messageHandler.addReply(message, `You have no reason to use the say command. Speak in the room channel instead.`);
+    if (status.length === 0) return messageHandler.addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
     var input = args.join(" ");
     if (!input.startsWith("(")) {
@@ -64,7 +64,7 @@ export async function execute (game, message, command, args, player) {
             embeds: message.embeds,
             files: files
         }).then(msg => {
-            handleDialog(game.botContext, game, msg, true, player, displayName)
+            handleDialog(game, msg, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;

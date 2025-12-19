@@ -1,6 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -33,10 +32,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     var input = command + " " + args.join(" ");
@@ -46,16 +45,16 @@ export async function execute (game, message, command, args) {
         else if (args[0] === "list") {
             command = "tags";
             if (!args[1])
-                return messageHandler.addReply(message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+                return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
         }
         input = input.substring(input.indexOf(args[1]));
         args = input.split(" ");
     }
     else input = args.join(" ");
 
-    if (command !== "addtag" && command !== "removetag" && command !== "tags") return messageHandler.addReply(message, 'Invalid command given. Use "add", "remove", or "list".');
+    if (command !== "addtag" && command !== "removetag" && command !== "tags") return messageHandler.addReply(game, message, 'Invalid command given. Use "add", "remove", or "list".');
     if ((command === "addtag" || command === "removetag") && args.length < 2)
-        return messageHandler.addReply(message, `You need to specify a room and at least one tag. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a room and at least one tag. Usage:\n${usage(game.settings)}`);
 
     input = args.join(" ");
     var parsedInput = input.replace(/ /g, "-").toLowerCase();
@@ -71,15 +70,15 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (room === null) return messageHandler.addReply(message, `Couldn't find room "${input}".`);
+    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
 
     if (command === "tags") {
         let tags = room.tags.join(", ");
-        messageHandler.addGameMechanicMessage(message.channel, `__Tags in ${room.name}:__\n${tags}`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `__Tags in ${room.name}:__\n${tags}`);
     }
     else {
         input = input.substring(room.name.length).trim();
-        if (input === "") return messageHandler.addReply(message, `You need to specify at least one tag.`);
+        if (input === "") return messageHandler.addReply(game, message, `You need to specify at least one tag.`);
 
         var tags = input.split(",");
         if (command === "addtag") {
@@ -90,9 +89,9 @@ export async function execute (game, message, command, args) {
                 addedTags.push(tags[i].trim());
                 room.tags.push(tags[i].trim());
             }
-            if (addedTags.length === 0) return messageHandler.addReply(message, `${room.name} already has the given tag(s).`);
+            if (addedTags.length === 0) return messageHandler.addReply(game, message, `${room.name} already has the given tag(s).`);
             let addedTagsString = addedTags.join(", ");
-            messageHandler.addGameMechanicMessage(message.channel, `Successfully added the following tags to ${room.name}: ${addedTagsString}`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully added the following tags to ${room.name}: ${addedTagsString}`);
         }
         else if (command === "removetag") {
             let removedTags = [];
@@ -104,9 +103,9 @@ export async function execute (game, message, command, args) {
                     room.tags.splice(room.tags.indexOf(tags[i].trim()), 1);
                 }
             }
-            if (removedTags.length === 0) return messageHandler.addReply(message, `${room.name} doesn't have the given tag(s).`);
+            if (removedTags.length === 0) return messageHandler.addReply(game, message, `${room.name} doesn't have the given tag(s).`);
             let removedTagsString = removedTags.join(", ");
-            messageHandler.addGameMechanicMessage(message.channel, `Successfully removed the following tags from ${room.name}: ${removedTagsString}`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully removed the following tags from ${room.name}: ${removedTagsString}`);
         }
     }
 

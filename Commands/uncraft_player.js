@@ -2,7 +2,6 @@ import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message } from "discord.js";
 
 /** @type {CommandConfig} */
 export const config = {
@@ -28,18 +27,18 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an item in your hand. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an item in your hand. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable uncraft");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -47,8 +46,8 @@ export async function execute (game, message, command, args, player) {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND") rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND") leftHand = player.inventory[slot];
+        if (player.inventory[slot].id === "RIGHT HAND") rightHand = player.inventory[slot];
+        else if (player.inventory[slot].id === "LEFT HAND") leftHand = player.inventory[slot];
     }
 
     // Now find the item in the player's inventory.
@@ -69,7 +68,7 @@ export async function execute (game, message, command, args, player) {
     }
 
     if (item === null) {
-        return messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of your hands.`);
+        return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands.`);
     }
 
     // Locate uncrafting recipe.
@@ -81,15 +80,15 @@ export async function execute (game, message, command, args, player) {
             break;
         }
     }
-    if (recipe === null) return messageHandler.addReply(message, `Couldn't find an uncraftable recipe that produces ${item.singleContainingPhrase}. Contact a moderator if you think there should be one.`);
+    if (recipe === null) return messageHandler.addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.singleContainingPhrase}. Contact a moderator if you think there should be one.`);
 
     if (!rightEmpty && !leftEmpty) {
-        return messageHandler.addReply(message, `You do not have an empty hand to uncraft ${item.singleContainingPhrase}. Either drop the item in your other hand or stash it in one of your equipped items.`);
+        return messageHandler.addReply(game, message, `You do not have an empty hand to uncraft ${item.singleContainingPhrase}. Either drop the item in your other hand or stash it in one of your equipped items.`);
     }
 
     let itemName = item.identifier ? item.identifier : item.prefab.id;
 
-    const ingredients = player.uncraft(game, item, recipe, game.botContext);
+    const ingredients = player.uncraft(item, recipe);
 
     let ingredientPhrase = "";
     let ingredient1Phrase = "";
@@ -103,7 +102,7 @@ export async function execute (game, message, command, args, player) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
 
     return;
 }

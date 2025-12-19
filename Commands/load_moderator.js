@@ -1,8 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-import * as loader from '../Modules/loader.js';
+import { addReply, addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -14,7 +12,7 @@ export const config = {
         + 'If at any point you restart the bot, use "all resume". Any data that was previously gathered will be updated. '
         + 'Any data you edit manually, including descriptions, will require use of this command.',
     usableBy: "Moderator",
-    aliases: ["load", "reload", "las", "lar", "gethousedata"],
+    aliases: ["load", "reload", "las", "lar"],
     requiresGame: false
 };
 
@@ -22,12 +20,12 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}load all start\n`
         + `${settings.commandPrefix}load all resume\n`
         + `${settings.commandPrefix}load all\n`
         + `${settings.commandPrefix}load rooms\n`
-        + `${settings.commandPrefix}load objects\n`
+        + `${settings.commandPrefix}load fixtures\n`
         + `${settings.commandPrefix}load prefabs\n`
         + `${settings.commandPrefix}load recipes\n`
         + `${settings.commandPrefix}load items\n`
@@ -41,309 +39,81 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (command !== "las" && command !== "lar" && args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
 
+    /** @type {Error[]} */
+    let errors = [];
     if (command === "las" || command === "lar" || args[0] === "all") {
-        var errors = [];
-        await loader.loadRooms(game, false);
-        await loader.loadObjects(game, false);
-        await loader.loadPrefabs(game, false);
-        await loader.loadRecipes(game, false);
-        await loader.loadItems(game, false);
-        await loader.loadPuzzles(game, false);
-        await loader.loadEvents(game, false);
-        await loader.loadStatusEffects(game, false);
-        await loader.loadPlayers(game, false);
-        await loader.loadInventories(game, false);
-        await loader.loadGestures(game, false);
-        await loader.loadFlags(game, false, errors);
-
-        for (let i = 0; i < game.rooms.length; i++) {
-            let error = loader.checkRoom(game.rooms[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.objects.length; i++) {
-            let error = loader.checkObject(game.objects[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.prefabs.length; i++) {
-            let error = loader.checkPrefab(game.prefabs[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.recipes.length; i++) {
-            let error = loader.checkRecipe(game.recipes[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.items.length; i++) {
-            let error = loader.checkItem(game.items[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.puzzles.length; i++) {
-            let error = loader.checkPuzzle(game.puzzles[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.events.length; i++) {
-            let error = loader.checkEvent(game.events[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.statusEffects.length; i++) {
-            let error = loader.checkStatusEffect(game.statusEffects[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.players.length; i++) {
-            let error = loader.checkPlayer(game.players[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            let error = loader.checkInventoryItem(game.inventoryItems[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        for (let i = 0; i < game.gestures.length; i++) {
-            let error = loader.checkGesture(game.gestures[i]);
-            if (error instanceof Error) errors.push(error);
-        }
-        if (errors.length > 0) {
-            if (errors.length > 15) {
-                errors = errors.slice(0, 15);
-                errors.push(new Error("Too many errors."));
-            }
-            messageHandler.addGameMechanicMessage(game, message.channel, errors.join('\n'));
-        }
-        else {
-            if (game.settings.debug) {
-                printData(game.rooms);
-                printData(game.objects);
-                printData(game.prefabs);
-                printData(game.recipes);
-                printData(game.items);
-                printData(game.puzzles);
-                printData(game.events);
-                printData(game.statusEffects);
-                printData(game.players);
-                printData(game.inventoryItems);
-                printData(game.gestures);
-                printData(game.flags);
-            }
-
-            messageHandler.addGameMechanicMessage(game, message.channel,
-                game.rooms.length + " rooms, " +
-                game.objects.length + " objects, " +
-                game.prefabs.length + " prefabs, " +
-                game.recipes.length + " recipes, " +
-                game.items.length + " items, " +
-                game.puzzles.length + " puzzles, " +
-                game.events.length + " events, " +
-                game.statusEffects.length + " status effects, " +
-                game.players.length + " players, " +
-                game.inventoryItems.length + " inventory items, " +
-                game.gestures.length + " gestures, and " +
-                game.flags.size + " flags retrieved."
-            );
-
-            const privatePlayers = [];
-            for (let i = 0; i < game.players_alive.length; i++) {
-                if (game.players_alive[i].title !== "NPC") {
-                    const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-                    if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
-                }
-            }
-            if (privatePlayers.length > 0) {
-                const privatePlayerList = privatePlayers.join(", ");
-                messageHandler.addGameMechanicMessage(game, message.channel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
-            }
-
-            if (command === "las" || args[1] && args[1] === "start") {
-                game.inProgress = true;
-                game.canJoin = false;
-                if (!game.settings.debug)
-                    game.botContext.updatePresence();
-                for (let i = 0; i < game.players_alive.length; i++)
-                    game.players_alive[i].sendDescription(game.players_alive[i].location.description, game.players_alive[i].location);
-            }
-            else if (command === "lar" || args[1] && args[1] === "resume") {
-                game.inProgress = true;
-                game.canJoin = false;
-                if (!game.settings.debug)
-                    game.botContext.updatePresence();
-            }
-
-            // Start event timers.
-            for (let i = 0; i < game.events.length; i++) {
-                if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer();
-                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer();
-            }
-        }
+        const startGame = command === "las" || command === "lar" || args[1] && (args[1] === "resume" || args[1] === "start");
+        const sendPlayerRoomDescriptions = startGame && (command === "las" || args[1] === "start");
+        const message = await game.entityLoader.loadAll(startGame, sendPlayerRoomDescriptions);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, message);
     }
     else if (args[0] === "rooms") {
-        try {
-            await loader.loadRooms(game, true);
-            if (game.settings.debug) printData(game.rooms);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.rooms.length + " rooms retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const roomCount = await game.entityLoader.loadRooms(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${roomCount} rooms retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
-    else if (args[0] === "objects") {
-        try {
-            await loader.loadObjects(game, true);
-            if (game.settings.debug) printData(game.objects);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.objects.length + " objects retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+    else if (args[0] === "fixtures" || args[0] === "objects") {
+        const fixtureCount = await game.entityLoader.loadFixtures(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${fixtureCount} fixtures retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "prefabs") {
-        try {
-            await loader.loadPrefabs(game, true);
-            if (game.settings.debug) printData(game.prefabs);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.prefabs.length + " prefabs retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const prefabCount = await game.entityLoader.loadPrefabs(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${prefabCount} prefabs retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "recipes") {
-        try {
-            await loader.loadRecipes(game, true);
-            if (game.settings.debug) printData(game.recipes);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.recipes.length + " recipes retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const recipeCount = await game.entityLoader.loadRecipes(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${recipeCount} recipes retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
-    else if (args[0] === "items") {
-        try {
-            await loader.loadItems(game, true);
-            if (game.settings.debug) printData(game.items);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.items.length + " items retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+    else if (args[0] === "roomitems" || args[0] === "items" || args[0] === "room" && args[1] === "items") {
+        const roomItemCount = await game.entityLoader.loadRoomItems(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${roomItemCount} room items retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "puzzles") {
-        try {
-            await loader.loadPuzzles(game, true);
-            if (game.settings.debug) printData(game.puzzles);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.puzzles.length + " puzzles retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const puzzleCount = await game.entityLoader.loadPuzzles(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${puzzleCount} puzzles retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "events") {
-        try {
-            await loader.loadEvents(game, true);
-            if (game.settings.debug) printData(game.events);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.events.length + " events retrieved.");
-
-            // Start event timers.
-            for (let i = 0; i < game.events.length; i++) {
-                if (game.events[i].ongoing && game.events[i].duration !== null)
-                    game.events[i].startTimer();
-                if (game.events[i].ongoing && (game.events[i].effects.length > 0 || game.events[i].refreshes.length > 0))
-                    game.events[i].startEffectsTimer();
-            }
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const eventCount = await game.entityLoader.loadEvents(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${eventCount} events retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "statuses" || args[0] === "effects" || args[0] === "status" && args[1] === "effects") {
-        try {
-            await loader.loadStatusEffects(game, true);
-            if (game.settings.debug) printData(game.statusEffects);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.statusEffects.length + " status effects retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const statusEffectCount = await game.entityLoader.loadStatusEffects(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${statusEffectCount} status effects retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "players") {
-        try {
-            await loader.loadPlayers(game, true);
-            if (game.settings.debug) printData(game.players);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.players.length + " players retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
-
-        const privatePlayers = [];
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC") {
-                const canDmPlayer = await checkCanDmPlayer(game.players_alive[i]);
-                if (!canDmPlayer) privatePlayers.push(game.players_alive[i].name);
-            }
-        }
-        if (privatePlayers.length > 0) {
-            const privatePlayerList = privatePlayers.join(", ");
-            messageHandler.addGameMechanicMessage(game, message.channel, `Warning: Cannot send direct messages to player(s): ${privatePlayerList}. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
-        }
+        const playerCount = await game.entityLoader.loadPlayers(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${playerCount} players retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
-    else if (args[0] === "inventories") {
-        try {
-            await loader.loadInventories(game, true);
-            if (game.settings.debug) printData(game.inventoryItems);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.inventoryItems.length + " inventory items retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+    else if (args[0] === "inventoryitems" || args[0] === "inventories" || args[0] === "inventory" && args[1] === "items") {
+        const inventoryItemCount = await game.entityLoader.loadInventoryItems(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${inventoryItemCount} inventory items retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "gestures") {
-        try {
-            await loader.loadGestures(game, true);
-            if (game.settings.debug) printData(game.gestures);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.gestures.length + " gestures retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const gestureCount = await game.entityLoader.loadGestures(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${gestureCount} gestures retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
     else if (args[0] === "flags") {
-        try {
-            await loader.loadFlags(game, true, errors);
-            if (game.settings.debug) printData(game.flags);
-            messageHandler.addGameMechanicMessage(game, message.channel, game.flags.size + " flags retrieved.");
-        }
-        catch (err) {
-            messageHandler.addGameMechanicMessage(game, message.channel, err);
-        }
+        const flagCount = await game.entityLoader.loadFlags(true, errors);
+        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${flagCount} flags retrieved.`);
+        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
     }
-}
-
-function printData(data) {
-    if (data instanceof Array) {
-        for (var i = 0; i < data.length; i++) {
-            console.log(data[i]);
-        }
-    }
-    else if (data instanceof Map) {
-        data.forEach(entry => {
-            console.log(entry);
-        });
-    }
-}
-
-function checkCanDmPlayer(player) {
-    return new Promise(resolve => {
-        player.member.send('').catch(error => {
-            if (error.hasOwnProperty("code") && error.code === 50007)
-                resolve(false);
-            else resolve(true);
-        });
-    });
 }

@@ -1,6 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -40,10 +39,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     var input = command + " " + args.join(" ");
@@ -57,7 +56,7 @@ export async function execute (game, message, command, args) {
     else input = args.join(" ");
 
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";
@@ -109,20 +108,20 @@ export async function execute (game, message, command, args) {
     // Finally, find the puzzle.
     var puzzle = null;
     for (let i = 0; i < puzzles.length; i++) {
-        if ((player !== null && puzzles[i].location.name === player.location.name)
-            || (room !== null && puzzles[i].location.name === room.name)) {
+        if ((player !== null && puzzles[i].location.id === player.location.id)
+            || (room !== null && puzzles[i].location.id === room.id)) {
             puzzle = puzzles[i];
             break;
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    else if (puzzle === null) return messageHandler.addReply(message, `Couldn't find puzzle "${input}".`);
+    else if (puzzle === null) return messageHandler.addReply(game, message, `Couldn't find puzzle "${input}".`);
 
     var outcome = "";
     var targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].location.name === player.location.name &&
+            if (game.players_alive[i].location.id === player.location.id &&
                 (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() || game.players_alive[i].name.toLowerCase() === input.toLowerCase())) {
                 targetPlayer = game.players_alive[i];
                 break;
@@ -140,24 +139,18 @@ export async function execute (game, message, command, args) {
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addReply(message, `"${input}" is not a valid solution.`);
-        puzzle.solve(game.botContext, game, player, announcement, outcome, true, [], targetPlayer);
-        messageHandler.addGameMechanicMessage(message.channel, `Successfully solved ${puzzle.name}.`);
+        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addReply(game, message, `"${input}" is not a valid solution.`);
+        puzzle.solve(player, announcement, outcome, true, [], targetPlayer);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
-        puzzle.unsolve(game.botContext, game, player, announcement, null, true);
-        messageHandler.addGameMechanicMessage(message.channel, `Successfully unsolved ${puzzle.name}.`);
+        puzzle.unsolve(player, announcement, null, true);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unsolved ${puzzle.name}.`);
     }
     else if (command === "attempt") {
-        if (player === null) return messageHandler.addReply(message, `Cannot attempt a puzzle without a player.`);
-        const misc = {
-            command: command,
-            input: input,
-            message: message,
-            targetPlayer: targetPlayer
-        };
-        player.attemptPuzzle(game.botContext, game, puzzle, null, input, command, misc);
-        messageHandler.addGameMechanicMessage(message.channel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
+        if (player === null) return messageHandler.addReply(game, message, `Cannot attempt a puzzle without a player.`);
+        player.attemptPuzzle(puzzle, null, input, command, input, message, targetPlayer);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 
     return;

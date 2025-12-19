@@ -2,7 +2,6 @@
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { Message } from "discord.js";
 import Narration from '../Data/Narration.js';
 
 /** @type {CommandConfig} */
@@ -24,18 +23,18 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} player 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable knock");
-    if (status.length > 0) return messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -47,7 +46,7 @@ export async function execute (game, message, command, args, player) {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
     var roomNarration = player.displayName + " knocks on ";
     if (exit.name === "DOOR") roomNarration += "the DOOR";
@@ -59,7 +58,7 @@ export async function execute (game, message, command, args, player) {
     new Narration(game, player, player.location, roomNarration).send();
 
     var room = exit.dest;
-    if (room.name === player.location.name) return;
+    if (room.id === player.location.id) return;
 
     var hearingPlayers = [];
     // Get a list of all the hearing players in the destination room.
@@ -79,12 +78,12 @@ export async function execute (game, message, command, args, player) {
         new Narration(game, player, room, destNarration).send();
     else {
         for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].notify(game, destNarration);
+            hearingPlayers[i].notify(destNarration);
     }
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
 
     return;
 }

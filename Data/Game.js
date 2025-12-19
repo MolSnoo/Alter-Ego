@@ -1,13 +1,16 @@
 import BotContext from '../Classes/BotContext.js';
 import GameConstants from '../Classes/GameConstants.js';
+import GameEntityFinder from '../Classes/GameEntityFinder.js';
+import GameEntityLoader from '../Classes/GameEntityLoader.js';
+import GameEntitySaver from '../Classes/GameEntitySaver.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
 import Room from './Room.js';
-import { default as Fixture } from './Object.js';
+import Fixture from './Fixture.js';
 import Prefab from './Prefab.js';
 import Recipe from './Recipe.js';
-import Item from './Item.js';
+import RoomItem from './RoomItem.js';
 import Puzzle from './Puzzle.js';
 import Event from './Event.js';
 import Status from './Status.js';
@@ -16,10 +19,10 @@ import InventoryItem from './InventoryItem.js';
 import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Whisper from './Whisper.js';
-import { saveGame } from '../Modules/saver.js';
 import { sendQueuedMessages } from '../Modules/messageHandler.js';
-import moment from 'moment';
-moment().format();
+import { Collection } from 'discord.js';
+import dayjs from 'dayjs';
+dayjs().format();
 
 /**
  * @class Game
@@ -29,6 +32,7 @@ moment().format();
 export default class Game {
 	/**
 	 * The guild in which the game is occurring and all of the parts of the guild frequently accessed by the bot.
+	 * @readonly
 	 * @type {GuildContext}
 	 */
 	guildContext;
@@ -44,9 +48,28 @@ export default class Game {
 	settings;
 	/** 
 	 * A collection of constants used to refer to cell ranges on the spreadsheet. 
+	 * @readonly
 	 * @type {GameConstants}
 	*/
 	constants;
+	/**
+	 * A set of functions to get and find game entities.
+	 * @readonly
+	 * @type {GameEntityFinder}
+	 */
+	entityFinder;
+	/**
+	 * A set of functions to load game entities from the sheet.
+	 * @readonly
+	 * @type {GameEntityLoader}
+	 */
+	entityLoader;
+	/**
+	 * A set of functions to save game entities to the sheet.
+	 * @readonly
+	 * @type {GameEntitySaver}
+	 */
+	entitySaver;
 	/**
 	 * Whether or not the game is currently in progress.
 	 * @type {boolean}
@@ -77,31 +100,60 @@ export default class Game {
 	 * @type {boolean}
 	 */
 	editMode;
+	/**
+	 * A set of data types that have been loaded with errors. The game is not playable if this set isn't empty.
+	 * @type {Set<string>}
+	 */
+	loadedEntitiesWithErrors;
 	/** 
 	 * An array of all rooms in the game.
+	 * @deprecated
 	 * @type {Room[]}
 	 */
 	rooms;
+	/**
+	 * A collection of all rooms in the game. The key for each room is its id.
+	 * @type {Collection<string, Room>}
+	 */
+	roomsCollection;
 	/** 
-	 * An array of all fixtures in the game.
+	 * An array of all fixtures in the game. Deprecated. Use fixtures instead.
+	 * @deprecated
 	 * @type {Fixture[]}
 	 */
 	objects;
 	/**
+	 * An array of all fixtures in the game.
+	 * @type {Fixture[]}
+	 */
+	fixtures;
+	/**
 	 * An array of all prefabs in the game.
+	 * @deprecated
 	 * @type {Prefab[]}
 	 */
 	prefabs;
+	/**
+	 * A collection of all prefabs in the game. The key for each prefab is its id.
+	 * @type {Collection<string, Prefab>}
+	 */
+	prefabsCollection;
 	/** 
 	 * An array of all recipes in the game.
 	 * @type {Recipe[]}
 	 */
 	recipes;
 	/** 
-	 * An array of all room items in the game.
-	 * @type {Item[]}
+	 * An array of all room items in the game. Deprecated. Use roomItems instead.
+	 * @deprecated
+	 * @type {RoomItem[]}
 	 */
 	items;
+	/**
+	 * An array of all room items in the game.
+	 * @type {RoomItem[]}
+	 */
+	roomItems;
 	/** 
 	 * An array of all puzzles in the game.
 	 * @type {Puzzle[]} 
@@ -109,29 +161,59 @@ export default class Game {
 	puzzles;
 	/** 
 	 * An array of all events in the game.
+	 * @deprecated
 	 * @type {Event[]}
 	 */
 	events;
 	/**
+	 * A collection of all events in the game. The key for each prefab is its id.
+	 * @type {Collection<string, Event>}
+	 */
+	eventsCollection;
+	/**
 	 * An array of all status effects in the game. 
+	 * @deprecated
 	 * @type {Status[]} 
 	 */
 	statusEffects;
 	/**
+	 * A collection of all status effects in the game. The key for each prefab is its id.
+	 * @type {Collection<string, Status>}
+	 */
+	statusEffectsCollection;
+	/**
 	 * An array of all players in the game. 
+	 * @deprecated
 	 * @type {Player[]} 
 	 */
 	players;
+	/**
+	 * A collection of all players in the game. The key for each player is their name.
+	 * @type {Collection<string, Player>}
+	 */
+	playersCollection;
 	/** 
 	 * An array of all living players in the game.
+	 * @deprecated
 	 * @type {Player[]}
 	 */
 	players_alive;
 	/**
+	 * A collection of all living players in the game. The key for each player is their name.
+	 * @type {Collection<string, Player>}
+	 */
+	livingPlayersCollection;
+	/**
 	 * An array of all dead players in the game. 
+	 * @deprecated
 	 * @type {Player[]}
 	 */
 	players_dead;
+	/**
+	 * A collection of all dead players in the game. The key for each player is their name.
+	 * @type {Collection<string, Player>}
+	 */
+	deadPlayersCollection;
 	/**
 	 * An array of all inventory items in the game. 
 	 * @type {InventoryItem[]}
@@ -139,12 +221,18 @@ export default class Game {
 	inventoryItems;
 	/** 
 	 * An array of all gestures in the game.
+	 * @deprecated
 	 * @type {Gesture[]}
 	 */
 	gestures;
+	/**
+	 * A collection of all gestures in the game. The key for each gesture is its id.
+	 * @type {Collection<string, Gesture>}
+	 */
+	gesturesCollection;
 	/** 
-	 * A map of all flags in the game, where the key is the flag's ID.
-	 * @type {Map<string, Flag>} */
+	 * A collection of all flags in the game, where the key is the flag's ID.
+	 * @type {Collection<string, Flag>} */
 	flags;
 	/** 
 	 * An array of all whispers in the game. These are not saved to the sheet.
@@ -186,26 +274,40 @@ export default class Game {
 		this.guildContext = guildContext;
 		this.settings = settings;
 		this.constants = new GameConstants();
+		this.entityFinder = new GameEntityFinder(this);
+		this.entityLoader = new GameEntityLoader(this);
+		this.entitySaver = new GameEntitySaver(this);
 		this.inProgress = false;
 		this.canJoin = false;
 		this.halfTimer = null;
 		this.endTimer = null;
 		this.heated = false;
 		this.editMode = false;
+		this.loadedEntitiesWithErrors = new Set();
 		this.rooms = [];
+		this.roomsCollection = new Collection();
 		this.objects = [];
+		this.fixtures = [];
 		this.prefabs = [];
+		this.prefabsCollection = new Collection();
 		this.recipes = [];
 		this.items = [];
+		this.roomItems = [];
 		this.puzzles = [];
 		this.events = [];
+		this.eventsCollection = new Collection();
 		this.statusEffects = [];
+		this.statusEffectsCollection = new Collection();
 		this.players = [];
+		this.playersCollection = new Collection();
 		this.players_alive = [];
+		this.livingPlayersCollection = new Collection();
 		this.players_dead = [];
+		this.deadPlayersCollection = new Collection();
 		this.inventoryItems = [];
 		this.gestures = [];
-		this.flags = new Map();
+		this.gesturesCollection = new Collection();
+		this.flags = new Collection();
 		this.whispers = [];
 		this.messageQueue = new PriorityQueue();
 		this.dialogCache = [];
@@ -217,24 +319,24 @@ export default class Game {
 		);
 		// Save data to the sheet periodically.
 		this.#autoSaveInterval = setInterval(
-			() => { if (this.inProgress && !this.editMode) saveGame(); },
+			() => { if (this.inProgress && !this.editMode) this.entitySaver.saveGame(); },
 			this.settings.autoSaveInterval * 1000
 		);
 		// Check for any events that are supposed to trigger at this time of day.
 		this.#eventTriggerInterval = setInterval(() => {
 			if (this.inProgress) {
-				const now = moment();
-				this.events.forEach(event => {
+				const now = dayjs();
+				this.eventsCollection.forEach(event => {
 					if (!event.ongoing) {
-						for (let triggerTime of event.triggerTimes) {
-							const time = moment(triggerTime, Event.formats);
+						for (let triggerTimeString of event.triggerTimesStrings) {
+							const time = dayjs(triggerTimeString, Event.formats);
 							if (now.month() === time.month()
 								&& now.weekday() === time.weekday()
 								&& now.date() === time.date()
 								&& now.hour() === time.hour()
 								&& now.minute() === time.minute()) {
-									event.trigger(true);
-									break;
+								event.trigger(true);
+								break;
 							}
 						}
 					}

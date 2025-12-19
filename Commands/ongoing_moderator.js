@@ -1,6 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -23,23 +22,23 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     var events = [];
     for (let i = 0; i < game.events.length; i++) {
         if (game.events[i].ongoing) {
             if (game.events[i].remaining === null)
-                events.push(game.events[i].name);
+                events.push(game.events[i].id);
             else
-                events.push(game.events[i].name + ` (${game.events[i].remainingString})`);
+                events.push(game.events[i].id + ` (${game.events[i].remainingString})`);
         }
     }
     const eventList = events.join(", ");
-    messageHandler.addGameMechanicMessage(message.channel, `Ongoing events:\n${eventList}`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Ongoing events:\n${eventList}`);
 
     return;
 }

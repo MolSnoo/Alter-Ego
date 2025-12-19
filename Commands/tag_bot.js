@@ -33,11 +33,11 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} [player] 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
@@ -50,9 +50,9 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "addtag" && command !== "removetag") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
+    if (command !== "addtag" && command !== "removetag") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
     if (args.length < 2)
-        return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     input = args.join(" ");
     var parsedInput = input.replace(/ /g, "-").toLowerCase();
@@ -64,10 +64,10 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (room === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (room === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     input = input.substring(room.name.length).trim();
-    if (input === "") return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+    if (input === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (command === "addtag") {
         if (!room.tags.includes(input.trim()))

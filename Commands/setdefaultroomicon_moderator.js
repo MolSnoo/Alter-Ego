@@ -1,6 +1,6 @@
+import settings from '../Configs/settings.json' with { type: 'json' };
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 import fs from 'fs';
@@ -26,10 +26,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     const iconURLSyntax = RegExp('(http(s?)://.*?\\.(jpg|jpeg|png|gif|webp|avif))(\\?.*)?$');
@@ -38,14 +38,15 @@ export async function execute (game, message, command, args) {
         if (message.attachments.size !== 0)
             input = message.attachments.first().url.replace(iconURLSyntax, '$1');
     }
-    if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
+    game.settings.defaultRoomIconURL = input;
     settings.defaultRoomIconURL = input;
 
     const json = JSON.stringify(settings, null, "  ");
     await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
-    messageHandler.addGameMechanicMessage(message.channel, `Successfully updated the default room icon.`);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the default room icon.`);
 
     return;
 }

@@ -1,8 +1,7 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { EmbedBuilder } from 'discord.js';
+import { createPaginatedEmbed } from '../Modules/helpers.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -24,10 +23,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     // Get all commands available to the user and sort them alphabetically.
@@ -58,8 +57,13 @@ export async function execute (game, message, command, args) {
             pages[pageNo].push(fields[i]);
         }
 
-        let embed = createEmbed(game, page, pages);
-        message.channel.send({ embeds: [embed] }).then(msg => {
+        const embedAuthorName = `${game.guildContext.guild.members.me.displayName} Help`;
+        const embedAuthorIcon = game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL();
+        const embedDescription = `These are the available commands for users with the ${game.guildContext.moderatorRole.name} role.\nSend \`${game.settings.commandPrefix}help commandname\` for more details.`
+        const fieldName = (entryIndex) => pages[page][entryIndex].command;
+        const fieldValue = (entryIndex) => pages[page][entryIndex].description;
+        let embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
+        game.guildContext.commandChannel.send({ embeds: [embed] }).then(msg => {
             msg.react('⏪').then(() => {
                 msg.react('⏩');
 
@@ -74,7 +78,7 @@ export async function execute (game, message, command, args) {
                     if (reaction) reaction.users.cache.forEach(user => { if (user.id !== game.botContext.client.user.id) reaction.users.remove(user.id); });
                     if (page === 0) return;
                     page--;
-                    embed = createEmbed(game, page, pages);
+                    embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
                     msg.edit({ embeds: [embed] });
                 });
 
@@ -83,7 +87,7 @@ export async function execute (game, message, command, args) {
                     if (reaction) reaction.users.cache.forEach(user => { if (user.id !== game.botContext.client.user.id) reaction.users.remove(user.id); });
                     if (page === pages.length - 1) return;
                     page++;
-                    embed = createEmbed(game, page, pages);
+                    embed = createPaginatedEmbed(game, page, pages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
                     msg.edit({ embeds: [embed] });
                 });
             });
@@ -91,27 +95,9 @@ export async function execute (game, message, command, args) {
     }
     else {
         let command = roleCommands.find(command => command.config.aliases.includes(args[0]));
-        if (!command) return messageHandler.addReply(message, `Couldn't find command "${args[0]}".`);
-        messageHandler.addCommandHelp(message.channel, command, game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL());
+        if (!command) return messageHandler.addReply(game, message, `Couldn't find command "${args[0]}".`);
+        messageHandler.addCommandHelp(game, game.guildContext.commandChannel, command);
     }
 
     return;
-}
-
-function createEmbed(game, page, pages) {
-    const role = game.guildContext.guild.roles.cache.get(game.guildContext.moderatorRole);
-    const roleName = role ? role.name : "Moderator";
-    let embed = new EmbedBuilder()
-        .setColor(game.settings.embedColor)
-        .setAuthor({ name: `${game.guildContext.guild.members.me.displayName} Help`, iconURL: game.guildContext.guild.members.me.avatarURL() || game.guildContext.guild.members.me.user.avatarURL() })
-        .setDescription(`These are the available commands for users with the ${roleName} role.\nSend \`${game.settings.commandPrefix}help commandname\` for more details.`)
-        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
-
-    let fields = [];
-    // Now add the fields of the first page.
-    for (let i = 0; i < pages[page].length; i++)
-        fields.push({ name: pages[page][i].command, value: pages[page][i].description })
-    embed.addFields(fields);
-
-    return embed;
 }

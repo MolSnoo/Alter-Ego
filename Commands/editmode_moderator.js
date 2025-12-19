@@ -1,8 +1,6 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { saveGame } from '../Modules/saver.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -23,47 +21,44 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}editmode\n`
         + `${settings.commandPrefix}editmode on\n`
         + `${settings.commandPrefix}editmode off`;
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0 && game.editMode === false || args.length > 0 && args[0].toLowerCase() === "on") {
         try {
-            await saveGame();
+            await game.entitySaver.saveGame();
             game.editMode = true;
-            for (let i = 0; i < game.players_alive.length; i++) {
-                game.players_alive[i].isMoving = false;
-                clearInterval(game.players_alive[i].moveTimer);
-                game.players_alive[i].remainingTime = 0;
-                game.players_alive[i].moveQueue.length = 0;
-                if (!game.players_alive[i].hasAttribute('unconscious'))
-                    messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
-            }
-            messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been enabled.");
+            game.livingPlayersCollection.forEach(player => {
+                player.stopMoving();
+                if (!player.hasBehaviorAttribute('unconscious'))
+                    messageHandler.addDirectNarration(player, "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
+            });
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been enabled.");
         }
         catch (err) {
             console.log(err);
-            return messageHandler.addGameMechanicMessage(message.channel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+            return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
         }
     }
     else if (args.length === 0 && game.editMode === true || args.length > 0 && args[0].toLowerCase() === "off") {
+        if (game.loadedEntitiesWithErrors.size !== 0)
+            return messageHandler.addReply(game, message, `Edit mode can't be disabled while there are errors on the sheet. Fix the errors found by the load command and then try again.`);
         game.editMode = false;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (!game.players_alive[i].hasAttribute('unconscious'))
-                messageHandler.addDirectNarration(game.players_alive[i], "Edit mode has been disabled. You are free to resume normal gameplay.", false);
-        }
-        messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been disabled.");
+        game.livingPlayersCollection.forEach(player => {
+            if (!player.hasBehaviorAttribute('unconscious'))
+                messageHandler.addDirectNarration(player, "Edit mode has been disabled. You are free to resume normal gameplay.", false);
+        });
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been disabled.");
     }
-    else messageHandler.addReply(message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
-
-    return;
+    else messageHandler.addReply(game, message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
 }

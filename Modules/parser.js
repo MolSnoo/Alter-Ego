@@ -1,7 +1,7 @@
+import GameEntity from '../Data/GameEntity.js';
 import InventoryItem from '../Data/InventoryItem.js';
-import Item from '../Data/Item.js';
+import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
-import * as finder from './finder.js';
 import { default as evaluateScript } from './scriptParser.js';
 
 import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
@@ -62,11 +62,11 @@ class Sentence {
 /**
  * Parses the XML of a description and evaluates it into a result object with no XML tags. Includes warnings and errors.
  * @param {string} description - The description to parse.
- * @param {*} container - The in-game entity this description belongs to.
+ * @param {GameEntity} container - The in-game entity this description belongs to.
  * @param {Player|PseudoPlayer} player - The Player currently reading the description.
  * @returns {{text: string, warnings: string[], errors: string[]}}
  */
-export function parseDescriptionWithErrors (description, container, player) {
+export function parseDescriptionWithErrors(description, container, player) {
     // First, split the description into a DOMParser document.
     let document = createDocument(description);
     // Check for any warnings and errors. If they exist, store them.
@@ -128,7 +128,7 @@ export function parseDescriptionWithErrors (description, container, player) {
                     const variableText = evaluateScript(varAttribute, container, player);
                     if (variableText === undefined || variableText === "undefined")
                         errors.push('"' + varAttribute.replace(/container/g, "this") + '" is undefined.');
-                    variableStrings.push({ element: variables[i], attribute: variableText });
+                    variableStrings.push({ element: variables[i], attribute: String(variableText) });
                     if (typeof variableStrings[variableStrings.length - 1].attribute === 'string' && variableStrings[variableStrings.length - 1].attribute.includes('<desc>'))
                         variableStrings[variableStrings.length - 1].attribute = this.parseDescription(variableStrings[variableStrings.length - 1].attribute, this, player);
                 } catch (err) {
@@ -162,7 +162,7 @@ export function parseDescriptionWithErrors (description, container, player) {
 /**
  * Parses the XML of a description and evaluates it into a result with no XML tags. Returns only the resulting text.
  * @param {string} description - The description to parse.
- * @param {*} container - The in-game entity this description belongs to.
+ * @param {GameEntity} container - The in-game entity this description belongs to.
  * @param {Player|PseudoPlayer} player - The Player currently reading the description.
  * @returns {string}
  */
@@ -174,12 +174,12 @@ export function parseDescription(description, container, player) {
 /**
  * Adds an item to an item list in an XML description. If the item already exists, increases its quantity.
  * @param {string} description - The description to add an item to.
- * @param {Item|InventoryItem|PseudoItem} item - The item to add.
+ * @param {RoomItem|InventoryItem|PseudoItem} item - The item to add.
  * @param {string} [slot] - The name of the il tag to update.
  * @param {number} [addedQuantity=1] - The quantity of this item to add. If none is provided, defaults to 1.
  * @returns {string}
  */
-export function addItem (description, item, slot, addedQuantity = 1) {
+export function addItem(description, item, slot, addedQuantity = 1) {
     // First, split the description into a DOMParser document.
     let documentElement = createDocument(description).document;
 
@@ -258,13 +258,13 @@ export function addItem (description, item, slot, addedQuantity = 1) {
 /**
  * Removes an item clause from an il tag within a description. If the item's quantity is greater than 1, decreases it. Returns a Document.
  * @param {string} description - The description to remove an item from.
- * @param {Item|InventoryItem|PseudoItem} item - The item to remove.
+ * @param {RoomItem|InventoryItem|PseudoItem} item - The item to remove.
  * @param {string} [slot] - The name of the il tag to update.
  * @param {number} [removedQuantity=1] - The quantity of this item to remove. If none is provided, defaults to 1.
  * @param {Document} [document] - An already existing document. If this is present, the function returns an unparsed document.
  * @returns {Document}
  */
-function removeItemWithDocument (description, item, slot, removedQuantity = 1, document) {
+function removeItemWithDocument(description, item, slot, removedQuantity = 1, document) {
     // Parse all of the sentences.
     let sentenceElements = document.getElementsByTagName('s');
     /** @type {Array<Sentence>} */
@@ -332,12 +332,12 @@ function removeItemWithDocument (description, item, slot, removedQuantity = 1, d
 /**
  * Removes an item clause from an il tag within a description. If the item's quantity is greater than 1, decreases it.
  * @param {string} description - The description to remove an item from.
- * @param {Item|InventoryItem|PseudoItem} item - The item to remove.
+ * @param {RoomItem|InventoryItem|PseudoItem} item - The item to remove.
  * @param {string} [slot] - The name of the il tag to update.
  * @param {number} [removedQuantity=1] - The quantity of this item to remove. If none is provided, defaults to 1.
  * @returns {string}
  */
-export function removeItem (description, item, slot, removedQuantity = 1) {
+export function removeItem(description, item, slot, removedQuantity = 1) {
     let document = createDocument(description).document;
     document = removeItemWithDocument(description, item, slot, removedQuantity, document);
     return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
@@ -350,7 +350,7 @@ export function removeItem (description, item, slot, removedQuantity = 1) {
  * @param {Player|PseudoPlayer} [player] - The player who caused these procedurals to be evaluated, if applicable.
  * @returns {string}
  */
-export function generateProceduralOutput (description, proceduralSelections, player) {
+export function generateProceduralOutput(description, proceduralSelections, player) {
     let document = createDocument(description).document;
 
     if (document) {
@@ -402,13 +402,13 @@ export function generateProceduralOutput (description, proceduralSelections, pla
             if (!winningPossibilityIndex) {
                 /** @type {number} */
                 let statValue;
-                const proceduralStat = procedurals[i].getAttribute('stat').toLowerCase();
+                const proceduralStat = Player.abbreviateStatName(procedurals[i].getAttribute('stat'));
                 if (proceduralStat !== '' && player !== null) {
-                    if (proceduralStat === "strength" || proceduralStat === "str") statValue = player.strength;
-                    else if (proceduralStat === "intelligence" || proceduralStat === "int") statValue = player.intelligence;
-                    else if (proceduralStat === "dexterity" || proceduralStat === "dex") statValue = player.dexterity;
-                    else if (proceduralStat === "speed" || proceduralStat === "spd") statValue = player.speed;
-                    else if (proceduralStat === "stamina" || proceduralStat === "sta") statValue = player.stamina;
+                    if (proceduralStat === "str") statValue = player.strength;
+                    else if (proceduralStat === "per") statValue = player.perception;
+                    else if (proceduralStat === "dex") statValue = player.dexterity;
+                    else if (proceduralStat === "spd") statValue = player.speed;
+                    else if (proceduralStat === "sta") statValue = player.stamina;
                 }
                 possibilityArr = calculateModifiedPossbilityArr(possibilityArr, statValue);
                 winningPossibilityIndex = choosePossibilityIndex(possibilityArr);
@@ -449,7 +449,7 @@ function calculateModifiedPossbilityArr(possibilityArr, statValue) {
     /** @type {number} */
     let nullCount = possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 1 : 0), 0);
     if (nullCount > 0) {
-        let dividedRemainder = (100.0 - possibilitySum) / nullCount; 
+        let dividedRemainder = (100.0 - possibilitySum) / nullCount;
         for (let possibility of possibilityArr) {
             if (possibility.chance === null)
                 possibility.chance = dividedRemainder;
@@ -467,7 +467,7 @@ function calculateModifiedPossbilityArr(possibilityArr, statValue) {
     }
 
     // Sort by highest to lowest chance.
-    possibilityArr = possibilityArr.sort((a,b) => b.chance - a.chance);
+    possibilityArr = possibilityArr.sort((a, b) => b.chance - a.chance);
 
     return possibilityArr;
 }
@@ -983,42 +983,4 @@ function removeClause(sentence, i) {
     // If all else fails, just remove the item clause.
     clause[i].delete();
     return 22;
-}
-
-// The functions below are included to provide shorthand for using the finder module in descriptions.
-function findRoom(name) {
-    return finder.findRoom(name);
-}
-function findObject(name, location) {
-    return finder.findObject(name, location);
-}
-function findPrefab(id) {
-    return finder.findPrefab(id);
-}
-function findItem(identifier, location, containerName) {
-    return finder.findItem(identifier, location, containerName);
-}
-function findPuzzle(name, location) {
-    return finder.findPuzzle(name, location);
-}
-function findEvent(name) {
-    return finder.findEvent(name);
-}
-function findStatusEffect(name) {
-    return finder.findStatusEffect(name);
-}
-function findPlayer(name) {
-    return finder.findPlayer(name);
-}
-function findLivingPlayer(name) {
-    return finder.findLivingPlayer(name);
-}
-function findDeadPlayer(name) {
-    return finder.findDeadPlayer(name);
-}
-function findInventoryItem(identifier, player, containerName, equipmentSlot) {
-    return finder.findInventoryItem(identifier, player, containerName, equipmentSlot);
-}
-function findFlag(id, evaluate) {
-    return finder.findFlag(id, evaluate);
 }

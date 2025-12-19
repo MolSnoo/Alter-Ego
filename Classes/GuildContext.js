@@ -80,7 +80,7 @@ export default class GuildContext {
 	 */
 	deadRole;
 	/**
-	 * The spectator role. Currently unused.
+	 * The spectator role. This is given to all players when the endgame command is used.
 	 * @type {Role}
 	 */
 	spectatorRole;
@@ -102,7 +102,7 @@ export default class GuildContext {
 	 * @param {Role} freeMovementRole - A role that can be added to someone with the player role to allow them to move to any room, regardless of if it's adjacent to their current room.
 	 * @param {Role} moderatorRole - The moderator role. Members with this role can use moderator commands.
 	 * @param {Role} deadRole - The dead role. This is given to dead players after a moderator uses the reveal command on them.
-	 * @param {Role} spectatorRole - The spectator role. Currently unused.
+	 * @param {Role} spectatorRole - The spectator role. This is given to all players when the endgame command is used.
 	 */
 	constructor(
 			guild,
@@ -129,6 +129,8 @@ export default class GuildContext {
 		this.testingChannel = testingChannel;
 		this.generalChannel = generalChannel;
 		
+		for (let i = 0; i < roomCategories.length; i++)
+			roomCategories[i] = roomCategories[i].trim();
 		this.roomCategories = roomCategories;
 		this.whisperCategoryId = whisperCategoryId;
 		this.spectateCategoryId = spectateCategoryId;

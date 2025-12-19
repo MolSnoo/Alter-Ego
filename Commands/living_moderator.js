@@ -1,6 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -23,10 +22,10 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     var playerList = "Living players:\n";
@@ -34,7 +33,7 @@ export async function execute (game, message, command, args) {
         playerList += game.players_alive[0].name;
     for (let i = 1; i < game.players_alive.length; i++)
         playerList += `, ${game.players_alive[i].name}`;
-    messageHandler.addGameMechanicMessage(message.channel, playerList);
+    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
 
     return;
 }

@@ -51,10 +51,16 @@ export default class GameSettings {
 	 */
 	diceMax;
 	/**
-	 * The name of the Object in each Room that Players will drop Items in if they don't specify one.
+	 * The name of the Object in each Room that Players will drop Items in if they don't specify one. Deprecated. Use defaultDropFixture instead.
+	 * @deprecated
 	 * @type {string}
 	 */
 	defaultDropObject;
+	/**
+	 * The name of the Fixture in each Room that Players will drop Items in if they don't specify one.
+	 * @type {string}
+	 */
+	defaultDropFixture;
 	/**
 	 * The URL of an image that will be displayed when a Player enters a Room if that Room does not have an icon URL of its own.
 	 * @type {string}
@@ -75,6 +81,11 @@ export default class GameSettings {
 	 * @type {boolean}
 	 */
 	showOnlinePlayerCount;
+	/**
+	 * Whether or not the bot should automatically execute a command identical to `load all resume` upon startup.
+	 * @type {boolean}
+	 */
+	autoStart;
 	/**
 	 * The activity the bot will set for itself while it is online with no game in progress.
 	 * @type {Activity}
@@ -107,6 +118,7 @@ export default class GameSettings {
 	 * @param {boolean} autoDeleteWhisperChannels - Whether or not Whisper channels will be automatically deleted when all Players have been removed from it.
 	 * @param {string} embedColor - The accent color that will be used in Discord Embeds.
 	 * @param {boolean} showOnlinePlayerCount - Whether or not to show the online player count in the bot's Discord status.
+	 * @param {boolean} autoLoad - Whether or not the bot should automatically execute a command identical to `load all resume` upon startup.
 	 * @param {Activity} onlineActivity - The activity the bot will set for itself while it is online with no game in progress.
 	 * @param {Activity} debugModeActivity - The activity the bot will set for itself while it is online when debug mode is enabled.
 	 * @param {Activity} gameInProgressActivity - The activity the bot will set for itself while it is online when a game is in progress.
@@ -126,6 +138,7 @@ export default class GameSettings {
 		autoDeleteWhisperChannels,
 		embedColor,
 		showOnlinePlayerCount,
+		autoLoad,
 		onlineActivity,
 		debugModeActivity,
 		gameInProgressActivity
@@ -139,11 +152,12 @@ export default class GameSettings {
 		this.autoSaveInterval = autoSaveInterval;
 		this.diceMin = diceMin;
 		this.diceMax = diceMax;
-		this.defaultDropObject = defaultDropObject;
+		this.defaultDropFixture = defaultDropObject;
 		this.defaultRoomIconURL = defaultRoomIconURL;
 		this.autoDeleteWhisperChannels = autoDeleteWhisperChannels;
 		this.embedColor = embedColor;
 		this.showOnlinePlayerCount = showOnlinePlayerCount;
+		this.autoLoad = autoLoad;
 		this.onlineActivity = onlineActivity;
 		this.debugModeActivity = debugModeActivity;
 		this.gameInProgressActivity = gameInProgressActivity

@@ -11,6 +11,7 @@ import Prefab from './Prefab.js';
 export default class Recipe extends GameEntity {
     /**
      * The IDs of the ingredients required to carry out the recipe.
+     * @readonly
      * @type {string[]}
      */
     ingredientsStrings;
@@ -21,21 +22,32 @@ export default class Recipe extends GameEntity {
     ingredients;
     /**
      * Whether the product can be transformed back into its ingredients.
+     * @readonly
      * @type {boolean}
      */
     uncraftable;
     /**
-     * Phrase that allows an object with the matching recipeTag to process this recipe.
+     * Phrase that allows an object with the matching recipeTag to process this recipe. Deprecated. Use fixtureTag instead.
+     * @deprecated
+     * @readonly
      * @type {string}
      */
     objectTag;
     /**
+     * Phrase that allows a fixture with the matching recipeTag to process this recipe.
+     * @readonly
+     * @type {string}
+     */
+    fixtureTag;
+    /**
      * How long it takes to process the recipe. Accepted units: s, m, h, d, w, M, y.
-     * @type {import('moment').Duration}
+     * @readonly
+     * @type {import('dayjs/plugin/duration.js').Duration}
      */
     duration;
     /**
      * The IDs of the products produced by the recipe.
+     * @readonly
      * @type {string[]}
      */
     productsStrings;
@@ -46,16 +58,19 @@ export default class Recipe extends GameEntity {
     products;
     /**
      * The description that indicates when a recipe has begun being processed.
+     * @readonly
      * @type {string}
      */
     initiatedDescription;
     /**
      * The description that indicates when a recipe has finished being processed or crafted.
+     * @readonly
      * @type {string}
      */
     completedDescription;
     /**
      * The description that indicates when a recipe has been uncrafted.
+     * @readonly
      * @type {string}
      */
     uncraftedDescription;
@@ -64,8 +79,8 @@ export default class Recipe extends GameEntity {
      * @constructor
      * @param {string[]} ingredientsStrings - The IDs of the ingredients required to carry out the recipe.
      * @param {boolean} uncraftable - Whether the product can be transformed back into its ingredients.
-     * @param {string} objectTag - Phrase that allows an object with the matching recipeTag to process this recipe.
-     * @param {import('moment').Duration} duration - How long it takes to process the recipe. Accepted units: s, m, h, d, w, M, y.
+     * @param {string} fixtureTag - Phrase that allows a fixture with the matching recipeTag to process this recipe.
+     * @param {import('dayjs/plugin/duration.js').Duration} duration - How long it takes to process the recipe. Accepted units: s, m, h, d, w, M, y.
      * @param {string[]} productsStrings - The IDs of the products produced by the recipe.
      * @param {string} initiatedDescription - The description that indicates when a recipe has begun being processed.
      * @param {string} completedDescription - The description that indicates when a recipe has finished being processed or crafted.
@@ -73,12 +88,13 @@ export default class Recipe extends GameEntity {
      * @param {number} row - The row number of the recipe in the sheet.
      * @param {Game} game - The game this belongs to.
      */
-    constructor(ingredientsStrings, uncraftable, objectTag, duration, productsStrings, initiatedDescription, completedDescription, uncraftedDescription, row, game) {
+    constructor(ingredientsStrings, uncraftable, fixtureTag, duration, productsStrings, initiatedDescription, completedDescription, uncraftedDescription, row, game) {
         super(game, row);
         this.ingredientsStrings = ingredientsStrings;
         this.ingredients = new Array(this.ingredientsStrings.length);
         this.uncraftable = uncraftable;
-        this.objectTag = objectTag;
+        this.fixtureTag = fixtureTag;
+        this.objectTag = fixtureTag;
         this.duration = duration;
         this.productsStrings = productsStrings;
         this.products = new Array(this.productsStrings.length);

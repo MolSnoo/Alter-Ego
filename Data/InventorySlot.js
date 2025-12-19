@@ -1,18 +1,26 @@
 import InventoryItem from "./InventoryItem.js";
-import Item from "./Item.js";
+import RoomItem from "./RoomItem.js";
 import ItemInstance from "./ItemInstance.js";
 
 /**
  * @class InventorySlot
  * @classdesc Represents a slot within an item that can contain other items.
- * @template {ItemInstance|Item|InventoryItem} T
+ * @template {ItemInstance|RoomItem|InventoryItem} T
  */
 export default class InventorySlot {
 	/**
 	 * The ID of the slot. Must be unique relative to other slots held by the same item.
+	 * @readonly
 	 * @type {string}
 	 */
 	id;
+	/**
+	 * The name of the slot. Deprecated. Use `id` instead.
+	 * @deprecated
+	 * @readonly
+	 * @type {string}
+	 */
+	name;
 	/**
 	 * Maximum sum of sizes that can be stored in the slot.
 	 * @type {number}
@@ -33,6 +41,13 @@ export default class InventorySlot {
 	 * @type {Array<T>}
 	 */
 	items;
+	/**
+	 * The items stored in the slot. Deprecated. Use `items` instead.
+	 * @deprecated
+	 * @readonly
+	 * @type {Array<T>}
+	 */
+	item;
 
 	/**
 	 * @constructor
@@ -44,18 +59,20 @@ export default class InventorySlot {
 	 */
 	constructor(id, capacity, takenSpace, weight, items) {
 		this.id = id;
+		this.name = id;
 		this.capacity = capacity;
 		this.takenSpace = takenSpace;
 		this.weight = weight;
 		this.items = items;
+		this.item = [];
 	}
-	
+
 	/** 
 	 * Inserts an item into this slot.
 	 * @param {T} item - The item to insert.
 	 */
 	insertItem(item) {
-        let matchedItem = this.items.find(inventoryItem =>
+		let matchedItem = this.items.find(inventoryItem =>
 			inventoryItem.prefab !== null && item.prefab !== null &&
 			inventoryItem.prefab.id === item.prefab.id &&
 			inventoryItem.identifier === item.identifier &&
@@ -68,9 +85,8 @@ export default class InventorySlot {
 		if (!isNaN(item.quantity)) {
 			this.weight += item.weight * item.quantity;
 			this.takenSpace += item.prefab.size * item.quantity;
-			this.weight += item.weight * item.quantity;
 		}
-    }
+	}
 
 	/**
 	 * Removes an item from this slot.
@@ -79,7 +95,7 @@ export default class InventorySlot {
 	 */
 	removeItem(item, removedQuantity) {
 		for (let i = 0; i < this.items.length; i++) {
-			if (this.items[i].name === item.name && this.items[i].description === item.description) {
+			if (this.items[i].row === item.row && this.items[i].description === item.description) {
 				if (item.quantity === 0) this.items.splice(i, 1);
 				this.weight -= item.weight * removedQuantity;
 				this.takenSpace -= item.prefab.size * removedQuantity;

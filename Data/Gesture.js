@@ -1,9 +1,9 @@
 import Exit from "./Exit.js";
-import { default as Fixture } from "./Object.js";
+import Fixture from "./Fixture.js";
 import Game from "./Game.js";
 import GameEntity from "./GameEntity.js";
 import InventoryItem from "./InventoryItem.js";
-import Item from "./Item.js";
+import RoomItem from "./RoomItem.js";
 import Player from "./Player.js";
 import Status from "./Status.js";
 
@@ -16,22 +16,26 @@ import Status from "./Status.js";
 export default class Gesture extends GameEntity {
     /**
      * The unique ID of the gesture.
+     * @readonly
      * @type {string}
      */
     id;
     /**
      * The name of the gesture. Deprecated. Use `id` instead.
      * @deprecated
+     * @readonly
      * @type {string}
      */
     name;
     /**
      * Data types the gesture can take as a target.
+     * @readonly
      * @type {string[]}
      */
     requires;
     /**
      * The string representation of status effects that prevent the gesture from being used.
+     * @readonly
      * @type {string[]}
      */
     disabledStatusesStrings;
@@ -42,11 +46,13 @@ export default class Gesture extends GameEntity {
     disabledStatuses;
     /**
      * The description of the gesture shown in the list of gestures.
+     * @readonly
      * @type {string}
      */
     description;
     /**
      * Narration that will be parsed and sent to the player's room when the gesture is performed.
+     * @readonly
      * @type {string}
      */
     narration;
@@ -58,7 +64,7 @@ export default class Gesture extends GameEntity {
     targetType;
     /**
      * The game entity the player chose to target.
-     * @type {Exit|Fixture|Item|Player|InventoryItem|null}
+     * @type {Exit|Fixture|RoomItem|Player|InventoryItem|null}
      */
     target;
 
@@ -84,5 +90,13 @@ export default class Gesture extends GameEntity {
 
         this.targetType = "";
         this.target = null;
+    }
+
+    /**
+     * Generate an ID in all lowercase.
+     * @param {string} id 
+     */
+    static generateValidId(id) {
+        return id.toLowerCase().trim();
     }
 }

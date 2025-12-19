@@ -13,6 +13,7 @@ import { ChannelType, TextChannel } from 'discord.js';
 export default class Whisper {
     /**
      * The game context this whisper is occuring in. 
+     * @readonly
      * @type {Game}
      */
     game;
@@ -21,6 +22,12 @@ export default class Whisper {
      * @type {Player[]}
      */
     players;
+    /**
+     * The ID of the room the players are whispering in.
+     * @readonly
+     * @type {string}
+     */
+    locationId;
     /**
      * The room the players are whispering in.
      * @type {Room}
@@ -41,12 +48,22 @@ export default class Whisper {
      * @constructor
      * @param {Game} game - The game context this whisper is occuring in. 
      * @param {Player[]} players - The players in the whisper.
+     * @param {string} locationId - The ID of the room the players are whispering in.
      * @param {Room} location - The room the players are whispering in.
      */
-    constructor(game, players, location) {
+    constructor(game, players, locationId, location) {
         this.game = game;
         this.players = players;
+        this.locationId = locationId;
         this.location = location;
+    }
+
+    /**
+     * Sets the location.
+     * @param {Room} room
+     */
+    setLocation(room) {
+        this.location = room;
     }
     
     /**
@@ -126,11 +143,11 @@ export default class Whisper {
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
                     let noChannel = false;
-                    if (players[i].statusString.includes("hidden") && players[i].getAttributeStatusEffects("no channel").length > 1
-                        || !players[i].statusString.includes("hidden") && players[i].hasAttribute("no channel")
-                        || players[i].hasAttribute("no hearing"))
+                    if (players[i].hasBehaviorAttribute("hidden") && players[i].getBehaviorAttributeStatusEffects("no channel").length > 1
+                        || !players[i].hasBehaviorAttribute("hidden") && players[i].hasBehaviorAttribute("no channel")
+                        || players[i].hasBehaviorAttribute("no hearing"))
                         noChannel = true;
-                    if (!noChannel && players[i].title !== "NPC") {
+                    if (!noChannel && !players[i].isNPC) {
                         channel.permissionOverwrites.create(players[i].id, {
                             ViewChannel: true,
                             ReadMessageHistory: true
@@ -180,7 +197,7 @@ export default class Whisper {
      * @param {Player} player
      */
     revokeAccess(player) {
-        if (player.title !== "NPC") {
+        if (!player.isNPC) {
             this.channel.permissionOverwrites.create(player.id, {
                 ViewChannel: null,
                 ReadMessageHistory: null

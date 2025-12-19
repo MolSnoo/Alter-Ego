@@ -25,7 +25,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `move susie main-office\n`
         + `move player general-managers-office\n`
         + `move player cafeteria\n`
@@ -34,16 +34,16 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {string} command 
- * @param {string[]} args 
- * @param {Player} [player] 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -53,7 +53,7 @@ export async function execute (game, command, args, player, callee) {
         players.push(player);
         args.splice(0, 1);
     }
-    else if (args[0].toLowerCase() === "room" && callee !== null && callee.hasOwnProperty("ongoing")) {
+    else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
         for (let i = 0; i < game.rooms.length; i++) {
             if (game.rooms[i].tags.includes(callee.roomTag) && game.rooms[i].occupants.length > 0)
@@ -68,7 +68,7 @@ export async function execute (game, command, args, player, callee) {
     }
     else if (args[0].toLowerCase() === "all") {
         for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole))
+            if (game.players_alive[i].title !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
                 players.push(game.players_alive[i]);
         }
         args.splice(0, 1);
@@ -81,7 +81,7 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
         }
-        if (player === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }
@@ -97,7 +97,7 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (desiredRoom === null) return messageHandler.addGameMechanicMessage(game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (desiredRoom === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -110,7 +110,7 @@ export async function execute (game, command, args, player, callee) {
             for (let j = 0; j < currentRoom.exit.length; j++) {
                 if (currentRoom.exit[j].dest === desiredRoom) {
                     exit = currentRoom.exit[j];
-                    exitPuzzle = game.puzzles.find(puzzle => puzzle.location.name === currentRoom.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
+                    exitPuzzle = game.puzzles.find(puzzle => puzzle.location.id === currentRoom.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
                     for (let k = 0; k < desiredRoom.exit.length; k++) {
                         if (desiredRoom.exit[k].name === exit.link) {
                             entrance = desiredRoom.exit[k];
@@ -129,16 +129,13 @@ export async function execute (game, command, args, player, callee) {
             if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
             else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Clear the player's movement timer first.
-            players[i].isMoving = false;
-            clearInterval(players[i].moveTimer);
-            players[i].remainingTime = 0;
-            players[i].moveQueue.length = 0;
+            players[i].stopMoving();
             // Solve the exit puzzle, if applicable.
             if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
-                exitPuzzle.solve(game.botContext, game, players[i], "", players[i].name, true);
+                exitPuzzle.solve(players[i], "", players[i].name, true);
             // Move the player.
-            currentRoom.removePlayer(game, players[i], exit, exitMessage);
-            desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
+            currentRoom.removePlayer(players[i], exit, exitMessage);
+            desiredRoom.addPlayer(players[i], entrance, entranceMessage, true);
         }
     }
 
@@ -154,7 +151,7 @@ export async function execute (game, command, args, player, callee) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game.guildContext.logChannel, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
+    messageHandler.addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
 
     return;
 }

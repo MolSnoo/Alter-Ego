@@ -1,9 +1,9 @@
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Player from './Player.js';
-import { default as executeCommand } from '../Modules/commandHandler.js';
+import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { default as evaluateScript } from '../Modules/scriptParser.js';
-import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
+import { addLogMessage } from '../Modules/messageHandler.js';
 
 /**
  * @class Flag
@@ -14,6 +14,7 @@ import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler
 export default class Flag extends GameEntity {
 	/**
 	 * The unique identifier for this flag.
+	 * @readonly
 	 * @type {string}
 	 */
 	id;
@@ -29,6 +30,7 @@ export default class Flag extends GameEntity {
 	valueScript;
 	/**
 	 * The string representation of the bot commands to be executed when the flag is set or cleared with specified values.
+	 * @readonly
 	 * @type {string}
 	 */
 	commandSetsString;
@@ -72,21 +74,21 @@ export default class Flag extends GameEntity {
 	 * @param {boolean} doSetCommands - Whether or not to execute the flag's setCommands.
 	 * @param {Player} [player] - The player who caused the flag to be set, if applicable.
 	 */
-	async setValue(value, doSetCommands, player) {
+	setValue(value, doSetCommands, player) {
 		this.value = value;
 
 		// Post log message.
-		const valueDisplay = 
+		const valueDisplay =
 			typeof this.value === "string" ? `"${this.value}"` :
-			typeof this.value === "boolean" ? `\`${this.value}\`` :
-			this.value;
+				typeof this.value === "boolean" ? `\`${this.value}\`` :
+					this.value;
 		const time = new Date().toLocaleTimeString();
 		addLogMessage(this.game, `${time} - ${this.id} was set with value ${valueDisplay}`);
 
 		if (doSetCommands === true) {
-            // Find commandSet.
+			// Find commandSet.
 			/** @type {string[]} */
-            let commandSet = [];
+			let commandSet = [];
 			if (this.commandSets.length === 1 && this.commandSets[0].values.length === 0)
 				commandSet = this.commandSets[0].setCommands;
 			else {
@@ -102,41 +104,29 @@ export default class Flag extends GameEntity {
 					if (foundCommandSet) break;
 				}
 			}
-            // Run any needed commands.
-            for (let i = 0; i < commandSet.length; i++) {
-                if (commandSet[i].startsWith("wait")) {
-                    let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    let command = commandSet[i];
-                    executeCommand(command, this.game, null, player, this);
-                }
-            }
-        }
+			// Execute the command set's set commands.
+			parseAndExecuteBotCommands(commandSet, this.game, this, player);
+		}
 	}
 
 	/**
 	 * Sets the flag's value to null.
 	 * @param {boolean} doClearedCommands - Whether or not to execute the flag's clearedCommands.
-	 * @param {Player} player - The player who caused the flag to be cleared, if applicable.
+	 * @param {Player} [player] - The player who caused the flag to be cleared, if applicable.
 	 */
-	async clearValue(doClearedCommands, player) {
+	clearValue(doClearedCommands, player) {
 		const originalValue = this.value;
 		this.value = null;
 		this.valueScript = '';
 
 		// Post log message.
 		const time = new Date().toLocaleTimeString();
-		addLogMessage(this.game, `${time} - ${this.id} was cleared`);	
+		addLogMessage(this.game, `${time} - ${this.id} was cleared`);
 
 		if (doClearedCommands === true) {
-            // Find commandSet.
+			// Find commandSet.
 			/** @type {string[]} */
-            let commandSet = [];
+			let commandSet = [];
 			if (this.commandSets.length === 1 && this.commandSets[0].values.length === 0)
 				commandSet = this.commandSets[0].clearedCommands;
 			else {
@@ -152,27 +142,8 @@ export default class Flag extends GameEntity {
 					if (foundCommandSet) break;
 				}
 			}
-            // Run any needed commands.
-            for (let i = 0; i < commandSet.length; i++) {
-                if (commandSet[i].startsWith("wait")) {
-                    let args = commandSet[i].split(" ");
-                    if (!args[1]) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(this.game, this.game.guildContext.commandChannel, `Error: Couldn't execute command "${commandSet[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    let command = commandSet[i];
-                    executeCommand(command, this.game, null, player, this);
-                }
-            }
-        }
+			// Execute the command set's cleared commands.
+			parseAndExecuteBotCommands(commandSet, this.game, this, player);
+		}
 	}
-}
-
-/**
- * @param {number} seconds 
- */
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }

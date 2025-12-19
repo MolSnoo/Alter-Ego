@@ -1,6 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -37,14 +36,14 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -54,29 +53,29 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
     if (input === "" || input === null || input === undefined) {
         if (player.voiceString !== player.originalVoiceString) {
             player.voiceString = player.originalVoiceString;
-            messageHandler.addGameMechanicMessage(message.channel, `Successfully reverted ${player.name}'s voice descriptor.`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully reverted ${player.name}'s voice descriptor.`);
         }
-        else return messageHandler.addReply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of another player.`);
+        else return messageHandler.addReply(game, message, `The player's voice is unchanged. Please supply a voice descriptor or the name of another player.`);
     }
     else {
         if (args.length === 1) {
             for (let i = 0; i < game.players.length; i++) {
                 if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name !== player.name) {
                     player.voiceString = game.players[i].name;
-                    return messageHandler.addGameMechanicMessage(message.channel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${game.players[i].name}.`);
+                    return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${game.players[i].name}.`);
                 }
                 else if (game.players[i].name.toLowerCase() === args[0].toLowerCase() && game.players[i].name === player.name)
-                    return messageHandler.addReply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${game.settings.commandPrefix}setvoice ${player.name}`);
+                    return messageHandler.addReply(game, message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${game.settings.commandPrefix}setvoice ${player.name}`);
             }
         }
         player.voiceString = input;
-        messageHandler.addGameMechanicMessage(message.channel, `Successfully updated ${player.name}'s voice descriptor.`);
+        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s voice descriptor.`);
     }
 
     return;

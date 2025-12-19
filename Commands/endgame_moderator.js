@@ -1,6 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import { Message } from 'discord.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -23,19 +22,20 @@ export function usage (settings) {
 }
 
 /**
- * @param {Game} game 
- * @param {Message} message 
- * @param {string} command 
- * @param {string[]} args 
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
     // Remove all living players from whatever room channel they're in.
     for (let i = 0; i < game.players_alive.length; i++) {
         const player = game.players_alive[i];
-        if (player.talent !== "NPC") {
+        if (player.title !== "NPC") {
             if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
-            player.removeFromWhispers(game);
+            player.removeFromWhispers("");
             player.member.roles.remove(game.guildContext.playerRole).catch();
+            player.member.roles.add(game.guildContext.spectatorRole).catch();
 
             for (let j = 0; j < player.status.length; j++) {
                 if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
@@ -46,7 +46,10 @@ export async function execute (game, message, command, args) {
 
     for (let i = 0; i < game.players_dead.length; i++) {
         const player = game.players_dead[i];
-        if (player.talent !== "NPC") player.member.roles.remove(game.guildContext.deadRole).catch();
+        if (player.title !== "NPC") {
+            player.member.roles.remove(game.guildContext.deadRole).catch();
+            player.member.roles.add(game.guildContext.spectatorRole).catch();
+        }
     }
 
     clearTimeout(game.halfTimer);
@@ -54,15 +57,15 @@ export async function execute (game, message, command, args) {
 
     game.inProgress = false;
     game.canJoin = false;
-    messageHandler.clearQueue();
+    messageHandler.clearQueue(game);
     if (!game.settings.debug) {
         game.botContext.updatePresence();
     }
-    game.players.clear();
-    game.players_alive.clear();
-    game.players_dead.clear();
+    game.players = [];
+    game.players_alive = [];
+    game.players_dead = [];
 
-    var channel;
+    let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;
     else channel = game.guildContext.generalChannel;
     channel.send(`${message.member.displayName} ended the game!`);

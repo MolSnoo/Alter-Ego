@@ -7,6 +7,7 @@ import Game from "./Game.js";
 export default class GameEntity {
 	/**
 	 * The game this entity belongs to.
+	 * @readonly
 	 * @type {Game}
 	 */
 	game;
@@ -22,7 +23,6 @@ export default class GameEntity {
 	 * @param {number} row - The row number of this entity on the spreadsheet.
 	 */
 	constructor(game, row) {
-		/** @readonly */
 		this.game = game;
 		this.row = row;
 	}

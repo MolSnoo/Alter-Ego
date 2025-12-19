@@ -17,11 +17,21 @@ import EligibleCommand from './Classes/EligibleCommand.js';
 import { validateServerConfig } from './Modules/serverManager.js';
 import { default as autoUpdate } from './Modules/updateHandler.js';
 import { editSpectatorMessage } from './Modules/messageHandler.js';
-import { default as executeCommand } from './Modules/commandHandler.js';
+import { executeCommand } from './Modules/commandHandler.js';
 import { default as handleDialog } from './Modules/dialogHandler.js';
 
-import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChannel, Role} from 'discord.js';
+import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChannel, Role } from 'discord.js';
 import { readdir, readFileSync } from 'fs';
+
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration.js';
+import weekday from 'dayjs/plugin/weekday.js';
+import advancedFormat from 'dayjs/plugin/advancedFormat.js';
+import relativeTime from 'dayjs/plugin/relativeTime.js';
+dayjs.extend(duration);
+dayjs.extend(weekday);
+dayjs.extend(advancedFormat);
+dayjs.extend(relativeTime);
 
 const client = new Client({
     partials: [
@@ -221,6 +231,7 @@ function loadGameSettings() {
         settings.autoDeleteWhisperChannels,
         embedColor,
         settings.showOnlinePlayerCount,
+        settings.autoLoad,
         onlineActivity,
         debugModeActivity,
         gameInProgressActivity
@@ -261,6 +272,14 @@ client.on('clientReady', async () => {
     game.setBotContext();
     botContext.updatePresence();
     if (doSendFirstBootMessage) sendFirstBootMessage();
+    if (game.settings.autoLoad) {
+        // commands seems to need time to "settle". the below snippet breaks if run synchronously
+        setTimeout(() => {
+            let loadcmd = botContext.moderatorCommands.get("load_moderator");
+            if (loadcmd)
+                loadcmd.execute(game, undefined, "lar", []);
+        }, 0);
+    }
 });
 
 client.on('messageCreate', async message => {
