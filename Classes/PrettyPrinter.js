@@ -24,7 +24,6 @@ class SimpleFilterPlugin {
     /** @constructor */
     constructor() {
         this.constructors = new Set([
-            "Game",
             "Guild",
             "GuildMember",
             "TextChannel",
