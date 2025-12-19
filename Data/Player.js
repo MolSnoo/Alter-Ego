@@ -119,12 +119,24 @@ export default class Player extends ItemContainer {
      */
     strength;
     /**
-     * The player's default intelligence stat.
+     * The player's default perception stat.
+     * @type {number}
+     */
+    defaultPerception;
+    /**
+     * The player's current perception stat.
+     * @type {number}
+     */
+    perception;
+    /**
+     * The player's default intelligence stat. Deprecated. Use defaultPerception instead.
+     * @deprecated
      * @type {number}
      */
     defaultIntelligence;
     /**
-     * The player's current intelligence stat.
+     * The player's current intelligence stat. Deprecated. Use perception instead.
+     * @deprecated
      * @type {number}
      */
     intelligence;
@@ -329,8 +341,10 @@ export default class Player extends ItemContainer {
 
         this.defaultStrength = stats.strength;
         this.strength = this.defaultStrength;
-        this.defaultIntelligence = stats.intelligence;
-        this.intelligence = this.defaultIntelligence;
+        this.defaultPerception = stats.perception;
+        this.perception = this.defaultPerception;
+        this.defaultIntelligence = this.defaultPerception;
+        this.intelligence = this.perception;
         this.defaultDexterity = stats.dexterity;
         this.dexterity = this.defaultDexterity;
         this.defaultSpeed = stats.speed;
@@ -1025,7 +1039,7 @@ export default class Player extends ItemContainer {
      */
     recalculateStats() {
         const strength = this.defaultStrength;
-        const intelligence = this.defaultIntelligence;
+        const perception = this.defaultPerception;
         const dexterity = this.defaultDexterity;
         const speed = this.defaultSpeed;
         const stamina = this.defaultStamina;
@@ -1033,7 +1047,7 @@ export default class Player extends ItemContainer {
         /** @type {StatModifier[]} */
         let strModifiers = [];
         /** @type {StatModifier[]} */
-        let intModifiers = [];
+        let perModifiers = [];
         /** @type {StatModifier[]} */
         let dexModifiers = [];
         /** @type {StatModifier[]} */
@@ -1049,8 +1063,8 @@ export default class Player extends ItemContainer {
                         case "str":
                             strModifiers.push(modifier);
                             break;
-                        case "int":
-                            intModifiers.push(modifier);
+                        case "per":
+                            perModifiers.push(modifier);
                             break;
                         case "dex":
                             dexModifiers.push(modifier);
@@ -1068,7 +1082,8 @@ export default class Player extends ItemContainer {
 
         this.strength = this.recalculateStat(strength, strModifiers);
         this.maxCarryWeight = this.getMaxCarryWeight();
-        this.intelligence = this.recalculateStat(intelligence, intModifiers);
+        this.perception = this.recalculateStat(perception, perModifiers);
+        this.intelligence = this.perception;
         this.dexterity = this.recalculateStat(dexterity, dexModifiers);
         this.speed = this.recalculateStat(speed, spdModifiers);
         const staminaRatio = this.stamina / this.maxStamina;
@@ -1934,11 +1949,12 @@ export default class Player extends ItemContainer {
                     if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
                     else {
                         let stat = "";
-                        if (puzzle.type === "str probability" || puzzle.type === "strength probability") stat = "str";
-                        else if (puzzle.type === "int probability" || puzzle.type === "intelligence probability") stat = "int";
-                        else if (puzzle.type === "dex probability" || puzzle.type === "dexterity probability") stat = "dex";
-                        else if (puzzle.type === "spd probability" || puzzle.type === "speed probability") stat = "spd";
-                        else if (puzzle.type === "sta probability" || puzzle.type === "stamina probability") stat = "sta";
+                        const statName = Player.abbreviateStatName(puzzle.type.substring(0, puzzle.type.indexOf(" probability")));
+                        if (statName === "str") stat = "str";
+                        else if (statName === "per") stat = "per";
+                        else if (statName === "dex") stat = "dex";
+                        else if (statName === "spd") stat = "spd";
+                        else if (statName === "sta") stat = "sta";
 
                         const dieRoll = new Die(this.game, stat, this);
                         // Get the ratio of the result as part of the maximum roll, each relative to the minimum roll.
@@ -2206,8 +2222,10 @@ export default class Player extends ItemContainer {
         switch (statName) {
             case "strength":
                 return "str";
+            case "perception":
+                return "per";
             case "intelligence":
-                return "int";
+                return "per";
             case "dexterity":
                 return "dex";
             case "speed":

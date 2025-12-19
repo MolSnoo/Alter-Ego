@@ -29,9 +29,7 @@
     "discord.js": "^14.24.0",
     "googleapis": "^164.1.0",
     "humanize-duration": "^3.33.2",
-    "lodash": "^4.17.21",
     "luxon": "^3.7.2",
-    "minimist": "^1.2.5",
     "pretty-format": "^30.2.0",
     "table": "^6.9.0"
   },

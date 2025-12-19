@@ -88,7 +88,7 @@ def write():
     set_key(playerdefaults, "i", "DEFAULT_PRONOUNS", "defaultPronouns")
     set_key(playerdefaults, "i", "DEFAULT_VOICE", "defaultVoice")
     set_key(playerdefaults, "i", "DEFAULT_STR", "defaultStats", "strength")
-    set_key(playerdefaults, "i", "DEFAULT_INT", "defaultStats", "intelligence")
+    set_key(playerdefaults, "i", "DEFAULT_PER", "defaultStats", "perception")
     set_key(playerdefaults, "i", "DEFAULT_DEX", "defaultStats", "dexterity")
     set_key(playerdefaults, "i", "DEFAULT_SPD", "defaultStats", "speed")
     set_key(playerdefaults, "i", "DEFAULT_STA", "defaultStats", "stamina")
