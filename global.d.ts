@@ -9,7 +9,7 @@ import type Player from "./Data/Player.js";
 import type Puzzle from "./Data/Puzzle.js";
 import type Recipe from "./Data/Recipe.js";
 import type RoomItem from "./Data/RoomItem.js";
-import type { Duration } from "dayjs/plugin/duration.js";
+import type { DateTime, Duration } from "luxon";
 import type { Node } from "acorn";
 
 export { };
@@ -381,6 +381,12 @@ declare global {
 	interface TimerAttributes {
 		loop: boolean;
 		start: boolean;
+	}
+
+	interface ParsedTriggerTime {
+		datetime?: DateTime<true>;
+		format?: string;
+		valid: boolean;
 	}
 
 	interface TestParserWarningOrError {

@@ -1,7 +1,6 @@
 import Game from "../Data/Game.js";
 import { EmbedBuilder } from "discord.js";
-import dayjs from 'dayjs';
-dayjs().format();
+import { Duration } from 'luxon';
 
 /**
  * Gets a random string out of an array of possibilties.
@@ -20,17 +19,33 @@ export function getRandomString(possibilities = []) {
 export function parseDuration(durationString) {
 	let durationInt = parseInt(durationString.substring(0, durationString.length - 1));
 	let durationUnit = durationString.charAt(durationString.length - 1);
-	/** @type {import('dayjs/plugin/duration.js').Duration} */
-	let duration = null;
-	if (durationString && (durationUnit === 'y' || durationUnit === 'M' || durationUnit === 'w' || durationUnit === 'd' || durationUnit === 'h' || durationUnit === 'm' || durationUnit === 's'))
-		duration = dayjs.duration(durationInt, durationUnit);
-	return duration;
+	/** @type {import("luxon").DurationLikeObject} */
+	let durationInput = {}
+	if (durationString) {
+		switch (durationUnit) {
+			case 'y':
+				durationInput.years = durationInt;
+			case 'M':
+				durationInput.months = durationInt;
+			case 'w':
+				durationInput.weeks = durationInt;
+			case 'd':
+				durationInput.days = durationInt;
+			case 'h':
+				durationInput.hours = durationInt;
+			case 'm':
+				durationInput.minutes = durationInt;
+			case 's':
+				durationInput.seconds = durationInt;
+		}
+	}
+	return Duration.fromObject(durationInput);
 }
 
 /**
- * Converts a time string to a dayjs duration input object.
+ * Converts a time string to a luxon duration input object.
  * @param {string} timeString - The string to convert. The format is `D? HH:mm:ss`, e.g. `1 23:59:59`.
- * @returns {DayJsDurationInput} The input object to pass into the duration constructor.
+ * @returns {import("luxon").DurationObjectUnits} The input object to pass into the duration constructor.
  */
 export function convertTimeStringToDurationUnits(timeString) {
 	const timeRegex = /^(?<days>\d+)? ?(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2})$/;

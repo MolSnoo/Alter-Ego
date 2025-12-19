@@ -21,16 +21,20 @@
   "homepage": "https://github.com/MolSnoo/Alter-Ego",
   "types": "dist/bot.d.ts",
   "dependencies": {
+    "@types/humanize-duration": "^3.27.4",
     "@xmldom/xmldom": "^0.8.11",
     "acorn": "^8.15.0",
     "app-root-path": "^2.2.1",
-    "dayjs": "^1.11.19",
+    "date-fns": "^4.1.0",
     "discord.js": "^14.24.0",
     "googleapis": "^164.1.0",
+    "humanize-duration": "^3.33.2",
+    "luxon": "^3.7.2",
     "pretty-format": "^30.2.0",
     "table": "^6.9.0"
   },
   "devDependencies": {
+    "@types/luxon": "^3.7.1",
     "@types/node": "24.10.1",
     "@types/node-fetch": "2.6.13",
     "typescript": "5.9.3"
