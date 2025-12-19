@@ -58,7 +58,7 @@ export default class BotContext {
 	 */
 	commandLog;
 	/**
-	 * 
+	 * A set of functions to cleanly display objects.
 	 * @type {PrettyPrinter}
 	 */
 	prettyPrinter;
