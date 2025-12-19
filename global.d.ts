@@ -220,14 +220,16 @@ declare global {
 	/**
 	 * Represents a player's stats.
 	 * @property {number} strength - Physical strength.
-	 * @property {number} intelligence - Intelligence or perception.
+	 * @property {number} perception - Perception.
+	 * @property {number} [intelligence] - Alias for perception.
 	 * @property {number} dexterity - Agility or dexterity.
 	 * @property {number} speed - Movement speed.
 	 * @property {number} stamina - Physical stamina.
 	 */
 	interface Stats {
 		strength: number;
-		intelligence: number;
+		perception: number;
+		intelligence?: number;
 		dexterity: number;
 		speed: number;
 		stamina: number;
@@ -342,7 +344,8 @@ declare global {
 	 * @property {string} [title] - The title of the player.
 	 * @property {GuildMember} [member] - The Discord guild member associated with the player. 
 	 * @property {number} [strength] - The strength stat of the player.
-	 * @property {number} [intelligence] - The intelligence stat of the player.
+	 * @property {number} [perception] - The perception stat of the player.
+	 * @property {number} [intelligence] - The perception stat of the player.
 	 * @property {number} [dexterity] - The dexterity stat of the player.
 	 * @property {number} [speed] - The speed stat of the player.
 	 * @property {number} [stamina] - The stamina stat of the player.
@@ -355,6 +358,7 @@ declare global {
 		title?: string;
 		member?: GuildMember;
 		strength?: number;
+		perception?: number;
 		intelligence?: number;
 		dexterity?: number;
 		speed?: number;
@@ -421,4 +425,19 @@ declare global {
 		getOwnPropertyDescriptor: (targetObject: Node, propKey: string | symbol) => TypedPropertyDescriptor<any>;
 		getPrototypeOf: (targetObject: Node) => object;
 	};
+
+	type TypeGuard<T> = (value: unknown) => value is T;
+
+    type Formatter<T> = (
+        value: T,
+        config?: import("pretty-format").Config,
+        indentation?: string,
+        depth?: number,
+        refs?: import("pretty-format").Refs,
+        printer?: import("pretty-format").Printer
+    ) => string;
+
+    type FormatterPair<T = unknown> = [TypeGuard<T>, Formatter<T>];
+
+    type FormatterPairs = Array<FormatterPair<any>>;
 }

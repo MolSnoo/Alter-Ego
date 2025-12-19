@@ -5,6 +5,7 @@ import fs from 'fs';
 import { EOL } from 'os';
 
 import Player from '../Data/Player.js';
+import { Collection } from 'discord.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -24,7 +25,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}testspeeds players\n`
         + `${settings.commandPrefix}testspeeds stats`;
 }
@@ -35,7 +36,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
         return messageHandler.addReply(game, message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
 
@@ -68,7 +69,7 @@ export async function execute (game, message, command, args) {
  * @param {Game} game - The game being tested. 
  * @param {string} fileName - The name of the file to write the results to.
  */
-async function testplayers (game, fileName) {
+async function testplayers(game, fileName) {
     let text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
@@ -115,7 +116,7 @@ async function testplayers (game, fileName) {
  * @param {Game} game - The game being tested. 
  * @param {string} fileName - The name of the file to write the results to.
  */
-async function testspeeds (game, fileName) {
+async function testspeeds(game, fileName) {
     let text = "";
     for (let i = 0; i < game.rooms.length; i++) {
         const room = game.rooms[i];
@@ -128,7 +129,7 @@ async function testspeeds (game, fileName) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 1; l <= 10; l++) {
-                        const player = new Player("", null, "", "", "neutral", "an average voice",{ speed: l, stamina: 5, strength: 5, intelligence: 5, dexterity: 5 }, true, room.id, "", [], "", [], null, 1, game);
+                        const player = new Player("", null, "", "", "neutral", "an average voice", { speed: l, stamina: 5, strength: 5, perception: 5, dexterity: 5 }, true, room.id, "", [], "", new Collection(), null, 1, game);
                         player.pos.x = exit1.pos.x;
                         player.pos.y = exit1.pos.y;
                         player.pos.z = exit1.pos.z;

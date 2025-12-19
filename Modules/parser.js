@@ -66,7 +66,7 @@ class Sentence {
  * @param {Player|PseudoPlayer} player - The Player currently reading the description.
  * @returns {{text: string, warnings: string[], errors: string[]}}
  */
-export function parseDescriptionWithErrors (description, container, player) {
+export function parseDescriptionWithErrors(description, container, player) {
     // First, split the description into a DOMParser document.
     let document = createDocument(description);
     // Check for any warnings and errors. If they exist, store them.
@@ -179,7 +179,7 @@ export function parseDescription(description, container, player) {
  * @param {number} [addedQuantity=1] - The quantity of this item to add. If none is provided, defaults to 1.
  * @returns {string}
  */
-export function addItem (description, item, slot, addedQuantity = 1) {
+export function addItem(description, item, slot, addedQuantity = 1) {
     // First, split the description into a DOMParser document.
     let documentElement = createDocument(description).document;
 
@@ -264,7 +264,7 @@ export function addItem (description, item, slot, addedQuantity = 1) {
  * @param {Document} [document] - An already existing document. If this is present, the function returns an unparsed document.
  * @returns {Document}
  */
-function removeItemWithDocument (description, item, slot, removedQuantity = 1, document) {
+function removeItemWithDocument(description, item, slot, removedQuantity = 1, document) {
     // Parse all of the sentences.
     let sentenceElements = document.getElementsByTagName('s');
     /** @type {Array<Sentence>} */
@@ -337,7 +337,7 @@ function removeItemWithDocument (description, item, slot, removedQuantity = 1, d
  * @param {number} [removedQuantity=1] - The quantity of this item to remove. If none is provided, defaults to 1.
  * @returns {string}
  */
-export function removeItem (description, item, slot, removedQuantity = 1) {
+export function removeItem(description, item, slot, removedQuantity = 1) {
     let document = createDocument(description).document;
     document = removeItemWithDocument(description, item, slot, removedQuantity, document);
     return stringify(document).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
@@ -350,7 +350,7 @@ export function removeItem (description, item, slot, removedQuantity = 1) {
  * @param {Player|PseudoPlayer} [player] - The player who caused these procedurals to be evaluated, if applicable.
  * @returns {string}
  */
-export function generateProceduralOutput (description, proceduralSelections, player) {
+export function generateProceduralOutput(description, proceduralSelections, player) {
     let document = createDocument(description).document;
 
     if (document) {
@@ -402,13 +402,13 @@ export function generateProceduralOutput (description, proceduralSelections, pla
             if (!winningPossibilityIndex) {
                 /** @type {number} */
                 let statValue;
-                const proceduralStat = procedurals[i].getAttribute('stat').toLowerCase();
+                const proceduralStat = Player.abbreviateStatName(procedurals[i].getAttribute('stat'));
                 if (proceduralStat !== '' && player !== null) {
-                    if (proceduralStat === "strength" || proceduralStat === "str") statValue = player.strength;
-                    else if (proceduralStat === "intelligence" || proceduralStat === "int") statValue = player.intelligence;
-                    else if (proceduralStat === "dexterity" || proceduralStat === "dex") statValue = player.dexterity;
-                    else if (proceduralStat === "speed" || proceduralStat === "spd") statValue = player.speed;
-                    else if (proceduralStat === "stamina" || proceduralStat === "sta") statValue = player.stamina;
+                    if (proceduralStat === "str") statValue = player.strength;
+                    else if (proceduralStat === "per") statValue = player.perception;
+                    else if (proceduralStat === "dex") statValue = player.dexterity;
+                    else if (proceduralStat === "spd") statValue = player.speed;
+                    else if (proceduralStat === "sta") statValue = player.stamina;
                 }
                 possibilityArr = calculateModifiedPossbilityArr(possibilityArr, statValue);
                 winningPossibilityIndex = choosePossibilityIndex(possibilityArr);
@@ -449,7 +449,7 @@ function calculateModifiedPossbilityArr(possibilityArr, statValue) {
     /** @type {number} */
     let nullCount = possibilityArr.reduce((accumulator, possibility) => accumulator + (possibility.chance === null ? 1 : 0), 0);
     if (nullCount > 0) {
-        let dividedRemainder = (100.0 - possibilitySum) / nullCount; 
+        let dividedRemainder = (100.0 - possibilitySum) / nullCount;
         for (let possibility of possibilityArr) {
             if (possibility.chance === null)
                 possibility.chance = dividedRemainder;
@@ -467,7 +467,7 @@ function calculateModifiedPossbilityArr(possibilityArr, statValue) {
     }
 
     // Sort by highest to lowest chance.
-    possibilityArr = possibilityArr.sort((a,b) => b.chance - a.chance);
+    possibilityArr = possibilityArr.sort((a, b) => b.chance - a.chance);
 
     return possibilityArr;
 }

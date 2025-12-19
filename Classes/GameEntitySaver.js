@@ -167,7 +167,7 @@ export default class GameEntitySaver {
 					player.pronounString,
 					player.originalVoiceString,
 					String(player.defaultStrength),
-					String(player.defaultIntelligence),
+					String(player.defaultPerception),
 					String(player.defaultDexterity),
 					String(player.defaultSpeed),
 					String(player.defaultStamina),

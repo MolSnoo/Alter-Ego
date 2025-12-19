@@ -5,6 +5,7 @@ import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' 
 import { appendRowsToSheet } from '../Modules/sheets.js';
 
 import Player from '../Data/Player.js';
+import { Collection } from 'discord.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -24,7 +25,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}addplayer @cella`;
 }
 
@@ -34,7 +35,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (game.inProgress && !game.editMode)
         return messageHandler.addReply(game, message, `You cannot add a player to the spreadsheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
@@ -62,7 +63,7 @@ export async function execute (game, message, command, args) {
         "",
         [],
         playerdefaults.defaultDescription,
-        [],
+        new Collection(),
         null,
         0,
         game
@@ -82,7 +83,7 @@ export async function execute (game, message, command, args) {
         player.pronounString,
         player.originalVoiceString,
         String(player.defaultStrength),
-        String(player.defaultIntelligence),
+        String(player.defaultPerception),
         String(player.defaultDexterity),
         String(player.defaultSpeed),
         String(player.defaultStamina),

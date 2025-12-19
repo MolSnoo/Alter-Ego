@@ -4,6 +4,7 @@ import BotCommand from "./BotCommand.js";
 import ModeratorCommand from "./ModeratorCommand.js";
 import PlayerCommand from "./PlayerCommand.js";
 import EligibleCommand from "./EligibleCommand.js";
+import PrettyPrinter from "./PrettyPrinter.js";
 
 /**
  * @class BotContext
@@ -57,6 +58,11 @@ export default class BotContext {
 	 */
 	commandLog;
 	/**
+	 * A set of functions to cleanly display objects.
+	 * @type {PrettyPrinter}
+	 */
+	prettyPrinter;
+	/**
 	 * A timeout which updates the client user's presence every 30 seconds.
 	 * @type NodeJS.Timeout
 	 */
@@ -82,6 +88,7 @@ export default class BotContext {
 		this.eligibleCommands = eligibleCommands;
 		this.game = game;
 		this.commandLog = [];
+		this.prettyPrinter = new PrettyPrinter()
 		this.#presenceUpdateInterval = setInterval(
 			() => this.updatePresence(),
 			30 * 1000
