@@ -431,4 +431,19 @@ declare global {
 		getOwnPropertyDescriptor: (targetObject: Node, propKey: string | symbol) => TypedPropertyDescriptor<any>;
 		getPrototypeOf: (targetObject: Node) => object;
 	};
+
+	type TypeGuard<T> = (value: unknown) => value is T;
+
+    type Formatter<T> = (
+        value: T,
+        config?: import("pretty-format").Config,
+        indentation?: string,
+        depth?: number,
+        refs?: import("pretty-format").Refs,
+        printer?: import("pretty-format").Printer
+    ) => string;
+
+    type FormatterPair<T = unknown> = [TypeGuard<T>, Formatter<T>];
+
+    type FormatterPairs = Array<FormatterPair<any>>;
 }
