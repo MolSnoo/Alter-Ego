@@ -255,8 +255,8 @@ client.on('clientReady', async () => {
     const doSendFirstBootMessage = await createGuildContext();
     await loadCommands();
     await checkVersion();
-    await autoUpdate();
     loadGameSettings();
+    await autoUpdate(gameSettings);
     game = new Game(guildContext, gameSettings);
     botContext = new BotContext(client, botCommands, moderatorCommands, playerCommands, eligibleCommands, game);
     game.setBotContext();
