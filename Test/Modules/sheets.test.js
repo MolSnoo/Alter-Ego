@@ -1,4 +1,94 @@
-const googleapisMock = include('Test/Mocks/googleapis').mock();
+import sheets from "../__mocks__/libs/sheets.js";
+
+describe('sheets module', () => {
+    describe('getSheetValues', () => {
+        test('get Rooms values', async () => {
+            const response = await sheets.getSheetValues(game.constants.roomSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.roomSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('lobby');
+        });
+
+        test('get Fixtures values', async () => {
+            const response = await sheets.getSheetValues(game.constants.fixtureSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.fixtureSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('FLOOR');
+        });
+
+        test('get Prefabs values', async () => {
+            const response = await sheets.getSheetValues(game.constants.prefabSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.prefabSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('SIGN IN SHEET');
+        });
+
+        test('get Recipes values', async () => {
+            const response = await sheets.getSheetValues(game.constants.recipeSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.recipeSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('MONOKUMAS ENHANCER PILL BOTTLE');
+        });
+
+        test('get Room Items values', async () => {
+            const response = await sheets.getSheetValues(game.constants.roomItemSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.roomItemSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('SIGN IN SHEET');
+        });
+
+        test('get Puzzles values', async () => {
+            const response = await sheets.getSheetValues(game.constants.puzzleSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.puzzleSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('CALL BUTTON');
+        });
+
+        test('get Events values', async () => {
+            const response = await sheets.getSheetValues(game.constants.eventSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.eventSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('PROLOGUE');
+        });
+
+        test('get Status Effects values', async () => {
+            const response = await sheets.getSheetValues(game.constants.statusSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.statusSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('heated');
+        });
+
+        test('get Players values', async () => {
+            const response = await sheets.getSheetValues(game.constants.playerSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.playerSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][1]).toBe('Kyra');
+        });
+
+        test('get Inventory Items values', async () => {
+            const response = await sheets.getSheetValues(game.constants.inventorySheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.inventorySheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('Kyra');
+        });
+
+        test('get Gestures values', async () => {
+            const response = await sheets.getSheetValues(game.constants.gestureSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.gestureSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('smile');
+        });
+
+        test('get Flags values', async () => {
+            const response = await sheets.getSheetValues(game.constants.flagSheetDataCells, game.settings.spreadsheetID);
+            expect(response.range).toBe(game.constants.flagSheetDataCells);
+            expect(response.majorDimension).toBe('ROWS');
+            expect(response.values[0][0]).toBe('DAYTIME');
+        });
+    });
+});
+
+/*const googleapisMock = include('Test/Mocks/googleapis').mock();
 const sheets = include('Modules/sheets.js');
 
 describe('sheets module', () => {
@@ -95,4 +185,4 @@ describe('sheets module', () => {
             expect(req.resource.values).toBe(rows);
         });
     });
-});
+});*/

@@ -9,11 +9,15 @@ import settings from './__mocks__/configs/settings.js';
 import toBeWithinRange from './__extenders__/toBeWithinRange.js';
 import toHaveSize from './__extenders__/toHaveSize.js';
 
+import * as sheetsMock from './__mocks__/libs/sheets.js';
+vi.mock('../Modules/sheets.js', () => sheetsMock);
+
 import GuildContext from '../Classes/GuildContext.js';
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import BotContext from '../Classes/BotContext.js';
 import { Collection } from 'discord.js';
+
 
 vi.mock('../Configs/credentials.json', () => ({ default: credentials }));
 vi.mock('../Configs/demodata.json', () => ({ default: demodata }));
@@ -101,6 +105,7 @@ beforeAll(() => {
     game.setBotContext();
     // Ensure presence update doesn't throw during tests.
     try { BotContext.instance.updatePresence(); } catch (e) { }
+    globalThis.game = game;
 });
 
 afterEach(() => {
