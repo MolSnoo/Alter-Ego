@@ -17,7 +17,6 @@ import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
 import { getSheetValues } from '../Modules/sheets.js';
 import { convertTimeStringToDurationUnits, parseDuration } from '../Modules/helpers.js';
-import { prettyObject } from '../Modules/prettyPrinter.js';
 import { ChannelType, Collection } from 'discord.js';
 import dayjs from 'dayjs';
 dayjs().format();
@@ -2285,12 +2284,12 @@ export default class GameEntityLoader extends GameEntityManager {
 	#printData(data) {
 		if (data instanceof Array) {
 			for (var i = 0; i < data.length; i++) {
-				console.log(prettyObject(data[i]));
+				console.log(this.game.botContext.prettyPrinter.prettyObject(data[i]));
 			}
 		}
 		else if (data instanceof Map) {
 			data.forEach(entry => {
-				console.log(prettyObject(entry));
+				console.log(this.game.botContext.prettyPrinter.prettyObject(entry));
 			});
 		}
 	}
