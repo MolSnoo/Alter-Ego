@@ -1,6 +1,6 @@
-import dayjs from "dayjs";
 import { Collection, Guild, GuildMember, TextChannel } from "discord.js";
 import { format } from "pretty-format";
+import { Duration } from 'luxon';
 import Timer from "./Timer.js";
 import Status from "../Data/Status.js";
 import Gesture from "../Data/Gesture.js";
@@ -55,8 +55,8 @@ class GameFilterPlugin {
                 (/** @type {TextChannel} */ value) => `<TextChannel "${value.name || "unknown"}">`,
             ],
             [
-                (value) => dayjs.isDuration(value),
-                (/** @type {import('dayjs/plugin/duration.js').Duration} */ value) =>
+                (value) => Duration.isDuration(value),
+                (/** @type {Duration} */ value) =>
                     `<Duration ${value.humanize() || "unknown"}>`,
             ],
             [
