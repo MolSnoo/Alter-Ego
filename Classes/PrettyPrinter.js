@@ -6,14 +6,21 @@ import Status from "../Data/Status.js";
 import Gesture from "../Data/Gesture.js";
 import Player from "../Data/Player.js";
 import Room from "../Data/Room.js";
+import BotContext from "./BotContext.js";
 
 /** @type {import('pretty-format').NewPlugin} */
-class SimpleFilterPlugin {
+class GameFilterPlugin {
     /**
      * List of formatters used by the SimpleFilterPlugin.
      * @type {FormatterPairs}
      */
     formatters;
+
+    /**
+     * Set of objects currently being processed by the ComplexFilterPlugin to prevent recursion errors.
+     * @type {Set<any>}
+     */
+    processing;
 
     /**
      * List of constructor names accepted by SimpleFilterPlugin.
@@ -23,6 +30,7 @@ class SimpleFilterPlugin {
 
     /** @constructor */
     constructor() {
+        this.processing = new Set();
         this.constructors = new Set([
             "Guild",
             "GuildMember",
@@ -32,6 +40,9 @@ class SimpleFilterPlugin {
             "Timer",
             "Status",
             "Gesture",
+            "Room",
+            "Player",
+            "BotContext",
         ]);
         this.formatters = [
             [(value) => value instanceof Guild, (/** @type {Guild} */ value) => `<Guild "${value.name || "unknown"}">`],
@@ -61,48 +72,6 @@ class SimpleFilterPlugin {
                     `<Status "${value.id}" lasting ${value.duration?.humanize() || "unknown"}>`,
             ],
             [(value) => value instanceof Gesture, (/** @type {Gesture} */ value) => `<Gesture "${value.id}">`],
-        ];
-    }
-
-    /** @type {import('pretty-format').NewPlugin['test']} */
-    test(value) {
-        if (value === null || typeof value !== "object") return false;
-        return this.constructors.has(value.constructor?.name);
-    }
-
-    /** @type {import('pretty-format').NewPlugin['serialize']} */
-    serialize(value) {
-        for (const [tester, formatter] of this.formatters) {
-            if (tester(value)) return formatter(value);
-        }
-
-        return `<${value.constructor?.name || "Unknown"}>`;
-    }
-}
-
-/** @type {import('pretty-format').NewPlugin} */
-class ComplexFilterPlugin {
-    /**
-     * List of formatters used by the ComplexFilterPlugin.
-     * @type {FormatterPairs}
-     */
-    formatters;
-
-    /**
-     * Set of objects currently being processed by the ComplexFilterPlugin to prevent recursion errors.
-     * @type {Set<any>}
-     */
-    processing;
-
-    /**
-     * List of constructor names accepted by ComplexFilterPlugin.
-     * @type {Set<string>}
-     */
-    constructors;
-
-    /** @constructor */
-    constructor() {
-        this.formatters = [
             [
                 (value) => value instanceof Player,
                 (/** @type {Player} */ value, config, indentation, depth, refs, printer) => {
@@ -132,9 +101,8 @@ class ComplexFilterPlugin {
                     }
                 },
             ],
+            [(value) => value instanceof BotContext, (/** @type {BotContext} */ value) => `<BotContext>`],
         ];
-        this.processing = new Set();
-        this.constructors = new Set(["Player", "Room"]);
     }
 
     /** @type {import('pretty-format').NewPlugin['test']} */
@@ -156,20 +124,13 @@ class ComplexFilterPlugin {
 
 export default class PrettyPrinter {
     /**
-     * "Simple" filter plugin for prettyString
+     * Game filtering filter plugin for prettyString
      * @type {import('pretty-format').NewPlugin}
      */
-    simpleFilterPlugin;
-
-    /**
-     * "Complex" filter plugin for prettyString
-     * @type {import('pretty-format').NewPlugin}
-     */
-    complexFilterPlugin;
+    gameFilterPlugin;
 
     constructor() {
-        this.simpleFilterPlugin = new SimpleFilterPlugin();
-        this.complexFilterPlugin = new ComplexFilterPlugin();
+        this.gameFilterPlugin = new GameFilterPlugin();
     }
 
     /**
@@ -178,7 +139,7 @@ export default class PrettyPrinter {
      */
     prettyString(object) {
         return format(object, {
-            plugins: [this.simpleFilterPlugin, this.complexFilterPlugin],
+            plugins: [this.gameFilterPlugin],
             indent: 4,
         });
     }
@@ -188,7 +149,15 @@ export default class PrettyPrinter {
      * @param {any} object - The object to display.
      */
     prettyObject(object) {
-        const properties = new Set(["game", "guild", "member", "channel", "spectateChannel", "timer", "exitCollection"]);
+        const properties = new Set([
+            "game",
+            "guild",
+            "member",
+            "channel",
+            "spectateChannel",
+            "timer",
+            "exitCollection",
+        ]);
         const clone = {};
         for (const key of Object.keys(object)) {
             if (properties.has(key)) {
@@ -197,6 +166,6 @@ export default class PrettyPrinter {
                 clone[key] = object[key];
             }
         }
-        return clone
+        return clone;
     }
 }
