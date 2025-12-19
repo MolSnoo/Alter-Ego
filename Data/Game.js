@@ -331,6 +331,7 @@ export default class Game {
 							const time = Event.parseTriggerTime(triggerTimeString);
 							if (time.valid
 								&& now.month === time.datetime.month
+								&& now.day === time.datetime.day
 								&& now.weekday === time.datetime.weekday
 								&& now.hour === time.datetime.hour
 								&& now.minute === time.datetime.minute) {
