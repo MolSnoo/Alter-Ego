@@ -40,15 +40,8 @@ export function usage(settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute(game, message, command, args) {
-    const dataGame = prettyFormat(game, {
-        plugins: [simpleFilterPlugin, complexFilterPlugin],
-        indent: 4
-    });
-
-    const dataLog = prettyFormat(game.botContext.commandLog, {
-        plugins: [simpleFilterPlugin, complexFilterPlugin],
-        indent: 4
-    });
+    const dataGame = game.botContext.prettyPrinter.prettyString(game);
+    const dataLog = game.botContext.prettyPrinter.prettyString(game.botContext.commandLog);
 
     var bufferGame = null
     var bufferLog = null
@@ -96,84 +89,3 @@ export async function execute(game, message, command, args) {
         game.guildContext.commandChannel.send({ content: "Successfully generated log files.", files: [fileGame, fileLog] });
     }
 };
-
-const simpleFilter = new Set([
-    'Guild', 'GuildMember', 'TextChannel', 'Duration', 'Timeout',
-    'Timer', 'Status', 'Gesture'
-]);
-
-const complexFilter = new Set([
-    'Player', 'Room'
-]);
-
-const complexProcessing = new Set()
-
-const simpleFilterPlugin = {
-    test: (val) => {
-        if (val === null || typeof val !== 'object') return false;
-        return simpleFilter.has(val.constructor?.name);
-    },
-
-    print: (val) => {
-        const constructorName = val.constructor?.name;
-
-        switch (constructorName) {
-            case 'Guild':
-                return `<Guild "${val.name || 'unknown'}">`;
-            case 'GuildMember':
-                return `<GuildMember "${val.displayName || 'unknown'}">`;
-            case 'TextChannel':
-                return `<TextChannel "${val.name || 'unknown'}">`;
-            case 'Duration':
-                return `<Duration ${val.humanize?.() || 'unknown'}>`;
-            case 'Timeout':
-                return `<Timeout ${val._idleTimeout}ms>`;
-            case 'Timer':
-                return `<Timer ${val.timerDuration}ms>`;
-            case 'Status':
-                return `<Status "${val.name}" lasting ${val.duration?.humanize?.() || 'unknown'}>`;
-            case 'Gesture':
-                return `<Gesture "${val.name}">`;
-            default:
-                return `<${constructorName || 'Unknown'}>`;
-        }
-    }
-};
-
-const complexFilterPlugin = {
-    test: (val) => {
-        if (val === null || typeof val !== 'object') return false;
-        if (complexProcessing.has(val)) return false;
-        return complexFilter.has(val.constructor?.name);
-    },
-
-    serialize: (val, config, indentation, depth, refs, printer) => {
-        const constructorName = val.constructor?.name;
-
-        switch (constructorName) {
-            case 'Player':
-                if (depth > 2) {
-                    return `<Player ${val.name}>`;
-                } else {
-                    complexProcessing.add(val);
-                    let serialized = printer(val, config, indentation, depth, refs);
-                    complexProcessing.delete(val);
-                    return serialized;
-                }
-            case 'Room':
-                if (depth > 2) {
-                    let occupants = val.occupants.length
-                        ? ` occupied by ${val.occupants.map(player => player.name).join(', ')}`
-                        : '';
-                    return `<Room ${val.name}${occupants}>`;
-                } else {
-                    complexProcessing.add(val);
-                    let serialized = printer(val, config, indentation, depth, refs);
-                    complexProcessing.delete(val);
-                    return serialized;
-                }
-            default:
-                return `<${constructorName || 'Unknown'}>`;
-        }
-    }
-}

@@ -99,7 +99,7 @@ be listed, and their behavior will be detailed.
 - Class attribute: [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
   `this.iconURL`
 
-This is an optional image URL that will accompany a Room's description. The URL must end in `.jpg`, `.png`, or `.gif`.
+This is an optional image URL that will accompany a Room's description. The URL must end in `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, or .`avif`.
 
 ### Exits
 
