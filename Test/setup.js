@@ -15,11 +15,11 @@ import Game from '../Data/Game.js';
 import BotContext from '../Classes/BotContext.js';
 import { Collection } from 'discord.js';
 
-vi.mock('./Configs/credentials.json', () => ({ default: credentials }));
-vi.mock('./Configs/demodata.json', () => ({ default: demodata }));
-vi.mock('./Configs/playerdefaults.json', () => ({ default: playerdefaults }));
-vi.mock('./Configs/serverconfig.json', () => ({ default: serverconfig }));
-vi.mock('./Configs/settings.json', () => ({ default: settings }));
+vi.mock('../Configs/credentials.json', () => ({ default: credentials }));
+vi.mock('../Configs/demodata.json', () => ({ default: demodata }));
+vi.mock('../Configs/playerdefaults.json', () => ({ default: playerdefaults }));
+vi.mock('../Configs/serverconfig.json', () => ({ default: serverconfig }));
+vi.mock('../Configs/settings.json', () => ({ default: settings }));
 
 beforeAll(() => {
     // Create a minimal mocked Discord environment and initialize Game.
