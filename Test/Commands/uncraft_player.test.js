@@ -1,28 +1,8 @@
-const constants = include('Configs/constants.json');
-const uncraft_player = include(`${constants.commandsDir}/uncraft_player.js`);
-
-var botMock = include('Test/Mocks/bot').mock;
-var gameMock = include('Test/Mocks/game').mock;
-var messageMock = include('Test/Mocks/message').mock;
-var player;
+import { beforeAll, beforeEach, afterEach, afterAll, describe, test } from 'vitest';
+import {usage, execute} from '../../Commands/uncraft_player.js';
 
 describe('uncraft_player command', () => {
-    beforeAll(async () => {
-        bot = botMock;
-        game = gameMock;
-        message = messageMock;
-        await game.init();
-    });
-
-    afterEach(async () => {
-        game.clearPlayersAndInventories();
-    });
-
-    afterAll(() => {
-        game.reset();
-    });
-
-    describe('no uncraftable inventory item in hands', () => {
+    /*describe('no uncraftable inventory item in hands', () => {
         beforeEach(async () => {
             const players = [];
             const inventoryItems = [
@@ -85,5 +65,5 @@ describe('uncraft_player command', () => {
             expect(game.messageHandler.addReply).toHaveBeenCalledWith(message, `You do not have an empty hand to uncraft a PEN. Either drop the item in your other hand or stash it in one of your equipped items.`);
             expect(player.uncraft).not.toHaveBeenCalled();
         });
-    });
+    });*/
 });

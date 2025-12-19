@@ -1,7 +1,7 @@
 import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/object_bot.js'
+import {usage, execute} from '../../Commands/fixture_bot.js';
 
-describe('object_bot command', () => {
+describe('fixture_bot command', () => {
     beforeEach(() => {});
         
     test('', async () => {});
