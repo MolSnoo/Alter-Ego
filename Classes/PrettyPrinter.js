@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { Guild, GuildMember, TextChannel } from "discord.js";
+import { Collection, Guild, GuildMember, TextChannel } from "discord.js";
 import { format } from "pretty-format";
 import Timer from "./Timer.js";
 import Status from "../Data/Status.js";
@@ -129,8 +129,22 @@ export default class PrettyPrinter {
      */
     gameFilterPlugin;
 
+    /**
+     * Properties truncated by prettyObject
+     * @type {Set<string>}
+     */
+    truncateProperties;
+
     constructor() {
         this.gameFilterPlugin = new GameFilterPlugin();
+        this.truncateProperties = new Set([
+            "game",
+            "guild",
+            "member",
+            "channel",
+            "spectateChannel",
+            "timer",
+        ]);
     }
 
     /**
@@ -147,23 +161,30 @@ export default class PrettyPrinter {
     /**
      * Returns a copy of the object to display in console.log with certain properties excluded.
      * @param {any} object - The object to display.
+     * @param {number} level - Level of recursion, for internel use only.
      */
-    prettyObject(object) {
-        const properties = new Set([
-            "game",
-            "guild",
-            "member",
-            "channel",
-            "spectateChannel",
-            "timer",
-            "exitCollection",
-        ]);
-        const clone = {};
+    prettyObject(object, level = 0) {
+        if (level >= 3) return object;
+        const clone = Object.create(Object.getPrototypeOf(object));
         for (const key of Object.keys(object)) {
-            if (properties.has(key)) {
+            if (this.truncateProperties.has(key)) {
                 clone[key] = `<Truncated>`;
             } else {
-                clone[key] = object[key];
+                if (object[key] && typeof object[key] === "object") {
+                    if (object[key] instanceof Array) {
+                        clone[key] = object[key].map((value) => this.prettyObject(value, level + 1))
+                    } else if (object[key] instanceof Map) {
+                        clone[key] = new Map();
+                        for (const [k, v] of object[key]) {
+                            clone[key].set(k, this.prettyObject(v, level + 1))
+                        }
+                    } else if (object[key] instanceof Collection) {
+                        clone[key] = new Collection();
+                        for (const [k, v] of object[key]) {
+                            clone[key].set(k, this.prettyObject(v, level + 1))
+                        }
+                    } else clone[key] = this.prettyObject(object[key], level + 1)
+                } else clone[key] = object[key];
             }
         }
         return clone;
