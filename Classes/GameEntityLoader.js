@@ -36,12 +36,19 @@ export default class GameEntityLoader extends GameEntityManager {
 	}
 
 	/**
+	 * Clears all game data from memory.
+	 */
+	clearAll() {
+		this.clearGame();
+	}
+
+	/**
 	 * Loads all entities into the game.
 	 * @param {boolean} [startGame] - Whether or not to start the game. Defaults to `false`.
 	 * @param {boolean} [sendPlayerRoomDescriptions] - Whether or not to send all players the description of the room they loaded into. Defaults to `false`.
 	 */
 	loadAll(startGame = false, sendPlayerRoomDescriptions = false) {
-		return new Promise(async (resolve, reject) => {
+		return new Promise(async (resolve) => {
 			let errors = [];
 			const roomCount = await this.loadRooms(false, errors);
 			const fixtureCount = await this.loadFixtures(false, errors);
