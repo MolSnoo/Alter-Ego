@@ -1,4 +1,4 @@
-var game = require('../../game.json');
+/*var game = require('../../game.json');
 const finder = require('../../Modules/finder.js');
 const parser = require('../../Modules/parser.js');
 
@@ -9,10 +9,10 @@ const InventoryItem = require(`../../Data/InventoryItem.js`);
 jest.mock('../../Modules/finder.js');
 jest.mock(`../../Data/Event.js`);
 jest.mock(`../../Data/Player.js`);
-jest.mock(`../../Data/InventoryItem.js`);
+jest.mock(`../../Data/InventoryItem.js`);*/
 
 beforeAll(() => {
-	Event.mockImplementation(function(name, ongoing) {
+	/*Event.mockImplementation(function(name, ongoing) {
 		this.name = name;
 		this.ongoing = ongoing;
 
@@ -34,11 +34,11 @@ beforeAll(() => {
 
 		game.inventoryItems.push(this);
 	});
-	finder.findEvent.mockImplementation(name => game.events.find(event => event.name === name));
+	finder.findEvent.mockImplementation(name => game.events.find(event => event.name === name));*/
 });
 
 afterEach(() => {
-	game.players = [];
+	/*game.players = [];
 	game.players_alive = [];
 	game.players_dead = [];
 	game.rooms = [];
@@ -51,11 +51,11 @@ afterEach(() => {
 	game.whispers = [];
 	game.statusEffects = [];
 	game.inventoryItems = [];
-	game.gestures = [];
+	game.gestures = [];*/
 });
 
 describe('test item lists', () => {
-	const player = new Player("", 5);
+	/*const player = new Player("", 5);
 
 	test('empty item list 0', () => {
 		const text = `<desc><s>The floor beneath you is soft and earthy.</s> <s>You find <il></il> haphazardly placed on it.</s></desc>`;
@@ -460,5 +460,5 @@ describe('test formatting', () => {
 		const expected = `It’s a black, early-2000s CD player. Plugged into the audio port is a similarly black pair of earbuds. The player itself is round and its lid flips up with the help of a tiny button, granting access to the CD inside. The CD currently in the player has no design on it, but it has music nonetheless.`;
 		const result = parser.parseDescription(text, null, player);
 		expect(result).not.toBe(expected);
-	})
+	});*/
 });

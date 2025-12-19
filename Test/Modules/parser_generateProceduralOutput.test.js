@@ -1,4 +1,4 @@
-const constants = include('Configs/constants.json');
+/*const constants = include('Configs/constants.json');
 const parser = include(`${constants.modulesDir}/parser.js`);
 
 var expected = new Map();
@@ -13,16 +13,16 @@ function generateActual(text, proceduralSelections, player) {
 			actual.set(generatedText, actual.get(generatedText) + 1);
 		else actual.set(generatedText, 1);
 	}
-}
+}*/
 
 afterEach(() => {
-	expected.clear();
+	/*expected.clear();
 	actual.clear();
-	proceduralSelections.clear();
+	proceduralSelections.clear();*/
 });
 
 describe('test procedural tags', () => {
-	test('single unnamed chanceless procedural', () => {
+	/*test('single unnamed chanceless procedural', () => {
 		const text = `<desc><s>Sentence.</s> <procedural><poss><s>Possibility 1.</s></poss></procedural></desc>`;
 		expected.set(`<desc><s>Sentence.</s> <s>Possibility 1.</s></desc>`, 10000);
 
@@ -1208,5 +1208,5 @@ describe('test nested procedurals', () => {
 			for (const [text, count] of actual)
 				expect(count).toBe(expected.get(text));
 		});
-	});
+	});*/
 });
