@@ -2,7 +2,7 @@ import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
-import dayjs from 'dayjs';
+import { Duration } from 'luxon';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -56,12 +56,12 @@ export async function execute (game, message, command, args) {
     const moving = room.occupants.filter(occupant => occupant.isMoving).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
     const movingList = [];
     for (let i = 0; i < moving.length; i++) {
-        const remaining = dayjs.duration(moving[i].remainingTime);
+        const remaining = Duration.fromMillis(moving[i].remainingTime);
 
-        const days = Math.floor(remaining.asDays());
-        const hours = remaining.hours();
-        const minutes = remaining.minutes();
-        const seconds = remaining.seconds();
+        const days = Math.floor(remaining.as('days'));
+        const hours = remaining.hours;
+        const minutes = remaining.minutes;
+        const seconds = remaining.seconds;
 
         let displayString = "";
         if (days !== 0) displayString += `${days} `;

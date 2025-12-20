@@ -9,8 +9,7 @@ import Recipe from './Recipe.js';
 import Room from './Room.js';
 import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
 import Timer from '../Classes/Timer.js';
-import dayjs from 'dayjs';
-dayjs().format();
+import { Duration } from 'luxon';
 
 /**
  * @class Fixture
@@ -127,7 +126,7 @@ export default class Fixture extends ItemContainer {
 
         this.process = { recipe: null, ingredients: [], duration: null, timer: null };
         let fixture = this;
-        this.recipeInterval = this.recipeTag ? new Timer(dayjs.duration(1000), { start: true, loop: true }, function () { fixture.processRecipes(); }) : null;
+        this.recipeInterval = this.recipeTag ? new Timer(1000, { start: true, loop: true }, function () { fixture.processRecipes(); }) : null;
     }
 
     /**
@@ -176,12 +175,12 @@ export default class Fixture extends ItemContainer {
         if (result.recipe === null) {
             // If this is supposed to deactivate automatically and no recipe was found, turn it off after 1 minute.
             if (this.autoDeactivate) {
-                this.process.duration = dayjs.duration(1, 'm');
+                this.process.duration = Duration.fromObject({minutes: 1});
                 let fixture = this;
-                this.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
+                this.process.timer = new Timer(1000, { start: true, loop: true }, function () {
                     if (fixture.process.duration !== null) {
-                        fixture.process.duration.subtract(1000, 'ms');
-                        if (fixture.process.duration.asMilliseconds() <= 0)
+                        fixture.process.duration = fixture.process.duration.minus(1000);
+                        if (fixture.process.duration.as('milliseconds') <= 0)
                             fixture.deactivate(null, true);
                     }
                 });
@@ -192,14 +191,14 @@ export default class Fixture extends ItemContainer {
         this.process.recipe = result.recipe;
         this.process.ingredients = result.ingredients;
         if (player) player.sendDescription(this.process.recipe.initiatedDescription, this);
-        this.process.duration = this.process.recipe.duration.clone();
+        this.process.duration = this.process.recipe.duration;
 
         let fixture = this;
-        fixture.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
+        fixture.process.timer = new Timer(1000, { start: true, loop: true }, function () {
             if (fixture.process.duration !== null) {
-                fixture.process.duration.subtract(1000, 'ms');
+                fixture.process.duration = fixture.process.duration.minus(1000);
 
-                if (fixture.process.duration.asMilliseconds() <= 0)
+                if (fixture.process.duration.as('milliseconds') <= 0)
                     process(fixture, player);
             }
         });
@@ -231,12 +230,12 @@ export default class Fixture extends ItemContainer {
         if (this.activated) {
             const result = this.findRecipe();
             if (this.process.recipe === null && this.process.duration === null && result.recipe === null && this.autoDeactivate) {
-                this.process.duration = dayjs.duration(1, 'm');
+                this.process.duration = Duration.fromObject({minutes: 1});
                 const fixture = this;
-                this.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
+                this.process.timer = new Timer(1000, { start: true, loop: true }, function () {
                     if (fixture.process.duration !== null) {
-                        fixture.process.duration.subtract(1000, 'ms');
-                        if (fixture.process.duration.asMilliseconds() <= 0)
+                        fixture.process.duration = fixture.process.duration.minus(1000);
+                        if (fixture.process.duration.as('milliseconds') <= 0)
                             fixture.deactivate(null, true);
                     }
                 });
@@ -255,14 +254,14 @@ export default class Fixture extends ItemContainer {
             if (this.process.recipe === null && result.recipe !== null) {
                 this.process.recipe = result.recipe;
                 this.process.ingredients = result.ingredients;
-                this.process.duration = this.process.recipe.duration.clone();
+                this.process.duration = this.process.recipe.duration;
 
                 const fixture = this;
-                this.process.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
+                this.process.timer = new Timer(1000, { start: true, loop: true }, function () {
                     if (fixture.process.duration !== null) {
-                        fixture.process.duration.subtract(1000, 'ms');
+                        fixture.process.duration = fixture.process.duration.minus(1000);
 
-                        if (fixture.process.duration.asMilliseconds() <= 0)
+                        if (fixture.process.duration.as('milliseconds') <= 0)
                             process(fixture);
                     }
                 });

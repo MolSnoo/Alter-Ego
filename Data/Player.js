@@ -26,9 +26,6 @@ import * as messageHandler from '../Modules/messageHandler.js';
 import Timer from '../Classes/Timer.js';
 
 import { Collection, GuildMember, TextChannel } from 'discord.js';
-import dayjs from 'dayjs';
-
-dayjs().format();
 
 /**
  * @class Player
@@ -740,7 +737,7 @@ export default class Player extends ItemContainer {
      * @param {boolean} [doCures=true] - Whether or not the status's cures should actually be cured. Defaults to true.
      * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being inflicted. Defaults to true.
      * @param {InventoryItem} [item] - The inventory item that caused the status to be inflicted, if applicable.
-     * @param {import('dayjs/plugin/duration.js').Duration} [duration] - A custom duration that overrides the status's default duration.
+     * @param {import('luxon').Duration} [duration] - A custom duration that overrides the status's default duration.
      * @returns {string} A message indicating whether the status was successfully inflicted, or if not, why it wasn't.
      */
     inflict(statusId, notify = true, doCures = true, narrate = true, item, duration = null) {
@@ -804,16 +801,16 @@ export default class Player extends ItemContainer {
         // Apply the duration, if applicable.
         if (status.duration) {
             if (duration !== null) status.remaining = duration;
-            else status.remaining = status.duration.clone();
+            else status.remaining = status.duration;
 
             let player = this;
-            status.timer = new Timer(dayjs.duration(1000), { start: true, loop: true }, function () {
+            status.timer = new Timer(1000, { start: true, loop: true }, function () {
                 let subtractedTime = 1000;
                 if (player.game.heated) subtractedTime = player.game.settings.heatedSlowdownRate * subtractedTime;
-                status.remaining.subtract(subtractedTime, 'ms');
+                status.remaining = status.remaining.minus(subtractedTime);
                 player.statusDisplays = player.#generateStatusDisplays(true, true);
 
-                if (status.remaining.asMilliseconds() <= 0) {
+                if (status.remaining.as('milliseconds') <= 0) {
                     if (status.nextStage) {
                         player.cure(status.id, false, false, true);
                         const response = player.inflict(status.nextStage.id, true, false, true);
@@ -942,8 +939,8 @@ export default class Player extends ItemContainer {
                 const statusId = status.id;
                 let timeString;
                 if (includeDurations && status.remaining !== null) {
-                    const format = Math.floor(status.remaining.asDays()) !== 0 ? 'D HH:mm:ss' : 'HH:mm:ss';
-                    timeString = status.remaining.format(format);
+                    const format = Math.floor(status.remaining.as('days')) !== 0 ? 'd hh:mm:ss' : 'hh:mm:ss';
+                    timeString = status.remaining.toFormat(format);
                 }
                 statusDisplays.push({ id: statusId, timeRemaining: timeString });
             }
