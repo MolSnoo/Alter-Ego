@@ -9,7 +9,7 @@ describe('GameEntityLoader test', () => {
                 /** @type {Error[]} */
                 let errors = [];
                 const roomCount = await game.entityLoader.loadRooms(true, errors);
-                expect(errors).toBe([]);
+                expect(errors).toEqual([]);
                 expect(roomCount).toBe(198);
             });
         });

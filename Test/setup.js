@@ -11,12 +11,21 @@ import toHaveSize from './__extenders__/toHaveSize.js';
 
 import * as sheetsMock from './__mocks__/libs/sheets.js';
 vi.mock('../Modules/sheets.js', () => sheetsMock);
+import * as discordMock from './__mocks__/libs/discord.js';
+vi.mock(import('discord.js'), async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        discordMock
+    }
+    
+});
 
 import GuildContext from '../Classes/GuildContext.js';
 import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
 import BotContext from '../Classes/BotContext.js';
-import { Collection } from 'discord.js';
+import { ChannelType, Collection } from 'discord.js';
 
 vi.mock('../Configs/credentials.json', () => ({ default: credentials }));
 vi.mock('../Configs/demodata.json', () => ({ default: demodata }));
@@ -26,20 +35,33 @@ vi.mock('../Configs/settings.json', () => ({ default: settings }));
 
 beforeAll(() => {
     // Create a minimal mocked Discord environment and initialize Game.
+    /** @type {any[]} */
+    let channels = [];
+    /** @type {any} */ const commandChannel = discordMock.createMockChannel(serverconfig.commandChannel, 'bot-commands', ChannelType.GuildText);
+    /** @type {any} */ const logChannel = discordMock.createMockChannel(serverconfig.logChannel, 'bot-log', ChannelType.GuildText);
+    /** @type {any} */ const announcementChannel = discordMock.createMockChannel(serverconfig.announcementChannel, 'announcements', ChannelType.GuildText);
+    /** @type {any} */ const testingChannel = discordMock.createMockChannel(serverconfig.testingChannel, 'testing', ChannelType.GuildText);
+    /** @type {any} */ const generalChannel = discordMock.createMockChannel(serverconfig.generalChannel, 'general', ChannelType.GuildText);
+    /** @type {any} */ const whisperCategory = discordMock.createMockChannel(serverconfig.whisperCategory, 'Whispers', ChannelType.GuildCategory);
+    /** @type {any} */ const spectateCategory = discordMock.createMockChannel(serverconfig.spectateCategory, 'Spectate', ChannelType.GuildCategory);
+    channels.push(commandChannel, logChannel, announcementChannel, testingChannel, generalChannel, whisperCategory, spectateCategory);
+    /** @type {any[]} */ const roomCategoryIds = serverconfig.roomCategories.split(',');
+    for (const roomCategoryId of roomCategoryIds)
+        channels.push(discordMock.createMockChannel(roomCategoryId, 'Rooms', ChannelType.GuildCategory));
+
+    /** @type {any[]} */
+    let roles = [];
+    /** @type {any} */ const testerRole = discordMock.createMockRole(serverconfig.testerRole, 'Tester');
+    /** @type {any} */ const eligibleRole = discordMock.createMockRole(serverconfig.eligibleRole, 'Eligible');
+    /** @type {any} */ const playerRole = discordMock.createMockRole(serverconfig.playerRole, 'Player');
+    /** @type {any} */ const freeMovementRole = discordMock.createMockRole(serverconfig.headmasterRole, 'Free Movement');
+    /** @type {any} */ const moderatorRole = discordMock.createMockRole(serverconfig.moderatorRole, 'Moderator');
+    /** @type {any} */ const deadRole = discordMock.createMockRole(serverconfig.deadRole, 'Dead');
+    /** @type {any} */ const spectatorRole = discordMock.createMockRole(serverconfig.spectatorRole, 'Spectator');
+    roles.push(testerRole, eligibleRole, playerRole, freeMovementRole, moderatorRole, deadRole, spectatorRole);
+
     /** @type {any} */
-    const mockGuild = { id: 'test-guild', channels: { cache: [], resolve: () => {} } };
-    /** @type {any} */ const commandChannel = { id: 'commandChannel' };
-    /** @type {any} */ const logChannel = { id: 'logChannel' };
-    /** @type {any} */ const announcementChannel = { id: 'announcementChannel' };
-    /** @type {any} */ const testingChannel = { id: 'testingChannel' };
-    /** @type {any} */ const generalChannel = { id: 'generalChannel' };
-    /** @type {any} */ const testerRole = { id: 'testerRole' };
-    /** @type {any} */ const eligibleRole = { id: 'eligibleRole' };
-    /** @type {any} */ const playerRole = { id: 'playerRole' };
-    /** @type {any} */ const freeMovementRole = { id: 'freeMovementRole' };
-    /** @type {any} */ const moderatorRole = { id: 'moderatorRole' };
-    /** @type {any} */ const deadRole = { id: 'deadRole' };
-    /** @type {any} */ const spectatorRole = { id: 'spectatorRole' };
+    const mockGuild = discordMock.createMockGuild(channels, roles);
 
     const guildContext = new GuildContext(
         mockGuild,
@@ -48,7 +70,7 @@ beforeAll(() => {
         announcementChannel,
         testingChannel,
         generalChannel,
-        serverconfig.roomCategories.split(','),
+        roomCategoryIds,
         serverconfig.whisperCategory,
         serverconfig.spectateCategory,
         testerRole,
@@ -92,15 +114,10 @@ beforeAll(() => {
     const playerCommands = new Collection();
     const eligibleCommands = new Collection();
 
-    // Minimal client stub that BotContext.updatePresence can call.
-    /** @type {any} */
-    const clientStub = {
-        user: { username: 'alter-ego-testing', setPresence: () => { } },
-        guilds: { cache: { size: 1, first: () => mockGuild } }
-    };
+    /** @type {any} */ const client = discordMock.createMockClient();
 
     // Create BotContext singleton and attach to game.
-    new BotContext(clientStub, botCommands, moderatorCommands, playerCommands, eligibleCommands, game);
+    new BotContext(client, botCommands, moderatorCommands, playerCommands, eligibleCommands, game);
     game.setBotContext();
     // Ensure presence update doesn't throw during tests.
     try { BotContext.instance.updatePresence(); } catch (e) { }
