@@ -1,3 +1,4 @@
+import { Collection } from 'discord.js';
 import StackQueue from './StackQueue.js';
 
 /**
@@ -13,13 +14,13 @@ export default class PriorityQueue {
     priorityOrder;
     /** 
      * Separate StackQueues to represent each different priority level.
-     * @type {Map<string, StackQueue>}
+     * @type {Collection<string, StackQueue<MessageQueueEntry>>}
      */
     queues;
 
     constructor() {
         this.priorityOrder = ['mod', 'tell', 'mechanic', 'log', 'spectator'];
-        this.queues = new Map();
+        this.queues = new Collection();
         for (let i = 0; i < this.priorityOrder.length; i++) {
             this.queues.set(this.priorityOrder[i], new StackQueue());
         }
