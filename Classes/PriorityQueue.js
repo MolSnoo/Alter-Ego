@@ -9,12 +9,12 @@ import StackQueue from './StackQueue.js';
 export default class PriorityQueue {
     /**
      * Order of queues given as an array of strings.
-     * @type {Array<string>}
+     * @type {["mod", "tell", "mechanic", "log", "spectator"]}
      */
     priorityOrder;
     /** 
      * Separate StackQueues to represent each different priority level.
-     * @type {Collection<string, StackQueue<MessageQueueEntry>>}
+     * @type {Collection<PriorityQueuePriority, StackQueue<MessageQueueEntry>>}
      */
     queues;
 
@@ -29,7 +29,7 @@ export default class PriorityQueue {
     /**
      * Enqueues a given MessageQueueEntry on a StackQueue of the given priority. If the given priority doesn't exist, this function will silently swallow MessageQueueEntry. O(1) operation.
      * @param {MessageQueueEntry} message
-     * @param {string} priority
+     * @param {PriorityQueuePriority} priority
      */
     enqueue(message, priority) {
         if (this.queues.has(priority)) {

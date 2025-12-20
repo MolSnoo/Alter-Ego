@@ -432,6 +432,8 @@ declare global {
 		getPrototypeOf: (targetObject: Node) => object;
 	};
 
+	type PriorityQueuePriority = "mod" | "tell" | "mechanic" | "log" | "spectator";
+
 	type TypeGuard<T> = (value: unknown) => value is T;
 
     type Formatter<T> = (
