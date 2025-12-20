@@ -1,5 +1,6 @@
 import { Collection } from "discord.js";
 import PrettyPrinter from "../../Classes/PrettyPrinter.js";
+import { Duration } from "luxon";
 
 describe("PrettyPrinter test", () => {
     beforeEach(() => {});
@@ -34,6 +35,7 @@ describe("PrettyPrinter test", () => {
         anArray: ["Hello World!", 1337],
         aMap: new Map([["foo", "bar"]]),
         aCollection: new Collection([["foo", "bar"]]),
+        aDuration: Duration.fromMillis(3e9),
     };
 
     test("Expect No Exceptions", () => {
