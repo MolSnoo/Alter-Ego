@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, afterEach, afterAll, describe, test } from 'vite
 import {usage, execute} from '../../Commands/uncraft_player.js';
 
 describe('uncraft_player command', () => {
+    test('', () => {});
     /*describe('no uncraftable inventory item in hands', () => {
         beforeEach(async () => {
             const players = [];

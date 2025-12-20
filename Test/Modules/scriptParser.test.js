@@ -22,6 +22,7 @@ beforeEach(() => {
 });
 
 describe('test finder functions and data accessors', () => {
+	test('', () => {});
 	/*describe('test findRoom', () => {
 		describe('test findRoom allowed', () => {
 			test('findRoom().name', () => {

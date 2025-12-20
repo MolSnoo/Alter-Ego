@@ -22,6 +22,7 @@ afterEach(() => {
 });
 
 describe('test procedural tags', () => {
+	test('', () => {});
 	/*test('single unnamed chanceless procedural', () => {
 		const text = `<desc><s>Sentence.</s> <procedural><poss><s>Possibility 1.</s></poss></procedural></desc>`;
 		expected.set(`<desc><s>Sentence.</s> <s>Possibility 1.</s></desc>`, 10000);

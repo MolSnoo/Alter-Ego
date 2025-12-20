@@ -55,6 +55,7 @@ afterEach(() => {
 });
 
 describe('test item lists', () => {
+	test('', () => {});
 	/*const player = new Player("", 5);
 
 	test('empty item list 0', () => {
