@@ -1,5 +1,5 @@
 import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/setpronouns_moderator.js'
+import { usage, execute, config } from '../../Commands/setpronouns_moderator.js'
 
 describe('setpronouns_moderator command', () => {
     beforeEach(() => {});

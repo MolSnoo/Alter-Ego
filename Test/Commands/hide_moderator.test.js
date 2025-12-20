@@ -1,5 +1,5 @@
 import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/hide_moderator.js'
+import { usage, execute, config } from '../../Commands/hide_moderator.js'
 
 describe('hide_moderator command', () => {
     beforeEach(() => {});

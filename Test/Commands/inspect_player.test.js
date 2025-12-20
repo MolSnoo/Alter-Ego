@@ -1,5 +1,5 @@
 import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/inspect_player.js'
+import { usage, execute, config } from '../../Commands/inspect_player.js'
 
 describe('inspect_player command', () => {
     beforeEach(() => {});
