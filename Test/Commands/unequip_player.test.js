@@ -1,4 +1,3 @@
-import { beforeEach, describe, test } from 'vitest';
 import { usage, execute, config } from '../../Commands/unequip_player.js'
 
 describe('unequip_player command', () => {

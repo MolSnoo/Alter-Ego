@@ -1,4 +1,3 @@
-import { beforeEach, describe, test } from 'vitest';
 import { usage, execute, config } from '../../Commands/fixture_bot.js';
 
 describe('fixture_bot command', () => {

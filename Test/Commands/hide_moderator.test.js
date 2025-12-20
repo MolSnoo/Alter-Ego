@@ -1,4 +1,3 @@
-import { beforeEach, describe, test } from 'vitest';
 import { usage, execute, config } from '../../Commands/hide_moderator.js'
 
 describe('hide_moderator command', () => {

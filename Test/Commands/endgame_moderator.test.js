@@ -1,4 +1,3 @@
-import { beforeEach, describe, test } from 'vitest';
 import { usage, execute, config } from '../../Commands/endgame_moderator.js'
 
 describe('endgame_moderator command', () => {
