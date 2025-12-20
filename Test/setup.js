@@ -27,7 +27,7 @@ vi.mock('../Configs/settings.json', () => ({ default: settings }));
 beforeAll(() => {
     // Create a minimal mocked Discord environment and initialize Game.
     /** @type {any} */
-    const mockGuild = { id: 'test-guild' };
+    const mockGuild = { id: 'test-guild', channels: { cache: [], resolve: () => {} } };
     /** @type {any} */ const commandChannel = { id: 'commandChannel' };
     /** @type {any} */ const logChannel = { id: 'logChannel' };
     /** @type {any} */ const announcementChannel = { id: 'announcementChannel' };

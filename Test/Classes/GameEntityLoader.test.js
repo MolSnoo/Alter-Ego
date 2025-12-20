@@ -1,5 +1,17 @@
 describe('GameEntityLoader test', () => {
-    beforeEach(() => {});
+    afterAll(() => {
+        game.entityLoader.clearAll();
+    });
         
-    test('', () => {});
+    describe('loadRooms test', () => {
+        describe('standard room response', () => {
+            test('errorChecking true', async () => {
+                /** @type {Error[]} */
+                let errors = [];
+                const roomCount = await game.entityLoader.loadRooms(true, errors);
+                expect(errors).toBe([]);
+                expect(roomCount).toBe(198);
+            });
+        });
+    });
 });
