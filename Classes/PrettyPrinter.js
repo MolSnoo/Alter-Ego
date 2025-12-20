@@ -174,13 +174,13 @@ export default class PrettyPrinter {
                 if (object[key] && typeof object[key] === "object") {
                     if (object[key] instanceof Array) {
                         clone[key] = object[key].map((value) => this.prettyObject(value, level + 1))
-                    } else if (object[key] instanceof Map) {
-                        clone[key] = new Map();
+                    } else if (object[key] instanceof Collection) {
+                        clone[key] = new Collection();
                         for (const [k, v] of object[key]) {
                             clone[key].set(k, this.prettyObject(v, level + 1))
                         }
-                    } else if (object[key] instanceof Collection) {
-                        clone[key] = new Collection();
+                    } else if (object[key] instanceof Map) {
+                        clone[key] = new Map();
                         for (const [k, v] of object[key]) {
                             clone[key].set(k, this.prettyObject(v, level + 1))
                         }
