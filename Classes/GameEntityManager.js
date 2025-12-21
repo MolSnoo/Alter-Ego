@@ -132,7 +132,7 @@ export default class GameEntityManager {
 	 */
 	clearPlayers() {
 		this.game.playersCollection.forEach(player => {
-			player.status.forEach(status => {
+			player.statusCollection.values().forEach(status => {
 				if (status.timer !== null)
 					status.timer.stop();
 			});

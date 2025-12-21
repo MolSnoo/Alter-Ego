@@ -61,7 +61,6 @@ export async function execute(game, message, command, args) {
         true,
         playerdefaults.defaultLocation,
         "",
-        [],
         playerdefaults.defaultDescription,
         new Collection(),
         null,

@@ -210,7 +210,9 @@ export default class Player extends ItemContainer {
     /**
      * All status effects the player currently has.
      * Every time a status is inflicted or cured, the player's stats are recalculated.
+     * Deprecated. Use statusCollection instead.
      * @type {Status[]}
+     * @deprecated
      */
     status;
     /**
@@ -221,6 +223,12 @@ export default class Player extends ItemContainer {
      * @type {string}
      */
     statusString;
+    /**
+     * All status effects the player currently has as a collection.
+     * Every time a status is inflicted or cured, the player's stats are recalculated.
+     * @type {Collection<string, Status>}
+     */
+    statusCollection;
     /**
      * All of the player's {@link EquipmentSlot | equipment slots}. Deprecated. Use inventoryCollection instead.
      * @deprecated
@@ -358,6 +366,7 @@ export default class Player extends ItemContainer {
         this.location = null;
         this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
+        this.statusCollection = new Collection();
         this.statusDisplays = statusDisplays;
         this.status = [];
         this.statusString = "";
@@ -750,12 +759,12 @@ export default class Player extends ItemContainer {
         }
 
         for (let i = 0; i < status.overriders.length; i++) {
-            if (this.status.map(statusEffect => statusEffect.id).includes(status.overriders[i].id))
+            if (this.statusCollection.has(status.overriders[i].id))
                 return `Couldn't inflict status effect "${statusId}" because ${this.name} is already ${status.overriders[i].id}.`;
         }
 
         if (statusId instanceof Status) statusId = status.id;
-        if (this.status.map(statusEffect => statusEffect.id).includes(statusId)) {
+        if (this.statusCollection.has(statusId)) {
             if (status.duplicatedStatus !== null) {
                 this.cure(statusId, false, false, false);
                 this.inflict(status.duplicatedStatus.id, true, false, true);
@@ -830,7 +839,7 @@ export default class Player extends ItemContainer {
             });
         }
 
-        this.status.push(status);
+        this.statusCollection.set(status.id, status);
         this.recalculateStats();
 
         // Inform player what happened.
@@ -857,16 +866,8 @@ export default class Player extends ItemContainer {
      */
     cure(statusId, notify = true, doCuredCondition = true, narrate = true, item) {
         /** @type {Status} */
-        let status = null;
-        let statusIndex = -1;
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].id.toLowerCase() === statusId.toLowerCase()) {
-                status = this.status[i];
-                statusIndex = i;
-                break;
-            }
-        }
-        if (status === null) return "Specified player doesn't have that status effect.";
+        let status = this.statusCollection.get(statusId.toLowerCase());
+        if (status === undefined) return "Specified player doesn't have that status effect.";
 
         if (status.behaviorAttributes.includes("no channel") && this.getBehaviorAttributeStatusEffects("no channel").length - 1 === 0)
             this.location.joinChannel(this);
@@ -912,7 +913,6 @@ export default class Player extends ItemContainer {
         // Stop the timer.
         if (status.timer !== null)
             status.timer.stop();
-        this.status.splice(statusIndex, 1);
         this.recalculateStats();
 
         this.statusDisplays = this.#generateStatusDisplays(true, true);
@@ -934,7 +934,7 @@ export default class Player extends ItemContainer {
     #generateStatusDisplays(includeHidden, includeDurations) {
         /** @type {StatusDisplay[]} */
         let statusDisplays = [];
-        this.status.forEach(status => {
+        this.statusCollection.forEach(status => {
             if (status.visible || includeHidden) {
                 const statusId = status.id;
                 let timeString;
@@ -971,7 +971,7 @@ export default class Player extends ItemContainer {
      * @param {string} statusId - The ID of the status to look for. 
      */
     hasStatus(statusId) {
-        for (const status of this.status)
+        for (const status of this.statusCollection.values())
             if (status.id === statusId) return true;
         return false;
     }
@@ -982,7 +982,7 @@ export default class Player extends ItemContainer {
      * @returns {boolean}
      */
     hasBehaviorAttribute(behaviorAttribute) {
-        for (const status of this.status)
+        for (const status of this.statusCollection.values())
             if (status.behaviorAttributes.includes(behaviorAttribute)) return true;
         return false;
     }
@@ -1013,7 +1013,7 @@ export default class Player extends ItemContainer {
     getBehaviorAttributeStatusEffects(behaviorAttribute) {
         /** @type {Status[]} */
         let statusEffects = [];
-        for (const status of this.status) {
+        for (const status of this.statusCollection.values()) {
             if (status.behaviorAttributes.includes(behaviorAttribute))
                 statusEffects.push(status);
         }
@@ -1058,9 +1058,8 @@ export default class Player extends ItemContainer {
         /** @type {StatModifier[]} */
         let staModifiers = [];
 
-        for (let i = 0; i < this.status.length; i++) {
-            for (let j = 0; j < this.status[i].statModifiers.length; j++) {
-                const modifier = this.status[i].statModifiers[j];
+        for (const status of this.statusCollection.values()) {
+            for (const modifier of status.statModifiers) {
                 if (modifier.modifiesSelf) {
                     switch (modifier.stat) {
                         case "str":
@@ -2117,11 +2116,11 @@ export default class Player extends ItemContainer {
         this.hidingSpot = "";
         this.statusDisplays.length = 0;
         this.stopMoving();
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].timer !== null)
-                this.status[i].timer.stop();
+        for (const status of this.statusCollection.values()) {
+            if (status.timer !== null)
+                status.timer.stop();
         }
-        this.status.length = 0;
+        this.statusCollection.clear();
 
         // Move player to dead list.
         this.game.deadPlayersCollection.set(this.name, this);

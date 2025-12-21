@@ -129,7 +129,7 @@ async function testspeeds(game, fileName) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 1; l <= 10; l++) {
-                        const player = new Player("", null, "", "", "neutral", "an average voice", { speed: l, stamina: 5, strength: 5, perception: 5, dexterity: 5 }, true, room.id, "", [], "", new Collection(), null, 1, game);
+                        const player = new Player("", null, "", "", "neutral", "an average voice", { speed: l, stamina: 5, strength: 5, perception: 5, dexterity: 5 }, true, room.id, "", "", new Collection(), null, 1, game);
                         player.pos.x = exit1.pos.x;
                         player.pos.y = exit1.pos.y;
                         player.pos.z = exit1.pos.z;

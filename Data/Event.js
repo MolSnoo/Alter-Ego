@@ -301,14 +301,8 @@ export default class Event extends GameEntity {
                     });
                     event.refreshes.forEach(refresh => {
                         /** @type {Status} */
-                        let status = null;
-                        for (let occupantStatus of occupant.status) {
-                            if (occupantStatus.id === refresh.id) {
-                                status = occupantStatus;
-                                break;
-                            }
-                        }
-                        if (status !== null && status.remaining !== null)
+                        let status = occupant.statusCollection.get(refresh.id);
+                        if (status !== undefined && status.remaining !== null)
                             status.remaining = refresh.duration;
                     });
                 }
