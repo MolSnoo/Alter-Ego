@@ -210,11 +210,11 @@ export default class GameEntityManager {
 	 */
 	updateFixtureReferences(fixture) {
 		this.game.roomItems.forEach(roomItem => {
-			if (roomItem.location.id === fixture.location.id && roomItem.containerType === "Fixture" && roomItem.containerName === fixture.name)
+			if (roomItem.location?.id === fixture.location?.id && roomItem.containerType === "Fixture" && roomItem.containerName === fixture.name)
 				roomItem.setContainer(fixture);
 		});
 		this.game.puzzles.forEach(puzzle => {
-			if (puzzle.location.id === fixture.location.id && puzzle.parentFixtureName !== "" && puzzle.parentFixtureName === fixture.name)
+			if (puzzle.location?.id === fixture.location?.id && puzzle.parentFixtureName !== "" && puzzle.parentFixtureName === fixture.name)
 				puzzle.setParentFixture(fixture);
 		});
 	}
@@ -248,11 +248,11 @@ export default class GameEntityManager {
 	 */
 	updatePuzzleReferences(puzzle) {
 		this.game.fixtures.forEach(fixture => {
-			if (fixture.location.id === puzzle.location.id && fixture.childPuzzleName !== "" && fixture.childPuzzleName === puzzle.name)
+			if (fixture.location?.id === puzzle.location?.id && fixture.childPuzzleName !== "" && fixture.childPuzzleName === puzzle.name)
 				fixture.setChildPuzzle(puzzle);
 		});
 		this.game.roomItems.forEach(roomItem => {
-			if (roomItem.location.id === puzzle.location.id && roomItem.containerType === "Puzzle" && roomItem.containerName === puzzle.name)
+			if (roomItem.location?.id === puzzle.location?.id && roomItem.containerType === "Puzzle" && roomItem.containerName === puzzle.name)
 				roomItem.setContainer(puzzle);
 		});
 	}

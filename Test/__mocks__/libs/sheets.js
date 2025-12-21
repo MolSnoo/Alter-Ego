@@ -23,7 +23,7 @@ export function __clearMock() {
 export async function getSheetValues(sheetrange, spreadsheetId) {
 	let values;
 	let filename = getGameDataFileName(sheetrange);
-	if (dataMap.size === 0 && filename) {
+	if (!dataMap.has(sheetrange) && filename) {
 		values = JSON.parse(readFileSync(`./Test/__mocks__/gamedata/${filename}`).toString());
 	}
 	else values = dataMap.get(sheetrange);

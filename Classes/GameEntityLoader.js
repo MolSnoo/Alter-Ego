@@ -546,15 +546,9 @@ export default class GameEntityLoader extends GameEntityManager {
 				return new Error(`Couldn't load exit on row ${exit.row}. The destination given is not a room.`);
 			if (exit.link === "" || exit.link === null || exit.link === undefined)
 				return new Error(`Couldn't load exit on row ${exit.row}. No linked exit was given.`);
-			let matchingExit = false;
-			for (const destExit of exit.dest.exitCollection.values()) {
-				if (destExit.link === exit.name) {
-					matchingExit = true;
-					break;
-				}
-			}
-			if (!matchingExit)
-				return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.displayName}"  does not have an exit that links back to it.`);
+			const linkedExit = exit.dest.exitCollection.get(exit.link);
+			if (!linkedExit) 
+				return new Error(`Couldn't load exit on row ${exit.row}. Room "${exit.dest.displayName}" does not have an exit that links back to it.`);
 		}
 	}
 
@@ -642,7 +636,7 @@ export default class GameEntityLoader extends GameEntityManager {
 		if (fixture.childPuzzle !== null && fixture.childPuzzle !== undefined && (fixture.childPuzzle.parentFixture === null || fixture.childPuzzle.parentFixture === undefined))
 			return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle on row ${fixture.childPuzzle.row} has no parent fixture.`);
 		if (fixture.childPuzzle !== null && fixture.childPuzzle !== undefined && fixture.childPuzzle.parentFixture !== null && fixture.childPuzzle.parentFixture !== undefined && fixture.childPuzzle.parentFixture.name !== fixture.name)
-			return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle has a different parent fixture.`);
+			return new Error(`Couldn't load fixture on row ${fixture.row}. The child puzzle on row ${fixture.childPuzzle.row} has a different parent fixture.`);
 		if (isNaN(fixture.hidingSpotCapacity))
 			return new Error(`Couldn't load fixture on row ${fixture.row}. The hiding spot capacity given is not a number.`);
 	}
