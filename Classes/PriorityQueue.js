@@ -1,3 +1,4 @@
+import { Collection } from 'discord.js';
 import StackQueue from './StackQueue.js';
 
 /**
@@ -8,18 +9,18 @@ import StackQueue from './StackQueue.js';
 export default class PriorityQueue {
     /**
      * Order of queues given as an array of strings.
-     * @type {Array<string>}
+     * @type {["mod", "tell", "mechanic", "log", "spectator"]}
      */
     priorityOrder;
     /** 
      * Separate StackQueues to represent each different priority level.
-     * @type {Map<string, StackQueue>}
+     * @type {Collection<PriorityQueuePriority, StackQueue<MessageQueueEntry>>}
      */
     queues;
 
     constructor() {
         this.priorityOrder = ['mod', 'tell', 'mechanic', 'log', 'spectator'];
-        this.queues = new Map();
+        this.queues = new Collection();
         for (let i = 0; i < this.priorityOrder.length; i++) {
             this.queues.set(this.priorityOrder[i], new StackQueue());
         }
@@ -28,7 +29,7 @@ export default class PriorityQueue {
     /**
      * Enqueues a given MessageQueueEntry on a StackQueue of the given priority. If the given priority doesn't exist, this function will silently swallow MessageQueueEntry. O(1) operation.
      * @param {MessageQueueEntry} message
-     * @param {string} priority
+     * @param {PriorityQueuePriority} priority
      */
     enqueue(message, priority) {
         if (this.queues.has(priority)) {

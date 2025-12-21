@@ -62,50 +62,54 @@ export default class GameEntityLoader extends GameEntityManager {
 			const gestureCount = await this.loadGestures(false, errors);
 			const flagCount = await this.loadFlags(false, errors);
 
-			this.game.roomsCollection.forEach(room => {
+			for (const room of this.game.roomsCollection.values()) {
 				const error = this.checkRoom(room);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.fixtures.forEach(fixture => {
+			}
+			for (const fixture of this.game.fixtures) {
 				const error = this.checkFixture(fixture);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.prefabsCollection.forEach(prefab => {
+			}
+			for (const prefab of this.game.prefabsCollection.values()) {
 				const error = this.checkPrefab(prefab);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.recipes.forEach(recipe => {
+			}
+			for (const recipe of this.game.recipes) {
 				const error = this.checkRecipe(recipe);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.roomItems.forEach(roomItem => {
+			}
+			for (const roomItem of this.game.roomItems) {
 				const error = this.checkRoomItem(roomItem);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.puzzles.forEach(puzzle => {
+			}
+			for (const puzzle of this.game.puzzles) {
 				const error = this.checkPuzzle(puzzle);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.eventsCollection.forEach(event => {
+			}
+			for (const event of this.game.eventsCollection.values()) {
 				const error = this.checkEvent(event);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.statusEffectsCollection.forEach(statusEffect => {
+			}
+			for (const statusEffect of this.game.statusEffectsCollection.values()) {
 				const error = this.checkStatusEffect(statusEffect);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.playersCollection.forEach(player => {
-				const error = this.checkPlayer(player);
+			}
+			for (const player of this.game.playersCollection.values()) {
+				const error = await this.checkPlayer(player);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.inventoryItems.forEach(inventoryItem => {
+			}
+			for (const inventoryItem of this.game.inventoryItems) {
 				const error = this.checkInventoryItem(inventoryItem);
 				if (error instanceof Error) errors.push(error);
-			});
-			this.game.gesturesCollection.forEach(gesture => {
+			}
+			for (const gesture of this.game.gesturesCollection.values()) {
 				const error = this.checkGesture(gesture);
 				if (error instanceof Error) errors.push(error);
-			});
+			}
+			for (const flag of this.game.flags.values()) {
+				const error = this.checkFlag(flag);
+				if (error instanceof Error) errors.push(error);
+			}
 			if (errors.length > 0) {
 				if (errors.length > 15) {
 					errors = errors.slice(0, 15);
@@ -536,12 +540,12 @@ export default class GameEntityLoader extends GameEntityManager {
 				return new Error(`Couldn't load exit on row ${exit.row}. The Y-coordinate given is not an integer.`);
 			if (isNaN(exit.pos.z))
 				return new Error(`Couldn't load exit on row ${exit.row}. The Z-coordinate given is not an integer.`);
-			if (exit.link === "" || exit.link === null || exit.link === undefined)
-				return new Error(`Couldn't load exit on row ${exit.row}. No linked exit was given.`);
 			if (exit.destDisplayName === "" || exit.destDisplayName === null || exit.destDisplayName === undefined)
 				return new Error(`Couldn't load exit on row ${exit.row}. No destination was given.`);
 			if (!(exit.dest instanceof Room))
 				return new Error(`Couldn't load exit on row ${exit.row}. The destination given is not a room.`);
+			if (exit.link === "" || exit.link === null || exit.link === undefined)
+				return new Error(`Couldn't load exit on row ${exit.row}. No linked exit was given.`);
 			let matchingExit = false;
 			for (const destExit of exit.dest.exitCollection.values()) {
 				if (destExit.link === exit.name) {
@@ -878,7 +882,7 @@ export default class GameEntityLoader extends GameEntityManager {
 					ingredientsStrings[j] = Game.generateValidEntityName(ingredientsStrings[j]);
 				// Parse the duration.
 				const durationString = sheet[row][columnDuration] ? String(sheet[row][columnDuration]) : "";
-				const duration = parseDuration(durationString);
+				const duration = durationString !== "" ? parseDuration(durationString) : null;
 				// Separate the products.
 				let productsStrings = sheet[row][columnProducts] ? sheet[row][columnProducts].split(',') : [];
 				// For each product, convert the string to a valid entity name.
@@ -1375,7 +1379,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			let errors = [];
 			for (let row = 0; row < sheet.length; row++) {
 				const durationString = sheet[row][columnDurationString] ? String(sheet[row][columnDurationString]) : "";
-				const duration = parseDuration(durationString);
+				const duration = durationString !== "" ? parseDuration(durationString) : null;
 				const timeRemaining = sheet[row][columnRemainingString] ? Duration.fromObject(convertTimeStringToDurationUnits(sheet[row][columnRemainingString])) : null;
 				let triggerTimesStrings = sheet[row][columnTriggerTimesStrings] ? sheet[row][columnTriggerTimesStrings].split(',') : [];
 				for (let i = 0; i < triggerTimesStrings.length; i++)
@@ -1543,7 +1547,7 @@ export default class GameEntityLoader extends GameEntityManager {
 				for (let i = 0; i < behaviorAttributes.length; i++)
 					behaviorAttributes[i] = behaviorAttributes[i].trim();
 				const status = new Status(
-					sheet[row][columnId] ? sheet[row][columnId].trim() : "",
+					sheet[row][columnId] ? Status.generateValidId(sheet[row][columnId]) : "",
 					duration,
 					sheet[row][columnFatal] ? sheet[row][columnFatal].trim() === "TRUE" : false,
 					sheet[row][columnVisible] ? sheet[row][columnVisible].trim() === "TRUE" : false,
@@ -1737,16 +1741,17 @@ export default class GameEntityLoader extends GameEntityManager {
 
 				if (player.alive) {
 					if (player.member !== null || player.isNPC) {
-						if (player.location instanceof Room)
+						if (player.location instanceof Room) {
 							player.location.addPlayer(player, null, null, false);
-						// Parse statuses and inflict the player with them.
-						player.statusDisplays.forEach(statusDisplay => {
-							const status = this.game.entityFinder.getStatusEffect(statusDisplay.id);
-							if (status) {
-								const timeRemaining = statusDisplay.timeRemaining ? Duration.fromObject(convertTimeStringToDurationUnits(statusDisplay.timeRemaining)) : null;
-								player.inflict(status, false, false, false, null, timeRemaining);
-							}
-						});
+							// Parse statuses and inflict the player with them.
+							player.statusDisplays.forEach(statusDisplay => {
+								const status = this.game.entityFinder.getStatusEffect(statusDisplay.id);
+								if (status) {
+									const timeRemaining = statusDisplay.timeRemaining ? Duration.fromObject(convertTimeStringToDurationUnits(statusDisplay.timeRemaining)) : null;
+									player.inflict(status, false, false, false, null, timeRemaining);
+								}
+							});
+						}
 					}
 					this.game.players_alive.push(player);
 					this.game.livingPlayersCollection.set(Game.generateValidEntityName(player.name), player);
@@ -1786,59 +1791,57 @@ export default class GameEntityLoader extends GameEntityManager {
 	 * @param {Player} player - The player to check. 
 	 * @returns {Promise<Error|void>} An Error, if there is one. Otherwise, returns nothing.
 	 */
-	checkPlayer(player) {
-		return new Promise(async (resolve, reject) => {
-			if (!player.isNPC && (player.id === "" || player.id === null || player.id === undefined))
-				reject(new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`));
-			const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
-			if (player.isNPC && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
-				reject(new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg, .jpeg, .png, .webp, or .avif extension.`));
-			if (!player.isNPC && (player.member === null || player.member === undefined))
-				reject(new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`));
-			const canDmPlayer = !player.isNPC ? await this.#checkCanDmPlayer(player) : true;
-			if (!canDmPlayer)
-				reject(new Error(`Couldn't load player on row ${player.row}. Cannot send direct messages. Please ask <@${player.member.id}> to allow direct messages from server members in their privacy settings for this server.`));
-			if (player.name === "" || player.name === null || player.name === undefined)
-				reject(new Error(`Couldn't load player on row ${player.row}. No player name was given.`));
-			if (player.name.includes(" "))
-				reject(new Error(`Couldn't load player on row ${player.row}. Player names must not have any spaces.`));
-			if (player.originalPronouns.sbj === null || player.originalPronouns.sbj === "")
-				reject(new Error(`Couldn't load player on row ${player.row}. No subject pronoun was given.`));
-			if (player.originalPronouns.obj === null || player.originalPronouns.obj === "")
-				reject(new Error(`Couldn't load player on row ${player.row}. No object pronoun was given.`));
-			if (player.originalPronouns.dpos === null || player.originalPronouns.dpos === "")
-				reject(new Error(`Couldn't load player on row ${player.row}. No dependent possessive pronoun was given.`));
-			if (player.originalPronouns.ipos === null || player.originalPronouns.ipos === "")
-				reject(new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`));
-			if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
-				reject(new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`));
-			if (player.originalPronouns.plural === null)
-				reject(new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`));
-			if (player.originalVoiceString === "" || player.originalVoiceString === null || player.originalVoiceString === undefined)
-				reject(new Error(`Couldn't load player on row ${player.row}. No voice descriptor was given.`));
-			if (isNaN(player.strength))
-				reject(new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`));
-			if (isNaN(player.perception))
-				reject(new Error(`Couldn't load player on row ${player.row}. The perception stat given is not an integer.`));
-			if (isNaN(player.dexterity))
-				reject(new Error(`Couldn't load player on row ${player.row}. The dexterity stat given is not an integer.`));
-			if (isNaN(player.speed))
-				reject(new Error(`Couldn't load player on row ${player.row}. The speed stat given is not an integer.`));
-			if (isNaN(player.stamina))
-				reject(new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`));
-			if (player.alive && !(player.location instanceof Room))
-				reject(new Error(`Couldn't load player on row ${player.row}. "${player.locationDisplayName}" is not a room.`));
-			for (let statusDisplay of player.statusDisplays) {
-				if (!player.hasStatus(statusDisplay.id))
-					reject(new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`));
-				if (statusDisplay.timeRemaining) {
-					const timeRemaining = Duration.fromObject(convertTimeStringToDurationUnits(statusDisplay.timeRemaining));
-					if (!Duration.isDuration(timeRemaining))
-						reject(new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`));
-				}
+	async checkPlayer(player) {
+		if (!player.isNPC && (player.id === "" || player.id === null || player.id === undefined))
+			return new Error(`Couldn't load player on row ${player.row}. No Discord ID was given.`);
+		const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
+		if (player.isNPC && (player.id === "" || player.id === null || player.id === undefined || !iconURLSyntax.test(player.id)))
+			return new Error(`Couldn't load player on row ${player.row}. The Discord ID for an NPC must be a URL with a .jpg, .jpeg, .png, .webp, or .avif extension.`);
+		if (!player.isNPC && (player.member === null || player.member === undefined))
+			return new Error(`Couldn't load player on row ${player.row}. There is no member on the server with the ID ${player.id}.`);
+		const canDmPlayer = !player.isNPC ? await this.#checkCanDmPlayer(player) : true;
+		if (!canDmPlayer)
+			return new Error(`Couldn't load player on row ${player.row}. Cannot send direct messages. Please ask <@${player.id}> to allow direct messages from server members in their privacy settings for this server.`);
+		if (player.name === "" || player.name === null || player.name === undefined)
+			return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
+		if (player.name.includes(" "))
+			return new Error(`Couldn't load player on row ${player.row}. Player names must not have any spaces.`);
+		if (player.originalPronouns.sbj === null || player.originalPronouns.sbj === "")
+			return new Error(`Couldn't load player on row ${player.row}. No subject pronoun was given.`);
+		if (player.originalPronouns.obj === null || player.originalPronouns.obj === "")
+			return new Error(`Couldn't load player on row ${player.row}. No object pronoun was given.`);
+		if (player.originalPronouns.dpos === null || player.originalPronouns.dpos === "")
+			return new Error(`Couldn't load player on row ${player.row}. No dependent possessive pronoun was given.`);
+		if (player.originalPronouns.ipos === null || player.originalPronouns.ipos === "")
+			return new Error(`Couldn't load player on row ${player.row}. No independent possessive pronoun was given.`);
+		if (player.originalPronouns.ref === null || player.originalPronouns.ref === "")
+			return new Error(`Couldn't load player on row ${player.row}. No reflexive pronoun was given.`);
+		if (player.originalPronouns.plural === null)
+			return new Error(`Couldn't load player on row ${player.row}. Whether the player's pronouns pluralize verbs was not specified.`);
+		if (player.originalVoiceString === "" || player.originalVoiceString === null || player.originalVoiceString === undefined)
+			return new Error(`Couldn't load player on row ${player.row}. No voice descriptor was given.`);
+		if (isNaN(player.strength))
+			return new Error(`Couldn't load player on row ${player.row}. The strength stat given is not an integer.`);
+		if (isNaN(player.perception))
+			return new Error(`Couldn't load player on row ${player.row}. The perception stat given is not an integer.`);
+		if (isNaN(player.dexterity))
+			return new Error(`Couldn't load player on row ${player.row}. The dexterity stat given is not an integer.`);
+		if (isNaN(player.speed))
+			return new Error(`Couldn't load player on row ${player.row}. The speed stat given is not an integer.`);
+		if (isNaN(player.stamina))
+			return new Error(`Couldn't load player on row ${player.row}. The stamina stat given is not an integer.`);
+		if (player.alive && !(player.location instanceof Room))
+			return new Error(`Couldn't load player on row ${player.row}. "${player.locationDisplayName}" is not a room.`);
+		for (let statusDisplay of player.statusDisplays) {
+			if (!player.hasStatus(statusDisplay.id))
+				return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.id}" is not a status effect.`);
+			if (statusDisplay.timeRemaining) {
+				const timeRemaining = Duration.fromObject(convertTimeStringToDurationUnits(statusDisplay.timeRemaining));
+				if (!Duration.isDuration(timeRemaining))
+					return new Error(`Couldn't load player on row ${player.row}. "${statusDisplay.timeRemaining}" is not a valid representation of the time remaining for the status "${statusDisplay.id}".`);
 			}
-			resolve();
-		});
+		}
+		return;
 	}
 
 	/**
@@ -2307,11 +2310,16 @@ export default class GameEntityLoader extends GameEntityManager {
 	 */
 	#checkCanDmPlayer(player) {
 		return new Promise(resolve => {
-			player.member.send('').catch(error => {
-				if (error.hasOwnProperty("code") && error.code === 50007)
-					resolve(false);
-				else resolve(true);
-			});
+			if (player.member) {
+				player.member.send('')
+				.then(() => resolve(true))
+				.catch(error => {
+					if (error.hasOwnProperty("code") && error.code === 50007)
+						resolve(false);
+					else resolve(true);
+				});
+			}
+			else resolve(false);
 		});
 	}
 }
