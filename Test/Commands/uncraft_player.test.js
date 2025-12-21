@@ -1,5 +1,4 @@
-import { beforeAll, beforeEach, afterEach, afterAll, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/uncraft_player.js';
+import { usage, execute, config } from '../../Commands/uncraft_player.js';
 
 describe('uncraft_player command', () => {
     test('', () => {});

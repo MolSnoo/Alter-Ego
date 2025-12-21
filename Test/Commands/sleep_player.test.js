@@ -1,5 +1,4 @@
-import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/sleep_player.js'
+import { usage, execute, config } from '../../Commands/sleep_player.js'
 
 describe('sleep_player command', () => {
     beforeEach(() => {});

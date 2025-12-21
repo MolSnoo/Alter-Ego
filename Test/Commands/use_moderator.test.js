@@ -1,5 +1,4 @@
-import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/use_moderator.js'
+import { usage, execute, config } from '../../Commands/use_moderator.js'
 
 describe('use_moderator command', () => {
     beforeEach(() => {});

@@ -1,4 +1,3 @@
-import { describe, test, expect } from "vitest";
 import PriorityQueue from "../../Classes/PriorityQueue.js";
 
 describe("PriorityQueue test", () => {

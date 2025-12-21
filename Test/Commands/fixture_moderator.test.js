@@ -1,5 +1,4 @@
-import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/fixture_moderator.js';
+import { usage, execute, config } from '../../Commands/fixture_moderator.js';
 
 describe('fixture_moderator command', () => {
     beforeEach(() => {});

@@ -1,5 +1,4 @@
-import { beforeEach, describe, test } from 'vitest';
-import {usage, execute} from '../../Commands/status_bot.js'
+import { usage, execute, config } from '../../Commands/status_bot.js'
 
 describe('status_bot command', () => {
     beforeEach(() => {});
