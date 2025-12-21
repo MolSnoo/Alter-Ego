@@ -3,6 +3,7 @@ import GameConstants from '../Classes/GameConstants.js';
 import GameEntityFinder from '../Classes/GameEntityFinder.js';
 import GameEntityLoader from '../Classes/GameEntityLoader.js';
 import GameEntitySaver from '../Classes/GameEntitySaver.js';
+import GameLogger from '../Classes/GameLogger.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
@@ -69,6 +70,12 @@ export default class Game {
 	 * @type {GameEntitySaver}
 	 */
 	entitySaver;
+	/**
+	 * A set of functions to send messages to the game's log channel.
+	 * @readonly
+	 * @type {GameLogger}
+	 */
+	logger;
 	/**
 	 * Whether or not the game is currently in progress.
 	 * @type {boolean}
@@ -276,6 +283,7 @@ export default class Game {
 		this.entityFinder = new GameEntityFinder(this);
 		this.entityLoader = new GameEntityLoader(this);
 		this.entitySaver = new GameEntitySaver(this);
+		this.logger = new GameLogger(this);
 		this.inProgress = false;
 		this.canJoin = false;
 		this.halfTimer = null;
