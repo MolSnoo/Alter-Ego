@@ -13,8 +13,8 @@ export function createMockGuildChannelManager() {
 	const channelManager = {
 		cache: new Collection(),
 		resolve: (id) => channelManager.cache.get(id),
-		create: ({ name, type, parent }) => createMockChannel(generateSnowflake(), name, type, '', parent),
-		fetch: async (id) => channelManager.get(id)
+		create: ({ name, type, parentId }) => createMockChannel(generateSnowflake(), name, type, parentId, channelManager.resolve(parentId)),
+		fetch: async (id) => channelManager.cache.get(id)
 	};
 	return channelManager;
 }
@@ -84,8 +84,9 @@ export function createMockMember(id = generateSnowflake(), displayName = '') {
 		permissionsIn: (channel) => {
 			has: (permission) => true
 		},
-		send: async ({}) => createMockMessage({ content: '', channel: member.user.dmChannel })
+		send: async ({}) => Promise.resolve(createMockMessage({ content: '', channel: member.user.dmChannel }))
 	};
+	return member;
 }
 
 export function createMockGuildMemberManager() {
@@ -99,6 +100,12 @@ export function createMockGuildMemberManager() {
 	return memberManager;
 }
 
+/**
+ * @param {*} channels 
+ * @param {*} roles 
+ * @param {*} members 
+ * @returns 
+ */
 export function createMockGuild(channels = [], roles = [], members = []) {
 	const guild = {
 		iconURL: () => '',

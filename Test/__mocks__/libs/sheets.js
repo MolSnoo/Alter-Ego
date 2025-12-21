@@ -4,7 +4,7 @@ const dataMap = new Map();
 
 /**
  * @param {string} sheetrange 
- * @param {ValueRange} values 
+ * @param {string[][]} values 
  */
 export function __setMock(sheetrange, values) {
 	dataMap.set(sheetrange, values);
@@ -23,7 +23,7 @@ export function __clearMock() {
 export async function getSheetValues(sheetrange, spreadsheetId) {
 	let values;
 	let filename = getGameDataFileName(sheetrange);
-	if (filename) {
+	if (dataMap.size === 0 && filename) {
 		values = JSON.parse(readFileSync(`./Test/__mocks__/gamedata/${filename}`).toString());
 	}
 	else values = dataMap.get(sheetrange);
