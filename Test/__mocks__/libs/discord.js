@@ -3,7 +3,7 @@ const require = createRequire(import.meta.url);
 
 export function createPermissionOverwritesManager() {
 	const permissionOverwritesManager = {
-		create: (permissionOverwrites) => {}
+		create: vi.fn((permissionOverwrites) => {})
 	};
 	return permissionOverwritesManager;
 }
@@ -12,9 +12,9 @@ export function createMockGuildChannelManager() {
 	const { Collection } = require('discord.js');
 	const channelManager = {
 		cache: new Collection(),
-		resolve: (id) => channelManager.cache.get(id),
-		create: ({ name, type, parentId }) => createMockChannel(generateSnowflake(), name, type, parentId, channelManager.resolve(parentId)),
-		fetch: async (id) => channelManager.cache.get(id)
+		resolve: vi.fn((id) => channelManager.cache.get(id)),
+		create: vi.fn(({ name, type, parentId }) => createMockChannel(generateSnowflake(), name, type, parentId, channelManager.resolve(parentId))),
+		fetch: vi.fn(async (id) => channelManager.cache.get(id))
 	};
 	return channelManager;
 }
@@ -28,14 +28,14 @@ export function createMockChannel(id, name, type, parentId, parent) {
 		parentId: parentId,
 		parent: parent,
 		messages: new Collection(),
-		bulkDelete: (messages, filterOld) => {},
-		send: async () => createMockMessage({ content: '', channel: channel }),
-		edit: ({ name }) => channel.name = name,
-		fetchWebhooks: () => [],
-		createWebhook: ({}) => {},
+		bulkDelete: vi.fn((messages, filterOld) => {}),
+		send: vi.fn(async (content) => createMockMessage({ content: content, channel: channel })),
+		edit: vi.fn(({ name }) => channel.name = name),
+		fetchWebhooks: vi.fn(() => []),
+		createWebhook: vi.fn(({}) => {}),
 		permissionOverwrites: createPermissionOverwritesManager(),
-		lockPermissions: () => {},
-		delete: () => {}
+		lockPermissions: vi.fn(() => {}),
+		delete: vi.fn(() => {})
 	};
 	return channel;
 }
@@ -46,9 +46,9 @@ export function createMockUser(id = generateSnowflake(), username = '') {
 		username: username,
 		defaultAvatarURL: '',
 		dmChannel: createMockChannel(id, username),
-		send: async ({}) => createMockMessage({ content: '', channel: user.dmChannel }),
-		avatarURL: () => '',
-		setPresence: () => {}
+		send: vi.fn(async ({}) => createMockMessage({ content: '', channel: user.dmChannel })),
+		avatarURL: vi.fn(() => ''),
+		setPresence: vi.fn(() => {})
 	};
 	return user;
 }
@@ -65,26 +65,28 @@ export function createMockRoleManager() {
 	const { Collection } = require('discord.js');
 	const roleManager = {
 		cache: new Collection(),
-		resolve: (id) => roleManager.cache.get(id),
-		fetch: async (id) => roleManager.get(id),
-		add: () => {},
-		remove: () => {},
+		resolve: vi.fn((id) => roleManager.cache.get(id)),
+		fetch: vi.fn(async (id) => roleManager.get(id)),
+		add: vi.fn(() => {}),
+		remove: vi.fn(() => {}),
 	};
 	return roleManager;
 }
 
 export function createMockMember(id = generateSnowflake(), displayName = '') {
+	const permissionsInHasMock = vi.fn((permission) => true);
 	const member = {
 		id: id,
 		displayName: displayName,
-		displayAvatarURL: () => '',
-		avatarURL: () => '',
+		displayAvatarURL: vi.fn(() => ''),
+		avatarURL: vi.fn(() => ''),
 		user: createMockUser(id, displayName),
 		roles: createMockRoleManager(),
-		permissionsIn: (channel) => {
-			has: (permission) => true
-		},
-		send: async ({}) => Promise.resolve(createMockMessage({ content: '', channel: member.user.dmChannel }))
+		permissionsIn: vi.fn((channel) => {
+			has: permissionsInHasMock
+		}),
+		_permissionsInHasMock: permissionsInHasMock,
+		send: vi.fn(async ({}) => Promise.resolve(createMockMessage({ content: '', channel: member.user.dmChannel })))
 	};
 	return member;
 }
@@ -93,8 +95,8 @@ export function createMockGuildMemberManager() {
 	const { Collection } = require('discord.js');
 	const memberManager = {
 		cache: new Collection(),
-		resolve: (id) => memberManager.cache.get(id),
-		fetch: async (id) => memberManager.cache.get(id),
+		resolve: vi.fn((id) => memberManager.cache.get(id)),
+		fetch: vi.fn(async (id) => memberManager.cache.get(id)),
 		me: createMockUser()
 	};
 	return memberManager;
@@ -108,7 +110,7 @@ export function createMockGuildMemberManager() {
  */
 export function createMockGuild(channels = [], roles = [], members = []) {
 	const guild = {
-		iconURL: () => '',
+		iconURL: vi.fn(() => ''),
 		channels: createMockGuildChannelManager(),
 		members: createMockGuildMemberManager(),
 		roles: createMockRoleManager()
@@ -138,8 +140,8 @@ export function createMockMessage({ content = '', member = createMockMember(), a
 		member,
 		author,
 		channel: messageChannel,
-		reply: async (text) => createMockMessage({ content: text, channel: messageChannel }),
-		react: async () => ({}),
+		reply: vi.fn(async (text) => createMockMessage({ content: text, channel: messageChannel })),
+		react: vi.fn(async () => ({})),
 		webhookId: null,
 		attachments: new Collection(),
 		embeds: [],
@@ -147,7 +149,7 @@ export function createMockMessage({ content = '', member = createMockMember(), a
 			members: new Collection(),
 			channels: new Collection()
 		},
-		delete: async () => ({}),
+		delete: vi.fn(async () => ({})),
 	};
 }
 
