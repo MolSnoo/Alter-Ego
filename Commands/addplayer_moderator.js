@@ -107,8 +107,8 @@ export async function execute(game, message, command, args) {
     }
 
     try {
-        await appendRowsToSheet(game.constants.playerSheetDataCells, playerCells);
-        await appendRowsToSheet(game.constants.inventorySheetDataCells, inventoryCells);
+        await appendRowsToSheet(game.constants.playerSheetDataCells, playerCells, game.settings.spreadsheetID);
+        await appendRowsToSheet(game.constants.inventorySheetDataCells, inventoryCells, game.settings.spreadsheetID);
 
         const successMessage = `<@${member.id}> has been added to the game. `
             + "After making any desired changes to the players and inventory items sheets, be sure to load players before disabling edit mode.";
