@@ -83,8 +83,8 @@ export async function execute (game, message, command, args, player) {
                 if (containerName.endsWith(` OF ${playerItems[i].container.name}`)) {
                     const tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.name}`));
                     if (playerItems[i].container instanceof InventoryItem) {
-                        for (let slot = 0; slot < playerItems[i].container.inventory.length; slot++) {
-                            if (playerItems[i].container.inventory[slot].id === tempSlotName && playerItems[i].slot === tempSlotName) {
+                        for (const id of playerItems[i].container.inventoryCollection.keys()) {
+                            if (id === tempSlotName && playerItems[i].slot === tempSlotName) {
                                 item = playerItems[i];
                                 container = playerItems[i].container;
                                 slotName = tempSlotName;

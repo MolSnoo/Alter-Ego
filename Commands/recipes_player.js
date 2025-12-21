@@ -107,7 +107,7 @@ export async function execute (game, message, command, args, player) {
             if (a.prefab.id > b.prefab.id) return 1;
             return 0;
         });
-        const roomItems = game.items.filter(item => item.location.id === player.location.id && (item.quantity > 0 || isNaN(item.quantity)));
+        const roomItems = game.entityFinder.getRoomItems(null, player.location.id);
         roomItems.sort(function (a, b) {
             if (a.prefab.id < b.prefab.id) return -1;
             if (a.prefab.id > b.prefab.id) return 1;

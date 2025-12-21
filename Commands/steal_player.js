@@ -109,35 +109,26 @@ export async function execute (game, message, command, args, player) {
         }
     }
     if (container === null) return messageHandler.addReply(game, message, `Couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
-    if (container.inventory.length === 0) return messageHandler.addReply(game, message, `${victim.displayName}'s ${container.name} cannot hold items.`);
+    if (container.inventoryCollection.size === 0) return messageHandler.addReply(game, message, `${victim.displayName}'s ${container.name} cannot hold items.`);
 
     // If no slot name was specified, pick one.
-    let slotNo = -1;
-    if (slotName === "")
-        slotNo = Math.floor(Math.random() * container.inventory.length);
-    else {
-        for (let i = 0; i < container.inventory.length; i++) {
-            if (container.inventory[i].id === slotName) {
-                slotNo = i;
-                break;
-            }
-        }
-        if (slotNo === -1) return messageHandler.addReply(game, message, `Couldn't find "${slotName}" of ${container.name}.`);
-    }
+    let slot = container.inventoryCollection.get(slotName);
+    if (slotName === "") slot = container.inventoryCollection.values()[Math.floor(Math.random() * container.inventoryCollection.size)];
+    else if (slot === undefined) return messageHandler.addReply(game, message, `Couldn't find ${slotName} of ${container.name}.`)
     // If there are no items in that slot, tell the player.
-    if (container.inventory[slotNo].items.length === 0) {
-        if (container.inventory.length === 1) return player.notify(`You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
-        else return player.notify(`You try to steal from ${container.inventory[slotNo].id} of ${victim.displayName}'s ${container.name}, but it's empty.`);
+    if (slot.items.length === 0) {
+        if (container.inventoryCollection.size === 1) return player.notify(`You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
+        else return player.notify(`You try to steal from ${slot.id} of ${victim.displayName}'s ${container.name}, but it's empty.`);
     }
 
-    const result = player.steal(hand, victim, container, slotNo);
+    const result = player.steal(hand, victim, container, slot);
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
     if (result.successful)
-        messageHandler.addLogMessage(game, `${time} - ${player.name} stole ${result.itemName} from ${container.inventory[slotNo].id} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} stole ${result.itemName} from ${slot.id} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
     else
-        messageHandler.addLogMessage(game, `${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${container.inventory[slotNo].id} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
+        messageHandler.addLogMessage(game, `${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${slot.id} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
 
     return;
 }

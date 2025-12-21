@@ -60,6 +60,9 @@ export async function execute (game, message, command, args) {
     game.players = [];
     game.players_alive = [];
     game.players_dead = [];
+    game.playersCollection.clear();
+    game.livingPlayersCollection.clear();
+    game.deadPlayersCollection.clear();
 
     let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;

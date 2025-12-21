@@ -71,7 +71,7 @@ export async function execute (game, message, command, args, player) {
     let item = null;
     let container = null;
     let slotName = "";
-    const roomItems = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const roomItems = game.entityFinder.getRoomItems(null, player.location.id, true);
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
         if (roomItems[i].name === parsedInput) {
@@ -89,8 +89,8 @@ export async function execute (game, message, command, args, player) {
                 if (containerName.endsWith(` OF ${roomItemContainer.name}`)) {
                     const tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
                     if (roomItemContainer instanceof RoomItem) {
-                        for (let slot = 0; slot < roomItemContainer.inventory.length; slot++) {
-                            if (roomItemContainer.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
+                        for (const id of roomItemContainer.inventoryCollection.keys()) {
+                            if (id === tempSlotName && roomItems[i].slot === tempSlotName) {
                                 item = roomItems[i];
                                 container = roomItemContainer;
                                 slotName = tempSlotName;
@@ -164,13 +164,13 @@ export async function execute (game, message, command, args, player) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} took ${item.identifier ? item.identifier : item.prefab.id} from ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container instanceof Puzzle && container.type === "weight") {
-            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const containerItems = game.entityFinder.getRoomItems(null, container.location.id, null, `Puzzle: ${container.name}`);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             player.attemptPuzzle(container, item, weight.toString(), "take", input);
         }
         // Container is a container puzzle.
         else if (container instanceof Puzzle && container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+            const containerItems = game.entityFinder.getRoomItems(null, container.location.id, null, `Puzzle: ${container.name}`).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;

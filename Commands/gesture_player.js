@@ -136,7 +136,7 @@ export async function execute (game, message, command, args, player) {
                             }
                         }
                         else if (gesture.requires[j] === "Room Item" || gesture.requires[j] === "Item") {
-                            const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+                            const items = game.entityFinder.getRoomItems(null, player.location.id, true);
                             for (let k = 0; k < items.length; k++) {
                                 if (items[k].name.toLowerCase() === input2) {
                                     // Make sure the player can only gesture to items contained in the fixture they're hiding in, if they're hidden.

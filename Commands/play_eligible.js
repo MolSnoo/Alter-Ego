@@ -28,8 +28,8 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    for (let i = 0; i < game.players.length; i++) {
-        if (message.author.id === game.players[i].id)
+    for (const player of game.playersCollection.values()) {
+        if (message.author.id === player.id)
             return message.reply("You are already playing.");
     }
     if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
@@ -59,6 +59,8 @@ export async function execute (game, message, command, args) {
     player.setPronouns(player.pronouns, player.pronounString);
     game.players.push(player);
     game.players_alive.push(player);
+    game.playersCollection.set(player.name, player);
+    game.livingPlayersCollection.set(player.name, player);
     member.roles.add(game.guildContext.playerRole);
 
     const channel = game.settings.debug ? game.guildContext.testingChannel : game.guildContext.generalChannel;

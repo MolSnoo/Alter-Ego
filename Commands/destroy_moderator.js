@@ -75,7 +75,7 @@ export async function execute (game, message, command, args) {
         let containerItem = null;
         let containerItemSlot = null;
         // Check if a container item was specified.
-        const roomItems = game.items.filter(item => item.location.id === room.id && (item.quantity > 0 || isNaN(item.quantity)));
+        const roomItems = game.entityFinder.getRoomItems(null, room.id);
         for (let i = 0; i < roomItems.length; i++) {
             // If parsedInput is only the identifier or the item's name, we've found the item to delete.
             if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab.id === parsedInput) {

@@ -74,7 +74,7 @@ export async function execute (game, message, command, args) {
 
     // Check if the input is a fixture, or an item on a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
-    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.entityFinder.getRoomItems(null, player.location.id, true);
     let fixture = null;
     let item = null;
     let container = null;

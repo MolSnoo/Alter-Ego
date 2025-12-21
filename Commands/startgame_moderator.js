@@ -69,7 +69,7 @@ export async function execute(game, message, command, args) {
         const playerRole = game.guildContext.playerRole;
         channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
 
-        game.players.sort(function (a, b) {
+        game.playersCollection.sort(function (a, b) {
             const nameA = a.name.toLowerCase();
             const nameB = b.name.toLowerCase();
             if (nameA < nameB) return -1;
@@ -79,8 +79,7 @@ export async function execute(game, message, command, args) {
 
         const playerCells = [];
         const inventoryCells = [];
-        for (let i = 0; i < game.players.length; i++) {
-            const player = game.players[i];
+        for (const player of game.playersCollection.values()) {
             const playerData = [
                 player.id,
                 player.name,

@@ -53,16 +53,16 @@ export async function execute (game, message, command, args, player) {
     for (let i = 0; i < items.length; i++) {
         if (items[i].prefab !== null && parsedInput.endsWith(items[i].name) && parsedInput !== items[i].name) {
             containerItem = items[i];
-            if (items[i].inventory.length === 0) continue;
+            if (items[i].inventoryCollection.size === 0) continue;
             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].name)).trimEnd();
             // Check if a slot was specified.
             if (parsedInput.endsWith(" OF")) {
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                 newArgs = parsedInput.split(' ');
-                for (let slot = 0; slot < containerItem.inventory.length; slot++) {
-                    if (parsedInput.endsWith(containerItem.inventory[slot].id)) {
-                        containerItemSlot = containerItem.inventory[slot];
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItemSlot.id)).trimEnd();
+                for (const [id, slot] of containerItem.inventoryCollection) {
+                    if (parsedInput.endsWith(id)) {
+                        containerItemSlot = slot;
+                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                         break;
                     }
                 }
@@ -78,7 +78,7 @@ export async function execute (game, message, command, args, player) {
             return messageHandler.addReply(game, message, `You need to specify two items. Usage:\n${usage(game.settings)}`);
     }
     if (containerItem === null) return messageHandler.addReply(game, message, `Couldn't find container item "${newArgs[newArgs.length - 1]}".`);
-    else if (containerItem.inventory.length === 0) return messageHandler.addReply(game, message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+    else if (containerItem.inventoryCollection.size === 0) return messageHandler.addReply(game, message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
     let item = null;
@@ -102,10 +102,10 @@ export async function execute (game, message, command, args, player) {
     // Make sure item and containerItem aren't the same item.
     if (item.row === containerItem.row) return messageHandler.addReply(game, message, `You can't stash ${item.name} ${itemPreposition} itself.`);
 
-    if (containerItemSlot === null) containerItemSlot = containerItem.inventory[0];
-    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because it is too large.`);
+    if (containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because it is too large.`);
     else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItem.name} because it is too large.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because there isn't enough space left.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because there isn't enough space left.`);
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
 
     player.stash(item, hand, containerItem, containerItemSlot.id);

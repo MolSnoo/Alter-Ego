@@ -175,13 +175,13 @@ export async function execute (game, message, command, args, player) {
         messageHandler.addLogMessage(game, `${time} - ${player.name} dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.parentFixture.preposition} ${container.name} in ${player.location.channel}`);
         // Container is a weight puzzle.
         if (container.type === "weight") {
-            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const containerItems = game.entityFinder.getRoomItems(null, container.location.id, null, `Puzzle: ${container.name}`);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             player.attemptPuzzle(container, item, weight.toString(), "drop", input);
         }
         // Container is a container puzzle.
         else if (container.type === "container") {
-            const containerItems = game.items.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+            const containerItems = game.entityFinder.getRoomItems(null, container.location.id, null, `Puzzle: ${container.name}`).sort(function (a, b) {
                 if (a.prefab.id < b.prefab.id) return -1;
                 if (a.prefab.id > b.prefab.id) return 1;
                 return 0;
