@@ -2219,21 +2219,16 @@ export default class Player extends ItemContainer {
      */
     static abbreviateStatName(statName) {
         statName = statName.toLowerCase().trim();
-        switch (statName) {
-            case "strength":
-                return "str";
-            case "perception":
-                return "per";
-            case "intelligence":
-                return "per";
-            case "dexterity":
-                return "dex";
-            case "speed":
-                return "spd";
-            case "stamina":
-                return "sta";
-            default:
-                return statName;
-        }
+        if (statName === "strength")
+            return "str";
+        else if (statName === "perception" || statName === "intelligence" || statName === "int")
+            return "per";
+        else if (statName === "dexterity")
+            return "dex";
+        else if (statName === "speed")
+            return "spd";
+        else if (statName === "stamina")
+            return "sta";
+        else return statName;
     }
 }
