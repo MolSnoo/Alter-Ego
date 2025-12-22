@@ -1,4 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -51,18 +52,7 @@ export async function execute (game, message, command, args, player) {
 
     var input = args.join(" ");
     if (input === "" && message.attachments.size === 0) return messageHandler.addReply(game, message, `Text message cannot be empty. Please send a message and/or an attachment.`);
-    if (input.length > 1900)
-        input = input.substring(0, 1897) + "...";
-
-    var senderText = `\`[ ${player.name} -> ${recipient.name} ]\` `;
-    var receiverText = `\`[ ${player.name} ]\` `;
-    if (input !== "") {
-        senderText += input;
-        receiverText += input;
-    }
     
-    messageHandler.addDirectNarrationWithAttachments(player, senderText, message.attachments);
-    messageHandler.addDirectNarrationWithAttachments(recipient, receiverText, message.attachments);
-
-    return;
+    const action = new Action(game, ActionType.Text, message, player, player.location, false);
+    action.performText(recipient, input);
 }

@@ -19,4 +19,16 @@ export default class GameNotificationGenerator {
 	constructor(game) {
 		this.game = game;
 	}
+
+	/**
+	 * Generates a text action notification.
+	 * @param {string} messageText - The text content of the text message.
+	 * @param {string} senderName - The name of the sender.
+	 * @param {string} [recipientName] - The name of the recipient, if needed.
+	 */
+	generateTextNotification(messageText, senderName, recipientName) {
+		if (messageText.length > 1900) messageText = messageText.substring(0, 1897) + "...";
+		const recipientDisplay = recipientName ? ` -> ${recipientName}` : ``;
+		return `\`[ ${senderName}${recipientDisplay} ]\` ${messageText}`;
+	}
 }

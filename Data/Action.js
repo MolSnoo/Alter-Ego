@@ -9,6 +9,7 @@ import Room from "./Room.js";
 import RoomItem from "./RoomItem.js";
 import Whisper from "./Whisper.js";
 import { parseDescription } from "../Modules/parser.js";
+import { addDirectNarrationWithAttachments } from "../Modules/messageHandler.js";
 
 /**
  * @class Action
@@ -91,7 +92,19 @@ export default class Action {
 	}
 
 	/**
-	 * Performs a gesture.
+	 * Performs a text action.
+	 * @param {Player} recipient - The player who will receive the text.
+	 * @param {string} messageText - The text content of the text message.
+	 */
+	performText(recipient, messageText) {
+		const senderText = this.game.notificationGenerator.generateTextNotification(messageText, this.player.name, recipient.name);
+		const recipientText = this.game.notificationGenerator.generateTextNotification(messageText, this.player.name);
+		addDirectNarrationWithAttachments(this.player, senderText, this.message.attachments);
+		addDirectNarrationWithAttachments(recipient, recipientText, this.message.attachments);
+	}
+
+	/**
+	 * Performs a gesture action.
 	 * @param {Gesture} gesture - The gesture to perform.
 	 * @param {string} targetType - The type of entity to target.
 	 * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The entity to target.
