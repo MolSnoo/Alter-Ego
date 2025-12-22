@@ -40,11 +40,11 @@ export async function execute (game, message, command, args) {
     if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
-    if (player.statusString.includes("hidden") && command === "unhide") {
+    if (player.statusCollection.has("hidden") && command === "unhide") {
         player.cure("hidden", true, false, true);
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully brought ${player.name} out of hiding.`);
     }
-    else if (player.statusString.includes("hidden"))
+    else if (player.statusCollection.has("hidden"))
         return messageHandler.addReply(game, message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${game.settings.commandPrefix}unhide ${player.name}".`);
     else if (command === "unhide")
         return messageHandler.addReply(game, message, `${player.name} is not currently hidden.`);

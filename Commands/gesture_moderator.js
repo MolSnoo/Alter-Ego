@@ -179,7 +179,7 @@ export async function execute (game, message, command, args) {
         if (target === null && gesture.requires.length > 0)
             return messageHandler.addReply(game, message, `Couldn't find target "${input}" in the room with ${player.name}.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
-            if (player.statusString.includes(gesture.disabledStatuses[i].id))
+            if (player.statusCollection.has(gesture.disabledStatuses[i].id))
                 return messageHandler.addReply(game, message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? "are" : "is") + ` **${gesture.disabledStatuses[i].id}**.`);
         }
 

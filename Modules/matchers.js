@@ -540,8 +540,8 @@ export const playerHidingSpotMatches = (player, hidingSpot, normalize = false) =
 export const playerStatusMatches = (player, statusString, normalize = false) => {
 	let statuses = statusString.split(',');
 	if (normalize) statuses.forEach((status, i) => statuses[i] = Status.generateValidId(status));
-	const playerStatuses = player.status.map(status => status.id);
-	return statuses.every(status => playerStatuses.includes(status));
+	const playerStatuses = new Set(player.statusCollection.map(status => status.id));
+	return statuses.every(status => playerStatuses.has(status));
 };
 
 /**
