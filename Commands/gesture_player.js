@@ -1,4 +1,5 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
+﻿import Action from '../Data/Action.js';
+import GameSettings from '../Classes/GameSettings.js';
 import Fixture from '../Data/Fixture.js';
 import Game from '../Data/Game.js';
 import ItemInstance from '../Data/ItemInstance.js';
@@ -204,16 +205,7 @@ export async function execute (game, message, command, args, player) {
                 return messageHandler.addReply(game, message, `You cannot do that gesture because you are **${gesture.disabledStatuses[i].id}**.`);
         }
 
-        player.gesture(gesture, targetType, target);
-        // Post log message. Message should vary based on target type.
-        const time = new Date().toLocaleTimeString();
-        if (targetType === "")
-            messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} in ${player.location.channel}`);
-        else if (targetType === "Exit" || targetType === "Fixture" || targetType === "Player")
-            messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} to ${target.name} in ${player.location.channel}`);
-        else if (target instanceof ItemInstance)
-            messageHandler.addLogMessage(game, `${time} - ${player.name} did gesture ${gesture.id} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
+        const action = new Action(game, ActionType.Gesture, message, player, player.location, false);
+        action.performGesture(gesture, targetType, target);
     }
-
-    return;
 }

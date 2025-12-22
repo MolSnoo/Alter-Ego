@@ -2079,18 +2079,6 @@ export default class Player extends ItemContainer {
         else return puzzle.requirementsNotMet(this, `${this.displayName} uses the ${puzzleName}.`, command, input, message);
     }
 
-    /** Performs a gesture. 
-     * @param {Gesture} gesture - The gesture to perform.
-     * @param {string} targetType - The type of entity to target.
-     * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The entity to target.
-     */
-    gesture(gesture, targetType, target) {
-        let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
-        newGesture.targetType = targetType;
-        newGesture.target = target;
-        new Narration(this.game, this, this.location, parseDescription(newGesture.narration, newGesture, this)).send();
-    }
-
     /**
      * Kills the player.
      */

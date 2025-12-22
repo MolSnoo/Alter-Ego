@@ -1,7 +1,14 @@
+import Exit from "./Exit.js";
+import Fixture from "./Fixture.js";
 import Game from "./Game.js";
+import Gesture from "./Gesture.js";
+import InventoryItem from "./InventoryItem.js";
+import Narration from "./Narration.js";
 import Player from "./Player.js";
 import Room from "./Room.js";
+import RoomItem from "./RoomItem.js";
 import Whisper from "./Whisper.js";
+import { parseDescription } from "../Modules/parser.js";
 
 /**
  * @class Action
@@ -81,5 +88,19 @@ export default class Action {
 
 	#generateId() {
 		return `${this.player}-${this.type}-${this.message.id}`;
+	}
+
+	/**
+	 * Performs a gesture.
+	 * @param {Gesture} gesture - The gesture to perform.
+	 * @param {string} targetType - The type of entity to target.
+	 * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The entity to target.
+	 */
+	performGesture(gesture, targetType, target) {
+		let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
+		newGesture.targetType = targetType;
+		newGesture.target = target;
+		new Narration(this.game, this.player, this.location, parseDescription(newGesture.narration, newGesture, this.player)).send();
+		this.game.logger.logGesture(gesture, target, this.player, this.forced);
 	}
 }
