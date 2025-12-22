@@ -150,6 +150,24 @@ export default class InventoryItem extends ItemInstance {
     }
 
     /**
+     * Returns true if the item is usable on the given player.
+     * @param {Player} player 
+     */
+    usableOn(player) {
+        let canEffect = false, canCure = false;
+		for (const effect of this.prefab.effects) {
+			if (!player.hasStatus(effect.id) || effect.duplicatedStatus !== null)
+                canEffect = true;
+		}
+		for (const cure of this.prefab.cures) {
+			if (player.hasStatus(cure.id))
+                canCure = true;
+		}
+        if (!canEffect && !canCure) return false;
+        return true;
+    }
+
+    /**
      * Sets the description.
      * @param {string} description - The description to set.
      */
@@ -159,6 +177,6 @@ export default class InventoryItem extends ItemInstance {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.inventorySheetDescriptionColumn + this.row;
+        return this.getGame().constants.inventorySheetDescriptionColumn + this.row;
     }
 }

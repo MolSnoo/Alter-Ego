@@ -394,6 +394,7 @@ declare global {
 		speed?: number;
 		stamina?: number;
 		game?: Game;
+		getGame: () => this["game"];
 	}
 
 	interface Possibility {

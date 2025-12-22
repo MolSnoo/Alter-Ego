@@ -65,7 +65,7 @@ export default async function execute(game, message, deletable, player = null, o
              * Preserve the player data as it is now in order to display it in spectate channels. Only preserve what's needed for that purpose.
              * @type {PseudoPlayer}
              */
-            const speaker = { displayName: player.displayName, displayIcon: player.displayIcon, member: player.member, game: player.game };
+            const speaker = { displayName: player.displayName, displayIcon: player.displayIcon, member: player.member, game: player.getGame(), getGame: () => speaker.game };
 
             if (player.hasBehaviorAttribute("no speech")) {
                 if (!player.isNPC) player.notify("You are mute, so you cannot speak.", false);
@@ -500,7 +500,7 @@ export default async function execute(game, message, deletable, player = null, o
                     && !message.content.startsWith('('))
                     occupant.notify(message.content);
                 else if (!occupant.hasBehaviorAttribute("no sight") && !occupant.hasBehaviorAttribute("unconscious") && !message.content.startsWith('('))
-                    messageHandler.addSpectatedPlayerMessage(occupant, message, message, whisper, message.member.displayName);
+                    messageHandler.addSpectatedPlayerMessage(occupant, message.member, message, whisper, message.member.displayName);
             }
             if (whisper === null && room.tags.includes("video surveilled")) {
                 let roomDisplayName = room.tags.includes("secret") ? "Surveillance feed" : room.displayName;

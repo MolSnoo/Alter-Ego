@@ -77,7 +77,7 @@ export default class EquipmentSlot extends GameEntity {
             null,
             "",
             this.row,
-            this.game
+            this.getGame()
         );
         nullItem.setPlayer(item.player);
         this.equippedItem = null;
@@ -91,9 +91,9 @@ export default class EquipmentSlot extends GameEntity {
      * @param {InventoryItem} item - The newly equipped item.
      */
     #replaceInventoryItemEntry(item) {
-        for (let i = 0; i < this.game.inventoryItems.length; i++) {
-            if (this.game.inventoryItems[i].row === item.row) {
-                this.game.inventoryItems.splice(i, 1, item);
+        for (let i = 0; i < this.getGame().inventoryItems.length; i++) {
+            if (this.getGame().inventoryItems[i].row === item.row) {
+                this.getGame().inventoryItems.splice(i, 1, item);
                 break;
             }
         }

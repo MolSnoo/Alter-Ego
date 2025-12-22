@@ -83,7 +83,7 @@ export default class Flag extends GameEntity {
 				typeof this.value === "boolean" ? `\`${this.value}\`` :
 					this.value;
 		const time = new Date().toLocaleTimeString();
-		addLogMessage(this.game, `${time} - ${this.id} was set with value ${valueDisplay}`);
+		addLogMessage(this.getGame(), `${time} - ${this.id} was set with value ${valueDisplay}`);
 
 		if (doSetCommands === true) {
 			// Find commandSet.
@@ -105,7 +105,7 @@ export default class Flag extends GameEntity {
 				}
 			}
 			// Execute the command set's set commands.
-			parseAndExecuteBotCommands(commandSet, this.game, this, player);
+			parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
 		}
 	}
 
@@ -121,7 +121,7 @@ export default class Flag extends GameEntity {
 
 		// Post log message.
 		const time = new Date().toLocaleTimeString();
-		addLogMessage(this.game, `${time} - ${this.id} was cleared`);
+		addLogMessage(this.getGame(), `${time} - ${this.id} was cleared`);
 
 		if (doClearedCommands === true) {
 			// Find commandSet.
@@ -143,7 +143,7 @@ export default class Flag extends GameEntity {
 				}
 			}
 			// Execute the command set's cleared commands.
-			parseAndExecuteBotCommands(commandSet, this.game, this, player);
+			parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
 		}
 	}
 }

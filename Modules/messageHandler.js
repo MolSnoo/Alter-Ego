@@ -1,4 +1,4 @@
-import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection } from 'discord.js';
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection, GuildMember } from 'discord.js';
 import Player from '../Data/Player.js';
 import Whisper from '../Data/Whisper.js';
 import Game from '../Data/Game.js';
@@ -13,7 +13,7 @@ import Room from '../Data/Room.js';
  */
 export async function addNarration(room, messageText, addSpectate = true, speaker = null) {
     if (messageText !== "") {
-        room.game.messageQueue.enqueue(
+        room.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
                     await room.channel.send(messageText);
@@ -30,7 +30,7 @@ export async function addNarration(room, messageText, addSpectate = true, speake
                     !player.hasBehaviorAttribute("unconscious") &&
                     player.spectateChannel !== null
                 ) {
-                    room.game.messageQueue.enqueue(
+                    room.getGame().messageQueue.enqueue(
                         {
                             fire: async () => {
                                 await player.spectateChannel.send(messageText);
@@ -90,7 +90,7 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
  */
 export async function addDirectNarration(player, messageText, addSpectate = true) {
     if (!player.isNPC) {
-        player.game.messageQueue.enqueue(
+        player.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
                     await player.member.send(messageText);
@@ -100,7 +100,7 @@ export async function addDirectNarration(player, messageText, addSpectate = true
         );
     }
     if (addSpectate && player.spectateChannel !== null) {
-        player.game.messageQueue.enqueue(
+        player.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
                     await player.spectateChannel.send(messageText);
@@ -122,7 +122,7 @@ export async function addDirectNarrationWithAttachments(player, messageText, att
     const files = attachments.map((attachment) => attachment.url);
 
     if (!player.isNPC) {
-        player.game.messageQueue.enqueue(
+        player.getGame().messageQueue.enqueue(
             {
                 fire: async () =>
                     {
@@ -136,7 +136,7 @@ export async function addDirectNarrationWithAttachments(player, messageText, att
         );
     }
     if (addSpectate && player.spectateChannel !== null) {
-        player.game.messageQueue.enqueue(
+        player.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
                     await player.spectateChannel.send({
@@ -179,7 +179,7 @@ export async function addRoomDescription(player, location, descriptionText, defa
                 } asleep.`;
         }
 
-        const game = location.game;
+        const game = location.getGame();
         const components = [
             new ContainerBuilder()
                 .setAccentColor(Number(`0x${game.settings.embedColor}`))
@@ -192,7 +192,7 @@ export async function addRoomDescription(player, location, descriptionText, defa
                                         ? location.iconURL
                                         : game.settings.defaultRoomIconURL !== ""
                                             ? game.settings.defaultRoomIconURL
-                                            : location.game.guildContext.guild.iconURL()
+                                            : location.getGame().guildContext.guild.iconURL()
                                 )
                         )
                         .addTextDisplayComponents(
@@ -212,7 +212,7 @@ export async function addRoomDescription(player, location, descriptionText, defa
         ];
 
         if (!player.isNPC) {
-            location.game.messageQueue.enqueue(
+            location.getGame().messageQueue.enqueue(
                 {
                     fire: async () => {
                         await player.member.send({
@@ -225,7 +225,7 @@ export async function addRoomDescription(player, location, descriptionText, defa
             );
         }
         if (addSpectate && player.spectateChannel !== null) {
-            location.game.messageQueue.enqueue(
+            location.getGame().messageQueue.enqueue(
                 {
                     fire: async () => {
                         await player.spectateChannel.send({
@@ -360,7 +360,7 @@ export async function addReply(game, message, messageText) {
 /**
  * Mirrors a dialog message in a spectate channel.
  * @param {Player} player - The player whose spectate channel this message is being sent to.
- * @param {Player|PseudoPlayer} speaker - The player who originally sent the dialog message.
+ * @param {Player|PseudoPlayer|GuildMember} speaker - The player who originally sent the dialog message.
  * @param {UserMessage} message - The message in which this dialog originated.
  * @param {Whisper} [whisper] - The whisper the dialog was sent in, if applicable.
  * @param {string} [displayName] - The displayName to use for the mirrored webhook message. If none is specified, the speaker's current displayName will be used.
@@ -381,21 +381,21 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
 
         const files = message.attachments.map((attachment) => attachment.url);
 
-        player.game.messageQueue.enqueue(
+        player.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
                     const webhookMessage = await webhook.send({
                         content: messageText,
                         username: displayName ? displayName : speaker.displayName,
-                        avatarURL: speaker.displayIcon
+                        avatarURL: !(speaker instanceof GuildMember) && speaker.displayIcon
                             ? speaker.displayIcon
-                            : speaker.member
+                            : speaker instanceof Player && speaker.member
                                 ? speaker.member.displayAvatarURL()
                                 : message.author.avatarURL() || message.author.defaultAvatarURL,
                         embeds: message.embeds,
                         files: files,
                     });
-                    const cachedMessage = speaker.game.dialogCache.find((entry) => entry.messageId === message.id);
+                    const cachedMessage = player.getGame().dialogCache.find((entry) => entry.messageId === message.id);
                     if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
                 },
             },

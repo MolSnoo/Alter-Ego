@@ -8,7 +8,7 @@ import GameEntity from "../Data/GameEntity.js";
  * @returns The room with the specified ID. If no such room exists, returns undefined.
  */
 export function findRoom(container, id) {
-    return container.game.entityFinder.getRoom(id);
+    return container.getGame().entityFinder.getRoom(id);
 }
 
 /**
@@ -20,7 +20,7 @@ export function findRoom(container, id) {
  * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
  */
 export function findFixture(container, name, location) {
-    return container.game.entityFinder.getFixture(name, location);
+    return container.getGame().entityFinder.getFixture(name, location);
 }
 
 /**
@@ -31,7 +31,7 @@ export function findFixture(container, name, location) {
  * @returns The prefab with the specified ID. If no such prefab exists, returns undefined.
  */
 export function findPrefab(container, id) {
-    return container.game.entityFinder.getPrefab(id);
+    return container.getGame().entityFinder.getPrefab(id);
 }
 
 /**
@@ -44,7 +44,7 @@ export function findPrefab(container, id) {
  * @returns The room item with the specified identifier, and location and container name if applicable. If no such item exists, returns undefined.
  */
 export function findRoomItem(container, identifier, location, containerName) {
-    return container.game.entityFinder.getRoomItem(identifier, location, containerName);
+    return container.getGame().entityFinder.getRoomItem(identifier, location, containerName);
 }
 
 /**
@@ -56,7 +56,7 @@ export function findRoomItem(container, identifier, location, containerName) {
  * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
  */
 export function findPuzzle(container, name, location) {
-    return container.game.entityFinder.getPuzzle(name, location);
+    return container.getGame().entityFinder.getPuzzle(name, location);
 }
 
 /**
@@ -67,7 +67,7 @@ export function findPuzzle(container, name, location) {
  * @returns The event with the specified ID. If no such event exists, returns undefined.
  */
 export function findEvent(container, id) {
-    return container.game.entityFinder.getEvent(id);
+    return container.getGame().entityFinder.getEvent(id);
 }
 
 /**
@@ -78,7 +78,7 @@ export function findEvent(container, id) {
  * @returns The status effect with the specified ID. If no such status effect exists, returns undefined.
  */
 export function findStatusEffect(container, id) {
-    return container.game.entityFinder.getStatusEffect(id);
+    return container.getGame().entityFinder.getStatusEffect(id);
 }
 
 /**
@@ -89,7 +89,7 @@ export function findStatusEffect(container, id) {
  * @returns The player with the specified name. If no such player exists, returns undefined.
  */
 export function findPlayer(container, name) {
-    return container.game.entityFinder.getPlayer(name);
+    return container.getGame().entityFinder.getPlayer(name);
 }
 
 /**
@@ -100,7 +100,7 @@ export function findPlayer(container, name) {
  * @returns The living player with the specified name. If no such player exists, returns undefined.
  */
 export function findLivingPlayer(container, name) {
-    return container.game.entityFinder.getLivingPlayer(name);
+    return container.getGame().entityFinder.getLivingPlayer(name);
 }
 
 /**
@@ -111,7 +111,7 @@ export function findLivingPlayer(container, name) {
  * @returns The dead player with the specified name. If no such player exists, returns undefined.
  */
 export function findDeadPlayer(container, name) {
-    return container.game.entityFinder.getDeadPlayer(name);
+    return container.getGame().entityFinder.getDeadPlayer(name);
 }
 
 /**
@@ -125,7 +125,7 @@ export function findDeadPlayer(container, name) {
  * @returns The inventory item with the specified identifier, and player, container name, and equipment slot if applicable. If no such item exists, returns undefined.
  */
 export function findInventoryItem(container, identifier, player, containerName, equipmentSlotId) {
-    return container.game.entityFinder.getInventoryItem(identifier, player, containerName, equipmentSlotId);
+    return container.getGame().entityFinder.getInventoryItem(identifier, player, containerName, equipmentSlotId);
 }
 
 /**
@@ -136,7 +136,7 @@ export function findInventoryItem(container, identifier, player, containerName, 
  * @returns The gesture with the specified ID. If no such gesture exists, returns undefined.
  */
 export function findGesture(container, id) {
-    return container.game.entityFinder.getGesture(id);
+    return container.getGame().entityFinder.getGesture(id);
 }
 
 /**
@@ -148,7 +148,7 @@ export function findGesture(container, id) {
  * @returns The flag with the specified ID. If no such flag exists, returns undefined.
  */
 export function findFlag(container, id, evaluate = false) {
-    return container.game.entityFinder.getFlagValue(id, evaluate);
+    return container.getGame().entityFinder.getFlagValue(id, evaluate);
 }
 
 /**
@@ -160,7 +160,7 @@ export function findFlag(container, id, evaluate = false) {
  * @param {boolean} [occupied] - Filter the rooms to only those who have at least one occupant. If this is `true`, includes NPCs as occupants. If this is `false`, NPCs are not counted.
  */
 export function findRooms(container, id, tag, occupied) {
-    return container.game.entityFinder.getRooms(id, tag, occupied);
+    return container.getGame().entityFinder.getRooms(id, tag, occupied);
 }
 
 /**
@@ -173,7 +173,7 @@ export function findRooms(container, id, tag, occupied) {
  * @param {string} [recipeTag] - Filter the fixtures to only those with the given recipe tag.
  */
 export function findFixtures(container, name, location, accessible, recipeTag) {
-    return container.game.entityFinder.getFixtures(name, location, accessible, recipeTag);
+    return container.getGame().entityFinder.getFixtures(name, location, accessible, recipeTag);
 }
 
 /**
@@ -186,7 +186,7 @@ export function findFixtures(container, name, location, accessible, recipeTag) {
  * @param {string} [equipmentSlotsString] - Filter the prefabs to only those who are equippable to the given comma-separated equipment slots.
  */
 export function findPrefabs(container, id, effectsString, curesString, equipmentSlotsString) {
-    return container.game.entityFinder.getPrefabs(id, effectsString, curesString, equipmentSlotsString);
+    return container.getGame().entityFinder.getPrefabs(id, effectsString, curesString, equipmentSlotsString);
 }
 
 /**
@@ -199,7 +199,7 @@ export function findPrefabs(container, id, effectsString, curesString, equipment
  * @param {string} [productsString] - Filter the recipes to only those with the given comma-separated products.
  */
 export function findRecipes(container, type, fixtureTag, ingredientsString, productsString) {
-    return container.game.entityFinder.getRecipes(type, fixtureTag, ingredientsString, productsString);
+    return container.getGame().entityFinder.getRecipes(type, fixtureTag, ingredientsString, productsString);
 }
 
 /**
@@ -213,7 +213,7 @@ export function findRecipes(container, type, fixtureTag, ingredientsString, prod
  * @param {string} [slotId] - Filter the room items to only those in the inventory slot with the given ID.
  */
 export function findRoomItems(container, identifier, location, accessible, containerName, slotId) {
-    return container.game.entityFinder.getRoomItems(identifier, location, accessible, containerName, slotId);
+    return container.getGame().entityFinder.getRoomItems(identifier, location, accessible, containerName, slotId);
 }
 
 /**
@@ -226,7 +226,7 @@ export function findRoomItems(container, identifier, location, accessible, conta
  * @param {boolean} [accessible] - Filter the puzzles to only those who are accessible or not.
  */
 export function findPuzzles(container, name, location, type, accessible) {
-    return container.game.entityFinder.getPuzzles(name, location, type, accessible);
+    return container.getGame().entityFinder.getPuzzles(name, location, type, accessible);
 }
 
 /**
@@ -240,7 +240,7 @@ export function findPuzzles(container, name, location, type, accessible) {
  * @param {string} [refreshesString] - Filter the events to only those who refresh the given comma-separated status effects.
  */
 export function findEvents(container, id, ongoing, roomTag, effectsString, refreshesString) {
-    return container.game.entityFinder.getEvents(id, ongoing, roomTag, effectsString, refreshesString);
+    return container.getGame().entityFinder.getEvents(id, ongoing, roomTag, effectsString, refreshesString);
 }
 
 /**
@@ -252,7 +252,7 @@ export function findEvents(container, id, ongoing, roomTag, effectsString, refre
  * @param {string} [attributesString] - Filter the status effects to only those with the given comma-separated behavior attributes.
  */
 export function findStatusEffects(container, id, modifiedStatsString, attributesString) {
-    return container.game.entityFinder.getStatusEffects(id, modifiedStatsString, attributesString);
+    return container.getGame().entityFinder.getStatusEffects(id, modifiedStatsString, attributesString);
 }
 
 /**
@@ -266,7 +266,7 @@ export function findStatusEffects(container, id, modifiedStatsString, attributes
  * @param {string} [statusString] - Filter the players to only those inflicted with all of the given comma-separated status effects.
  */
 export function findLivingPlayers(container, name, isNPC, location, hidingSpot, statusString) {
-    return container.game.entityFinder.getLivingPlayers(name, isNPC, location, hidingSpot, statusString);
+    return container.getGame().entityFinder.getLivingPlayers(name, isNPC, location, hidingSpot, statusString);
 }
 
 /**
@@ -277,7 +277,7 @@ export function findLivingPlayers(container, name, isNPC, location, hidingSpot, 
  * @param {boolean} [isNPC] - Filter the players to only those who are NPCs or not.
  */
 export function findDeadPlayers(container, name, isNPC) {
-    return container.game.entityFinder.getDeadPlayers(name, isNPC);
+    return container.getGame().entityFinder.getDeadPlayers(name, isNPC);
 }
 
 /**
@@ -291,7 +291,7 @@ export function findDeadPlayers(container, name, isNPC) {
  * @param {string} [equipmentSlotId] - Filter the inventory items to only those belonging to the equipment slot with the given ID.
  */
 export function findInventoryItems(container, identifier, player, containerName, slotId, equipmentSlotId) {
-    return container.game.entityFinder.getInventoryItems(identifier, player, containerName, slotId, equipmentSlotId);
+    return container.getGame().entityFinder.getInventoryItems(identifier, player, containerName, slotId, equipmentSlotId);
 }
 
 /**
@@ -300,7 +300,7 @@ export function findInventoryItems(container, identifier, player, containerName,
  * @param {string} [id] - Filters the gestures to only those whose ID matches the given ID.
  */
 export function findGestures(container, id) {
-    return container.game.entityFinder.getGestures(id);
+    return container.getGame().entityFinder.getGestures(id);
 }
 
 /**
@@ -310,5 +310,5 @@ export function findGestures(container, id) {
  * @param {string} [id] - Filters the flags to only those whose ID matches the given ID.
  */
 export function findFlags(container, id) {
-    return container.game.entityFinder.getFlags(id);
+    return container.getGame().entityFinder.getFlags(id);
 }

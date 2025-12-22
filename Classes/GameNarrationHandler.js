@@ -1,3 +1,4 @@
+import Exit from "../Data/Exit.js";
 import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
 import Gesture from "../Data/Gesture.js";
@@ -29,13 +30,23 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Sends the narration.
+	 * @param {Player} player - The player whose action is being narrated.
+	 * @param {string} narrationText - The text of the narration.
+	 * @param {Room} [location] - The location in which the narration is occurring. Defaults to the player's location.
+	 */
+	#sendNarration(player, narrationText, location = player.location) {
+		new Narration(this.game, player, location, narrationText).send();
+	}
+
+	/**
 	 * Narrations a gesture action.
 	 * @param {Gesture} gesture - The gesture being narrated.
 	 * @param {Player} player - The player performing the gesture action.
 	 */
 	narrateGesture(gesture, player) {
 		const narration = parseDescription(gesture.narration, gesture, player);
-		new Narration(this.game, player, player.location, narration).send();
+		this.#sendNarration(player, narration);
 	}
 
 	/**
@@ -44,7 +55,7 @@ export default class GameNarrationHandler {
 	 */
 	narrateStop(player) {
 		const narration = `${player.displayName} stops moving.`;
-		new Narration(this.game, player, player.location, narration).send();
+		this.#sendNarration(player, narration);
 	}
 
 	/**
@@ -66,6 +77,44 @@ export default class GameNarrationHandler {
 		else if (target instanceof InventoryItem && !target.prefab.discreet && target.player.name === player.name)
 			narration = `${player.displayName} takes out ${target.singleContainingPhrase} and begins inspecting it.`;
 		if (narration !== "")
-			new Narration(this.game, player, player.location, narration).send();
+			this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a knock action.
+	 * @param {Exit} exit - The exit to knock on.
+	 * @param {Player} player - The player performing the knock action.
+	 */
+	narrateKnock(exit, player) {
+		const roomNarration = `${player.displayName} knocks on ${exit.getNamePhrase()}.`;
+		this.#sendNarration(player, roomNarration);
+		const destination = exit.dest;
+		if (destination.id === player.location.id) return;
+		const hearingPlayers = destination.occupants.filter(occupant => !occupant.hasBehaviorAttribute("no hearing"));
+		const destinationNarration = `There is a knock on ${destination.exitCollection.get(exit.link).getNamePhrase()}.`;
+		// If the number of hearing players is the same as the number of occupants in the room, send the message to the room.
+		if (hearingPlayers.length !== 0 && hearingPlayers.length === destination.occupants.length)
+			this.#sendNarration(player, destinationNarration, destination);
+		else {
+			for (const hearingPlayer of hearingPlayers)
+				hearingPlayer.notify(destinationNarration);
+		}
+	}
+
+	/**
+	 * Narrates a use action.
+	 * @param {InventoryItem} item - The inventory item to use.
+	 * @param {Player} player - The player performing the use action.
+	 * @param {Player} target - The target player of the use action.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateUse(item, player, target, customNarration) {
+		if (customNarration)
+			this.#sendNarration(player, customNarration);
+		else {
+			const verb = item.prefab.verb ? item.prefab.verb : `uses`;
+			const targetPhrase = target.name !== player.name ? ` on ${target.displayName}` : ``;
+			this.#sendNarration(player, `${player.displayName} ${verb} ${item.singleContainingPhrase}${targetPhrase}.`);
+		}
 	}
 }

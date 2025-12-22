@@ -209,11 +209,11 @@ export default class Status extends GameEntity {
     }
 
     inflictedCell() {
-        return this.game.constants.statusSheetInflictedColumn + this.row;
+        return this.getGame().constants.statusSheetInflictedColumn + this.row;
     }
 
     curedCell() {
-        return this.game.constants.statusSheetCuredColumn + this.row;
+        return this.getGame().constants.statusSheetCuredColumn + this.row;
     }
 
     /**

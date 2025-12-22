@@ -1,4 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -162,15 +163,11 @@ export async function execute (game, message, command, args, player) {
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
-        const itemName = item.identifier ? item.identifier : item.prefab.id;
-        const response = player.use(item);
-        if (response === "" || !response) {
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            messageHandler.addLogMessage(game, `${time} - ${player.name} used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
-            return;
-        }
-        else return messageHandler.addReply(game, message, response);
+        if (item.uses === 0) return messageHandler.addReply(game, message, "That item has no uses left.");
+        if (!item.prefab.usable) return messageHandler.addReply(game, message, "That item has no programmed use on its own, but you may be able to use it some other way.");
+        if (!item.usableOn(player)) return messageHandler.addReply(game, message, `${item.name} currently has no effect on you.`);
+        const action = new Action(game, ActionType.Use, message, player, player.location, false);
+        action.performUse(item);
     }
     else if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
 }

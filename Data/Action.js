@@ -153,4 +153,28 @@ export default class Action {
 		}
 		this.game.logHandler.logInspect(target, this.player, this.forced);
 	}
+
+	/**
+	 * Performs a knock action.
+	 * @param {Exit} exit - The exit to knock on.
+	 */
+	performKnock(exit) {
+		if (this.type !== ActionType.Knock) return;
+		this.game.narrationHandler.narrateKnock(exit, this.player);
+		this.game.logHandler.logKnock(exit, this.player, this.forced);
+	}
+
+	/**
+	 * Performs a use action.
+	 * @param {InventoryItem} item - The inventory item to use.
+	 * @param {Player} [target] - The target the player should use the inventory item on. Defaults to themself.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	performUse(item, target = this.player, customNarration) {
+		if (this.type !== ActionType.Use) return;
+		this.game.narrationHandler.narrateUse(item, this.player, target, customNarration);
+		this.game.logHandler.logUse(item, this.player, target, this.forced);
+		// This transforms the item, so save it for last.
+		this.player.use(item, target);
+	}
 }

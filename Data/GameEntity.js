@@ -10,7 +10,7 @@ export default class GameEntity {
 	 * @readonly
 	 * @type {Game}
 	 */
-	game;
+	#game;
 	/**
 	 * The row number of this entity on the spreadsheet.
 	 * @type {number}
@@ -23,7 +23,11 @@ export default class GameEntity {
 	 * @param {number} row - The row number of this entity on the spreadsheet.
 	 */
 	constructor(game, row) {
-		this.game = game;
+		this.#game = game;
 		this.row = row;
+	}
+
+	getGame() {
+		return this.#game;
 	}
 }
