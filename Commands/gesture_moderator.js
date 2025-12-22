@@ -3,6 +3,7 @@ import Game from '../Data/Game.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
+import Action from '../Data/Action.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -193,16 +194,7 @@ export async function execute (game, message, command, args) {
                 return messageHandler.addReply(game, message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? "are" : "is") + ` **${gesture.disabledStatuses[i].id}**.`);
         }
 
-        player.gesture(gesture, targetType, target);
-        // Post log message. Message should vary based on target type.
-        const time = new Date().toLocaleTimeString();
-        if (targetType === "")
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} in ${player.location.channel}`);
-        else if (targetType === "Exit" || targetType === "Fixture" || targetType === "Player")
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} to ${target.name} in ${player.location.channel}`);
-        else if (target instanceof ItemInstance)
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly did gesture ${gesture.id} to ${target.identifier ? target.identifier : target.prefab.id} in ${player.location.channel}`);
+        const action = new Action(game, ActionType.Gesture, message, player, player.location, true);
+        action.performGesture(gesture, targetType, target);
     }
-
-    return;
 }
