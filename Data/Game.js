@@ -4,6 +4,7 @@ import GameEntityFinder from '../Classes/GameEntityFinder.js';
 import GameEntityLoader from '../Classes/GameEntityLoader.js';
 import GameEntitySaver from '../Classes/GameEntitySaver.js';
 import GameLogger from '../Classes/GameLogger.js';
+import GameNotificationGenerator from '../Classes/GameNotificationGenerator.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
@@ -76,6 +77,12 @@ export default class Game {
 	 * @type {GameLogger}
 	 */
 	logger;
+	/**
+	 * A set of functions to generate notifications to send to players.
+	 * @readonly
+	 * @type {GameNotificationGenerator}
+	 */
+	notificationGenerator;
 	/**
 	 * Whether or not the game is currently in progress.
 	 * @type {boolean}
@@ -284,6 +291,7 @@ export default class Game {
 		this.entityLoader = new GameEntityLoader(this);
 		this.entitySaver = new GameEntitySaver(this);
 		this.logger = new GameLogger(this);
+		this.notificationGenerator = new GameNotificationGenerator(this);
 		this.inProgress = false;
 		this.canJoin = false;
 		this.halfTimer = null;
