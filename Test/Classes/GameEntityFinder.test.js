@@ -89,7 +89,8 @@ describe("GameEntityFinder test", () => {
         });
         test("Get fixture with empty location", () => {
             let fixture = game.entityFinder.getFixture("RECEPTION DESK", "");
-            expect(fixture).toBeUndefined();
+            expect(fixture).toBeInstanceOf(Fixture);
+            expect(fixture.name).toBe("RECEPTION DESK");
         });
     });
 
@@ -158,9 +159,11 @@ describe("GameEntityFinder test", () => {
         });
         test("Get item with valid identifier but empty params", () => {
             let foundItem1 = game.entityFinder.getRoomItem("COLD SERVING OF MEATBALLS", "");
-            expect(foundItem1).toBeUndefined();
+            expect(foundItem1).toBeInstanceOf(RoomItem);
+            expect(foundItem1.prefab.id).toBe("COLD SERVING OF MEATBALLS");
             let foundItem2 = game.entityFinder.getRoomItem("COLD SERVING OF MEATBALLS", "", "");
-            expect(foundItem2).toBeUndefined();
+            expect(foundItem2).toBeInstanceOf(RoomItem);
+            expect(foundItem2.prefab.id).toBe("COLD SERVING OF MEATBALLS");
         });
         test("Try overflowing invalid item", () => {
             let testString = "";
@@ -437,8 +440,11 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getFlagValue test", () => {
-        afterEach(async () => {
+        afterAll(async () => {
             await game.entityLoader.loadAll();
+        });
+        beforeEach(async () => {
+            await game.entityLoader.loadFlags(false);
         });
         test("Get valid boolean flag value by id", () => {
             let flagValue = game.entityFinder.getFlagValue("DAYTIME");
