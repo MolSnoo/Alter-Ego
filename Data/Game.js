@@ -3,7 +3,7 @@ import GameConstants from '../Classes/GameConstants.js';
 import GameEntityFinder from '../Classes/GameEntityFinder.js';
 import GameEntityLoader from '../Classes/GameEntityLoader.js';
 import GameEntitySaver from '../Classes/GameEntitySaver.js';
-import GameLogger from '../Classes/GameLogger.js';
+import GameLogHandler from '../Classes/GameLogger.js';
 import GameNarrationHandler from '../Classes/GameNarrationHandler.js';
 import GameNotificationGenerator from '../Classes/GameNotificationGenerator.js';
 import GameSettings from '../Classes/GameSettings.js';
@@ -75,9 +75,9 @@ export default class Game {
 	/**
 	 * A set of functions to send messages to the game's log channel.
 	 * @readonly
-	 * @type {GameLogger}
+	 * @type {GameLogHandler}
 	 */
-	logger;
+	logHandler;
 	/**
 	 * A set of functions to generate notifications to send to players.
 	 * @readonly
@@ -297,7 +297,7 @@ export default class Game {
 		this.entityFinder = new GameEntityFinder(this);
 		this.entityLoader = new GameEntityLoader(this);
 		this.entitySaver = new GameEntitySaver(this);
-		this.logger = new GameLogger(this);
+		this.logHandler = new GameLogHandler(this);
 		this.notificationGenerator = new GameNotificationGenerator(this);
 		this.inProgress = false;
 		this.canJoin = false;

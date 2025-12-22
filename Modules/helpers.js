@@ -1,4 +1,5 @@
 import Game from "../Data/Game.js";
+import Player from "../Data/Player.js";
 import { EmbedBuilder } from "discord.js";
 import { Duration } from 'luxon';
 
@@ -9,6 +10,30 @@ import { Duration } from 'luxon';
  */
 export function getRandomString(possibilities = []) {
 	return possibilities[Math.floor(Math.random() * possibilities.length)];
+}
+
+/**
+ * Generates a grammatically correct list of players, sorted alphabetically by display name.
+ * @param {Player[]} players - A list of players.
+ */
+export function generatePlayerListString(players) {
+	players.sort((a, b) => {
+		const nameA = a.displayName.toLowerCase();
+		const nameB = b.displayName.toLowerCase();
+		if (nameA < nameB) return -1;
+		if (nameA > nameB) return 1;
+		return 0;
+	});
+	let playerListString = "";
+	if (players.length === 1) playerListString = players[0].displayName;
+	else if (players.length === 2)
+		playerListString += `${players[0].displayName} and ${players[1].displayName}`;
+	else if (players.length >= 3) {
+		for (let i = 0; i < players.length - 1; i++)
+			playerListString += `${players[i].displayName}, `;
+		playerListString += `and ${players[players.length - 1].displayName}`;
+	}
+	return playerListString;
 }
 
 /**

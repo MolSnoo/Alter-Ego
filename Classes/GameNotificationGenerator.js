@@ -31,4 +31,21 @@ export default class GameNotificationGenerator {
 		const recipientDisplay = recipientName ? ` -> ${recipientName}` : ``;
 		return `\`[ ${senderName}${recipientDisplay} ]\` ${messageText}`;
 	}
+
+	/**
+	 * Generates a notification indicating a hidden player was found in their hiding spot.
+	 * @param {string} playerDisplayName - The display name of the player who found them.
+	 */
+	generateHiddenPlayerFoundNotification(playerDisplayName) {
+		return `You've been found by ${playerDisplayName}!`;
+	}
+
+	/**
+	 * Generates a notification indicating the player found players hidden in a fixture.
+	 * @param {string} hiddenPlayersList - A list of hidden players.
+	 * @param {string} fixtureName - The name of the fixture the players were hiding in.
+	 */
+	generateFoundHiddenPlayersNotification(hiddenPlayersList, fixtureName) {
+		return `You find ${hiddenPlayersList} hiding in the ${fixtureName}!`;
+	}
 }

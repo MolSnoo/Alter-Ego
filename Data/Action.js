@@ -3,13 +3,12 @@ import Fixture from "./Fixture.js";
 import Game from "./Game.js";
 import Gesture from "./Gesture.js";
 import InventoryItem from "./InventoryItem.js";
-import Narration from "./Narration.js";
 import Player from "./Player.js";
 import Room from "./Room.js";
 import RoomItem from "./RoomItem.js";
 import Whisper from "./Whisper.js";
-import { parseDescription } from "../Modules/parser.js";
 import { addDirectNarrationWithAttachments } from "../Modules/messageHandler.js";
+import { generatePlayerListString } from "../Modules/helpers.js";
 
 /**
  * @class Action
@@ -97,6 +96,7 @@ export default class Action {
 	 * @param {string} messageText - The text content of the text message.
 	 */
 	performText(recipient, messageText) {
+		if (this.type !== ActionType.Text) return;
 		const senderText = this.game.notificationGenerator.generateTextNotification(messageText, this.player.name, recipient.name);
 		const recipientText = this.game.notificationGenerator.generateTextNotification(messageText, this.player.name);
 		addDirectNarrationWithAttachments(this.player, senderText, this.message.attachments);
@@ -110,18 +110,47 @@ export default class Action {
 	 * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The entity to target.
 	 */
 	performGesture(gesture, targetType, target) {
+		if (this.type !== ActionType.Gesture) return;
 		let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
 		newGesture.targetType = targetType;
 		newGesture.target = target;
 		this.game.narrationHandler.narrateGesture(newGesture, this.player);
-		this.game.logger.logGesture(gesture, target, this.player, this.forced);
+		this.game.logHandler.logGesture(gesture, target, this.player, this.forced);
 	}
 
 	/**
 	 * Performs a stop action.
 	 */
 	performStop() {
+		if (this.type !== ActionType.Stop) return;
 		this.player.stopMoving();
 		this.game.narrationHandler.narrateStop(this.player);
+	}
+
+	/**
+	 * Performs an inspect action.
+	 * @param {Room|Fixture|RoomItem|InventoryItem|Player} target - The entity to inspect.
+	 */
+	performInspect(target) {
+		if (this.type !== ActionType.Inspect) return;
+		this.game.narrationHandler.narrateInspect(target, this.player);
+		let description = target.description;
+		// If the player is inspecting an inventory item that belongs to another player, remove the contents of all il tags before parsing it.
+		if (target instanceof InventoryItem && target.player.name !== this.player.name)
+			description = description.replace(/(<(il)(\s[^>]+?)*>)[\s\S]+?(<\/\2>)/g, "$1$4");
+		this.player.sendDescription(description, target);
+
+		// If there are any players hidden in the fixture, notify them that they were found, and notify the player who found them.
+		// However, don't notify anyone if the player is inspecting the fixture that they're hiding in.
+		// Also ensure that the fixture isn't locked.
+		if (target instanceof Fixture && !this.player.hasBehaviorAttribute("hidden") && this.player.hidingSpot !== target.name
+		&&  (target.childPuzzle === null || !target.childPuzzle.type.endsWith("lock") || target.childPuzzle.solved)) {
+			const hiddenPlayers = this.game.entityFinder.getLivingPlayers(undefined, undefined, this.player.location.id, target.name);
+			for (const hiddenPlayer of hiddenPlayers)
+				hiddenPlayer.notify(this.game.notificationGenerator.generateHiddenPlayerFoundNotification(this.player.displayName));
+			const hiddenPlayersString = generatePlayerListString(hiddenPlayers);
+			if (hiddenPlayersString) this.player.notify(this.game.notificationGenerator.generateFoundHiddenPlayersNotification(hiddenPlayersString, target.name));
+		}
+		this.game.logHandler.logInspect(target, this.player, this.forced);
 	}
 }

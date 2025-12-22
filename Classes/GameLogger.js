@@ -5,14 +5,15 @@ import Gesture from "../Data/Gesture.js";
 import InventoryItem from "../Data/InventoryItem.js";
 import ItemInstance from "../Data/ItemInstance.js";
 import Player from "../Data/Player.js";
+import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
 import { addLogMessage } from "../Modules/messageHandler.js";
 
 /**
- * @class GameLogger
+ * @class GameLogHandler
  * @classdesc A set of functions to send messages to the game's log channel.
  */
-export default class GameLogger {
+export default class GameLogHandler {
 	/**
 	 * The game this belongs to.
 	 * @readonly
@@ -28,20 +29,50 @@ export default class GameLogger {
 		this.game = game;
 	}
 
+	#getTime() {
+		return new Date().toLocaleTimeString();
+	}
+
+	/** @param {boolean} forced */
+	#getForcedString(forced) {
+		return forced ? `forcibly ` : ``;
+	}
+
 	/**
 	 * Logs a gesture action.
 	 * @param {Gesture} gesture - The gesture that was performed.
-	 * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The target of the gesture.
-	 * @param {Player} player - The player who performed the gesture.
-	 * @param {boolean} forced - Whether or not the player was forced to perform the gesture.
+	 * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The target of the gesture action.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
 	 */
 	logGesture(gesture, target, player, forced) {
-		const time = new Date().toLocaleTimeString();
-		const forcedString = forced ? `forcibly ` : ``;
 		let targetString = "";
 		if (target instanceof ItemInstance) targetString = `to ${target.identifier ? target.identifier : target.prefab.id} `;
 		else if (target instanceof Exit || target instanceof Fixture || target instanceof Player) targetString = `to ${target.name} `;
-		const logString = `${time} - ${player.name} ${forcedString}did gesture ${gesture.id} ${targetString}in ${player.location.channel}`;
+		const logString = `${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}did gesture ${gesture.id} ${targetString}in ${player.location.channel}`;
 		addLogMessage(this.game, logString);
 	}
+
+	/**
+	 * Logs an inspect action.
+	 * @param {Room|Fixture|RoomItem|InventoryItem|Player} target - The target of the inspect action.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logInspect(target, player, forced) {
+		let targetString = "";
+		if (target instanceof Room) targetString = `the room`;
+		else if (target instanceof Fixture || target instanceof Player) targetString = `${target.name}`;
+		else if (target instanceof RoomItem) {
+			const preposition = target.getContainerPreposition();
+			const containerPhrase = target.getContainerPhrase();
+			targetString = `${target.getIdentifier()} ${preposition} ${containerPhrase}`;
+		}
+		else if (target instanceof InventoryItem) {
+			const ownerString = target.player.name === player.name ? player.originalPronouns.dpos : `${target.player.name}'s`;
+			targetString = `${target.getIdentifier()} from ${ownerString} inventory`;
+		}
+		const logString = `${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}inspected ${targetString} in ${player.location.channel}`;
+		addLogMessage(this.game, logString);
+	} 
 }

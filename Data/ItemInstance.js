@@ -119,6 +119,13 @@ export default class ItemInstance extends ItemContainer {
 	}
 
 	/**
+	 * Gets the item's identifier, or its prefab ID if it doesn't have one.
+	 */
+	getIdentifier() {
+		return this.identifier !== "" ? this.identifier : this.prefab.id;
+	}
+
+	/**
 	 * @param {Prefab} prefab 
 	 */
 	setPrefab(prefab) {

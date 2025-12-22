@@ -1,8 +1,8 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-import Narration from '../Data/Narration.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -33,14 +33,10 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable stop");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    if (!player.isMoving) return messageHandler.addReply(game, message, `You cannot do that because you are not moving.`);
+    if (!player.isMoving) return addReply(game, message, `You cannot do that because you are not moving.`);
 
-    // Stop the player's movement.
-    player.stopMoving();
-    // Narrate that the player stopped.
-    new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
-
-    return;
+    const action = new Action(game, ActionType.Stop, message, player, player.location, false);
+    action.performStop();
 }
