@@ -172,11 +172,10 @@ export async function execute (game, message, command, args, player) {
                             }
                         }
                         else if (gesture.requires[j] === "Inventory Item") {
-                            for (let slot = 0; slot < player.inventory.length; slot++) {
-                                if ((player.inventory[slot].id === "RIGHT HAND" || player.inventory[slot].id === "LEFT HAND")
-                                    && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name.toLowerCase() === input2) {
+                            for (const hand of [player.inventoryCollection.get("RIGHT HAND"), player.inventoryCollection.get("LEFT HAND")]) {
+                                if (hand.equippedItem !== null && (hand.equippedItem.prefab.id.toLowerCase() === input2 || hand.equippedItem.name.toLowerCase() === input2)) {
                                     targetType = "Inventory Item";
-                                    target = player.inventory[slot].equippedItem;
+                                    target = hand.equippedItem;
                                     break;
                                 }
                             }

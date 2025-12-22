@@ -46,46 +46,29 @@ export async function execute (game, message, command, args, player) {
     let slotName = newArgs[1] ? newArgs[1] : "";
 
     let item = null;
-    let hand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
-            item = player.inventory[slot].equippedItem;
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
-            item = player.inventory[slot].equippedItem;
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
+    let hand = null;
+    let rightHand = player.inventoryCollection.get("RIGHT HAND");
+    let leftHand = player.inventoryCollection.get("LEFT HAND");
+    if (rightHand.equippedItem !== null && rightHand.equippedItem.name === itemName) { 
+        item = rightHand.equippedItem;
+        hand = rightHand;
+    }
+    if (leftHand.equippedItem !== null && leftHand.equippedItem.name === itemName) { 
+        item = leftHand.equippedItem;
+        hand = leftHand;
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
     if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return messageHandler.addReply(game, message, `${itemName} is not equippable.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
+    if (!item.prefab.equipmentSlots.includes(slotName)) return messageHandler.addReply(game, message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
 
-    let foundSlot = false;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName && player.inventory[i].id === slotName) {
-            foundSlot = true;
-            let acceptableSlot = false;
-            for (let j = 0; j < item.prefab.equipmentSlots.length; j++) {
-                if (item.prefab.equipmentSlots[j] === player.inventory[i].id) {
-                    acceptableSlot = true;
-                    break;
-                }
-            }
-            if (!acceptableSlot) return messageHandler.addReply(game, message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
-            if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
-        }
-    }
-    if (!foundSlot) return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
+    let slot = player.inventoryCollection.get(slotName);
+    if (slot === undefined) return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
+    if (slot.equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${slotName} because ${slot.equippedItem.name} is already equipped to it.`);
 
-    player.equip(item, slotName, hand);
+    player.equip(item, slot, hand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);

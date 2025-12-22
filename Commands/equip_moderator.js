@@ -47,58 +47,47 @@ export async function execute (game, message, command, args) {
 
     // First, find the item in the player's inventory.
     let item = null;
-    let hand = "";
+    let hand = null;
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    let rightHand = null;
-    let leftHand = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND")
-            rightHand = player.inventory[slot];
-        else if (player.inventory[slot].id === "LEFT HAND")
-            leftHand = player.inventory[slot];
-    }
+    let rightHand = player.inventoryCollection.get("RIGHT HAND");
+    let leftHand = player.inventoryCollection.get("LEFT HAND");
     // Check for the identifier first.
     if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === itemName) {
         item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
+        hand = rightHand;
     }
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" && leftHand.equippedItem.identifier === itemName) {
         item = leftHand.equippedItem;
-        hand = "LEFT HAND";
+        hand = leftHand;
     }
     // Check for the prefab ID next.
     else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.prefab.id === itemName) {
         item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
+        hand = rightHand;
     }
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.prefab.id === itemName) {
         item = leftHand.equippedItem;
-        hand = "LEFT HAND";
+        hand = leftHand;
     }
     // Check for the name last.
     else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.name === itemName) {
         item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
+        hand = rightHand;
     }
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === itemName) {
         item = leftHand.equippedItem;
-        hand = "LEFT HAND";
+        hand = leftHand;
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
 
-    let foundSlot = false;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName && player.inventory[i].id === slotName) {
-            foundSlot = true;
-            if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.identifier ? player.inventory[i].equippedItem.identifier : player.inventory[i].equippedItem.prefab.id} is already equipped to it.`);
-        }
-    }
-    if (!foundSlot) return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
+    let slot = player.inventoryCollection.get(slotName);
+    if (slot === undefined) return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
+    if (slot.equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${slotName} because ${slot.equippedItem.identifier ? slot.equippedItem.identifier : slot.equippedItem.prefab.id} is already equipped to it.`);
 
-    player.equip(item, slotName, hand);
+    player.equip(item, slot, hand);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);

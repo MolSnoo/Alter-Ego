@@ -49,63 +49,50 @@ export async function execute (game, message, command, args) {
     if (giver.location.id !== recipient.location.id) return messageHandler.addReply(game, message, `${giver.name} and ${recipient.name} are not in the same room.`);
 
     // Check to make sure that the recipient has a free hand.
-    let recipientHand = "";
-    for (let slot = 0; slot < recipient.inventory.length; slot++) {
-        if (recipient.inventory[slot].id === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
-            recipientHand = "RIGHT HAND";
+    let recipientHand = null;
+    for (const hand of [recipient.inventoryCollection.get("RIGHT HAND"), recipient.inventoryCollection.get("LEFT HAND")]) {
+        if (hand.equippedItem === null) {
+            recipientHand = hand;
             break;
         }
-        else if (recipient.inventory[slot].id === "LEFT HAND" && recipient.inventory[slot].equippedItem === null) {
-            recipientHand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (recipient.inventory[slot].id === "LEFT HAND")
-            break;
     }
-    if (recipientHand === "") return messageHandler.addReply(game, message, `${recipient.name} does not have a free hand to receive an item.`);
+    if (recipientHand === null) return messageHandler.addReply(game, message, `${recipient.name} does not have a free hand to receive an item.`);
 
     const input = args.join(" ");
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Now find the item in the giver's inventory.
     let item = null;
-    let giverHand = "";
+    let giverHand = null;
     // Get references to the right and left hand equipment slots so we don't have to iterate through the giver's inventory to find them every time.
-    let rightHand = null;
-    let leftHand = null;
-    for (let slot = 0; slot < giver.inventory.length; slot++) {
-        if (giver.inventory[slot].id === "RIGHT HAND")
-            rightHand = giver.inventory[slot];
-        else if (giver.inventory[slot].id === "LEFT HAND")
-            leftHand = giver.inventory[slot];
-    }
+    let rightHand = giver.inventoryCollection.get("RIGHT HAND");
+    let leftHand = giver.inventoryCollection.get("LEFT HAND");
     // Check for the identifier first.
     if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === parsedInput) {
         item = rightHand.equippedItem;
-        giverHand = "RIGHT HAND";
+        giverHand = rightHand;
     }
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" && leftHand.equippedItem.identifier === parsedInput) {
         item = leftHand.equippedItem;
-        giverHand = "LEFT HAND";
+        giverHand = leftHand;
     }
     // Check for the prefab ID next.
     else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.prefab.id === parsedInput) {
         item = rightHand.equippedItem;
-        giverHand = "RIGHT HAND";
+        giverHand = rightHand;
     }
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.prefab.id === parsedInput) {
         item = leftHand.equippedItem;
-        giverHand = "LEFT HAND";
+        giverHand = leftHand;
     }
     // Check for the name last.
     else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.name === parsedInput) {
         item = rightHand.equippedItem;
-        giverHand = "RIGHT HAND";
+        giverHand = rightHand;
     }
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === parsedInput) {
         item = leftHand.equippedItem;
-        giverHand = "LEFT HAND";
+        giverHand = leftHand;
     }
     if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
 
