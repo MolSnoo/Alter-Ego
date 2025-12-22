@@ -1131,38 +1131,12 @@ export default class Player extends ItemContainer {
      * Uses the player's inventory item.
      * @param {InventoryItem} item - The inventory item to use.
      * @param {Player} [target] - The player the inventory item is to be used on. Defaults to the player using it.
-     * @param {string} [narration=""] - The message to be narrated in the room.
-     * @returns {string} A message indicating whether the inventory item was successfully used, or if not, why it wasn't.
      */
-    use(item, target = this, narration = "") {
-        if (item.uses === 0) return "That item has no uses left.";
-        if (!item.prefab.usable) return "That item has no programmed use on its own, but you may be able to use it some other way.";
-        let hasEffect = false;
-        let hasCure = false;
-        for (let effect of item.prefab.effects) {
-            if (!target.hasStatus(effect.id) || effect.duplicatedStatus !== null)
-                hasEffect = true;
-        }
-        for (let cure of item.prefab.cures) {
-            if (target.hasStatus(cure.id))
-                hasCure = true;
-        }
-        if (!hasEffect && !hasCure) return `You attempt to use the ${item.name}, but it has no effect.`;
-
+    use(item, target = this) {
         for (let effect of item.prefab.effects)
             target.inflict(effect.id, true, true, true, item);
         for (let cure of item.prefab.cures)
             target.cure(cure.id, true, true, true, item);
-
-        if (narration !== "")
-            new Narration(this.game, this, this.location, narration).send();
-        else if (target.name !== this.name && narration === "")
-            new Narration(this.game, this, this.location, `${this.displayName} uses ${item.singleContainingPhrase} on ${target.displayName}.`).send();
-        else {
-            const verb = item.prefab.verb ? item.prefab.verb : "uses";
-            new Narration(this.game, this, this.location, `${this.displayName} ${verb} ${item.singleContainingPhrase}.`).send();
-        }
-
         if (!isNaN(item.uses))
             item.decreaseUses();
     }

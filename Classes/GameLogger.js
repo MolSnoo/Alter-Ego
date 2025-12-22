@@ -91,4 +91,19 @@ export default class GameLogHandler {
 	logKnock(exit, player, forced) {
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}knocked on ${exit.name} in ${player.location.channel}`);
 	}
+
+	/**
+	 * Logs a use action.
+	 * @param {InventoryItem} item - The item that was used.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Player} target - The player the item was used on.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUse(item, player, target, forced) {
+		const forcedString = this.#getForcedString(forced);
+		const itemName = item.getIdentifier();
+		const targetString = player.name === target.name ? `on ${target.name} ` : ``;
+		const logText = `${this.#getTime()} - ${player.name} ${forcedString}used ${itemName} from ${player.originalPronouns.dpos} inventory ${targetString}in ${player.location.channel}`;
+		this.#sendLogMessage(logText);
+	}
 }

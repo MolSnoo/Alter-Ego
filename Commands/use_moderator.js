@@ -1,6 +1,7 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -35,7 +36,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a player and an item in their inventory. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and an item in their inventory. Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -45,7 +46,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
 
     var input = args.join(" ");
 
@@ -79,9 +80,10 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (announcement !== "" && target === null) return messageHandler.addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
-    if (target !== null && player.name === target.name) return messageHandler.addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
-    if (target !== null && player.location.id !== target.location.id) return messageHandler.addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
+    if (announcement !== "" && target === null) return addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
+    if (target !== null && player.name === target.name) return addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
+    if (target !== null && player.location.id !== target.location.id) return addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
+    if (target === null) target = player;
 
     // args should now only contain the name of the item.
     input = args.join(" ");
@@ -113,34 +115,14 @@ export async function execute (game, message, command, args) {
         item = rightHand.equippedItem;
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === parsedInput)
         item = leftHand.equippedItem;
-    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+    if (item === null) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
 
+    if (item.uses === 0) return addReply(game, message, "That item has no uses left.");
+    if (!item.prefab.usable) return addReply(game, message, "That item has no programmed use.");
+    if (!item.usableOn(target)) return addReply(game, message, `${item.getIdentifier()} currently has no effect on ${target.name}.`);
     // Use the player's item.
-    const itemName = item.identifier ? item.identifier : item.prefab.id;
-    if (target !== null) {
-        const response = player.use(item, target, announcement);
-        if (response === "" || !response) {
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully used ${itemName} on ${target.name} for ${player.name}.`);
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly used ${itemName} from ${player.originalPronouns.dpos} inventory on ${target.name} in ${player.location.channel}`);
-            return;
-        }
-        else if (response.startsWith("That item has no programmed use")) return messageHandler.addReply(game, message, "That item has no programmed use.");
-        else if (response.startsWith("You attempt to use the")) return messageHandler.addReply(game, message, `${itemName} currently has no effect on ${target.name}.`);
-        else return messageHandler.addReply(game, message, response);
-    }
-    else {
-        const response = player.use(item);
-        if (response === "" || !response) {
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully used ${itemName} for ${player.name}.`);
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly used ${itemName} from ${player.originalPronouns.dpos} inventory in ${player.location.channel}`);
-            return;
-        }
-        else if (response.startsWith("That item has no programmed use")) return messageHandler.addReply(game, message, "That item has no programmed use.");
-        else if (response.startsWith("You attempt to use the")) return messageHandler.addReply(game, message, `${itemName} currently has no effect on ${player.name}.`);
-        else return messageHandler.addReply(game, message, response);
-    }
+    const action = new Action(game, ActionType.Use, message, player, player.location, true);
+    action.performUse(item, target, announcement);
+    const targetString = target.name !== player.name ? `on ${target.name} ` : ``;
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully used ${item.getIdentifier()} ${targetString}for ${player.name}.`);
 }
