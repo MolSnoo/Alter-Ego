@@ -113,7 +113,15 @@ export default class Action {
 		let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
 		newGesture.targetType = targetType;
 		newGesture.target = target;
-		new Narration(this.game, this.player, this.location, parseDescription(newGesture.narration, newGesture, this.player)).send();
+		this.game.narrationHandler.narrateGesture(newGesture, this.player);
 		this.game.logger.logGesture(gesture, target, this.player, this.forced);
+	}
+
+	/**
+	 * Performs a stop action.
+	 */
+	performStop() {
+		this.player.stopMoving();
+		this.game.narrationHandler.narrateStop(this.player);
 	}
 }
