@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import {defineConfig} from "vitest/config";
 
 export default defineConfig({
     test: {
@@ -9,5 +9,8 @@ export default defineConfig({
             include: ["Classes/*.js", "Commands/*.js", "Data/*.js", "Modules/*.js"],
         },
         setupFiles: "Test/setup.js",
+        typecheck: {
+            enabled: true,
+        }
     },
 });
