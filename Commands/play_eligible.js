@@ -2,6 +2,7 @@
 import Game from '../Data/Game.js';
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import Player from '../Data/Player.js';
+import { Collection } from 'discord.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -47,13 +48,13 @@ export async function execute (game, message, command, args) {
         true,
         playerdefaults.defaultLocation,
         "",
-        playerdefaults.defaultDescription,
         [],
+        playerdefaults.defaultDescription,
+        new Collection(),
         null,
         0,
         game
     );
-    player.statusString = playerdefaults.defaultStatusEffects;
     player.setPronouns(player.originalPronouns, player.pronounString);
     player.setPronouns(player.pronouns, player.pronounString);
     game.players.push(player);

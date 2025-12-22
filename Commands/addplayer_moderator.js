@@ -61,13 +61,13 @@ export async function execute(game, message, command, args) {
         true,
         playerdefaults.defaultLocation,
         "",
+        [],
         playerdefaults.defaultDescription,
         new Collection(),
         null,
         0,
         game
     );
-    player.statusString = playerdefaults.defaultStatusEffects;
 
     game.players.push(player);
     game.players_alive.push(player);
@@ -91,7 +91,7 @@ export async function execute(game, message, command, args) {
         player.alive ? "TRUE" : "FALSE",
         player.locationDisplayName,
         player.hidingSpot,
-        player.statusString,
+        playerdefaults.defaultStatusEffects,
         player.description
     ]);
 

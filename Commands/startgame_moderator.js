@@ -79,6 +79,7 @@ export async function execute(game, message, command, args) {
 
         const playerCells = [];
         const inventoryCells = [];
+        let i = 0;
         for (const player of game.playersCollection.values()) {
             const playerData = [
                 player.id,
@@ -94,7 +95,7 @@ export async function execute(game, message, command, args) {
                 player.alive ? "TRUE" : "FALSE",
                 player.locationDisplayName,
                 player.hidingSpot,
-                player.statusString,
+                playerdefaults.defaultStatusEffects,
                 player.description
             ];
             playerCells.push(playerData);
@@ -109,9 +110,10 @@ export async function execute(game, message, command, args) {
                 }
                 inventoryCells.push(row);
             }
+            i++;
         }
-        updateSheetValues(game.constants.playerSheetDataCells, playerCells);
-        updateSheetValues(game.constants.inventorySheetDataCells, inventoryCells);
+        updateSheetValues(game.constants.playerSheetDataCells, playerCells, game.settings.spreadsheetID);
+        updateSheetValues(game.constants.inventorySheetDataCells, inventoryCells, game.settings.spreadsheetID);
         game.inProgress = false;
     }, time);
 
