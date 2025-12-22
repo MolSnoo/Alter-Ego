@@ -192,6 +192,6 @@ export default class RoomItem extends ItemInstance {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.roomItemSheetDescriptionColumn + this.row;
+        return this.getGame().constants.roomItemSheetDescriptionColumn + this.row;
     }
 }

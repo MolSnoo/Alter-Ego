@@ -487,9 +487,9 @@ export default class Player extends ItemContainer {
         const appendString = this.createMoveAppendString();
 
         // If the player has the free movement role, they can move to any room they please.
-        if (this.member.roles.resolve(this.game.guildContext.freeMovementRole)) {
+        if (this.member.roles.resolve(this.getGame().guildContext.freeMovementRole)) {
             adjacent = true;
-            desiredRoom = this.game.entityFinder.getRoom(destination);
+            desiredRoom = this.getGame().entityFinder.getRoom(destination);
             exitMessage = `${this.displayName} suddenly disappears${appendString}`;
             entranceMessage = `${this.displayName} suddenly appears${appendString}`;
         }
@@ -524,7 +524,7 @@ export default class Player extends ItemContainer {
 
                 // Post log message.
                 const time = new Date().toLocaleTimeString();
-                messageHandler.addLogMessage(this.game, `${time} - ${this.name} moved to ${desiredRoom.channel}`);
+                messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} moved to ${desiredRoom.channel}`);
             }
         }
         else {
@@ -548,13 +548,13 @@ export default class Player extends ItemContainer {
         this.remainingTime = time;
         this.isMoving = true;
         const verb = isRunning ? "running" : "walking";
-        if (time > 1000) new Narration(this.game, this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
+        if (time > 1000) new Narration(this.getGame(), this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
         /** @type {Pos} */
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
         let player = this;
         this.moveTimer = setInterval(function () {
-            const settings = player.game.settings;
+            const settings = player.getGame().settings;
             let subtractedTime = 100;
             if (this.game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
             if (time >= subtractedTime) player.remainingTime -= subtractedTime;
@@ -600,7 +600,7 @@ export default class Player extends ItemContainer {
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
                 player.isMoving = false;
-                const exitPuzzle = player.game.entityFinder.getPuzzle(exit.name, player.location.id, "restricted exit", true);
+                const exitPuzzle = player.getGame().entityFinder.getPuzzle(exit.name, player.location.id, "restricted exit", true);
                 const exitPuzzlePassable = exitPuzzle && exitPuzzle.solutions.includes(player.name);
                 if (exit.unlocked || exitPuzzlePassable) {
                     if (exitPuzzlePassable)
@@ -611,14 +611,14 @@ export default class Player extends ItemContainer {
                     // Post log message.
                     const time = new Date().toLocaleTimeString();
                     const verb = isRunning ? "ran" : "moved";
-                    messageHandler.addLogMessage(player.game, `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
+                    messageHandler.addLogMessage(player.getGame(), `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
 
                     player.moveQueue.splice(0, 1);
                     if (player.moveQueue.length > 0)
                         player.queueMovement(isRunning, player.moveQueue[0].trim());
                 }
                 else {
-                    new Narration(player.game, player, player.location, `${player.displayName} stops moving.`).send();
+                    new Narration(player.getGame(), player, player.location, `${player.displayName} stops moving.`).send();
                     player.pos.x = exit.pos.x;
                     player.pos.y = exit.pos.y;
                     player.pos.z = exit.pos.z;
@@ -637,7 +637,7 @@ export default class Player extends ItemContainer {
      */
     calculateMoveTime(exit, isRunning) {
         let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
-        distance = distance / this.game.settings.pixelsPerMeter;
+        distance = distance / this.getGame().settings.pixelsPerMeter;
         // The formula to calculate the rate is a quadratic function.
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat multiplied by 2 or 1, depending on if the player is running or not.
         const speedMultiplier = isRunning ? 2 : 1;
@@ -647,7 +647,7 @@ export default class Player extends ItemContainer {
         const slowdown = Math.min(Math.max(15.0 / this.carryWeight, 0.25), 1.0);
         rate = rate * slowdown;
         // Slope should affect the rate.
-        const rise = (exit.pos.y - this.pos.y) / this.game.settings.pixelsPerMeter;
+        const rise = (exit.pos.y - this.pos.y) / this.getGame().settings.pixelsPerMeter;
         let time = 0;
         // If distance is 0, we'll treat it like a staircase and just use the rise to calculate the time.
         if (distance === 0 && rise !== 0) {
@@ -681,7 +681,7 @@ export default class Player extends ItemContainer {
         if (this.stamina < this.maxStamina) {
             // Recover 1/20th of the player's max stamina per cycle, times the heatedSlowdownRate if applicable.
             let staminaAmount = this.maxStamina / 20;
-            if (this.game.heated) staminaAmount *= this.game.settings.heatedSlowdownRate;
+            if (this.getGame().heated) staminaAmount *= this.getGame().settings.heatedSlowdownRate;
             const newStamina = this.stamina + staminaAmount;
             // Make sure not to exceed the max stamina for this player.
             if (newStamina > this.maxStamina)
@@ -742,7 +742,7 @@ export default class Player extends ItemContainer {
         let status = null;
         if (statusId instanceof Status) status = statusId;
         else {
-            status = this.game.entityFinder.getStatusEffect(statusId);
+            status = this.getGame().entityFinder.getStatusEffect(statusId);
             if (status === null) return `Couldn't find status effect "${statusId}".`;
         }
 
@@ -768,14 +768,14 @@ export default class Player extends ItemContainer {
 
         // Apply the effects of any attributes that require immediate action.
         if (status.id === "heated")
-            this.game.heated = true;
+            this.getGame().heated = true;
         if (status.behaviorAttributes.includes("no channel")) {
             this.location.leaveChannel(this);
             this.removeFromWhispers(`${this.displayName} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.id}.`);
         }
         if (status.behaviorAttributes.includes("no hearing")) this.removeFromWhispers(`${this.displayName} can no longer hear.`);
         if (status.behaviorAttributes.includes("hidden")) {
-            if (narrate) new Narration(this.game, this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
+            if (narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
             this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden") && occupant.name !== this.name));
         }
         if (status.behaviorAttributes.includes("concealed")) {
@@ -789,11 +789,11 @@ export default class Player extends ItemContainer {
             this.stopMoving();
 
         // Announce when a player falls asleep or unconscious.
-        if (status.id === "asleep" && narrate) new Narration(this.game, this, this.location, `${this.displayName} falls asleep.`).send();
-        else if (status.id === "blacked out" && narrate) new Narration(this.game, this, this.location, `${this.displayName} blacks out.`).send();
-        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} goes unconscious.`).send();
+        if (status.id === "asleep" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} falls asleep.`).send();
+        else if (status.id === "blacked out" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} blacks out.`).send();
+        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} goes unconscious.`).send();
 
-        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.game);
+        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.getGame());
 
         // Apply the duration, if applicable.
         if (status.duration) {
@@ -803,7 +803,7 @@ export default class Player extends ItemContainer {
             let player = this;
             status.timer = new Timer(1000, { start: true, loop: true }, function () {
                 let subtractedTime = 1000;
-                if (player.game.heated) subtractedTime = player.game.settings.heatedSlowdownRate * subtractedTime;
+                if (player.getGame().heated) subtractedTime = player.getGame().settings.heatedSlowdownRate * subtractedTime;
                 status.remaining = status.remaining.minus(subtractedTime);
                 player.statusDisplays = player.#generateStatusDisplays(true, true);
 
@@ -838,7 +838,7 @@ export default class Player extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.game, `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
 
         return "Status successfully added.";
     }
@@ -868,7 +868,7 @@ export default class Player extends ItemContainer {
         if (status.behaviorAttributes.includes("no channel") && this.getBehaviorAttributeStatusEffects("no channel").length - 1 === 0)
             this.location.joinChannel(this);
         if (status.behaviorAttributes.includes("hidden")) {
-            if (narrate) new Narration(this.game, this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
+            if (narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
             this.removeFromWhispers(`${this.displayName} comes out of the ${this.hidingSpot}.`);
             this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden") || occupant.name === this.name));
             this.hidingSpot = "";
@@ -878,15 +878,15 @@ export default class Player extends ItemContainer {
             if (this.isNPC) this.displayIcon = this.id;
             else this.displayIcon = null;
             const maskName = item ? item.singleContainingPhrase : "a MASK";
-            if (narrate) new Narration(this.game, this, this.location, `The ${maskName} comes off, revealing the figure to be ${this.displayName}.`).send();
+            if (narrate) new Narration(this.getGame(), this, this.location, `The ${maskName} comes off, revealing the figure to be ${this.displayName}.`).send();
             this.setPronouns(this.pronouns, this.pronounString);
             this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
         }
 
         // Announce when a player awakens.
-        if (status.id === "asleep" && narrate) new Narration(this.game, this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.id === "blacked out" && narrate) new Narration(this.game, this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.game, this, this.location, `${this.displayName} regains consciousness.`).send();
+        if (status.id === "asleep" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} wakes up.`).send();
+        else if (status.id === "blacked out" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} wakes up.`).send();
+        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} regains consciousness.`).send();
 
         let returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
@@ -904,7 +904,7 @@ export default class Player extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.game, `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
 
         // Stop the timer.
         if (status.timer !== null)
@@ -915,8 +915,8 @@ export default class Player extends ItemContainer {
         this.statusDisplays = this.#generateStatusDisplays(true, true);
 
         if (status.id === "heated") {
-            const heatedPlayers = this.game.entityFinder.getLivingPlayers(null, null, null, null, "heated");
-            if (heatedPlayers.length = 0) this.game.heated = false;
+            const heatedPlayers = this.getGame().entityFinder.getLivingPlayers(null, null, null, null, "heated");
+            if (heatedPlayers.length = 0) this.getGame().heated = false;
         }
 
         return returnMessage;
@@ -1115,7 +1115,7 @@ export default class Player extends ItemContainer {
      */
     getStatModifier(stat) {
         const statMax = 10;
-        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (this.game.settings.diceMax - this.game.settings.diceMin) / this.game.settings.diceMax);
+        let modifier = Math.floor(Math.floor((stat - statMax / 3) / 2) + (this.getGame().settings.diceMax - this.getGame().settings.diceMin) / this.getGame().settings.diceMax);
         return modifier;
     }
 
@@ -1166,7 +1166,7 @@ export default class Player extends ItemContainer {
         const containerPhrase = item.getContainerPhrase();
         if (notify) this.notify(`You take ${createdItem.singleContainingPhrase} from ${containerPhrase}.`);
         if (!createdItem.prefab.discreet) {
-            new Narration(this.game, this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase} from ${containerPhrase}.`).send();
+            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase} from ${containerPhrase}.`).send();
             // Add the new item to the player's hands item list.
             this.addItemToDescription(createdItem, "hands");
         }
@@ -1193,10 +1193,10 @@ export default class Player extends ItemContainer {
         let item = inventorySlot.items[index];
 
         // Determine how successful the player is.
-        const failMax = Math.floor((this.game.settings.diceMax - this.game.settings.diceMin) / 3) + this.game.settings.diceMin;
-        const partialMax = Math.floor(2 * (this.game.settings.diceMax - this.game.settings.diceMin) / 3) + this.game.settings.diceMin;
-        let dieRoll = new Die(this.game, "dex", this, victim);
-        if (this.hasBehaviorAttribute("thief")) dieRoll.result = this.game.settings.diceMax;
+        const failMax = Math.floor((this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
+        const partialMax = Math.floor(2 * (this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
+        let dieRoll = new Die(this.getGame(), "dex", this, victim);
+        if (this.hasBehaviorAttribute("thief")) dieRoll.result = this.getGame().settings.diceMax;
         if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
         // A fragment of a string that will be used later.
@@ -1223,7 +1223,7 @@ export default class Player extends ItemContainer {
                 victim.notify(victimNotification);
             }
             if (!createdItem.prefab.discreet) {
-                new Narration(this.game, this, this.location, `${narrationStarter}${slotDisplay}${victim.displayName}'s ${container.name}.`).send();
+                new Narration(this.getGame(), this, this.location, `${narrationStarter}${slotDisplay}${victim.displayName}'s ${container.name}.`).send();
                 this.addItemToDescription(createdItem, "hands");
             }
 
@@ -1277,7 +1277,7 @@ export default class Player extends ItemContainer {
         const preposition = createdItem.getContainerPreposition();
         if (notify) this.notify(`You discard ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
         if (!item.prefab.discreet) {
-            new Narration(this.game, this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`).send();
+            new Narration(this.getGame(), this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`).send();
             // Remove the item from the player's hands item list.
             this.removeItemFromDescription(item, "hands");
         }
@@ -1302,7 +1302,7 @@ export default class Player extends ItemContainer {
         this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
         recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
-            new Narration(this.game, this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
+            new Narration(this.getGame(), this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
             this.removeItemFromDescription(createdItem, "hands");
             // Add the item to the recipient's hands item list.
@@ -1345,7 +1345,7 @@ export default class Player extends ItemContainer {
         const preposition = container.prefab ? container.prefab.preposition : "in";
         this.notify(`You stash ${createdItem.singleContainingPhrase} ${preposition} your ${container.name}.`);
         if (!item.prefab.discreet) {
-            new Narration(this.game, this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
+            new Narration(this.getGame(), this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
             // Remove the item from the player's hands item list.
             this.removeItemFromDescription(item, "hands");
         }
@@ -1366,7 +1366,7 @@ export default class Player extends ItemContainer {
 
         this.notify(`You take ${item.singleContainingPhrase} out of your ${container.name}.`);
         if (!item.prefab.discreet) {
-            new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
+            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
             // Add the new item to the player's hands item list.
             this.addItemToDescription(item, "hands");
         }
@@ -1400,7 +1400,7 @@ export default class Player extends ItemContainer {
         itemManager.insertInventoryItems(this, items, equipmentSlot);
 
         if (notify) this.notify(`You equip the ${createdItem.name}.`);
-        new Narration(this.game, this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
+        new Narration(this.getGame(), this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
 
         // Update the player's description.
         if (!item.prefab.discreet)
@@ -1408,7 +1408,7 @@ export default class Player extends ItemContainer {
         this.#coverEquippedItems(createdItem);
 
         // Execute equipped commands.
-        parseAndExecuteBotCommands(createdItem.prefab.equippedCommands, this.game, createdItem, this);
+        parseAndExecuteBotCommands(createdItem.prefab.equippedCommands, this.getGame(), createdItem, this);
     }
 
     /**
@@ -1425,7 +1425,7 @@ export default class Player extends ItemContainer {
         if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
             if (notify) this.notify(`You take ${item.singleContainingPhrase}.`);
             if (!item.prefab.discreet && notify) {
-                new Narration(this.game, this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
+                new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
                 // Add the new item to the player's hands item list.
                 this.addItemToDescription(item, "hands");
             }
@@ -1433,12 +1433,12 @@ export default class Player extends ItemContainer {
         else {
             if (notify) {
                 this.notify(`You equip the ${item.name}.`);
-                new Narration(this.game, this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
+                new Narration(this.getGame(), this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
             }
             this.#coverEquippedItems(item);
 
             // Execute equipped commands.
-            parseAndExecuteBotCommands(item.prefab.equippedCommands, this.game, item, this);
+            parseAndExecuteBotCommands(item.prefab.equippedCommands, this.getGame(), item, this);
         }
     }
 
@@ -1490,7 +1490,7 @@ export default class Player extends ItemContainer {
         item.quantity = 0;
 
         if (notify) this.notify(`You unequip the ${createdItem.name}.`);
-        new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
+        new Narration(this.getGame(), this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
 
         // Update the player's description.
         if (!createdItem.prefab.discreet)
@@ -1498,7 +1498,7 @@ export default class Player extends ItemContainer {
         this.#uncoverEquippedItems(createdItem);
 
         // Execute unequipped commands.
-        parseAndExecuteBotCommands(createdItem.prefab.unequippedCommands, this.game, createdItem, this);
+        parseAndExecuteBotCommands(createdItem.prefab.unequippedCommands, this.getGame(), createdItem, this);
     }
 
     /**
@@ -1517,13 +1517,13 @@ export default class Player extends ItemContainer {
         }
         else {
             this.notify(`You unequip the ${item.name}.`);
-            new Narration(this.game, this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
+            new Narration(this.getGame(), this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
             // Remove mention of this item from the player's equipment item list.
             this.removeItemFromDescription(item, "equipment");
             this.#uncoverEquippedItems(item);
 
             // Execute unequipped commands.
-            parseAndExecuteBotCommands(item.prefab.unequippedCommands, this.game, item, this);
+            parseAndExecuteBotCommands(item.prefab.unequippedCommands, this.getGame(), item, this);
         }
     }
 
@@ -1538,7 +1538,7 @@ export default class Player extends ItemContainer {
             const coveredEquipmentSlot = this.inventoryCollection.get(coveredEquipmentSlotId);
             if (coveredEquipmentSlot && coveredEquipmentSlot.equippedItem !== null) {
                 // Before adding this item to the equipment item slot, make sure it isn't covered by something else.
-                const coveringItems = this.game.inventoryItems.filter(item =>
+                const coveringItems = this.getGame().inventoryItems.filter(item =>
                     item.player.name === this.name &&
                     item.prefab !== null &&
                     item.equipmentSlot !== "RIGHT HAND" &&
@@ -1666,7 +1666,7 @@ export default class Player extends ItemContainer {
             else if (product1Phrase !== "") productPhrase = product1Phrase;
             else if (product2Phrase !== "") productPhrase = product2Phrase;
 
-            if (productPhrase !== "") new Narration(this.game, this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
+            if (productPhrase !== "") new Narration(this.getGame(), this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
         }
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
@@ -1732,7 +1732,7 @@ export default class Player extends ItemContainer {
 
             if (ingredientPhrase !== "") {
                 ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
-                new Narration(this.game, this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
+                new Narration(this.getGame(), this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
             }
         }
 
@@ -1745,7 +1745,7 @@ export default class Player extends ItemContainer {
      * @returns {InventoryItem}
      */
     #findItem(id) {
-        return this.game.inventoryItems.find(item =>
+        return this.getGame().inventoryItems.find(item =>
             item.player.name === this.name &&
             item.prefab !== null &&
             item.quantity > 0 &&
@@ -1819,7 +1819,7 @@ export default class Player extends ItemContainer {
             if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
             if (puzzle.remainingAttempts === 0) {
                 this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
-                new Narration(this.game, this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
+                new Narration(this.getGame(), this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
 
                 return;
             }
@@ -1930,7 +1930,7 @@ export default class Player extends ItemContainer {
                         else if (statName === "spd") stat = "spd";
                         else if (statName === "sta") stat = "sta";
 
-                        const dieRoll = new Die(this.game, stat, this);
+                        const dieRoll = new Die(this.getGame(), stat, this);
                         // Get the ratio of the result as part of the maximum roll, each relative to the minimum roll.
                         const ratio = (dieRoll.result - dieRoll.min) / (dieRoll.max - dieRoll.min);
                         // Clamp the result so that it can be used to choose an item in the array of solutions.
@@ -2063,12 +2063,12 @@ export default class Player extends ItemContainer {
         this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
         this.removeFromWhispers(`${this.displayName} dies.`);
         if (!this.hasBehaviorAttribute("hidden")) {
-            new Narration(this.game, this, this.location, `${this.displayName} dies.`).send();
+            new Narration(this.getGame(), this, this.location, `${this.displayName} dies.`).send();
         }
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.game, `${time} - ${this.name} died in ${this.location.channel}`);
+        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} died in ${this.location.channel}`);
 
         // Update various data.
         this.alive = false;
@@ -2083,11 +2083,11 @@ export default class Player extends ItemContainer {
         this.status.length = 0;
 
         // Move player to dead list.
-        this.game.deadPlayersCollection.set(this.name, this);
+        this.getGame().deadPlayersCollection.set(this.name, this);
         // Then remove them from living list.
-        this.game.livingPlayersCollection.delete(this.name);
+        this.getGame().livingPlayersCollection.delete(this.name);
 
-        messageHandler.addDirectNarration(this, `You have died. When your body is discovered, you will be given the ${this.game.guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`);
+        messageHandler.addDirectNarration(this, `You have died. When your body is discovered, you will be given the ${this.getGame().guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`);
     }
 
     /**
@@ -2097,11 +2097,11 @@ export default class Player extends ItemContainer {
     removeFromWhispers(narration) {
         /** @type {number[]} */
         let deleteWhisperIndexes = [];
-        for (let i = 0; i < this.game.whispers.length; i++) {
-            for (let j = 0; j < this.game.whispers[i].players.length; j++) {
-                if (this.game.whispers[i].players[j].name === this.name) {
+        for (let i = 0; i < this.getGame().whispers.length; i++) {
+            for (let j = 0; j < this.getGame().whispers[i].players.length; j++) {
+                if (this.getGame().whispers[i].players[j].name === this.name) {
                     // Remove player from the whisper.
-                    const deleteWhisper = this.game.whispers[i].removePlayer(j, narration);
+                    const deleteWhisper = this.getGame().whispers[i].removePlayer(j, narration);
                     if (deleteWhisper) deleteWhisperIndexes.push(i);
                     break;
                 }
@@ -2112,7 +2112,7 @@ export default class Player extends ItemContainer {
         // Now delete each one.
         for (let i = 0; i < deleteWhisperIndexes.length; i++) {
             const index = deleteWhisperIndexes[i];
-            this.game.whispers[index].delete(index);
+            this.getGame().whispers[index].delete(index);
         }
     }
 
@@ -2125,7 +2125,7 @@ export default class Player extends ItemContainer {
         if (description) {
             if (!this.hasBehaviorAttribute("unconscious") && (container && container instanceof Room)) {
                 let defaultDropFixtureString = "";
-                const defaultDropFixture = this.game.entityFinder.getFixture(this.game.settings.defaultDropFixture, container.id);
+                const defaultDropFixture = this.getGame().entityFinder.getFixture(this.getGame().settings.defaultDropFixture, container.id);
                 if (defaultDropFixture)
                     defaultDropFixtureString = parseDescription(defaultDropFixture.description, defaultDropFixture, this);
                 messageHandler.addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
@@ -2172,7 +2172,7 @@ export default class Player extends ItemContainer {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.playerSheetDescriptionColumn + this.row;
+        return this.getGame().constants.playerSheetDescriptionColumn + this.row;
     }
 
     /**

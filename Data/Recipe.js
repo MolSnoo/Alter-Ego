@@ -107,20 +107,20 @@ export default class Recipe extends GameEntity {
      * @returns {string}
      */
     initiatedCell() {
-        return this.game.constants.recipeSheetInitiatedColumn + this.row;
+        return this.getGame().constants.recipeSheetInitiatedColumn + this.row;
     }
 
     /**
      * @returns {string}
      */
     completedCell() {
-        return this.game.constants.recipeSheetCompletedColumn + this.row;
+        return this.getGame().constants.recipeSheetCompletedColumn + this.row;
     }
 
     /**
      * @returns {string}
      */
     uncraftedCell() {
-        return this.game.constants.recipeSheetUncraftedColumn + this.row;
+        return this.getGame().constants.recipeSheetUncraftedColumn + this.row;
     }
 }

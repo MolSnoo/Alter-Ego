@@ -137,7 +137,7 @@ export default class Room extends GameEntity {
             pos.z = Math.floor(coordSum.z / this.exitCollection.size);
             player.pos = pos;
         }
-        if (entranceMessage) new Narration(this.game, player, this, entranceMessage).send();
+        if (entranceMessage) new Narration(this.getGame(), player, this, entranceMessage).send();
 
         if (player.getBehaviorAttributeStatusEffects("no channel").length === 0)
             this.joinChannel(player);
@@ -165,7 +165,7 @@ export default class Room extends GameEntity {
      * @param {string} exitMessage - The message that should be narrated in the room when they leave.
      */
     removePlayer(player, exit, exitMessage) {
-        if (exitMessage) new Narration(this.game, player, this, exitMessage).send();
+        if (exitMessage) new Narration(this.getGame(), player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
@@ -219,11 +219,11 @@ export default class Room extends GameEntity {
      */
     unlock(index) {
         this.exit[index].unlock();
-        if (this.occupants.length > 0) new Narration(this.game, null, this, `${this.exit[index].name} unlocks.`).send();
+        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${this.exit[index].name} unlocks.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
+        addLogMessage(this.getGame(), `${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
     }
 
     /**
@@ -233,11 +233,11 @@ export default class Room extends GameEntity {
     unlockExit(name) {
         let exit = this.exitCollection.get(name);
         exit.unlock();
-        if (this.occupants.length > 0) new Narration(this.game, null, this, `${exit.name} unlocks.`).send();
+        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} unlocks.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${exit.name} in ${this.channel} was unlocked.`);
+        addLogMessage(this.getGame(), `${time} - ${exit.name} in ${this.channel} was unlocked.`);
     }
 
     /**
@@ -247,11 +247,11 @@ export default class Room extends GameEntity {
      */
     lock(index) {
         this.exit[index].lock();
-        if (this.occupants.length > 0) new Narration(this.game, null, this, `${this.exit[index].name} locks.`).send();
+        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${this.exit[index].name} locks.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
+        addLogMessage(this.getGame(), `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
     }
 
     /**
@@ -261,16 +261,16 @@ export default class Room extends GameEntity {
     lockExit(name) {
         let exit = this.exitCollection.get(name);
         exit.lock();
-        if (this.occupants.length > 0) new Narration(this.game, null, this, `${exit.name} locks.`).send();
+        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} locks.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${exit.name} in ${this.channel} was locked.`);
+        addLogMessage(this.getGame(), `${time} - ${exit.name} in ${this.channel} was locked.`);
     }
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.roomSheetDescriptionColumn + this.row;
+        return this.getGame().constants.roomSheetDescriptionColumn + this.row;
     }
 
     /**

@@ -56,7 +56,7 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
         prefab.uses,
         generateProceduralOutput(prefab.description, proceduralSelections, player),
         0,
-        prefab.game
+        prefab.getGame()
     );
     createdItem.setPrefab(prefab);
     createdItem.initializeInventory();
@@ -73,7 +73,7 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    addLogMessage(prefab.game, `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerLogDisplay} in ${location.channel}`);
+    addLogMessage(prefab.getGame(), `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerLogDisplay} in ${location.channel}`);
     return createdItem;
 }
 
@@ -100,7 +100,7 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
         prefab.uses,
         generateProceduralOutput(prefab.description, proceduralSelections, player),
         0,
-        prefab.game
+        prefab.getGame()
     );
     createdItem.player = player;
     createdItem.setPrefab(prefab);
@@ -122,7 +122,7 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
         const preposition = container.prefab ? container.prefab.preposition : "in";
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(prefab.game, `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
+        addLogMessage(prefab.getGame(), `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
     }
     // Item is being equipped.
     else {
@@ -130,7 +130,7 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(prefab.game, `${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlotId} in ${player.location.channel}`);
+        addLogMessage(prefab.getGame(), `${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlotId} in ${player.location.channel}`);
     }
     return createdItem;
 }
@@ -203,7 +203,7 @@ export function destroyItem(item, quantity, getChildren) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    addLogMessage(item.game, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerLogDisplay} in ${item.location.channel}`);
+    addLogMessage(item.getGame(), `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerLogDisplay} in ${item.location.channel}`);
 }
 
 /**
@@ -227,7 +227,7 @@ export function destroyInventoryItem(item, quantity, getChildren) {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(item.game, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
+        addLogMessage(item.getGame(), `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
     else {
         item.quantity -= quantity;
@@ -240,7 +240,7 @@ export function destroyInventoryItem(item, quantity, getChildren) {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(item.game, `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
+        addLogMessage(item.getGame(), `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
 }
 
@@ -265,7 +265,7 @@ export function convertRoomItem(item, player, equipmentSlotId, quantity) {
         item.uses,
         item.description,
         0,
-        item.game
+        item.getGame()
     );
     createdItem.player = player;
     createdItem.setPrefab(item.prefab);
@@ -339,7 +339,7 @@ export function convertInventoryItem(item, player, container, inventorySlotId, q
         item.uses,
         item.description,
         0,
-        item.game
+        item.getGame()
     );
     createdItem.setPrefab(item.prefab);
     createdItem.initializeInventory();
@@ -443,7 +443,7 @@ export function putItemInHand(item, player, handEquipmentSlot) {
  * @param {RoomItem[]} items - The items to insert. 
  */
 export function insertRoomItems(location, items) {
-    const game = location.game;
+    const game = location.getGame();
     for (let item of items) {
         // Check if the player is putting this item back in original spot unmodified.
         const roomItems = game.roomItems.filter(gameItem => gameItem.location.id === location.id);
@@ -556,7 +556,7 @@ export function insertRoomItems(location, items) {
  * @param {EquipmentSlot} equipmentSlot - The equipment slot within the player's inventory.
  */
 export function insertInventoryItems(player, items, equipmentSlot) {
-    const game = player.game;
+    const game = player.getGame();
     let lastNewItem = player.inventoryCollection.last().equippedItem !== null ?
         player.inventoryCollection.last().equippedItem :
         player.inventoryCollection.last().items[0];
@@ -659,8 +659,8 @@ function generateIdentifier(prefab) {
     if (prefab.inventoryCollection.size > 0) {
         identifier = prefab.id;
         let number = 1;
-        while (prefab.game.roomItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0) ||
-            prefab.game.inventoryItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0))
+        while (prefab.getGame().roomItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0) ||
+            prefab.getGame().inventoryItems.find(item => item.identifier === `${identifier} ${number}` && item.quantity !== 0))
             number++;
         identifier = `${identifier} ${number}`;
     }

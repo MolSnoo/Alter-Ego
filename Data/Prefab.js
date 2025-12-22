@@ -241,6 +241,6 @@ export default class Prefab extends GameEntity {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.prefabSheetDescriptionColumn + this.row;
+        return this.getGame().constants.prefabSheetDescriptionColumn + this.row;
     }
 }

@@ -177,6 +177,6 @@ export default class InventoryItem extends ItemInstance {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.inventorySheetDescriptionColumn + this.row;
+        return this.getGame().constants.inventorySheetDescriptionColumn + this.row;
     }
 }

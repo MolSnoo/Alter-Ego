@@ -89,6 +89,6 @@ export default class Exit extends GameEntity {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.roomSheetDescriptionColumn + this.row;
+        return this.getGame().constants.roomSheetDescriptionColumn + this.row;
     }
 }
