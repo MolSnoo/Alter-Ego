@@ -436,7 +436,7 @@ describe("GameEntityFinder test", () => {
             await game.entityLoader.loadAll();
         });
         test("Get valid boolean flag value by id", () => {
-            let flagValue = game.entityFinder.getFlagValue("COLD SEASON FLAG");
+            let flagValue = game.entityFinder.getFlagValue("DAYTIME");
             expect(flagValue).toBe(false);
         });
         test("Get valid string flag value by id", () => {
