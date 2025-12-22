@@ -80,6 +80,13 @@ export default class Exit extends GameEntity {
         this.unlocked = false;
     }
 
+    /**
+     * Gets a phrase to refer to the exit in narrations.
+     */
+    getNamePhrase() {
+        return this.name === "DOOR" ? `the DOOR` : this.name.includes("DOOR") ? this.name : `the door to ${this.name}`;
+    }
+
     /** @returns {string} */
     descriptionCell() {
         return this.game.constants.roomSheetDescriptionColumn + this.row;

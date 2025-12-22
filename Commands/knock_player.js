@@ -1,8 +1,8 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-import Narration from '../Data/Narration.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -31,10 +31,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify an exit. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable knock");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     var input = args.join(" ");
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -46,44 +46,8 @@ export async function execute (game, message, command, args, player) {
             exit = player.location.exit[i];
         }
     }
-    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit === null) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
-    var roomNarration = player.displayName + " knocks on ";
-    if (exit.name === "DOOR") roomNarration += "the DOOR";
-    else if (exit.name.includes("DOOR")) roomNarration += exit.name;
-    else roomNarration += "the door to " + exit.name;
-    roomNarration += '.';
-
-    // Narrate the player knocking in their current room.
-    new Narration(game, player, player.location, roomNarration).send();
-
-    var room = exit.dest;
-    if (room.id === player.location.id) return;
-
-    var hearingPlayers = [];
-    // Get a list of all the hearing players in the destination room.
-    for (let i = 0; i < room.occupants.length; i++) {
-        if (!room.occupants[i].hasAttribute("no hearing"))
-            hearingPlayers.push(room.occupants[i]);
-    }
-
-    var destNarration = "There is a knock on ";
-    if (exit.link === "DOOR") destNarration += "the DOOR";
-    else if (exit.link.includes("DOOR")) destNarration += exit.link;
-    else destNarration += "the door to " + exit.link;
-    destNarration += '.';
-
-    // If the number of hearing players is the same as the number of occupants in the room, send the message to the room.
-    if (hearingPlayers.length === room.occupants.length && hearingPlayers.length !== 0)
-        new Narration(game, player, room, destNarration).send();
-    else {
-        for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].notify(destNarration);
-    }
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} knocked on ${exit.name} in ${player.location.channel}`);
-
-    return;
+    const action = new Action(game, ActionType.Knock, message, player, player.location, false);
+    action.performKnock(exit);
 }

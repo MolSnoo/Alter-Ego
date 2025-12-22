@@ -39,6 +39,14 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Sends the log message.
+	 * @param {string} logText - The text of the log message. 
+	 */
+	#sendLogMessage(logText) {
+		addLogMessage(this.game, logText);
+	}
+
+	/**
 	 * Logs a gesture action.
 	 * @param {Gesture} gesture - The gesture that was performed.
 	 * @param {Exit|Fixture|RoomItem|Player|InventoryItem|null} target - The target of the gesture action.
@@ -49,8 +57,7 @@ export default class GameLogHandler {
 		let targetString = "";
 		if (target instanceof ItemInstance) targetString = `to ${target.identifier ? target.identifier : target.prefab.id} `;
 		else if (target instanceof Exit || target instanceof Fixture || target instanceof Player) targetString = `to ${target.name} `;
-		const logString = `${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}did gesture ${gesture.id} ${targetString}in ${player.location.channel}`;
-		addLogMessage(this.game, logString);
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}did gesture ${gesture.id} ${targetString}in ${player.location.channel}`)
 	}
 
 	/**
@@ -72,7 +79,16 @@ export default class GameLogHandler {
 			const ownerString = target.player.name === player.name ? player.originalPronouns.dpos : `${target.player.name}'s`;
 			targetString = `${target.getIdentifier()} from ${ownerString} inventory`;
 		}
-		const logString = `${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}inspected ${targetString} in ${player.location.channel}`;
-		addLogMessage(this.game, logString);
-	} 
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}inspected ${targetString} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a knock action.
+	 * @param {Exit} exit - The exit that was knocked on.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logKnock(exit, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}knocked on ${exit.name} in ${player.location.channel}`);
+	}
 }

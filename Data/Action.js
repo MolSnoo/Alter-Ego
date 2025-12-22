@@ -153,4 +153,14 @@ export default class Action {
 		}
 		this.game.logHandler.logInspect(target, this.player, this.forced);
 	}
+
+	/**
+	 * Performs a knock action.
+	 * @param {Exit} exit - The exit to knock on.
+	 */
+	performKnock(exit) {
+		if (this.type !== ActionType.Knock) return;
+		this.game.narrationHandler.narrateKnock(exit, this.player);
+		this.game.logHandler.logKnock(exit, this.player, this.forced);
+	}
 }

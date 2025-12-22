@@ -1,3 +1,4 @@
+import Exit from "../Data/Exit.js";
 import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
 import Gesture from "../Data/Gesture.js";
@@ -67,5 +68,26 @@ export default class GameNarrationHandler {
 			narration = `${player.displayName} takes out ${target.singleContainingPhrase} and begins inspecting it.`;
 		if (narration !== "")
 			new Narration(this.game, player, player.location, narration).send();
+	}
+
+	/**
+	 * Narrates a knock action.
+	 * @param {Exit} exit - The exit to knock on.
+	 * @param {Player} player - The player performing the knock action.
+	 */
+	narrateKnock(exit, player) {
+		const roomNarration = `${player.displayName} knocks on ${exit.getNamePhrase()}.`;
+		new Narration(this.game, player, player.location, roomNarration).send();
+		const destination = exit.dest;
+		if (destination.id === player.location.id) return;
+		const hearingPlayers = destination.occupants.filter(occupant => !occupant.hasBehaviorAttribute("no hearing"));
+		const destinationNarration = `There is a knock on ${destination.exitCollection.get(exit.link).getNamePhrase()}.`;
+		// If the number of hearing players is the same as the number of occupants in the room, send the message to the room.
+		if (hearingPlayers.length !== 0 && hearingPlayers.length === destination.occupants.length)
+			new Narration(this.game, player, destination, destinationNarration).send();
+		else {
+			for (const hearingPlayer of hearingPlayers)
+				hearingPlayer.notify(destinationNarration);
+		}
 	}
 }
