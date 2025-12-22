@@ -4,6 +4,7 @@ import GameEntityFinder from '../Classes/GameEntityFinder.js';
 import GameEntityLoader from '../Classes/GameEntityLoader.js';
 import GameEntitySaver from '../Classes/GameEntitySaver.js';
 import GameLogger from '../Classes/GameLogger.js';
+import GameNarrationHandler from '../Classes/GameNarrationHandler.js';
 import GameNotificationGenerator from '../Classes/GameNotificationGenerator.js';
 import GameSettings from '../Classes/GameSettings.js';
 import GuildContext from '../Classes/GuildContext.js';
@@ -83,6 +84,12 @@ export default class Game {
 	 * @type {GameNotificationGenerator}
 	 */
 	notificationGenerator;
+	/**
+	 * A set of functions to send narrations.
+	 * @readonly
+	 * @type {GameNarrationHandler}
+	 */
+	narrationHandler;
 	/**
 	 * Whether or not the game is currently in progress.
 	 * @type {boolean}
