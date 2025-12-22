@@ -24,6 +24,11 @@ describe("GameEntityFinder test", () => {
             expect(room).toBeInstanceOf(Room);
             expect(room.id).toBe("lobby");
         });
+        test("Get valid room with non-exact id", () => {
+            let room = game.entityFinder.getRoom("Floor 1 Hall 3");
+            expect(room).toBeInstanceOf(Room);
+            expect(room.id).toBe("floor-1-hall-3");
+        });
         test("Get valid room with whitespace", () => {
             let room = game.entityFinder.getRoom(" lobby ");
             expect(room).toBeInstanceOf(Room);
@@ -467,8 +472,13 @@ describe("GameEntityFinder test", () => {
             expect(rooms.length).toBe(1);
             expect(rooms[0].id).toBe("lobby");
         });
+        test("Get valid room by non-exact id", () => {
+            let rooms = game.entityFinder.getRooms("Floor 1 Hall 3");
+            expect(rooms.length).toBe(1);
+            expect(rooms[0].id).toBe("floor-1-hall-3");
+        });
         test("Get valid rooms by id using fuzzy search", () => {
-            let rooms = game.entityFinder.getRooms("floor-1", undefined, undefined, true);
+            let rooms = game.entityFinder.getRooms("floor 1", undefined, undefined, true);
             expect(rooms.length).toBe(5);
             expect(rooms[0].id).toBe("floor-1-hall-1");
             expect(rooms[1].id).toBe("floor-1-hall-2");
@@ -505,6 +515,89 @@ describe("GameEntityFinder test", () => {
             expect(rooms.length).toBe(0);
             let rooms2 = game.entityFinder.getRooms(undefined, "INVALID", undefined, true);
             expect(rooms2.length).toBe(0);
+        });
+    });
+
+    describe("getFixtures test", () => {
+        test("Get fixtures by name", () => {
+            let fixtures = game.entityFinder.getFixtures("RECEPTION DESK");
+            expect(fixtures.length).toBe(1);
+            expect(fixtures[0].name).toBe("RECEPTION DESK");
+        });
+        test("Get fixtures by room", () => {
+            let fixtures = game.entityFinder.getFixtures(undefined, "lobby");
+            expect(fixtures.length).toBe(10);
+            expect(fixtures[0].name).toBe("FLOOR");
+            expect(fixtures[9].name).toBe("MONITOR");
+            for (const fixture of fixtures) {
+                expect(fixture).toBeInstanceOf(Fixture);
+                expect(fixture.location.id).toBe("lobby");
+            }
+        });
+        test("Get fixtures by name using fuzzy search", () => {
+            let fixtures = game.entityFinder.getFixtures(
+                "hand wash station",
+                undefined,
+                undefined,
+                undefined,
+                true
+            );
+            expect(fixtures.length).toBe(2);
+            expect(fixtures[0].name).toBe("HAND WASH STATION 1");
+            expect(fixtures[1].name).toBe("HAND WASH STATION 2");
+        });
+        test("Get fixtures by accessible", () => {
+            let fixtures = game.entityFinder.getFixtures(
+                undefined,
+                "library",
+                false
+            );
+            expect(fixtures.length).toBe(6);
+            for (const fixture of fixtures) {
+                expect(fixture).toBeInstanceOf(Fixture);
+                expect(fixture.accessible).toBe(false);
+            }
+        });
+        test("Get fixtures by recipe tag", () => {
+            let fixtures = game.entityFinder.getFixtures(
+                undefined,
+                undefined,
+                undefined,
+                "stovetop"
+            );
+            expect(fixtures.length).toBe(6);
+            for (const fixture of fixtures) {
+                expect(fixture).toBeInstanceOf(Fixture);
+                expect(fixture.recipeTag).toBe("stovetop");
+            }
+        });
+        test("Get fixtures by invalid name", () => {
+            let fixtures = game.entityFinder.getFixtures("INVALID");
+            expect(fixtures.length).toBe(0);
+        });
+        test("Get fixtures by invalid room", () => {
+            let fixtures = game.entityFinder.getFixtures(undefined, "INVALID");
+            expect(fixtures.length).toBe(0);
+        });
+        test("Get fixtures by invalid recipe tag", () => {
+            let fixtures = game.entityFinder.getFixtures(undefined, undefined, undefined, "INVALID");
+            expect(fixtures.length).toBe(0);
+        });
+    });
+
+    describe("getPrefabs test", () => {
+        test("Get prefabs by id", () => {
+            let prefabs = game.entityFinder.getPrefabs("PEN");
+            expect(prefabs.length).toBe(1);
+            expect(prefabs[0]).toBeInstanceOf(Prefab);
+            expect(prefabs[0].id).toBe("PEN");
+        });
+        test("Get prefabs by effectsString", () => {
+            let prefabs = game.entityFinder.getPrefabs(undefined, "refreshed");
+            for (const prefab of prefabs) {
+                expect(prefab).toBeInstanceOf(Prefab);
+                expect(prefab.effectsStrings).toContain("refreshed");
+            }
         });
     });
 });
