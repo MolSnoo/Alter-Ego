@@ -282,14 +282,14 @@ export async function execute (game, command, args, player, callee) {
             // Check if an equipment slot was specified.
             let equipmentSlotName = "";
             if (containerItem === null) {
-                for (let i = 0; i < player.inventory.length; i++) {
-                    if (parsedInput2.endsWith(player.inventory[i].id)) {
-                        equipmentSlotName = player.inventory[i].id;
-                        parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(equipmentSlotName)).trimEnd();
+                for (const [id, slot] of player.inventoryCollection) {
+                    if (parsedInput2.endsWith(id)) {
+                        equipmentSlotName = id;
+                        parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(id)).trimEnd();
                         const newArgs = parsedInput2.split(' ');
                         newArgs.splice(newArgs.length - 1, 1);
                         parsedInput2 = newArgs.join(' ');
-                        if (player.inventory[i].equippedItem !== null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot equip items to ${equipmentSlotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
+                        if (slot.equippedItem !== null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot equip items to ${id} because ${slot.equippedItem.name} is already equipped to it.`);
                         break;
                     }
                 }

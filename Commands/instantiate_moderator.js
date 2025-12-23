@@ -253,14 +253,14 @@ export async function execute (game, message, command, args) {
         // Check if an equipment slot was specified.
         let equipmentSlotName = "";
         if (containerItem === null) {
-            for (let i = 0; i < player.inventory.length; i++) {
-                if (parsedInput.endsWith(player.inventory[i].id)) {
-                    equipmentSlotName = player.inventory[i].id;
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(equipmentSlotName)).trimEnd();
+            for (const [id, slot] of player.inventoryCollection) {
+                if (parsedInput.endsWith(id)) {
+                    equipmentSlotName = id;
+                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                     const newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
                     parsedInput = newArgs.join(' ');
-                    if (player.inventory[i].equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${equipmentSlotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
+                    if (slot.equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${equipmentSlotName} because ${slot.equippedItem.name} is already equipped to it.`);
                     break;
                 }
             }

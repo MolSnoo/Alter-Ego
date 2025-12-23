@@ -97,14 +97,8 @@ export async function execute (game, message, command, args) {
     let item = null;
     let hand = "";
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    let rightHand = null;
-    let leftHand = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND")
-            rightHand = player.inventory[slot];
-        else if (player.inventory[slot].id === "LEFT HAND")
-            leftHand = player.inventory[slot];
-    }
+    let rightHand = player.inventoryCollection.get("RIGHT HAND");
+    let leftHand = player.inventoryCollection.get("LEFT HAND");
     // Check for the identifier first.
     if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === parsedInput) {
         item = rightHand.equippedItem;
