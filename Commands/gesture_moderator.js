@@ -110,13 +110,17 @@ export async function execute (game, message, command, args) {
             }
         }
         if (gesture === undefined)
-            return messageHandler.addReply(game, message, `Couldn't find gesture "${input}". For a list of gestures, send \`${game.settings.commandPrefix}gesture list\`.`);
+            return messageHandler.addReply(
+                game,
+                message,
+                `Couldn't find gesture "${input}". For a list of gestures, send \`${game.settings.commandPrefix}gesture list\`.`
+            );
         else if (args.length === 0 && gesture.requires.length > 0)
             return messageHandler.addReply(game, message, `You need to specify a target for that gesture.`);
         else if (args.length > 0 && gesture.requires.length === 0)
             return messageHandler.addReply(game, message, `That gesture doesn't take a target.`);
         else if (args.length > 0 && gesture.requires.length > 0) {
-            const input2 = args.join(' ').toLowerCase().replace(/\'/g, "");
+            const input2 = args.join(" ").toLowerCase().replace(/\'/g, "");
             for (const requireType of gesture.requires) {
                 if (requireType === "Exit") {
                     target = game.entityFinder.getExit(player.location, input2);
@@ -133,8 +137,17 @@ export async function execute (game, message, command, args) {
                 } else if (requireType === "Player") {
                     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
                     for (const occupant of player.location.occupants) {
-                        if (occupant.name.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
-                            if (occupant.name === player.name) return messageHandler.addReply(game, message, `${player.name} can't gesture toward ${player.originalPronouns.ref}.`);
+                        if (
+                            occupant.name.toLowerCase().replace(/\'/g, "") === input2 &&
+                            ((hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden")) ||
+                                occupant.hidingSpot === player.hidingSpot)
+                        ) {
+                            if (occupant.name === player.name)
+                                return messageHandler.addReply(
+                                    game,
+                                    message,
+                                    `${player.name} can't gesture toward ${player.originalPronouns.ref}.`
+                                );
                             targetType = "Player";
                             target = occupant;
                             break;
@@ -142,7 +155,11 @@ export async function execute (game, message, command, args) {
                     }
                 } else if (requireType === "Inventory Item") {
                     for (const hand of game.entityFinder.getPlayerHands(player)) {
-                        if (hand.equippedItem !== null && (hand.equippedItem.prefab.id.toLowerCase() === input2 || hand.equippedItem.name.toLowerCase() === input2)) {
+                        if (
+                            hand.equippedItem !== null &&
+                            (hand.equippedItem.prefab.id.toLowerCase() === input2 ||
+                                hand.equippedItem.name.toLowerCase() === input2)
+                        ) {
                             targetType = "Inventory Item";
                             target = hand.equippedItem;
                             break;
@@ -154,10 +171,20 @@ export async function execute (game, message, command, args) {
         }
         input = input.substring(gesture.id.toLowerCase().replace(/\'/g, "").length).trim();
         if (target === null && gesture.requires.length > 0)
-            return messageHandler.addReply(game, message, `Couldn't find target "${input}" in the room with ${player.name}.`);
+            return messageHandler.addReply(
+                game,
+                message,
+                `Couldn't find target "${input}" in the room with ${player.name}.`
+            );
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
             if (player.statusCollection.has(gesture.disabledStatuses[i].id))
-                return messageHandler.addReply(game, message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` + (player.originalPronouns.plural ? "are" : "is") + ` **${gesture.disabledStatuses[i].id}**.`);
+                return messageHandler.addReply(
+                    game,
+                    message,
+                    `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` +
+                        (player.originalPronouns.plural ? "are" : "is") +
+                        ` **${gesture.disabledStatuses[i].id}**.`
+                );
         }
 
         const action = new Action(game, ActionType.Gesture, message, player, player.location, true);
