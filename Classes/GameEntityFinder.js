@@ -182,7 +182,7 @@ export default class GameEntityFinder {
 	 */
 	getPlayerHandHoldingItem(player, item) {
 		for (const hand of this.getPlayerHands(player))
-			if (hand.equippedItem !== null && hand.equippedItem.name === item)
+			if (hand.equippedItem !== null && (hand.equippedItem.name === item || hand.equippedItem.identifier === item || hand.equippedItem.prefab.id === item))
 				return [hand, hand.equippedItem];
 		return [undefined, undefined];
 	}
