@@ -52,6 +52,7 @@ export async function execute (game, message, command, args, player) {
     let item = null;
     let container = null;
     let slotName = "";
+    let slot = null;
     const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < playerItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
@@ -59,6 +60,7 @@ export async function execute (game, message, command, args, player) {
             item = playerItems[i];
             container = playerItems[i].container;
             slotName = playerItems[i].slot;
+            slot = container.inventoryCollection.get(slotName);
             if (playerItems[i].container === null) continue;
             break;
         }
@@ -75,6 +77,7 @@ export async function execute (game, message, command, args, player) {
                                 item = playerItems[i];
                                 container = playerItems[i].container;
                                 slotName = tempSlotName;
+                                slot = container.inventoryCollection.get(slotName);
                                 break;
                             }
                         }
@@ -86,6 +89,7 @@ export async function execute (game, message, command, args, player) {
                     item = playerItems[i];
                     container = playerItems[i].container;
                     slotName = playerItems[i].slot;
+                    slot = container.inventoryCollection.get(slotName);
                     break;
                 }
             }
@@ -101,7 +105,7 @@ export async function execute (game, message, command, args, player) {
     }
     if (item !== null && container === null) return messageHandler.addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
 
-    player.unstash(item, hand, container, slotName);
+    player.unstash(item, hand, container, slot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} unstashed ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} of ${container.identifier} in ${player.location.channel}`);
