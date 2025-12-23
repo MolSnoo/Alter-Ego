@@ -5,6 +5,8 @@ import Player from "../Data/Player.js";
 import Room from "../Data/Room.js";
 import Status from "../Data/Status.js";
 import Exit from "../Data/Exit.js";
+import EquipmentSlot from "../Data/EquipmentSlot.js";
+import InventoryItem from "../Data/InventoryItem.js";
 import * as matchers from '../Modules/matchers.js';
 
 /**
@@ -153,6 +155,36 @@ export default class GameEntityFinder {
 	getDeadPlayer(name) {
 		if (!name) return;
 		return this.game.deadPlayersCollection.get(Game.generateValidEntityName(name));
+	}
+
+	/**
+	 * Gets a given player's hands.
+	 * @param {Player} player - The player.
+	 * @returns {[EquipmentSlot, EquipmentSlot]} Two hands belonging to the player.
+	 */
+	getPlayerHands(player) {
+		return [player.inventoryCollection.get("RIGHT HAND"), player.inventoryCollection.get("LEFT HAND")]
+	}
+
+	/** Gets a free hand from the given player.
+	 * @param {Player} player - The player.
+	 * @returns {EquipmentSlot} A free hand of the player, preferring the right hand over the left. Returns undefined if both hands are occupied.
+	 */
+	getPlayerFreeHand(player) {
+		for (const hand of this.getPlayerHands(player))
+			if (hand.equippedItem === null) return hand;
+	}
+
+	/** Gets a player hand holding a given item.
+	 * @param {Player} player - The player.
+	 * @param {string} item - The item name to look for.
+	 * @returns {[EquipmentSlot, InventoryItem]}
+	 */
+	getPlayerHandHoldingItem(player, item) {
+		for (const hand of this.getPlayerHands(player))
+			if (hand.equippedItem !== null && hand.equippedItem.name === item)
+				return [hand, hand.equippedItem];
+		return [undefined, undefined];
 	}
 
 	/**
