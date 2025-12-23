@@ -48,4 +48,13 @@ export default class GameNotificationGenerator {
 	generateFoundHiddenPlayersNotification(hiddenPlayersList, fixtureName) {
 		return `You find ${hiddenPlayersList} hiding in the ${fixtureName}!`;
 	}
+
+	/**
+	 * Generates a notification indicating the player took an item.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateTakeNotification(itemPhrase, containerPhrase) {
+		return `You take ${itemPhrase} from ${containerPhrase}.`;
+	}
 }

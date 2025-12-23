@@ -13,7 +13,6 @@ import EquipmentSlot from './EquipmentSlot.js';
 import InventoryItem from './InventoryItem.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
-import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
@@ -1147,9 +1146,8 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
      * @param {Puzzle|Fixture|RoomItem} container - The item's current container.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
-     * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
      */
-    take(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+    take(item, handEquipmentSlot, container, inventorySlot) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
             item.quantity--;
@@ -1163,13 +1161,9 @@ export default class Player extends ItemContainer {
         const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         this.carryWeight += createdItem.weight;
 
-        const containerPhrase = item.getContainerPhrase();
-        if (notify) this.notify(`You take ${createdItem.singleContainingPhrase} from ${containerPhrase}.`);
-        if (!createdItem.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase} from ${containerPhrase}.`).send();
-            // Add the new item to the player's hands item list.
+        // Add the new item to the player's hands item list.
+        if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");
-        }
     }
 
     /**

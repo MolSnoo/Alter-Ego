@@ -1,9 +1,12 @@
+import EquipmentSlot from "./EquipmentSlot.js";
 import Exit from "./Exit.js";
 import Fixture from "./Fixture.js";
 import Game from "./Game.js";
 import Gesture from "./Gesture.js";
 import InventoryItem from "./InventoryItem.js";
+import InventorySlot from "./InventorySlot.js";
 import Player from "./Player.js";
+import Puzzle from "./Puzzle.js";
 import Room from "./Room.js";
 import RoomItem from "./RoomItem.js";
 import Whisper from "./Whisper.js";
@@ -176,5 +179,35 @@ export default class Action {
 		this.game.logHandler.logUse(item, this.player, target, this.forced);
 		// This transforms the item, so save it for last.
 		this.player.use(item, target);
+	}
+
+	/**
+	 * Performs a take action.
+	 * @param {RoomItem} item - The room item to take. 
+	 * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
+     * @param {Puzzle|Fixture|RoomItem} container - The item's current container.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
+     * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
+	 */
+	performTake(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+		if (this.type !== ActionType.Take) return;
+		this.game.narrationHandler.narrateTake(item, this.player, notify);
+		this.game.logHandler.logTake(item, this.player, container, inventorySlot, this.forced);
+		this.player.take(item, handEquipmentSlot, container, inventorySlot);
+		// Container is a weight puzzle.
+		if (container instanceof Puzzle && container.type === "weight") {
+			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+			this.player.attemptPuzzle(container, item, weight.toString(), "take", "");
+		}
+		// Container is a container puzzle.
+		else if (container instanceof Puzzle && container.type === "container") {
+			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
+				if (a.prefab.id < b.prefab.id) return -1;
+				if (a.prefab.id > b.prefab.id) return 1;
+				return 0;
+			}).map(item => item.prefab.id);
+			this.player.attemptPuzzle(container, item, containerItems.join(','), "take", "");
+		}
 	}
 }

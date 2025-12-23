@@ -117,4 +117,17 @@ export default class GameNarrationHandler {
 			this.#sendNarration(player, `${player.displayName} ${verb} ${item.singleContainingPhrase}${targetPhrase}.`);
 		}
 	}
+
+	/**
+	 * Narrates a take action.
+	 * @param {RoomItem} item - The item to take.
+	 * @param {Player} player - The player performing the take action.
+	 * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
+	 */
+	narrateTake(item, player, notify = true) {
+		const containerPhrase = item.getContainerPhrase();
+		if (notify) player.notify(this.game.notificationGenerator.generateTakeNotification(item.singleContainingPhrase, containerPhrase));
+		if (!item.prefab.discreet)
+			this.#sendNarration(player, `${player.displayName} takes ${item.singleContainingPhrase} from ${containerPhrase}.`);
+	}
 }
