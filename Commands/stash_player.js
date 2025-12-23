@@ -69,7 +69,6 @@ export async function execute (game, message, command, args, player) {
                 if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
             }
             newArgs = parsedInput.split(' ');
-            const itemPreposition = newArgs[newArgs.length - 1].toLowerCase();
             newArgs.splice(newArgs.length - 1, 1);
             parsedInput = newArgs.join(' ');
             break;
