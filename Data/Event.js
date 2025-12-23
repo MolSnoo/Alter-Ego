@@ -206,14 +206,14 @@ export default class Event extends GameEntity {
 
         // Send the triggered narration to all rooms with occupants.
         if (this.triggeredNarration !== "") {
-            const rooms = this.game.entityFinder.getRooms(null, this.roomTag, false);
+            const rooms = this.getGame().entityFinder.getRooms(null, this.roomTag, false);
             for (let room of rooms)
-                new Narration(this.game, null, room, parseDescription(this.triggeredNarration, this, null)).send();
+                new Narration(this.getGame(), null, room, parseDescription(this.triggeredNarration, this, null)).send();
         }
 
         // Execute triggered commands.
         if (doTriggeredCommands)
-            await parseAndExecuteBotCommands(this.triggeredCommands, this.game, this);
+            await parseAndExecuteBotCommands(this.triggeredCommands, this.getGame(), this);
 
         // Begin the timer, if applicable.
         if (this.duration)
@@ -223,7 +223,7 @@ export default class Event extends GameEntity {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${this.id} was triggered.`);
+        addLogMessage(this.getGame(), `${time} - ${this.id} was triggered.`);
     }
 
     /**
@@ -248,18 +248,18 @@ export default class Event extends GameEntity {
 
         // Send the ended narration to all rooms with occupants.
         if (this.endedNarration !== "") {
-            const rooms = this.game.entityFinder.getRooms(null, this.roomTag, false);
+            const rooms = this.getGame().entityFinder.getRooms(null, this.roomTag, false);
             for (let room of rooms)
-                new Narration(this.game, null, room, parseDescription(this.endedNarration, this, null)).send();
+                new Narration(this.getGame(), null, room, parseDescription(this.endedNarration, this, null)).send();
         }
 
         // Execute ended commands.
         if (doEndedCommands)
-            await parseAndExecuteBotCommands(this.endedCommands, this.game, this);
+            await parseAndExecuteBotCommands(this.endedCommands, this.getGame(), this);
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${this.id} was ended.`);
+        addLogMessage(this.getGame(), `${time} - ${this.id} was ended.`);
     }
 
     async startTimer() {
@@ -292,7 +292,7 @@ export default class Event extends GameEntity {
     startEffectsTimer() {
         let event = this;
         this.effectsTimer = new Timer(1000, { start: true, loop: true }, function () {
-            const rooms = event.game.entityFinder.getRooms(null, event.roomTag, true);
+            const rooms = event.getGame().entityFinder.getRooms(null, event.roomTag, true);
             for (let room of rooms) {
                 for (let occupant of room.occupants) {
                     event.effects.forEach(effect => {
@@ -311,10 +311,10 @@ export default class Event extends GameEntity {
     }
 
     triggeredCell() {
-        return this.game.constants.eventSheetTriggeredColumn + this.row;
+        return this.getGame().constants.eventSheetTriggeredColumn + this.row;
     }
     endedCell() {
-        return this.game.constants.eventSheetEndedColumn + this.row;
+        return this.getGame().constants.eventSheetEndedColumn + this.row;
     }
 
     /**

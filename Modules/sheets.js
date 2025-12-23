@@ -176,16 +176,12 @@ export function appendRowsToSheet (sheetrange, data, spreadsheetId) {
 function authorize() {
     const require = createRequire(import.meta.url);
     let credentials;
-    if (process.env.VITEST)
-        credentials = process.env.CREDENTIALS;
-    else {
-        try {
-            credentials = require('../Configs/credentials.json');
-        } 
-        catch(err) {
-            console.error('Could not load Configs/credentials.json:', err);
-            return null;
-        }
+    try {
+        credentials = require('../Configs/credentials.json');
+    } 
+    catch(err) {
+        console.error('Could not load Configs/credentials.json:', err);
+        return null;
     }
     if (!credentials || !credentials.google) {
         console.error('Invalid credentials format in Configs/credentials.json');

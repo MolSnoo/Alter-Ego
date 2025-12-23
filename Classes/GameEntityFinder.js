@@ -33,6 +33,7 @@ export default class GameEntityFinder {
 	 * @returns The room with the specified ID. If no such room exists, returns undefined.
 	 */
 	getRoom(id) {
+		if (!id) return;
 		return this.game.roomsCollection.get(Room.generateValidId(id));
 	}
 
@@ -53,7 +54,8 @@ export default class GameEntityFinder {
 	 * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
 	 */
 	getFixture(name, location) {
-		if (name && location) return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
+		if (!name) return;
+		if (location) return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name) && fixture.location.id === Room.generateValidId(location));
 		else return this.game.fixtures.find(fixture => fixture.name === Game.generateValidEntityName(name));
 	}
 
@@ -63,6 +65,7 @@ export default class GameEntityFinder {
 	 * @returns The prefab with the specified ID. If no such prefab exists, returns undefined.
 	 */
 	getPrefab(id) {
+		if (!id) return;
 		return this.game.prefabsCollection.get(Game.generateValidEntityName(id));
 	}
 
@@ -74,6 +77,7 @@ export default class GameEntityFinder {
 	 * @returns The room item with the specified identifier, and location and container name if applicable. If no such item exists, returns undefined.
 	 */
 	getRoomItem(identifier, location, containerName) {
+		if (!identifier) return;
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
@@ -91,12 +95,13 @@ export default class GameEntityFinder {
 	 * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
 	 */
 	getPuzzle(name, location, type, accessible) {
+		if (!name) return;
 		/** @type {Collection<string|boolean, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
-		if (name && location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
-		if (name && type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
-		if (name && accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
+		if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
+		if (type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
+		if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
 		return this.game.puzzles.find(puzzle => selectedFilters.every((filterFunction, key) => filterFunction(puzzle, key)));
 	}
 
@@ -106,6 +111,7 @@ export default class GameEntityFinder {
 	 * @returns The event with the specified ID. If no such event exists, returns undefined.
 	 */
 	getEvent(id) {
+		if (!id) return;
 		return this.game.eventsCollection.get(Game.generateValidEntityName(id));
 	}
 
@@ -115,6 +121,7 @@ export default class GameEntityFinder {
 	 * @returns The status effect with the specified ID. If no such status effect exists, returns undefined.
 	 */
 	getStatusEffect(id) {
+		if (!id) return;
 		return this.game.statusEffectsCollection.get(Status.generateValidId(id));
 	}
 
@@ -124,6 +131,7 @@ export default class GameEntityFinder {
 	 * @returns The player with the specified name. If no such player exists, returns undefined.
 	 */
 	getPlayer(name) {
+		if (!name) return;
 		return this.game.playersCollection.get(Game.generateValidEntityName(name));
 	}
 
@@ -133,6 +141,7 @@ export default class GameEntityFinder {
 	 * @returns The living player with the specified name. If no such player exists, returns undefined.
 	 */
 	getLivingPlayer(name) {
+		if (!name) return;
 		return this.game.livingPlayersCollection.get(Game.generateValidEntityName(name));
 	}
 
@@ -142,6 +151,7 @@ export default class GameEntityFinder {
 	 * @returns The dead player with the specified name. If no such player exists, returns undefined.
 	 */
 	getDeadPlayer(name) {
+		if (!name) return;
 		return this.game.deadPlayersCollection.get(Game.generateValidEntityName(name));
 	}
 
@@ -154,6 +164,7 @@ export default class GameEntityFinder {
 	 * @returns The inventory item with the specified identifier, and player, container name, and equipment slot if applicable. If no such item exists, returns undefined.
 	 */
 	getInventoryItem(identifier, player, containerName, equipmentSlotId) {
+		if (!identifier) return;
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
@@ -169,6 +180,7 @@ export default class GameEntityFinder {
 	 * @returns The gesture with the specified ID. If no such gesture exists, returns undefined.
 	 */
 	getGesture(id) {
+		if (!id) return;
 		return this.game.gesturesCollection.get(Gesture.generateValidId(id));
 	}
 
@@ -178,6 +190,7 @@ export default class GameEntityFinder {
 	 * @returns The flag with the specified ID. If no such flag exists, returns undefined.
 	 */
 	getFlag(id) {
+		if (!id) return;
 		return this.game.flags.get(Game.generateValidEntityName(id));
 	}
 
@@ -258,7 +271,7 @@ export default class GameEntityFinder {
 	getPrefabs(id, effectsString, curesString, equipmentSlotsString, fuzzySearch = false) {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
-		if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.itemIdentifierOrNameContains : matchers.itemIdentifierOrNameMatches);
+		if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.entityIdContains : matchers.entityIdMatches);
 		if (effectsString) {
 			let effects = effectsString.split(',');
 			effects.forEach((effect, i) => effects[i] = Status.generateValidId(effect));

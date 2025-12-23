@@ -258,12 +258,12 @@ export default class Puzzle extends ItemContainer {
         if (player !== null)
             player.sendDescription(this.correctDescription, this);
         if (narration)
-            new Narration(this.game, player, this.location, narration).send();
+            new Narration(this.getGame(), player, this.location, narration).send();
 
         if (player !== null) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            addLogMessage(this.game, `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
+            addLogMessage(this.getGame(), `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
         }
 
         for (const requiredItem of requiredItems) {
@@ -290,7 +290,7 @@ export default class Puzzle extends ItemContainer {
             }
             else commandSet = this.commandSets[0].solvedCommands;
             // Execute the command set's solved commands.
-            parseAndExecuteBotCommands(commandSet, this.game, this, targetPlayer ? targetPlayer : player);
+            parseAndExecuteBotCommands(commandSet, this.getGame(), this, targetPlayer ? targetPlayer : player);
         }
     }
 
@@ -306,7 +306,7 @@ export default class Puzzle extends ItemContainer {
         if (player !== null && directMessage !== null) player.notify(directMessage);
         // Let everyonne in the room know that the puzzle was unsolved.
         if (narration)
-            new Narration(this.game, player, this.location, narration).send();
+            new Narration(this.getGame(), player, this.location, narration).send();
 
         // Now mark it as unsolved.
         this.solved = false;
@@ -314,7 +314,7 @@ export default class Puzzle extends ItemContainer {
         if (player !== null) {
             // Post log message.
             const time = new Date().toLocaleTimeString();
-            addLogMessage(this.game, `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
+            addLogMessage(this.getGame(), `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
         }
 
         if (doUnsolvedCommands === true) {
@@ -336,7 +336,7 @@ export default class Puzzle extends ItemContainer {
             }
             else commandSet = this.commandSets[0].unsolvedCommands;
             // Execute the command set's unsolved commands.
-            parseAndExecuteBotCommands(commandSet, this.game, this, player);
+            parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
         }
 
         // Clear the outcome.
@@ -358,11 +358,11 @@ export default class Puzzle extends ItemContainer {
         else
             player.sendDescription(this.incorrectDescription, this);
         if (narration)
-            new Narration(this.game, player, player.location, narration).send();
+            new Narration(this.getGame(), player, player.location, narration).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
+        addLogMessage(this.getGame(), `${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
     }
 
     /**
@@ -372,7 +372,7 @@ export default class Puzzle extends ItemContainer {
      */
     alreadySolved(player, narration) {
         player.sendDescription(this.alreadySolvedDescription, this);
-        new Narration(this.game, player, player.location, narration).send();
+        new Narration(this.getGame(), player, player.location, narration).send();
     }
 
     /**
@@ -386,11 +386,11 @@ export default class Puzzle extends ItemContainer {
     requirementsNotMet(player, narration, command, input, message) {
         // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
         if (this.requirementsNotMetDescription === "" && message)
-            addReply(this.game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+            addReply(this.getGame(), message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
         // If there is text there, then the fixture in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
         else {
             player.sendDescription(this.requirementsNotMetDescription, this);
-            if (message) new Narration(this.game, player, player.location, narration).send();
+            if (message) new Narration(this.getGame(), player, player.location, narration).send();
         }
     }
 
@@ -435,26 +435,26 @@ export default class Puzzle extends ItemContainer {
 
     /** @returns {string} */
     correctCell() {
-        return this.game.constants.puzzleSheetCorrectColumn + this.row;
+        return this.getGame().constants.puzzleSheetCorrectColumn + this.row;
     }
 
     /** @returns {string} */
     alreadySolvedCell() {
-        return this.game.constants.puzzleSheetAlreadySolvedColumn + this.row;
+        return this.getGame().constants.puzzleSheetAlreadySolvedColumn + this.row;
     }
 
     /** @returns {string} */
     incorrectCell() {
-        return this.game.constants.puzzleSheetIncorrectColumn + this.row;
+        return this.getGame().constants.puzzleSheetIncorrectColumn + this.row;
     }
 
     /** @returns {string} */
     noMoreAttemptsCell() {
-        return this.game.constants.puzzleSheetNoMoreAttemptsColumn + this.row;
+        return this.getGame().constants.puzzleSheetNoMoreAttemptsColumn + this.row;
     }
 
     /** @returns {string} */
     requirementsNotMetCell() {
-        return this.game.constants.puzzleSheetRequirementsNotMetColumn + this.row;
+        return this.getGame().constants.puzzleSheetRequirementsNotMetColumn + this.row;
     }
 }

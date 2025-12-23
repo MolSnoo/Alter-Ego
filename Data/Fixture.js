@@ -167,8 +167,8 @@ export default class Fixture extends ItemContainer {
     activate(player, narrate) {
         this.activated = true;
         if (narrate) {
-            if (player) new Narration(this.game, player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
-            else new Narration(this.game, null, this.location, `${this.name} turns on.`).send();
+            if (player) new Narration(this.getGame(), player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
+            else new Narration(this.getGame(), null, this.location, `${this.name} turns on.`).send();
         }
 
         const result = this.findRecipe();
@@ -212,8 +212,8 @@ export default class Fixture extends ItemContainer {
     deactivate(player, narrate) {
         this.activated = false;
         if (narrate) {
-            if (player) new Narration(this.game, player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
-            else new Narration(this.game, null, this.location, `${this.name} turns off.`).send();
+            if (player) new Narration(this.getGame(), player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
+            else new Narration(this.getGame(), null, this.location, `${this.name} turns off.`).send();
         }
 
         this.process.recipe = null;
@@ -276,7 +276,7 @@ export default class Fixture extends ItemContainer {
      */
     findRecipe() {
         // Get all the items contained within this fixture.
-        let items = this.game.roomItems.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Fixture && item.container.row === this.row && item.quantity > 0);
+        let items = this.getGame().roomItems.filter(item => item.containerName.startsWith("Object: ") && item.container instanceof Fixture && item.container.row === this.row && item.quantity > 0);
         for (let i = 0; i < items.length; i++)
             getChildItems(items, items[i]);
         items.sort(function (a, b) {
@@ -285,7 +285,7 @@ export default class Fixture extends ItemContainer {
             return 0;
         });
 
-        const recipes = this.game.recipes.filter(recipe => recipe.fixtureTag === this.recipeTag);
+        const recipes = this.getGame().recipes.filter(recipe => recipe.fixtureTag === this.recipeTag);
         /** @type {Recipe} */
         let recipe = null;
         /** @type {RoomItem[]} */
@@ -334,7 +334,7 @@ export default class Fixture extends ItemContainer {
 
     /** @returns {string} */
     descriptionCell() {
-        return this.game.constants.fixtureSheetDescriptionColumn + this.row;
+        return this.getGame().constants.fixtureSheetDescriptionColumn + this.row;
     }
 }
 
