@@ -231,7 +231,7 @@ export default class Room extends GameEntity {
      * @param {string} name - The exit's name key within the room's collection of exits.
      */
     unlockExit(name) {
-        let exit = this.game.entityFinder.getExit(this, name);
+        let exit = this.getGame().entityFinder.getExit(this, name);
         exit.unlock();
         if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} unlocks.`).send();
 
@@ -259,7 +259,7 @@ export default class Room extends GameEntity {
      * @param {string} name - The exit's name key within the room's collection of exits.
      */
     lockExit(name) {
-        let exit = this.game.entityFinder.getExit(this, name);
+        let exit = this.getGame().entityFinder.getExit(this, name);
         exit.lock();
         if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} locks.`).send();
 
