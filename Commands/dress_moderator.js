@@ -52,6 +52,7 @@ export async function execute (game, message, command, args) {
 
     let container = null;
     let slotName = "";
+    let slot = null;
     // Check if the player specified a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
     for (let i = 0; i < fixtures.length; i++) {
@@ -129,7 +130,7 @@ export async function execute (game, message, command, args) {
                 // If something is already equipped to this equipment slot, move on.
                 if (slot.equippedItem !== null) continue;
                 // Take the item and equip it.
-                player.take(containerItems[i], hand, container, containerItems[i].slot, false); // TODO: FIXME!
+                player.take(containerItems[i], hand, container, container instanceof RoomItem ? container.inventoryCollection.get(containerItems[i].slot) : null, false);
                 player.equip(hand.equippedItem, slot, hand, false);
                 equipped = true;
             }
