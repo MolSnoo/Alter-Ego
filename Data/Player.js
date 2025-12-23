@@ -1147,7 +1147,7 @@ export default class Player extends ItemContainer {
      * Takes an item and puts it in the player's inventory.
      * @param {RoomItem} item - The item to take.
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
-     * @param {Puzzle|Fixture|RoomItem} container - The item's current container.
+     * @param {Puzzle|Fixture|RoomItem|Room} container - The item's current container.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
      * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
      */
@@ -1157,7 +1157,8 @@ export default class Player extends ItemContainer {
             item.quantity--;
 
         // Update the container's description.
-        container.removeItemFromDescription(item, inventorySlot ? inventorySlot.id : "");
+        if (container instanceof Puzzle || container instanceof Fixture || container instanceof RoomItem)
+            container.removeItemFromDescription(item, inventorySlot ? inventorySlot.id : "");
         if (container instanceof RoomItem)
             container.removeItem(item, inventorySlot.id, 1);
 
