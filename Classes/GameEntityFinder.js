@@ -188,7 +188,7 @@ export default class GameEntityFinder {
 	getPlayerHandHoldingItem(player, itemQuery, nameSearch = true, identifierSearch = true, prefabSearch = true, exactMatch = true, prefixMatch = false) {
 		for (const hand of this.getPlayerHands(player)) {
 			if (hand.equippedItem !== null) {
-				const identifiers = []
+				const identifiers = [];
 				if (nameSearch) identifiers.push(hand.equippedItem.name);
 				if (identifierSearch) identifiers.push(hand.equippedItem.identifier);
 				if (prefabSearch) identifiers.push(hand.equippedItem.prefab.id);
@@ -199,6 +199,34 @@ export default class GameEntityFinder {
 					} else if (exactMatch) {
 						if (identifier === itemQuery) return [hand, hand.equippedItem];
 					}
+				}
+			}
+		}
+		return [undefined, undefined];
+	}
+
+	/** Gets a player hand holding a given item.
+	 * @param {Player} player - The player.
+	 * @param {string} itemQuery - The item name to look for.
+	 * @param {EquipmentSlot} slot - The slot to restrict searching to.
+	 * @param {boolean} [nameSearch] - Whether or not to look up items based on name.
+	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier.
+	 * @param {boolean} [prefabSearch] - Whether or not to look up items based on prefab ID.
+	 * @returns {[EquipmentSlot, InventoryItem]}
+	 */
+	getPlayerSlotWithItem(player, itemQuery, slot = undefined, nameSearch = true, identifierSearch = true, prefabSearch = true) {
+		let slots = null;
+		if (slot) slots = [slot];
+		else slots = player.inventoryCollection.values();
+		for (const slot of slots) {
+			if (slot.equippedItem !== null) {
+				const identifiers = [];
+				if (nameSearch) identifiers.push(slot.equippedItem.name);
+				if (identifierSearch) identifiers.push(slot.equippedItem.identifier);
+				if (prefabSearch) identifiers.push(slot.equippedItem.prefab.id);
+
+				for (const identifier of identifiers) {
+					if (identifier === itemQuery) return [slot, slot.equippedItem];
 				}
 			}
 		}
