@@ -51,21 +51,8 @@ export async function execute (game, message, command, args, player) {
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
     // First, check if the player has a free hand.
-    let hand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    const hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return messageHandler.addReply(game, message, "You do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     if (args[0].toUpperCase() === "FROM") args.splice(0, 1);
     const input = args.join(' ');

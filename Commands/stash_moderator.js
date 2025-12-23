@@ -94,45 +94,8 @@ export async function execute (game, message, command, args) {
     else if (containerItem.inventoryCollection.size === 0) return messageHandler.addReply(game, message, `${containerItem.prefab.id} cannot hold items.`);
 
     // Now find the item in the player's inventory.
-    let item = null;
-    let hand = "";
-    // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    let rightHand = player.inventoryCollection.get("RIGHT HAND");
-    let leftHand = player.inventoryCollection.get("LEFT HAND");
-    // Check for the identifier first.
-    if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === parsedInput) {
-        item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
-        parsedInput = parsedInput.substring(item.identifier.length).trim();
-    }
-    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" && leftHand.equippedItem.identifier === parsedInput) {
-        item = leftHand.equippedItem;
-        hand = "LEFT HAND";
-        parsedInput = parsedInput.substring(item.identifier.length).trim();
-    }
-    // Check for the prefab ID next.
-    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.prefab.id === parsedInput) {
-        item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
-        parsedInput = parsedInput.substring(item.prefab.id.length).trim();
-    }
-    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.prefab.id === parsedInput) {
-        item = leftHand.equippedItem;
-        hand = "LEFT HAND";
-        parsedInput = parsedInput.substring(item.prefab.id.length).trim();
-    }
-    // Check for the name last.
-    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.name === parsedInput) {
-        item = rightHand.equippedItem;
-        hand = "RIGHT HAND";
-        parsedInput = parsedInput.substring(item.name.length).trim();
-    }
-    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === parsedInput) {
-        item = leftHand.equippedItem;
-        hand = "LEFT HAND";
-        parsedInput = parsedInput.substring(item.name.length).trim();
-    }
-    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, true, true, true, false);
+    if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
     // Make sure item and containerItem aren't the same item.
     if (item.row === containerItem.row) return messageHandler.addReply(game, message, `Can't stash ${item.identifier ? item.identifier : item.prefab.id} ${itemPreposition} itself.`);
 
@@ -142,7 +105,7 @@ export async function execute (game, message, command, args) {
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${containerItem.identifier} because there isn't enough space left.`);
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItem.identifier} because there isn't enough space left.`);
 
-    player.stash(item, hand, containerItem, containerItemSlot.id);
+    player.stash(item, hand, containerItem, containerItemSlot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.id} of ${containerItem.identifier} in ${player.location.channel}`);

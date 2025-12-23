@@ -63,20 +63,11 @@ export async function execute (game, message, command, args, player) {
 
     // First find the item in the player's hand, if applicable.
     let item = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
-            if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
-                item = player.inventory[slot].equippedItem;
-                break;
-            }
-            else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
-                item = player.inventory[slot].equippedItem;
-                break;
-            }
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
+    for (const hand of game.entityFinder.getPlayerHands(player)) {
+        if (hand.equippedItem !== null && (parsedInput.startsWith(hand.equippedItem.name + ' ') || hand.equippedItem.name === parsedInput)) {
+            item = hand.equippedItem;
             break;
+        }
     }
     if (item !== null) {
         parsedInput = parsedInput.substring(item.name.length).trim();

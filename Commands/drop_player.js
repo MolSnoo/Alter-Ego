@@ -52,15 +52,8 @@ export async function execute (game, message, command, args, player) {
     let newArgs = null;
 
     // First, find the item in the player's inventory.
-    let item = null;
-    let hand = null;
-    for (const slot of [player.inventoryCollection.get("LEFT HAND"), player.inventoryCollection.get("RIGHT HAND")]) {
-        if (slot.equippedItem !== null && (parsedInput.startsWith(slot.equippedItem.name + ' ') || slot.equippedItem.name === parsedInput)) {
-            item = slot.equippedItem;
-            hand = slot;
-        }
-    }
-    if (item !== null) {
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, false, false, true, true);
+    if (item !== undefined) {
         parsedInput = parsedInput.substring(item.name.length).trim();
         newArgs = parsedInput.split(' ');
     }

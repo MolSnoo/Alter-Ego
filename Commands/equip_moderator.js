@@ -46,39 +46,8 @@ export async function execute (game, message, command, args) {
     let slotName = newArgs[1] ? newArgs[1] : "";
 
     // First, find the item in the player's inventory.
-    let item = null;
-    let hand = null;
-    // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    let rightHand = player.inventoryCollection.get("RIGHT HAND");
-    let leftHand = player.inventoryCollection.get("LEFT HAND");
-    // Check for the identifier first.
-    if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === itemName) {
-        item = rightHand.equippedItem;
-        hand = rightHand;
-    }
-    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" && leftHand.equippedItem.identifier === itemName) {
-        item = leftHand.equippedItem;
-        hand = leftHand;
-    }
-    // Check for the prefab ID next.
-    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.prefab.id === itemName) {
-        item = rightHand.equippedItem;
-        hand = rightHand;
-    }
-    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.prefab.id === itemName) {
-        item = leftHand.equippedItem;
-        hand = leftHand;
-    }
-    // Check for the name last.
-    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.name === itemName) {
-        item = rightHand.equippedItem;
-        hand = rightHand;
-    }
-    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === itemName) {
-        item = leftHand.equippedItem;
-        hand = leftHand;
-    }
-    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, itemName, true, true, true, true, false);
+    if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];

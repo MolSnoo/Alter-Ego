@@ -276,7 +276,7 @@ export async function execute (game, command, args, player, callee) {
                     }
                 }
             }
-            if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+            if (containerItem !== null && containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
             const slotName = containerItem !== null ? containerItemSlot.id : "";
 
             // Check if an equipment slot was specified.

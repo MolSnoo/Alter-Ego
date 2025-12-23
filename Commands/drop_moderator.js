@@ -50,47 +50,8 @@ export async function execute (game, message, command, args) {
     let newArgs = null;
 
     // First, find the item in the player's inventory.
-    let item = null;
-    let hand = null;
-    // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    const rightHand = player.inventoryCollection.get("RIGHT HAND");
-    const leftHand = player.inventoryCollection.get("LEFT HAND");
-    // Check for the identifier first.
-    if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" &&
-        (parsedInput.startsWith(rightHand.equippedItem.identifier + ' ') || rightHand.equippedItem.identifier === parsedInput)) {
-        item = rightHand.equippedItem;
-        hand = rightHand;
-        parsedInput = parsedInput.substring(item.identifier.length).trim();
-    }
-    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" &&
-        (parsedInput.startsWith(leftHand.equippedItem.identifier + ' ') || leftHand.equippedItem.identifier === parsedInput)) {
-        item = leftHand.equippedItem;
-        hand = leftHand;
-        parsedInput = parsedInput.substring(item.identifier.length).trim();
-    }
-    // Check for the prefab ID next.
-    else if (item === null && rightHand.equippedItem !== null && (parsedInput.startsWith(rightHand.equippedItem.prefab.id + ' ') || rightHand.equippedItem.prefab.id === parsedInput)) {
-        item = rightHand.equippedItem;
-        hand = rightHand;
-        parsedInput = parsedInput.substring(item.prefab.id.length).trim();
-    }
-    else if (item === null && leftHand.equippedItem !== null && (parsedInput.startsWith(leftHand.equippedItem.prefab.id + ' ') || leftHand.equippedItem.prefab.id === parsedInput)) {
-        item = leftHand.equippedItem;
-        hand = leftHand;
-        parsedInput = parsedInput.substring(item.prefab.id.length).trim();
-    }
-    // Check for the name last.
-    else if (item === null && rightHand.equippedItem !== null && (parsedInput.startsWith(rightHand.equippedItem.name + ' ') || rightHand.equippedItem.name === parsedInput)) {
-        item = rightHand.equippedItem;
-        hand = rightHand;
-        parsedInput = parsedInput.substring(item.name.length).trim();
-    }
-    else if (item === null && leftHand.equippedItem !== null && (parsedInput.startsWith(leftHand.equippedItem.name + ' ') || leftHand.equippedItem.name === parsedInput)) {
-        item = leftHand.equippedItem;
-        hand = leftHand;
-        parsedInput = parsedInput.substring(item.name.length).trim();
-    }
-    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${input}" in either of ${player.name}'s hands.`);
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, true, true, true, true);
+    if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${input}" in either of ${player.name}'s hands.`);
     newArgs = parsedInput.split(' ');
 
     // Check if a fixture was specified.

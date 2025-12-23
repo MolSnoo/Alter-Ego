@@ -45,13 +45,8 @@ export async function execute (game, message, command, args, player) {
     if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
-    let hand =
-        player.inventoryCollection.get("RIGHT HAND").equippedItem === null
-            ? player.inventoryCollection.get("RIGHT HAND")
-            : player.inventoryCollection.get("LEFT HAND").equippedItem === null
-            ? player.inventoryCollection.get("LEFT HAND")
-            : null;
-    if (hand === null) return messageHandler.addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    let hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return messageHandler.addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");

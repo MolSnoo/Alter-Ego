@@ -45,19 +45,8 @@ export async function execute (game, message, command, args, player) {
     const itemName = newArgs[0].trim();
     let slotName = newArgs[1] ? newArgs[1] : "";
 
-    let item = null;
-    let hand = null;
-    let rightHand = player.inventoryCollection.get("RIGHT HAND");
-    let leftHand = player.inventoryCollection.get("LEFT HAND");
-    if (rightHand.equippedItem !== null && rightHand.equippedItem.name === itemName) { 
-        item = rightHand.equippedItem;
-        hand = rightHand;
-    }
-    if (leftHand.equippedItem !== null && leftHand.equippedItem.name === itemName) { 
-        item = leftHand.equippedItem;
-        hand = leftHand;
-    }
-    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, itemName, true, false, false, true, false);
+    if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
     if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return messageHandler.addReply(game, message, `${itemName} is not equippable.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.

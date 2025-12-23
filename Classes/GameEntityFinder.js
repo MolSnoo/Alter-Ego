@@ -177,13 +177,31 @@ export default class GameEntityFinder {
 
 	/** Gets a player hand holding a given item.
 	 * @param {Player} player - The player.
-	 * @param {string} item - The item name to look for.
+	 * @param {string} itemQuery - The item name to look for.
+	 * @param {boolean} [nameSearch] - Whether or not to look up items based on name.
+	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier.
+	 * @param {boolean} [prefabSearch] - Whether or not to look up items based on prefab ID.
+	 * @param {boolean} [exactMatch] - Whether or not to look up items based on whether or not the itemQuery is an exact match with an item identifier.
+	 * @param {boolean} [prefixMatch] - Whether or not to look up items based on whether or not the itemQuery starts with an item identifer.
 	 * @returns {[EquipmentSlot, InventoryItem]}
 	 */
-	getPlayerHandHoldingItem(player, item) {
-		for (const hand of this.getPlayerHands(player))
-			if (hand.equippedItem !== null && (hand.equippedItem.name === item || hand.equippedItem.identifier === item || hand.equippedItem.prefab.id === item))
-				return [hand, hand.equippedItem];
+	getPlayerHandHoldingItem(player, itemQuery, nameSearch = true, identifierSearch = true, prefabSearch = true, exactMatch = true, prefixMatch = false) {
+		for (const hand of this.getPlayerHands(player)) {
+			if (hand.equippedItem !== null) {
+				const identifiers = []
+				if (nameSearch) identifiers.push(hand.equippedItem.name);
+				if (identifierSearch) identifiers.push(hand.equippedItem.identifier);
+				if (prefabSearch) identifiers.push(hand.equippedItem.prefab.id);
+
+				for (const identifier of identifiers) {
+					if (prefixMatch) {
+						if (itemQuery.startsWith(identifier + ' ')) return [hand, hand.equippedItem];
+					} else if (exactMatch) {
+						if (identifier === itemQuery) return [hand, hand.equippedItem];
+					}
+				}
+			}
+		}
 		return [undefined, undefined];
 	}
 

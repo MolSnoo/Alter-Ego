@@ -44,13 +44,8 @@ export async function execute (game, message, command, args) {
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
-    let hand =
-        player.inventoryCollection.get("RIGHT HAND").equippedItem === null
-            ? player.inventoryCollection.get("RIGHT HAND")
-            : player.inventoryCollection.get("LEFT HAND").equippedItem === null
-            ? player.inventoryCollection.get("LEFT HAND")
-            : null;
-    if (hand === null) return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
+    let hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return messageHandler.addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
