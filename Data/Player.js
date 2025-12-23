@@ -1238,9 +1238,8 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {Puzzle|Fixture|RoomItem} container - The container to put the item in.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to put the item in.
-     * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
      */
-    drop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+    drop(item, handEquipmentSlot, container, inventorySlot) {
         // Unequip the item from the player's hand.
         handEquipmentSlot.unequipItem(item);
 
@@ -1265,16 +1264,11 @@ export default class Player extends ItemContainer {
         item.quantity = 0;
         // Insert the new items into the game's list of room items.
         itemManager.insertRoomItems(this.location, items);
-
         this.carryWeight -= item.weight;
-        const containerPhrase = createdItem.getContainerPhrase();
-        const preposition = createdItem.getContainerPreposition();
-        if (notify) this.notify(`You discard ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`).send();
-            // Remove the item from the player's hands item list.
+        
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
-        }
     }
 
     /**

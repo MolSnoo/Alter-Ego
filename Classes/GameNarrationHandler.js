@@ -5,6 +5,7 @@ import Gesture from "../Data/Gesture.js";
 import InventoryItem from "../Data/InventoryItem.js";
 import Narration from "../Data/Narration.js";
 import Player from "../Data/Player.js";
+import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
 import { parseDescription } from "../Modules/parser.js";
@@ -129,5 +130,20 @@ export default class GameNarrationHandler {
 		if (notify) player.notify(this.game.notificationGenerator.generateTakeNotification(item.singleContainingPhrase, containerPhrase));
 		if (!item.prefab.discreet)
 			this.#sendNarration(player, `${player.displayName} takes ${item.singleContainingPhrase} from ${containerPhrase}.`);
+	}
+
+	/**
+	 * Narrates a drop action.
+	 * @param {InventoryItem} item - The item to drop.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container to drop the item into.
+	 * @param {Player} player - The player performing the take action.
+	 * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
+	 */
+	narrateDrop(item, container, player, notify = true) {
+		const preposition = container.getPreposition();
+		const containerPhrase = container.getContainingPhrase();
+		if (notify) player.notify(this.game.notificationGenerator.generateDropNotification(item.singleContainingPhrase, preposition, containerPhrase));
+		if (!item.prefab.discreet)
+			this.#sendNarration(player, `${player.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
 	}
 }

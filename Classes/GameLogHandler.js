@@ -121,4 +121,18 @@ export default class GameLogHandler {
 		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}took ${item.getIdentifier()} from ${containerPhrase} in ${player.location.channel}`);
 	}
+
+	/**
+	 * Logs a drop action.
+	 * @param {InventoryItem} item - The item that was dropped.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the item was dropped into.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was dropped into.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logDrop(item, player, container, inventorySlot, forced) {
+		const preposition = container.getPreposition() ? container.getPreposition() : "in";
+		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}dropped ${item.getIdentifier()} ${preposition} ${containerPhrase} in ${player.location.channel}`);
+	}
 }

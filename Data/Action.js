@@ -11,7 +11,7 @@ import Room from "./Room.js";
 import RoomItem from "./RoomItem.js";
 import Whisper from "./Whisper.js";
 import { addDirectNarrationWithAttachments } from "../Modules/messageHandler.js";
-import { generatePlayerListString } from "../Modules/helpers.js";
+import { generatePlayerListString, getSortedItemsString } from "../Modules/helpers.js";
 
 /**
  * @class Action
@@ -202,12 +202,36 @@ export default class Action {
 		}
 		// Container is a container puzzle.
 		else if (container instanceof Puzzle && container.type === "container") {
-			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0).sort(function (a, b) {
-				if (a.prefab.id < b.prefab.id) return -1;
-				if (a.prefab.id > b.prefab.id) return 1;
-				return 0;
-			}).map(item => item.prefab.id);
-			this.player.attemptPuzzle(container, item, containerItems.join(','), "take", "");
+			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItemsString = getSortedItemsString(containerItems);
+			this.player.attemptPuzzle(container, item, containerItemsString, "take", "");
 		}
+	}
+
+	/**
+	 * Performs a drop action.
+	 * @param {InventoryItem} item - The inventory item to drop. 
+	 * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {Puzzle|Fixture|RoomItem} container - The container to put the item in.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to put the item in.
+     * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
+	 */
+	performDrop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+		if (this.type !== ActionType.Drop) return;
+		this.game.narrationHandler.narrateDrop(item, container, this.player, notify);
+		this.game.logHandler.logDrop(item, this.player, container, inventorySlot, this.forced);
+		this.player.drop(item, handEquipmentSlot, container, inventorySlot);
+		// Container is a weight puzzle.
+        if (container instanceof Puzzle && container.type === "weight") {
+            const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+            this.player.attemptPuzzle(container, item, weight.toString(), "drop", "");
+        }
+        // Container is a container puzzle.
+        else if (container instanceof Puzzle && container.type === "container") {
+            const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItemsString = getSortedItemsString(containerItems);
+            this.player.attemptPuzzle(container, item, containerItemsString, "drop", "");
+        }
 	}
 }

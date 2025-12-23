@@ -57,4 +57,14 @@ export default class GameNotificationGenerator {
 	generateTakeNotification(itemPhrase, containerPhrase) {
 		return `You take ${itemPhrase} from ${containerPhrase}.`;
 	}
+
+	/**
+	 * Generates a notification indicating the player dropped an item.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} preposition - The preposition of the container.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateDropNotification(itemPhrase, preposition, containerPhrase) {
+		return `You put ${itemPhrase} ${preposition} ${containerPhrase}.`;
+	}
 }
