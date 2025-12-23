@@ -169,7 +169,7 @@ export async function execute (game, message, command, args) {
         container = fixture.childPuzzle;
     else if (containerItem !== null) {
         container = containerItem;
-        if (containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+        if (containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
         slot = containerItemSlot;
         if (item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because it is too large.`);
         else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because it is too large.`);

@@ -99,7 +99,7 @@ export async function execute (game, message, command, args, player) {
         container = fixture.childPuzzle;
     else if (containerItem !== null) {
         container = containerItem;
-        if (containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+        if (containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
         slotName = containerItemSlot.id;
         const totalSize = player.inventoryCollection.values().reduce((sum, item) => {
             return item.equippedItem !== null ? sum + item.equippedItem.prefab.size : sum;

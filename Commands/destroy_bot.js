@@ -114,7 +114,7 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
         }
-        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+        if (containerItem !== null && containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
 
         // Check if a fixture was specified.
         let fixture = null;
@@ -272,7 +272,7 @@ export async function execute (game, command, args, player, callee) {
                     break;
                 }
             }
-            if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+            if (containerItem !== null && containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
             const slotName = containerItem !== null ? containerItemSlot.id : "";
 
             const newArgs = parsedInput2.split(" ");

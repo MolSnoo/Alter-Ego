@@ -86,13 +86,13 @@ export async function execute (game, message, command, args, player) {
     // Make sure item and containerItem aren't the same item.
     if (item.row === containerItem.row) return messageHandler.addReply(game, message, `You can't stash ${item.name} ${item.prefab.preposition} itself.`);
 
-    if (containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+    if (containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
     if (item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because it is too large.`);
     else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItem.name} because it is too large.`);
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because there isn't enough space left.`);
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
 
-    player.stash(item, hand, containerItem, containerItemSlot.id);
+    player.stash(item, hand, containerItem, containerItemSlot);
     // Post log message.
     const time = new Date().toLocaleTimeString();
     messageHandler.addLogMessage(game, `${time} - ${player.name} stashed ${item.identifier ? item.identifier : item.prefab.id} ${containerItem.prefab.preposition} ${containerItemSlot.id} of ${containerItem.identifier} in ${player.location.channel}`);

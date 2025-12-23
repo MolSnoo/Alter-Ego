@@ -144,7 +144,7 @@ export async function execute (game, message, command, args) {
                     break;
                 }
             }
-            if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+            if (containerItem !== null && containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
         }
 
         // Now decide what the container should be.
@@ -247,7 +247,7 @@ export async function execute (game, message, command, args) {
                 }
             }
         }
-        if (containerItem !== null && containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
+        if (containerItem !== null && containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
         const slotName = containerItem !== null ? containerItemSlot.id : "";
 
         // Check if an equipment slot was specified.
