@@ -58,6 +58,7 @@ export async function execute (game, message, command, args, player) {
     let item = null;
     let container = null;
     let slotName = "";
+    let slot = null;
     const roomItems = game.entityFinder.getRoomItems(null, player.location.id, true);
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
@@ -65,6 +66,7 @@ export async function execute (game, message, command, args, player) {
             item = roomItems[i];
             container = roomItems[i].container;
             slotName = roomItems[i].slot;
+            if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
             break;
         }
         // A container was specified.
@@ -81,6 +83,7 @@ export async function execute (game, message, command, args, player) {
                                 item = roomItems[i];
                                 container = roomItemContainer;
                                 slotName = tempSlotName;
+                                slot = container.inventoryCollection.get(slotName);
                                 break;
                             }
                         }
@@ -98,6 +101,7 @@ export async function execute (game, message, command, args, player) {
                     item = roomItems[i];
                     container = roomItemContainer;
                     slotName = roomItems[i].slot;
+                    if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
                     break;
                 }
             }
@@ -143,7 +147,7 @@ export async function execute (game, message, command, args, player) {
     }
     else if (player.carryWeight + item.weight > player.maxCarryWeight) return messageHandler.addReply(game, message, `You try to take ${item.singleContainingPhrase}, but you're carrying too much weight.`);
 
-    player.take(item, hand, container, slotName);
+    player.take(item, hand, container, slot);
     // Post log message. Message should vary based on container type.
     const time = new Date().toLocaleTimeString();
     // Container is a Fixture or Puzzle.
