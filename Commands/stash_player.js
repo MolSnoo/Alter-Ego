@@ -81,26 +81,10 @@ export async function execute (game, message, command, args, player) {
     else if (containerItem.inventoryCollection.size === 0) return messageHandler.addReply(game, message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
-    let item = null;
-    let hand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
-            item = player.inventory[slot].equippedItem;
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
-            item = player.inventory[slot].equippedItem;
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput);
+    if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
     // Make sure item and containerItem aren't the same item.
-    if (item.row === containerItem.row) return messageHandler.addReply(game, message, `You can't stash ${item.name} ${itemPreposition} itself.`);
+    if (item.row === containerItem.row) return messageHandler.addReply(game, message, `You can't stash ${item.name} ${item.prefab.preposition} itself.`);
 
     if (containerItemSlot === null) containerItemSlot = containerItem.inventoryCollection.values()[0];
     if (item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because it is too large.`);
