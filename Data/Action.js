@@ -179,7 +179,6 @@ export default class Action {
 		if (this.type !== ActionType.Use) return;
 		this.#game.narrationHandler.narrateUse(item, this.player, target, customNarration);
 		this.#game.logHandler.logUse(item, this.player, target, this.forced);
-		// This transforms the item, so save it for last.
 		this.player.use(item, target);
 	}
 
@@ -193,8 +192,10 @@ export default class Action {
 	 */
 	performTake(item, handEquipmentSlot, container, inventorySlot, notify = true) {
 		if (this.type !== ActionType.Take) return;
+		const successful = this.forced || this.player.carryWeight + item.weight <= this.player.carryWeight;
 		this.#game.narrationHandler.narrateTake(item, this.player, notify);
-		this.#game.logHandler.logTake(item, this.player, container, inventorySlot, this.forced);
+		this.#game.logHandler.logTake(item, this.player, container, inventorySlot, successful, this.forced);
+		if (!successful) return;
 		this.player.take(item, handEquipmentSlot, container, inventorySlot);
 		// Container is a weight puzzle.
 		if (container instanceof Puzzle && container.type === "weight") {
@@ -249,6 +250,7 @@ export default class Action {
 		else {
 			this.player.notify(this.#game.notificationGenerator.generateFailedStealNotification(item.singleContainingPhrase, slotPhrase, container.name, victim));
 			victim.notify(this.#game.notificationGenerator.generateFailedStolenFromNotification(this.player.displayName, slotPhrase, item.singleContainingPhrase, container.name));
+			this.#game.logHandler.logSteal(item, this.player, victim, container, inventorySlot, false, this.forced);
 		}
 	}
 
@@ -277,6 +279,21 @@ export default class Action {
 			const containerItemsString = getSortedItemsString(containerItems);
             this.player.attemptPuzzle(container, item, containerItemsString, "drop", "");
         }
+	}
+
+	/**
+	 * Performs a give action.
+	 * @param {InventoryItem} item - The inventory item to give.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {Player} recipient - The player to give the inventory item to.
+     * @param {EquipmentSlot} recipientHandEquipmentSlot - The hand equipment slot of the recipient to put the item in.
+	 */
+	performGive(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot) {
+		if (this.type !== ActionType.Give) return;
+		const successful = this.forced || recipient.carryWeight + item.weight <= recipient.maxCarryWeight;
+		this.#game.narrationHandler.narrateGive(item, this.player, recipient);
+		this.#game.logHandler.logGive(item, this.player, recipient, successful, this.forced);
+		if (successful) this.player.give(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot);
 	}
 
 	/**

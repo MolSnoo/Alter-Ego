@@ -128,9 +128,19 @@ export default class GameNarrationHandler {
 	 */
 	narrateTake(item, player, notify = true) {
 		const containerPhrase = item.getContainerPhrase();
-		if (notify) player.notify(this.#game.notificationGenerator.generateTakeNotification(item.singleContainingPhrase, containerPhrase));
+		let notification = this.#game.notificationGenerator.generateTakeNotification(item.singleContainingPhrase, containerPhrase);
+		let narration = `${player.displayName} takes ${item.singleContainingPhrase} from ${containerPhrase}.`;
+		if (item.weight > player.maxCarryWeight) {
+			notification = this.#game.notificationGenerator.generateTakeTooHeavyNotification(item.singleContainingPhrase, containerPhrase);
+			narration = `${player.displayName} tries to take ${item.singleContainingPhrase} from ${containerPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`;
+		}
+		else if (player.carryWeight + item.weight > player.maxCarryWeight) {
+			notification = this.#game.notificationGenerator.generateTakeTooMuchWeightNotification(item.singleContainingPhrase, containerPhrase);
+			narration = `${player.displayName} tries to take ${item.singleContainingPhrase} from ${containerPhrase}, but ${player.pronouns.sbj} ${player.pronouns.plural ? `are` : `is`} carrying too much weight.`;
+		}
+		if (notify) player.notify(notification);
 		if (!item.prefab.discreet)
-			this.#sendNarration(player, `${player.displayName} takes ${item.singleContainingPhrase} from ${containerPhrase}.`);
+			this.#sendNarration(player, narration);
 	}
 
 	/**
@@ -167,6 +177,32 @@ export default class GameNarrationHandler {
 		if (notify) player.notify(this.#game.notificationGenerator.generateDropNotification(item.singleContainingPhrase, preposition, containerPhrase));
 		if (!item.prefab.discreet)
 			this.#sendNarration(player, `${player.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
+	}
+
+	/**
+	 * Narrates a give action.
+	 * @param {InventoryItem} item - The item to give.
+	 * @param {Player} player - The player performing the give action.
+	 * @param {Player} recipient - The player receiving the item.
+	 */
+	narrateGive(item, player, recipient) {
+		let playerNotification = this.#game.notificationGenerator.generateGiveNotification(item.singleContainingPhrase, recipient.displayName);
+		let recipientNotification = this.#game.notificationGenerator.generateReceiveNotification(item.singleContainingPhrase, player.displayName);
+		let narration = `${player.displayName} gives ${item.singleContainingPhrase} to ${recipient.displayName}.`;
+		if (item.weight > recipient.maxCarryWeight) {
+			playerNotification = this.#game.notificationGenerator.generateGiveTooHeavyNotification(item.singleContainingPhrase, recipient);
+			recipientNotification = this.#game.notificationGenerator.generateReceiveTooHeavyNotification(item.singleContainingPhrase, player.displayName);
+			narration = `${player.displayName} tries to give ${item.singleContainingPhrase} to ${recipient.displayName}, but it is too heavy for ${recipient.pronouns.obj} to lift.`;
+		}
+		else if (recipient.carryWeight + item.weight > recipient.maxCarryWeight) {
+			playerNotification = this.#game.notificationGenerator.generateGiveTooMuchWeightNotification(item.singleContainingPhrase, recipient);
+			recipientNotification = this.#game.notificationGenerator.generateReceiveTooMuchWeightNotification(item.singleContainingPhrase, player.displayName);
+			narration = `${player.displayName} tries to give ${item.singleContainingPhrase} to ${recipient.displayName}, but ${recipient.pronouns.sbj} ${recipient.pronouns.plural ? `are` : `is`} carrying too much weight.`;
+		}
+		player.notify(recipientNotification);
+		recipient.notify(recipientNotification);
+		if (!item.prefab.discreet)
+			this.#sendNarration(player, narration);
 	}
 
 	/**

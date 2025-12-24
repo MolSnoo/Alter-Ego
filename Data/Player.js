@@ -1243,10 +1243,7 @@ export default class Player extends ItemContainer {
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
-        this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
-        recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
             this.removeItemFromDescription(createdItem, "hands");
             // Add the item to the recipient's hands item list.

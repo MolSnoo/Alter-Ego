@@ -2,7 +2,6 @@
 import Action from '../Data/Action.js';
 import Fixture from '../Data/Fixture.js';
 import Game from '../Data/Game.js';
-import Narration from '../Data/Narration.js';
 import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
 import Puzzle from "../Data/Puzzle.js";
@@ -147,12 +146,6 @@ export async function execute (game, message, command, args, player) {
         if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
             return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
-    if (item.weight > player.maxCarryWeight) {
-        player.notify(`You try to take ${item.singleContainingPhrase}, but it is too heavy.`);
-        if (!item.prefab.discreet) new Narration(game, player, player.location, `${player.displayName} tries to take ${item.singleContainingPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`).send();
-        return;
-    }
-    else if (player.carryWeight + item.weight > player.maxCarryWeight) return addReply(game, message, `You try to take ${item.singleContainingPhrase}, but you're carrying too much weight.`);
 
     const action = new Action(game, ActionType.Take, message, player, player.location, false);
     action.performTake(item, hand, container, slotName);

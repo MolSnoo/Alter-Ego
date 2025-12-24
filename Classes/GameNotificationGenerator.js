@@ -60,6 +60,24 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a string notification indicating the player couldn't take an item because it is too heavy.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateTakeTooHeavyNotification(itemPhrase, containerPhrase) {
+		return `You try to take ${itemPhrase} from ${containerPhrase}, but it is too heavy for you to lift.`;
+	}
+
+	/**
+	 * Generates a string notification indicating the player couldn't take an item because they are carrying too much weight.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateTakeTooMuchWeightNotification(itemPhrase, containerPhrase) {
+		return `You try to take ${itemPhrase} from ${containerPhrase}, but you're carrying too much weight.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player tried to steal from an empty inventory slot.
 	 * @param {string} slotPhrase - A phrase to refer to the slot the player tried to steal from.
 	 * @param {string} containerName - The name of the container the player tried to steal from.
@@ -124,6 +142,60 @@ export default class GameNotificationGenerator {
 	 */
 	generateDropNotification(itemPhrase, preposition, containerPhrase) {
 		return `You put ${itemPhrase} ${preposition} ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player gave an item to someone.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} recipientDisplayName - The display name of the recipient.
+	 */
+	generateGiveNotification(itemPhrase, recipientDisplayName) {
+		return `You give ${itemPhrase} to ${recipientDisplayName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't give an item to someone because it is too heavy.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {Player} recipient - The recipient of the item.
+	 */
+	generateGiveTooHeavyNotification(itemPhrase, recipient) {
+		return `You try to give ${recipient.displayName} ${itemPhrase}, but it is too heavy for ${recipient.pronouns.obj}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't give an item to someone because they are carrying too much weight.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {Player} recipient - The recipient of the item.
+	 */
+	generateGiveTooMuchWeightNotification(itemPhrase, recipient) {
+		return `You try to give ${recipient.displayName} ${itemPhrase}, but ${recipient.pronouns.sbj} ${recipient.pronouns.plural ? `are` : `is`} carrying too much weight.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player received an item from someone.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} giverDisplayName - The display name of the giver.
+	 */
+	generateReceiveNotification(itemPhrase, giverDisplayName) {
+		return `${giverDisplayName} gives you ${itemPhrase}!`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't receive an item from someone because it is too heavy.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} giverDisplayName - The display name of the player giving them the item.
+	 */
+	generateReceiveTooHeavyNotification(itemPhrase, giverDisplayName) {
+		return `${giverDisplayName} tries to give you ${itemPhrase}, but it is too heavy for you to lift.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't receive an item to someone because they are carrying too much weight.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} giverDisplayName - The display name of the player giving them the item.
+	 */
+	generateReceiveTooMuchWeightNotification(itemPhrase, giverDisplayName) {
+		return `${giverDisplayName} tries to give you ${itemPhrase}, but you're carrying too much weight.`;
 	}
 
 	/**

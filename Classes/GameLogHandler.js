@@ -115,11 +115,13 @@ export default class GameLogHandler {
 	 * @param {Player} player - The player who performed the action.
 	 * @param {Fixture|Puzzle|RoomItem} container - The container the item was taken from.
 	 * @param {InventorySlot} inventorySlot - The inventory slot the item was taken from.
+	 * @param {boolean} successful - Whether or not the player was successful in taking the item.
 	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
 	 */
-	logTake(item, player, container, inventorySlot, forced) {
+	logTake(item, player, container, inventorySlot, successful, forced) {
 		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
-		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}took ${item.getIdentifier()} from ${containerPhrase} in ${player.location.channel}`);
+		const actionVerb = successful ? `took` : `attempted and failed to take`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${actionVerb} ${item.getIdentifier()} from ${containerPhrase} in ${player.location.channel}`);
 	}
 
 	/**
@@ -151,6 +153,19 @@ export default class GameLogHandler {
 		const preposition = container.getPreposition() ? container.getPreposition() : "in";
 		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}dropped ${item.getIdentifier()} ${preposition} ${containerPhrase} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a give action.
+	 * @param {InventoryItem} item - The item that was given.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Player} recipient - The player who received the item.
+	 * @param {boolean} successful - Whether or not the player was successful in giving the item.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logGive(item, player, recipient, successful, forced) {
+		const actionVerb = successful ? `gave` : `attempted and failed to give`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${actionVerb} ${item.getIdentifier()} to ${recipient.name} in ${player.location.channel}`);
 	}
 
 	/**
