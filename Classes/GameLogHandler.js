@@ -123,6 +123,23 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a steal action.
+	 * @param {InventoryItem} item - The item that was stolen.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Player} victim - The player who was stolen from.
+	 * @param {InventoryItem} container - The container the item was stolen from.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was stolen from.
+	 * @param {boolean} successful - Whether or not the player was successful in stealing.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logSteal(item, player, victim, container, inventorySlot, successful, forced) {
+		const forcedString = this.#getForcedString(forced);
+		const actionVerb = successful ? `stole` : `attempted and failed to steal`;
+		const logText = `${this.#getTime()} - ${player.name} ${forcedString}${actionVerb} ${item.getIdentifier()} from ${inventorySlot.id} of ${victim.name}'s ${container.getIdentifier()} in ${player.location.channel}`;
+		this.#sendLogMessage(logText);
+	}
+
+	/**
 	 * Logs a drop action.
 	 * @param {InventoryItem} item - The item that was dropped.
 	 * @param {Player} player - The player who performed the action.

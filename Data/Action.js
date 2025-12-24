@@ -1,3 +1,4 @@
+import Die from "./Die.js";
 import EquipmentSlot from "./EquipmentSlot.js";
 import Exit from "./Exit.js";
 import Fixture from "./Fixture.js";
@@ -24,7 +25,7 @@ export default class Action {
 	 * @readonly
 	 * @type {Game}
 	 */
-	game;
+	#game;
 	/**
 	 * The unique ID of this action.
 	 * @readonly
@@ -79,7 +80,7 @@ export default class Action {
 	 * @param {Whisper} [whisper] - The whisper where this action is being performed, if applicable.
 	 */
 	constructor(game, type, message, player, location, forced, whisper) {
-		this.game = game;
+		this.#game = game;
 		this.type = type;
 		this.message = message;
 		this.player = player;
@@ -101,8 +102,8 @@ export default class Action {
 	 */
 	performText(recipient, messageText) {
 		if (this.type !== ActionType.Text) return;
-		const senderText = this.game.notificationGenerator.generateTextNotification(messageText, this.player.name, recipient.name);
-		const recipientText = this.game.notificationGenerator.generateTextNotification(messageText, this.player.name);
+		const senderText = this.#game.notificationGenerator.generateTextNotification(messageText, this.player.name, recipient.name);
+		const recipientText = this.#game.notificationGenerator.generateTextNotification(messageText, this.player.name);
 		addDirectNarrationWithAttachments(this.player, senderText, this.message.attachments);
 		addDirectNarrationWithAttachments(recipient, recipientText, this.message.attachments);
 	}
@@ -115,11 +116,11 @@ export default class Action {
 	 */
 	performGesture(gesture, targetType, target) {
 		if (this.type !== ActionType.Gesture) return;
-		let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.game);
+		let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.#game);
 		newGesture.targetType = targetType;
 		newGesture.target = target;
-		this.game.narrationHandler.narrateGesture(newGesture, this.player);
-		this.game.logHandler.logGesture(gesture, target, this.player, this.forced);
+		this.#game.narrationHandler.narrateGesture(newGesture, this.player);
+		this.#game.logHandler.logGesture(gesture, target, this.player, this.forced);
 	}
 
 	/**
@@ -128,7 +129,7 @@ export default class Action {
 	performStop() {
 		if (this.type !== ActionType.Stop) return;
 		this.player.stopMoving();
-		this.game.narrationHandler.narrateStop(this.player);
+		this.#game.narrationHandler.narrateStop(this.player);
 	}
 
 	/**
@@ -137,7 +138,7 @@ export default class Action {
 	 */
 	performInspect(target) {
 		if (this.type !== ActionType.Inspect) return;
-		this.game.narrationHandler.narrateInspect(target, this.player);
+		this.#game.narrationHandler.narrateInspect(target, this.player);
 		let description = target.description;
 		// If the player is inspecting an inventory item that belongs to another player, remove the contents of all il tags before parsing it.
 		if (target instanceof InventoryItem && target.player.name !== this.player.name)
@@ -149,13 +150,13 @@ export default class Action {
 		// Also ensure that the fixture isn't locked.
 		if (target instanceof Fixture && !this.player.hasBehaviorAttribute("hidden") && this.player.hidingSpot !== target.name
 		&&  (target.childPuzzle === null || !target.childPuzzle.type.endsWith("lock") || target.childPuzzle.solved)) {
-			const hiddenPlayers = this.game.entityFinder.getLivingPlayers(undefined, undefined, this.player.location.id, target.name);
+			const hiddenPlayers = this.#game.entityFinder.getLivingPlayers(undefined, undefined, this.player.location.id, target.name);
 			for (const hiddenPlayer of hiddenPlayers)
-				hiddenPlayer.notify(this.game.notificationGenerator.generateHiddenPlayerFoundNotification(this.player.displayName));
+				hiddenPlayer.notify(this.#game.notificationGenerator.generateHiddenPlayerFoundNotification(this.player.displayName));
 			const hiddenPlayersString = generatePlayerListString(hiddenPlayers);
-			if (hiddenPlayersString) this.player.notify(this.game.notificationGenerator.generateFoundHiddenPlayersNotification(hiddenPlayersString, target.name));
+			if (hiddenPlayersString) this.player.notify(this.#game.notificationGenerator.generateFoundHiddenPlayersNotification(hiddenPlayersString, target.name));
 		}
-		this.game.logHandler.logInspect(target, this.player, this.forced);
+		this.#game.logHandler.logInspect(target, this.player, this.forced);
 	}
 
 	/**
@@ -164,8 +165,8 @@ export default class Action {
 	 */
 	performKnock(exit) {
 		if (this.type !== ActionType.Knock) return;
-		this.game.narrationHandler.narrateKnock(exit, this.player);
-		this.game.logHandler.logKnock(exit, this.player, this.forced);
+		this.#game.narrationHandler.narrateKnock(exit, this.player);
+		this.#game.logHandler.logKnock(exit, this.player, this.forced);
 	}
 
 	/**
@@ -176,8 +177,8 @@ export default class Action {
 	 */
 	performUse(item, target = this.player, customNarration) {
 		if (this.type !== ActionType.Use) return;
-		this.game.narrationHandler.narrateUse(item, this.player, target, customNarration);
-		this.game.logHandler.logUse(item, this.player, target, this.forced);
+		this.#game.narrationHandler.narrateUse(item, this.player, target, customNarration);
+		this.#game.logHandler.logUse(item, this.player, target, this.forced);
 		// This transforms the item, so save it for last.
 		this.player.use(item, target);
 	}
@@ -192,20 +193,62 @@ export default class Action {
 	 */
 	performTake(item, handEquipmentSlot, container, inventorySlot, notify = true) {
 		if (this.type !== ActionType.Take) return;
-		this.game.narrationHandler.narrateTake(item, this.player, notify);
-		this.game.logHandler.logTake(item, this.player, container, inventorySlot, this.forced);
+		this.#game.narrationHandler.narrateTake(item, this.player, notify);
+		this.#game.logHandler.logTake(item, this.player, container, inventorySlot, this.forced);
 		this.player.take(item, handEquipmentSlot, container, inventorySlot);
 		// Container is a weight puzzle.
 		if (container instanceof Puzzle && container.type === "weight") {
-			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
 			const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
 			this.player.attemptPuzzle(container, item, weight.toString(), "take", "");
 		}
 		// Container is a container puzzle.
 		else if (container instanceof Puzzle && container.type === "container") {
-			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
 			const containerItemsString = getSortedItemsString(containerItems);
 			this.player.attemptPuzzle(container, item, containerItemsString, "take", "");
+		}
+	}
+
+	/**
+	 * Performs a steal action.
+	 * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
+     * @param {Player} victim - The player to steal from.
+     * @param {InventoryItem} container - An inventory item belonging to the victim that the player will attempt to steal from.
+     * @param {InventorySlot<InventoryItem>} inventorySlot - The {@link InventorySlot|inventory slot} that the player will attempt to steal from.
+	 */
+	performSteal(handEquipmentSlot, victim, container, inventorySlot) {
+		const slotPhrase = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+		// If there are no items in that slot, tell the player.
+		if (inventorySlot.items.length === 0)
+			return this.player.notify(this.#game.notificationGenerator.generateStoleFromEmptyInventorySlotNotification(slotPhrase, container.name, victim.displayName));
+		// There might be multiple of the same item, so we need to make an array where each item's index is inserted as many times as its quantity.
+		/** @type {number[]} */
+		let actualItems = [];
+		for (let item of inventorySlot.items) {
+			for (let i = 0; i < item.quantity; i++)
+				actualItems.push(i);
+		}
+		const actualItemsIndex = Math.floor(Math.random() * actualItems.length);
+		const index = actualItems[actualItemsIndex];
+		const item = inventorySlot.items[index];
+
+		// Determine how successful the player is.
+		const failMax = Math.floor((this.#game.settings.diceMax - this.#game.settings.diceMin) / 3) + this.#game.settings.diceMin;
+		const partialMax = Math.floor(2 * (this.#game.settings.diceMax - this.#game.settings.diceMin) / 3) + this.#game.settings.diceMin;
+		let dieRoll = new Die(this.#game, "dex", this.player, victim);
+		if (this.player.hasBehaviorAttribute("thief")) dieRoll.result = this.#game.settings.diceMax;
+		if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
+
+		if (dieRoll.result > failMax && item instanceof InventoryItem) {
+			const victimAware = dieRoll.result <= partialMax && !victim.hasBehaviorAttribute("unconscious");
+			this.#game.narrationHandler.narrateSteal(item, this.player, victim, container, inventorySlot, victimAware);
+			this.#game.logHandler.logSteal(item, this.player, victim, container, inventorySlot, true, this.forced);
+			this.player.steal(item, handEquipmentSlot, victim, container, inventorySlot);
+		}
+		else {
+			this.player.notify(this.#game.notificationGenerator.generateFailedStealNotification(item.singleContainingPhrase, slotPhrase, container.name, victim));
+			victim.notify(this.#game.notificationGenerator.generateFailedStolenFromNotification(this.player.displayName, slotPhrase, item.singleContainingPhrase, container.name));
 		}
 	}
 
@@ -219,18 +262,18 @@ export default class Action {
 	 */
 	performDrop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
 		if (this.type !== ActionType.Drop) return;
-		this.game.narrationHandler.narrateDrop(item, container, this.player, notify);
-		this.game.logHandler.logDrop(item, this.player, container, inventorySlot, this.forced);
+		this.#game.narrationHandler.narrateDrop(item, container, this.player, notify);
+		this.#game.logHandler.logDrop(item, this.player, container, inventorySlot, this.forced);
 		this.player.drop(item, handEquipmentSlot, container, inventorySlot);
 		// Container is a weight puzzle.
         if (container instanceof Puzzle && container.type === "weight") {
-            const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
             const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
             this.player.attemptPuzzle(container, item, weight.toString(), "drop", "");
         }
         // Container is a container puzzle.
         else if (container instanceof Puzzle && container.type === "container") {
-            const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
 			const containerItemsString = getSortedItemsString(containerItems);
             this.player.attemptPuzzle(container, item, containerItemsString, "drop", "");
         }
@@ -242,8 +285,8 @@ export default class Action {
 	 */
 	performDie(customNarration) {
 		if (this.type !== ActionType.Die) return;
-		this.game.narrationHandler.narrateDie(this.player, customNarration);
-		this.game.logHandler.logDie(this.player);
+		this.#game.narrationHandler.narrateDie(this.player, customNarration);
+		this.#game.logHandler.logDie(this.player);
 		this.player.die();
 	}
 }

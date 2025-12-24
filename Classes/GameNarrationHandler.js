@@ -3,6 +3,7 @@ import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
 import Gesture from "../Data/Gesture.js";
 import InventoryItem from "../Data/InventoryItem.js";
+import InventorySlot from "../Data/InventorySlot.js";
 import Narration from "../Data/Narration.js";
 import Player from "../Data/Player.js";
 import Puzzle from "../Data/Puzzle.js";
@@ -20,14 +21,14 @@ export default class GameNarrationHandler {
 	 * @readonly
 	 * @type {Game}
 	 */
-	game;
+	#game;
 
 	/**
 	 * @constructor
 	 * @param {Game} game - The game this belongs to.
 	 */
 	constructor(game) {
-		this.game = game;
+		this.#game = game;
 	}
 
 	/**
@@ -37,7 +38,7 @@ export default class GameNarrationHandler {
 	 * @param {Room} [location] - The location in which the narration is occurring. Defaults to the player's location.
 	 */
 	#sendNarration(player, narrationText, location = player.location) {
-		new Narration(this.game, player, location, narrationText).send();
+		new Narration(this.#game, player, location, narrationText).send();
 	}
 
 	/**
@@ -127,9 +128,30 @@ export default class GameNarrationHandler {
 	 */
 	narrateTake(item, player, notify = true) {
 		const containerPhrase = item.getContainerPhrase();
-		if (notify) player.notify(this.game.notificationGenerator.generateTakeNotification(item.singleContainingPhrase, containerPhrase));
+		if (notify) player.notify(this.#game.notificationGenerator.generateTakeNotification(item.singleContainingPhrase, containerPhrase));
 		if (!item.prefab.discreet)
 			this.#sendNarration(player, `${player.displayName} takes ${item.singleContainingPhrase} from ${containerPhrase}.`);
+	}
+
+	/**
+	 * Narrates a steal action.
+	 * @param {InventoryItem} item - The item being stolen.
+	 * @param {Player} thief - The player performing the steal action.
+	 * @param {Player} victim - The player being stolen from.
+	 * @param {InventoryItem} container - The container the item was stolen from.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was stolen from.
+	 * @param {boolean} notifyVictim - Whether or not to notify the victim who was stolen from.
+	 */
+	narrateSteal(item, thief, victim, container, inventorySlot, notifyVictim) {
+		const slotPhrase = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+		const thiefNotification = this.#game.notificationGenerator.generateSuccessfulStealNotification(item.singleContainingPhrase, slotPhrase, container.name, victim, notifyVictim);
+		thief.notify(thiefNotification);
+		if (notifyVictim) {
+			const victimNotification = this.#game.notificationGenerator.generateSuccessfulStolenFromNotification(thief.displayName, slotPhrase, item.singleContainingPhrase, container.name);
+			victim.notify(victimNotification);
+		}
+		if (!item.prefab.discreet)
+			this.#sendNarration(thief, `${thief.displayName} steals ${item.singleContainingPhrase} from ${slotPhrase}${victim.displayName}'s ${container.name}.`);
 	}
 
 	/**
@@ -142,7 +164,7 @@ export default class GameNarrationHandler {
 	narrateDrop(item, container, player, notify = true) {
 		const preposition = container.getPreposition();
 		const containerPhrase = container.getContainingPhrase();
-		if (notify) player.notify(this.game.notificationGenerator.generateDropNotification(item.singleContainingPhrase, preposition, containerPhrase));
+		if (notify) player.notify(this.#game.notificationGenerator.generateDropNotification(item.singleContainingPhrase, preposition, containerPhrase));
 		if (!item.prefab.discreet)
 			this.#sendNarration(player, `${player.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
 	}
@@ -153,7 +175,7 @@ export default class GameNarrationHandler {
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.
 	 */
 	narrateDie(player, customNarration) {
-		player.notify(this.game.notificationGenerator.generateDieNotification());
+		player.notify(this.#game.notificationGenerator.generateDieNotification());
 		if (!player.hasBehaviorAttribute("hidden")) {
 			if (customNarration) this.#sendNarration(player, customNarration);
 			else this.#sendNarration(player, `${player.displayName} dies.`);

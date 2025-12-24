@@ -1169,69 +1169,23 @@ export default class Player extends ItemContainer {
     }
 
     /**
-     * Attempts to steal an inventory item from another player.
+     * Steals an inventory item from another player.
+     * @param {InventoryItem} item - The inventory item to steal.
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
      * @param {Player} victim - The player to steal from.
      * @param {InventoryItem} container - An inventory item belonging to the victim that the player will attempt to steal from.
      * @param {InventorySlot<InventoryItem>} inventorySlot - The {@link InventorySlot|inventory slot} that the player will attempt to steal from.
-     * @returns {StealResult}
      */
-    steal(handEquipmentSlot, victim, container, inventorySlot) {
-        // There might be multiple of the same item, so we need to make an array where each item's index is inserted as many times as its quantity.
-        /** @type {number[]} */
-        let actualItems = [];
-        for (let item of inventorySlot.items) {
-            for (let i = 0; i < item.quantity; i++)
-                actualItems.push(i);
-        }
-        const actualItemsIndex = Math.floor(Math.random() * actualItems.length);
-        const index = actualItems[actualItemsIndex];
-        let item = inventorySlot.items[index];
+    steal(item, handEquipmentSlot, victim, container, inventorySlot) {
+        // Remove the item from its container.
+        itemManager.removeStashedItem(item, container, inventorySlot, victim.inventoryCollection.get(item.equipmentSlot));
+        // Put the item in the player's hand.
+        const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
+        victim.carryWeight -= createdItem.weight;
+        this.carryWeight += createdItem.weight;
 
-        // Determine how successful the player is.
-        const failMax = Math.floor((this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
-        const partialMax = Math.floor(2 * (this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
-        let dieRoll = new Die(this.getGame(), "dex", this, victim);
-        if (this.hasBehaviorAttribute("thief")) dieRoll.result = this.getGame().settings.diceMax;
-        if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
-
-        // A fragment of a string that will be used later.
-        const slotDisplay = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
-
-        // Player didn't fail.
-        if (dieRoll.result > failMax && item instanceof InventoryItem) {
-            // Remove the item from its container.
-            itemManager.removeStashedItem(item, container, inventorySlot, victim.inventoryCollection.get(item.equipmentSlot));
-            // Put the item in the player's hand.
-            const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
-            victim.carryWeight -= createdItem.weight;
-            this.carryWeight += createdItem.weight;
-
-            // Form the messages to send.
-            const victimUnaware = dieRoll.result > partialMax || victim.hasBehaviorAttribute("unconscious");
-            const successDisplay = victimUnaware ? ` without ${victim.pronouns.obj} noticing!`
-                : `, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`;
-            const playerNotification = `You steal ${createdItem.singleContainingPhrase} from ${slotDisplay}${victim.displayName}'s ${container.name}${successDisplay}`;
-            this.notify(playerNotification);
-            const narrationStarter = `${this.displayName} steals ${createdItem.singleContainingPhrase} from `;
-            if (!victimUnaware) {
-                const victimNotification = `${narrationStarter}${slotDisplay}your${container.name}!`;
-                victim.notify(victimNotification);
-            }
-            if (!createdItem.prefab.discreet) {
-                new Narration(this.getGame(), this, this.location, `${narrationStarter}${slotDisplay}${victim.displayName}'s ${container.name}.`).send();
-                this.addItemToDescription(createdItem, "hands");
-            }
-
-            return { itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id, successful: true };
-        }
-        // Player failed to steal the item.
-        else {
-            this.notify(`You try to steal ${item.singleContainingPhrase} from ${slotDisplay}${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-            victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${slotDisplay}your${container.name}, but you notice in time!`);
-
-            return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
-        }
+        if (!createdItem.prefab.discreet)
+            this.addItemToDescription(createdItem, "hands");
     }
 
     /**
