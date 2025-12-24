@@ -288,15 +288,6 @@ declare global {
 	}
 
 	/**
-	 * @property {string} itemName - The name of the item attempted to be stolen.
-	 * @property {boolean} successful - Whether the steal attempt was successful.
-	 */
-	interface StealResult {
-		itemName: string;
-		successful: boolean;
-	}
-
-	/**
 	 * @property {InventoryItem|null} product1 - The first product of the crafting result, or null if none.
 	 * @property {InventoryItem|null} product2 - The second product of the crafting result, or null if none.
 	 */

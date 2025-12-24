@@ -1,7 +1,8 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -42,17 +43,17 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a player and one of their equipped items. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and one of their equipped items. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable steal");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return messageHandler.addReply(game, message, "You do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === undefined) return addReply(game, message, "You do not have a free hand to steal an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     if (args[0].toUpperCase() === "FROM") args.splice(0, 1);
     const input = args.join(' ');
@@ -65,16 +66,16 @@ export async function execute (game, message, command, args, player) {
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(possessive) && (hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot steal from themselves.
-            if (occupant.name === player.name) return messageHandler.addReply(game, message, "You can't steal from yourself.");
+            if (occupant.name === player.name) return addReply(game, message, "You can't steal from yourself.");
 
             victim = occupant;
             parsedInput = parsedInput.substring(possessive.length).trim();
             break;
         }
         else if (parsedInput.startsWith(possessive) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
-            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+            return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
-    if (victim === null) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
+    if (victim === null) return addReply(game, message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // parsedInput should be the equipped item and possibly a slot name. Get the names of those.
     const newArgs = parsedInput.split(" OF ");
@@ -95,27 +96,14 @@ export async function execute (game, message, command, args, player) {
             if (coveringItems.length === 0) container = inventory[i];
         }
     }
-    if (container === null) return messageHandler.addReply(game, message, `Couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
-    if (container.inventoryCollection.size === 0) return messageHandler.addReply(game, message, `${victim.displayName}'s ${container.name} cannot hold items.`);
+    if (container === null) return addReply(game, message, `Couldn't find "${itemName}" equipped to ${victim.displayName}'s inventory.`);
+    if (container.inventoryCollection.size === 0) return addReply(game, message, `${victim.displayName}'s ${container.name} cannot hold items.`);
 
     // If no slot name was specified, pick one.
     let slot = container.inventoryCollection.get(slotName);
-    if (slotName === "") slot = container.inventoryCollection.values()[Math.floor(Math.random() * container.inventoryCollection.size)];
-    else if (slot === undefined) return messageHandler.addReply(game, message, `Couldn't find ${slotName} of ${container.name}.`)
-    // If there are no items in that slot, tell the player.
-    if (slot.items.length === 0) {
-        if (container.inventoryCollection.size === 1) return player.notify(`You try to steal from ${victim.displayName}'s ${container.name}, but it's empty.`);
-        else return player.notify(`You try to steal from ${slot.id} of ${victim.displayName}'s ${container.name}, but it's empty.`);
-    }
+    if (slotName === "") slot = [... container.inventoryCollection.values()][Math.floor(Math.random() * container.inventoryCollection.size)];
+    if (slot === undefined) return addReply(game, message, `Couldn't find ${slotName} of ${container.name}.`);
 
-    const result = player.steal(hand, victim, container, slot);
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    if (result.successful)
-        messageHandler.addLogMessage(game, `${time} - ${player.name} stole ${result.itemName} from ${slot.id} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
-    else
-        messageHandler.addLogMessage(game, `${time} - ${player.name} attempted and failed to steal ${result.itemName} from ${slot.id} of ${victim.name}'s ${container.name} in ${player.location.channel}`);
-
-    return;
+    const action = new Action(game, ActionType.Steal, message, player, player.location, false);
+    action.performSteal(hand, victim, container, slot);
 }
