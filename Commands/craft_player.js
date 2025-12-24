@@ -46,7 +46,8 @@ export async function execute (game, message, command, args, player) {
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
         return messageHandler.addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
-    const [rightHand, leftHand] = game.entityFinder.getPlayerHands(player);
+    const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const leftHand = player.inventoryCollection.get("LEFT HAND");
 
     // Now find the item in the player's inventory.
     let item1 = null;

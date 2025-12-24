@@ -99,7 +99,8 @@ export default class Die {
         if (attacker) {
             if (attacker.hasBehaviorAttribute("coin flipper")) {
                 let hasCoin = false;
-                const [rightHand, leftHand] = this.game.entityFinder.getPlayerHands(attacker);
+                const rightHand = attacker.inventoryCollection.get("RIGHT HAND");
+                const leftHand = attacker.inventoryCollection.get("LEFT HAND");
                 if (rightHand && rightHand.equippedItem !== null && rightHand.equippedItem.name.includes("COIN")
                     || leftHand && leftHand.equippedItem !== null && leftHand.equippedItem.name.includes("COIN")) {
                     hasCoin = true;

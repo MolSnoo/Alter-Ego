@@ -43,7 +43,8 @@ export async function execute (game, message, command, args, player) {
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    const [rightHand, leftHand] = game.entityFinder.getPlayerHands(player);
+        const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const leftHand = player.inventoryCollection.get("LEFT HAND");
 
     // Now find the item in the player's inventory.
     let item = null;

@@ -77,7 +77,8 @@ export async function execute (game, message, command, args) {
     // First, find the item in the player's inventory.
     let item = null;
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    const [rightHand, leftHand] = game.entityFinder.getPlayerHands(player);
+    const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const leftHand = player.inventoryCollection.get("LEFT HAND");
     // Check for the identifier first.
     if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === parsedInput)
         item = rightHand.equippedItem;

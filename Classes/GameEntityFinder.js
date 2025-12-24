@@ -160,15 +160,18 @@ export default class GameEntityFinder {
 	/**
 	 * Gets a given player's hands.
 	 * @param {Player} player - The player.
-	 * @returns {[EquipmentSlot, EquipmentSlot]} Two hands belonging to the player.
+	 * @returns {Array<EquipmentSlot>} Hands belonging to the player.
 	 */
 	getPlayerHands(player) {
-		return [player.inventoryCollection.get("RIGHT HAND"), player.inventoryCollection.get("LEFT HAND")]
+		let hands = [];
+		if (player.inventoryCollection.has("RIGHT HAND")) hands.push(player.inventoryCollection.get("RIGHT HAND"));
+		if (player.inventoryCollection.has("LEFT HAND")) hands.push(player.inventoryCollection.get("LEFT HAND"));
+		return hands;
 	}
 
 	/** Gets a free hand from the given player.
 	 * @param {Player} player - The player.
-	 * @returns {EquipmentSlot} A free hand of the player, preferring the right hand over the left. Returns undefined if both hands are occupied.
+	 * @returns {EquipmentSlot} A free hand of the player. Returns undefined if all hands are occupied.
 	 */
 	getPlayerFreeHand(player) {
 		for (const hand of this.getPlayerHands(player))
