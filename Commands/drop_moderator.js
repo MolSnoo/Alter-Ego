@@ -1,9 +1,10 @@
-﻿import Fixture from "../Data/Fixture.js";
-import GameSettings from '../Classes/GameSettings.js';
+﻿import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
+import Fixture from "../Data/Fixture.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -39,10 +40,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(" ");
@@ -51,7 +52,7 @@ export async function execute (game, message, command, args) {
 
     // First, find the item in the player's inventory.
     const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, true, true, true, true);
-    if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${input}" in either of ${player.name}'s hands.`);
+    if (item === undefined) return addReply(game, message, `Couldn't find item "${input}" in either of ${player.name}'s hands.`);
     newArgs = parsedInput.split(' ');
 
     // Check if a fixture was specified.
@@ -59,19 +60,19 @@ export async function execute (game, message, command, args) {
     let fixture = null;
     if (parsedInput !== "") {
         for (let i = 0; i < fixtures.length; i++) {
-            if (fixtures[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a preposition.`);
+            if (fixtures[i].name === parsedInput) return addReply(game, message, `You need to supply a preposition.`);
             if ((parsedInput === `${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}` || parsedInput === `IN ${fixtures[i].name}`) && fixtures[i].preposition !== "") {
                 fixture = fixtures[i];
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(fixtures[i].name)).trimEnd();
                 // Check if the fixture has a puzzle attached to it.
                 if (fixture.childPuzzle !== null && fixture.childPuzzle.type !== "weight" && fixture.childPuzzle.type !== "container" && (!fixture.childPuzzle.accessible || !fixture.childPuzzle.solved) && player.hidingSpot !== fixture.name)
-                    return messageHandler.addReply(game, message, `You cannot put items ${fixture.preposition} ${fixture.name} right now.`);
+                    return addReply(game, message, `You cannot put items ${fixture.preposition} ${fixture.name} right now.`);
                 newArgs = parsedInput.split(' ');
                 newArgs.splice(newArgs.length - 1, 1);
                 parsedInput = newArgs.join(' ');
                 break;
             }
-            else if (parsedInput === `${newArgs[0]} ${fixtures[i].name}` && fixtures[i].preposition === "") return messageHandler.addReply(game, message, `${fixtures[i].name} cannot hold items.`);
+            else if (parsedInput === `${newArgs[0]} ${fixtures[i].name}` && fixtures[i].preposition === "") return addReply(game, message, `${fixtures[i].name} cannot hold items.`);
         }
     }
 
@@ -83,13 +84,13 @@ export async function execute (game, message, command, args) {
         for (let i = 0; i < items.length; i++) {
             if (items[i].identifier !== "" && items[i].identifier === parsedInput ||
                 items[i].prefab.id === parsedInput ||
-                items[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a preposition.`);
+                items[i].name === parsedInput) return addReply(game, message, `You need to supply a preposition.`);
             if (items[i].identifier !== "" && parsedInput.endsWith(items[i].identifier) ||
                 parsedInput.endsWith(items[i].prefab.id) ||
                 parsedInput.endsWith(items[i].name)) {
                 const itemContainer = items[i].container;
                 if (fixture === null || fixture !== null && itemContainer !== null && (itemContainer.name === fixture.name || itemContainer instanceof Puzzle && itemContainer.parentFixture.name === fixture.name)) {
-                    if (items[i].inventoryCollection.size === 0) return messageHandler.addReply(game, message, `${items[i].prefab.id} cannot hold items.`);
+                    if (items[i].inventoryCollection.size === 0) return addReply(game, message, `${items[i].prefab.id} cannot hold items.`);
                     containerItem = items[i];
 
                     if (items[i].identifier !== "" && parsedInput.endsWith(items[i].identifier))
@@ -110,7 +111,7 @@ export async function execute (game, message, command, args) {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier}.`);
+                        if (containerItemSlot === null) return addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier}.`);
                     }
                     newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
@@ -132,15 +133,15 @@ export async function execute (game, message, command, args) {
         container = containerItem;
         if (containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
         slot = containerItemSlot;
-        if (item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because it is too large.`);
-        else if (item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because it is too large.`);
-        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because there isn't enough space left.`);
-        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because there isn't enough space left.`);
+        if (item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because it is too large.`);
+        else if (item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because it is too large.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because there isn't enough space left.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because there isn't enough space left.`);
     }
     else {
-        if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
+        if (parsedInput !== "") return addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
         const defaultDropOpject = fixtures.find(fixture => fixture.name === game.settings.defaultDropFixture);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return messageHandler.addReply(game, message, `There is no default drop object "${game.settings.defaultDropFixture}" in ${player.location.id}.`);
+        if (defaultDropOpject === null || defaultDropOpject === undefined) return addReply(game, message, `There is no default drop object "${game.settings.defaultDropFixture}" in ${player.location.id}.`);
         container = defaultDropOpject;
     }
 
@@ -152,39 +153,10 @@ export async function execute (game, message, command, args) {
         let topContainerPreposition = "in";
         if (topContainer instanceof Fixture && topContainer.preposition !== "") topContainerPreposition = topContainer.preposition; 
         if (topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
-            return messageHandler.addReply(game, message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
+            return addReply(game, message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
-    player.drop(item, hand, container, slot);
-    // Post log message. Message should vary based on container type.
-    const time = new Date().toLocaleTimeString();
-    // Container is a Fixture.
-    if (container instanceof Fixture)
-        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.preposition} ${container.name} in ${player.location.channel}`);
-    // Container is a Puzzle.
-    else if (container instanceof Puzzle) {
-        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.parentFixture.preposition} ${container.name} in ${player.location.channel}`);
-        // Container is a weight puzzle.
-        if (container.type === "weight") {
-            const containerItems = game.entityFinder.getRoomItems(null, container.location.id, null, `Puzzle: ${container.name}`);
-            const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-            player.attemptPuzzle(container, item, weight.toString(), "drop", input);
-        }
-        // Container is a container puzzle.
-        else if (container.type === "container") {
-            const containerItems = game.entityFinder.getRoomItems(null, container.location.id, null, `Puzzle: ${container.name}`).sort(function (a, b) {
-                if (a.prefab.id < b.prefab.id) return -1;
-                if (a.prefab.id > b.prefab.id) return 1;
-                return 0;
-            }).map(item => item.prefab.id);
-            player.attemptPuzzle(container, item, containerItems.join(','), "drop", input);
-        }
-    }
-    // Container is a RoomItem.
-    else if (container instanceof RoomItem)
-        messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly dropped ${item.identifier ? item.identifier : item.prefab.id} ${container.prefab.preposition} ${slot} of ${container.identifier} in ${player.location.channel}`);
-
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dropped ${item.identifier ? item.identifier : item.prefab.id} for ${player.name}.`);
-
-    return;
+    const action = new Action(game, ActionType.Drop, message, player, player.location, true);
+    action.performDrop(item, hand, container, slot);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dropped ${item.getIdentifier()} for ${player.name}.`);
 }

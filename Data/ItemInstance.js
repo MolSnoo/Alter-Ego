@@ -136,4 +136,18 @@ export default class ItemInstance extends ItemContainer {
 		this.pluralContainingPhrase = prefab.pluralContainingPhrase ? prefab.pluralContainingPhrase : "";
 		this.weight = prefab ? prefab.weight : 0;
 	}
+
+	/**
+	 * Gets the item's single containing phrase.
+	 */
+	getContainingPhrase() {
+		return this.singleContainingPhrase;
+	}
+
+	/**
+	 * Gets the preposition of the item's prefab. If no prefab exists, returns "in".
+	 */
+	getPreposition() {
+		return this.prefab ? this.prefab.preposition : "in";
+	}
 }

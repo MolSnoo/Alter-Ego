@@ -332,6 +332,20 @@ export default class Fixture extends ItemContainer {
         return { recipe: recipe, ingredients: ingredients };
     }
 
+    /**
+     * Gets the fixture's name preceded by "the".
+     */
+    getContainingPhrase() {
+        return `the ${this.name}`;
+    }
+
+    /**
+     * Gets the fixture's preposition. If no preposition is set, returns "in".
+     */
+    getPreposition() {
+        return this.preposition ? this.preposition : "in";
+    }
+
     /** @returns {string} */
     descriptionCell() {
         return this.getGame().constants.fixtureSheetDescriptionColumn + this.row;

@@ -3,6 +3,7 @@ import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Narration from '../Data/Narration.js';
 import Player from './Player.js';
+import { generatePlayerListString } from '../Modules/helpers.js';
 import { addLogMessage } from '../Modules/messageHandler.js';
 import { Collection, TextChannel } from 'discord.js';
 
@@ -163,13 +164,15 @@ export default class Room extends GameEntity {
      * @param {Player} player - The player to remove from the room.
      * @param {Exit} exit - The exit they're leaving through.
      * @param {string} exitMessage - The message that should be narrated in the room when they leave.
+     * @param {string} [whisperRemovalMessage] - The message that will be sent to any whispers the player was in. Defaults to `${player.displayName} leaves the room.`
      */
-    removePlayer(player, exit, exitMessage) {
+    removePlayer(player, exit, exitMessage, whisperRemovalMessage) {
         if (exitMessage) new Narration(this.getGame(), player, this, exitMessage).send();
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        player.removeFromWhispers(`${player.displayName} leaves the room.`);
+        if (!whisperRemovalMessage) whisperRemovalMessage = `${player.displayName} leaves the room.`;
+        player.removeFromWhispers(whisperRemovalMessage);
     }
 
     /**
@@ -178,22 +181,7 @@ export default class Room extends GameEntity {
      * @returns {string}
      */
     generateOccupantsString(list) {
-        list.sort(function (a, b) {
-            let nameA = a.displayName.toLowerCase();
-            let nameB = b.displayName.toLowerCase();
-            if (nameA < nameB) return -1;
-            if (nameA > nameB) return 1;
-            return 0;
-        });
-        let occupantsString = "";
-        if (list.length === 1) occupantsString = list[0].displayName;
-        else if (list.length === 2) occupantsString = `${list[0].displayName} and ${list[1].displayName}`;
-        else if (list.length >= 3) {
-            for (let i = 0; i < list.length - 1; i++)
-                occupantsString += `${list[i].displayName}, `;
-            occupantsString += `and ${list[list.length - 1].displayName}`;
-        }
-        return occupantsString;
+        return generatePlayerListString(list);
     }
 
     /**

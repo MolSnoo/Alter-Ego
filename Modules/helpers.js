@@ -1,5 +1,6 @@
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
+import RoomItem from "../Data/RoomItem.js";
 import { EmbedBuilder } from "discord.js";
 import { Duration } from 'luxon';
 
@@ -34,6 +35,18 @@ export function generatePlayerListString(players) {
 		playerListString += `and ${players[players.length - 1].displayName}`;
 	}
 	return playerListString;
+}
+
+/**
+ * Generates a comma-separated list of items, sorted alphabetically by prefab ID.
+ * @param {RoomItem[]} items - A list of room items.
+ */
+export function getSortedItemsString(items) {
+	return items.sort(function (a, b) {
+		if (a.prefab.id < b.prefab.id) return -1;
+		if (a.prefab.id > b.prefab.id) return 1;
+		return 0;
+	}).map(item => item.prefab.id).join(',');
 }
 
 /**

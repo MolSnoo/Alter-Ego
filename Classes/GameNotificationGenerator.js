@@ -48,4 +48,30 @@ export default class GameNotificationGenerator {
 	generateFoundHiddenPlayersNotification(hiddenPlayersList, fixtureName) {
 		return `You find ${hiddenPlayersList} hiding in the ${fixtureName}!`;
 	}
+
+	/**
+	 * Generates a notification indicating the player took an item.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateTakeNotification(itemPhrase, containerPhrase) {
+		return `You take ${itemPhrase} from ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player dropped an item.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} preposition - The preposition of the container.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateDropNotification(itemPhrase, preposition, containerPhrase) {
+		return `You put ${itemPhrase} ${preposition} ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player has died.
+	 */
+	generateDieNotification() {
+		return `You have died. When your body is discovered, you will be given the ${this.game.guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`;
+	}
 }

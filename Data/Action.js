@@ -1,14 +1,17 @@
+import EquipmentSlot from "./EquipmentSlot.js";
 import Exit from "./Exit.js";
 import Fixture from "./Fixture.js";
 import Game from "./Game.js";
 import Gesture from "./Gesture.js";
 import InventoryItem from "./InventoryItem.js";
+import InventorySlot from "./InventorySlot.js";
 import Player from "./Player.js";
+import Puzzle from "./Puzzle.js";
 import Room from "./Room.js";
 import RoomItem from "./RoomItem.js";
 import Whisper from "./Whisper.js";
 import { addDirectNarrationWithAttachments } from "../Modules/messageHandler.js";
-import { generatePlayerListString } from "../Modules/helpers.js";
+import { generatePlayerListString, getSortedItemsString } from "../Modules/helpers.js";
 
 /**
  * @class Action
@@ -87,7 +90,8 @@ export default class Action {
 	}
 
 	#generateId() {
-		return `${this.player}-${this.type}-${this.message.id}`;
+		const id =  this.message ? this.message.id : String(Math.floor(Math.random() * 999999999999999));
+		return `${this.player}-${this.type}-${id}`;
 	}
 
 	/**
@@ -176,5 +180,70 @@ export default class Action {
 		this.game.logHandler.logUse(item, this.player, target, this.forced);
 		// This transforms the item, so save it for last.
 		this.player.use(item, target);
+	}
+
+	/**
+	 * Performs a take action.
+	 * @param {RoomItem} item - The room item to take. 
+	 * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
+     * @param {Puzzle|Fixture|RoomItem} container - The item's current container.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
+     * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
+	 */
+	performTake(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+		if (this.type !== ActionType.Take) return;
+		this.game.narrationHandler.narrateTake(item, this.player, notify);
+		this.game.logHandler.logTake(item, this.player, container, inventorySlot, this.forced);
+		this.player.take(item, handEquipmentSlot, container, inventorySlot);
+		// Container is a weight puzzle.
+		if (container instanceof Puzzle && container.type === "weight") {
+			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+			this.player.attemptPuzzle(container, item, weight.toString(), "take", "");
+		}
+		// Container is a container puzzle.
+		else if (container instanceof Puzzle && container.type === "container") {
+			const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItemsString = getSortedItemsString(containerItems);
+			this.player.attemptPuzzle(container, item, containerItemsString, "take", "");
+		}
+	}
+
+	/**
+	 * Performs a drop action.
+	 * @param {InventoryItem} item - The inventory item to drop. 
+	 * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {Puzzle|Fixture|RoomItem} container - The container to put the item in.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to put the item in.
+     * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
+	 */
+	performDrop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+		if (this.type !== ActionType.Drop) return;
+		this.game.narrationHandler.narrateDrop(item, container, this.player, notify);
+		this.game.logHandler.logDrop(item, this.player, container, inventorySlot, this.forced);
+		this.player.drop(item, handEquipmentSlot, container, inventorySlot);
+		// Container is a weight puzzle.
+        if (container instanceof Puzzle && container.type === "weight") {
+            const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+            const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+            this.player.attemptPuzzle(container, item, weight.toString(), "drop", "");
+        }
+        // Container is a container puzzle.
+        else if (container instanceof Puzzle && container.type === "container") {
+            const containerItems = this.game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItemsString = getSortedItemsString(containerItems);
+            this.player.attemptPuzzle(container, item, containerItemsString, "drop", "");
+        }
+	}
+
+	/**
+	 * Performs a die action.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	performDie(customNarration) {
+		if (this.type !== ActionType.Die) return;
+		this.game.narrationHandler.narrateDie(this.player, customNarration);
+		this.game.logHandler.logDie(this.player);
+		this.player.die();
 	}
 }

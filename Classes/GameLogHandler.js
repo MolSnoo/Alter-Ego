@@ -3,8 +3,10 @@ import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
 import Gesture from "../Data/Gesture.js";
 import InventoryItem from "../Data/InventoryItem.js";
+import InventorySlot from "../Data/InventorySlot.js";
 import ItemInstance from "../Data/ItemInstance.js";
 import Player from "../Data/Player.js";
+import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
 import { addLogMessage } from "../Modules/messageHandler.js";
@@ -105,5 +107,40 @@ export default class GameLogHandler {
 		const targetString = player.name === target.name ? `on ${target.name} ` : ``;
 		const logText = `${this.#getTime()} - ${player.name} ${forcedString}used ${itemName} from ${player.originalPronouns.dpos} inventory ${targetString}in ${player.location.channel}`;
 		this.#sendLogMessage(logText);
+	}
+
+	/**
+	 * Logs a take action.
+	 * @param {RoomItem} item - The item that was taken.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the item was taken from.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was taken from.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logTake(item, player, container, inventorySlot, forced) {
+		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}took ${item.getIdentifier()} from ${containerPhrase} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a drop action.
+	 * @param {InventoryItem} item - The item that was dropped.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the item was dropped into.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was dropped into.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logDrop(item, player, container, inventorySlot, forced) {
+		const preposition = container.getPreposition() ? container.getPreposition() : "in";
+		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}dropped ${item.getIdentifier()} ${preposition} ${containerPhrase} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a die action.
+	 * @param {Player} player - The player who died. 
+	 */
+	logDie(player) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} died in ${player.location.channel}`);
 	}
 }

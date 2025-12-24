@@ -1,3 +1,4 @@
+import Action from './Action.js';
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Exit from './Exit.js';
@@ -13,7 +14,6 @@ import EquipmentSlot from './EquipmentSlot.js';
 import InventoryItem from './InventoryItem.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
-import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
@@ -829,7 +829,8 @@ export default class Player extends ItemContainer {
                     else {
                         if (status.fatal) {
                             status.timer.stop();
-                            player.die();
+                            const action = new Action(player.getGame(), ActionType.Die, undefined, player, player.location, true);
+                            action.performDie();
                         }
                         else {
                             player.cure(status.id, true, true, true);
@@ -1149,9 +1150,8 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
      * @param {Puzzle|Fixture|RoomItem|Room} container - The item's current container.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
-     * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
      */
-    take(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+    take(item, handEquipmentSlot, container, inventorySlot) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
             item.quantity--;
@@ -1166,13 +1166,9 @@ export default class Player extends ItemContainer {
         const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         this.carryWeight += createdItem.weight;
 
-        const containerPhrase = item.getContainerPhrase();
-        if (notify) this.notify(`You take ${createdItem.singleContainingPhrase} from ${containerPhrase}.`);
-        if (!createdItem.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase} from ${containerPhrase}.`).send();
-            // Add the new item to the player's hands item list.
+        // Add the new item to the player's hands item list.
+        if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");
-        }
     }
 
     /**
@@ -1247,9 +1243,8 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {Puzzle|Fixture|RoomItem} container - The container to put the item in.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to put the item in.
-     * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
      */
-    drop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+    drop(item, handEquipmentSlot, container, inventorySlot) {
         // Unequip the item from the player's hand.
         handEquipmentSlot.unequipItem(item);
 
@@ -1274,16 +1269,11 @@ export default class Player extends ItemContainer {
         item.quantity = 0;
         // Insert the new items into the game's list of room items.
         itemManager.insertRoomItems(this.location, items);
-
         this.carryWeight -= item.weight;
-        const containerPhrase = createdItem.getContainerPhrase();
-        const preposition = createdItem.getContainerPreposition();
-        if (notify) this.notify(`You discard ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`).send();
-            // Remove the item from the player's hands item list.
+        
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
-        }
     }
 
     /**
@@ -2060,19 +2050,7 @@ export default class Player extends ItemContainer {
      * Kills the player.
      */
     die() {
-        // Remove player from their current channel.
-        this.location.leaveChannel(this);
-        this.location.occupants.splice(this.location.occupants.indexOf(this), 1);
-        this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        this.removeFromWhispers(`${this.displayName} dies.`);
-        if (!this.hasBehaviorAttribute("hidden")) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} dies.`).send();
-        }
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} died in ${this.location.channel}`);
-
+        this.location.removePlayer(this, undefined, undefined, `${this.displayName} dies.`);
         // Update various data.
         this.alive = false;
         this.location = null;
@@ -2084,13 +2062,10 @@ export default class Player extends ItemContainer {
                 status.timer.stop();
         }
         this.statusCollection.clear();
-
         // Move player to dead list.
         this.getGame().deadPlayersCollection.set(this.name, this);
         // Then remove them from living list.
         this.getGame().livingPlayersCollection.delete(this.name);
-
-        messageHandler.addDirectNarration(this, `You have died. When your body is discovered, you will be given the ${this.getGame().guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`);
     }
 
     /**
