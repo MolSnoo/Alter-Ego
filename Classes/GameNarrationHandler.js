@@ -153,7 +153,7 @@ export default class GameNarrationHandler {
 	 * @param {boolean} notifyVictim - Whether or not to notify the victim who was stolen from.
 	 */
 	narrateSteal(item, thief, victim, container, inventorySlot, notifyVictim) {
-		const slotPhrase = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+		const slotPhrase = container.inventoryCollection.size !== 1 ? `the ${inventorySlot.id} of ` : ``;
 		const thiefNotification = this.#game.notificationGenerator.generateSuccessfulStealNotification(item.singleContainingPhrase, slotPhrase, container.name, victim, notifyVictim);
 		thief.notify(thiefNotification);
 		if (notifyVictim) {
@@ -199,10 +199,25 @@ export default class GameNarrationHandler {
 			recipientNotification = this.#game.notificationGenerator.generateReceiveTooMuchWeightNotification(item.singleContainingPhrase, player.displayName);
 			narration = `${player.displayName} tries to give ${item.singleContainingPhrase} to ${recipient.displayName}, but ${recipient.pronouns.sbj} ${recipient.pronouns.plural ? `are` : `is`} carrying too much weight.`;
 		}
-		player.notify(recipientNotification);
+		player.notify(playerNotification);
 		recipient.notify(recipientNotification);
 		if (!item.prefab.discreet)
 			this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a stash action.
+	 * @param {InventoryItem} item - The item being stashed.
+	 * @param {InventoryItem} container - The container to stash the item in.
+	 * @param {InventorySlot} inventorySlot - The inventory slot to stash the item in.
+	 * @param {Player} player - The player performing the stash action.
+	 */
+	narrateStash(item, container, inventorySlot, player) {
+		const preposition = container.getPreposition();
+		const slotPhrase = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+		player.notify(this.#game.notificationGenerator.generateStashNotification(item.singleContainingPhrase, preposition, slotPhrase, container.name));
+		if (!item.prefab.discreet)
+			this.#sendNarration(player, `${player.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${slotPhrase}${container.name}.`);
 	}
 
 	/**

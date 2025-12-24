@@ -219,7 +219,7 @@ export default class Action {
      * @param {InventorySlot<InventoryItem>} inventorySlot - The {@link InventorySlot|inventory slot} that the player will attempt to steal from.
 	 */
 	performSteal(handEquipmentSlot, victim, container, inventorySlot) {
-		const slotPhrase = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+		const slotPhrase = container.inventoryCollection.size !== 1 ? `the ${inventorySlot.id} of ` : ``;
 		// If there are no items in that slot, tell the player.
 		if (inventorySlot.items.length === 0)
 			return this.player.notify(this.#game.notificationGenerator.generateStoleFromEmptyInventorySlotNotification(slotPhrase, container.name, victim.displayName));
@@ -294,6 +294,20 @@ export default class Action {
 		this.#game.narrationHandler.narrateGive(item, this.player, recipient);
 		this.#game.logHandler.logGive(item, this.player, recipient, successful, this.forced);
 		if (successful) this.player.give(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot);
+	}
+
+	/**
+	 * Performs a stash action.
+	 * @param {InventoryItem} item - The inventory item to stash. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {InventoryItem} container - The container to stash the inventory item in.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to stash the inventory item in.
+	 */
+	performStash(item, handEquipmentSlot, container, inventorySlot) {
+		if (this.type !== ActionType.Stash) return;
+		this.#game.narrationHandler.narrateStash(item, container, inventorySlot, this.player);
+		this.#game.logHandler.logStash(item, this.player, container, inventorySlot, this.forced);
+		this.player.stash(item, handEquipmentSlot, container, inventorySlot);
 	}
 
 	/**

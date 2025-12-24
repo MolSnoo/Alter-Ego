@@ -199,6 +199,17 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player stashed an item.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} preposition - The preposition of the container.
+	 * @param {string} slotPhrase - A phrase to refer to the slot the item is being stashed in.
+	 * @param {string} containerName - The name of the container the item is being stashed in.
+	 */
+	generateStashNotification(itemPhrase, preposition, slotPhrase, containerName) {
+		return `You stash ${itemPhrase} ${preposition} ${slotPhrase}your ${containerName}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 */
 	generateDieNotification() {

@@ -1282,14 +1282,10 @@ export default class Player extends ItemContainer {
         itemManager.setChildItemQuantitiesZero(item);
         // Insert the new inventory items into the game's list of inventory items.
         itemManager.insertInventoryItems(this, items, equipmentSlot);
-
-        const preposition = container.prefab ? container.prefab.preposition : "in";
-        this.notify(`You stash ${createdItem.singleContainingPhrase} ${preposition} your ${container.name}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
-            // Remove the item from the player's hands item list.
+        
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
-        }
     }
 
     /**
