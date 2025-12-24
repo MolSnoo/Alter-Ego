@@ -46,7 +46,7 @@ export default class GameEntityFinder {
 	 * @returns {Exit} - The exit in the specified room with the specified name, if applicable. If no such exit exists, returns undefined.
 	 */
 	getExit(room, name) {
-		return room.exitCollection.get(Exit.generateValidName(name));
+		return room.exitCollection.get(Game.generateValidEntityName(name));
 	}
 
 	/**
@@ -314,7 +314,7 @@ export default class GameEntityFinder {
 	getExits(room, name, dest, locked, fuzzySearch = false) {
 		/** @type {Collection<string|boolean, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
-		if (name) selectedFilters.set(Exit.generateValidName(name), fuzzySearch ? matchers.exitNameContains : matchers.exitNameMatches);
+		if (name) selectedFilters.set(Game.generateValidEntityName(name), fuzzySearch ? matchers.exitNameContains : matchers.exitNameMatches);
 		if (dest) selectedFilters.set(Room.generateValidId(dest), matchers.exitDestMatches);
 		if (locked !== undefined && locked !== null) selectedFilters.set(locked, matchers.exitLockedMatches);
 		return room.exitCollection.filter(exit => selectedFilters.every((filterFunction, key) => filterFunction(room, key))).map(exit => exit);

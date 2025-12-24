@@ -65,7 +65,7 @@ export const roomOccupiedMatches = (room, includeNPCs) => {
  * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
  */
 export const exitNameMatches = (exit, name, normalize = false) => {
-	if (normalize) name = Exit.generateValidName(name);
+	if (normalize) name = Game.generateValidEntityName(name);
 	return exit.name === name;
 }
 
@@ -76,7 +76,7 @@ export const exitNameMatches = (exit, name, normalize = false) => {
  * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
  */
 export const exitNameContains = (exit, name, normalize = false) => {
-	if (normalize) name = Exit.generateValidName(name);
+	if (normalize) name = Game.generateValidEntityName(name);
 	return exit.name.includes(name);
 }
 
