@@ -190,7 +190,7 @@ export async function execute (game, message, command, args, player) {
     const inventory = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
     for (let i = 0; i < inventory.length; i++) {
         parsedInput = parsedInput.replace("MY ", "");
-        if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
+        if (inventory[i].name === parsedInput && inventory[i].quantity > 0) {
             action.performInspect(inventory[i]);
             return;
         }
@@ -217,7 +217,7 @@ export async function execute (game, message, command, args, player) {
             // Only equipped items should be an option.
             const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
             for (let j = 0; j < inventory.length; j++) {
-                if (inventory[j].prefab.name === parsedInput && (inventory[j].equipmentSlot !== "LEFT HAND" && inventory[j].equipmentSlot !== "RIGHT HAND" || !inventory[j].prefab.discreet)) {
+                if (inventory[j].name === parsedInput && (inventory[j].equipmentSlot !== "LEFT HAND" && inventory[j].equipmentSlot !== "RIGHT HAND" || !inventory[j].prefab.discreet)) {
                     // Make sure the item isn't covered by anything first.
                     const coveringItems = inventory.filter(item =>
                         item.equipmentSlot !== "RIGHT HAND" &&

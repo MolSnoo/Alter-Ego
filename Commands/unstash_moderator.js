@@ -55,9 +55,7 @@ export async function execute (game, message, command, args) {
     const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < playerItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
-        if (playerItems[i].identifier !== "" && playerItems[i].identifier === parsedInput ||
-            playerItems[i].prefab.id === parsedInput ||
-            playerItems[i].name === parsedInput) {
+        if (playerItems[i].getIdentifier() === parsedInput || playerItems[i].name === parsedInput) {
             item = playerItems[i];
             container = playerItems[i].container;
             slotName = playerItems[i].slot;
@@ -104,9 +102,7 @@ export async function execute (game, message, command, args) {
                     if (item !== null) break;
                 }
                 // Only a container name was specified.
-                else if (playerItems[i].container.identifier !== "" && playerItems[i].container.identifier === containerName ||
-                    playerItems[i].container.prefab.id === containerName ||
-                    playerItems[i].container.name === containerName) {
+                else if (playerItems[i].container.getIdentifier() === containerName || playerItems[i].container.name === containerName) {
                     item = playerItems[i];
                     container = playerItems[i].container;
                     slotName = playerItems[i].slot;

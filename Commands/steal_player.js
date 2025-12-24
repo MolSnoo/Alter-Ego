@@ -86,7 +86,7 @@ export async function execute (game, message, command, args, player) {
     const inventory = game.inventoryItems.filter(item => item.player.name === victim.name && item.prefab !== null && item.containerName === "" && item.container === null);
     let container = null;
     for (let i = 0; i < inventory.length; i++) {
-        if (inventory[i].prefab.name === itemName && (inventory[i].equipmentSlot !== "LEFT HAND" && inventory[i].equipmentSlot !== "RIGHT HAND" || !inventory[i].prefab.discreet)) {
+        if (inventory[i].name === itemName && (inventory[i].equipmentSlot !== "LEFT HAND" && inventory[i].equipmentSlot !== "RIGHT HAND" || !inventory[i].prefab.discreet)) {
             // Make sure the item isn't covered by anything first.
             const coveringItems = inventory.filter(item =>
                 item.equipmentSlot !== "RIGHT HAND" &&
