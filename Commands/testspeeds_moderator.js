@@ -71,18 +71,14 @@ export async function execute(game, message, command, args) {
  */
 async function testplayers(game, fileName) {
     let text = "";
-    for (let i = 0; i < game.rooms.length; i++) {
-        const room = game.rooms[i];
-        text += game.rooms[i].name + '\n';
-        for (let j = 0; j < room.exit.length; j++) {
-            const exit1 = room.exit[j];
-            for (let k = 0; k < room.exit.length; k++) {
-                const exit2 = room.exit[k];
+    for (const room of game.roomsCollection.values()) {
+        text += room.id + '\n';
+        for (const exit1 of room.exitCollection.values()) {
+            for (const exit2 of room.exitCollection.values()) {
                 if (exit1.row !== exit2.row) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
-                    for (let l = 0; l < game.players.length; l++) {
-                        const player = game.players[l];
+                    for (const player of game.playersCollection.values()) {
                         // Save the original coordinates.
                         const x = player.pos.x;
                         const y = player.pos.y;
@@ -118,18 +114,15 @@ async function testplayers(game, fileName) {
  */
 async function testspeeds(game, fileName) {
     let text = "";
-    for (let i = 0; i < game.rooms.length; i++) {
-        const room = game.rooms[i];
-        text += game.rooms[i].name + '\n';
-        for (let j = 0; j < room.exit.length; j++) {
-            const exit1 = room.exit[j];
-            for (let k = 0; k < room.exit.length; k++) {
-                const exit2 = room.exit[k];
+    for (const room of game.roomsCollection.values()) {
+        text += room.id + '\n';
+        for (const exit1 of room.exitCollection.values()) {
+            for (const exit2 of room.exitCollection.values()) {
                 if (exit1.row !== exit2.row) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 1; l <= 10; l++) {
-                        const player = new Player("", null, "", "", "neutral", "an average voice", { speed: l, stamina: 5, strength: 5, perception: 5, dexterity: 5 }, true, room.id, "", "", new Collection(), null, 1, game);
+                        const player = new Player("", null, "", "", "neutral", "an average voice", { speed: l, stamina: 5, strength: 5, perception: 5, dexterity: 5 }, true, room.id, "", [], "", new Collection(), null, 1, game);
                         player.pos.x = exit1.pos.x;
                         player.pos.y = exit1.pos.y;
                         player.pos.z = exit1.pos.z;
