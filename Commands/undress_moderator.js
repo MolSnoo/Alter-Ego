@@ -129,7 +129,7 @@ export async function execute (game, message, command, args) {
             return messageHandler.addReply(game, message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
-    let [rightHand, leftHand] = game.entityFinder.getPlayerHands(player);
+    const [rightHand, leftHand] = game.entityFinder.getPlayerHands(player);
     // First, drop the items in the player's hands.
     if (rightHand.equippedItem !== null)
         player.drop(rightHand.equippedItem, rightHand, container, containerItemSlot, false);

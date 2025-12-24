@@ -135,7 +135,7 @@ export async function execute (game, message, command, args, player) {
             return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
 
-    let [rightHand, leftHand] = game.entityFinder.getPlayerHands(player);
+    const [rightHand, leftHand] = game.entityFinder.getPlayerHands(player);
     // First, drop the items in the player's hands.
     if (rightHand.equippedItem !== null)
         player.drop(rightHand.equippedItem, rightHand, container, containerItemSlot, false);
