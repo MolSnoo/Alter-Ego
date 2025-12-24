@@ -146,4 +146,17 @@ export default class GameNarrationHandler {
 		if (!item.prefab.discreet)
 			this.#sendNarration(player, `${player.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
 	}
+
+	/**
+	 * Narrates a die action.
+	 * @param {Player} player - The player performing the die action. 
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateDie(player, customNarration) {
+		player.notify(this.game.notificationGenerator.generateDieNotification());
+		if (!player.hasBehaviorAttribute("hidden")) {
+			if (customNarration) this.#sendNarration(player, customNarration);
+			else this.#sendNarration(player, `${player.displayName} dies.`);
+		}
+	}
 }

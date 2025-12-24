@@ -67,4 +67,11 @@ export default class GameNotificationGenerator {
 	generateDropNotification(itemPhrase, preposition, containerPhrase) {
 		return `You put ${itemPhrase} ${preposition} ${containerPhrase}.`;
 	}
+
+	/**
+	 * Generates a notification indicating the player has died.
+	 */
+	generateDieNotification() {
+		return `You have died. When your body is discovered, you will be given the ${this.game.guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`;
+	}
 }

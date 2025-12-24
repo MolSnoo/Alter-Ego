@@ -135,4 +135,12 @@ export default class GameLogHandler {
 		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}dropped ${item.getIdentifier()} ${preposition} ${containerPhrase} in ${player.location.channel}`);
 	}
+
+	/**
+	 * Logs a die action.
+	 * @param {Player} player - The player who died. 
+	 */
+	logDie(player) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} died in ${player.location.channel}`);
+	}
 }

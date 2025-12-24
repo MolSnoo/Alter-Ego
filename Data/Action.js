@@ -90,7 +90,8 @@ export default class Action {
 	}
 
 	#generateId() {
-		return `${this.player}-${this.type}-${this.message.id}`;
+		const id =  this.message ? this.message.id : String(Math.floor(Math.random() * 999999999999999));
+		return `${this.player}-${this.type}-${id}`;
 	}
 
 	/**
@@ -233,5 +234,16 @@ export default class Action {
 			const containerItemsString = getSortedItemsString(containerItems);
             this.player.attemptPuzzle(container, item, containerItemsString, "drop", "");
         }
+	}
+
+	/**
+	 * Performs a die action.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	performDie(customNarration) {
+		if (this.type !== ActionType.Die) return;
+		this.game.narrationHandler.narrateDie(this.player, customNarration);
+		this.game.logHandler.logDie(this.player);
+		this.player.die();
 	}
 }

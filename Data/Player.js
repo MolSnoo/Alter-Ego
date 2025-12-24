@@ -1,3 +1,4 @@
+import Action from './Action.js';
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Exit from './Exit.js';
@@ -816,7 +817,8 @@ export default class Player extends ItemContainer {
                     else {
                         if (status.fatal) {
                             status.timer.stop();
-                            player.die();
+                            const action = new Action(player.getGame(), ActionType.Die, undefined, player, player.location, true);
+                            action.performDie();
                         }
                         else {
                             player.cure(status.id, true, true, true);
@@ -2045,19 +2047,7 @@ export default class Player extends ItemContainer {
      * Kills the player.
      */
     die() {
-        // Remove player from their current channel.
-        this.location.leaveChannel(this);
-        this.location.occupants.splice(this.location.occupants.indexOf(this), 1);
-        this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        this.removeFromWhispers(`${this.displayName} dies.`);
-        if (!this.hasBehaviorAttribute("hidden")) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} dies.`).send();
-        }
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} died in ${this.location.channel}`);
-
+        this.location.removePlayer(this, undefined, undefined, `${this.displayName} dies.`);
         // Update various data.
         this.alive = false;
         this.location = null;
@@ -2069,13 +2059,10 @@ export default class Player extends ItemContainer {
                 this.status[i].timer.stop();
         }
         this.status.length = 0;
-
         // Move player to dead list.
         this.getGame().deadPlayersCollection.set(this.name, this);
         // Then remove them from living list.
         this.getGame().livingPlayersCollection.delete(this.name);
-
-        messageHandler.addDirectNarration(this, `You have died. When your body is discovered, you will be given the ${this.getGame().guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`);
     }
 
     /**
