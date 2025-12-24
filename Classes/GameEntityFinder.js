@@ -183,18 +183,16 @@ export default class GameEntityFinder {
 	 * @param {string} itemQuery - The item name to look for.
 	 * @param {boolean} [nameSearch] - Whether or not to look up items based on name.
 	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier.
-	 * @param {boolean} [prefabSearch] - Whether or not to look up items based on prefab ID.
 	 * @param {boolean} [exactMatch] - Whether or not to look up items based on whether or not the itemQuery is an exact match with an item identifier.
 	 * @param {boolean} [prefixMatch] - Whether or not to look up items based on whether or not the itemQuery starts with an item identifer.
 	 * @returns {[EquipmentSlot, InventoryItem]}
 	 */
-	getPlayerHandHoldingItem(player, itemQuery, nameSearch = true, identifierSearch = true, prefabSearch = true, exactMatch = true, prefixMatch = false) {
+	getPlayerHandHoldingItem(player, itemQuery, nameSearch = true, identifierSearch = true, exactMatch = true, prefixMatch = false) {
 		for (const hand of this.getPlayerHands(player)) {
 			if (hand.equippedItem !== null) {
 				const identifiers = [];
 				if (nameSearch) identifiers.push(hand.equippedItem.name);
-				if (identifierSearch) identifiers.push(hand.equippedItem.identifier);
-				if (prefabSearch) identifiers.push(hand.equippedItem.prefab.id);
+				if (identifierSearch) identifiers.push(hand.equippedItem.getIdentifier());
 
 				for (const identifier of identifiers) {
 					if (prefixMatch) {
@@ -214,10 +212,9 @@ export default class GameEntityFinder {
 	 * @param {EquipmentSlot} slot - The slot to restrict searching to.
 	 * @param {boolean} [nameSearch] - Whether or not to look up items based on name.
 	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier.
-	 * @param {boolean} [prefabSearch] - Whether or not to look up items based on prefab ID.
 	 * @returns {[EquipmentSlot, InventoryItem]}
 	 */
-	getPlayerSlotWithItem(player, itemQuery, slot = undefined, nameSearch = true, identifierSearch = true, prefabSearch = true) {
+	getPlayerSlotWithItem(player, itemQuery, slot = undefined, nameSearch = true, identifierSearch = true) {
 		let slots = null;
 		if (slot) slots = [slot];
 		else slots = player.inventoryCollection.values();
@@ -225,8 +222,7 @@ export default class GameEntityFinder {
 			if (slot.equippedItem !== null) {
 				const identifiers = [];
 				if (nameSearch) identifiers.push(slot.equippedItem.name);
-				if (identifierSearch) identifiers.push(slot.equippedItem.identifier);
-				if (prefabSearch) identifiers.push(slot.equippedItem.prefab.id);
+				if (identifierSearch) identifiers.push(slot.equippedItem.getIdentifier());
 
 				for (const identifier of identifiers) {
 					if (identifier === itemQuery) return [slot, slot.equippedItem];

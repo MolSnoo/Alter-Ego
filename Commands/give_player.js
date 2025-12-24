@@ -67,7 +67,7 @@ export async function execute (game, message, command, args, player) {
     if (recipientHand === undefined) return messageHandler.addReply(game, message, `${recipient.displayName} does not have a free hand to receive an item.`);
 
     // Find the item in the player's inventory.
-    let [giverHand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, false, false, true, false);
+    let [giverHand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, false);
     if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
 
     if (item.weight > recipient.maxCarryWeight) {

@@ -56,7 +56,7 @@ export async function execute (game, message, command, args) {
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Now find the item in the giver's inventory.
-    let [giverHand, item] = game.entityFinder.getPlayerHandHoldingItem(giver, parsedInput, true, true, true, true, false);
+    let [giverHand, item] = game.entityFinder.getPlayerHandHoldingItem(giver, parsedInput);
     if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
 
     giver.give(item, giverHand, recipient, recipientHand);
