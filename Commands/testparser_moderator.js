@@ -10,6 +10,7 @@ import { EOL } from 'os';
 import RoomItem from '../Data/RoomItem.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
+import { Collection } from 'discord.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -60,7 +61,7 @@ export async function execute (game, message, command, args) {
         if (err) return console.log(err);
     });
 
-    const player = new Player(
+    let player = new Player(
         "",
         null,
         "Cella",
@@ -71,8 +72,9 @@ export async function execute (game, message, command, args) {
         true,
         "",
         "",
-        "<desc><s>You examine <const v=\"container.displayName\" />.</s> <if cond=\"container.hasBehaviorAttribute('concealed')\"><s><const v=\"container.pronouns.Sbj\" /> <if cond=\"container.pronouns.plural\">are</if><if cond=\"!container.pronouns.plural\">is</if> [HEIGHT], but <const v =\"container.pronouns.dpos\" /> face is concealed.</s></if><if cond=\"!container.hasBehaviorAttribute('concealed')\"><s><const v=\"container.pronouns.Sbj\" /><if cond=\"container.pronouns.plural\">'re</if><if cond=\"!container.pronouns.plural\">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if> <s><const v=\"container.pronouns.Sbj\" /> wear<if cond=\"!container.pronouns.plural\">s</if> <il name=\"equipment\"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s> <s>You see <const v=\"container.pronouns.obj\" /> carrying <il name=\"hands\"></il>.</s></desc>",
         [],
+        "<desc><s>You examine <const v=\"container.displayName\" />.</s> <if cond=\"container.hasBehaviorAttribute('concealed')\"><s><const v=\"container.pronouns.Sbj\" /> <if cond=\"container.pronouns.plural\">are</if><if cond=\"!container.pronouns.plural\">is</if> [HEIGHT], but <const v =\"container.pronouns.dpos\" /> face is concealed.</s></if><if cond=\"!container.hasBehaviorAttribute('concealed')\"><s><const v=\"container.pronouns.Sbj\" /><if cond=\"container.pronouns.plural\">'re</if><if cond=\"!container.pronouns.plural\">'s</if> [HEIGHT] with [SKIN TONE], [HAIR], and [EYES].</s></if> <s><const v=\"container.pronouns.Sbj\" /> wear<if cond=\"!container.pronouns.plural\">s</if> <il name=\"equipment\"><item>a SHIRT</item>, <item>a pair of PANTS</item>, and <item>a pair of TENNIS SHOES</item></il>.</s> <s>You see <const v=\"container.pronouns.obj\" /> carrying <il name=\"hands\"></il>.</s></desc>",
+        new Collection(),
         null,
         3,
         game
@@ -87,7 +89,7 @@ export async function execute (game, message, command, args) {
 
     if (args[0] === "parse") {
         const result = await testparse(game, file, player);
-        const warnings = [];
+        let warnings = [];
         for (let i = 0; i < result.warnings.length; i++) {
             for (let j = 0; j < result.warnings[i].warnings.length; j++) {
                 result.warnings[i].warnings[j] = result.warnings[i].warnings[j].replace(/\t/g, " ").replace(/\n/g, " ");
@@ -103,7 +105,7 @@ export async function execute (game, message, command, args) {
                 warnings.push("Too many warnings.");
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
         }
-        const errors = [];
+        let errors = [];
         for (let i = 0; i < result.errors.length; i++) {
             for (let j = 0; j < result.errors[i].errors.length; j++) {
                 result.errors[i].errors[j] = result.errors[i].errors[j].replace(/\t/g, " ").replace(/\n/g, " ");
@@ -121,15 +123,15 @@ export async function execute (game, message, command, args) {
         }
     }
     else if (args[0] === "add") {
-        const formatted = false;
+        let formatted = false;
         if (args[1] && args[1] === "formatted") formatted = true;
         await testadd(game, file, formatted, player);
     }
     else if (args[0] === "remove") {
-        const formatted = false;
+        let formatted = false;
         if (args[1] && args[1] === "formatted") formatted = true;
         const result = await testremove(game, file, formatted, player);
-        const warnings = [];
+        let warnings = [];
         for (let i = 0; i < result.length; i++)
             warnings.push(`Warning on ${result[i].cell}: ${result[i].warnings[0]}`);
         if (warnings.length > 0) {
@@ -171,20 +173,20 @@ async function testparse (game, fileName, player) {
     // Get rooms first.
     {
         await appendFile(fileName, "ROOMS:");
-        const text = "";
-        for (let i = 0; i < game.rooms.length; i++) {
+        let text = "";
+        for (const room of game.roomsCollection.values()) {
             text += "   ";
-            text += game.rooms[i].name + EOL;
+            text += room.id + EOL;
 
-            for (let j = 0; j < game.rooms[i].exit.length; j++) {
+            for (const exit of room.exitCollection.values()) {
                 text += "      ";
-                text += game.rooms[i].exit[j].name + EOL;
-                const parsedDescription = parseDescriptionWithErrors(game.rooms[i].exit[j].description, game.rooms[i], player);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.rooms[i].exit[j].descriptionCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.rooms[i].exit[j].descriptionCell(), errors: parsedDescription.errors });
+                text += exit.name + EOL;
+                const parsedDescription = parseDescriptionWithErrors(exit.description, room, player);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: exit.descriptionCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: exit.descriptionCell(), errors: parsedDescription.errors });
 
                 text += "         ";
-                text += game.rooms[i].exit[j].description + EOL;
+                text += exit.description + EOL;
 
                 text += "         ";
                 text += parsedDescription.text + EOL;
@@ -197,7 +199,7 @@ async function testparse (game, fileName, player) {
     // Get fixtures next.
     {
         await appendFile(fileName, "FIXTURES:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.fixtures.length; i++) {
             text += "   ";
             text += game.fixtures[i].name + EOL;
@@ -218,17 +220,17 @@ async function testparse (game, fileName, player) {
     // Get prefabs next.
     {
         await appendFile(fileName, "PREFABS:");
-        const text = "";
-        for (let i = 0; i < game.prefabs.length; i++) {
+        let text = "";
+        for (const prefab of game.prefabsCollection.values()) {
             text += "   ";
-            text += game.prefabs[i].id + EOL;
+            text += prefab.id + EOL;
 
-            const parsedDescription = parseDescriptionWithErrors(game.prefabs[i].description, game.prefabs[i], player);
-            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.prefabs[i].descriptionCell(), warnings: parsedDescription.warnings });
-            if (parsedDescription.errors.length !== 0) errors.push({ cell: game.prefabs[i].descriptionCell(), errors: parsedDescription.errors });
+            const parsedDescription = parseDescriptionWithErrors(prefab.description, prefab, player);
+            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: prefab.descriptionCell(), warnings: parsedDescription.warnings });
+            if (parsedDescription.errors.length !== 0) errors.push({ cell: prefab.descriptionCell(), errors: parsedDescription.errors });
 
             text += "      ";
-            text += game.prefabs[i].description + EOL;
+            text += prefab.description + EOL;
 
             text += "      ";
             text += parsedDescription.text + EOL;
@@ -239,52 +241,52 @@ async function testparse (game, fileName, player) {
     // Get recipes next.
     {
         await appendFile(fileName, "RECIPES:");
-        const text = "";
-        for (let i = 0; i < game.recipes.length; i++) {
+        let text = "";
+        for (const recipe of game.recipes) {
             text += "   ";
-            text += "ROW " + game.recipes[i].row + EOL;
+            text += "ROW " + recipe.row + EOL;
 
-            const taggedFixture = game.fixtures.find(fixture => fixture.recipeTag === game.recipes[i].fixtureTag);
+            const taggedFixture = game.fixtures.find(fixture => fixture.recipeTag === recipe.fixtureTag);
             // First, do the initiated text.
-            if (game.recipes[i].initiatedDescription !== "") {
+            if (recipe.initiatedDescription !== "") {
                 text += "      MESSAGE WHEN INITIATED:" + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].initiatedDescription, taggedFixture ? taggedFixture : game.recipes[i], player);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].initiatedCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].initiatedCell(), errors: parsedDescription.errors });
+                const parsedDescription = parseDescriptionWithErrors(recipe.initiatedDescription, taggedFixture ? taggedFixture : recipe, player);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: recipe.initiatedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: recipe.initiatedCell(), errors: parsedDescription.errors });
 
                 text += "         ";
-                text += game.recipes[i].initiatedDescription + EOL;
+                text += recipe.initiatedDescription + EOL;
 
                 text += "         ";
                 text += parsedDescription.text + EOL;
             }
 
             // Next, do the completed text.
-            if (game.recipes[i].completedDescription !== "") {
+            if (recipe.completedDescription !== "") {
                 text += "      MESSAGE WHEN COMPLETED:" + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].completedDescription, taggedFixture ? taggedFixture : game.recipes[i], player);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].completedCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].completedCell(), errors: parsedDescription.errors });
+                const parsedDescription = parseDescriptionWithErrors(recipe.completedDescription, taggedFixture ? taggedFixture : recipe, player);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: recipe.completedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: recipe.completedCell(), errors: parsedDescription.errors });
 
                 text += "         ";
-                text += game.recipes[i].completedDescription + EOL;
+                text += recipe.completedDescription + EOL;
 
                 text += "         ";
                 text += parsedDescription.text + EOL;
             }
 
             // Finally, do the uncrafted text.
-            if (game.recipes[i].uncraftedDescription !== "") {
+            if (recipe.uncraftedDescription !== "") {
                 text += "      MESSAGE WHEN UNCRAFTED:" + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(game.recipes[i].uncraftedDescription, game.recipes[i], player);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.recipes[i].uncraftedCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.recipes[i].uncraftedCell(), errors: parsedDescription.errors });
+                const parsedDescription = parseDescriptionWithErrors(recipe.uncraftedDescription, recipe, player);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: recipe.uncraftedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: recipe.uncraftedCell(), errors: parsedDescription.errors });
 
                 text += "         ";
-                text += game.recipes[i].uncraftedDescription + EOL;
+                text += recipe.uncraftedDescription + EOL;
 
                 text += "         ";
                 text += parsedDescription.text + EOL;
@@ -296,17 +298,17 @@ async function testparse (game, fileName, player) {
     // Get items next.
     {
         await appendFile(fileName, "ITEMS:");
-        const text = "";
-        for (let i = 0; i < game.items.length; i++) {
+        let text = "";
+        for (const roomItem of game.roomItems) {
             text += "   ";
-            text += game.items[i].name + EOL;
+            text += roomItem.name + EOL;
 
-            const parsedDescription = parseDescriptionWithErrors(game.items[i].description, game.items[i], player);
-            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.items[i].descriptionCell(), warnings: parsedDescription.warnings });
-            if (parsedDescription.errors.length !== 0) errors.push({ cell: game.items[i].descriptionCell(), errors: parsedDescription.errors });
+            const parsedDescription = parseDescriptionWithErrors(roomItem.description, roomItem, player);
+            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: roomItem.descriptionCell(), warnings: parsedDescription.warnings });
+            if (parsedDescription.errors.length !== 0) errors.push({ cell: roomItem.descriptionCell(), errors: parsedDescription.errors });
 
             text += "      ";
-            text += game.items[i].description + EOL;
+            text += roomItem.description + EOL;
 
             text += "      ";
             text += parsedDescription.text + EOL;
@@ -317,12 +319,11 @@ async function testparse (game, fileName, player) {
     // Get puzzles next.
     {
         await appendFile(fileName, "PUZZLES:");
-        const text = "";
-        for (let i = 0; i < game.puzzles.length; i++) {
+        let text = "";
+        for (const puzzle of game.puzzles) {
             text += "   ";
-            text += game.puzzles[i].name + EOL;
+            text += puzzle.name + EOL;
 
-            const puzzle = game.puzzles[i];
             // First, do the correct description.
             if (puzzle.correctDescription !== "") {
                 text += "      CORRECT ANSWER:" + EOL;
@@ -406,12 +407,11 @@ async function testparse (game, fileName, player) {
     // Get events next.
     {
         await appendFile(fileName, "EVENTS:");
-        const text = "";
-        for (let i = 0; i < game.events.length; i++) {
+        let text = "";
+        for (const event of game.eventsCollection.values()) {
             text += "   ";
-            text += game.events[i].id + EOL;
+            text += event.id + EOL;
 
-            const event = game.events[i];
             // First, do the triggered text.
             if (event.triggeredNarration !== "") {
                 text += "      MESSAGE WHEN TRIGGERED:" + EOL;
@@ -450,37 +450,36 @@ async function testparse (game, fileName, player) {
     // Get status effects next.
     {
         await appendFile(fileName, "STATUS EFFECTS:");
-        const text = "";
-        for (let i = 0; i < game.statusEffects.length; i++) {
+        let text = "";
+        for (const statusEffect of game.statusEffectsCollection.values()) {
             text += "   ";
-            text += game.statusEffects[i].name + EOL;
+            text += statusEffect.id + EOL;
 
-            const status = game.statusEffects[i];
             // First, do the inflicted text.
-            if (status.inflictedDescription !== "") {
+            if (statusEffect.inflictedDescription !== "") {
                 text += "      MESSAGE WHEN INFLICTED:" + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(status.inflictedDescription, status, player);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: status.inflictedCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: status.inflictedCell(), errors: parsedDescription.errors });
+                const parsedDescription = parseDescriptionWithErrors(statusEffect.inflictedDescription, statusEffect, player);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: statusEffect.inflictedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: statusEffect.inflictedCell(), errors: parsedDescription.errors });
 
                 text += "         ";
-                text += status.inflictedDescription + EOL;
+                text += statusEffect.inflictedDescription + EOL;
 
                 text += "         ";
                 text += parsedDescription.text + EOL;
             }
 
             // Finally, do the cured text.
-            if (status.curedDescription !== "") {
+            if (statusEffect.curedDescription !== "") {
                 text += "      MESSAGE WHEN CURED:" + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(status.curedDescription, status, player);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: status.curedCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: status.curedCell(), errors: parsedDescription.errors });
+                const parsedDescription = parseDescriptionWithErrors(statusEffect.curedDescription, statusEffect, player);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: statusEffect.curedCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: statusEffect.curedCell(), errors: parsedDescription.errors });
 
                 text += "         ";
-                text += status.curedDescription + EOL;
+                text += statusEffect.curedDescription + EOL;
 
                 text += "         ";
                 text += parsedDescription.text + EOL;
@@ -494,17 +493,17 @@ async function testparse (game, fileName, player) {
     // Get players next.
     {
         await appendFile(fileName, "PLAYERS:");
-        const text = "";
-        for (let i = 0; i < game.players.length; i++) {
+        let text = "";
+        for (const player of game.playersCollection.values()) {
             text += "   ";
-            text += game.players[i].name + EOL;
+            text += player.name + EOL;
 
-            const parsedDescription = parseDescriptionWithErrors(game.players[i].description, game.players[i], player);
-            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.players[i].descriptionCell(), warnings: parsedDescription.warnings });
-            if (parsedDescription.errors.length !== 0) errors.push({ cell: game.players[i].descriptionCell(), errors: parsedDescription.errors });
+            const parsedDescription = parseDescriptionWithErrors(player.description, player, player);
+            if (parsedDescription.warnings.length !== 0) warnings.push({ cell: player.descriptionCell(), warnings: parsedDescription.warnings });
+            if (parsedDescription.errors.length !== 0) errors.push({ cell: player.descriptionCell(), errors: parsedDescription.errors });
 
             text += "      ";
-            text += game.players[i].description + EOL;
+            text += player.description + EOL;
 
             text += "      ";
             text += parsedDescription.text + EOL;
@@ -515,18 +514,18 @@ async function testparse (game, fileName, player) {
     // Finally, get inventory items.
     {
         await appendFile(fileName, "INVENTORY ITEMS:");
-        const text = "";
-        for (let i = 0; i < game.inventoryItems.length; i++) {
-            if (game.inventoryItems[i].prefab !== null) {
+        let text = "";
+        for (const inventoryItem of game.inventoryItems) {
+            if (inventoryItem.prefab !== null) {
                 text += "   ";
-                text += game.inventoryItems[i].name + EOL;
+                text += inventoryItem.name + EOL;
 
-                const parsedDescription = parseDescriptionWithErrors(game.inventoryItems[i].description, game.inventoryItems[i], player);
-                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.inventoryItems[i].descriptionCell(), warnings: parsedDescription.warnings });
-                if (parsedDescription.errors.length !== 0) errors.push({ cell: game.inventoryItems[i].descriptionCell(), errors: parsedDescription.errors });
+                const parsedDescription = parseDescriptionWithErrors(inventoryItem.description, inventoryItem, player);
+                if (parsedDescription.warnings.length !== 0) warnings.push({ cell: inventoryItem.descriptionCell(), warnings: parsedDescription.warnings });
+                if (parsedDescription.errors.length !== 0) errors.push({ cell: inventoryItem.descriptionCell(), errors: parsedDescription.errors });
 
                 text += "      ";
-                text += game.inventoryItems[i].description + EOL;
+                text += inventoryItem.description + EOL;
 
                 text += "      ";
                 text += parsedDescription.text + EOL;
@@ -552,9 +551,8 @@ async function testadd (game, fileName, formatted, player) {
     // Get fixtures first.
     {
         await appendFile(fileName, "FIXTURES:");
-        const text = "";
-        for (let i = 0; i < game.fixtures.length; i++) {
-            const fixture = game.fixtures[i];
+        let text = "";
+        for (const fixture of game.fixtures) {
             if (fixture.description.includes('<il>') && fixture.description.includes('</il>')) {
                 text += "   ";
                 text += fixture.name + EOL;
@@ -562,21 +560,23 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? fixture.description : parseDescription(fixture.description, fixture, player)) + EOL;
 
+                /** @type {Array<RoomItem>} */
                 const items = new Array();
-                const itemNames = "";
+                let itemNames = "";
+                const prefabArray = [... game.prefabsCollection.values()];
                 for (let j = 0; j < 4; j++) {
-                    const randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    while (itemNames.includes(game.prefabs[randomIndex].name) || fixture.description.includes(game.prefabs[randomIndex].name) || fixture.description.includes(game.prefabs[randomIndex].pluralName))
-                        randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    const newItem = new RoomItem(game.prefabs[randomIndex].id, "", fixture.location.id, true, `Object: ${fixture.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
-                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    let randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    while (itemNames.includes(prefabArray[randomIndex].name) || fixture.description.includes(prefabArray[randomIndex].name) || fixture.description.includes(prefabArray[randomIndex].pluralName))
+                        randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    const newItem = new RoomItem(prefabArray[randomIndex].id, "", fixture.location.id, true, "Fixture", `Object: ${fixture.name}`, 1, prefabArray[randomIndex].uses, prefabArray[randomIndex].description, 0, game);
+                    newItem.setPrefab(prefabArray[randomIndex]);
                     newItem.location = fixture.location;
                     items.push(newItem);
-                    itemNames += game.prefabs[randomIndex].name + " ";
+                    itemNames += prefabArray[randomIndex].name + " ";
                 }
 
-                const description = fixture.description;
-                const tabs = 1;
+                let description = fixture.description;
+                let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
                     for (let l = 0; l < tabs; l++)
@@ -598,31 +598,33 @@ async function testadd (game, fileName, formatted, player) {
     // Get items next.
     {
         await appendFile(fileName, "ITEMS:");
-        const text = "";
-        for (let i = 0; i < game.items.length; i++) {
-            const item = game.items[i];
-            if (item.description.includes('<il') && item.description.includes('</il>') && item.inventory.length > 0) {
+        let text = "";
+        for (const item of game.roomItems) {
+            if (item.description.includes('<il') && item.description.includes('</il>') && item.inventoryCollection.size > 0) {
                 text += "   ";
                 text += item.name + EOL;
 
                 text += "      ";
                 text += (formatted ? item.description : parseDescription(item.description, item, player)) + EOL;
 
+                /** @type {Array<RoomItem>} */
                 const items = new Array();
-                const itemNames = "";
+                let itemNames = "";
+                const prefabArray = [... game.prefabsCollection.values()];
                 for (let j = 0; j < 4; j++) {
-                    const randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    while (itemNames.includes(game.prefabs[randomIndex].name) || item.description.includes(game.prefabs[randomIndex].name) || item.description.includes(game.prefabs[randomIndex].pluralName))
-                        randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    const newItem = new RoomItem(game.prefabs[randomIndex].id, "", item.location.id, true, `Item: ${item.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
-                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    let randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    while (itemNames.includes(prefabArray[randomIndex].name) || item.description.includes(prefabArray[randomIndex].name) || item.description.includes(prefabArray[randomIndex].pluralName))
+                        randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    const newItem = new RoomItem(prefabArray[randomIndex].id, "", item.location.id, true, "RoomItem", `Item: ${item.name}`, 1, prefabArray[randomIndex].uses, prefabArray[randomIndex].description, 0, game);
+                    newItem.setPrefab(prefabArray[randomIndex]);
                     newItem.location = item.location;
                     items.push(newItem);
-                    itemNames += game.prefabs[randomIndex].name + " ";
+                    itemNames += prefabArray[randomIndex].name + " ";
                 }
 
-                const description = item.description;
-                const tabs = 1;
+                let description = item.description;
+                let tabs = 1;
+                const slots = [...item.inventoryCollection.values()]
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
                     for (let l = 0; l < tabs; l++)
@@ -630,7 +632,7 @@ async function testadd (game, fileName, formatted, player) {
                     const newItem = items[j];
                     newItem.quantity = 0;
                     text += `(Drop ${newItem.name}): `;
-                    const slot = item.inventory[Math.floor(Math.random() * item.inventory.length)].name;
+                    const slot = slots[Math.floor(Math.random() * slots.length)].id;
                     description = addItem(description, newItem, slot);
                     text += (formatted ? description : parseDescription(description, item, player)) + EOL;
                     tabs++;
@@ -643,7 +645,7 @@ async function testadd (game, fileName, formatted, player) {
     // Get puzzles next.
     {
         await appendFile(fileName, "PUZZLES:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.puzzles.length; i++) {
             const puzzle = game.puzzles[i];
             if (puzzle.alreadySolvedDescription.includes('<il>') && puzzle.alreadySolvedDescription.includes('</il>')) {
@@ -653,21 +655,23 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? puzzle.alreadySolvedDescription : parseDescription(puzzle.alreadySolvedDescription, puzzle, player)) + EOL;
 
+                /** @type {Array<RoomItem>} */
                 const items = new Array();
-                const itemNames = "";
+                let itemNames = "";
+                const prefabArray = [... game.prefabsCollection.values()];
                 for (let j = 0; j < 4; j++) {
-                    const randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    while (itemNames.includes(game.prefabs[randomIndex].name) || puzzle.alreadySolvedDescription.includes(game.prefabs[randomIndex].name) || puzzle.alreadySolvedDescription.includes(game.prefabs[randomIndex].pluralName))
-                        randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    const newItem = new RoomItem(game.prefabs[randomIndex].id, "", puzzle.location.id, true, `Puzzle: ${puzzle.name}`, 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
-                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    let randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    while (itemNames.includes(prefabArray[randomIndex].name) || puzzle.alreadySolvedDescription.includes(prefabArray[randomIndex].name) || puzzle.alreadySolvedDescription.includes(prefabArray[randomIndex].pluralName))
+                        randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    const newItem = new RoomItem(prefabArray[randomIndex].id, "", puzzle.location.id, true, "Puzzle", `Puzzle: ${puzzle.name}`, 1, prefabArray[randomIndex].uses, prefabArray[randomIndex].description, 0, game);
+                    newItem.setPrefab(prefabArray[randomIndex]);
                     newItem.location = puzzle.location;
                     items.push(newItem);
-                    itemNames += game.prefabs[randomIndex].name + " ";
+                    itemNames += prefabArray[randomIndex].name + " ";
                 }
 
-                const description = puzzle.alreadySolvedDescription;
-                const tabs = 1;
+                let description = puzzle.alreadySolvedDescription;
+                let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
                     for (let l = 0; l < tabs; l++)
@@ -687,9 +691,8 @@ async function testadd (game, fileName, formatted, player) {
     // Get players next.
     {
         await appendFile(fileName, "PLAYERS:");
-        const text = "";
-        for (let i = 0; i < game.players.length; i++) {
-            const currentPlayer = game.players[i];
+        let text = "";
+        for (const currentPlayer of game.playersCollection.values()) {
             if (currentPlayer.description.includes('<il') && currentPlayer.description.includes('</il>')) {
                 text += "   ";
                 text += currentPlayer.name + EOL;
@@ -697,22 +700,24 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? currentPlayer.description : parseDescription(currentPlayer.description, currentPlayer, player)) + EOL;
 
+                /** @type {Array<InventoryItem>} */
                 const items = new Array();
-                const itemNames = "";
+                let itemNames = "";
+                const prefabArray = [... game.prefabsCollection.values()];
                 for (let j = 0; j < 4; j++) {
-                    const randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    while (itemNames.includes(game.prefabs[randomIndex].name) || currentPlayer.description.includes(game.prefabs[randomIndex].name) || currentPlayer.description.includes(game.prefabs[randomIndex].pluralName))
-                        randomIndex = Math.floor(Math.random() * game.prefabs.length);
-                    items.push(game.items[randomIndex]);
-                    const newItem = new InventoryItem(player.name, game.prefabs[randomIndex].id, "", "", "", 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
-                    newItem.setPrefab(game.prefabs[randomIndex]);
+                    let randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    while (itemNames.includes(prefabArray[randomIndex].name) || currentPlayer.description.includes(prefabArray[randomIndex].name) || currentPlayer.description.includes(prefabArray[randomIndex].pluralName))
+                        randomIndex = Math.floor(Math.random() * prefabArray.length);
+                    items.push(game.items[randomIndex]); // TODO: fixme???
+                    const newItem = new InventoryItem(player.name, prefabArray[randomIndex].id, "", "", "", 1, prefabArray[randomIndex].uses, prefabArray[randomIndex].description, 0, game);
+                    newItem.setPrefab(prefabArray[randomIndex]);
                     if (player instanceof Player) newItem.player = player;
                     items.push(newItem);
-                    itemNames += game.prefabs[randomIndex].name + " ";
+                    itemNames += prefabArray[randomIndex].name + " ";
                 }
 
-                const description = currentPlayer.description;
-                const tabs = 1;
+                let description = currentPlayer.description;
+                let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
                     for (let l = 0; l < tabs; l++)
@@ -732,7 +737,7 @@ async function testadd (game, fileName, formatted, player) {
     // Finally, get inventory items.
     {
         await appendFile(fileName, "INVENTORY ITEMS:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.inventoryItems.length; i++) {
             const inventoryItem = game.inventoryItems[i];
             if (inventoryItem.prefab !== null && inventoryItem.description.includes('<il') && inventoryItem.description.includes('</il>') && inventoryItem.inventory.length > 0) {
@@ -743,9 +748,9 @@ async function testadd (game, fileName, formatted, player) {
                 text += (formatted ? inventoryItem.description : parseDescription(inventoryItem.description, inventoryItem, player)) + EOL;
 
                 const items = new Array();
-                const itemNames = "";
+                let itemNames = "";
                 for (let j = 0; j < 4; j++) {
-                    const randomIndex = Math.floor(Math.random() * game.prefabs.length);
+                    let randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     while (itemNames.includes(game.prefabs[randomIndex].name) || inventoryItem.description.includes(game.prefabs[randomIndex].name) || inventoryItem.description.includes(game.prefabs[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * game.prefabs.length);
                     const newItem = new InventoryItem(player.name, game.prefabs[randomIndex].id, "", "", "", 1, game.prefabs[randomIndex].uses, game.prefabs[randomIndex].description, 0, game);
@@ -755,8 +760,8 @@ async function testadd (game, fileName, formatted, player) {
                     itemNames += game.prefabs[randomIndex].name + " ";
                 }
 
-                const description = inventoryItem.description;
-                const tabs = 1;
+                let description = inventoryItem.description;
+                let tabs = 1;
                 for (let j = 0; j < items.length; j++) {
                     text += "      ";
                     for (let l = 0; l < tabs; l++)
@@ -792,15 +797,15 @@ async function testremove (game, fileName, formatted, player) {
     // Get rooms first.
     {
         await appendFile(fileName, "ROOMS:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.rooms.length; i++) {
             const room = game.rooms[i];
             if (room.description.includes('<item>') && room.description.includes('</item>')) {
                 text += "   ";
                 text += room.name + EOL;
 
-                const items = new Array();
-                const itemNames = new Array();
+                let items = new Array();
+                let itemNames = new Array();
                 for (let k = 0; k < game.items.length; k++) {
                     if (game.items[k].location.id === room.id
                         && game.items[k].containerName === ""
@@ -832,14 +837,14 @@ async function testremove (game, fileName, formatted, player) {
                     text += (formatted ? exit.description : parseDescription(exit.description, room, player)) + EOL;
 
                     for (let k = 0; k < orders.length; k++) {
-                        const description = exit.description;
-                        const tabs = 1;
+                        let description = exit.description;
+                        let tabs = 1;
                         const permutation = orders[k].split(',');
                         for (let l = 0; l < permutation.length; l++) {
                             text += "         ";
                             for (let m = 0; m < tabs; m++)
                                 text += "   ";
-                            const item;
+                            let item;
                             for (let m = 0; m < items.length; m++) {
                                 if (permutation[l] === items[m].name) {
                                     item = items[m];
@@ -863,7 +868,7 @@ async function testremove (game, fileName, formatted, player) {
     // Get fixtures next.
     {
         await appendFile(fileName, "FIXTURES:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.fixtures.length; i++) {
             const fixture = game.fixtures[i];
             if (fixture.description.includes('<item>') && fixture.description.includes('</item>')) {
@@ -873,8 +878,8 @@ async function testremove (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? fixture.description : parseDescription(fixture.description, fixture, player)) + EOL;
 
-                const items = new Array();
-                const itemNames = new Array();
+                let items = new Array();
+                let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
                     if (game.items[j].location.id === fixture.location.id
                         && game.items[j].containerName === `Object: ${fixture.name}`
@@ -899,14 +904,14 @@ async function testremove (game, fileName, formatted, player) {
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
-                    const description = fixture.description;
-                    const tabs = 1;
+                    let description = fixture.description;
+                    let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
                         text += "      ";
                         for (let l = 0; l < tabs; l++)
                             text += "   ";
-                        const item;
+                        let item;
                         for (let l = 0; l < items.length; l++) {
                             if (permutation[k] === items[l].name) {
                                 item = items[l];
@@ -932,7 +937,7 @@ async function testremove (game, fileName, formatted, player) {
     // Get items next.
     {
         await appendFile(fileName, "ITEMS:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.items.length; i++) {
             const item = game.items[i];
             if (item.description.includes('<item>') && item.description.includes('</item>')) {
@@ -942,8 +947,8 @@ async function testremove (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? item.description : parseDescription(item.description, item, player)) + EOL;
 
-                const items = new Array();
-                const itemNames = new Array();
+                let items = new Array();
+                let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
                     if (game.items[j].location.id === item.location.id
                         && game.items[j].containerName.startsWith(`Item: ${item.identifier}/`)
@@ -969,14 +974,14 @@ async function testremove (game, fileName, formatted, player) {
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
-                    const description = item.description;
-                    const tabs = 1;
+                    let description = item.description;
+                    let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
                         text += "      ";
                         for (let l = 0; l < tabs; l++)
                             text += "   ";
-                        const newItem;
+                        let newItem;
                         for (let l = 0; l < items.length; l++) {
                             if (permutation[k] === items[l].name) {
                                 newItem = items[l];
@@ -1000,7 +1005,7 @@ async function testremove (game, fileName, formatted, player) {
     // Get puzzles next.
     {
         await appendFile(fileName, "PUZZLES:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.puzzles.length; i++) {
             const puzzle = game.puzzles[i];
             if (puzzle.alreadySolvedDescription !== "" && puzzle.alreadySolvedDescription.includes('<item>') && puzzle.alreadySolvedDescription.includes('</item>')) {
@@ -1010,8 +1015,8 @@ async function testremove (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? puzzle.alreadySolvedDescription : parseDescription(puzzle.alreadySolvedDescription, puzzle, player)) + EOL;
 
-                const items = new Array();
-                const itemNames = new Array();
+                let items = new Array();
+                let itemNames = new Array();
                 for (let j = 0; j < game.items.length; j++) {
                     if (game.items[j].location.id === puzzle.location.id
                         && game.items[j].containerName === `Puzzle: ${puzzle.name}`
@@ -1034,14 +1039,14 @@ async function testremove (game, fileName, formatted, player) {
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
-                    const description = puzzle.alreadySolvedDescription;
-                    const tabs = 1;
+                    let description = puzzle.alreadySolvedDescription;
+                    let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
                         text += "      ";
                         for (let l = 0; l < tabs; l++)
                             text += "   ";
-                        const item;
+                        let item;
                         for (let l = 0; l < items.length; l++) {
                             if (permutation[k] === items[l].name) {
                                 item = items[l];
@@ -1065,7 +1070,7 @@ async function testremove (game, fileName, formatted, player) {
     // Get players next.
     {
         await appendFile(fileName, "PLAYERS:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.players.length; i++) {
             const currentPlayer = game.players[i];
             if (currentPlayer.description.includes('<item>') && currentPlayer.description.includes('</item>')) {
@@ -1075,8 +1080,8 @@ async function testremove (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? currentPlayer.description : parseDescription(currentPlayer.description, currentPlayer, player)) + EOL;
 
-                const items = new Array();
-                const itemNames = new Array();
+                let items = new Array();
+                let itemNames = new Array();
                 for (let j = 0; j < game.inventoryItems.length; j++) {
                     if (game.inventoryItems[j].player.name === currentPlayer.name
                         && game.inventoryItems[j].prefab !== null
@@ -1100,14 +1105,14 @@ async function testremove (game, fileName, formatted, player) {
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
-                    const description = currentPlayer.description;
-                    const tabs = 1;
+                    let description = currentPlayer.description;
+                    let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
                         text += "      ";
                         for (let l = 0; l < tabs; l++)
                             text += "   ";
-                        const item;
+                        let item;
                         for (let l = 0; l < items.length; l++) {
                             if (permutation[k] === items[l].name) {
                                 item = items[l];
@@ -1134,7 +1139,7 @@ async function testremove (game, fileName, formatted, player) {
     // Finally, get inventory items.
     {
         await appendFile(fileName, "INVENTORY ITEMS:");
-        const text = "";
+        let text = "";
         for (let i = 0; i < game.inventoryItems.length; i++) {
             const inventoryItem = game.inventoryItems[i];
             if (inventoryItem.prefab !== null && inventoryItem.description.includes('<item>') && inventoryItem.description.includes('</item>')) {
@@ -1144,8 +1149,8 @@ async function testremove (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? inventoryItem.description : parseDescription(inventoryItem.description, inventoryItem, player)) + EOL;
 
-                const items = new Array();
-                const itemNames = new Array();
+                let items = new Array();
+                let itemNames = new Array();
                 for (let j = 0; j < game.inventoryItems.length; j++) {
                     if (game.inventoryItems[j].player.name === inventoryItem.player.name
                         && game.inventoryItems[j].prefab !== null
@@ -1173,14 +1178,14 @@ async function testremove (game, fileName, formatted, player) {
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
 
                 for (let j = 0; j < orders.length; j++) {
-                    const description = inventoryItem.description;
-                    const tabs = 1;
+                    let description = inventoryItem.description;
+                    let tabs = 1;
                     const permutation = orders[j].split(',');
                     for (let k = 0; k < permutation.length; k++) {
                         text += "      ";
                         for (let l = 0; l < tabs; l++)
                             text += "   ";
-                        const item;
+                        let item;
                         for (let l = 0; l < items.length; l++) {
                             if (permutation[k] === items[l].name) {
                                 item = items[l];
