@@ -1282,7 +1282,7 @@ export default class Player extends ItemContainer {
         itemManager.setChildItemQuantitiesZero(item);
         // Insert the new inventory items into the game's list of inventory items.
         itemManager.insertInventoryItems(this, items, equipmentSlot);
-        
+
         // Remove the item from the player's hands item list.
         if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
@@ -1301,12 +1301,9 @@ export default class Player extends ItemContainer {
         // Put the item in the player's hand.
         itemManager.putItemInHand(item, this, handEquipmentSlot);
 
-        this.notify(`You take ${item.singleContainingPhrase} out of your ${container.name}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
-            // Add the new item to the player's hands item list.
+        // Add the new item to the player's hands item list.
+        if (!item.prefab.discreet)
             this.addItemToDescription(item, "hands");
-        }
     }
 
     /**

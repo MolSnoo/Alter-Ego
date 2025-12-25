@@ -311,6 +311,20 @@ export default class Action {
 	}
 
 	/**
+     * Performs an unstash action.
+     * @param {InventoryItem} item - The inventory item to unstash. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
+     * @param {InventoryItem} container - The inventory item's current container.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the inventory item is currently in.
+     */
+	performUnstash(item, handEquipmentSlot, container, inventorySlot) {
+		if (this.type !== ActionType.Unstash) return;
+		this.#game.narrationHandler.narrateUnstash(item, container, inventorySlot, this.player);
+		this.#game.logHandler.logUnstash(item, this.player, container, inventorySlot, this.forced);
+		this.player.unstash(item, handEquipmentSlot, container, inventorySlot);
+	}
+
+	/**
 	 * Performs a die action.
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.
 	 */

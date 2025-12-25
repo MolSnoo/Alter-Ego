@@ -153,7 +153,7 @@ export default class GameNarrationHandler {
 	 * @param {boolean} notifyVictim - Whether or not to notify the victim who was stolen from.
 	 */
 	narrateSteal(item, thief, victim, container, inventorySlot, notifyVictim) {
-		const slotPhrase = container.inventoryCollection.size !== 1 ? `the ${inventorySlot.id} of ` : ``;
+		const slotPhrase = container.getSlotPhrase(inventorySlot);
 		const thiefNotification = this.#game.notificationGenerator.generateSuccessfulStealNotification(item.singleContainingPhrase, slotPhrase, container.name, victim, notifyVictim);
 		thief.notify(thiefNotification);
 		if (notifyVictim) {
@@ -214,10 +214,24 @@ export default class GameNarrationHandler {
 	 */
 	narrateStash(item, container, inventorySlot, player) {
 		const preposition = container.getPreposition();
-		const slotPhrase = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+		const slotPhrase = container.getSlotPhrase(inventorySlot);
 		player.notify(this.#game.notificationGenerator.generateStashNotification(item.singleContainingPhrase, preposition, slotPhrase, container.name));
 		if (!item.prefab.discreet)
-			this.#sendNarration(player, `${player.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${slotPhrase}${container.name}.`);
+			this.#sendNarration(player, `${player.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${slotPhrase}${player.pronouns.dpos} ${container.name}.`);
+	}
+
+	/**
+	 * Narrates an unstash action.
+	 * @param {InventoryItem} item - The item being unstashed.
+	 * @param {InventoryItem} container - The container to unstash the item from.
+	 * @param {InventorySlot} inventorySlot - The inventory slot to unstash the item from.
+	 * @param {Player} player - The player performing the unstash action.
+	 */
+	narrateUnstash(item, container, inventorySlot, player) {
+		const slotPhrase = container.getSlotPhrase(inventorySlot);
+		player.notify(this.#game.notificationGenerator.generateUnstashNotification(item.singleContainingPhrase, slotPhrase, container.name));
+		if (!item.prefab.discreet)
+			this.#sendNarration(player, `${player.displayName} takes ${item.singleContainingPhrase} out of ${slotPhrase}${player.pronouns.dpos} ${container.name}.`);
 	}
 
 	/**

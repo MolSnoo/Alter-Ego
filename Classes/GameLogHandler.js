@@ -181,7 +181,22 @@ export default class GameLogHandler {
 		const itemIdentifier = item.getIdentifier();
 		const preposition = container.getPreposition() ? container.getPreposition() : "in";
 		const containerIdentifier = container.getIdentifier();
-		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${forcedString}stashed ${itemIdentifier} ${preposition} ${inventorySlot.id} of ${player.pronouns.dpos} ${containerIdentifier} in ${player.location.channel}`);
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${forcedString}stashed ${itemIdentifier} ${preposition} ${inventorySlot.id} of ${player.originalPronouns.dpos} ${containerIdentifier} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an unstash action.
+	 * @param {InventoryItem} item - The item that was unstashed.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {InventoryItem} container - The container the item was unstashed from.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was unstashed from.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnstash(item, player, container, inventorySlot, forced) {
+		const forcedString = this.#getForcedString(forced);
+		const itemIdentifier = item.getIdentifier();
+		const containerIdentifier = container.getIdentifier();
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${forcedString}unstashed ${itemIdentifier} from ${inventorySlot.id} of ${player.originalPronouns.dpos} ${containerIdentifier} in ${player.location.channel}`);
 	}
 
 	/**

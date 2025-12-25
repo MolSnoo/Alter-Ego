@@ -210,6 +210,16 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player unstashed an item.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} slotPhrase - A phrase to refer to the slot the item is being unstashed from.
+	 * @param {string} containerName - The name of the container the item is being unstashed from.
+	 */
+	generateUnstashNotification(itemPhrase, slotPhrase, containerName) {
+		return `You take ${itemPhrase} out of ${slotPhrase}your ${containerName}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 */
 	generateDieNotification() {
