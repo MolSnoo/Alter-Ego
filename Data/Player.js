@@ -1410,18 +1410,14 @@ export default class Player extends ItemContainer {
      * @param {InventoryItem} item - The inventory item to unequip.
      * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item is currently equipped to. 
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
-     * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
      */
-    unequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+    unequip(item, equipmentSlot, handEquipmentSlot) {
         equipmentSlot.unequipItem(item);
 
         // Put the item in the player's hand.
         let createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         item.quantity = 0;
-
-        if (notify) this.notify(`You unequip the ${createdItem.name}.`);
-        new Narration(this.getGame(), this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
-
+        
         // Update the player's description.
         if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");

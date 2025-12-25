@@ -246,6 +246,17 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates an unequip action.
+	 * @param {InventoryItem} item - The item being unequipped.
+	 * @param {Player} player - The player performing the unequip action.
+	 * @param {boolean} [notify] - Whether or not to notify the player that they unequipped the item. Defaults to true.
+	 */
+	narrateUnequip(item, player, notify = true) {
+		if (notify) player.notify(this.#game.notificationGenerator.generateUnequipNotification(item.singleContainingPhrase));
+		this.#sendNarration(player, `${player.displayName} takes off ${player.pronouns.dpos} ${item.name}.`);
+	}
+
+	/**
 	 * Narrates a die action.
 	 * @param {Player} player - The player performing the die action. 
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.

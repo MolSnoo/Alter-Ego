@@ -212,6 +212,17 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs an unequip action.
+	 * @param {InventoryItem} item - The item that was unequipped.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {EquipmentSlot} equipmentSlot - The equipment slot the item was unequipped from.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnequip(item, player, equipmentSlot, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}unequipped ${item.getIdentifier()} from ${equipmentSlot.id} in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a die action.
 	 * @param {Player} player - The player who died. 
 	 */

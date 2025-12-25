@@ -339,6 +339,20 @@ export default class Action {
 	}
 
 	/**
+     * Performs an unequip action.
+     * @param {InventoryItem} item - The inventory item to unequip.
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item is currently equipped to. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
+     * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
+     */
+	performUnequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+		if (this.type !== ActionType.Unequip) return;
+		this.#game.narrationHandler.narrateUnequip(item, this.player, notify);
+		this.#game.logHandler.logUnequip(item, this.player, equipmentSlot, this.forced);
+		this.player.unequip(item, equipmentSlot, handEquipmentSlot);
+	}
+
+	/**
 	 * Performs a die action.
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.
 	 */

@@ -228,6 +228,14 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player unequipped an item.
+	 * @param {string} itemName - The name of the item.
+	 */
+	generateUnequipNotification(itemName) {
+		return `You take off your ${itemName}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 */
 	generateDieNotification() {
