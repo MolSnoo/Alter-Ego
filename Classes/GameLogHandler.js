@@ -11,6 +11,7 @@ import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
 import { addLogMessage } from "../Modules/messageHandler.js";
+import { generateListString } from "../Modules/helpers.js";
 
 /**
  * @class GameLogHandler
@@ -220,6 +221,20 @@ export default class GameLogHandler {
 	 */
 	logUnequip(item, player, equipmentSlot, forced) {
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}unequipped ${item.getIdentifier()} from ${equipmentSlot.id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a dress action.
+	 * @param {InventoryItem[]} items - The items the player put on.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the player dressed from.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot the player dressed from, if applicable.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logDress(items, player, container, inventorySlot, forced) {
+		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
+		const itemList = generateListString(items.map(item => item.getIdentifier()));
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}dressed from ${containerPhrase}, putting on ${itemList} in ${player.location.channel}`);
 	}
 
 	/**

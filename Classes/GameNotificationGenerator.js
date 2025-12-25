@@ -292,6 +292,19 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player dressed.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} containerName - The name of the container the player is dressing from.
+	 * @param {string} itemList - A list of items the player put on.
+	 */
+	generateDressNotification(player, secondPerson, containerName, itemList) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `dress` : `dresses`;
+		return `${subject} ${verb} from the ${containerName}, putting on ${itemList}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.

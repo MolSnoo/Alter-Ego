@@ -10,6 +10,7 @@ import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
 import { parseDescription } from "../Modules/parser.js";
+import { generateListString } from "../Modules/helpers.js";
 
 /**
  * @class GameNarrationHandler
@@ -272,6 +273,21 @@ export default class GameNarrationHandler {
 			player.notify(notification);
 		}
 		const narration = this.#game.notificationGenerator.generateUnequipNotification(player, false, item.singleContainingPhrase);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a dress action.
+	 * @param {InventoryItem[]} items - The items the player is putting on.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the player is dressing from.
+	 * @param {Player} player - The player performing the dress action.
+	 */
+	narrateDress(items, container, player) {
+		const itemPhrases = items.map(item => item.singleContainingPhrase);
+		const itemList = generateListString(itemPhrases);
+		const notification = this.#game.notificationGenerator.generateDressNotification(player, true, container.name, itemList);
+		const narration = this.#game.notificationGenerator.generateDressNotification(player, false, container.name, itemList);
+		player.notify(notification);
 		this.#sendNarration(player, narration);
 	}
 
