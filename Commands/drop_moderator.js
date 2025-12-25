@@ -82,9 +82,12 @@ export async function execute (game, message, command, args) {
     let containerItemSlot = null;
     if (parsedInput !== "") {
         for (let i = 0; i < items.length; i++) {
-            if (items[i].getIdentifier() !== "" || items[i].name === parsedInput) 
-                return addReply(game, message, `You need to supply a preposition.`);
-            if (parsedInput.endsWith(items[i].getIdentifier()) || parsedInput.endsWith(items[i].name)) {
+            if (items[i].identifier !== "" && items[i].identifier === parsedInput ||
+                items[i].prefab.id === parsedInput ||
+                items[i].name === parsedInput) return addReply(game, message, `You need to supply a preposition.`);
+            if (items[i].identifier !== "" && parsedInput.endsWith(items[i].identifier) ||
+                parsedInput.endsWith(items[i].prefab.id) ||
+                parsedInput.endsWith(items[i].name)) {
                 const itemContainer = items[i].container;
                 if (fixture === null || fixture !== null && itemContainer !== null && (itemContainer.name === fixture.name || itemContainer instanceof Puzzle && itemContainer.parentFixture.name === fixture.name)) {
                     if (items[i].inventoryCollection.size === 0) return addReply(game, message, `${items[i].prefab.id} cannot hold items.`);

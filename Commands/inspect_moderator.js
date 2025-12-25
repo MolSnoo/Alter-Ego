@@ -110,7 +110,7 @@ export async function execute (game, message, command, args) {
     if (!onlySearchInventory) {
         // Now check if the input is an item.
         for (let i = 0; i < items.length; i++) {
-            if (items[i].getIdentifier() === parsedInput) {
+            if (items[i].identifier !== "" && items[i].identifier === parsedInput || items[i].prefab.id === parsedInput) {
                 item = items[i];
                 container = item.container;
                 slotName = item.slot;
@@ -156,7 +156,7 @@ export async function execute (game, message, command, args) {
                         if (!(item === null || item === undefined)) break;
                     }
                     // Only a container was specified.
-                    else if (itemContainer.getIdentifier() === containerString) {
+                    else if (itemContainer.identifier !== "" && itemContainer.identifier === containerString || itemContainer.prefab.id === containerString) {
                         item = items[i];
                         container = item.container;
                         slotName = item.slot;
@@ -177,7 +177,7 @@ export async function execute (game, message, command, args) {
     const inventory = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
     for (let i = 0; i < inventory.length; i++) {
         parsedInput = parsedInput.replace(`${player.name.toUpperCase()}S `, "");
-        if ((inventory[i].getIdentifier() === parsedInput || inventory[i].name === parsedInput)
+        if ((inventory[i].identifier !== "" && inventory[i].identifier === parsedInput || inventory[i].prefab.id === parsedInput || inventory[i].prefab.name === parsedInput)
             && inventory[i].quantity > 0) {
             action.performInspect(inventory[i]);
             addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${player.name}'s ` + (inventory[i].getIdentifier()) + ` for ${player.name}.`);
@@ -203,7 +203,7 @@ export async function execute (game, message, command, args) {
             // Only equipped items should be an option.
             const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
             for (let j = 0; j < inventory.length; j++) {
-                if ((inventory[j].getIdentifier() === parsedInput || inventory[j].name === parsedInput)
+                if ((inventory[j].identifier !== "" && inventory[j].identifier === parsedInput || inventory[j].prefab.id === parsedInput || inventory[j].prefab.name === parsedInput)
                     && (inventory[j].equipmentSlot !== "LEFT HAND" && inventory[j].equipmentSlot !== "RIGHT HAND" || !inventory[j].prefab.discreet)) {
                     // Make sure the item isn't covered by anything first.
                     const coveringItems = inventory.filter(item =>

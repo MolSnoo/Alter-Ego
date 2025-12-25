@@ -59,7 +59,9 @@ export async function execute (game, message, command, args) {
     const roomItems = game.entityFinder.getRoomItems(null, player.location.id, true);
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
-        if (roomItems[i].getIdentifier() === parsedInput || roomItems[i].name === parsedInput) {
+        if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput ||
+            roomItems[i].prefab.id === parsedInput ||
+            roomItems[i].name === parsedInput) {
             item = roomItems[i];
             container = roomItems[i].container;
             slotName = roomItems[i].slot;
@@ -106,7 +108,9 @@ export async function execute (game, message, command, args) {
                 }
                 // A slot name wasn't specified, but the container is an item.
                 else if (roomItemContainer instanceof RoomItem &&
-                        (roomItemContainer.getIdentifier() === containerName || roomItemContainer.name === containerName)) {
+                        (roomItemContainer.identifier !== "" && roomItemContainer.identifier === containerName ||
+                        roomItemContainer.prefab.id === containerName ||
+                        roomItemContainer.name === containerName)) {
                     item = roomItems[i];
                     container = roomItemContainer;
                     slotName = roomItems[i].slot;

@@ -60,7 +60,7 @@ export async function execute (game, message, command, args, player) {
         // Check if the input is an item in the player's inventory.
         const inventory = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
         for (let i = 0; i < inventory.length; i++) {
-            if (inventory[i].name === parsedInput && inventory[i].quantity > 0) {
+            if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
                 item = inventory[i];
                 break;
             }

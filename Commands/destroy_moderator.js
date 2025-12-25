@@ -78,7 +78,7 @@ export async function execute (game, message, command, args) {
         const roomItems = game.entityFinder.getRoomItems(null, room.id);
         for (let i = 0; i < roomItems.length; i++) {
             // If parsedInput is only the identifier or the item's name, we've found the item to delete.
-            if (roomItems[i].getIdentifier() === parsedInput) {
+            if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab.id === parsedInput) {
                 item = roomItems[i];
                 break;
             }
@@ -186,7 +186,7 @@ export async function execute (game, message, command, args) {
             // Find the item if it hasn't been found already.
             if (item === null) {
                 for (let i = 0; i < containerItems.length; i++) {
-                    if (containerItems[i].getIdentifier() === parsedInput) {
+                    if (containerItems[i].identifier === parsedInput || containerItems[i].prefab.id === parsedInput) {
                         item = containerItems[i];
                         break;
                     }
@@ -222,7 +222,7 @@ export async function execute (game, message, command, args) {
         const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
         for (let i = 0; i < playerItems.length; i++) {
             // If parsedInput is only the identifier or the item's name, we've found the item to delete.
-            if (playerItems[i].getIdentifier() === parsedInput) {
+            if (playerItems[i].identifier !== "" && playerItems[i].identifier === parsedInput || playerItems[i].prefab.id === parsedInput) {
                 item = playerItems[i];
                 break;
             }
@@ -277,7 +277,7 @@ export async function execute (game, message, command, args) {
                 // Find the item if it hasn't been found already.
                 if (item === null) {
                     for (let i = 0; i < containerItems.length; i++) {
-                        if (containerItems[i].getIdentifier() === parsedInput) {
+                        if (containerItems[i].identifier === parsedInput || containerItems[i].prefab.id === parsedInput) {
                             item = containerItems[i];
                             break;
                         }
@@ -297,7 +297,7 @@ export async function execute (game, message, command, args) {
             }
             else {
                 for (const [id, slot] of player.inventoryCollection) {
-                    if (slot.equippedItem !== null && slot.equippedItem.getIdentifier() === parsedInput) {
+                    if (slot.equippedItem !== null && slot.equippedItem.identifier === parsedInput || slot.equippedItem.prefab.id === parsedInput) {
                         item = slot.equippedItem
                         equipmentSlotName = id
                         if (destroyAll) return messageHandler.addReply(game, message, `The "all" argument cannot be used when the container is an equipped item.`);

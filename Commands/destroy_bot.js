@@ -81,11 +81,11 @@ export async function execute (game, command, args, player, callee) {
         for (let i = 0; i < roomItems.length; i++) {
             // TODO: this can probably be optimized further...?
             // If parsedInput is only the identifier or the item's name, we've found the item to delete.
-            if (roomItems[i].getIdentifier() === parsedInput) {
+            if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab.id === parsedInput) {
                 item = roomItems[i];
                 break;
             }
-            if (parsedInput.endsWith(roomItems[i].getIdentifier())) {
+            if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "") {
                 if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
                 containerItem = roomItems[i];
 
@@ -181,7 +181,7 @@ export async function execute (game, command, args, player, callee) {
             // Find the item if it hasn't been found already.
             if (item === null) {
                 for (let i = 0; i < containerItems.length; i++) {
-                    if (containerItems[i].getIdentifier() === parsedInput) {
+                    if (containerItems[i].identifier === parsedInput || containerItems[i].prefab.id === parsedInput) {
                         item = containerItems[i];
                         break;
                     }
@@ -239,7 +239,7 @@ export async function execute (game, command, args, player, callee) {
             const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
             for (let i = 0; i < playerItems.length; i++) {
                 // If parsedInput2 is only the identifier or the item's name, we've found the item to delete.
-                if (playerItems[i].getIdentifier() === parsedInput2) {
+                if (playerItems[i].identifier !== "" && playerItems[i].identifier === parsedInput2 || playerItems[i].prefab.id === parsedInput2) {
                     item = playerItems[i];
                     break;
                 }
@@ -300,7 +300,7 @@ export async function execute (game, command, args, player, callee) {
                     // Find the item if it hasn't been found already.
                     if (item === null) {
                         for (let i = 0; i < containerItems.length; i++) {
-                            if (containerItems[i].getIdentifier() === parsedInput2) {
+                            if (containerItems[i].identifier === parsedInput2 || containerItems[i].prefab.id === parsedInput2) {
                                 item = containerItems[i];
                                 break;
                             }
@@ -320,7 +320,7 @@ export async function execute (game, command, args, player, callee) {
                 }
                 else {
                     for (const [id, slot] of player.inventoryCollection) {
-                        if (slot.equippedItem.getIdentifier() === parsedInput2) {
+                        if (slot.equippedItem !== null && slot.equippedItem.identifier === parsedInput2 || slot.equippedItem.prefab.id === parsedInput2) {
                             item = slot.equippedItem
                             equipmentSlotName = id
                             if (destroyAll) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipped item.`);

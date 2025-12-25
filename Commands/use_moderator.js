@@ -75,8 +75,26 @@ export async function execute (game, message, command, args) {
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // First, find the item in the player's inventory.
-    const item = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput)[1];
-    if (item === undefined) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+    let item = null;
+    // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
+    const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const leftHand = player.inventoryCollection.get("LEFT HAND");
+    // Check for the identifier first.
+    if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === parsedInput)
+        item = rightHand.equippedItem;
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.identifier !== "" && leftHand.equippedItem.identifier === parsedInput)
+        item = leftHand.equippedItem;
+    // Check for the prefab ID next.
+    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.prefab.id === parsedInput)
+        item = rightHand.equippedItem;
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.prefab.id === parsedInput)
+        item = leftHand.equippedItem;
+    // Check for the name last.
+    else if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.name === parsedInput)
+        item = rightHand.equippedItem;
+    else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === parsedInput)
+        item = leftHand.equippedItem;
+    if (item === null) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
 
     if (item.uses === 0) return addReply(game, message, "That item has no uses left.");
     if (!item.prefab.usable) return addReply(game, message, "That item has no programmed use.");
