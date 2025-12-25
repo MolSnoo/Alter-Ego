@@ -179,7 +179,6 @@ export default class Action {
 		if (this.type !== ActionType.Use) return;
 		this.#game.narrationHandler.narrateUse(item, this.player, target, customNarration);
 		this.#game.logHandler.logUse(item, this.player, target, this.forced);
-		// This transforms the item, so save it for last.
 		this.player.use(item, target);
 	}
 
@@ -193,8 +192,10 @@ export default class Action {
 	 */
 	performTake(item, handEquipmentSlot, container, inventorySlot, notify = true) {
 		if (this.type !== ActionType.Take) return;
+		const successful = this.forced || this.player.carryWeight + item.weight <= this.player.carryWeight;
 		this.#game.narrationHandler.narrateTake(item, this.player, notify);
-		this.#game.logHandler.logTake(item, this.player, container, inventorySlot, this.forced);
+		this.#game.logHandler.logTake(item, this.player, container, inventorySlot, successful, this.forced);
+		if (!successful) return;
 		this.player.take(item, handEquipmentSlot, container, inventorySlot);
 		// Container is a weight puzzle.
 		if (container instanceof Puzzle && container.type === "weight") {
@@ -218,7 +219,7 @@ export default class Action {
      * @param {InventorySlot<InventoryItem>} inventorySlot - The {@link InventorySlot|inventory slot} that the player will attempt to steal from.
 	 */
 	performSteal(handEquipmentSlot, victim, container, inventorySlot) {
-		const slotPhrase = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
+		const slotPhrase = container.inventoryCollection.size !== 1 ? `the ${inventorySlot.id} of ` : ``;
 		// If there are no items in that slot, tell the player.
 		if (inventorySlot.items.length === 0)
 			return this.player.notify(this.#game.notificationGenerator.generateStoleFromEmptyInventorySlotNotification(slotPhrase, container.name, victim.displayName));
@@ -249,6 +250,7 @@ export default class Action {
 		else {
 			this.player.notify(this.#game.notificationGenerator.generateFailedStealNotification(item.singleContainingPhrase, slotPhrase, container.name, victim));
 			victim.notify(this.#game.notificationGenerator.generateFailedStolenFromNotification(this.player.displayName, slotPhrase, item.singleContainingPhrase, container.name));
+			this.#game.logHandler.logSteal(item, this.player, victim, container, inventorySlot, false, this.forced);
 		}
 	}
 
@@ -277,6 +279,115 @@ export default class Action {
 			const containerItemsString = getSortedItemsString(containerItems);
             this.player.attemptPuzzle(container, item, containerItemsString, "drop", "");
         }
+	}
+
+	/**
+	 * Performs a give action.
+	 * @param {InventoryItem} item - The inventory item to give.
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {Player} recipient - The player to give the inventory item to.
+     * @param {EquipmentSlot} recipientHandEquipmentSlot - The hand equipment slot of the recipient to put the item in.
+	 */
+	performGive(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot) {
+		if (this.type !== ActionType.Give) return;
+		const successful = this.forced || recipient.carryWeight + item.weight <= recipient.maxCarryWeight;
+		this.#game.narrationHandler.narrateGive(item, this.player, recipient);
+		this.#game.logHandler.logGive(item, this.player, recipient, successful, this.forced);
+		if (successful) this.player.give(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot);
+	}
+
+	/**
+	 * Performs a stash action.
+	 * @param {InventoryItem} item - The inventory item to stash. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {InventoryItem} container - The container to stash the inventory item in.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to stash the inventory item in.
+	 */
+	performStash(item, handEquipmentSlot, container, inventorySlot) {
+		if (this.type !== ActionType.Stash) return;
+		this.#game.narrationHandler.narrateStash(item, container, inventorySlot, this.player);
+		this.#game.logHandler.logStash(item, this.player, container, inventorySlot, this.forced);
+		this.player.stash(item, handEquipmentSlot, container, inventorySlot);
+	}
+
+	/**
+     * Performs an unstash action.
+     * @param {InventoryItem} item - The inventory item to unstash. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
+     * @param {InventoryItem} container - The inventory item's current container.
+     * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the inventory item is currently in.
+     */
+	performUnstash(item, handEquipmentSlot, container, inventorySlot) {
+		if (this.type !== ActionType.Unstash) return;
+		this.#game.narrationHandler.narrateUnstash(item, container, inventorySlot, this.player);
+		this.#game.logHandler.logUnstash(item, this.player, container, inventorySlot, this.forced);
+		this.player.unstash(item, handEquipmentSlot, container, inventorySlot);
+	}
+
+	/**
+     * Performs an equip action.
+     * @param {InventoryItem} item - The inventory item to equip.
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
+     */
+	performEquip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+		if (this.type !== ActionType.Equip) return;
+		this.#game.narrationHandler.narrateEquip(item, this.player, notify);
+		this.#game.logHandler.logEquip(item, this.player, equipmentSlot, this.forced);
+		this.player.equip(item, equipmentSlot, handEquipmentSlot);
+	}
+
+	/**
+     * Performs an unequip action.
+     * @param {InventoryItem} item - The inventory item to unequip.
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item is currently equipped to. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
+     * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
+     */
+	performUnequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+		if (this.type !== ActionType.Unequip) return;
+		this.#game.narrationHandler.narrateUnequip(item, this.player, notify);
+		this.#game.logHandler.logUnequip(item, this.player, equipmentSlot, this.forced);
+		this.player.unequip(item, equipmentSlot, handEquipmentSlot);
+	}
+
+	/**
+	 * Performs a dress action.
+	 * @param {RoomItem[]} items - All of the equippable items in the given container.
+	 * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to use to take items.
+	 * @param {Puzzle|Fixture|RoomItem} container - The container to dress from.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot to dress from, if applicable.
+	 */
+	performDress(items, handEquipmentSlot, container, inventorySlot) {
+		/** @type {InventoryItem[]} */
+		const equippedItems = [];
+		for (const item of items) {
+			// Player shouldn't be able to take items that they're not strong enough to carry.
+			if (!this.forced && this.player.carryWeight + item.weight > this.player.maxCarryWeight) continue;
+			for (const slotId of item.prefab.equipmentSlots) {
+				if (this.player.inventoryCollection.has(slotId) && this.player.inventoryCollection.get(slotId).equippedItem === null) {
+					this.player.take(item, handEquipmentSlot, container, inventorySlot);
+					this.player.equip(handEquipmentSlot.equippedItem, this.player.inventoryCollection.get(slotId), handEquipmentSlot);
+					equippedItems.push(this.player.inventoryCollection.get(slotId).equippedItem);
+					break;
+				}
+			}
+		}
+		this.#game.narrationHandler.narrateDress(equippedItems, container, this.player);
+		this.#game.logHandler.logDress(equippedItems, this.player, container, inventorySlot, this.forced);
+		// Container is a weight puzzle.
+		if (container instanceof Puzzle && container.type === "weight") {
+			const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+			this.player.attemptPuzzle(container, null, weight.toString(), "take", "");
+		}
+		// Container is a container puzzle.
+		else if (container instanceof Puzzle && container.type === "container") {
+			const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItemsString = getSortedItemsString(containerItems);
+			this.player.attemptPuzzle(container, null, containerItemsString, "take", "");
+		}
 	}
 
 	/**

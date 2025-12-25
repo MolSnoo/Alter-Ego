@@ -1,7 +1,8 @@
 import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -34,15 +35,15 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return messageHandler.addReply(game, message, `${player.name} does not have a free hand to unequip an item.`);
+    if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to unequip an item.`);
 
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -54,7 +55,7 @@ export async function execute (game, message, command, args) {
     let item;
     let itemName;
     if (slot !== undefined) {
-        if (slot.equippedItem === null) return messageHandler.addReply(game, message, `Nothing is equipped to ${slotName}.`);
+        if (slot.equippedItem === null) return addReply(game, message, `Nothing is equipped to ${slotName}.`);
         itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
         item = game.entityFinder.getPlayerSlotWithItem(player, itemName, slot, true, true, true)[1];
     } else {
@@ -62,22 +63,17 @@ export async function execute (game, message, command, args) {
     }
 
     if (item === undefined) {
-        if (itemName) return messageHandler.addReply(game, message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
-        else return messageHandler.addReply(game, message, `Couldn't find equipped item "${parsedInput}".`);
+        if (itemName) return addReply(game, message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
+        else return addReply(game, message, `Couldn't find equipped item "${parsedInput}".`);
     } else if (slot === undefined) {
         if (!slotName) slotName = parsedInput.substring(parsedInput.lastIndexOf(" FROM ") + " FROM ".length).trim();
-        else return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`)
+        else return addReply(game, message, `Couldn't find equipment slot "${slotName}".`)
     } else if (slot.id === "RIGHT HAND" || slot.id === "LEFT HAND")
-        return messageHandler.addReply(game, message, `Cannot unequip items from either of ${player.name}'s hands. To get rid of this item, use the drop command.`);
+        return addReply(game, message, `Cannot unequip items from either of ${player.name}'s hands. To get rid of this item, use the drop command.`);
     else if (!item.prefab.equippable) 
-        return messageHandler.addReply(game, message, `You cannot unequip the ${item.name}.`);
+        return addReply(game, message, `You cannot unequip the ${item.name}.`);
 
-    player.unequip(item, slot, hand);
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} in ${player.location.channel}`);
-
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${player.name}'s ${slotName}.`);
-
-    return;
+    const action = new Action(game, ActionType.Unequip, message, player, player.location, true);
+    action.performUnequip(item, slot, hand);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unequipped ${item.getIdentifier()} from ${player.name}'s ${slotName}.`);
 }

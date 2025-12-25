@@ -150,4 +150,12 @@ export default class ItemInstance extends ItemContainer {
 	getPreposition() {
 		return this.prefab ? this.prefab.preposition : "in";
 	}
+
+	/**
+	 * Gets a phrase to refer to the given inventory slot in narrations. If the item has only one inventory slot, returns an empty string.
+	 * @param {InventorySlot<ItemInstance>} inventorySlot
+	 */
+	getSlotPhrase(inventorySlot) {
+		return this.inventoryCollection.size !== 1 ? `the ${inventorySlot.id} of ` : ``;
+	}
 }

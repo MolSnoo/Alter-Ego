@@ -1,6 +1,7 @@
 import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -32,39 +33,34 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 3)
-        return messageHandler.addReply(game, message, `You need to specify two players and an item. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify two players and an item. Usage:\n${usage(game.settings)}`);
 
     // First, find the giver.
     const giver = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
-    if (giver === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (giver === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // Next, find the recipient.
     const recipient = game.entityFinder.getLivingPlayer(args[args.length - 1].toLowerCase().replace(/'s/g, ""));
-    if (recipient === undefined) return messageHandler.addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
+    if (recipient === undefined) return addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
     args.splice(args.length - 1, 1);
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);
 
-    if (giver.name === recipient.name) return messageHandler.addReply(game, message, `${giver.name} cannot give an item to ${giver.originalPronouns.ref}.`);
-    if (giver.location.id !== recipient.location.id) return messageHandler.addReply(game, message, `${giver.name} and ${recipient.name} are not in the same room.`);
+    if (giver.name === recipient.name) return addReply(game, message, `${giver.name} cannot give an item to ${giver.originalPronouns.ref}.`);
+    if (giver.location.id !== recipient.location.id) return addReply(game, message, `${giver.name} and ${recipient.name} are not in the same room.`);
 
     // Check to make sure that the recipient has a free hand.
     let recipientHand = game.entityFinder.getPlayerFreeHand(recipient);
-    if (recipientHand === undefined) return messageHandler.addReply(game, message, `${recipient.name} does not have a free hand to receive an item.`);
+    if (recipientHand === undefined) return addReply(game, message, `${recipient.name} does not have a free hand to receive an item.`);
 
     const input = args.join(" ");
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Now find the item in the giver's inventory.
     let [giverHand, item] = game.entityFinder.getPlayerHandHoldingItem(giver, parsedInput, true, true, true, true, false);
-    if (item === undefined) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
+    if (item === undefined) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
 
-    giver.give(item, giverHand, recipient, recipientHand);
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${giver.name} forcibly gave ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name} in ${giver.location.channel}`);
-
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully gave ${giver.name}'s ${item.identifier ? item.identifier : item.prefab.id} to ${recipient.name}.`);
-
-    return;
+    const action = new Action(game, ActionType.Give, message, giver, giver.location, true);
+    action.performGive(item, giverHand, recipient, recipientHand);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully gave ${giver.name}'s ${item.getIdentifier()} to ${recipient.name}.`);
 }

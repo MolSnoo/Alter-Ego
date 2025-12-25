@@ -52,11 +52,44 @@ export default class GameNotificationGenerator {
 
 	/**
 	 * Generates a notification indicating the player took an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
 	 * @param {string} itemPhrase - The single containing phrase of the item.
 	 * @param {string} containerPhrase - The entire phrase of the container.
 	 */
-	generateTakeNotification(itemPhrase, containerPhrase) {
-		return `You take ${itemPhrase} from ${containerPhrase}.`;
+	generateTakeNotification(player, secondPerson, itemPhrase, containerPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `take` : `takes`;
+		return `${subject} ${verb} ${itemPhrase} from ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a string notification indicating the player couldn't take an item because it is too heavy.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateTakeTooHeavyNotification(player, secondPerson, itemPhrase, containerPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `try` : `tries`;
+		const obj = secondPerson ? `you` : player.pronouns.obj;
+		return `${subject} ${verb} to take ${itemPhrase} from ${containerPhrase}, but it is too heavy for ${obj} to lift.`;
+	}
+
+	/**
+	 * Generates a string notification indicating the player couldn't take an item because they are carrying too much weight.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} containerPhrase - The entire phrase of the container.
+	 */
+	generateTakeTooMuchWeightNotification(player, secondPerson, itemPhrase, containerPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `try` : `tries`;
+		const sbj = secondPerson ? `you` : player.pronouns.sbj;
+		const contraction = secondPerson || player.pronouns.plural ? `'re` : `'s`;
+		return `${subject} ${verb} to take ${itemPhrase} from ${containerPhrase}, but ${sbj}${contraction} carrying too much weight.`;
 	}
 
 	/**
@@ -71,16 +104,21 @@ export default class GameNotificationGenerator {
 
 	/**
 	 * Generates a notification indicating the player successfully stole an item from someone.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
 	 * @param {string} itemPhrase - The single containing phrase of the item.
 	 * @param {string} slotPhrase - A phrase to refer to the slot the item was stolen from.
 	 * @param {string} containerName - The name of the container the item was stolen from.
 	 * @param {Player} victim - The victim who was stolen from.
 	 * @param {boolean} victimAware - Whether or not the victim noticed that they were stolen from.
 	 */
-	generateSuccessfulStealNotification(itemPhrase, slotPhrase, containerName, victim, victimAware) {
-		const successDisplay = victimAware ? `, but ${victim.pronouns.sbj} ${victim.pronouns.plural ? `seem` : `seems`} to notice.`
+	generateSuccessfulStealNotification(player, secondPerson, itemPhrase, slotPhrase, containerName, victim, victimAware) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `steal` : `steals`;
+		const successDisplay = secondPerson ? `.`
+			: victimAware ? `, but ${victim.pronouns.sbj} ${victim.pronouns.plural ? `seem` : `seems`} to notice.`
 			: ` without ${victim.pronouns.obj} noticing!`;
-		return `You steal ${itemPhrase} from ${slotPhrase}${victim.displayName}'s ${containerName}${successDisplay}`;
+		return `${subject} ${verb} ${itemPhrase} from ${slotPhrase}${victim.displayName}'s ${containerName}${successDisplay}`;
 	}
 
 	/**
@@ -118,18 +156,163 @@ export default class GameNotificationGenerator {
 
 	/**
 	 * Generates a notification indicating the player dropped an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
 	 * @param {string} itemPhrase - The single containing phrase of the item.
 	 * @param {string} preposition - The preposition of the container.
 	 * @param {string} containerPhrase - The entire phrase of the container.
 	 */
-	generateDropNotification(itemPhrase, preposition, containerPhrase) {
-		return `You put ${itemPhrase} ${preposition} ${containerPhrase}.`;
+	generateDropNotification(player, secondPerson, itemPhrase, preposition, containerPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `put` : `puts`;
+		return `${subject} ${verb} ${itemPhrase} ${preposition} ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player gave an item to someone.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} recipientDisplayName - The display name of the recipient.
+	 */
+	generateGiveNotification(player, secondPerson, itemPhrase, recipientDisplayName) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `give` : `gives`;
+		return `${subject} ${verb} ${itemPhrase} to ${recipientDisplayName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't give an item to someone because it is too heavy.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {Player} recipient - The recipient of the item.
+	 */
+	generateGiveTooHeavyNotification(player, secondPerson, itemPhrase, recipient) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `try` : `tries`;
+		return `${subject} ${verb} to give ${recipient.displayName} ${itemPhrase}, but it is too heavy for ${recipient.pronouns.obj} to lift.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't give an item to someone because they are carrying too much weight.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {Player} recipient - The recipient of the item.
+	 */
+	generateGiveTooMuchWeightNotification(player, secondPerson, itemPhrase, recipient) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `try` : `tries`;
+		const contraction = secondPerson || player.pronouns.plural ? `'re` : `'s`;
+		return `${subject} ${verb} to give ${recipient.displayName} ${itemPhrase}, but ${recipient.pronouns.sbj}${contraction} carrying too much weight.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player received an item from someone.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} giverDisplayName - The display name of the giver.
+	 */
+	generateReceiveNotification(itemPhrase, giverDisplayName) {
+		return `${giverDisplayName} gives you ${itemPhrase}!`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't receive an item from someone because it is too heavy.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} giverDisplayName - The display name of the player giving them the item.
+	 */
+	generateReceiveTooHeavyNotification(itemPhrase, giverDisplayName) {
+		return `${giverDisplayName} tries to give you ${itemPhrase}, but it is too heavy for you to lift.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player couldn't receive an item to someone because they are carrying too much weight.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} giverDisplayName - The display name of the player giving them the item.
+	 */
+	generateReceiveTooMuchWeightNotification(itemPhrase, giverDisplayName) {
+		return `${giverDisplayName} tries to give you ${itemPhrase}, but you're carrying too much weight.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player stashed an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} preposition - The preposition of the container.
+	 * @param {string} slotPhrase - A phrase to refer to the slot the item is being stashed in.
+	 * @param {string} containerName - The name of the container the item is being stashed in.
+	 */
+	generateStashNotification(player, secondPerson, itemPhrase, preposition, slotPhrase, containerName) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `stash` : `stashes`;
+		const dpos = secondPerson ? `your` : player.pronouns.dpos;
+		return `${subject} ${verb} ${itemPhrase} ${preposition} ${slotPhrase}${dpos} ${containerName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player unstashed an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} slotPhrase - A phrase to refer to the slot the item is being unstashed from.
+	 * @param {string} containerName - The name of the container the item is being unstashed from.
+	 */
+	generateUnstashNotification(player, secondPerson, itemPhrase, slotPhrase, containerName) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `take` : `takes`;
+		const dpos = secondPerson ? `your` : player.pronouns.dpos;
+		return `${subject} ${verb} ${itemPhrase} out of ${slotPhrase}${dpos} ${containerName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player equipped an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 */
+	generateEquipNotification(player, secondPerson, itemPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `put on` : `puts on`;
+		return `${subject} ${verb} ${itemPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player unequipped an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemName - The name of the item.
+	 */
+	generateUnequipNotification(player, secondPerson, itemName) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `take off` : `takes off`;
+		const dpos = secondPerson ? `your` : player.pronouns.dpos;
+		return `${subject} ${verb} ${dpos} ${itemName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player dressed.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} containerName - The name of the container the player is dressing from.
+	 * @param {string} itemList - A list of items the player put on.
+	 */
+	generateDressNotification(player, secondPerson, containerName, itemList) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `dress` : `dresses`;
+		return `${subject} ${verb} from the ${containerName}, putting on ${itemList}.`;
 	}
 
 	/**
 	 * Generates a notification indicating the player has died.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
 	 */
-	generateDieNotification() {
-		return `You have died. When your body is discovered, you will be given the ${this.#game.guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`;
+	generateDieNotification(player, secondPerson) {
+		const message = secondPerson
+			? `You have died. When your body is discovered, you will be given the ${this.#game.guildContext.deadRole.name} role. Until then, your death must remain a secret to the server and to other players.`
+			: `${player.displayName} dies.`;
+		return message;
 	}
 }

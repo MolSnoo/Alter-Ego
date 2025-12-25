@@ -1,3 +1,4 @@
+import EquipmentSlot from "../Data/EquipmentSlot.js";
 import Exit from "../Data/Exit.js";
 import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
@@ -10,6 +11,7 @@ import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
 import { addLogMessage } from "../Modules/messageHandler.js";
+import { generateListString } from "../Modules/helpers.js";
 
 /**
  * @class GameLogHandler
@@ -115,11 +117,13 @@ export default class GameLogHandler {
 	 * @param {Player} player - The player who performed the action.
 	 * @param {Fixture|Puzzle|RoomItem} container - The container the item was taken from.
 	 * @param {InventorySlot} inventorySlot - The inventory slot the item was taken from.
+	 * @param {boolean} successful - Whether or not the player was successful in taking the item.
 	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
 	 */
-	logTake(item, player, container, inventorySlot, forced) {
+	logTake(item, player, container, inventorySlot, successful, forced) {
 		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
-		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}took ${item.getIdentifier()} from ${containerPhrase} in ${player.location.channel}`);
+		const actionVerb = successful ? `took` : `attempted and failed to take`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${actionVerb} ${item.getIdentifier()} from ${containerPhrase} in ${player.location.channel}`);
 	}
 
 	/**
@@ -151,6 +155,86 @@ export default class GameLogHandler {
 		const preposition = container.getPreposition() ? container.getPreposition() : "in";
 		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}dropped ${item.getIdentifier()} ${preposition} ${containerPhrase} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a give action.
+	 * @param {InventoryItem} item - The item that was given.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Player} recipient - The player who received the item.
+	 * @param {boolean} successful - Whether or not the player was successful in giving the item.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logGive(item, player, recipient, successful, forced) {
+		const actionVerb = successful ? `gave` : `attempted and failed to give`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${actionVerb} ${item.getIdentifier()} to ${recipient.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a stash action.
+	 * @param {InventoryItem} item - The item that was stashed.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {InventoryItem} container - The container the item was stashed in.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was stashed in.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logStash(item, player, container, inventorySlot, forced) {
+		const forcedString = this.#getForcedString(forced);
+		const itemIdentifier = item.getIdentifier();
+		const preposition = container.getPreposition() ? container.getPreposition() : "in";
+		const containerIdentifier = container.getIdentifier();
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${forcedString}stashed ${itemIdentifier} ${preposition} ${inventorySlot.id} of ${player.originalPronouns.dpos} ${containerIdentifier} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an unstash action.
+	 * @param {InventoryItem} item - The item that was unstashed.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {InventoryItem} container - The container the item was unstashed from.
+	 * @param {InventorySlot} inventorySlot - The inventory slot the item was unstashed from.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnstash(item, player, container, inventorySlot, forced) {
+		const forcedString = this.#getForcedString(forced);
+		const itemIdentifier = item.getIdentifier();
+		const containerIdentifier = container.getIdentifier();
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${forcedString}unstashed ${itemIdentifier} from ${inventorySlot.id} of ${player.originalPronouns.dpos} ${containerIdentifier} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an equip action.
+	 * @param {InventoryItem} item - The item that was equipped.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {EquipmentSlot} equipmentSlot - The equipment slot the item was equipped to.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logEquip(item, player, equipmentSlot, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}equipped ${item.getIdentifier()} to ${equipmentSlot.id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an unequip action.
+	 * @param {InventoryItem} item - The item that was unequipped.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {EquipmentSlot} equipmentSlot - The equipment slot the item was unequipped from.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnequip(item, player, equipmentSlot, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}unequipped ${item.getIdentifier()} from ${equipmentSlot.id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a dress action.
+	 * @param {InventoryItem[]} items - The items the player put on.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the player dressed from.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot the player dressed from, if applicable.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logDress(items, player, container, inventorySlot, forced) {
+		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
+		const itemList = generateListString(items.map(item => item.getIdentifier()));
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}dressed from ${containerPhrase}, putting on ${itemList} in ${player.location.channel}`);
 	}
 
 	/**

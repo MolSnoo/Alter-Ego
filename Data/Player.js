@@ -1246,10 +1246,7 @@ export default class Player extends ItemContainer {
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
-        this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
-        recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
             this.removeItemFromDescription(createdItem, "hands");
             // Add the item to the recipient's hands item list.
@@ -1289,13 +1286,9 @@ export default class Player extends ItemContainer {
         // Insert the new inventory items into the game's list of inventory items.
         itemManager.insertInventoryItems(this, items, equipmentSlot);
 
-        const preposition = container.prefab ? container.prefab.preposition : "in";
-        this.notify(`You stash ${createdItem.singleContainingPhrase} ${preposition} your ${container.name}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
-            // Remove the item from the player's hands item list.
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
-        }
     }
 
     /**
@@ -1311,12 +1304,9 @@ export default class Player extends ItemContainer {
         // Put the item in the player's hand.
         itemManager.putItemInHand(item, this, handEquipmentSlot);
 
-        this.notify(`You take ${item.singleContainingPhrase} out of your ${container.name}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
-            // Add the new item to the player's hands item list.
+        // Add the new item to the player's hands item list.
+        if (!item.prefab.discreet)
             this.addItemToDescription(item, "hands");
-        }
     }
 
     /**
@@ -1324,9 +1314,8 @@ export default class Player extends ItemContainer {
      * @param {InventoryItem} item - The inventory item to equip.
      * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
-     * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
      */
-    equip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+    equip(item, equipmentSlot, handEquipmentSlot) {
         // Unequip the item from the player's hand.
         handEquipmentSlot.unequipItem(item);
 
@@ -1345,9 +1334,6 @@ export default class Player extends ItemContainer {
         item.quantity = 0;
         // Insert the newly created item in the game's list of inventory items.
         itemManager.insertInventoryItems(this, items, equipmentSlot);
-
-        if (notify) this.notify(`You equip the ${createdItem.name}.`);
-        new Narration(this.getGame(), this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
 
         // Update the player's description.
         if (!item.prefab.discreet)
@@ -1427,18 +1413,14 @@ export default class Player extends ItemContainer {
      * @param {InventoryItem} item - The inventory item to unequip.
      * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item is currently equipped to. 
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
-     * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
      */
-    unequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+    unequip(item, equipmentSlot, handEquipmentSlot) {
         equipmentSlot.unequipItem(item);
 
         // Put the item in the player's hand.
         let createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         item.quantity = 0;
-
-        if (notify) this.notify(`You unequip the ${createdItem.name}.`);
-        new Narration(this.getGame(), this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
-
+        
         // Update the player's description.
         if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");
