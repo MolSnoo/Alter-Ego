@@ -128,15 +128,15 @@ export default class GameNarrationHandler {
 	 */
 	narrateTake(item, player, notify = true) {
 		const containerPhrase = item.getContainerPhrase();
-		let notification = this.#game.notificationGenerator.generateTakeNotification(item.singleContainingPhrase, containerPhrase);
-		let narration = `${player.displayName} takes ${item.singleContainingPhrase} from ${containerPhrase}.`;
+		let notification = this.#game.notificationGenerator.generateTakeNotification(player, true, item.singleContainingPhrase, containerPhrase);
+		let narration = this.#game.notificationGenerator.generateTakeNotification(player, false, item.singleContainingPhrase, containerPhrase);
 		if (item.weight > player.maxCarryWeight) {
-			notification = this.#game.notificationGenerator.generateTakeTooHeavyNotification(item.singleContainingPhrase, containerPhrase);
-			narration = `${player.displayName} tries to take ${item.singleContainingPhrase} from ${containerPhrase}, but it is too heavy for ${player.pronouns.obj} to lift.`;
+			notification = this.#game.notificationGenerator.generateTakeTooHeavyNotification(player, true, item.singleContainingPhrase, containerPhrase);
+			narration = this.#game.notificationGenerator.generateTakeTooHeavyNotification(player, false, item.singleContainingPhrase, containerPhrase);
 		}
 		else if (player.carryWeight + item.weight > player.maxCarryWeight) {
-			notification = this.#game.notificationGenerator.generateTakeTooMuchWeightNotification(item.singleContainingPhrase, containerPhrase);
-			narration = `${player.displayName} tries to take ${item.singleContainingPhrase} from ${containerPhrase}, but ${player.pronouns.sbj} ${player.pronouns.plural ? `are` : `is`} carrying too much weight.`;
+			notification = this.#game.notificationGenerator.generateTakeTooMuchWeightNotification(player, true, item.singleContainingPhrase, containerPhrase);
+			narration = this.#game.notificationGenerator.generateTakeTooMuchWeightNotification(player, false, item.singleContainingPhrase, containerPhrase);
 		}
 		if (notify) player.notify(notification);
 		if (!item.prefab.discreet)
@@ -154,14 +154,16 @@ export default class GameNarrationHandler {
 	 */
 	narrateSteal(item, thief, victim, container, inventorySlot, notifyVictim) {
 		const slotPhrase = container.getSlotPhrase(inventorySlot);
-		const thiefNotification = this.#game.notificationGenerator.generateSuccessfulStealNotification(item.singleContainingPhrase, slotPhrase, container.name, victim, notifyVictim);
+		const thiefNotification = this.#game.notificationGenerator.generateSuccessfulStealNotification(thief, true, item.singleContainingPhrase, slotPhrase, container.name, victim, notifyVictim);
 		thief.notify(thiefNotification);
 		if (notifyVictim) {
 			const victimNotification = this.#game.notificationGenerator.generateSuccessfulStolenFromNotification(thief.displayName, slotPhrase, item.singleContainingPhrase, container.name);
 			victim.notify(victimNotification);
 		}
-		if (!item.prefab.discreet)
-			this.#sendNarration(thief, `${thief.displayName} steals ${item.singleContainingPhrase} from ${slotPhrase}${victim.displayName}'s ${container.name}.`);
+		if (!item.prefab.discreet) {
+			const narration = this.#game.notificationGenerator.generateSuccessfulStealNotification(thief, false, item.singleContainingPhrase, slotPhrase, container.name, victim, notifyVictim)
+			this.#sendNarration(thief, narration);
+		}
 	}
 
 	/**
@@ -174,9 +176,12 @@ export default class GameNarrationHandler {
 	narrateDrop(item, container, player, notify = true) {
 		const preposition = container.getPreposition();
 		const containerPhrase = container.getContainingPhrase();
-		if (notify) player.notify(this.#game.notificationGenerator.generateDropNotification(item.singleContainingPhrase, preposition, containerPhrase));
-		if (!item.prefab.discreet)
-			this.#sendNarration(player, `${player.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
+		const notification = this.#game.notificationGenerator.generateDropNotification(player, true, item.singleContainingPhrase, preposition, containerPhrase);
+		if (notify) player.notify(notification);
+		if (!item.prefab.discreet) {
+			const narration = this.#game.notificationGenerator.generateDropNotification(player, false, item.singleContainingPhrase, preposition, containerPhrase)
+			this.#sendNarration(player, narration);
+		}
 	}
 
 	/**
@@ -186,18 +191,18 @@ export default class GameNarrationHandler {
 	 * @param {Player} recipient - The player receiving the item.
 	 */
 	narrateGive(item, player, recipient) {
-		let playerNotification = this.#game.notificationGenerator.generateGiveNotification(item.singleContainingPhrase, recipient.displayName);
+		let playerNotification = this.#game.notificationGenerator.generateGiveNotification(player, true, item.singleContainingPhrase, recipient.displayName);
 		let recipientNotification = this.#game.notificationGenerator.generateReceiveNotification(item.singleContainingPhrase, player.displayName);
-		let narration = `${player.displayName} gives ${item.singleContainingPhrase} to ${recipient.displayName}.`;
+		let narration = this.#game.notificationGenerator.generateGiveNotification(player, false, item.singleContainingPhrase, recipient.displayName);
 		if (item.weight > recipient.maxCarryWeight) {
-			playerNotification = this.#game.notificationGenerator.generateGiveTooHeavyNotification(item.singleContainingPhrase, recipient);
+			playerNotification = this.#game.notificationGenerator.generateGiveTooHeavyNotification(player, true, item.singleContainingPhrase, recipient);
 			recipientNotification = this.#game.notificationGenerator.generateReceiveTooHeavyNotification(item.singleContainingPhrase, player.displayName);
-			narration = `${player.displayName} tries to give ${item.singleContainingPhrase} to ${recipient.displayName}, but it is too heavy for ${recipient.pronouns.obj} to lift.`;
+			narration = this.#game.notificationGenerator.generateGiveTooHeavyNotification(player, false, item.singleContainingPhrase, recipient)
 		}
 		else if (recipient.carryWeight + item.weight > recipient.maxCarryWeight) {
-			playerNotification = this.#game.notificationGenerator.generateGiveTooMuchWeightNotification(item.singleContainingPhrase, recipient);
+			playerNotification = this.#game.notificationGenerator.generateGiveTooMuchWeightNotification(player, true, item.singleContainingPhrase, recipient);
 			recipientNotification = this.#game.notificationGenerator.generateReceiveTooMuchWeightNotification(item.singleContainingPhrase, player.displayName);
-			narration = `${player.displayName} tries to give ${item.singleContainingPhrase} to ${recipient.displayName}, but ${recipient.pronouns.sbj} ${recipient.pronouns.plural ? `are` : `is`} carrying too much weight.`;
+			narration = this.#game.notificationGenerator.generateGiveTooMuchWeightNotification(player, false, item.singleContainingPhrase, recipient);
 		}
 		player.notify(playerNotification);
 		recipient.notify(recipientNotification);
@@ -215,9 +220,12 @@ export default class GameNarrationHandler {
 	narrateStash(item, container, inventorySlot, player) {
 		const preposition = container.getPreposition();
 		const slotPhrase = container.getSlotPhrase(inventorySlot);
-		player.notify(this.#game.notificationGenerator.generateStashNotification(item.singleContainingPhrase, preposition, slotPhrase, container.name));
-		if (!item.prefab.discreet)
-			this.#sendNarration(player, `${player.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${slotPhrase}${player.pronouns.dpos} ${container.name}.`);
+		const notification = this.#game.notificationGenerator.generateStashNotification(player, true, item.singleContainingPhrase, preposition, slotPhrase, container.name);
+		player.notify(notification);
+		if (!item.prefab.discreet) {
+			const narration = this.#game.notificationGenerator.generateStashNotification(player, false, item.singleContainingPhrase, preposition, slotPhrase, container.name)
+			this.#sendNarration(player, narration);
+		}
 	}
 
 	/**
@@ -229,9 +237,12 @@ export default class GameNarrationHandler {
 	 */
 	narrateUnstash(item, container, inventorySlot, player) {
 		const slotPhrase = container.getSlotPhrase(inventorySlot);
-		player.notify(this.#game.notificationGenerator.generateUnstashNotification(item.singleContainingPhrase, slotPhrase, container.name));
-		if (!item.prefab.discreet)
-			this.#sendNarration(player, `${player.displayName} takes ${item.singleContainingPhrase} out of ${slotPhrase}${player.pronouns.dpos} ${container.name}.`);
+		const notification = this.#game.notificationGenerator.generateUnstashNotification(player, true, item.singleContainingPhrase, slotPhrase, container.name);
+		player.notify(notification);
+		if (!item.prefab.discreet) {
+			const narration = this.#game.notificationGenerator.generateUnstashNotification(player, false, item.singleContainingPhrase, slotPhrase, container.name);
+			this.#sendNarration(player, narration);
+		}
 	}
 
 	/**
@@ -241,8 +252,12 @@ export default class GameNarrationHandler {
 	 * @param {boolean} [notify] - Whether or not to notify the player that they equipped the item. Defaults to true.
 	 */
 	narrateEquip(item, player, notify = true) {
-		if (notify) player.notify(this.#game.notificationGenerator.generateEquipNotification(item.singleContainingPhrase));
-		this.#sendNarration(player, `${player.displayName} puts on ${item.singleContainingPhrase}.`);
+		if (notify) {
+			const notification = this.#game.notificationGenerator.generateEquipNotification(player, true, item.singleContainingPhrase);
+			player.notify(notification);
+		}
+		const narration = this.#game.notificationGenerator.generateEquipNotification(player, false, item.singleContainingPhrase);
+		this.#sendNarration(player, narration);
 	}
 
 	/**
@@ -252,8 +267,12 @@ export default class GameNarrationHandler {
 	 * @param {boolean} [notify] - Whether or not to notify the player that they unequipped the item. Defaults to true.
 	 */
 	narrateUnequip(item, player, notify = true) {
-		if (notify) player.notify(this.#game.notificationGenerator.generateUnequipNotification(item.singleContainingPhrase));
-		this.#sendNarration(player, `${player.displayName} takes off ${player.pronouns.dpos} ${item.name}.`);
+		if (notify) {
+			const notification = this.#game.notificationGenerator.generateUnequipNotification(player, true, item.singleContainingPhrase);
+			player.notify(notification);
+		}
+		const narration = this.#game.notificationGenerator.generateUnequipNotification(player, false, item.singleContainingPhrase);
+		this.#sendNarration(player, narration);
 	}
 
 	/**
@@ -262,10 +281,13 @@ export default class GameNarrationHandler {
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.
 	 */
 	narrateDie(player, customNarration) {
-		player.notify(this.#game.notificationGenerator.generateDieNotification());
+		player.notify(this.#game.notificationGenerator.generateDieNotification(player, true));
 		if (!player.hasBehaviorAttribute("hidden")) {
 			if (customNarration) this.#sendNarration(player, customNarration);
-			else this.#sendNarration(player, `${player.displayName} dies.`);
+			else {
+				const narration = this.#game.notificationGenerator.generateDieNotification(player, false);
+				this.#sendNarration(player, `${player.displayName} dies.`);
+			}
 		}
 	}
 }
