@@ -235,6 +235,17 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates an equip action.
+	 * @param {InventoryItem} item - The item being equipped.
+	 * @param {Player} player - The player performing the equip action.
+	 * @param {boolean} [notify] - Whether or not to notify the player that they equipped the item. Defaults to true.
+	 */
+	narrateEquip(item, player, notify = true) {
+		if (notify) player.notify(this.#game.notificationGenerator.generateEquipNotification(item.singleContainingPhrase));
+		this.#sendNarration(player, `${player.displayName} puts on ${item.singleContainingPhrase}.`);
+	}
+
+	/**
 	 * Narrates a die action.
 	 * @param {Player} player - The player performing the die action. 
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.

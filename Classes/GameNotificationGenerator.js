@@ -220,6 +220,14 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player equipped an item.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 */
+	generateEquipNotification(itemPhrase) {
+		return `You put on ${itemPhrase}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 */
 	generateDieNotification() {

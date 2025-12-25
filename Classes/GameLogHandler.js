@@ -1,3 +1,4 @@
+import EquipmentSlot from "../Data/EquipmentSlot.js";
 import Exit from "../Data/Exit.js";
 import Fixture from "../Data/Fixture.js";
 import Game from "../Data/Game.js";
@@ -197,6 +198,17 @@ export default class GameLogHandler {
 		const itemIdentifier = item.getIdentifier();
 		const containerIdentifier = container.getIdentifier();
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${forcedString}unstashed ${itemIdentifier} from ${inventorySlot.id} of ${player.originalPronouns.dpos} ${containerIdentifier} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an equip action.
+	 * @param {InventoryItem} item - The item that was equipped.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {EquipmentSlot} equipmentSlot - The equipment slot the item was equipped to.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logEquip(item, player, equipmentSlot, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}equipped ${item.getIdentifier()} to ${equipmentSlot.id} in ${player.location.channel}`);
 	}
 
 	/**

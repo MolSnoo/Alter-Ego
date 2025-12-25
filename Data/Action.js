@@ -325,6 +325,20 @@ export default class Action {
 	}
 
 	/**
+     * Performs an equip action.
+     * @param {InventoryItem} item - The inventory item to equip.
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
+     * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
+     * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
+     */
+	performEquip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+		if (this.type !== ActionType.Equip) return;
+		this.#game.narrationHandler.narrateEquip(item, this.player, notify);
+		this.#game.logHandler.logEquip(item, this.player, equipmentSlot, this.forced);
+		this.player.equip(item, equipmentSlot, handEquipmentSlot);
+	}
+
+	/**
 	 * Performs a die action.
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.
 	 */
