@@ -360,6 +360,7 @@ export default class Action {
 	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot to dress from, if applicable.
 	 */
 	performDress(items, handEquipmentSlot, container, inventorySlot) {
+		if (this.type !== ActionType.Dress) return;
 		/** @type {InventoryItem[]} */
 		const equippedItems = [];
 		for (const item of items) {
@@ -387,6 +388,49 @@ export default class Action {
 			const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
 			const containerItemsString = getSortedItemsString(containerItems);
 			this.player.attemptPuzzle(container, null, containerItemsString, "take", "");
+		}
+	}
+
+	/**
+	 * Performs an undress action.
+	 * @param {Puzzle|Fixture|RoomItem} container - The container to put the items in.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot to put the items in, if applicable.
+	 */
+	performUndress(container, inventorySlot) {
+		if (this.type !== ActionType.Undress) return;
+		// First, drop the items in the player's hands.
+		const rightHand = this.player.inventoryCollection.get("RIGHT HAND");
+		const leftHand = this.player.inventoryCollection.get("LEFT HAND");
+		if (rightHand && rightHand.equippedItem !== null) {
+			const rightHandDropAction = new Action(this.#game, ActionType.Drop, undefined, this.player, this.location, this.forced);
+			rightHandDropAction.performDrop(rightHand.equippedItem, rightHand, container, inventorySlot, true);
+		}
+		if (leftHand && leftHand.equippedItem !== null) {
+			const leftHandDropAction = new Action(this.#game, ActionType.Drop, undefined, this.player, this.location, this.forced);
+			leftHandDropAction.performDrop(leftHand.equippedItem, leftHand, container, inventorySlot, true);
+		}
+		/** @type {InventoryItem[]} */
+		const droppedItems = [];
+		for (const equipmentSlot of this.player.inventoryCollection.values()) {
+			if (equipmentSlot.equippedItem !== null && equipmentSlot.equippedItem.prefab.equippable) {
+				droppedItems.push(equipmentSlot.equippedItem)
+				this.player.unequip(equipmentSlot.equippedItem, equipmentSlot, rightHand);
+				this.player.drop(rightHand.equippedItem, rightHand, container, inventorySlot);
+			}
+		}
+		this.#game.narrationHandler.narrateUndress(droppedItems, container, this.player);
+		this.#game.logHandler.logUndress(droppedItems, this.player, container, inventorySlot, this.forced);
+		// Container is a weight puzzle.
+		if (container instanceof Puzzle && container.type === "weight") {
+			const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
+			this.player.attemptPuzzle(container, null, weight.toString(), "drop", "");
+		}
+		// Container is a container puzzle.
+		else if (container instanceof Puzzle && container.type === "container") {
+			const containerItems = this.#game.roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
+			const containerItemsString = getSortedItemsString(containerItems);
+			this.player.attemptPuzzle(container, null, containerItemsString, "drop", "");
 		}
 	}
 

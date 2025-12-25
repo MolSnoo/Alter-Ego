@@ -305,6 +305,20 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player undressed.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} preposition - The preposition of the container.
+	 * @param {string} containerPhrase - The entire phrase of the container the player is undressing into.
+	 * @param {string} itemList - A list of items the player took off.
+	 */
+	generateUndressNotification(player, secondPerson, preposition, containerPhrase, itemList) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `undress` : `undresses`;
+		return `${subject} ${verb}, putting ${itemList} ${preposition} ${containerPhrase}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
