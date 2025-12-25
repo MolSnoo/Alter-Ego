@@ -185,7 +185,7 @@ export default class GameEntityFinder {
 	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier.
 	 * @param {boolean} [prefabSearch] - Whether or not to look up items based on prefab ID.
 	 * @param {boolean} [exactMatch] - Whether or not to look up items based on whether or not the itemQuery is an exact match with an item identifier.
-	 * @param {boolean} [prefixMatch] - Whether or not to look up items based on whether or not the itemQuery starts with an item identifer.
+	 * @param {boolean} [prefixMatch] - Whether or not to look up items based on whether or not the itemQuery starts with an item identifier.
 	 * @returns {[EquipmentSlot, InventoryItem]}
 	 */
 	getPlayerHandHoldingItem(player, itemQuery, nameSearch = true, identifierSearch = true, prefabSearch = true, exactMatch = true, prefixMatch = false) {
