@@ -56,9 +56,9 @@ export async function execute (game, message, command, args) {
     if (slot !== undefined) {
         if (slot.equippedItem === null) return messageHandler.addReply(game, message, `Nothing is equipped to ${slotName}.`);
         itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
-        item = game.entityFinder.getPlayerSlotWithItem(player, itemName, slot, true, true)[1];
+        item = game.entityFinder.getPlayerSlotWithItem(player, itemName, slot, true, true, true)[1];
     } else {
-        [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, parsedInput, null, true, true);
+        [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, parsedInput, null, true, true, true);
     }
 
     if (item === undefined) {
