@@ -1,11 +1,11 @@
-﻿import Action from '../Data/Action.js';
-import GameSettings from '../Classes/GameSettings.js';
+﻿import GameSettings from '../Classes/GameSettings.js';
+import GestureAction from '../Data/Actions/GestureAction.js';
 import Fixture from '../Data/Fixture.js';
 import Game from '../Data/Game.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
 
 /** @type {CommandConfig} */
@@ -42,10 +42,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a gesture. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a gesture. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable gesture");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -109,7 +109,7 @@ export async function execute (game, message, command, args, player) {
         for (let i = 0; i < game.gestures.length; i++) {
             if (game.gestures[i].id.toLowerCase().replace(/\'/g, "") === input) {
                 if (game.gestures[i].requires.length > 0)
-                    return messageHandler.addReply(game, message, `You need to specify a target for that gesture.`);
+                    return addReply(game, message, `You need to specify a target for that gesture.`);
                 gesture = game.gestures[i];
                 break;
             }
@@ -122,7 +122,7 @@ export async function execute (game, message, command, args, player) {
                         if (gesture.requires[j] === "Exit") {
                             for (let k = 0; k < player.location.exit.length; k++) {
                                 if (player.location.exit[k].name.toLowerCase() === input2) {
-                                    if (hiddenStatus.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+                                    if (hiddenStatus.length > 0) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                                     targetType = "Exit";
                                     target = player.location.exit[k];
                                     break;
@@ -134,7 +134,7 @@ export async function execute (game, message, command, args, player) {
                             for (let k = 0; k < fixtures.length; k++) {
                                 if (fixtures[k].name.toLowerCase() === input2) {
                                     // Make sure the player can only gesture to the fixture they're hiding in, if they're hidden.
-                                    if (hiddenStatus.length > 0 && player.hidingSpot !== fixtures[k].name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+                                    if (hiddenStatus.length > 0 && player.hidingSpot !== fixtures[k].name) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                                     targetType = "Fixture";
                                     target = fixtures[k];
                                     break;
@@ -154,7 +154,7 @@ export async function execute (game, message, command, args, player) {
                                             topContainer = topContainer.parentFixture;
 
                                         if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
-                                            return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+                                            return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                                     }
                                     targetType = "Room Item";
                                     target = items[k];
@@ -168,13 +168,13 @@ export async function execute (game, message, command, args, player) {
                                 // Make sure the player can only gesture to players hiding in the same fixture they're hiding in, if they're hidden.
                                 if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
                                     // Player cannot gesture toward themselves.
-                                    if (occupant.name === player.name) return messageHandler.addReply(game, message, "You can't gesture toward yourself.");
+                                    if (occupant.name === player.name) return addReply(game, message, "You can't gesture toward yourself.");
                                     targetType = "Player";
                                     target = occupant;
                                     break;
                                 }
                                 else if (occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
-                                    return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+                                    return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                             }
                         }
                         else if (gesture.requires[j] === "Inventory Item") {
@@ -194,18 +194,18 @@ export async function execute (game, message, command, args, player) {
                 }
             }
         }
-        if (gesture === null) return messageHandler.addReply(game, message, `Couldn't find gesture "${input}". For a list of gestures, send \`${game.settings.commandPrefix}gesture list\`.`);
+        if (gesture === null) return addReply(game, message, `Couldn't find gesture "${input}". For a list of gestures, send \`${game.settings.commandPrefix}gesture list\`.`);
         input = input.substring(gesture.id.toLowerCase().replace(/\'/g, "").length).trim();
         if (input !== "" && gesture.requires.length === 0)
-            return messageHandler.addReply(game, message, `That gesture doesn't take a target.`);
+            return addReply(game, message, `That gesture doesn't take a target.`);
         if (target === null && gesture.requires.length > 0)
-            return messageHandler.addReply(game, message, `Couldn't find target "${input}" in the room with you.`);
+            return addReply(game, message, `Couldn't find target "${input}" in the room with you.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
             if (player.statusString.includes(gesture.disabledStatuses[i].id))
-                return messageHandler.addReply(game, message, `You cannot do that gesture because you are **${gesture.disabledStatuses[i].id}**.`);
+                return addReply(game, message, `You cannot do that gesture because you are **${gesture.disabledStatuses[i].id}**.`);
         }
 
-        const action = new Action(game, ActionType.Gesture, message, player, player.location, false);
+        const action = new GestureAction(game, message, player, player.location, false);
         action.performGesture(gesture, targetType, target);
     }
 }

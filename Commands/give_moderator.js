@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import GiveAction from '../Data/Actions/GiveAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
@@ -122,7 +122,7 @@ export async function execute (game, message, command, args) {
     }
     if (item === null) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${giver.name}'s hands.`);
 
-    const action = new Action(game, ActionType.Give, message, giver, giver.location, true);
+    const action = new GiveAction(game, message, giver, giver.location, true);
     action.performGive(item, giverHand, recipient, recipientHand);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully gave ${giver.name}'s ${item.getIdentifier()} to ${recipient.name}.`);
 }

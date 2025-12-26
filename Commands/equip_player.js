@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import EquipAction from '../Data/Actions/EquipAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
@@ -86,6 +86,6 @@ export async function execute (game, message, command, args, player) {
     }
     if (!foundSlot) return addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
 
-    const action = new Action(game, ActionType.Equip, message, player, player.location, false);
+    const action = new EquipAction(game, message, player, player.location, false);
     action.performEquip(item, slotName, hand);
 }

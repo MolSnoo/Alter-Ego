@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import StashAction from '../Data/Actions/StashAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
@@ -109,6 +109,6 @@ export async function execute (game, message, command, args, player) {
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventory.length !== 1) return addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because there isn't enough space left.`);
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
 
-    const action = new Action(game, ActionType.Stash, message, player, player.location, false);
+    const action = new StashAction(game, message, player, player.location, false);
     action.performStash(item, hand, containerItem, containerItemSlot.id);
 }

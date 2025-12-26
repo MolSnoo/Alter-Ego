@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UnequipAction from '../Data/Actions/UnequipAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
@@ -98,7 +98,7 @@ export async function execute (game, message, command, args) {
     }
     if (item === null) return addReply(game, message, `Couldn't find equipped item "${parsedInput}".`);
 
-    const action = new Action(game, ActionType.Unequip, message, player, player.location, true);
+    const action = new UnequipAction(game, message, player, player.location, true);
     action.performUnequip(item, slotName, hand);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unequipped ${item.getIdentifier()} from ${player.name}'s ${slotName}.`);
 }

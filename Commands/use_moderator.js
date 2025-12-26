@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UseAction from '../Data/Actions/UseAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
@@ -121,7 +121,7 @@ export async function execute (game, message, command, args) {
     if (!item.prefab.usable) return addReply(game, message, "That item has no programmed use.");
     if (!item.usableOn(target)) return addReply(game, message, `${item.getIdentifier()} currently has no effect on ${target.name}.`);
     // Use the player's item.
-    const action = new Action(game, ActionType.Use, message, player, player.location, true);
+    const action = new UseAction(game, message, player, player.location, true);
     action.performUse(item, target, announcement);
     const targetString = target.name !== player.name ? `on ${target.name} ` : ``;
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully used ${item.getIdentifier()} ${targetString}for ${player.name}.`);

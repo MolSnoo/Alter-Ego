@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import InspectAction from '../Data/Actions/InspectAction.js';
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
@@ -63,7 +63,7 @@ export async function execute (game, message, command, args) {
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // What we do with this action, if anything, depends on what the player inspects.
-    const action = new Action(game, ActionType.Inspect, message, player, player.location, true);
+    const action = new InspectAction(game, message, player, player.location, true);
 
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {

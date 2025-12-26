@@ -1,4 +1,3 @@
-import Action from './Action.js';
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Exit from './Exit.js';
@@ -17,6 +16,8 @@ import Status from './Status.js';
 import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
+
+import DieAction from './Actions/DieAction.js';
 
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
@@ -817,7 +818,7 @@ export default class Player extends ItemContainer {
                     else {
                         if (status.fatal) {
                             status.timer.stop();
-                            const action = new Action(player.getGame(), ActionType.Die, undefined, player, player.location, true);
+                            const action = new DieAction(player.getGame(), undefined, player, player.location, true);
                             action.performDie();
                         }
                         else {

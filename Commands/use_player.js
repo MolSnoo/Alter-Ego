@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UseAction from '../Data/Actions/UseAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import * as messageHandler from '../Modules/messageHandler.js';
@@ -166,7 +166,7 @@ export async function execute (game, message, command, args, player) {
         if (item.uses === 0) return messageHandler.addReply(game, message, "That item has no uses left.");
         if (!item.prefab.usable) return messageHandler.addReply(game, message, "That item has no programmed use on its own, but you may be able to use it some other way.");
         if (!item.usableOn(player)) return messageHandler.addReply(game, message, `${item.name} currently has no effect on you.`);
-        const action = new Action(game, ActionType.Use, message, player, player.location, false);
+        const action = new UseAction(game, message, player, player.location, false);
         action.performUse(item);
     }
     else if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
