@@ -138,16 +138,16 @@ export async function execute (game, message, command, args) {
     }
     if (recipe === null) return messageHandler.addReply(game, message, `Couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
 
-    item1Name = ingredients[0].identifier ? ingredients[0].identifier : ingredients[0].prefab.id;
-    item2Name = ingredients[1].identifier ? ingredients[1].identifier : ingredients[1].prefab.id;
+    item1Name = ingredients[0].getIdentifier();
+    item2Name = ingredients[1].getIdentifier();
 
     const products = player.craft(ingredients[0], ingredients[1], recipe);
 
     let productPhrase = "";
     let product1Phrase = "";
     let product2Phrase = "";
-    if (products.product1) product1Phrase = products.product1.identifier ? products.product1.identifier : products.product1.prefab.id;
-    if (products.product2) product2Phrase = products.product2.identifier ? products.product2.identifier : products.product2.prefab.id;
+    if (products.product1) product1Phrase = products.product1.getIdentifier();
+    if (products.product2) product2Phrase = products.product2.getIdentifier();
     if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
     else if (product1Phrase !== "") productPhrase = product1Phrase;
     else if (product2Phrase !== "") productPhrase = product2Phrase;

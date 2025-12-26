@@ -59,7 +59,7 @@ export default class GameLogHandler {
 	 */
 	logGesture(gesture, target, player, forced) {
 		let targetString = "";
-		if (target instanceof ItemInstance) targetString = `to ${target.identifier ? target.identifier : target.prefab.id} `;
+		if (target instanceof ItemInstance) targetString = `to ${target.getIdentifier()} `;
 		else if (target instanceof Exit || target instanceof Fixture || target instanceof Player) targetString = `to ${target.name} `;
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}did gesture ${gesture.id} ${targetString}in ${player.location.channel}`)
 	}

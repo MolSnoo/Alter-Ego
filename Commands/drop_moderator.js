@@ -133,10 +133,10 @@ export async function execute (game, message, command, args) {
         container = containerItem;
         if (containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
         slot = containerItemSlot;
-        if (item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because it is too large.`);
-        else if (item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because it is too large.`);
-        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${containerItemSlot.id} of ${container.identifier} because there isn't enough space left.`);
-        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.identifier ? item.identifier : item.prefab.id} will not fit in ${container.identifier} because there isn't enough space left.`);
+        if (item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${item.getIdentifier()} will not fit in ${containerItemSlot.id} of ${container.identifier} because it is too large.`);
+        else if (item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.getIdentifier()} will not fit in ${container.identifier} because it is too large.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${item.getIdentifier()} will not fit in ${containerItemSlot.id} of ${container.identifier} because there isn't enough space left.`);
+        else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.getIdentifier()} will not fit in ${container.identifier} because there isn't enough space left.`);
     }
     else {
         if (parsedInput !== "") return addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);

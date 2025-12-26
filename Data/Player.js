@@ -1495,7 +1495,7 @@ export default class Player extends ItemContainer {
             const equippedItem = equipmentSlot.equippedItem;
             if (equippedItem === null) itemString += `[ ]\n`;
             else {
-                itemString += `[${useID ? equippedItem.identifier ? equippedItem.identifier : equippedItem.prefab.id : equippedItem.name}]\n`;
+                itemString += `[${useID ? equippedItem.getIdentifier() : equippedItem.name}]\n`;
                 /** 
                  * Generates a display of an inventory item's children.
                  * @param {string} itemString - A string representation of the inventory item's name.
@@ -1511,8 +1511,8 @@ export default class Player extends ItemContainer {
                         else {
                             inventorySlot.items.forEach((inventoryItem, i) => {
                                 const childItem = inventoryItem;
-                                if (childItem.quantity === 1) itemString += `[${useID ? childItem.identifier ? childItem.identifier : childItem.prefab.id : childItem.name}] `;
-                                else if (useID) itemString += `[${childItem.quantity} ${childItem.identifier ? childItem.identifier : childItem.prefab.id}] `;
+                                if (childItem.quantity === 1) itemString += `[${useID ? childItem.getIdentifier() : childItem.name}] `;
+                                else if (useID) itemString += `[${childItem.quantity} ${childItem.getIdentifier()}] `;
                                 else {
                                     if (childItem.pluralName) itemString += `[${childItem.quantity} ${childItem.pluralName}] `;
                                     else itemString += `[${childItem.quantity} ${childItem.name}] `;

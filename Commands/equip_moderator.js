@@ -55,7 +55,7 @@ export async function execute (game, message, command, args) {
 
     let slot = player.inventoryCollection.get(slotName);
     if (slot === undefined) return addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
-    if (slot.equippedItem !== null) return addReply(game, message, `Cannot equip items to ${slotName} because ${slot.equippedItem.identifier ? slot.equippedItem.identifier : slot.equippedItem.prefab.id} is already equipped to it.`);
+    if (slot.equippedItem !== null) return addReply(game, message, `Cannot equip items to ${slotName} because ${slot.equippedItem.getIdentifier()} is already equipped to it.`);
 
     const action = new Action(game, ActionType.Equip, message, player, player.location, true);
     action.performEquip(item, slot, hand);

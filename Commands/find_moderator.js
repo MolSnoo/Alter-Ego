@@ -355,7 +355,7 @@ function createPages(fields, results) {
 			else if (key === 'player' && result instanceof InventoryItem)
 				cellContents = result.player.name;
 			else if (key === 'id' && result instanceof ItemInstance)
-				cellContents = result.identifier !== '' ? result.identifier : result.prefab.id;
+				cellContents = result.getIdentifier();
 			else if (key === 'ingredients' && result instanceof Recipe)
 				cellContents = result.ingredients.map(ingredient => ingredient.id).join(',');
 			else if (key === 'products' && result instanceof Recipe)

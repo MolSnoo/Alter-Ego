@@ -83,7 +83,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
             if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "") {
-                if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${roomItems[i].identifier ? roomItems[i].identifier : roomItems[i].prefab.id} cannot hold items.`);
+                if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${roomItems[i].getIdentifier()} cannot hold items.`);
                 containerItem = roomItems[i];
 
                 if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "")
@@ -102,7 +102,7 @@ export async function execute (game, message, command, args) {
                             break;
                         }
                     }
-                    if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.prefab.id}.`);
+                    if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.getIdentifier()}.`);
                 }
                 if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -195,7 +195,7 @@ export async function execute (game, message, command, args) {
             if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" ${preposition} ${containerName}.`);
 
             destroyItem(item, item.quantity, true);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName}.`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} ${preposition} ${containerName}.`);
         }
     }
     else {
@@ -227,7 +227,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
             if (parsedInput.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "" || parsedInput.endsWith(playerItems[i].prefab.id)) {
-                if (playerItems[i].inventoryCollection.size === 0 || playerItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${playerItems[i].identifier ? playerItems[i].identifier : playerItems[i].prefab.id} cannot hold items.`);
+                if (playerItems[i].inventoryCollection.size === 0 || playerItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${playerItems[i].getIdentifier()} cannot hold items.`);
                 containerItem = playerItems[i];
 
                 if (parsedInput.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "")
@@ -307,7 +307,7 @@ export async function execute (game, message, command, args) {
             }
             if (item !== null && equipmentSlotName !== "") {
                 destroyInventoryItem(item, item.quantity, true);
-                messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${player.name}'s ${equipmentSlotName}.`);
+                messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} equipped to ${player.name}'s ${equipmentSlotName}.`);
                 return;
             }
         }
@@ -317,7 +317,7 @@ export async function execute (game, message, command, args) {
             if (item.container.prefab.preposition) preposition = item.container.prefab.preposition;
 
             destroyInventoryItem(item, item.quantity, true);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName}.`);
+            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} ${preposition} ${containerName}.`);
         }
         else return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" in ${player.name}'s inventory.`);
     }
