@@ -1,7 +1,8 @@
 import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -33,10 +34,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable unequip");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
     var hand = "";
@@ -53,7 +54,7 @@ export async function execute (game, message, command, args, player) {
         else if (player.inventory[slot].id === "LEFT HAND")
             break;
     }
-    if (hand === "") return messageHandler.addReply(game, message, "You do not have a free hand to unequip an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === "") return addReply(game, message, "You do not have a free hand to unequip an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -64,12 +65,12 @@ export async function execute (game, message, command, args, player) {
         if (parsedInput.endsWith(` FROM ${player.inventory[i].id}`)) {
             slotName = player.inventory[i].id;
             let itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${slotName}`)).trim();
-            if (player.inventory[i].equippedItem === null) return messageHandler.addReply(game, message, `Nothing is equipped to ${slotName}.`);
+            if (player.inventory[i].equippedItem === null) return addReply(game, message, `Nothing is equipped to ${slotName}.`);
             if (player.inventory[i].equippedItem.name === itemName) {
                 item = player.inventory[i].equippedItem;
                 break;
             }
-            else return messageHandler.addReply(game, message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
+            else return addReply(game, message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
         }
         else if (player.inventory[i].equippedItem !== null && player.inventory[i].equippedItem.name === parsedInput) {
             item = player.inventory[i].equippedItem;
@@ -78,19 +79,15 @@ export async function execute (game, message, command, args, player) {
         }
     }
     if (slotName === "RIGHT HAND" || slotName === "LEFT HAND")
-        return messageHandler.addReply(game, message, `You cannot unequip items from either of your hands. To get rid of this item, use the drop command.`);
+        return addReply(game, message, `You cannot unequip items from either of your hands. To get rid of this item, use the drop command.`);
     if (parsedInput.includes(" FROM ") && slotName === "") {
         slotName = parsedInput.substring(parsedInput.lastIndexOf(" FROM ") + " FROM ".length).trim();
-        return messageHandler.addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
+        return addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
     }
-    if (item === null) return messageHandler.addReply(game, message, `Couldn't find equipped item "${parsedInput}".`);
+    if (item === null) return addReply(game, message, `Couldn't find equipped item "${parsedInput}".`);
 
-    if (!item.prefab.equippable) return messageHandler.addReply(game, message, `You cannot unequip the ${item.name}.`);
+    if (!item.prefab.equippable) return addReply(game, message, `You cannot unequip the ${item.name}.`);
 
-    player.unequip(item, slotName, hand);
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} unequipped ${item.identifier ? item.identifier : item.prefab.id} from ${slotName} in ${player.location.channel}`);
-
-    return;
+    const action = new Action(game, ActionType.Unequip, message, player, player.location, false);
+    action.performUnequip(item, slotName, hand);
 }

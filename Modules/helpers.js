@@ -1,5 +1,6 @@
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
+import RoomItem from "../Data/RoomItem.js";
 import { EmbedBuilder } from "discord.js";
 import { Duration } from 'luxon';
 
@@ -24,16 +25,37 @@ export function generatePlayerListString(players) {
 		if (nameA > nameB) return 1;
 		return 0;
 	});
-	let playerListString = "";
-	if (players.length === 1) playerListString = players[0].displayName;
-	else if (players.length === 2)
-		playerListString += `${players[0].displayName} and ${players[1].displayName}`;
-	else if (players.length >= 3) {
-		for (let i = 0; i < players.length - 1; i++)
-			playerListString += `${players[i].displayName}, `;
-		playerListString += `and ${players[players.length - 1].displayName}`;
+	const playerList = players.map(player => player.displayName);
+	return generateListString(playerList);
+}
+
+/**
+ * Generates a gramatically correct list.
+ * @param {string[]} list 
+ */
+export function generateListString(list) {
+	let listString = "";
+	if (list.length === 1) listString = list[0];
+	else if (list.length === 2)
+		listString += `${list[0]} and ${list[1]}`;
+	else if (list.length >= 3) {
+		for (let i = 0; i < list.length - 1; i++)
+			listString += `${list[i]}, `;
+		listString += `and ${list[list.length - 1]}`;
 	}
-	return playerListString;
+	return listString;
+}
+
+/**
+ * Generates a comma-separated list of items, sorted alphabetically by prefab ID.
+ * @param {RoomItem[]} items - A list of room items.
+ */
+export function getSortedItemsString(items) {
+	return items.sort(function (a, b) {
+		if (a.prefab.id < b.prefab.id) return -1;
+		if (a.prefab.id > b.prefab.id) return 1;
+		return 0;
+	}).map(item => item.prefab.id).join(',');
 }
 
 /**

@@ -136,4 +136,26 @@ export default class ItemInstance extends ItemContainer {
 		this.pluralContainingPhrase = prefab.pluralContainingPhrase ? prefab.pluralContainingPhrase : "";
 		this.weight = prefab ? prefab.weight : 0;
 	}
+
+	/**
+	 * Gets the item's single containing phrase.
+	 */
+	getContainingPhrase() {
+		return this.singleContainingPhrase;
+	}
+
+	/**
+	 * Gets the preposition of the item's prefab. If no prefab exists, returns "in".
+	 */
+	getPreposition() {
+		return this.prefab ? this.prefab.preposition : "in";
+	}
+
+	/**
+	 * Gets a phrase to refer to the given inventory slot in narrations. If the item has only one inventory slot, returns an empty string.
+	 * @param {InventorySlot<ItemInstance>} inventorySlot
+	 */
+	getSlotPhrase(inventorySlot) {
+		return this.inventoryCollection.size !== 1 ? `the ${inventorySlot.id} of ` : ``;
+	}
 }

@@ -1,6 +1,7 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import Action from '../Data/Action.js';
 import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -34,7 +35,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
@@ -49,13 +50,13 @@ export async function execute (game, message, command, args) {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return messageHandler.addReply(game, message, `Couldn't find player(s): ${missingPlayers}.`);
+        return addReply(game, message, `Couldn't find player(s): ${missingPlayers}.`);
     }
 
-    for (let i = 0; i < players.length; i++)
-        players[i].die();
+    for (let i = 0; i < players.length; i++) {
+        const action = new Action(game, ActionType.Die, message, players[i], players[i].location, true);
+        action.performDie();
+    }
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
-
-    return;
+    addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players are now dead. Remember to use the reveal command when their bodies are discovered!");
 }
