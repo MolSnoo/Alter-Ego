@@ -309,6 +309,31 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates a craft action.
+	 * @param {CraftingResult} craftingResult - The result of the craft action.
+	 * @param {Player} player - The player performing the craft action.
+	 */
+	narrateCraft(craftingResult, player) {
+		if (craftingResult.product1 && !craftingResult.product1.prefab.discreet || craftingResult.product2 && !craftingResult.product2.prefab.discreet) {
+			let productPhrase = "";
+            let product1Phrase = "";
+            let product2Phrase = "";
+			if (craftingResult.product1 && !craftingResult.product1.prefab.discreet)
+                product1Phrase = craftingResult.product1.singleContainingPhrase;
+            if (craftingResult.product2 && !craftingResult.product2.prefab.discreet)
+                product2Phrase = craftingResult.product2.singleContainingPhrase;
+            if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
+            else if (product1Phrase !== "") productPhrase = product1Phrase;
+            else if (product2Phrase !== "") productPhrase = product2Phrase;
+
+			if (productPhrase !== "") {
+				const narration = this.#game.notificationGenerator.generateCraftNotification(player, false, productPhrase);
+				this.#sendNarration(player, narration);
+			}
+		}
+	}
+
+	/**
 	 * Narrates a die action.
 	 * @param {Player} player - The player performing the die action. 
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.

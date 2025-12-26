@@ -1574,27 +1574,8 @@ export default class Player extends ItemContainer {
             item1.uses = item1Uses;
         if (item2Uses !== null)
             item2.uses = item2Uses;
-
-        this.sendDescription(recipe.completedDescription, recipe);
-        // Decide if this should be narrated or not.
-        if (product1 && !product1.discreet || product2 && !product2.discreet) {
-            let productPhrase = "";
-            let product1Phrase = "";
-            let product2Phrase = "";
-            if (product1 && !product1.discreet) {
-                product1Phrase = product1.singleContainingPhrase;
-                this.addItemToDescription(item1, "hands");
-            }
-            if (product2 && !product2.discreet) {
-                product2Phrase = product2.singleContainingPhrase;
-                this.addItemToDescription(item2, "hands");
-            }
-            if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
-            else if (product1Phrase !== "") productPhrase = product1Phrase;
-            else if (product2Phrase !== "") productPhrase = product2Phrase;
-
-            if (productPhrase !== "") new Narration(this.getGame(), this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
-        }
+        if (product1 && !product1.discreet) this.addItemToDescription(item1, "hands");
+        if (product2 && !product2.discreet) this.addItemToDescription(item2, "hands");
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }

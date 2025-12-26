@@ -319,6 +319,18 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player crafted an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} productPhrase - A phrase to refer to the created products.
+	 */
+	generateCraftNotification(player, secondPerson, productPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `craft` : `crafts`;
+		return `${subject} ${verb} ${productPhrase}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
