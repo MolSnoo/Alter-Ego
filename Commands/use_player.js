@@ -2,7 +2,7 @@
 import UseAction from '../Data/Actions/UseAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addLogMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -50,10 +50,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a fixture or an inventory item. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a fixture or an inventory item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getAttributeStatusEffects("disable use");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getAttributeStatusEffects("hidden");
@@ -109,7 +109,7 @@ export async function execute (game, message, command, args, player) {
         }
         if (puzzle !== null) {
             // Make sure the player can only solve the puzzle if it's a child puzzle of the fixture they're hiding in, if they're hidden.
-            if (hiddenStatus.length > 0 && puzzle.parentFixture !== null && player.hidingSpot !== puzzle.parentFixture.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+            if (hiddenStatus.length > 0 && puzzle.parentFixture !== null && player.hidingSpot !== puzzle.parentFixture.name) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
@@ -139,19 +139,19 @@ export async function execute (game, message, command, args, player) {
     // If there is a fixture, do the required behavior.
     if (fixture !== null && fixture.recipeTag !== "" && fixture.activatable) {
         // Make sure the player can only activate the fixture if it's the fixture they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return messageHandler.addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
         const narrate = puzzle === null ? true : false;
         const time = new Date().toLocaleTimeString();
         if (fixture.activated) {
             fixture.deactivate(player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game, `${time} - ${player.name} deactivated ${fixture.name} in ${player.location.channel}`);
+            addLogMessage(game, `${time} - ${player.name} deactivated ${fixture.name} in ${player.location.channel}`);
         }
         else {
             fixture.activate(player, narrate);
             // Post log message.
-            messageHandler.addLogMessage(game, `${time} - ${player.name} activated ${fixture.name} in ${player.location.channel}`);
+            addLogMessage(game, `${time} - ${player.name} activated ${fixture.name} in ${player.location.channel}`);
         }
     }
 
@@ -159,15 +159,15 @@ export async function execute (game, message, command, args, player) {
     if (puzzle !== null) {
         const response = player.attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer);
         if (response === "" || !response) return;
-        else return messageHandler.addReply(game, message, response);
+        else return addReply(game, message, response);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
-        if (item.uses === 0) return messageHandler.addReply(game, message, "That item has no uses left.");
-        if (!item.prefab.usable) return messageHandler.addReply(game, message, "That item has no programmed use on its own, but you may be able to use it some other way.");
-        if (!item.usableOn(player)) return messageHandler.addReply(game, message, `${item.name} currently has no effect on you.`);
+        if (item.uses === 0) return addReply(game, message, "That item has no uses left.");
+        if (!item.prefab.usable) return addReply(game, message, "That item has no programmed use on its own, but you may be able to use it some other way.");
+        if (!item.usableOn(player)) return addReply(game, message, `${item.name} currently has no effect on you.`);
         const action = new UseAction(game, message, player, player.location, false);
         action.performUse(item);
     }
-    else if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+    else if (fixture === null) return addReply(game, message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
 }
