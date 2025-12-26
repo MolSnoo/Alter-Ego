@@ -238,6 +238,21 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs an undress action.
+	 * @param {InventoryItem[]} items - The items the player took off.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the player undressed into.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot the player undressed into, if applicable.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUndress(items, player, container, inventorySlot, forced) {
+		const preposition = container.getPreposition();
+		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
+		const itemList = generateListString(items.map(item => item.getIdentifier()));
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}undressed, putting ${itemList} ${preposition} ${containerPhrase} in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a die action.
 	 * @param {Player} player - The player who died. 
 	 */

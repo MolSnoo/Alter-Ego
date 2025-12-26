@@ -292,6 +292,23 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates an undress action.
+	 * @param {InventoryItem[]} items - The items the player is taking off.
+	 * @param {Fixture|Puzzle|RoomItem} container - The container the player is undressing into.
+	 * @param {Player} player - The player performing the undress action.
+	 */
+	narrateUndress(items, container, player) {
+		const preposition = container.getPreposition();
+		const containerPhrase = container.getContainingPhrase();
+		const itemPhrases = items.map(item => item.singleContainingPhrase);
+		const itemList = generateListString(itemPhrases);
+		const notification = this.#game.notificationGenerator.generateUndressNotification(player, true, preposition, containerPhrase, itemList);
+		const narration = this.#game.notificationGenerator.generateUndressNotification(player, false, preposition, containerPhrase, itemList);
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
 	 * Narrates a die action.
 	 * @param {Player} player - The player performing the die action. 
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.
@@ -302,7 +319,7 @@ export default class GameNarrationHandler {
 			if (customNarration) this.#sendNarration(player, customNarration);
 			else {
 				const narration = this.#game.notificationGenerator.generateDieNotification(player, false);
-				this.#sendNarration(player, `${player.displayName} dies.`);
+				this.#sendNarration(player, narration);
 			}
 		}
 	}
