@@ -306,7 +306,7 @@ export default class GameEntityFinder {
 		if (name) selectedFilters.set(Game.generateValidEntityName(name), fuzzySearch ? matchers.exitNameContains : matchers.exitNameMatches);
 		if (dest) selectedFilters.set(Room.generateValidId(dest), matchers.exitDestMatches);
 		if (locked !== undefined && locked !== null) selectedFilters.set(locked, matchers.exitLockedMatches);
-		return room.exitCollection.filter(exit => selectedFilters.every((filterFunction, key) => filterFunction(room, key))).map(exit => exit);
+		return room.exitCollection.filter(exit => selectedFilters.every((filterFunction, key) => filterFunction(exit, key))).map(exit => exit);
 	}
 
 	/**
