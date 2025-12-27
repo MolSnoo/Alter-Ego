@@ -1,4 +1,5 @@
-﻿import { addReply } from '../Modules/messageHandler.js';
+import InflictAction from '../Data/Actions/InflictAction.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -34,8 +35,8 @@ export async function execute (game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable sleep");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    player.inflict("asleep", true, true, true);
+    const sleepStatus = game.entityFinder.getStatusEffect("asleep");
+    const action = new InflictAction(game, message, player, player.location, false);
+    action.performInflict(sleepStatus, true, true, true);
     player.setOffline();
-
-    return;
 }

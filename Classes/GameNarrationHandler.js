@@ -5,6 +5,7 @@ import InventorySlot from "../Data/InventorySlot.js";
 import Narration from "../Data/Narration.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
+/** @typedef {import("../Data/Status.js").default} Status */
 import { parseDescription } from "../Modules/parser.js";
 import { generateListString } from "../Modules/helpers.js";
 
@@ -105,6 +106,29 @@ export default class GameNarrationHandler {
 			for (const hearingPlayer of hearingPlayers)
 				hearingPlayer.notify(destinationNarration);
 		}
+	}
+
+	/**
+	 * Narrates a hide action.
+	 * @param {string} hidingSpot - The name of the hiding spot.
+	 * @param {Player} player - The player performing the hide action.
+	 */
+	narrateHide(hidingSpot, player) {
+		const narration = this.#game.notificationGenerator.generateHideNotification(player, false, hidingSpot);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates an inflict action.
+	 * @param {Status} status - The status being inflicted.
+	 * @param {Player} player - The player performing the inflict action.
+	 */
+	narrateInflict(status, player) {
+		let narration = "";
+		if (status.id === "asleep") narration = this.#game.notificationGenerator.generateFallAsleepNotification(player.displayName);
+		else if (status.id === "blacked out") narration = this.#game.notificationGenerator.generateBlackOutNotification(player.displayName);
+		else if (status.behaviorAttributes.includes("unconscious")) narration = this.#game.notificationGenerator.generateUnconsciousNotification(player.displayName);
+		if (narration) this.#sendNarration(player, narration);
 	}
 
 	/**

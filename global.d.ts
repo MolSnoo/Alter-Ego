@@ -156,6 +156,7 @@ declare global {
 		static Stop: "stop";
 		static Inspect: "inspect";
 		static Knock: "knock";
+		static Hide: "hide";
 		static Inflict: "inflict";
 		static Cure: "cure";
 		static Sleep: "sleep";
@@ -171,6 +172,8 @@ declare global {
 		static Unequip: "unequip";
 		static Dress: "dress";
 		static Undress: "undress";
+		static Instantiate: "instantiate";
+		static Destroy: "destroy";
 		static Craft: "craft";
 		static Uncraft: "uncraft";
 		static Attempt: "attempt";

@@ -1,8 +1,10 @@
+import InflictAction from '../Data/Actions/InflictAction.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
+/** @typedef {import("../Data/Status.js").default} Status */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -84,22 +86,25 @@ export async function execute(game, message, command, args) {
     const input = args.join(" ");
     if (input === "" && command !== "view") return addReply(game, message, "You need to specify a status effect.");
 
+    /** @type {Status} */
+    let status = null;
+    if (command !== "view") {
+        status = game.entityFinder.getStatusEffect(input);
+        if (status === null) return addReply(game, message, `Couldn't find status effect "${input}".`);
+    }
+
     if (command === "inflict") {
         if (players.length > 1) {
-            let success = true;
             for (let i = 0; i < players.length; i++) {
-                const response = players[i].inflict(input.toLowerCase(), true, true, true);
-                if (response.startsWith("Couldn't find status effect")) {
-                    addGameMechanicMessage(game, game.guildContext.commandChannel, response);
-                    success = false;
-                    break;
-                }
+                const action = new InflictAction(game, undefined, players[i], players[i].location, true);
+                action.performInflict(status, true, true, true);
             }
-            if (success) addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added to the listed players.");
+            addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added to the listed players.");
         }
         else {
-            const response = players[0].inflict(input.toLowerCase(), true, true, true);
-            addGameMechanicMessage(game, game.guildContext.commandChannel, response);
+            const action = new InflictAction(game, message, players[0], players[0].location, true);
+            action.performInflict(status, true, true, true);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added.");
         }
     }
     else if (command === "cure") {
