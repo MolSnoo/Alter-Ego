@@ -10,6 +10,7 @@ import InventoryItem from "../../Data/InventoryItem.js";
 import Gesture from "../../Data/Gesture.js";
 import Flag from "../../Data/Flag.js";
 import Exit from "../../Data/Exit.js";
+import EquipmentSlot from "../../Data/EquipmentSlot.js";
 
 describe("GameEntityFinder test", () => {
     beforeAll(async () => {
@@ -394,6 +395,12 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getPlayerFreeHand test", () => {
+        test("Get player with free RIGHT hand", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let hand = game.entityFinder.getPlayerFreeHand(player);
+            expect(hand).toBeInstanceOf(EquipmentSlot);
+            expect(hand.id).toBe("RIGHT HAND")
+        })
     });
 
     describe("getPlayerHandHoldingItem test", () => {
