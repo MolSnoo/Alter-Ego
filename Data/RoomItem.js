@@ -153,12 +153,7 @@ export default class RoomItem extends ItemInstance {
      */
     getContainerPhrase() {
         let containerPhrase = "";
-        if (this.container instanceof Puzzle)
-            containerPhrase = `the ` + this.container.parentFixture ? this.container.parentFixture.name : this.container.name;
-        else if (this.container instanceof Fixture)
-            containerPhrase = `the ${this.container.name}`;
-        else if (this.container instanceof RoomItem)
-            containerPhrase = this.container.singleContainingPhrase;
+        if (this.container) containerPhrase = this.container.getContainingPhrase();
         return containerPhrase;
     }
 
@@ -167,12 +162,7 @@ export default class RoomItem extends ItemInstance {
      */
     getContainerPreposition() {
         let preposition = "in";
-        if (this.container instanceof Puzzle)
-            preposition = this.container.parentFixture ? this.container.parentFixture.preposition : "in";
-        else if (this.container instanceof Fixture)
-            preposition = this.container.preposition;
-        else if (this.container instanceof RoomItem)
-            preposition = this.container.prefab ? this.container.prefab.preposition : "in";
+        if (this.container) preposition = this.container.getPreposition();
         return preposition;
     }
 

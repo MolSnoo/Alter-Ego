@@ -3,19 +3,15 @@ import Player from "./Player.js";
 import Room from "./Room.js";
 import Whisper from "./Whisper.js";
 import { addNarration, addNarrationToWhisper } from "../Modules/messageHandler.js";
+import GameConstruct from "./GameConstruct.js";
 
 /**
  * @class Narration
  * @classdesc Represents a narration in the game. After instantiating a narration, the send method must be called.
+ * @extends GameConstruct
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/narration.html
  */
-export default class Narration {
-    /**
-     * The game this is for.
-     * @readonly
-     * @type {Game}
-     */
-    game;
+export default class Narration extends GameConstruct {
     /**
      * The player who triggered the narration.
      * @readonly
@@ -43,7 +39,7 @@ export default class Narration {
      * @param {string} message - The text content for the narration.
      */
     constructor(game, player, location, message) {
-        this.game = game;
+        super(game);
         this.player = player;
         this.location = location;
         this.message = message;
@@ -66,7 +62,7 @@ export default class Narration {
             if (this.location.tags.includes("video surveilled")) {
                 let roomDisplayName = this.location.tags.includes("secret") ? "Surveillance feed" : this.location.id;
                 let message = `\`[${roomDisplayName}] ${this.message}\``;
-                const rooms = this.game.entityFinder.getRooms(null, "video monitoring", true);
+                const rooms = this.getGame().entityFinder.getRooms(null, "video monitoring", true);
                 for (let room of rooms) {
                     if (room.id !== this.location.id) {
                         for (let occupant of room.occupants) {
@@ -83,7 +79,7 @@ export default class Narration {
             // Find the whisper channel the player is in, if there is one.
             /** @type {Whisper} */
             let whisper = null;
-            for (let gameWhisper of this.game.whispers) {
+            for (let gameWhisper of this.getGame().whispers) {
                 for (let occupant of gameWhisper.players) {
                     if (occupant.name === this.player.name) {
                         whisper = gameWhisper;

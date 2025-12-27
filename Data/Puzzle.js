@@ -433,6 +433,20 @@ export default class Puzzle extends ItemContainer {
         this.#setDescription(removeItemFromList(this.getDescription(), item, list, quantity));
     }
 
+    /**
+     * Gets the name of the parent fixture preceded by "the". If no parent fixture exists, returns the puzzle's name preceded by "the" instead.
+     */
+    getContainingPhrase() {
+        return this.parentFixture ? this.parentFixture.getContainingPhrase() : `the ${this.name}`;
+    }
+
+    /**
+     * Gets the preposition of the parent fixture, if applicable. If no parent fixture exists, returns "in".
+     */
+    getPreposition() {
+        return this.parentFixture ? this.parentFixture.getPreposition() : "in";
+    }
+
     /** @returns {string} */
     correctCell() {
         return this.getGame().constants.puzzleSheetCorrectColumn + this.row;

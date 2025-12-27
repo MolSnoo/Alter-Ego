@@ -13,10 +13,12 @@ import EquipmentSlot from './EquipmentSlot.js';
 import InventoryItem from './InventoryItem.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
-import Gesture from './Gesture.js';
 import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
+
+import DieAction from './Actions/DieAction.js';
+import InflictAction from './Actions/InflictAction.js';
 
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
@@ -595,7 +597,9 @@ export default class Player extends ItemContainer {
             if (player.stamina <= 0) {
                 clearInterval(player.moveTimer);
                 player.stamina = 0;
-                player.inflict("weary", true, true, true);
+                const wearyStatus = player.getGame().entityFinder.getStatusEffect("weary");
+                const wearyAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
+                wearyAction.performInflict(wearyStatus, true, true, true);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
@@ -729,118 +733,58 @@ export default class Player extends ItemContainer {
 
     /**
      * Inflicts the player with a status effect.
-     * @param {string | Status} statusId - The ID of the status to inflict, or the status object itself.
-     * @param {boolean} [notify=true] - Whether or not to send the player the status's inflictedDescription. Defaults to true.
-     * @param {boolean} [doCures=true] - Whether or not the status's cures should actually be cured. Defaults to true.
-     * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being inflicted. Defaults to true.
-     * @param {InventoryItem} [item] - The inventory item that caused the status to be inflicted, if applicable.
+     * @param {Status} status - The status to inflict.
      * @param {import('luxon').Duration} [duration] - A custom duration that overrides the status's default duration.
-     * @returns {string} A message indicating whether the status was successfully inflicted, or if not, why it wasn't.
      */
-    inflict(statusId, notify = true, doCures = true, narrate = true, item, duration = null) {
-        /** @type {Status} */
-        let status = null;
-        if (statusId instanceof Status) status = statusId;
-        else {
-            status = this.getGame().entityFinder.getStatusEffect(statusId);
-            if (status === null) return `Couldn't find status effect "${statusId}".`;
-        }
-
-        for (let i = 0; i < status.overriders.length; i++) {
-            if (this.status.map(statusEffect => statusEffect.id).includes(status.overriders[i].id))
-                return `Couldn't inflict status effect "${statusId}" because ${this.name} is already ${status.overriders[i].id}.`;
-        }
-
-        if (statusId instanceof Status) statusId = status.id;
-        if (this.status.map(statusEffect => statusEffect.id).includes(statusId)) {
-            if (status.duplicatedStatus !== null) {
-                this.cure(statusId, false, false, false);
-                this.inflict(status.duplicatedStatus.id, true, false, true);
-                return `Status was duplicated, so inflicted ${status.duplicatedStatus.id} instead.`;
-            }
-            else return "Specified player already has that status effect.";
-        }
-
-        if (status.cures.length > 0 && doCures) {
-            for (let i = 0; i < status.cures.length; i++)
-                this.cure(status.cures[i].id, false, false, false);
-        }
-
-        // Apply the effects of any attributes that require immediate action.
-        if (status.id === "heated")
-            this.getGame().heated = true;
-        if (status.behaviorAttributes.includes("no channel")) {
-            this.location.leaveChannel(this);
-            this.removeFromWhispers(`${this.displayName} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.id}.`);
-        }
-        if (status.behaviorAttributes.includes("no hearing")) this.removeFromWhispers(`${this.displayName} can no longer hear.`);
-        if (status.behaviorAttributes.includes("hidden")) {
-            if (narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden") && occupant.name !== this.name));
-        }
-        if (status.behaviorAttributes.includes("concealed")) {
-            const maskName = item ? item.singleContainingPhrase : "a MASK";
-            this.displayName = `An individual wearing ${maskName}`;
-            this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
-            this.setPronouns(this.pronouns, "neutral");
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        }
-        if (status.behaviorAttributes.includes("disable all") || status.behaviorAttributes.includes("disable move") || status.behaviorAttributes.includes("disable run"))
-            this.stopMoving();
-
-        // Announce when a player falls asleep or unconscious.
-        if (status.id === "asleep" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} falls asleep.`).send();
-        else if (status.id === "blacked out" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} blacks out.`).send();
-        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} goes unconscious.`).send();
-
-        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.getGame());
+    inflict(status, duration = null) {
+        const statusInstance = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.getGame());
 
         // Apply the duration, if applicable.
-        if (status.duration) {
-            if (duration !== null) status.remaining = duration;
-            else status.remaining = status.duration;
+        if (statusInstance.duration) {
+            if (duration !== null) statusInstance.remaining = duration;
+            else statusInstance.remaining = statusInstance.duration;
 
             let player = this;
-            status.timer = new Timer(1000, { start: true, loop: true }, function () {
+            statusInstance.timer = new Timer(1000, { start: true, loop: true }, function () {
                 let subtractedTime = 1000;
                 if (player.getGame().heated) subtractedTime = player.getGame().settings.heatedSlowdownRate * subtractedTime;
-                status.remaining = status.remaining.minus(subtractedTime);
+                statusInstance.remaining = statusInstance.remaining.minus(subtractedTime);
                 player.statusDisplays = player.#generateStatusDisplays(true, true);
 
-                if (status.remaining.as('milliseconds') <= 0) {
-                    if (status.nextStage) {
-                        player.cure(status.id, false, false, true);
-                        const response = player.inflict(status.nextStage.id, true, false, true);
-                        if (response.startsWith(`Couldn't inflict status effect`))
-                            player.sendDescription(status.curedDescription, status);
+                if (statusInstance.remaining.as('milliseconds') <= 0) {
+                    if (statusInstance.nextStage) {
+                        player.cure(statusInstance.id, false, false, true);
+                        let inflictNextStage = true;
+                        const playerStatusIds = player.status.map(statusEffect => statusEffect.id);
+                        for (const overrider of statusInstance.nextStage.overriders) {
+                            if (playerStatusIds.includes(overrider.id)) {
+                                player.sendDescription(statusInstance.curedDescription, statusInstance);
+                                inflictNextStage = false;
+                                break;
+                            }
+                        }
+                        if (inflictNextStage) {
+                            const nextStageAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
+                            nextStageAction.performInflict(statusInstance.nextStage, true, false, true);
+                        }
                     }
                     else {
-                        if (status.fatal) {
-                            status.timer.stop();
-                            player.die();
+                        if (statusInstance.fatal) {
+                            statusInstance.timer.stop();
+                            const action = new DieAction(player.getGame(), undefined, player, player.location, true);
+                            action.performDie();
                         }
                         else {
-                            player.cure(status.id, true, true, true);
+                            player.cure(statusInstance.id, true, true, true);
                         }
                     }
                 }
             });
         }
 
-        this.status.push(status);
+        this.status.push(statusInstance);
         this.recalculateStats();
-
-        // Inform player what happened.
-        if (notify)
-            this.sendDescription(status.inflictedDescription, status);
-
         this.statusDisplays = this.#generateStatusDisplays(true, true);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
-
-        return "Status successfully added.";
     }
 
     /**
@@ -890,7 +834,8 @@ export default class Player extends ItemContainer {
 
         let returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(status.curedCondition.id, false, false, true);
+            const curedConditionAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
+            curedConditionAction.performInflict(status.curedCondition, false, false, true);
             returnMessage += ` Player is now ${status.curedCondition.id}.`;
         }
 
@@ -1133,8 +1078,10 @@ export default class Player extends ItemContainer {
      * @param {Player} [target] - The player the inventory item is to be used on. Defaults to the player using it.
      */
     use(item, target = this) {
-        for (let effect of item.prefab.effects)
-            target.inflict(effect.id, true, true, true, item);
+        for (let effect of item.prefab.effects) {
+            const inflictAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
+            inflictAction.performInflict(effect, true, true, true, item);
+        }
         for (let cure of item.prefab.cures)
             target.cure(cure.id, true, true, true, item);
         if (!isNaN(item.uses))
@@ -1147,9 +1094,8 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
      * @param {Puzzle|Fixture|RoomItem} container - The item's current container.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
-     * @param {boolean} [notify] - Whether or not to notify the player that they took the item. Defaults to true.
      */
-    take(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+    take(item, handEquipmentSlot, container, inventorySlot) {
         // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
             item.quantity--;
@@ -1163,79 +1109,29 @@ export default class Player extends ItemContainer {
         const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         this.carryWeight += createdItem.weight;
 
-        const containerPhrase = item.getContainerPhrase();
-        if (notify) this.notify(`You take ${createdItem.singleContainingPhrase} from ${containerPhrase}.`);
-        if (!createdItem.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${createdItem.singleContainingPhrase} from ${containerPhrase}.`).send();
-            // Add the new item to the player's hands item list.
+        // Add the new item to the player's hands item list.
+        if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");
-        }
     }
 
     /**
-     * Attempts to steal an inventory item from another player.
+     * Steals an inventory item from another player.
+     * @param {InventoryItem} item - The inventory item to steal.
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
      * @param {Player} victim - The player to steal from.
      * @param {InventoryItem} container - An inventory item belonging to the victim that the player will attempt to steal from.
      * @param {InventorySlot<InventoryItem>} inventorySlot - The {@link InventorySlot|inventory slot} that the player will attempt to steal from.
-     * @returns {StealResult}
      */
-    steal(handEquipmentSlot, victim, container, inventorySlot) {
-        // There might be multiple of the same item, so we need to make an array where each item's index is inserted as many times as its quantity.
-        /** @type {number[]} */
-        let actualItems = [];
-        for (let item of inventorySlot.items) {
-            for (let i = 0; i < item.quantity; i++)
-                actualItems.push(i);
-        }
-        const actualItemsIndex = Math.floor(Math.random() * actualItems.length);
-        const index = actualItems[actualItemsIndex];
-        let item = inventorySlot.items[index];
+    steal(item, handEquipmentSlot, victim, container, inventorySlot) {
+        // Remove the item from its container.
+        itemManager.removeStashedItem(item, container, inventorySlot, victim.inventoryCollection.get(item.equipmentSlot));
+        // Put the item in the player's hand.
+        const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
+        victim.carryWeight -= createdItem.weight;
+        this.carryWeight += createdItem.weight;
 
-        // Determine how successful the player is.
-        const failMax = Math.floor((this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
-        const partialMax = Math.floor(2 * (this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
-        let dieRoll = new Die(this.getGame(), "dex", this, victim);
-        if (this.hasBehaviorAttribute("thief")) dieRoll.result = this.getGame().settings.diceMax;
-        if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
-
-        // A fragment of a string that will be used later.
-        const slotDisplay = container.inventoryCollection.size !== 1 ? `${inventorySlot.id} of ` : ``;
-
-        // Player didn't fail.
-        if (dieRoll.result > failMax && item instanceof InventoryItem) {
-            // Remove the item from its container.
-            itemManager.removeStashedItem(item, container, inventorySlot, victim.inventoryCollection.get(item.equipmentSlot));
-            // Put the item in the player's hand.
-            const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
-            victim.carryWeight -= createdItem.weight;
-            this.carryWeight += createdItem.weight;
-
-            // Form the messages to send.
-            const victimUnaware = dieRoll.result > partialMax || victim.hasBehaviorAttribute("unconscious");
-            const successDisplay = victimUnaware ? ` without ${victim.pronouns.obj} noticing!`
-                : `, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `seem` : `seems`) + ` to notice.`;
-            const playerNotification = `You steal ${createdItem.singleContainingPhrase} from ${slotDisplay}${victim.displayName}'s ${container.name}${successDisplay}`;
-            this.notify(playerNotification);
-            const narrationStarter = `${this.displayName} steals ${createdItem.singleContainingPhrase} from `;
-            if (!victimUnaware) {
-                const victimNotification = `${narrationStarter}${slotDisplay}your${container.name}!`;
-                victim.notify(victimNotification);
-            }
-            if (!createdItem.prefab.discreet) {
-                new Narration(this.getGame(), this, this.location, `${narrationStarter}${slotDisplay}${victim.displayName}'s ${container.name}.`).send();
-                this.addItemToDescription(createdItem, "hands");
-            }
-
-            return { itemName: createdItem.identifier ? createdItem.identifier : createdItem.prefab.id, successful: true };
-        }
-        // Player failed to steal the item.
-        else {
-            this.notify(`You try to steal ${item.singleContainingPhrase} from ${slotDisplay}${victim.displayName}'s ${container.name}, but ${victim.pronouns.sbj} ` + (victim.pronouns.plural ? `notice` : `notices`) + ` you before you can.`);
-            victim.notify(`${this.displayName} attempts to steal ${item.singleContainingPhrase} from ${slotDisplay}your${container.name}, but you notice in time!`);
-
-            return { itemName: item.identifier ? item.identifier : item.prefab.id, successful: false };
-        }
+        if (!createdItem.prefab.discreet)
+            this.addItemToDescription(createdItem, "hands");
     }
 
     /**
@@ -1244,9 +1140,8 @@ export default class Player extends ItemContainer {
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
      * @param {Puzzle|Fixture|RoomItem} container - The container to put the item in.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} to put the item in.
-     * @param {boolean} [notify] - Whether or not to notify the player that they dropped the item. Defaults to true.
      */
-    drop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
+    drop(item, handEquipmentSlot, container, inventorySlot) {
         // Unequip the item from the player's hand.
         handEquipmentSlot.unequipItem(item);
 
@@ -1271,16 +1166,11 @@ export default class Player extends ItemContainer {
         item.quantity = 0;
         // Insert the new items into the game's list of room items.
         itemManager.insertRoomItems(this.location, items);
-
         this.carryWeight -= item.weight;
-        const containerPhrase = createdItem.getContainerPhrase();
-        const preposition = createdItem.getContainerPreposition();
-        if (notify) this.notify(`You discard ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} puts ${item.singleContainingPhrase} ${preposition} ${containerPhrase}.`).send();
-            // Remove the item from the player's hands item list.
+        
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
-        }
     }
 
     /**
@@ -1299,10 +1189,7 @@ export default class Player extends ItemContainer {
         this.carryWeight -= createdItem.weight;
         recipient.carryWeight += createdItem.weight;
 
-        this.notify(`You give ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`);
-        recipient.notify(`${this.displayName} gives you ${createdItem.singleContainingPhrase}!`);
         if (!createdItem.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} gives ${createdItem.singleContainingPhrase} to ${recipient.displayName}.`).send();
             // Remove the item from the player's hands item list.
             this.removeItemFromDescription(createdItem, "hands");
             // Add the item to the recipient's hands item list.
@@ -1342,13 +1229,9 @@ export default class Player extends ItemContainer {
         // Insert the new inventory items into the game's list of inventory items.
         itemManager.insertInventoryItems(this, items, equipmentSlot);
 
-        const preposition = container.prefab ? container.prefab.preposition : "in";
-        this.notify(`You stash ${createdItem.singleContainingPhrase} ${preposition} your ${container.name}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} stashes ${item.singleContainingPhrase} ${preposition} ${this.pronouns.dpos} ${container.name}.`).send();
-            // Remove the item from the player's hands item list.
+        // Remove the item from the player's hands item list.
+        if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
-        }
     }
 
     /**
@@ -1364,12 +1247,9 @@ export default class Player extends ItemContainer {
         // Put the item in the player's hand.
         itemManager.putItemInHand(item, this, handEquipmentSlot);
 
-        this.notify(`You take ${item.singleContainingPhrase} out of your ${container.name}.`);
-        if (!item.prefab.discreet) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${item.singleContainingPhrase} out of ${this.pronouns.dpos} ${container.name}.`).send();
-            // Add the new item to the player's hands item list.
+        // Add the new item to the player's hands item list.
+        if (!item.prefab.discreet)
             this.addItemToDescription(item, "hands");
-        }
     }
 
     /**
@@ -1377,9 +1257,8 @@ export default class Player extends ItemContainer {
      * @param {InventoryItem} item - The inventory item to equip.
      * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot that the inventory item is currently in.
-     * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
      */
-    equip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+    equip(item, equipmentSlot, handEquipmentSlot) {
         // Unequip the item from the player's hand.
         handEquipmentSlot.unequipItem(item);
 
@@ -1398,9 +1277,6 @@ export default class Player extends ItemContainer {
         item.quantity = 0;
         // Insert the newly created item in the game's list of inventory items.
         itemManager.insertInventoryItems(this, items, equipmentSlot);
-
-        if (notify) this.notify(`You equip the ${createdItem.name}.`);
-        new Narration(this.getGame(), this, this.location, `${this.displayName} puts on ${createdItem.singleContainingPhrase}.`).send();
 
         // Update the player's description.
         if (!item.prefab.discreet)
@@ -1480,18 +1356,14 @@ export default class Player extends ItemContainer {
      * @param {InventoryItem} item - The inventory item to unequip.
      * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item is currently equipped to. 
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.
-     * @param {boolean} [notify=true] - Whether or not to notify the player that they unequipped the inventory item. Defaults to true.
      */
-    unequip(item, equipmentSlot, handEquipmentSlot, notify = true) {
+    unequip(item, equipmentSlot, handEquipmentSlot) {
         equipmentSlot.unequipItem(item);
 
         // Put the item in the player's hand.
         let createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         item.quantity = 0;
-
-        if (notify) this.notify(`You unequip the ${createdItem.name}.`);
-        new Narration(this.getGame(), this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${createdItem.name}.`).send();
-
+        
         // Update the player's description.
         if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");
@@ -1647,27 +1519,8 @@ export default class Player extends ItemContainer {
             item1.uses = item1Uses;
         if (item2Uses !== null)
             item2.uses = item2Uses;
-
-        this.sendDescription(recipe.completedDescription, recipe);
-        // Decide if this should be narrated or not.
-        if (product1 && !product1.discreet || product2 && !product2.discreet) {
-            let productPhrase = "";
-            let product1Phrase = "";
-            let product2Phrase = "";
-            if (product1 && !product1.discreet) {
-                product1Phrase = product1.singleContainingPhrase;
-                this.addItemToDescription(item1, "hands");
-            }
-            if (product2 && !product2.discreet) {
-                product2Phrase = product2.singleContainingPhrase;
-                this.addItemToDescription(item2, "hands");
-            }
-            if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
-            else if (product1Phrase !== "") productPhrase = product1Phrase;
-            else if (product2Phrase !== "") productPhrase = product2Phrase;
-
-            if (productPhrase !== "") new Narration(this.getGame(), this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
-        }
+        if (product1 && !product1.discreet) this.addItemToDescription(item1, "hands");
+        if (product2 && !product2.discreet) this.addItemToDescription(item2, "hands");
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
@@ -1680,17 +1533,12 @@ export default class Player extends ItemContainer {
      */
     uncraft(item, recipe) {
         // If only one ingredient is discreet, the first ingredient should be the discreet one.
-        // This will result in more natural sounding narrations.
         const oneDiscreet = !recipe.ingredients[0].discreet && recipe.ingredients[1].discreet || recipe.ingredients[0].discreet && !recipe.ingredients[1].discreet;
         let ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
         let ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
 
-        const originalItemPhrase = item.singleContainingPhrase;
-        const itemDiscreet = item.prefab.discreet;
-
-        if (!itemDiscreet) this.removeItemFromDescription(item, "hands");
+        if (!item.prefab.discreet) this.removeItemFromDescription(item, "hands");
         const rightHand = this.inventoryCollection.get("RIGHT HAND");
-        const leftHand = this.inventoryCollection.get("LEFT HAND");
         const ingredient1Instance = itemManager.replaceInventoryItem(item, ingredient1);
         const ingredient2Instance = itemManager.instantiateInventoryItem(
             ingredient2,
@@ -1702,39 +1550,10 @@ export default class Player extends ItemContainer {
             new Map(),
             false
         );
-
-        this.sendDescription(recipe.uncraftedDescription, recipe);
-        if (!itemDiscreet || !ingredient1.discreet || !ingredient2.discreet) {
-            let itemPhrase = item.singleContainingPhrase;
-            let ingredientPhrase = "";
-            let ingredient1Phrase = "";
-            let ingredient2Phrase = "";
-            let verb = "removes";
-            let preposition = "from";
-            if (!ingredient1.discreet) {
-                if (ingredient1.singleContainingPhrase !== originalItemPhrase || ingredient1.singleContainingPhrase !== itemPhrase)
-                    ingredient1Phrase = ingredient1.singleContainingPhrase;
-                this.addItemToDescription(ingredient1Instance, "hands");
-            }
-            if (!ingredient2.discreet) {
-                if (ingredient2.singleContainingPhrase !== originalItemPhrase || ingredient2.singleContainingPhrase !== itemPhrase)
-                    ingredient2Phrase = ingredient2.singleContainingPhrase;
-                this.addItemToDescription(ingredient2Instance, "hands");
-            }
-            if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
-                itemPhrase = originalItemPhrase;
-                ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
-                verb = "separates";
-                preposition = "into";
-            }
-            else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
-            else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
-
-            if (ingredientPhrase !== "") {
-                ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
-                new Narration(this.getGame(), this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
-            }
-        }
+        if (!ingredient1.discreet)
+            this.addItemToDescription(ingredient1Instance, "hands");
+        if (!ingredient2.discreet)
+            this.addItemToDescription(ingredient2Instance, "hands");
 
         return { ingredient1: ingredient1Instance ? ingredient1Instance : null, ingredient2: ingredient2Instance ? ingredient2Instance : null };
     }
@@ -2057,19 +1876,7 @@ export default class Player extends ItemContainer {
      * Kills the player.
      */
     die() {
-        // Remove player from their current channel.
-        this.location.leaveChannel(this);
-        this.location.occupants.splice(this.location.occupants.indexOf(this), 1);
-        this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        this.removeFromWhispers(`${this.displayName} dies.`);
-        if (!this.hasBehaviorAttribute("hidden")) {
-            new Narration(this.getGame(), this, this.location, `${this.displayName} dies.`).send();
-        }
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} died in ${this.location.channel}`);
-
+        this.location.removePlayer(this, undefined, undefined, `${this.displayName} dies.`);
         // Update various data.
         this.alive = false;
         this.location = null;
@@ -2081,13 +1888,10 @@ export default class Player extends ItemContainer {
                 this.status[i].timer.stop();
         }
         this.status.length = 0;
-
         // Move player to dead list.
         this.getGame().deadPlayersCollection.set(this.name, this);
         // Then remove them from living list.
         this.getGame().livingPlayersCollection.delete(this.name);
-
-        messageHandler.addDirectNarration(this, `You have died. When your body is discovered, you will be given the ${this.getGame().guildContext.deadRole.name} role. Until then, please do not speak on the server or to other players.`);
     }
 
     /**

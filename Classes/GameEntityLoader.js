@@ -15,6 +15,7 @@ import Status from '../Data/Status.js';
 import Player from '../Data/Player.js';
 import Gesture from '../Data/Gesture.js';
 import Flag from '../Data/Flag.js';
+import InflictAction from '../Data/Actions/InflictAction.js';
 import { getSheetValues } from '../Modules/sheets.js';
 import { convertTimeStringToDurationUnits, parseDuration } from '../Modules/helpers.js';
 import { ChannelType, Collection } from 'discord.js';
@@ -1742,7 +1743,8 @@ export default class GameEntityLoader extends GameEntityManager {
 								const status = this.game.entityFinder.getStatusEffect(statusDisplay.id);
 								if (status) {
 									const timeRemaining = statusDisplay.timeRemaining ? Duration.fromObject(convertTimeStringToDurationUnits(statusDisplay.timeRemaining)) : null;
-									player.inflict(status, false, false, false, null, timeRemaining);
+									const inflictAction = new InflictAction(this.game, undefined, player, player.location, true);
+									inflictAction.performInflict(status, false, false, false, undefined, timeRemaining);
 								}
 							});
 						}

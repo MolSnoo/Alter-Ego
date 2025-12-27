@@ -243,7 +243,7 @@ export default class GameEntityFinder {
 	getPrefabs(id, effectsString, curesString, equipmentSlotsString, fuzzySearch = false) {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
-		if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.itemIdentifierOrNameContains : matchers.itemIdentifierOrNameMatches);
+		if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.entityIdContains : matchers.entityIdMatches);
 		if (effectsString) {
 			let effects = effectsString.split(',');
 			effects.forEach((effect, i) => effects[i] = Status.generateValidId(effect));

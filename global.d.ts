@@ -151,6 +151,7 @@ declare global {
 		static Stop: "stop";
 		static Inspect: "inspect";
 		static Knock: "knock";
+		static Hide: "hide";
 		static Inflict: "inflict";
 		static Cure: "cure";
 		static Sleep: "sleep";
@@ -166,6 +167,8 @@ declare global {
 		static Unequip: "unequip";
 		static Dress: "dress";
 		static Undress: "undress";
+		static Instantiate: "instantiate";
+		static Destroy: "destroy";
 		static Craft: "craft";
 		static Uncraft: "uncraft";
 		static Attempt: "attempt";
@@ -285,15 +288,6 @@ declare global {
 	interface StatusDisplay {
 		id: string;
 		timeRemaining: string;
-	}
-
-	/**
-	 * @property {string} itemName - The name of the item attempted to be stolen.
-	 * @property {boolean} successful - Whether the steal attempt was successful.
-	 */
-	interface StealResult {
-		itemName: string;
-		successful: boolean;
 	}
 
 	/**
