@@ -1,4 +1,4 @@
-import Action from "../Action.js";
+import { default as Action, ActionType } from "../Action.js";
 import InventoryItem from "../InventoryItem.js";
 import Player from "../Player.js";
 
