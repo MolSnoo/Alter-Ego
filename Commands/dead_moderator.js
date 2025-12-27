@@ -29,7 +29,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    let playerList = `Dead players:\n${game.entityFinder.getDeadPlayers().join(", ")}`;
+    let playerList = `Dead players:\n${game.entityFinder.getDeadPlayers().map(player => player.name).join(", ")}`;
     addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
 
     return;
