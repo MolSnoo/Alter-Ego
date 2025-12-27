@@ -9,6 +9,7 @@ import Player from "../../Data/Player.js";
 import InventoryItem from "../../Data/InventoryItem.js";
 import Gesture from "../../Data/Gesture.js";
 import Flag from "../../Data/Flag.js";
+import Exit from "../../Data/Exit.js";
 
 describe("GameEntityFinder test", () => {
     beforeAll(async () => {
@@ -50,6 +51,40 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getExit test", () => {
+        test("Get valid exit", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exit = game.entityFinder.getExit(room, "REVOLVING DOOR 1");
+            expect(exit).toBeInstanceOf(Exit);
+            expect(exit.name).toBe("REVOLVING DOOR 1");
+        });
+        test("Get valid exit with non-exact id", () => {
+            let room = game.entityFinder.getRoom("trial-grounds");
+            let exit = game.entityFinder.getExit(room, "WINNER'S HALL");
+            expect(exit).toBeInstanceOf(Exit);
+            expect(exit.name).toBe("WINNERS HALL");
+        });
+        test("Get valid exit with whitespace", () => {
+            let room = game.entityFinder.getRoom("punishment-room");
+            let exit = game.entityFinder.getExit(room, " DOOR ");
+            expect(exit).toBeInstanceOf(Exit);
+            expect(exit.name).toBe("DOOR");
+        });
+        test("Get valid exit with mixed case", () => {
+            let room = game.entityFinder.getRoom("winners-hall");
+            let exit = game.entityFinder.getExit(room, "eLeVaToR");
+            expect(exit).toBeInstanceOf(Exit);
+            expect(exit.name).toBe("ELEVATOR");
+        });
+        test("Get invalid exit", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exit = game.entityFinder.getExit(room, "INVALID");
+            expect(exit).toBeUndefined();
+        });
+        test("Get empty exit", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exit = game.entityFinder.getExit(room, "");
+            expect(exit).toBeUndefined();
+        });
     });
 
     describe("getFixture test", () => {
