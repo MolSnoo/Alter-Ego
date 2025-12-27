@@ -91,7 +91,7 @@ export async function execute (game, message, command, args) {
     if (parsedInput !== "") {
         for (let i = 0; i < items.length; i++) {
             if (items[i].identifier !== "" && items[i].identifier === parsedInput ||
-                items[i].prefab.id === parsedInput ||
+                items[i].prefab && items[i].prefab.id === parsedInput ||
                 items[i].name === parsedInput) return addReply(game, message, `You need to supply a preposition.`);
             if (items[i].identifier !== "" && parsedInput.endsWith(items[i].identifier) ||
                 parsedInput.endsWith(items[i].prefab.id) ||

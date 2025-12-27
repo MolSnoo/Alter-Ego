@@ -195,7 +195,7 @@ export default class GameEntityFinder {
 		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
 		else selectedFilter = matchers.itemNameMatches;
 
-		let output = this.getPlayerHands(player).find(slot => selectedFilter(slot, itemQuery))
+		let output = this.getPlayerHands(player).find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
 		return output ? [output, output.equippedItem] : [undefined, undefined];
 	}
 
@@ -215,7 +215,7 @@ export default class GameEntityFinder {
 		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
 		else selectedFilter = matchers.itemNameMatches;
 
-		let output = (slot ? [slot] : [... player.inventoryCollection.values()]).find(slot => selectedFilter(slot, itemQuery));
+		let output = (slot ? [slot] : [... player.inventoryCollection.values()]).find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
 		return output ? [output, output.equippedItem] : [undefined, undefined];
 	}
 
