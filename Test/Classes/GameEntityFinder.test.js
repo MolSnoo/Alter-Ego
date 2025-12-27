@@ -377,6 +377,20 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getPlayerHands test", () => {
+        test("Get player with LEFT and RIGHT hands", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let hands = game.entityFinder.getPlayerHands(player);
+            expect(hands.length).toStrictEqual(2);
+            let foundRight = false;
+            let foundLeft = false;
+            for (const hand of hands) {
+                expect(hand.id).toBeOneOf(["RIGHT HAND", "LEFT HAND"]);
+                if (hand.id === "LEFT HAND") foundLeft = true;
+                else if (hand.id === "RIGHT HAND") foundRight = true; 
+            }
+            expect(foundRight).toBeTruthy();
+            expect(foundLeft).toBeTruthy();
+        });
     });
 
     describe("getPlayerFreeHand test", () => {
