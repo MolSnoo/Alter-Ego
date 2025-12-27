@@ -400,20 +400,75 @@ describe("GameEntityFinder test", () => {
             let hand = game.entityFinder.getPlayerFreeHand(player);
             expect(hand).toBeInstanceOf(EquipmentSlot);
             expect(hand.id).toBe("RIGHT HAND")
-        })
+        });
     });
 
     describe("getPlayerHandHoldingItem test", () => {
         test("TODO: No players in mock data hold an item!", () => {
             expect(false).toBeTruthy();
-        })
+        });
     });
 
     describe("getPlayerSlotWithItem test", () => {
+        test("Get valid item by id", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS GLASSES", null, false, false, true);
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(slot.id).toBe("GLASSES");
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("VIVIANS GLASSES");
+        });
+        test("Get valid item by slot and id", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let slot = player.inventoryCollection.get("HAT");
+            let [foundSlot, item] = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS BOW", slot, false, false, true);
+            expect(foundSlot).toBeInstanceOf(EquipmentSlot);
+            expect(foundSlot.id).toBe("HAT");
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("VIVIANS BOW");
+        });
+        test("Get valid item by identifier", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, "FUTURE FOUNDATION JACKET 1", null, false, true, false);
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(slot.id).toBe("JACKET");
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("FUTURE FOUNDATION JACKET");
+            expect(item.identifier).toBe("FUTURE FOUNDATION JACKET 1");
+        });
+        test("Get valid item by slot and identifier", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let slot = player.inventoryCollection.get("PANTS");
+            let [foundSlot, item] = game.entityFinder.getPlayerSlotWithItem(player, "FUTURE FOUNDATION TROUSERS 1", slot, false, true, false);
+            expect(foundSlot).toBeInstanceOf(EquipmentSlot);
+            expect(foundSlot.id).toBe("PANTS");
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("FUTURE FOUNDATION TROUSERS");
+            expect(item.identifier).toBe("FUTURE FOUNDATION TROUSERS 1");
+        });
+        test("Get valid item by name", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, "FLATS", null, true, false, false);
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(slot.id).toBe("SHOES");
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("FUTURE FOUNDATION SHOES");
+            expect(item.name).toBe("FLATS");
+        });
+        test("Get valid item by slot and id", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let slot = player.inventoryCollection.get("SOCKS");
+            let [foundSlot, item] = game.entityFinder.getPlayerSlotWithItem(player, "WHITE SOCKS", slot, true, false, false);
+            expect(foundSlot).toBeInstanceOf(EquipmentSlot);
+            expect(foundSlot.id).toBe("SOCKS");
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("FUTURE FOUNDATION SOCKS");
+            expect(item.name).toBe("WHITE SOCKS");
+        });
     });
 
     describe("getInventoryItem test", () => {
-        test("Get valid inventory item by id", () => {
+        test("Get valid inventory item by name", () => {
             let inventoryItem = game.entityFinder.getInventoryItem("KYRAS GLASSES");
             expect(inventoryItem).toBeInstanceOf(InventoryItem);
             expect(inventoryItem.player.name).toBe("Kyra");
