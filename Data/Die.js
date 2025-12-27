@@ -130,7 +130,7 @@ export default class Die extends GameConstruct {
                         if (!statModifier.modifiesSelf) {
                             const tempStatus = new Status(`${defender.name} ${defender.status[i].id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], [], "", "", -1, this.getGame());
                             tempStatuses.push(tempStatus);
-                            attacker.inflict(tempStatus, false, false, false);
+                            attacker.inflict(tempStatus);
                         }
                     }
                 }

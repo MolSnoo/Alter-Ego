@@ -1,4 +1,5 @@
 import GameEntity from './GameEntity.js';
+import InflictAction from './Actions/InflictAction.js';
 import Game from './Game.js';
 import Narration from '../Data/Narration.js';
 import Status from './Status.js';
@@ -296,8 +297,10 @@ export default class Event extends GameEntity {
             for (let room of rooms) {
                 for (let occupant of room.occupants) {
                     event.effects.forEach(effect => {
-                        if (!occupant.hasStatus(effect.id))
-                            occupant.inflict(effect, true, true, true);
+                        if (!occupant.hasStatus(effect.id)) {
+                            const action = new InflictAction(event.getGame(), undefined, occupant, occupant.location, true);
+                            action.performInflict(effect, true, true, true);
+                        }
                     });
                     event.refreshes.forEach(refresh => {
                         /** @type {Status} */
