@@ -18,6 +18,7 @@ import Narration from './Narration.js';
 import Die from './Die.js';
 
 import DieAction from './Actions/DieAction.js';
+import InflictAction from './Actions/InflictAction.js';
 
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
@@ -596,7 +597,9 @@ export default class Player extends ItemContainer {
             if (player.stamina <= 0) {
                 clearInterval(player.moveTimer);
                 player.stamina = 0;
-                player.inflict("weary", true, true, true);
+                const wearyStatus = player.getGame().entityFinder.getStatusEffect("weary");
+                const wearyAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
+                wearyAction.performInflict(wearyStatus, true, true, true);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
@@ -730,119 +733,58 @@ export default class Player extends ItemContainer {
 
     /**
      * Inflicts the player with a status effect.
-     * @param {string | Status} statusId - The ID of the status to inflict, or the status object itself.
-     * @param {boolean} [notify=true] - Whether or not to send the player the status's inflictedDescription. Defaults to true.
-     * @param {boolean} [doCures=true] - Whether or not the status's cures should actually be cured. Defaults to true.
-     * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being inflicted. Defaults to true.
-     * @param {InventoryItem} [item] - The inventory item that caused the status to be inflicted, if applicable.
+     * @param {Status} status - The status to inflict.
      * @param {import('luxon').Duration} [duration] - A custom duration that overrides the status's default duration.
-     * @returns {string} A message indicating whether the status was successfully inflicted, or if not, why it wasn't.
      */
-    inflict(statusId, notify = true, doCures = true, narrate = true, item, duration = null) {
-        /** @type {Status} */
-        let status = null;
-        if (statusId instanceof Status) status = statusId;
-        else {
-            status = this.getGame().entityFinder.getStatusEffect(statusId);
-            if (status === null) return `Couldn't find status effect "${statusId}".`;
-        }
-
-        for (let i = 0; i < status.overriders.length; i++) {
-            if (this.status.map(statusEffect => statusEffect.id).includes(status.overriders[i].id))
-                return `Couldn't inflict status effect "${statusId}" because ${this.name} is already ${status.overriders[i].id}.`;
-        }
-
-        if (statusId instanceof Status) statusId = status.id;
-        if (this.status.map(statusEffect => statusEffect.id).includes(statusId)) {
-            if (status.duplicatedStatus !== null) {
-                this.cure(statusId, false, false, false);
-                this.inflict(status.duplicatedStatus.id, true, false, true);
-                return `Status was duplicated, so inflicted ${status.duplicatedStatus.id} instead.`;
-            }
-            else return "Specified player already has that status effect.";
-        }
-
-        if (status.cures.length > 0 && doCures) {
-            for (let i = 0; i < status.cures.length; i++)
-                this.cure(status.cures[i].id, false, false, false);
-        }
-
-        // Apply the effects of any attributes that require immediate action.
-        if (status.id === "heated")
-            this.getGame().heated = true;
-        if (status.behaviorAttributes.includes("no channel")) {
-            this.location.leaveChannel(this);
-            this.removeFromWhispers(`${this.displayName} can no longer whisper because ${this.originalPronouns.sbj} ` + (this.originalPronouns.plural ? `are` : `is`) + ` ${status.id}.`);
-        }
-        if (status.behaviorAttributes.includes("no hearing")) this.removeFromWhispers(`${this.displayName} can no longer hear.`);
-        if (status.behaviorAttributes.includes("hidden")) {
-            if (narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} hides in the ${this.hidingSpot}.`).send();
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden") && occupant.name !== this.name));
-        }
-        if (status.behaviorAttributes.includes("concealed")) {
-            const maskName = item ? item.singleContainingPhrase : "a MASK";
-            this.displayName = `An individual wearing ${maskName}`;
-            this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
-            this.setPronouns(this.pronouns, "neutral");
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        }
-        if (status.behaviorAttributes.includes("disable all") || status.behaviorAttributes.includes("disable move") || status.behaviorAttributes.includes("disable run"))
-            this.stopMoving();
-
-        // Announce when a player falls asleep or unconscious.
-        if (status.id === "asleep" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} falls asleep.`).send();
-        else if (status.id === "blacked out" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} blacks out.`).send();
-        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} goes unconscious.`).send();
-
-        status = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.getGame());
+    inflict(status, duration = null) {
+        const statusInstance = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.getGame());
 
         // Apply the duration, if applicable.
-        if (status.duration) {
-            if (duration !== null) status.remaining = duration;
-            else status.remaining = status.duration;
+        if (statusInstance.duration) {
+            if (duration !== null) statusInstance.remaining = duration;
+            else statusInstance.remaining = statusInstance.duration;
 
             let player = this;
-            status.timer = new Timer(1000, { start: true, loop: true }, function () {
+            statusInstance.timer = new Timer(1000, { start: true, loop: true }, function () {
                 let subtractedTime = 1000;
                 if (player.getGame().heated) subtractedTime = player.getGame().settings.heatedSlowdownRate * subtractedTime;
-                status.remaining = status.remaining.minus(subtractedTime);
+                statusInstance.remaining = statusInstance.remaining.minus(subtractedTime);
                 player.statusDisplays = player.#generateStatusDisplays(true, true);
 
-                if (status.remaining.as('milliseconds') <= 0) {
-                    if (status.nextStage) {
-                        player.cure(status.id, false, false, true);
-                        const response = player.inflict(status.nextStage.id, true, false, true);
-                        if (response.startsWith(`Couldn't inflict status effect`))
-                            player.sendDescription(status.curedDescription, status);
+                if (statusInstance.remaining.as('milliseconds') <= 0) {
+                    if (statusInstance.nextStage) {
+                        player.cure(statusInstance.id, false, false, true);
+                        let inflictNextStage = true;
+                        const playerStatusIds = player.status.map(statusEffect => statusEffect.id);
+                        for (const overrider of statusInstance.nextStage.overriders) {
+                            if (playerStatusIds.includes(overrider.id)) {
+                                player.sendDescription(statusInstance.curedDescription, statusInstance);
+                                inflictNextStage = false;
+                                break;
+                            }
+                        }
+                        if (inflictNextStage) {
+                            const nextStageAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
+                            nextStageAction.performInflict(statusInstance.nextStage, true, false, true);
+                        }
                     }
                     else {
-                        if (status.fatal) {
-                            status.timer.stop();
+                        if (statusInstance.fatal) {
+                            statusInstance.timer.stop();
                             const action = new DieAction(player.getGame(), undefined, player, player.location, true);
                             action.performDie();
                         }
                         else {
-                            player.cure(status.id, true, true, true);
+                            player.cure(statusInstance.id, true, true, true);
                         }
                     }
                 }
             });
         }
 
-        this.status.push(status);
+        this.status.push(statusInstance);
         this.recalculateStats();
-
-        // Inform player what happened.
-        if (notify)
-            this.sendDescription(status.inflictedDescription, status);
-
         this.statusDisplays = this.#generateStatusDisplays(true, true);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
-
-        return "Status successfully added.";
     }
 
     /**
@@ -892,7 +834,8 @@ export default class Player extends ItemContainer {
 
         let returnMessage = "Successfully removed status effect.";
         if (status.curedCondition && doCuredCondition) {
-            this.inflict(status.curedCondition.id, false, false, true);
+            const curedConditionAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
+            curedConditionAction.performInflict(status.curedCondition, false, false, true);
             returnMessage += ` Player is now ${status.curedCondition.id}.`;
         }
 
@@ -1135,8 +1078,10 @@ export default class Player extends ItemContainer {
      * @param {Player} [target] - The player the inventory item is to be used on. Defaults to the player using it.
      */
     use(item, target = this) {
-        for (let effect of item.prefab.effects)
-            target.inflict(effect.id, true, true, true, item);
+        for (let effect of item.prefab.effects) {
+            const inflictAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
+            inflictAction.performInflict(effect, true, true, true, item);
+        }
         for (let cure of item.prefab.cures)
             target.cure(cure.id, true, true, true, item);
         if (!isNaN(item.uses))

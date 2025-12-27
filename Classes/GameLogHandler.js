@@ -10,6 +10,7 @@ import Player from "../Data/Player.js";
 import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
+/** @typedef {import("../Data/Status.js").default} Status */
 import { addLogMessage } from "../Modules/messageHandler.js";
 import { generateListString } from "../Modules/helpers.js";
 
@@ -94,6 +95,15 @@ export default class GameLogHandler {
 	 */
 	logKnock(exit, player, forced) {
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}knocked on ${exit.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an inflict action.
+	 * @param {Status} status - The status that was inflicted.
+	 * @param {Player} player - The player who performed the action.
+	 */
+	logInflict(status, player) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} became ${status.id} in ${player.location.channel}`);
 	}
 
 	/**

@@ -1,11 +1,14 @@
 ﻿import GameSettings from "../Classes/GameSettings.js";
+import InflictAction from '../Data/Actions/InflictAction.js';
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
 import Flag from "../Data/Flag.js";
 import InventoryItem from "../Data/InventoryItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
+
+/** @typedef {import("../Data/Status.js").default} Status */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -58,7 +61,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -82,18 +85,23 @@ export async function execute (game, command, args, player, callee) {
                 break;
             }
         }
-        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
     args.splice(0, 1);
 
-    var statusName = args.join(" ").toLowerCase();
-    for (let i = 0; i < players.length; i++) {
-        if (command === "inflict")
-            players[i].inflict(statusName, true, true, true, callee);
-        else if (command === "cure")
-            players[i].cure(statusName, true, true, true, callee);
-    }
+    const statusId = args.join(" ");
+    /** @type {Status} */
+    const status = game.entityFinder.getStatusEffect(statusId);
+    if (!status) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusId}".`);
 
-    return;
+    for (let i = 0; i < players.length; i++) {
+        if (command === "inflict") {
+            const item = callee instanceof InventoryItem ? callee : undefined;
+            const action = new InflictAction(game, undefined, players[i], players[i].location, true);
+            action.performInflict(status, true, true, true, item);
+        }
+        else if (command === "cure")
+            players[i].cure(statusId, true, true, true, callee);
+    }
 }
