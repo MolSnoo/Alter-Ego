@@ -3,6 +3,7 @@ import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -47,84 +48,38 @@ export async function execute (game, message, command, args) {
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
         return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
-    const rightHand = player.inventoryCollection.get("RIGHT HAND");
-    const leftHand = player.inventoryCollection.get("LEFT HAND");
-
     // Now find the item in the player's inventory.
-    let item1 = null;
-    let item2 = null;
-    let item1Id = "";
-    let item2Id = "";
-    let rightFirst = false;
-    if (rightHand.equippedItem !== null) {
-        if (item1 === null && rightHand.equippedItem.identifier !== "" && (parsedInput.startsWith(rightHand.equippedItem.identifier + " WITH ") || parsedInput.startsWith(rightHand.equippedItem.identifier + " AND "))) {
-            item1 = rightHand.equippedItem;
-            item1Id = rightHand.equippedItem.identifier;
-            rightFirst = true;
-        }
-        else if (item1 === null && rightHand.equippedItem.identifier !== "" && (parsedInput.endsWith(" WITH " + rightHand.equippedItem.identifier) || parsedInput.endsWith(" AND " + rightHand.equippedItem.identifier))) {
-            item1 = rightHand.equippedItem;
-            item1Id = rightHand.equippedItem.identifier;
-        }
-        else if (item1 === null && (parsedInput.startsWith(rightHand.equippedItem.prefab.id + " WITH ") || parsedInput.startsWith(rightHand.equippedItem.prefab.id + " AND "))) {
-            item1 = rightHand.equippedItem;
-            item1Id = rightHand.equippedItem.prefab.id;
-            rightFirst = true;
-        }
-        else if (item1 === null && (parsedInput.endsWith(" WITH " + rightHand.equippedItem.prefab.id) || parsedInput.endsWith(" AND " + rightHand.equippedItem.prefab.id))) {
-            item1 = rightHand.equippedItem;
-            item1Id = rightHand.equippedItem.prefab.id;
-        }
-        else if (item1 === null && (parsedInput.startsWith(rightHand.equippedItem.name + " WITH ") || parsedInput.startsWith(rightHand.equippedItem.name + " AND "))) {
-            item1 = rightHand.equippedItem;
-            item1Id = rightHand.equippedItem.name;
-            rightFirst = true;
-        }
-        else if (item1 === null && (parsedInput.endsWith(" WITH " + rightHand.equippedItem.name) || parsedInput.endsWith(" AND " + rightHand.equippedItem.name))) {
-            item1 = rightHand.equippedItem;
-            item1Id = rightHand.equippedItem.name;
+    /** @type {Array<InventoryItem>} */
+    const items = [];
+    for (let i = 0; i < args.length; i++) {
+        let item = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(i).join(" "), true)[1];
+        if (item) {
+            items.push(item);
+            args = args.slice(0, i);
+            break;
         }
     }
-    if (leftHand.equippedItem !== null) {
-        if (item2 === null && leftHand.equippedItem.identifier !== "" &&
-            (rightFirst && (parsedInput.endsWith(" WITH " + leftHand.equippedItem.identifier) || parsedInput.endsWith(" AND " + leftHand.equippedItem.identifier))
-            || !rightFirst && (parsedInput.startsWith(leftHand.equippedItem.identifier + " WITH ") || parsedInput.startsWith(leftHand.equippedItem.identifier + " AND ")))) {
-            item2 = leftHand.equippedItem;
-            item2Id = leftHand.equippedItem.identifier;
-        }
-        else if (item2 === null &&
-            (rightFirst && (parsedInput.endsWith(" WITH " + leftHand.equippedItem.prefab.id) || parsedInput.endsWith(" AND " + leftHand.equippedItem.prefab.id))
-            || !rightFirst && (parsedInput.startsWith(leftHand.equippedItem.prefab.id + " WITH ") || parsedInput.startsWith(leftHand.equippedItem.prefab.id + " AND ")))) {
-            item2 = leftHand.equippedItem;
-            item2Id = leftHand.equippedItem.prefab.id;
-        }
-        else if (item2 === null &&
-            (rightFirst && (parsedInput.endsWith(" WITH " + leftHand.equippedItem.name) || parsedInput.endsWith(" AND " + leftHand.equippedItem.name))
-            || !rightFirst && (parsedInput.startsWith(leftHand.equippedItem.name + " WITH ") || parsedInput.startsWith(leftHand.equippedItem.name + " AND ")))) {
-            item2 = leftHand.equippedItem;
-            item2Id = leftHand.equippedItem.name;
+    for (let i = args.length; i > 0; i--) {
+        let item = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(0, i).join(" "), true)[1];
+        if (item) {
+            items.push(item);
+            args = args.slice(i);
+            break;
         }
     }
 
-    let item1Name = "";
-    let item2Name = "";
-    if (item1 === null && item2 !== null) {
-        item1Name = parsedInput.replace(item2Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return addReply(game, message, `Couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
-    }
-    else if (item1 !== null && item2 === null) {
-        item2Name = parsedInput.replace(item1Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return addReply(game, message, `Couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
-    }
-    else if (item1 === null && item2 === null) {
-        if (parsedInput.includes(" WITH ")) args = parsedInput.split(" WITH ");
-        else if (parsedInput.includes(" AND ")) args = parsedInput.split(" AND ");
-        item1Name = args[0];
-        item2Name = args[1];
-        return addReply(game, message, `Couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
+    if (items.length !== 2) {
+        if (items.length === 0) {
+            let itemNames = parsedInput.includes(" WITH ") ? parsedInput.split(" WITH ") : parsedInput.split(" AND ");
+            return addReply(game, message, `Couldn't find items "${itemNames[0]}" and "${itemNames[1]}" in either of ${player.name}'s hands.`);
+        } else {
+            let itemNames = parsedInput.includes(" WITH ") ? parsedInput.split(" WITH ") : parsedInput.split(" AND ");
+            if (items[0].identifier !== "" && items[0].identifier === itemNames[0] || items[0].prefab.id === itemNames[0] || items[0].name === itemNames[0]) return addReply(game, message, `Couldn't find item "${itemNames[1]}" in either of ${player.name}'s hands.`);
+            else return addReply(game, message, `Couldn't find item "${itemNames[0]} in either of your ${player.name}'s hands.`);
+        }
     }
 
-    const ingredients = [item1, item2].sort(function (a, b) {
+    items.sort(function (a, b) {
         if (a.prefab.id < b.prefab.id) return -1;
         if (a.prefab.id > b.prefab.id) return 1;
         return 0;
@@ -133,17 +88,14 @@ export async function execute (game, message, command, args) {
     const recipes = game.recipes.filter(recipe => recipe.ingredients.length === 2 && recipe.fixtureTag === "");
     let recipe = null;
     for (let i = 0; i < recipes.length; i++) {
-        if (recipes[i].ingredients[0].id === ingredients[0].prefab.id && recipes[i].ingredients[1].id === ingredients[1].prefab.id) {
+        if (recipes[i].ingredients[0].id === items[0].prefab.id && recipes[i].ingredients[1].id === items[1].prefab.id) {
             recipe = recipes[i];
             break;
         }
     }
-    if (recipe === null) return addReply(game, message, `Couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
-
-    item1Name = ingredients[0].getIdentifier();
-    item2Name = ingredients[1].getIdentifier();
+    if (recipe === null) return addReply(game, message, `Couldn't find recipe requiring ${items[0].prefab.id} and ${items[1].prefab.id}.`);
 
     const action = new CraftAction(game, message, player, player.location, true);
-    action.performCraft(ingredients[0], ingredients[1], recipe);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${item1Name} and ${item2Name} for ${player.name}.`);
+    action.performCraft(items[0], items[1], recipe);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${items[0].getIdentifier()} and ${items[1].getIdentifier()} for ${player.name}.`);
 }
