@@ -455,7 +455,7 @@ describe("GameEntityFinder test", () => {
             expect(item.prefab.id).toBe("FUTURE FOUNDATION SHOES");
             expect(item.name).toBe("FLATS");
         });
-        test("Get valid item by slot and id", () => {
+        test("Get valid item by slot and name", () => {
             let player = game.entityFinder.getPlayer("Vivian");
             let slot = player.inventoryCollection.get("SOCKS");
             let [foundSlot, item] = game.entityFinder.getPlayerSlotWithItem(player, "WHITE SOCKS", slot, true, false, false);
@@ -464,6 +464,52 @@ describe("GameEntityFinder test", () => {
             expect(item).toBeInstanceOf(InventoryItem);
             expect(item.prefab.id).toBe("FUTURE FOUNDATION SOCKS");
             expect(item.name).toBe("WHITE SOCKS");
+        });
+        test("Get invalid item by bad id", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let find = game.entityFinder.getPlayerSlotWithItem(player, "INVALID", null, false, false, true);
+            expect(find).toBeInstanceOf(Array);
+            expect(find.length === 2).toBeTruthy();
+            for (const val of find) {
+                expect(val).toBeUndefined();
+            }
+        });
+        test("Get invalid item by bad slot", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let slot = player.inventoryCollection.get("GLASSES");
+            let find = game.entityFinder.getPlayerSlotWithItem(player, "FUTURE FOUNDATION SHOES", slot, false, false, true);
+            expect(find).toBeInstanceOf(Array);
+            expect(find.length === 2).toBeTruthy();
+            for (const val of find) {
+                expect(val).toBeUndefined();
+            }
+        });
+        test("Get invalid item by bad player", () => {
+            let player = game.entityFinder.getPlayer("Kyra");
+            let find = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS GLASSES", null, false, false, true);
+            expect(find).toBeInstanceOf(Array);
+            expect(find.length === 2).toBeTruthy();
+            for (const val of find) {
+                expect(val).toBeUndefined();
+            }
+        });
+        test("Get invalid item by empty parameters", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let find = game.entityFinder.getPlayerSlotWithItem(player, "");
+            expect(find).toBeInstanceOf(Array);
+            expect(find.length === 2).toBeTruthy();
+            for (const val of find) {
+                expect(val).toBeUndefined();
+            }
+        });
+        test("Get invalid item by triple false parameters", () => {
+            let player = game.entityFinder.getPlayer("Vivian");
+            let find = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS GLASSES", null, false, false, false);
+            expect(find).toBeInstanceOf(Array);
+            expect(find.length === 2).toBeTruthy();
+            for (const val of find) {
+                expect(val).toBeUndefined();
+            }
         });
     });
 
