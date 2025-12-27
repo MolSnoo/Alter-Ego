@@ -1,7 +1,8 @@
 import Action from "../Action.js";
-import EquipmentSlot from "../EquipmentSlot.js";
-import InventoryItem from "../InventoryItem.js";
 import InventorySlot from "../InventorySlot.js";
+
+/** @typedef {import("../EquipmentSlot.js").default} EquipmentSlot */
+/** @typedef {import("../InventoryItem.js").default} InventoryItem */
 
 /**
  * @class UnstashAction

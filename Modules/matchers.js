@@ -1,18 +1,19 @@
-import Event from "../Data/Event.js";
-import Exit from "../Data/Exit.js";
-import Fixture from "../Data/Fixture.js";
-import Flag from "../Data/Flag.js";
 import Game from "../Data/Game.js";
 import Gesture from "../Data/Gesture.js";
-import InventoryItem from "../Data/InventoryItem.js";
 import ItemInstance from "../Data/ItemInstance.js";
 import Player from "../Data/Player.js";
-import Prefab from "../Data/Prefab.js";
-import Puzzle from "../Data/Puzzle.js";
-import Recipe from "../Data/Recipe.js";
 import Room from "../Data/Room.js";
-import RoomItem from "../Data/RoomItem.js";
 import Status from "../Data/Status.js";
+
+/** @typedef {import("../Data/Event.js").default} Event */
+/** @typedef {import("../Data/Exit.js").default} Exit */
+/** @typedef {import("../Data/Fixture.js").default} Fixture */
+/** @typedef {import("../Data/Flag.js").default} Flag */
+/** @typedef {import("../Data/InventoryItem.js").default} InventoryItem */
+/** @typedef {import("../Data/Prefab.js").default} Prefab */
+/** @typedef {import("../Data/Puzzle.js").default} Puzzle */
+/** @typedef {import("../Data/Recipe.js").default} Recipe */
+/** @typedef {import("../Data/RoomItem.js").default} RoomItem */
 
 /**
  * Returns true if the room's ID matches the given ID.

@@ -1,6 +1,7 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import { addReply, addGameMechanicMessage } from '../Modules/messageHandler.js';
+﻿import { addReply, addGameMechanicMessage } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {

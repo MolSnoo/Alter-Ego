@@ -1,13 +1,13 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import GestureAction from '../Data/Actions/GestureAction.js';
+﻿import GestureAction from '../Data/Actions/GestureAction.js';
 import Fixture from '../Data/Fixture.js';
-import Game from '../Data/Game.js';
 import ItemInstance from '../Data/ItemInstance.js';
-import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import { addReply } from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
-import Room from '../Data/Room.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {

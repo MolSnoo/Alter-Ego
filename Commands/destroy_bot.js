@@ -1,6 +1,3 @@
-import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
 import Fixture from "../Data/Fixture.js";
 import Flag from "../Data/Flag.js";
@@ -9,6 +6,10 @@ import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {

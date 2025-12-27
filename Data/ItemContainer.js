@@ -1,7 +1,8 @@
-import Game from "./Game.js";
 import GameEntity from "./GameEntity.js";
-import ItemInstance from "./ItemInstance.js";
 import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
+
+/** @typedef {import("./Game.js").default} Game */
+/** @typedef {import("./ItemInstance.js").default} ItemInstance */
 
 /**
  * @class ItemContainer

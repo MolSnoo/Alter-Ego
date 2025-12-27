@@ -1,11 +1,12 @@
 import Action from "../Action.js";
-import EquipmentSlot from "../EquipmentSlot.js";
-import Fixture from "../Fixture.js";
-import InventoryItem from "../InventoryItem.js";
 import InventorySlot from "../InventorySlot.js";
 import Puzzle from "../Puzzle.js";
-import RoomItem from "../RoomItem.js";
 import { getSortedItemsString } from "../../Modules/helpers.js";
+
+/** @typedef {import("../EquipmentSlot.js").default} EquipmentSlot */
+/** @typedef {import("../Fixture.js").default} Fixture */
+/** @typedef {import("../InventoryItem.js").default} InventoryItem */
+/** @typedef {import("../RoomItem.js").default} RoomItem */
 
 /**
  * @class DropAction

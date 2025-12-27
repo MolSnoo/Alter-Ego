@@ -1,8 +1,9 @@
-import GameSettings from '../Classes/GameSettings.js';
 import UnequipAction from '../Data/Actions/UnequipAction.js';
-import Game from '../Data/Game.js';
-import InventoryItem from '../Data/InventoryItem.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
 
 /** @type {CommandConfig} */
 export const config = {

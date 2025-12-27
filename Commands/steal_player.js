@@ -1,8 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import StealAction from '../Data/Actions/StealAction.js';
-import Game from '../Data/Game.js';
+﻿import StealAction from '../Data/Actions/StealAction.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {

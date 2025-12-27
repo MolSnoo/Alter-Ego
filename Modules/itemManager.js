@@ -1,15 +1,16 @@
-import EquipmentSlot from '../Data/EquipmentSlot.js';
 import Fixture from '../Data/Fixture.js';
 import Puzzle from '../Data/Puzzle.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import InventorySlot from '../Data/InventorySlot.js';
-import Prefab from '../Data/Prefab.js';
-import Room from '../Data/Room.js';
 import RoomItem from '../Data/RoomItem.js';
-import Player from '../Data/Player.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import { generateProceduralOutput } from '../Modules/parser.js';
 import { addLogMessage } from './messageHandler.js';
+
+/** @typedef {import('../Data/EquipmentSlot.js').default} EquipmentSlot */
+/** @typedef {import('../Data/Prefab.js').default} Prefab */
+/** @typedef {import('../Data/Room.js').default} Room */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /**
  * Instantiates a new item in the specified location and container.

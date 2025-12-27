@@ -1,11 +1,13 @@
-import Exit from './Exit.js';
-import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Narration from '../Data/Narration.js';
-import Player from './Player.js';
 import { generatePlayerListString } from '../Modules/helpers.js';
 import { addLogMessage } from '../Modules/messageHandler.js';
-import { Collection, TextChannel } from 'discord.js';
+import { Collection } from 'discord.js';
+
+/** @typedef {import('./Exit.js').default} Exit */
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Player.js').default} Player */
+/** @typedef {import('discord.js').TextChannel} TextChannel */
 
 /**
  * @class Room

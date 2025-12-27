@@ -1,6 +1,4 @@
-import GameSettings from '../Classes/GameSettings.js';
 import Fixture from '../Data/Fixture.js';
-import Game from '../Data/Game.js';
 import GameEntity from '../Data/GameEntity.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import RoomItem from '../Data/RoomItem.js';
@@ -13,6 +11,9 @@ import * as messageHandler from '../Modules/messageHandler.js';
 import * as finder from '../Modules/finder.js';
 
 import { table } from 'table';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {

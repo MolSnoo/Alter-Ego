@@ -1,11 +1,12 @@
-﻿import Event from '../Data/Event.js';
-import Flag from '../Data/Flag.js';
-import Game from '../Data/Game.js';
-import InventoryItem from '../Data/InventoryItem.js';
-import Player from '../Data/Player.js';
-import Puzzle from '../Data/Puzzle.js';
+﻿import Puzzle from '../Data/Puzzle.js';
 import { addReply, addGameMechanicMessage } from './messageHandler.js';
 import { ChannelType } from 'discord.js';
+
+/** @typedef {import('../Data/Event.js').default} Event */
+/** @typedef {import('../Data/Flag.js').default} Flag */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /**
  * Finds the right command file for the user and executes it.

@@ -1,8 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import * as messageHandler from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {

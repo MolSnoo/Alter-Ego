@@ -1,7 +1,8 @@
-﻿import Game from './Game.js';
-import GameConstruct from './GameConstruct.js';
-import Player from './Player.js';
+﻿import GameConstruct from './GameConstruct.js';
 import Status from './Status.js';
+
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Player.js').default} Player */
 
 /**
  * @class Die

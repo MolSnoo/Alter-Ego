@@ -1,6 +1,4 @@
 import settings from '../Configs/settings.json' with { type: 'json' };
-import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
 import Flag from "../Data/Flag.js";
@@ -8,6 +6,9 @@ import InventoryItem from "../Data/InventoryItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import fs from 'fs';
 import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {

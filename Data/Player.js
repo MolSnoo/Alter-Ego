@@ -1,16 +1,11 @@
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
-import Exit from './Exit.js';
 import Room from './Room.js';
-import Fixture from './Fixture.js';
 import Prefab from './Prefab.js';
-import Recipe from './Recipe.js';
 import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
 import Puzzle from './Puzzle.js';
 import Event from './Event.js';
-import EquipmentSlot from './EquipmentSlot.js';
-import InventoryItem from './InventoryItem.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
 import Flag from './Flag.js';
@@ -26,7 +21,15 @@ import * as messageHandler from '../Modules/messageHandler.js';
 
 import Timer from '../Classes/Timer.js';
 
-import { Collection, GuildMember, TextChannel } from 'discord.js';
+import { Collection } from 'discord.js';
+
+/** @typedef {import('./Exit.js').default} Exit */
+/** @typedef {import('./Fixture.js').default} Fixture */
+/** @typedef {import('./Recipe.js').default} Recipe */
+/** @typedef {import('./EquipmentSlot.js').default} EquipmentSlot */
+/** @typedef {import('./InventoryItem.js').default} InventoryItem */
+/** @typedef {import('discord.js').GuildMember} GuildMember */
+/** @typedef {import('discord.js').TextChannel} TextChannel */
 
 /**
  * @class Player

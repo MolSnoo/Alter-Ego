@@ -1,10 +1,11 @@
 import Action from "../Action.js";
 import Fixture from "../Fixture.js";
 import InventoryItem from "../InventoryItem.js";
-import Player from "../Player.js";
-import Room from "../Room.js";
-import RoomItem from "../RoomItem.js";
 import { generatePlayerListString } from "../../Modules/helpers.js";
+
+/** @typedef {import("../Player.js").default} Player */
+/** @typedef {import("../Room.js").default} Room */
+/** @typedef {import("../RoomItem.js").default} RoomItem */
 
 /**
  * @class InspectAction

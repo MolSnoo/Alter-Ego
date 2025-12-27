@@ -1,6 +1,7 @@
 import Action from "../Action.js";
-import Player from "../Player.js";
 import { addDirectNarrationWithAttachments } from "../../Modules/messageHandler.js";
+
+/** @typedef {import("../Player.js").default} Player */
 
 /**
  * @class TextAction

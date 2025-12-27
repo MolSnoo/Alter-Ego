@@ -1,10 +1,11 @@
-import GameSettings from '../Classes/GameSettings.js';
 import UndressAction from '../Data/Actions/UndressAction.js';
 import Fixture from "../Data/Fixture.js";
-import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {

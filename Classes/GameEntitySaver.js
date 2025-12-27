@@ -1,6 +1,7 @@
 import demodata from "../Configs/demodata.json" with { type: 'json' };
-import Game from "../Data/Game.js";
 import { batchUpdateSheetValues } from "../Modules/sheets.js";
+
+/** @typedef {import("../Data/Game.js").default} Game */
 
 /**
  * @class GameEntityLoader

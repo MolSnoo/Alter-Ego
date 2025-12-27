@@ -1,9 +1,10 @@
 import Action from "../Action.js";
 import Die from "../Die.js";
-import EquipmentSlot from "../EquipmentSlot.js";
 import InventoryItem from "../InventoryItem.js";
 import InventorySlot from "../InventorySlot.js";
-import Player from "../Player.js";
+
+/** @typedef {import("../EquipmentSlot.js").default} EquipmentSlot */
+/** @typedef {import("../Player.js").default} Player */
 
 /**
  * @class StealAction

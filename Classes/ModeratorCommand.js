@@ -1,5 +1,5 @@
-import Game from "../Data/Game.js";
-import GameSettings from "./GameSettings.js";
+/** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("./GameSettings.js").default} GameSettings */
 
 /**
  * @class ModeratorCommand

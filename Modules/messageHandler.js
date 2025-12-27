@@ -1,8 +1,9 @@
 import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection, GuildMember } from 'discord.js';
 import Player from '../Data/Player.js';
-import Whisper from '../Data/Whisper.js';
-import Game from '../Data/Game.js';
-import Room from '../Data/Room.js';
+
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Room.js').default} Room */
+/** @typedef {import('../Data/Whisper.js').default} Whisper */
 
 /**
  * Narrates a message to a room.

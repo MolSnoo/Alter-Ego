@@ -1,7 +1,8 @@
 import Action from "../Action.js";
-import EquipmentSlot from "../EquipmentSlot.js";
-import InventoryItem from "../InventoryItem.js";
-import Player from "../Player.js";
+
+/** @typedef {import("../EquipmentSlot.js").default} EquipmentSlot */
+/** @typedef {import("../InventoryItem.js").default} InventoryItem */
+/** @typedef {import("../Player.js").default} Player */
 
 /**
  * @class GiveAction

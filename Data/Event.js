@@ -1,13 +1,15 @@
 import GameEntity from './GameEntity.js';
-import Game from './Game.js';
 import Narration from '../Data/Narration.js';
-import Status from './Status.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { addLogMessage } from '../Modules/messageHandler.js';
 import { parseDescription } from '../Modules/parser.js';
 import Timer from '../Classes/Timer.js';
-import { DateTime, Duration } from 'luxon';
+import { DateTime } from 'luxon';
 import { parse } from 'date-fns';
+
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Status.js').default} Status */
+/** @typedef {import('luxon').Duration} Duration */
 
 /**
  * @class Event

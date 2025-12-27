@@ -1,9 +1,10 @@
-import GameSettings from '../Classes/GameSettings.js';
 import UnstashAction from '../Data/Actions/UnstashAction.js';
-import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {

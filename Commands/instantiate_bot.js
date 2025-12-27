@@ -1,5 +1,3 @@
-import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
 import Flag from "../Data/Flag.js";
@@ -8,6 +6,9 @@ import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
