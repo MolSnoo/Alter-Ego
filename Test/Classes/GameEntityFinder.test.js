@@ -49,6 +49,9 @@ describe("GameEntityFinder test", () => {
         });
     });
 
+    describe("getExit test", () => {
+    });
+
     describe("getFixture test", () => {
         test("Get valid fixture", () => {
             let fixture = game.entityFinder.getFixture("RECEPTION DESK", "lobby");
@@ -338,6 +341,18 @@ describe("GameEntityFinder test", () => {
         });
     });
 
+    describe("getPlayerHands test", () => {
+    });
+
+    describe("getPlayerFreeHand test", () => {
+    });
+
+    describe("getPlayerHandHoldingItem test", () => {
+    });
+
+    describe("getPlayerSlotWithItem test", () => {
+    });
+
     describe("getInventoryItem test", () => {
         test("Get valid inventory item by id", () => {
             let inventoryItem = game.entityFinder.getInventoryItem("KYRAS GLASSES");
@@ -523,6 +538,9 @@ describe("GameEntityFinder test", () => {
             expect(rooms2.length).toBe(0);
         });
     });
+
+    describe("getExits test", () => {
+    })
 
     describe("getFixtures test", () => {
         test("Get fixtures by name", () => {
