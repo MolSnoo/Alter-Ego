@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UndressAction from '../Data/Actions/UndressAction.js';
 import Fixture from "../Data/Fixture.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
@@ -138,7 +138,7 @@ export async function execute (game, message, command, args) {
             return addReply(game, message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
-    const action = new Action(game, ActionType.Undress, message, player, player.location, true);
+    const action = new UndressAction(game, message, player, player.location, true);
     action.performUndress(container, slotName);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully undressed ${player.name}.`);
 }

@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import StealAction from '../Data/Actions/StealAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
@@ -126,6 +126,6 @@ export async function execute (game, message, command, args, player) {
         if (slotNo === -1) return addReply(game, message, `Couldn't find "${slotName}" of ${container.name}.`);
     }
 
-    const action = new Action(game, ActionType.Steal, message, player, player.location, false);
+    const action = new StealAction(game, message, player, player.location, false);
     action.performSteal(hand, victim, container, slotNo);
 }

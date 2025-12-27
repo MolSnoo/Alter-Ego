@@ -1,16 +1,12 @@
 import Game from "./Game.js";
+import GameConstruct from "./GameConstruct.js";
 
 /**
  * @class GameEntity
  * @classdesc Represents an in-game entity on the spreadsheet. Used as a base class for all other in-game entities.
+ * @extends GameConstruct
  */
-export default class GameEntity {
-	/**
-	 * The game this entity belongs to.
-	 * @readonly
-	 * @type {Game}
-	 */
-	#game;
+export default class GameEntity extends GameConstruct {
 	/**
 	 * The row number of this entity on the spreadsheet.
 	 * @type {number}
@@ -23,11 +19,7 @@ export default class GameEntity {
 	 * @param {number} row - The row number of this entity on the spreadsheet.
 	 */
 	constructor(game, row) {
-		this.#game = game;
+		super(game);
 		this.row = row;
-	}
-
-	getGame() {
-		return this.#game;
 	}
 }

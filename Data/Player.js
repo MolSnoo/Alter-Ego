@@ -1,4 +1,3 @@
-import Action from './Action.js';
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Exit from './Exit.js';
@@ -17,6 +16,8 @@ import Status from './Status.js';
 import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
+
+import DieAction from './Actions/DieAction.js';
 
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
@@ -817,7 +818,7 @@ export default class Player extends ItemContainer {
                     else {
                         if (status.fatal) {
                             status.timer.stop();
-                            const action = new Action(player.getGame(), ActionType.Die, undefined, player, player.location, true);
+                            const action = new DieAction(player.getGame(), undefined, player, player.location, true);
                             action.performDie();
                         }
                         else {
@@ -1573,27 +1574,8 @@ export default class Player extends ItemContainer {
             item1.uses = item1Uses;
         if (item2Uses !== null)
             item2.uses = item2Uses;
-
-        this.sendDescription(recipe.completedDescription, recipe);
-        // Decide if this should be narrated or not.
-        if (product1 && !product1.discreet || product2 && !product2.discreet) {
-            let productPhrase = "";
-            let product1Phrase = "";
-            let product2Phrase = "";
-            if (product1 && !product1.discreet) {
-                product1Phrase = product1.singleContainingPhrase;
-                this.addItemToDescription(item1, "hands");
-            }
-            if (product2 && !product2.discreet) {
-                product2Phrase = product2.singleContainingPhrase;
-                this.addItemToDescription(item2, "hands");
-            }
-            if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
-            else if (product1Phrase !== "") productPhrase = product1Phrase;
-            else if (product2Phrase !== "") productPhrase = product2Phrase;
-
-            if (productPhrase !== "") new Narration(this.getGame(), this, this.location, `${this.displayName} crafts ${productPhrase}.`).send();
-        }
+        if (product1 && !product1.discreet) this.addItemToDescription(item1, "hands");
+        if (product2 && !product2.discreet) this.addItemToDescription(item2, "hands");
 
         return { product1: product1 ? item1 : null, product2: product2 ? item2 : null };
     }
@@ -1606,17 +1588,12 @@ export default class Player extends ItemContainer {
      */
     uncraft(item, recipe) {
         // If only one ingredient is discreet, the first ingredient should be the discreet one.
-        // This will result in more natural sounding narrations.
         const oneDiscreet = !recipe.ingredients[0].discreet && recipe.ingredients[1].discreet || recipe.ingredients[0].discreet && !recipe.ingredients[1].discreet;
         let ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
         let ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
 
-        const originalItemPhrase = item.singleContainingPhrase;
-        const itemDiscreet = item.prefab.discreet;
-
-        if (!itemDiscreet) this.removeItemFromDescription(item, "hands");
+        if (!item.prefab.discreet) this.removeItemFromDescription(item, "hands");
         const rightHand = this.inventoryCollection.get("RIGHT HAND");
-        const leftHand = this.inventoryCollection.get("LEFT HAND");
         const ingredient1Instance = itemManager.replaceInventoryItem(item, ingredient1);
         const ingredient2Instance = itemManager.instantiateInventoryItem(
             ingredient2,
@@ -1628,39 +1605,10 @@ export default class Player extends ItemContainer {
             new Map(),
             false
         );
-
-        this.sendDescription(recipe.uncraftedDescription, recipe);
-        if (!itemDiscreet || !ingredient1.discreet || !ingredient2.discreet) {
-            let itemPhrase = item.singleContainingPhrase;
-            let ingredientPhrase = "";
-            let ingredient1Phrase = "";
-            let ingredient2Phrase = "";
-            let verb = "removes";
-            let preposition = "from";
-            if (!ingredient1.discreet) {
-                if (ingredient1.singleContainingPhrase !== originalItemPhrase || ingredient1.singleContainingPhrase !== itemPhrase)
-                    ingredient1Phrase = ingredient1.singleContainingPhrase;
-                this.addItemToDescription(ingredient1Instance, "hands");
-            }
-            if (!ingredient2.discreet) {
-                if (ingredient2.singleContainingPhrase !== originalItemPhrase || ingredient2.singleContainingPhrase !== itemPhrase)
-                    ingredient2Phrase = ingredient2.singleContainingPhrase;
-                this.addItemToDescription(ingredient2Instance, "hands");
-            }
-            if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
-                itemPhrase = originalItemPhrase;
-                ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
-                verb = "separates";
-                preposition = "into";
-            }
-            else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
-            else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
-
-            if (ingredientPhrase !== "") {
-                ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
-                new Narration(this.getGame(), this, this.location, `${this.displayName} ${verb} ${itemPhrase}${ingredientPhrase}.`).send();
-            }
-        }
+        if (!ingredient1.discreet)
+            this.addItemToDescription(ingredient1Instance, "hands");
+        if (!ingredient2.discreet)
+            this.addItemToDescription(ingredient2Instance, "hands");
 
         return { ingredient1: ingredient1Instance ? ingredient1Instance : null, ingredient2: ingredient2Instance ? ingredient2Instance : null };
     }

@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from "../Data/Action.js";
+import TakeAction from "../Data/Actions/TakeAction.js";
 import Fixture from "../Data/Fixture.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
@@ -170,7 +170,7 @@ export async function execute (game, message, command, args) {
     if (topContainer !== null && topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
         return addReply(game, message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
 
-    const action = new Action(game, ActionType.Take, message, player, player.location, true);
+    const action = new TakeAction(game, message, player, player.location, true);
     action.performTake(item, hand, container, slotName);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully took ${item.getIdentifier()} for ${player.name}.`);
 }

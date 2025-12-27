@@ -1,6 +1,7 @@
 import GameSettings from '../Classes/GameSettings.js';
+import UncraftAction from '../Data/Actions/UncraftAction.js';
 import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -33,7 +34,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
 
 	var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -43,7 +44,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -73,7 +74,7 @@ export async function execute (game, message, command, args) {
     }
 
     if (item === null) {
-        return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
     }
 
     // Locate uncrafting recipe.
@@ -85,31 +86,15 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (recipe === null) return messageHandler.addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
+    if (recipe === null) return addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
 
 	if (!rightEmpty && !leftEmpty) {
-        return messageHandler.addReply(game, message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
+        return addReply(game, message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
     }
 
-    let itemName = item.identifier ? item.identifier : item.prefab.id;
+    const itemIdentifier = item.getIdentifier();
 
-    const ingredients = player.uncraft(item, recipe);
-
-    let ingredientPhrase = "";
-    let ingredient1Phrase = "";
-    let ingredient2Phrase = "";
-    if (ingredients.ingredient1) ingredient1Phrase = ingredients.ingredient1.identifier ? ingredients.ingredient1.identifier : ingredients.ingredient1.prefab.id;
-    if (ingredients.ingredient2) ingredient2Phrase = ingredients.ingredient2.identifier ? ingredients.ingredient2.identifier : ingredients.ingredient2.prefab.id;
-    if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
-    else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
-    else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
-    else ingredientPhrase = "nothing";
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
-
-	messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemName} into ${ingredientPhrase} for ${player.name}.`);
-
-    return;
+    const action = new UncraftAction(game, message, player, player.location, true);
+    action.performUncraft(item, recipe);
+	addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemIdentifier} for ${player.name}.`);
 }

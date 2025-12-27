@@ -1,4 +1,5 @@
 ﻿import Game from './Game.js';
+import GameConstruct from './GameConstruct.js';
 import Narration from '../Data/Narration.js';
 import Player from './Player.js';
 import Room from './Room.js';
@@ -8,15 +9,10 @@ import { ChannelType, TextChannel } from 'discord.js';
 /**
  * @class Whisper
  * @classdesc Represents a group of two or more players speaking quietly to each other such that no one else in the room can hear them.
+ * @extends GameConstruct
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/whisper.html
  */
-export default class Whisper {
-    /**
-     * The game context this whisper is occuring in. 
-     * @readonly
-     * @type {Game}
-     */
-    game;
+export default class Whisper extends GameConstruct {
     /** 
      * The players in the whisper.
      * @type {Player[]}
@@ -52,7 +48,7 @@ export default class Whisper {
      * @param {Room} location - The room the players are whispering in.
      */
     constructor(game, players, locationId, location) {
-        this.game = game;
+        super(game);
         this.players = players;
         this.locationId = locationId;
         this.location = location;
@@ -74,11 +70,11 @@ export default class Whisper {
         this.channel = await this.createChannel(this.channelName, this.players);
 
         const playerListString = this.makePlayersSentenceGroup();
-        new Narration(this.game, this.players[0], this.location, `${playerListString} begin whispering.`).send();
+        new Narration(this.getGame(), this.players[0], this.location, `${playerListString} begin whispering.`).send();
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        addLogMessage(this.game, `${time} - ${playerListString} began whispering in ${this.location.channel}`);
+        addLogMessage(this.getGame(), `${time} - ${playerListString} began whispering in ${this.location.channel}`);
     }
 
     /**
@@ -136,10 +132,10 @@ export default class Whisper {
      */
     createChannel(name, players) {
         return new Promise((resolve) => {
-            this.game.guildContext.guild.channels.create({
+            this.getGame().guildContext.guild.channels.create({
                 name: name,
                 type: ChannelType.GuildText,
-                parent: this.game.guildContext.whisperCategoryId
+                parent: this.getGame().guildContext.whisperCategoryId
             }).then(channel => {
                 for (let i = 0; i < players.length; i++) {
                     let noChannel = false;
@@ -176,8 +172,8 @@ export default class Whisper {
             deleteWhisper = true;
         else {
             // Make sure a group with the same set of people doesn't already exist, then rename the channel. If it does exist, just delete this one.
-            for (let i = 0; i < this.game.whispers.length; i++) {
-                if (this.game.whispers[i].channelName === newChannelName) {
+            for (let i = 0; i < this.getGame().whispers.length; i++) {
+                if (this.getGame().whispers[i].channelName === newChannelName) {
                     deleteWhisper = true;
                     this.channel.lockPermissions();
                     break;
@@ -210,7 +206,7 @@ export default class Whisper {
      * @param {number} index - The index of the whisper in the game's array of whispers.
      */
     delete(index) {
-        if (this.game.settings.autoDeleteWhisperChannels) this.channel.delete();
+        if (this.getGame().settings.autoDeleteWhisperChannels) this.channel.delete();
         else {
             this.channel.edit({ name: `archived-${this.location.id}` }).then(channel => {
                 channel.lockPermissions();
@@ -218,6 +214,6 @@ export default class Whisper {
         }
 
         this.players.length = 0;
-        this.game.whispers.splice(index, 1);
+        this.getGame().whispers.splice(index, 1);
     }
 }

@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UnequipAction from '../Data/Actions/UnequipAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
@@ -88,6 +88,6 @@ export async function execute (game, message, command, args, player) {
 
     if (!item.prefab.equippable) return addReply(game, message, `You cannot unequip the ${item.name}.`);
 
-    const action = new Action(game, ActionType.Unequip, message, player, player.location, false);
+    const action = new UnequipAction(game, message, player, player.location, false);
     action.performUnequip(item, slotName, hand);
 }

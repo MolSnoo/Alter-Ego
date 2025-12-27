@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UndressAction from '../Data/Actions/UndressAction.js';
 import Fixture from "../Data/Fixture.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
@@ -138,6 +138,6 @@ export async function execute (game, message, command, args, player) {
             return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
 
-    const action = new Action(game, ActionType.Undress, message, player, player.location, false);
+    const action = new UndressAction(game, message, player, player.location, false);
     action.performUndress(container, slotName);
 }

@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import KnockAction from '../Data/Actions/KnockAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
@@ -53,7 +53,7 @@ export async function execute (game, message, command, args) {
     }
     if (exit === null) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
-    const action = new Action(game, ActionType.Knock, message, player, player.location, true);
+    const action = new KnockAction(game, message, player, player.location, true);
     action.performKnock(exit);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully knocked on ${exit.name} for ${player.name}.`);
 }

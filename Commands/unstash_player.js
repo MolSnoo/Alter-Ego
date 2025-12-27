@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UnstashAction from '../Data/Actions/UnstashAction.js';
 import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
@@ -115,6 +115,6 @@ export async function execute (game, message, command, args, player) {
     }
     if (item !== null && container === null) return addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
 
-    const action = new Action(game, ActionType.Unstash, message, player, player.location, false);
+    const action = new UnstashAction(game, message, player, player.location, false);
     action.performUnstash(item, hand, container, slotName);
 }
