@@ -54,7 +54,7 @@ export async function execute (game, message, command, args, player) {
     let newArgs = null;
 
     // First, find the item in the player's inventory.
-    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, false, false, true, true);
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, false, true);
     if (item !== undefined) {
         parsedInput = parsedInput.substring(item.name.length).trim();
         newArgs = parsedInput.split(' ');
