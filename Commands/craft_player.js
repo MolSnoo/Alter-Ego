@@ -1,4 +1,5 @@
-import { addLogMessage, addReply } from '../Modules/messageHandler.js';
+import CraftAction from '../Data/Actions/CraftAction.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -102,24 +103,6 @@ export async function execute (game, message, command, args, player) {
     }
     if (recipe === null) return addReply(game, message, `Couldn't find recipe requiring ${ingredients[0].name} and ${ingredients[1].name}. Contact a moderator if you think there should be one.`);
 
-    item1Name = ingredients[0].getIdentifier();
-    item2Name = ingredients[1].getIdentifier();
-
-    const products = player.craft(ingredients[0], ingredients[1], recipe);
-
-    let productPhrase = "";
-    let product1Phrase = "";
-    let product2Phrase = "";
-    if (products.product1) product1Phrase = products.product1.getIdentifier();
-    if (products.product2) product2Phrase = products.product2.getIdentifier();
-    if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
-    else if (product1Phrase !== "") productPhrase = product1Phrase;
-    else if (product2Phrase !== "") productPhrase = product2Phrase;
-    else productPhrase = "nothing";
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(game, `${time} - ${player.name} crafted ${productPhrase} from ${item1Name} and ${item2Name} in ${player.location.channel}`);
-
-    return;
+    const action = new CraftAction(game, message, player, player.location, false);
+    action.performCraft(ingredients[0], ingredients[1], recipe);
 }

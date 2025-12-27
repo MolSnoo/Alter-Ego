@@ -254,6 +254,47 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a craft action.
+	 * @param {string} item1Id - The identifier of the first ingredient.
+	 * @param {string} item2Id - The identifier of the second ingredient.
+	 * @param {CraftingResult} craftingResult - The result of the craft action.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logCraft(item1Id, item2Id, craftingResult, player, forced) {
+		let productPhrase = "";
+		let product1Phrase = "";
+		let product2Phrase = "";
+		if (craftingResult.product1) product1Phrase = craftingResult.product1.getIdentifier();
+		if (craftingResult.product2) product2Phrase = craftingResult.product2.getIdentifier();
+		if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
+		else if (product1Phrase !== "") productPhrase = product1Phrase;
+		else if (product2Phrase !== "") productPhrase = product2Phrase;
+		else productPhrase = "nothing";
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}crafted ${productPhrase} from ${item1Id} and ${item2Id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an uncraft action.
+	 * @param {string} itemId - The identifier of the product.
+	 * @param {UncraftingResult} uncraftingResult - The result of the uncraft action.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUncraft(itemId, uncraftingResult, player, forced) {
+		let ingredientPhrase = "";
+		let ingredient1Phrase = "";
+		let ingredient2Phrase = "";
+		if (uncraftingResult.ingredient1) ingredient1Phrase = uncraftingResult.ingredient1.getIdentifier();
+		if (uncraftingResult.ingredient2) ingredient2Phrase = uncraftingResult.ingredient2.getIdentifier();
+		if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+		else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
+		else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
+		else ingredientPhrase = "nothing";
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}uncrafted ${itemId} into ${ingredientPhrase} in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a die action.
 	 * @param {Player} player - The player who died. 
 	 */

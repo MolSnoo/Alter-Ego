@@ -1,4 +1,5 @@
-import { addLogMessage, addReply } from '../Modules/messageHandler.js';
+import UncraftAction from '../Data/Actions/UncraftAction.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -83,23 +84,6 @@ export async function execute (game, message, command, args, player) {
         return addReply(game, message, `You do not have an empty hand to uncraft ${item.singleContainingPhrase}. Either drop the item in your other hand or stash it in one of your equipped items.`);
     }
 
-    const itemName = item.getIdentifier();
-
-    const ingredients = player.uncraft(item, recipe);
-
-    let ingredientPhrase = "";
-    let ingredient1Phrase = "";
-    let ingredient2Phrase = "";
-    if (ingredients.ingredient1) ingredient1Phrase = ingredients.ingredient1.getIdentifier();
-    if (ingredients.ingredient2) ingredient2Phrase = ingredients.ingredient2.getIdentifier();
-    if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
-    else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
-    else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
-    else ingredientPhrase = "nothing";
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(game, `${time} - ${player.name} uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
-
-    return;
+    const action = new UncraftAction(game, message, player, player.location, false);
+    action.performUncraft(item, recipe);
 }

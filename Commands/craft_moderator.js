@@ -1,4 +1,5 @@
-import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
+import CraftAction from '../Data/Actions/CraftAction.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -142,23 +143,7 @@ export async function execute (game, message, command, args) {
     item1Name = ingredients[0].getIdentifier();
     item2Name = ingredients[1].getIdentifier();
 
-    const products = player.craft(ingredients[0], ingredients[1], recipe);
-
-    let productPhrase = "";
-    let product1Phrase = "";
-    let product2Phrase = "";
-    if (products.product1) product1Phrase = products.product1.getIdentifier();
-    if (products.product2) product2Phrase = products.product2.getIdentifier();
-    if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
-    else if (product1Phrase !== "") productPhrase = product1Phrase;
-    else if (product2Phrase !== "") productPhrase = product2Phrase;
-    else productPhrase = "nothing";
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(game, `${time} - ${player.name} forcibly crafted ${productPhrase} from ${item1Name} and ${item2Name} in ${player.location.channel}`);
-
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${productPhrase} from ${item1Name} and ${item2Name} for ${player.name}.`);
-
-    return;
+    const action = new CraftAction(game, message, player, player.location, true);
+    action.performCraft(ingredients[0], ingredients[1], recipe);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${item1Name} and ${item2Name} for ${player.name}.`);
 }

@@ -12,6 +12,8 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Player.js").default} Player */
 /** @typedef {import("../Data/Puzzle.js").default} Puzzle */
+/** @typedef {import("../Data/Prefab.js").default} Prefab */
+/** @typedef {import("../Data/Recipe.js").default} Recipe */
 
 /**
  * @class GameNarrationHandler
@@ -307,6 +309,35 @@ export default class GameNarrationHandler {
 		const narration = this.#game.notificationGenerator.generateUndressNotification(player, false, preposition, containerPhrase, itemList);
 		player.notify(notification);
 		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a craft action.
+	 * @param {CraftingResult} craftingResult - The result of the craft action.
+	 * @param {Player} player - The player performing the craft action.
+	 */
+	narrateCraft(craftingResult, player) {
+		if (craftingResult.product1 && !craftingResult.product1.prefab.discreet || craftingResult.product2 && !craftingResult.product2.prefab.discreet) {
+			const narration = this.#game.notificationGenerator.generateCraftNotification(player, false, craftingResult);
+			this.#sendNarration(player, narration);
+		}
+	}
+
+	/**
+	 * Narrates an uncraft action.
+	 * @param {Recipe} recipe - The recipe used to uncraft the item.
+	 * @param {Prefab} originalItemPrefab - The prefab of the original item.
+	 * @param {InventoryItem} item - The item being uncrafted.
+	 * @param {UncraftingResult} uncraftingResult - The result of the uncraft action.
+	 * @param {Player} player - The player performing the uncraft action.
+	 */
+	narrateUncraft(recipe, originalItemPrefab, item, uncraftingResult, player) {
+		if (!originalItemPrefab.discreet || !recipe.ingredients[0].discreet || !recipe.ingredients[1].discreet) {
+			const originalItemPhrase = originalItemPrefab.singleContainingPhrase;
+			const itemPhrase = item.singleContainingPhrase;
+			const narration = this.#game.notificationGenerator.generateUncraftNotification(player, false, recipe, originalItemPhrase, itemPhrase, uncraftingResult);
+			this.#sendNarration(player, narration);
+		}
 	}
 
 	/**

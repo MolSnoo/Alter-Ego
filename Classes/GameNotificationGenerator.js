@@ -1,5 +1,6 @@
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Player.js").default} Player */
+/** @typedef {import("../Data/Recipe.js").default} Recipe */
 
 /**
  * @class GameNotificationGenerator
@@ -316,6 +317,70 @@ export default class GameNotificationGenerator {
 		const subject = secondPerson ? `You` : player.displayName;
 		const verb = secondPerson ? `undress` : `undresses`;
 		return `${subject} ${verb}, putting ${itemList} ${preposition} ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player crafted an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {CraftingResult} craftingResult - The result of the craft action.
+	 */
+	generateCraftNotification(player, secondPerson, craftingResult) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `craft` : `crafts`;
+		let productPhrase = "";
+		let product1Phrase = "";
+		let product2Phrase = "";
+		if (craftingResult.product1 && !craftingResult.product1.prefab.discreet)
+			product1Phrase = craftingResult.product1.singleContainingPhrase;
+		if (craftingResult.product2 && !craftingResult.product2.prefab.discreet)
+			product2Phrase = craftingResult.product2.singleContainingPhrase;
+		if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
+		else if (product1Phrase !== "") productPhrase = product1Phrase;
+		else if (product2Phrase !== "") productPhrase = product2Phrase;
+		else productPhrase = "nothing";
+		return `${subject} ${verb} ${productPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player uncrafted an item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Recipe} recipe - The recipe used to uncraft the item.
+	 * @param {string} originalItemPhrase - The original single containing phrase of the item.
+	 * @param {string} itemPhrase - The single containing phrase of the item, which may have changed from its original value.
+	 * @param {UncraftingResult} uncraftingResult - The result of the uncraft action.
+	 */
+	generateUncraftNotification(player, secondPerson, recipe, originalItemPhrase, itemPhrase, uncraftingResult) {
+		const subject = secondPerson ? `You` : player.displayName;
+		// If only one ingredient is discreet, the first ingredient should be the discreet one.
+        // This will result in more natural sounding notifications.
+		const oneDiscreet = !recipe.ingredients[0].discreet && recipe.ingredients[1].discreet || recipe.ingredients[0].discreet && !recipe.ingredients[1].discreet;
+        let ingredient1 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[0] : recipe.ingredients[1];
+        let ingredient2 = oneDiscreet && recipe.ingredients[0].discreet ? recipe.ingredients[1] : recipe.ingredients[0];
+		let ingredientPhrase = "";
+		let ingredient1Phrase = "";
+		let ingredient2Phrase = "";
+		let verb = "removes";
+		let preposition = "from";
+		if (!uncraftingResult.ingredient1.prefab.discreet) {
+			if (uncraftingResult.ingredient1.singleContainingPhrase !== originalItemPhrase || uncraftingResult.ingredient1.singleContainingPhrase !== itemPhrase)
+				ingredient1Phrase = ingredient1.singleContainingPhrase;
+		}
+		if (!uncraftingResult.ingredient2.prefab.discreet) {
+			if (ingredient2.singleContainingPhrase !== originalItemPhrase || uncraftingResult.ingredient2.singleContainingPhrase !== itemPhrase)
+				ingredient2Phrase = uncraftingResult.ingredient2.singleContainingPhrase;
+		}
+		if (ingredient1Phrase !== "" && ingredient2Phrase !== "") {
+			itemPhrase = originalItemPhrase;
+			ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+			verb = "separates";
+			preposition = "into";
+		}
+		else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
+		else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
+		if (ingredientPhrase !== "") ingredientPhrase = ` ${preposition} ${ingredientPhrase}`;
+		return `${subject} ${verb} ${itemPhrase}${ingredientPhrase}.`;
 	}
 
 	/**

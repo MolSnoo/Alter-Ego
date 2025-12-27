@@ -1,4 +1,5 @@
-import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
+import UncraftAction from '../Data/Actions/UncraftAction.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -43,7 +44,7 @@ export async function execute (game, message, command, args) {
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-        const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const rightHand = player.inventoryCollection.get("RIGHT HAND");
     const leftHand = player.inventoryCollection.get("LEFT HAND");
 
     // Now find the item in the player's inventory.
@@ -82,25 +83,9 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
     }
 
-    const itemName = item.getIdentifier();
+    const itemIdentifier = item.getIdentifier();
 
-    const ingredients = player.uncraft(item, recipe);
-
-    let ingredientPhrase = "";
-    let ingredient1Phrase = "";
-    let ingredient2Phrase = "";
-    if (ingredients.ingredient1) ingredient1Phrase = ingredients.ingredient1.getIdentifier();
-    if (ingredients.ingredient2) ingredient2Phrase = ingredients.ingredient2.getIdentifier();
-    if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
-    else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
-    else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
-    else ingredientPhrase = "nothing";
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(game, `${time} - ${player.name} forcibly uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
-
-	addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemName} into ${ingredientPhrase} for ${player.name}.`);
-
-    return;
+    const action = new UncraftAction(game, message, player, player.location, true);
+    action.performUncraft(item, recipe);
+	addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemIdentifier} for ${player.name}.`);
 }
