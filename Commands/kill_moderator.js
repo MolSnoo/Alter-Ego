@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import DieAction from '../Data/Actions/DieAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
@@ -52,7 +52,7 @@ export async function execute (game, message, command, args) {
     }
 
     for (let i = 0; i < players.length; i++) {
-        const action = new Action(game, ActionType.Die, message, players[i], players[i].location, true);
+        const action = new DieAction(game, message, players[i], players[i].location, true);
         action.performDie();
     }
 

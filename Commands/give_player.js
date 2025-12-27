@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import GiveAction from '../Data/Actions/GiveAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
@@ -69,6 +69,6 @@ export async function execute (game, message, command, args, player) {
     let [giverHand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, true, false, false, true, false);
     if (item === undefined) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
 
-    const action = new Action(game, ActionType.Give, message, player, player.location, false);
+    const action = new GiveAction(game, message, player, player.location, false);
     action.performGive(item, giverHand, recipient, recipientHand);
 }

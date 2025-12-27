@@ -1,0 +1,29 @@
+import Action from "../Action.js";
+import Exit from "../Exit.js";
+
+/**
+ * @class KnockAction
+ * @classdesc Represents a knock action.
+ * @extends Action
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/knock-action.html
+ */
+export default class KnockAction extends Action {
+	/**
+	 * The type of action being performed.
+	 * @override
+	 * @readonly
+	 * @type {ActionType}
+	 */
+	type = ActionType.Knock;
+
+	/**
+	 * Performs a knock action.
+	 * @param {Exit} exit - The exit to knock on.
+	 */
+	performKnock(exit) {
+		if (this.performed) return;
+		super.perform();
+		this.getGame().narrationHandler.narrateKnock(exit, this.player);
+		this.getGame().logHandler.logKnock(exit, this.player, this.forced);
+	}
+}

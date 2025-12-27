@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import UnequipAction from '../Data/Actions/UnequipAction.js';
 import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
@@ -73,7 +73,7 @@ export async function execute (game, message, command, args) {
     else if (!item.prefab.equippable) 
         return addReply(game, message, `You cannot unequip the ${item.name}.`);
 
-    const action = new Action(game, ActionType.Unequip, message, player, player.location, true);
+    const action = new UnequipAction(game, message, player, player.location, true);
     action.performUnequip(item, slot, hand);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unequipped ${item.getIdentifier()} from ${player.name}'s ${slotName}.`);
 }

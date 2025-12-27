@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import EquipAction from '../Data/Actions/EquipAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
@@ -57,7 +57,7 @@ export async function execute (game, message, command, args) {
     if (slot === undefined) return addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
     if (slot.equippedItem !== null) return addReply(game, message, `Cannot equip items to ${slotName} because ${slot.equippedItem.getIdentifier()} is already equipped to it.`);
 
-    const action = new Action(game, ActionType.Equip, message, player, player.location, true);
+    const action = new EquipAction(game, message, player, player.location, true);
     action.performEquip(item, slot, hand);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully equipped ${item.getIdentifier()} to ${player.name}'s ${slotName}.`);
 }

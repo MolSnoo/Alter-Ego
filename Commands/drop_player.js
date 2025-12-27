@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import DropAction from '../Data/Actions/DropAction.js';
 import Fixture from "../Data/Fixture.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
@@ -158,6 +158,6 @@ export async function execute (game, message, command, args, player) {
             return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
 
-    const action = new Action(game, ActionType.Drop, message, player, player.location, false);
+    const action = new DropAction(game, message, player, player.location, false);
     action.performDrop(item, hand, container, slot);
 }

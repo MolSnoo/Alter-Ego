@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import DropAction from '../Data/Actions/DropAction.js';
 import Fixture from "../Data/Fixture.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
@@ -156,7 +156,7 @@ export async function execute (game, message, command, args) {
             return addReply(game, message, `Items cannot be put ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
 
-    const action = new Action(game, ActionType.Drop, message, player, player.location, true);
+    const action = new DropAction(game, message, player, player.location, true);
     action.performDrop(item, hand, container, slot);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dropped ${item.getIdentifier()} for ${player.name}.`);
 }

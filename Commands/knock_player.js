@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import KnockAction from '../Data/Actions/KnockAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
@@ -43,6 +43,6 @@ export async function execute (game, message, command, args, player) {
     const exit = game.entityFinder.getExit(player.location, parsedInput);
     if (exit === undefined) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
 
-    const action = new Action(game, ActionType.Knock, message, player, player.location, false);
+    const action = new KnockAction(game, message, player, player.location, false);
     action.performKnock(exit);
 }

@@ -1,19 +1,15 @@
 ﻿import Game from './Game.js';
+import GameConstruct from './GameConstruct.js';
 import Player from './Player.js';
 import Status from './Status.js';
 
 /**
  * @class Die
  * @classdesc Represents a die that can be rolled for a semi-random number.
+ * @extends GameConstruct
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/die.html
  */
-export default class Die {
-    /**
-     * The game context this roll is occuring in.
-     * @readonly 
-     * @type {Game}
-     */
-    game;
+export default class Die extends GameConstruct {
     /**
      * The minimum possible base roll.
      * @type {number}
@@ -53,10 +49,10 @@ export default class Die {
      * @param {Player} [defender] - The passive player to roll for. Only used if the attacker is attempting to perform an action against another player.
      */
     constructor(game, stat, attacker, defender) {
-        this.game = game;
+        super(game);
 
-        this.min = this.game.settings.diceMin;
-        this.max = this.game.settings.diceMax;
+        this.min = this.getGame().settings.diceMin;
+        this.max = this.getGame().settings.diceMax;
 
         /** @type {number} */
         let baseRoll;
@@ -131,7 +127,7 @@ export default class Die {
                     for (const modifier of status.statModifiers) {
                         // Get defender's modifiers that affect the attacker's roll.
                         if (!modifier.modifiesSelf) {
-                            const tempStatus = new Status(`${defender.name} ${status.id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: modifier.stat, assignValue: modifier.assignValue, value: modifier.value }], [], "", "", -1, this.game);
+                            const tempStatus = new Status(`${defender.name} ${status.id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: modifier.stat, assignValue: modifier.assignValue, value: modifier.value }], [], "", "", -1, this.getGame());
                             tempStatuses.push(tempStatus);
                             attacker.inflict(tempStatus, false, false, false);
                         }

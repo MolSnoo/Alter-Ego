@@ -1,5 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import StopAction from '../Data/Actions/StopAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
@@ -37,6 +37,6 @@ export async function execute(game, message, command, args, player) {
 
     if (!player.isMoving) return addReply(game, message, `You cannot do that because you are not moving.`);
 
-    const action = new Action(game, ActionType.Stop, message, player, player.location, false);
+    const action = new StopAction(game, message, player, player.location, false);
     action.performStop();
 }

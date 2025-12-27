@@ -1,7 +1,7 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import TextAction from '../Data/Actions/TextAction.js';
 import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -33,21 +33,21 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a sender, a recipient, and a message. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a sender, a recipient, and a message. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
-    else if (!player.isNPC) return messageHandler.addReply(game, message, `You cannot text for a player that isn't an NPC.`);
+    if (player === undefined) return addReply(game, message, `Couldn't find player "${args[0]}".`);
+    else if (!player.isNPC) return addReply(game, message, `You cannot text for a player that isn't an NPC.`);
     args.splice(0, 1);
 
     const recipient = game.entityFinder.getLivingPlayer(args[0]);
-    if (recipient === undefined) return messageHandler.addReply(game, message, `Couldn't find player "${args[0]}".`);
-    if (recipient.name === player.name) return messageHandler.addReply(game, message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
+    if (recipient === undefined) return addReply(game, message, `Couldn't find player "${args[0]}".`);
+    if (recipient.name === player.name) return addReply(game, message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
     args.splice(0, 1);
 
-    let input = args.join(" ");
-    if (input === "" && message.attachments.size === 0) return messageHandler.addReply(game, message, `Text message cannot be empty. Please send a message and/or an attachment.`);
+    const input = args.join(" ");
+    if (input === "" && message.attachments.size === 0) return addReply(game, message, `Text message cannot be empty. Please send a message and/or an attachment.`);
     
-    const action = new Action(game, ActionType.Text, message, player, player.location, false);
+    const action = new TextAction(game, message, player, player.location, false);
     action.performText(recipient, input);
 }

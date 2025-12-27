@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import StashAction from '../Data/Actions/StashAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
@@ -105,7 +105,7 @@ export async function execute (game, message, command, args) {
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return addReply(game, message, `${item.getIdentifier()} will not fit in ${containerItemSlot.id} of ${containerItem.identifier} because there isn't enough space left.`);
     else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.getIdentifier()} will not fit in ${containerItem.identifier} because there isn't enough space left.`);
 
-    const action = new Action(game, ActionType.Stash, message, player, player.location, true);
+    const action = new StashAction(game, message, player, player.location, true);
     action.performStash(item, hand, containerItem, containerItemSlot);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully stashed ${item.getIdentifier()} ${containerItem.prefab.preposition} ${containerItemSlot.id} of ${containerItem.identifier} for ${player.name}.`);
 }

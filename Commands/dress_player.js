@@ -1,5 +1,5 @@
 import GameSettings from '../Classes/GameSettings.js';
-import Action from '../Data/Action.js';
+import DressAction from '../Data/Actions/DressAction.js';
 import Fixture from "../Data/Fixture.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
@@ -127,6 +127,6 @@ export async function execute (game, message, command, args, player) {
     if (containerItems.length === 0)
         return addReply(game, message, `${container.name} has no equippable items.`);
     
-    const action = new Action(game, ActionType.Dress, message, player, player.location, false);
+    const action = new DressAction(game, message, player, player.location, false);
     action.performDress(containerItems, hand, container, slot);
 }

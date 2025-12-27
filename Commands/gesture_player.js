@@ -1,11 +1,11 @@
-﻿import Action from '../Data/Action.js';
-import GameSettings from '../Classes/GameSettings.js';
+﻿import GameSettings from '../Classes/GameSettings.js';
+import GestureAction from '../Data/Actions/GestureAction.js';
 import Fixture from '../Data/Fixture.js';
 import Game from '../Data/Game.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
 import Room from '../Data/Room.js';
 
@@ -43,10 +43,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a gesture. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a gesture. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable gesture");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
@@ -112,15 +112,15 @@ export async function execute (game, message, command, args, player) {
             }
         }
         if (gesture === undefined)
-            return messageHandler.addReply(
+            return addReply(
                 game,
                 message,
                 `Couldn't find gesture "${input}". For a list of gestures, send \`${game.settings.commandPrefix}gesture list\`.`
             );
         else if (args.length === 0 && gesture.requires.length > 0)
-            return messageHandler.addReply(game, message, `You need to specify a target for that gesture.`);
+            return addReply(game, message, `You need to specify a target for that gesture.`);
         else if (args.length > 0 && gesture.requires.length === 0)
-            return messageHandler.addReply(game, message, `That gesture doesn't take a target.`);
+            return addReply(game, message, `That gesture doesn't take a target.`);
         else if (args.length > 0 && gesture.requires.length > 0) {
             const input2 = args.join(" ").toLowerCase().replace(/\'/g, "");
             for (const requireType of gesture.requires) {
@@ -132,7 +132,7 @@ export async function execute (game, message, command, args, player) {
                     target = game.entityFinder.getFixtures(input2, player.location.id, true)[0];
                     if (target) {
                         if (hiddenStatus.length > 0 && player.hidingSpot !== target.name)
-                            return messageHandler.addReply(
+                            return addReply(
                                 game,
                                 message,
                                 `You cannot do that because you are **${hiddenStatus[0].id}**.`
@@ -153,7 +153,7 @@ export async function execute (game, message, command, args, player) {
                                 topContainer === null ||
                                 (topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
                             )
-                                return messageHandler.addReply(
+                                return addReply(
                                     game,
                                     message,
                                     `You cannot do that because you are **${hiddenStatus[0].id}**.`
@@ -169,7 +169,7 @@ export async function execute (game, message, command, args, player) {
                                 occupant.hidingSpot === player.hidingSpot)
                         ) {
                             if (occupant.name === player.name)
-                                return messageHandler.addReply(game, message, "You can't gesture toward yourself.");
+                                return addReply(game, message, "You can't gesture toward yourself.");
                             targetType = "Player";
                             target = occupant;
                             break;
@@ -178,7 +178,7 @@ export async function execute (game, message, command, args, player) {
                             hiddenStatus.length > 0 &&
                             !occupant.hasBehaviorAttribute("hidden")
                         )
-                            return messageHandler.addReply(
+                            return addReply(
                                 game,
                                 message,
                                 `You cannot do that because you are **${hiddenStatus[0].id}**.`
@@ -202,17 +202,17 @@ export async function execute (game, message, command, args, player) {
         }
         input = input.substring(gesture.id.toLowerCase().replace(/\'/g, "").length).trim();
         if (target === null && gesture.requires.length > 0)
-            return messageHandler.addReply(game, message, `Couldn't find target "${input}" in the room with you.`);
+            return addReply(game, message, `Couldn't find target "${input}" in the room with you.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
             if (player.statusCollection.has(gesture.disabledStatuses[i].id))
-                return messageHandler.addReply(
+                return addReply(
                     game,
                     message,
                     `You cannot do that gesture because you are **${gesture.disabledStatuses[i].id}**.`
                 );
         }
 
-        const action = new Action(game, ActionType.Gesture, message, player, player.location, false);
+        const action = new GestureAction(game, message, player, player.location, false);
         action.performGesture(gesture, targetType, target);
     }
 }
