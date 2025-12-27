@@ -396,10 +396,16 @@ describe("GameEntityFinder test", () => {
 
     describe("getPlayerFreeHand test", () => {
         test("Get player with free RIGHT hand", () => {
-            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let player = game.entityFinder.getLivingPlayer("Vivian");
             let hand = game.entityFinder.getPlayerFreeHand(player);
             expect(hand).toBeInstanceOf(EquipmentSlot);
             expect(hand.id).toBe("RIGHT HAND")
+        });
+        test("Get player with free LEFT hand", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let hand = game.entityFinder.getPlayerFreeHand(player);
+            expect(hand).toBeInstanceOf(EquipmentSlot);
+            expect(hand.id).toBe("LEFT HAND")
         });
     });
 
