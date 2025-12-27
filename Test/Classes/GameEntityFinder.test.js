@@ -404,6 +404,9 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getPlayerHandHoldingItem test", () => {
+        test("TODO: No players in mock data hold an item!", () => {
+            expect(false).toBeTruthy();
+        })
     });
 
     describe("getPlayerSlotWithItem test", () => {
