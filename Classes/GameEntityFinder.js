@@ -163,6 +163,7 @@ export default class GameEntityFinder {
 	 * @returns {Array<EquipmentSlot>} Hands belonging to the player.
 	 */
 	getPlayerHands(player) {
+		if (!player) return [];
 		let hands = [];
 		if (player.inventoryCollection.has("RIGHT HAND")) hands.push(player.inventoryCollection.get("RIGHT HAND"));
 		if (player.inventoryCollection.has("LEFT HAND")) hands.push(player.inventoryCollection.get("LEFT HAND"));
@@ -174,66 +175,48 @@ export default class GameEntityFinder {
 	 * @returns {EquipmentSlot} A free hand of the player. Returns undefined if all hands are occupied.
 	 */
 	getPlayerFreeHand(player) {
+		if (!player) return;
 		for (const hand of this.getPlayerHands(player))
 			if (hand.equippedItem === null) return hand;
 	}
 
-	/** Gets a player hand holding a given item.
+	/** Gets a player hand holding a given item. Will always look up items based on name.
 	 * @param {Player} player - The player.
 	 * @param {string} itemQuery - The item name to look for.
-	 * @param {boolean} [nameSearch] - Whether or not to look up items based on name.
-	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier.
-	 * @param {boolean} [prefabSearch] - Whether or not to look up items based on prefab ID.
-	 * @param {boolean} [exactMatch] - Whether or not to look up items based on whether or not the itemQuery is an exact match with an item identifier.
-	 * @param {boolean} [prefixMatch] - Whether or not to look up items based on whether or not the itemQuery starts with an item identifier.
+	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier or prefab ID. Defaults to false.
 	 * @returns {[EquipmentSlot, InventoryItem]}
 	 */
-	getPlayerHandHoldingItem(player, itemQuery, nameSearch = true, identifierSearch = true, prefabSearch = true, exactMatch = true, prefixMatch = false) {
-		for (const hand of this.getPlayerHands(player)) {
-			if (hand.equippedItem !== null) {
-				const identifiers = [];
-				if (nameSearch) identifiers.push(hand.equippedItem.name);
-				if (identifierSearch) identifiers.push(hand.equippedItem.identifier);
-				if (prefabSearch) identifiers.push(hand.equippedItem.prefab.id);
+	getPlayerHandHoldingItem(player, itemQuery, identifierSearch = false) {
+		if (!player || !itemQuery) return [undefined, undefined];
+		itemQuery = Game.generateValidEntityName(itemQuery);
 
-				for (const identifier of identifiers) {
-					if (prefixMatch) {
-						if (itemQuery.startsWith(identifier + ' ')) return [hand, hand.equippedItem];
-					} else if (exactMatch) {
-						if (identifier === itemQuery) return [hand, hand.equippedItem];
-					}
-				}
-			}
-		}
-		return [undefined, undefined];
+		/** @type {GameEntityMatcher} */
+		let selectedFilter;
+		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
+		else selectedFilter = matchers.itemNameMatches;
+
+		let output = this.getPlayerHands(player).find(slot => selectedFilter(slot, itemQuery))
+		return output ? [output, output.equippedItem] : [undefined, undefined];
 	}
 
-	/** Gets a player hand holding a given item.
+	/** Gets a player hand holding a given item. Will always look up items based on name.
 	 * @param {Player} player - The player.
 	 * @param {string} itemQuery - The item name to look for.
 	 * @param {EquipmentSlot} slot - The slot to restrict searching to.
-	 * @param {boolean} [nameSearch] - Whether or not to look up items based on name.
-	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier.
-	 * @param {boolean} [prefabSearch] - Whether or not to look up items based on prefab ID.
+	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier or prefab ID. Defaults to false.
 	 * @returns {[EquipmentSlot, InventoryItem]}
 	 */
-	getPlayerSlotWithItem(player, itemQuery, slot = undefined, nameSearch = true, identifierSearch = true, prefabSearch = true) {
-		let slots = null;
-		if (slot) slots = [slot];
-		else slots = player.inventoryCollection.values();
-		for (const slot of slots) {
-			if (slot.equippedItem !== null) {
-				const identifiers = [];
-				if (nameSearch) identifiers.push(slot.equippedItem.name);
-				if (identifierSearch) identifiers.push(slot.equippedItem.identifier);
-				if (prefabSearch) identifiers.push(slot.equippedItem.prefab.id);
+	getPlayerSlotWithItem(player, itemQuery, slot = undefined, identifierSearch = false) {
+		if (!player || !itemQuery) return [undefined, undefined];
+		itemQuery = Game.generateValidEntityName(itemQuery);
 
-				for (const identifier of identifiers) {
-					if (identifier === itemQuery) return [slot, slot.equippedItem];
-				}
-			}
-		}
-		return [undefined, undefined];
+		/** @type {GameEntityMatcher} */
+		let selectedFilter;
+		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
+		else selectedFilter = matchers.itemNameMatches;
+
+		let output = (slot ? [slot] : [... player.inventoryCollection.values()]).find(slot => selectedFilter(slot, itemQuery));
+		return output ? [output, output.equippedItem] : [undefined, undefined];
 	}
 
 	/**
