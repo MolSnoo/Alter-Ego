@@ -1,0 +1,30 @@
+export default {
+	commandPrefix: ".",
+	debug: false,
+	autoLoad: false,
+	spreadsheetID: "1ovXKkPdSodR4LHMjiccR1V1q1-EQ5y3jiLWvx1YIA6A",
+	pixelsPerMeter: 25,
+	staminaUseRate: -0.01,
+	heatedSlowdownRate: 0.5,
+	autoSaveInterval: 30,
+	diceMin: 1,
+	diceMax: 6,
+	defaultDropObject: "FLOOR",
+	defaultRoomIconURL: "",
+	autoDeleteWhisperChannels: true,
+	embedColor: "1F8B4C",
+	showOnlinePlayerCount: true,
+	onlineActivity: {
+		type: "LISTENING",
+		string: "Future Foundation HQ"
+	},
+	debugModeActivity: {
+		type: "PLAYING",
+		string: "NWP Debugger.exe"
+	},
+	gameInProgressActivity: {
+		type: "STREAMING",
+		string: "Neo World Program",
+		url: "https://www.twitch.tv/molsno"
+	}
+};
