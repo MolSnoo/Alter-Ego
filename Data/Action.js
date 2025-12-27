@@ -107,6 +107,7 @@ export const ActionType = {
 	Inspect: "inspect",
 	Knock: "knock",
 	Hide: "hide",
+	Unhide: "unhide",
 	Inflict: "inflict",
 	Cure: "cure",
 	Sleep: "sleep",

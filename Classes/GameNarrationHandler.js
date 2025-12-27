@@ -15,6 +15,8 @@ import RoomItem from "../Data/RoomItem.js";
 import { parseDescription } from "../Modules/parser.js";
 import { generateListString } from "../Modules/helpers.js";
 
+/** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
+
 /**
  * @class GameNarrationHandler
  * @classdesc A set of functions to send narrations.
@@ -73,8 +75,19 @@ export default class GameNarrationHandler {
 		let narration = "";
 		if (target instanceof Room)
 			narration = `${player.displayName} begins looking around the room.`;
-		else if (target instanceof Fixture)
+		else if (target instanceof Fixture) {
 			narration = `${player.displayName} begins inspecting the ${target.name}.`;
+			// If there are any players hidden in the fixture, notify them that they were found, and notify the player who found them.
+			// However, don't notify anyone if the player is inspecting the fixture that they're hiding in.
+			// Also ensure that the fixture isn't locked.
+			if (target instanceof Fixture && !player.hasBehaviorAttribute("hidden") && player.hidingSpot !== target.name
+			&&  (target.childPuzzle === null || !target.childPuzzle.type.endsWith("lock") || target.childPuzzle.solved)) {
+				for (const occupant of target.hidingSpot.occupants)
+					occupant.notify(this.#game.notificationGenerator.generateHiddenPlayerFoundNotification(occupant.hasBehaviorAttribute("no sight") ? "someone" : player.displayName));
+				const hiddenPlayersList = target.hidingSpot.generateOccupantsString(player.hasBehaviorAttribute("no sight"));
+				if (hiddenPlayersList) player.notify(this.#game.notificationGenerator.generateFoundHiddenPlayersNotification(hiddenPlayersList, target.hidingSpot.getContainingPhrase()));
+			}
+		}
 		else if (target instanceof RoomItem && !target.prefab.discreet) {
 			const preposition = target.getContainerPreposition();
 			const containerPhrase = target.getContainerPhrase();
@@ -109,11 +122,39 @@ export default class GameNarrationHandler {
 
 	/**
 	 * Narrates a hide action.
-	 * @param {string} hidingSpot - The name of the hiding spot.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player is hiding in.
 	 * @param {Player} player - The player performing the hide action.
 	 */
 	narrateHide(hidingSpot, player) {
-		const narration = this.#game.notificationGenerator.generateHideNotification(player, false, hidingSpot);
+		const hidingSpotPhrase = hidingSpot.getContainingPhrase();
+		let playerNotification = "";
+		const narration = this.#game.notificationGenerator.generateHideNotification(player, false, hidingSpotPhrase);
+		const hiddenPlayersList = hidingSpot.generateOccupantsString(player.hasBehaviorAttribute("no sight"));
+		if (hidingSpot.occupants.length + 1 > hidingSpot.capacity)
+			playerNotification = this.#game.notificationGenerator.generateHidingSpotFullNotification(hidingSpotPhrase, hiddenPlayersList);
+		else {
+			if (hidingSpot.occupants.length > 0) playerNotification = this.#game.notificationGenerator.generateHidingSpotOccupiedNotification(hidingSpotPhrase, hiddenPlayersList);
+			else playerNotification = this.#game.notificationGenerator.generateHideNotification(player, true, hidingSpotPhrase);
+		}
+		player.notify(playerNotification);
+		this.#sendNarration(player, narration);
+		for (const occupant of hidingSpot.occupants) {
+			const occupantNotification = hidingSpot.occupants.length + 1 > hidingSpot.capacity ? this.#game.notificationGenerator.generateFoundInFullHidingSpotNotification(occupant, player)
+			: this.#game.notificationGenerator.generateFoundInOccupiedHidingSpotNotification(occupant, player);
+			occupant.notify(occupantNotification);
+		}
+	}
+
+	/**
+	 * Narrates an unhide action.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player is coming out from.
+	 * @param {Player} player - The player performing the unhide action.
+	 */
+	narrateUnhide(hidingSpot, player) {
+		const hidingSpotPhrase = hidingSpot ? hidingSpot.getContainingPhrase() : "hiding";
+		const notification = this.#game.notificationGenerator.generateUnhideNotification(player, true, hidingSpotPhrase);
+		const narration = this.#game.notificationGenerator.generateUnhideNotification(player, false, hidingSpotPhrase);
+		player.notify(notification);
 		this.#sendNarration(player, narration);
 	}
 

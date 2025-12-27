@@ -14,6 +14,8 @@ import RoomItem from "../Data/RoomItem.js";
 import { addLogMessage } from "../Modules/messageHandler.js";
 import { generateListString } from "../Modules/helpers.js";
 
+/** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
+
 /**
  * @class GameLogHandler
  * @classdesc A set of functions to send messages to the game's log channel.
@@ -95,6 +97,29 @@ export default class GameLogHandler {
 	 */
 	logKnock(exit, player, forced) {
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}knocked on ${exit.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a hide action.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player hid in. 
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} successful - Whether or not the player was successful in hiding.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logHide(hidingSpot, player, successful, forced) {
+		const actionVerb = successful ? `hid` : `attempted and failed to hide`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${actionVerb} in ${hidingSpot.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an unhide action.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player came out of.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnhide(hidingSpot, player, forced) {
+		const hidingSpotName = hidingSpot ? hidingSpot.name : "hiding";
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}came out of ${hidingSpotName} in ${player.location.channel}`);
 	}
 
 	/**

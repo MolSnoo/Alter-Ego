@@ -66,10 +66,6 @@ export default class InflictAction extends Action {
 			const narration = this.getGame().notificationGenerator.generateNoHearingLeaveWhisperNotification(this.player.displayName);
 			this.player.removeFromWhispers(narration);
 		}
-		if (status.behaviorAttributes.includes("hidden")) {
-			if (narrate) this.getGame().narrationHandler.narrateHide(this.player.hidingSpot, this.player);
-			this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden") && occupant.name !== this.player.name));
-		}
 		if (status.behaviorAttributes.includes("concealed")) {
 			const maskName = item ? item.singleContainingPhrase : "a MASK";
 			this.displayName = `An individual wearing ${maskName}`;

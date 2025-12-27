@@ -14,10 +14,10 @@ export function getRandomString(possibilities = []) {
 }
 
 /**
- * Generates a grammatically correct list of players, sorted alphabetically by display name.
+ * Sorts a list of players alphabetically by their display names.
  * @param {Player[]} players - A list of players.
  */
-export function generatePlayerListString(players) {
+export function sortPlayersByDisplayName(players) {
 	players.sort((a, b) => {
 		const nameA = a.displayName.toLowerCase();
 		const nameB = b.displayName.toLowerCase();
@@ -25,6 +25,14 @@ export function generatePlayerListString(players) {
 		if (nameA > nameB) return 1;
 		return 0;
 	});
+}
+
+/**
+ * Generates a grammatically correct list of players, sorted alphabetically by display name.
+ * @param {Player[]} players - A list of players.
+ */
+export function generatePlayerListString(players) {
+	sortPlayersByDisplayName(players);
 	const playerList = players.map(player => player.displayName);
 	return generateListString(playerList);
 }

@@ -65,6 +65,10 @@ export default class GameEntityManager {
 				fixture.recipeInterval.stop();
 			if (fixture.process.timer !== null)
 				fixture.process.timer.stop();
+			if (fixture.hidingSpot !== null) {
+				fixture.hidingSpot.occupants.length = 0;
+				fixture.hidingSpot.deleteWhisper();
+			}
 		});
 		this.game.fixtures.length = 0;
 	}

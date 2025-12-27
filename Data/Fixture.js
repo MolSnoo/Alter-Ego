@@ -1,3 +1,4 @@
+import HidingSpot from './HidingSpot.js';
 import Game from './Game.js';
 import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
@@ -78,6 +79,11 @@ export default class Fixture extends ItemContainer {
      */
     hidingSpotCapacity;
     /**
+     * The hiding spot associated with this fixture. If this fixture is not a hiding spot, this is null.
+     * @type {HidingSpot}
+     */
+    hidingSpot;
+    /**
      * A preposition that will be used when a player drops an item in this fixture. If this blank, players cannot drop items into it.
      * @type {string}
      */
@@ -122,6 +128,7 @@ export default class Fixture extends ItemContainer {
         this.activated = activated;
         this.autoDeactivate = autoDeactivate;
         this.hidingSpotCapacity = hidingSpotCapacity;
+        this.hidingSpot = this.hidingSpotCapacity > 0 ? new HidingSpot(this, this.hidingSpotCapacity, this.row, this.getGame()) : null;
         this.preposition = preposition;
 
         this.process = { recipe: null, ingredients: [], duration: null, timer: null };

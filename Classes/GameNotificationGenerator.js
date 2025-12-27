@@ -45,10 +45,52 @@ export default class GameNotificationGenerator {
 	/**
 	 * Generates a notification indicating the player found players hidden in a fixture.
 	 * @param {string} hiddenPlayersList - A list of hidden players.
-	 * @param {string} fixtureName - The name of the fixture the players were hiding in.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the players are hiding in.
 	 */
-	generateFoundHiddenPlayersNotification(hiddenPlayersList, fixtureName) {
-		return `You find ${hiddenPlayersList} hiding in the ${fixtureName}!`;
+	generateFoundHiddenPlayersNotification(hiddenPlayersList, hidingSpotPhrase) {
+		return `You find ${hiddenPlayersList} hiding in ${hidingSpotPhrase}!`;
+	}
+
+	/**
+	 * Generates a notification indicating the player can't hide in the hiding spot because it's already full.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the players are hiding in.
+	 * @param {string} hiddenPlayersList - A list of hidden players.
+	 */
+	generateHidingSpotFullNotification(hidingSpotPhrase, hiddenPlayersList) {
+		return `You attempt to hide in the ${hidingSpotPhrase}, but you find ${hiddenPlayersList} already there! There doesn't seem to be enough room for you.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player found other players while attempting to hide.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the players are hiding in.
+	 * @param {string} hiddenPlayersList - A list of hidden players.
+	 */
+	generateHidingSpotOccupiedNotification(hidingSpotPhrase, hiddenPlayersList) {
+		return `When you hide in the ${hidingSpotPhrase}, you find ${hiddenPlayersList} already there!`;
+	}
+
+	/**
+	 * Generates a notification indicating someone found the player while hiding.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {Player} findingPlayer - The player that hid, who found the player in the process.
+	 */
+	generateFoundInOccupiedHidingSpotNotification(player, findingPlayer) {
+		const foundNotification = player.hasBehaviorAttribute("no sight") ? `Someone finds you` : `You're found by ${findingPlayer.displayName}`;
+		const findingPlayerSbj = player.hasBehaviorAttribute("no sight") ? `They` : findingPlayer.pronouns.Sbj;
+		const verb = player.hasBehaviorAttribute("no sight") || findingPlayer.pronouns.plural ? `hide` : `hides`;
+		return `${foundNotification}! ${findingPlayerSbj} ${verb} with you.`;
+	}
+
+	/**
+	 * Generates a notification indicating someone found the player while attempting to hide, but they couldn't hide because the hiding spot was full.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {Player} findingPlayer - The player attempting to hide, who found the player in the process.
+	 */
+	generateFoundInFullHidingSpotNotification(player, findingPlayer) {
+		const foundNotification = player.hasBehaviorAttribute("no sight") ? `Someone finds you` : `You're found by ${findingPlayer.displayName}`;
+		const findingPlayerSbj = player.hasBehaviorAttribute("no sight") ? `They` : findingPlayer.pronouns.Sbj;
+		const verb = player.hasBehaviorAttribute("no sight") || findingPlayer.pronouns.plural ? `try` : `tries`;
+		return `${foundNotification}! ${findingPlayerSbj} ${verb} to hide with you, but there isn't enough room.`;
 	}
 
 	/**
@@ -98,12 +140,24 @@ export default class GameNotificationGenerator {
 	 * Generates a notification indicating the player hide in a fixture.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
-	 * @param {string} hidingSpotName - The name of the hiding spot.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the player is hiding in.
 	 */
-	generateHideNotification(player, secondPerson, hidingSpotName) {
+	generateHideNotification(player, secondPerson, hidingSpotPhrase) {
 		const subject = secondPerson ? `You` : player.displayName;
 		const verb = secondPerson ? `hide` : `hides`;
-		return `${subject} ${verb} in the ${hidingSpotName}.`;
+		return `${subject} ${verb} in ${hidingSpotPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player came out of a hiding spot.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the player is coming out from.
+	 */
+	generateUnhideNotification(player, secondPerson, hidingSpotPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `come out` : `comes out`;
+		return `${subject} ${verb} of ${hidingSpotPhrase}.`;
 	}
 
 	/**
