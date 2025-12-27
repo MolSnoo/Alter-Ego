@@ -1,17 +1,19 @@
-import Event from "../Data/Event.js";
-import Fixture from "../Data/Fixture.js";
-import Flag from "../Data/Flag.js";
 import Game from "../Data/Game.js";
 import Gesture from "../Data/Gesture.js";
-import InventoryItem from "../Data/InventoryItem.js";
 import ItemInstance from "../Data/ItemInstance.js";
 import Player from "../Data/Player.js";
-import Prefab from "../Data/Prefab.js";
-import Puzzle from "../Data/Puzzle.js";
-import Recipe from "../Data/Recipe.js";
 import Room from "../Data/Room.js";
-import RoomItem from "../Data/RoomItem.js";
 import Status from "../Data/Status.js";
+
+/** @typedef {import("../Data/Event.js").default} Event */
+/** @typedef {import("../Data/Exit.js").default} Exit */
+/** @typedef {import("../Data/Fixture.js").default} Fixture */
+/** @typedef {import("../Data/Flag.js").default} Flag */
+/** @typedef {import("../Data/InventoryItem.js").default} InventoryItem */
+/** @typedef {import("../Data/Prefab.js").default} Prefab */
+/** @typedef {import("../Data/Puzzle.js").default} Puzzle */
+/** @typedef {import("../Data/Recipe.js").default} Recipe */
+/** @typedef {import("../Data/RoomItem.js").default} RoomItem */
 
 /**
  * Returns true if the room's ID matches the given ID.
@@ -56,6 +58,48 @@ export const roomOccupiedMatches = (room, includeNPCs) => {
 	if (!includeNPCs) return room.occupants.filter(occupant => !occupant.isNPC).length > 0;
 	else return room.occupants.length > 0;
 };
+
+/**
+ * Returns true if the exit's name matches the given name.
+ * @param {Exit} exit - The exit to match the name against.
+ * @param {string} name - The name to match.
+ * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
+ */
+export const exitNameMatches = (exit, name, normalize = false) => {
+	if (normalize) name = Game.generateValidEntityName(name);
+	return exit.name === name;
+}
+
+/**
+ * Returns true if the exit's name contains the given name.
+ * @param {Exit} exit - The exit to match the name against.
+ * @param {string} name - The name to match.
+ * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
+ */
+export const exitNameContains = (exit, name, normalize = false) => {
+	if (normalize) name = Game.generateValidEntityName(name);
+	return exit.name.includes(name);
+}
+
+/**
+ * Returns true if the exit's destination's ID contains the given ID.
+ * @param {Exit} exit - The exit to match the destination name against.
+ * @param {string} id - The destination ID to match.
+ * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
+ */
+export const exitDestMatches = (exit, id, normalize = false) => {
+	if (normalize) id = Room.generateValidId(id);
+	return exit.dest.id === id;
+}
+
+/**
+ * Returns true if the exit's locked.
+ * @param {Exit} exit - The exit for which to check the lock status.
+ * @param {boolean} lock - Whether or not the door should be locked.
+ */
+export const exitLockedMatches = (exit, lock) => {
+	return lock !== exit.unlocked;
+}
 
 /**
  * Returns true if the entity's name matches the given name.
@@ -236,7 +280,7 @@ export const itemNameMatches = (item, name, normalize = false) => {
  */
 export const itemIdentifierMatches = (item, identifier, normalize = false) => {
 	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	return item.identifier !== "" && item.identifier === identifier || item.prefab.id === identifier;
+	return item.identifier !== "" && item.identifier === identifier || item.prefab && item.prefab.id === identifier;
 };
 
 /**
@@ -259,7 +303,7 @@ export const itemIdentifierOrNameMatches = (item, identifier, normalize = false)
 export const itemIdentifierOrNameContains = (item, identifier, normalize = false) => {
 	if (normalize) identifier = Game.generateValidEntityName(identifier);
 	return item.identifier !== "" && item.identifier.includes(identifier)
-		|| item.prefab.id.includes(identifier)
+		|| item.prefab && item.prefab.id.includes(identifier)
 		|| item.name.includes(identifier)
 		|| item.pluralName !== "" && item.pluralName.includes(identifier);
 };
@@ -284,7 +328,7 @@ export const itemContainerNameMatches = (item, name, normalize = false) => {
  */
 export const itemContainerIdentifierMatches = (item, identifier, normalize = false) => {
 	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	if (item.container instanceof ItemInstance) return item.container.identifier !== "" && item.container.identifier === identifier || item.container.prefab.id === identifier;
+	if (item.container instanceof ItemInstance) return item.container.identifier !== "" && item.container.identifier === identifier || item.container.prefab && item.container.prefab.id === identifier;
 	return itemContainerNameMatches(item, identifier);
 };
 
@@ -497,8 +541,8 @@ export const playerHidingSpotMatches = (player, hidingSpot, normalize = false) =
 export const playerStatusMatches = (player, statusString, normalize = false) => {
 	let statuses = statusString.split(',');
 	if (normalize) statuses.forEach((status, i) => statuses[i] = Status.generateValidId(status));
-	const playerStatuses = player.status.map(status => status.id);
-	return statuses.every(status => playerStatuses.includes(status));
+	const playerStatuses = new Set(player.statusCollection.map(status => status.id));
+	return statuses.every(status => playerStatuses.has(status));
 };
 
 /**

@@ -1,11 +1,12 @@
-﻿import Event from '../Data/Event.js';
-import Flag from '../Data/Flag.js';
-import Game from '../Data/Game.js';
-import InventoryItem from '../Data/InventoryItem.js';
-import Player from '../Data/Player.js';
-import Puzzle from '../Data/Puzzle.js';
+﻿import Puzzle from '../Data/Puzzle.js';
 import { addReply, addGameMechanicMessage } from './messageHandler.js';
 import { ChannelType } from 'discord.js';
+
+/** @typedef {import('../Data/Event.js').default} Event */
+/** @typedef {import('../Data/Flag.js').default} Flag */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /**
  * Finds the right command file for the user and executes it.
@@ -13,7 +14,7 @@ import { ChannelType } from 'discord.js';
  * @param {Game} game - The game in which the command is being executed.
  * @param {UserMessage} [message] - The message in which the command was issued, if applicable.
  * @param {Player} [player] - The player who issued the command, or caused it to be executed, if applicable.
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable.
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable.
  * @returns {Promise<boolean>} Whether the command was successfully executed.
  */
 export async function executeCommand(commandStr, game, message, player, callee) {
@@ -157,7 +158,7 @@ export async function executeCommand(commandStr, game, message, player, callee) 
  * 
  * @param {string[]} commandSet - A list of bot commands to pass into the command handler's execute function.
  * @param {Game} game - The game in which the command is being executed.
- * @param {Event|Flag|InventoryItem|Puzzle} callee - The in-game entity that caused the command to be executed.
+ * @param {Callee} callee - The in-game entity that caused the command to be executed.
  * @param {Player} [player] - The player who caused the command to be executed, if applicable.
  */
 export async function parseAndExecuteBotCommands(commandSet, game, callee, player) {

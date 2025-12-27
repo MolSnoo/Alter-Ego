@@ -1,12 +1,13 @@
-import Fixture from './Fixture.js';
-import Game from './Game.js';
 import InventorySlot from './InventorySlot.js';
 import ItemInstance from './ItemInstance.js';
-import Player from './Player.js';
-import Puzzle from './Puzzle.js';
-import Room from './Room.js';
 import { instantiateItem, destroyItem } from '../Modules/itemManager.js';
 import { Collection } from 'discord.js';
+
+/** @typedef {import('./Fixture.js').default} Fixture */
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Player.js').default} Player */
+/** @typedef {import('./Puzzle.js').default} Puzzle */
+/** @typedef {import('./Room.js').default} Room */
 
 /**
  * @class RoomItem

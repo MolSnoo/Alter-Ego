@@ -1,8 +1,9 @@
-import GameSettings from '../Classes/GameSettings.js';
 import TextAction from '../Data/Actions/TextAction.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -36,21 +37,15 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify a player to text and a message. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("enable text");
+    const status = player.getBehaviorAttributeStatusEffects("enable text");
     if (status.length === 0) return addReply(game, message, `You do not have a device with which to send a text message.`);
 
-    var recipient = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            recipient = game.players_alive[i];
-            break;
-        }
-    }
-    if (recipient === null) return addReply(game, message, `Couldn't find player "${args[0]}".`);
+    const recipient = game.entityFinder.getLivingPlayer(args[0]);
+    if (recipient === undefined) return addReply(game, message, `Couldn't find player "${args[0]}".`);
     if (recipient.name === player.name) return addReply(game, message, `You cannot send a message to yourself.`);
     args.splice(0, 1);
 
-    var input = args.join(" ");
+    const input = args.join(" ");
     if (input === "" && message.attachments.size === 0) return addReply(game, message, `Text message cannot be empty. Please send a message and/or an attachment.`);
     
     const action = new TextAction(game, message, player, player.location, false);

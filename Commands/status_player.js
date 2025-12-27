@@ -1,7 +1,8 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addDirectNarration, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -30,8 +31,8 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable status");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const statusMessage = `You are currently:\n${player.getStatusList(false, false)}`;
-    messageHandler.addDirectNarration(player, statusMessage, false);
+    addDirectNarration(player, statusMessage, false);
 }

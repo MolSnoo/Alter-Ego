@@ -1,15 +1,16 @@
-import Game from './Game.js';
-import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
 import Narration from './Narration.js';
-import Player from './Player.js';
-import Prefab from './Prefab.js';
-import Puzzle from './Puzzle.js';
-import Recipe from './Recipe.js';
-import Room from './Room.js';
 import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
 import Timer from '../Classes/Timer.js';
 import { Duration } from 'luxon';
+
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./RoomItem.js').default} RoomItem */
+/** @typedef {import('./Player.js').default} Player */
+/** @typedef {import('./Prefab.js').default} Prefab */
+/** @typedef {import('./Puzzle.js').default} Puzzle */
+/** @typedef {import('./Recipe.js').default} Recipe */
+/** @typedef {import('./Room.js').default} Room */
 
 /**
  * @class Fixture

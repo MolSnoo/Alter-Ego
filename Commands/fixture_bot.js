@@ -1,12 +1,9 @@
-import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
-import Event from "../Data/Event.js";
-import Flag from "../Data/Flag.js";
-import InventoryItem from "../Data/InventoryItem.js";
-import Puzzle from "../Data/Puzzle.js";
 import Narration from '../Data/Narration.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -45,11 +42,11 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
-    var input = cmdString;
+    let input = cmdString;
     if (command === "fixture" || command === "object") {
         if (args[0] === "activate") command = "activate";
         else if (args[0] === "deactivate") command = "deactivate";
@@ -58,15 +55,15 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
+    if (command !== "activate" && command !== "deactivate") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('�');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -81,7 +78,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // Find the prospective list of fixtures.
-    var fixtures = game.fixtures.filter(fixture => input.toUpperCase().startsWith(fixture.name + ' ') || input.toUpperCase() === fixture.name);
+    const fixtures = game.fixtures.filter(fixture => input.toUpperCase().startsWith(fixture.name + ' ') || input.toUpperCase() === fixture.name);
     if (fixtures.length > 0) {
         input = input.substring(fixtures[0].name.length).trim();
         args = input.split(" ");
@@ -94,32 +91,30 @@ export async function execute (game, command, args, player, callee) {
         announcement = announcement.replace(/player/g, player.displayName);
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-                player = game.players_alive[i];
-                args.splice(args.length - 1, 1);
-                input = args.join(" ");
-                break;
-            }
-        }
+        player = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+        if (player) {
+            args.splice(args.length - 1, 1);
+            input = args.join(" ");
+        } else
+            player = null
     }
 
     // If a player wasn't specified, check if a room name was.
-    var room = null;
+    let room = null;
     if (player === null) {
         const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (parsedInput.endsWith(game.rooms[i].name)) {
-                room = game.rooms[i];
-                input = input.substring(0, parsedInput.indexOf(room.name) - 1);
+        for (let i = args.length - 1; i >= 0; i--) {
+            room = game.entityFinder.getRoom(args.splice(i).join(" "));
+            if (room) {
+                input = input.substring(0, parsedInput.indexOf(room.id) - 1);
                 break;
             }
         }
+        if (!room) room = null;
     }
 
     // Finally, find the fixture.
-    var fixture = null;
+    let fixture = null;
     for (let i = 0; i < fixtures.length; i++) {
         if ((player !== null && fixtures[i].location.id === player.location.id)
             || (room !== null && fixtures[i].location.id === room.id)) {
@@ -128,23 +123,23 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     if (fixture === null && player === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-    else if (fixture === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
-    if (fixture.recipeTag === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${fixture.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (fixture === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
+    if (fixture.recipeTag === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
-    var narrate = false;
+    let narrate = false;
     if (announcement === "" && player !== null) narrate = true;
-    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.id === fixture.location.id), announcement).send();
+    else if (announcement !== "") new Narration(game, player, game.entityFinder.getRoom(fixture.location.id), announcement).send();
 
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {
         fixture.activate(player, narrate);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly activated ${fixture.name} in ${player.location.channel}`);
+        if (player) addLogMessage(game, `${time} - ${player.name} forcibly activated ${fixture.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
         fixture.deactivate(player, narrate);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
+        if (player) addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
     }
 
     return;

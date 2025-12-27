@@ -1,7 +1,8 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -39,12 +40,12 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable move");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    const status = player.getBehaviorAttributeStatusEffects("disable move");
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
-    if (player.isMoving) return messageHandler.addReply(game, message, `You cannot do that because you are already moving.`);
+    if (player.isMoving) return addReply(game, message, `You cannot do that because you are already moving.`);
 
     player.moveQueue = args.join(" ").split(">");
     player.queueMovement(false, player.moveQueue[0].trim());

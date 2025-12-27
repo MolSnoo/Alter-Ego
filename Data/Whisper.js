@@ -1,10 +1,12 @@
-﻿import Game from './Game.js';
-import GameConstruct from './GameConstruct.js';
+﻿import GameConstruct from './GameConstruct.js';
 import Narration from '../Data/Narration.js';
-import Player from './Player.js';
-import Room from './Room.js';
 import { addLogMessage, addNarrationToWhisper } from '../Modules/messageHandler.js';
-import { ChannelType, TextChannel } from 'discord.js';
+import { ChannelType } from 'discord.js';
+
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Player.js').default} Player */
+/** @typedef {import('./Room.js').default} Room */
+/** @typedef {import('discord.js').TextChannel} TextChannel */
 
 /**
  * @class Whisper

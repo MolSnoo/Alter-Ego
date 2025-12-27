@@ -1,6 +1,7 @@
 import demodata from "../Configs/demodata.json" with { type: 'json' };
-import Game from "../Data/Game.js";
 import { batchUpdateSheetValues } from "../Modules/sheets.js";
+
+/** @typedef {import("../Data/Game.js").default} Game */
 
 /**
  * @class GameEntityLoader
@@ -225,7 +226,7 @@ export default class GameEntitySaver {
 			data.push({ range: this.game.constants.flagSheetDataCells, values: flagValues });
 
 			try {
-				await batchUpdateSheetValues(data);
+				await batchUpdateSheetValues(data, this.game.settings.spreadsheetID);
 				resolve();
 			}
 			catch (err) {
@@ -273,7 +274,7 @@ export default class GameEntitySaver {
 			data.push({ range: this.game.constants.gestureSheetDataCells, values: gestureValues });
 
 			try {
-				await batchUpdateSheetValues(data);
+				await batchUpdateSheetValues(data, this.game.settings.spreadsheetID);
 				resolve(roomValues);
 			}
 			catch (err) {

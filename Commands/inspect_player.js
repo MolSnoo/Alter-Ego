@@ -1,11 +1,12 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import InspectAction from '../Data/Actions/InspectAction.js';
+﻿import InspectAction from '../Data/Actions/InspectAction.js';
 import Fixture from "../Data/Fixture.js";
-import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
-import Player from '../Data/Player.js';
 import Puzzle from "../Data/Puzzle.js";
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -54,14 +55,14 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify a fixture/item/player. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable inspect");
+    const status = player.getBehaviorAttributeStatusEffects("disable inspect");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
-    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // What we do with this action, if anything, depends on what the player inspects.
     const action = new InspectAction(game, message, player, player.location, false);
@@ -74,11 +75,11 @@ export async function execute (game, message, command, args, player) {
 
     // Check if the input is a fixture, or an item on a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
-    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
-    var fixture = null;
-    var item = null;
-    var container = null;
-    var slotName = "";
+    const items = game.entityFinder.getRoomItems(null, player.location.id, true);
+    let fixture = null;
+    let item = null;
+    let container = null;
+    let slotName = "";
     for (let i = 0; i < fixtures.length; i++) {
         if (fixtures[i].name === parsedInput) {
             fixture = fixtures[i];
@@ -111,7 +112,7 @@ export async function execute (game, message, command, args, player) {
         return;
     }
 
-    var onlySearchInventory = false;
+    let onlySearchInventory = false;
     if (parsedInput.startsWith("MY ")) onlySearchInventory = true;
 
     if (!onlySearchInventory) {
@@ -140,16 +141,22 @@ export async function execute (game, message, command, args, player) {
                 if (containerString !== "") {
                     // Slot name was specified.
                     if (parsedInput.endsWith(` OF ${itemContainer.name}`)) {
-                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${itemContainer.name}`)).trim();
-                        for (let slot = 0; slot < itemContainer.inventory.length; slot++) {
-                            if (itemContainer.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
-                                item = items[i];
-                                container = item.container;
-                                slotName = item.slot;
-                                break;
+                        const tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${itemContainer.name}`)).trim();
+                        container = itemContainer.inventoryCollection.get(tempSlotName)
+                        if (container && items[i].slot === tempSlotName) {
+                            item = items[i];
+                            slotName = item.slot;
+                        } else {
+                            for (const [id, slot] of itemContainer.inventoryCollection) {
+                                if (id === tempSlotName && items[i].slot === tempSlotName) {
+                                    item = items[i];
+                                    container = item.container;
+                                    slotName = item.slot;
+                                    break;
+                                }
                             }
                         }
-                        if (item !== null) break;
+                        if (!(item === null || item === undefined)) break;
                     }
                     // Only a container was specified.
                     else if (itemContainer.name === containerString) {
@@ -192,11 +199,11 @@ export async function execute (game, message, command, args, player) {
 
     // Check if the input is a player in the room.
     for (let i = 0; i < player.location.occupants.length; i++) {
-        let occupant = player.location.occupants[i];
+        const occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
-        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasBehaviorAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
             return addReply(game, message, `Couldn't find "${input}".`);
-        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
             return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.

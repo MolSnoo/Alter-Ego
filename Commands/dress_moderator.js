@@ -1,10 +1,11 @@
-import GameSettings from '../Classes/GameSettings.js';
 import DressAction from '../Data/Actions/DressAction.js';
 import Fixture from "../Data/Fixture.js";
-import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -40,39 +41,20 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and a container with items. Usage:\n${usage(game.settings)}`);
 
-    let player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
     // First, check if the player has a free hand.
-    let hand = "";
-    let handSlot = 0;
-    for (handSlot; handSlot < player.inventory.length; handSlot++) {
-        if (player.inventory[handSlot].id === "RIGHT HAND" && player.inventory[handSlot].equippedItem === null) {
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[handSlot].id === "LEFT HAND" && player.inventory[handSlot].equippedItem === null) {
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[handSlot].id === "LEFT HAND")
-            break;
-    }
-    if (hand === "") return addReply(game, message, `${player.name} does not have a free hand to take an item.`);
+    let hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
-    let input = args.join(' ');
+    const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     let container = null;
     let slotName = "";
+    let slot = null;
     // Check if the player specified a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
     for (let i = 0; i < fixtures.length; i++) {
@@ -88,7 +70,7 @@ export async function execute (game, message, command, args) {
     }
 
     // Check if the player specified a container item.
-    let items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    const items = game.roomItems.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
     if (container === null) {
         for (let i = 0; i < items.length; i++) {
             if (parsedInput.endsWith(items[i].name)) {
@@ -97,10 +79,10 @@ export async function execute (game, message, command, args) {
                 // Check if a slot was specified.
                 if (parsedInput.endsWith(" OF")) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
-                    for (let slot = 0; slot < container.inventory.length; slot++) {
-                        if (parsedInput.endsWith(container.inventory[slot].id)) {
-                            slotName = container.inventory[slot].id;
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(container.inventory[slot].id)).trimEnd();
+                    for (const slot of container.inventoryCollection.values()) {
+                        if (parsedInput.endsWith(slot.id)) {
+                            slotName = slot.id;
+                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(slot.id)).trimEnd();
                             break;
                         }
                     }
@@ -122,6 +104,9 @@ export async function execute (game, message, command, args) {
     }
 
     // Get all items in this container.
+    /**
+     * @type {Array<RoomItem>}
+     */
     let containerItems = [];
     if (container instanceof Fixture)
         containerItems = items.filter(item => item.containerName === `Object: ${container.name}` && item.prefab.equippable);
@@ -135,6 +120,6 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `${container.name} has no equippable items.`);
 
     const action = new DressAction(game, message, player, player.location, true);
-    action.performDress(containerItems, hand, container, slotName);
+    action.performDress(containerItems, hand, container, slot);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dressed ${player.name}.`);
 }

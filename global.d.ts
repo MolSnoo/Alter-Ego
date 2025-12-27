@@ -38,6 +38,11 @@ declare global {
 	type Messageable = UserMessage['channel'];
 
 	/**
+	 * Represents the callee of a bot command.
+	 */
+	type Callee = Event | Flag | InventoryItem | Puzzle;
+
+	/**
 	 * A cached dialog message.
 	 * @property {Snowflake} messageId - The ID of the original dialog message.
 	 * @property {SpectatedDialogMessage[]} spectateMirrors - All messages that have mirrored this dialog in spectate channels.

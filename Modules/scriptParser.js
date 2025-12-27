@@ -1,9 +1,10 @@
-import GameEntity from '../Data/GameEntity.js';
-import Player from '../Data/Player.js';
 import * as finder from './finder.js';
 import * as helpers from './helpers.js';
 
 import { parse as parseScript } from 'acorn';
+
+/** @typedef {import('../Data/GameEntity.js').default} GameEntity */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {import('acorn').Options} */
 const PARSER_OPTIONS = {

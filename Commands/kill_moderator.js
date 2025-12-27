@@ -1,7 +1,8 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import DieAction from '../Data/Actions/DieAction.js';
-import Game from '../Data/Game.js';
+﻿import DieAction from '../Data/Actions/DieAction.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -38,14 +39,12 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
-    var players = [];
-    for (let i = 0; i < game.players_alive.length; i++) {
-        for (let j = 0; j < args.length; j++) {
-            if (args[j].toLowerCase() === game.players_alive[i].name.toLowerCase()) {
-                players.push(game.players_alive[i]);
-                args.splice(j, 1);
-                break;
-            }
+    const players = [];
+    for (let i = args.length - 1; i >= 0; i--) {
+        const player = game.entityFinder.getLivingPlayer(args[i]);
+        if (player) {
+            players.push(player);
+            args.splice(i, 1);
         }
     }
     if (args.length > 0) {

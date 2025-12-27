@@ -1,11 +1,13 @@
-import Exit from './Exit.js';
-import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Narration from '../Data/Narration.js';
-import Player from './Player.js';
 import { generatePlayerListString } from '../Modules/helpers.js';
 import { addLogMessage } from '../Modules/messageHandler.js';
-import { Collection, TextChannel } from 'discord.js';
+import { Collection } from 'discord.js';
+
+/** @typedef {import('./Exit.js').default} Exit */
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Player.js').default} Player */
+/** @typedef {import('discord.js').TextChannel} TextChannel */
 
 /**
  * @class Room
@@ -219,7 +221,7 @@ export default class Room extends GameEntity {
      * @param {string} name - The exit's name key within the room's collection of exits.
      */
     unlockExit(name) {
-        let exit = this.exitCollection.get(name);
+        let exit = this.getGame().entityFinder.getExit(this, name);
         exit.unlock();
         if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} unlocks.`).send();
 
@@ -247,7 +249,7 @@ export default class Room extends GameEntity {
      * @param {string} name - The exit's name key within the room's collection of exits.
      */
     lockExit(name) {
-        let exit = this.exitCollection.get(name);
+        let exit = this.getGame().entityFinder.getExit(this, name);
         exit.lock();
         if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} locks.`).send();
 

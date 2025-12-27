@@ -1,6 +1,6 @@
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
-import GameSettings from "./GameSettings.js";
+/** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Player.js").default} Player */
+/** @typedef {import("./GameSettings.js").default} GameSettings */
 
 /**
  * @class PlayerCommand

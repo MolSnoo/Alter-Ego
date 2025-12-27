@@ -1,6 +1,7 @@
-﻿import Game from './Game.js';
-import GameEntity from './GameEntity.js';
-import Timer from '../Classes/Timer.js';
+﻿import GameEntity from './GameEntity.js';
+
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('../Classes/Timer.js').default} Timer */
 
 /**
  * @class Status

@@ -1,18 +1,19 @@
-import EquipmentSlot from "../Data/EquipmentSlot.js";
 import Exit from "../Data/Exit.js";
 import Fixture from "../Data/Fixture.js";
-import Game from "../Data/Game.js";
-import Gesture from "../Data/Gesture.js";
 import InventoryItem from "../Data/InventoryItem.js";
 import InventorySlot from "../Data/InventorySlot.js";
 import ItemInstance from "../Data/ItemInstance.js";
 import Player from "../Data/Player.js";
-import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
 /** @typedef {import("../Data/Status.js").default} Status */
 import { addLogMessage } from "../Modules/messageHandler.js";
 import { generateListString } from "../Modules/helpers.js";
+
+/** @typedef {import("../Data/EquipmentSlot.js").default} EquipmentSlot */
+/** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Gesture.js").default} Gesture */
+/** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 
 /**
  * @class GameLogHandler
@@ -60,7 +61,7 @@ export default class GameLogHandler {
 	 */
 	logGesture(gesture, target, player, forced) {
 		let targetString = "";
-		if (target instanceof ItemInstance) targetString = `to ${target.identifier ? target.identifier : target.prefab.id} `;
+		if (target instanceof ItemInstance) targetString = `to ${target.getIdentifier()} `;
 		else if (target instanceof Exit || target instanceof Fixture || target instanceof Player) targetString = `to ${target.name} `;
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}did gesture ${gesture.id} ${targetString}in ${player.location.channel}`)
 	}

@@ -1,11 +1,12 @@
-import Exit from "./Exit.js";
-import Fixture from "./Fixture.js";
-import Game from "./Game.js";
 import GameEntity from "./GameEntity.js";
-import InventoryItem from "./InventoryItem.js";
-import RoomItem from "./RoomItem.js";
-import Player from "./Player.js";
-import Status from "./Status.js";
+
+/** @typedef {import("./Exit.js").default} Exit */
+/** @typedef {import("./Fixture.js").default} Fixture */
+/** @typedef {import("./Game.js").default} Game */
+/** @typedef {import("./InventoryItem.js").default} InventoryItem */
+/** @typedef {import("./RoomItem.js").default} RoomItem */
+/** @typedef {import("./Player.js").default} Player */
+/** @typedef {import("./Status.js").default} Status */
 
 /**
  * @class Gesture

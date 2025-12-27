@@ -1,6 +1,4 @@
-import GameSettings from '../Classes/GameSettings.js';
 import Fixture from '../Data/Fixture.js';
-import Game from '../Data/Game.js';
 import GameEntity from '../Data/GameEntity.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import RoomItem from '../Data/RoomItem.js';
@@ -8,11 +6,12 @@ import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import Recipe from '../Data/Recipe.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-
 import * as finder from '../Modules/finder.js';
-
 import { table } from 'table';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -79,7 +78,7 @@ export async function execute (game, message, command, args) {
 	let input = args.join(' ');
 
 	if (args.length === 0)
-		return messageHandler.addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
+		return addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
 
 	const dataTypeRegex = /^((?<Room>rooms?)|(?<Object>objects?)|(?<Prefab>prefabs?)|(?<Recipe>recipes?)|(?<Item>items?)|(?<Puzzle>puzzles?)|(?<Event>events?)|(?<Status>status(?:es)? ?(?:effects?)?)|(?<Player>players?)|(?<InventoryItem>inventory(?: ?items?)?)|(?<Gesture>gestures?)|(?<Flag>flags?))(?<search>.*)/i;
 	const dataTypeMatch = input.match(dataTypeRegex);
@@ -268,10 +267,10 @@ export async function execute (game, message, command, args) {
 			else results = finder.findFlags(dataTypeMatch.groups.search);
 			fields = { row: 'Row', id: 'ID' };
 		}
-		else return messageHandler.addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
+		else return addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
 		
 		if (results.length === 0)
-			return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
+			return addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
 		// Divide the results into pages.
 		const pages = createPages(fields, results);
 		let page = 0;
@@ -313,7 +312,7 @@ export async function execute (game, message, command, args) {
 			}
 		});
 	}
-	else messageHandler.addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
+	else addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
 }
 
 /**
@@ -325,10 +324,10 @@ export async function execute (game, message, command, args) {
  */
 function createPages(fields, results) {
 	// Divide the results into pages.
-	let pages = [];
+	const pages = [];
 	let page = [];
-	let header = [];
-	let headerEntryLength = [];
+	const header = [];
+	const headerEntryLength = [];
 	const fieldCount = Object.keys(fields).length;
 	const cellCharacterLimit = 
 		fieldCount <= 2 ? 80
@@ -341,11 +340,11 @@ function createPages(fields, results) {
 	});
 	page.push(header);
 
-	let widestEntryLength = [...headerEntryLength];
+	const widestEntryLength = [...headerEntryLength];
 	
 	for (let i = 0, pageNo = 0; i < results.length; i++) {
 		// Create a new row.
-		let row = [];
+		const row = [];
 		Object.keys(fields).forEach((key, j) => {
 			// Some fields require special access to get a string value. Handle those here.
 			let cellContents = "";
@@ -355,7 +354,7 @@ function createPages(fields, results) {
 			else if (key === 'player' && result instanceof InventoryItem)
 				cellContents = result.player.name;
 			else if (key === 'id' && result instanceof ItemInstance)
-				cellContents = result.identifier !== '' ? result.identifier : result.prefab.id;
+				cellContents = result.getIdentifier();
 			else if (key === 'ingredients' && result instanceof Recipe)
 				cellContents = result.ingredients.map(ingredient => ingredient.id).join(',');
 			else if (key === 'products' && result instanceof Recipe)

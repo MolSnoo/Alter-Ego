@@ -1,7 +1,8 @@
-﻿import Game from './Game.js';
-import GameConstruct from './GameConstruct.js';
-import Player from './Player.js';
+﻿import GameConstruct from './GameConstruct.js';
 import Status from './Status.js';
+
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Player.js').default} Player */
 
 /**
  * @class Die
@@ -123,12 +124,11 @@ export default class Die extends GameConstruct {
                         modifierStrings.push(`${dexterityModifier} (-1 * stat modifier of ${defender.name}'s dexterity stat: ${defender.dexterity})`);
                 }
                 // Apply any of the defender's status effect modifiers that affect the attacker.
-                for (let i = 0; i < defender.status.length; i++) {
-                    for (let j = 0; j < defender.status[i].statModifiers.length; j++) {
-                        const statModifier = defender.status[i].statModifiers[j];
+                for (const status of defender.statusCollection.values()) {
+                    for (const modifier of status.statModifiers) {
                         // Get defender's modifiers that affect the attacker's roll.
-                        if (!statModifier.modifiesSelf) {
-                            const tempStatus = new Status(`${defender.name} ${defender.status[i].id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: statModifier.stat, assignValue: statModifier.assignValue, value: statModifier.value }], [], "", "", -1, this.getGame());
+                        if (!modifier.modifiesSelf) {
+                            const tempStatus = new Status(`${defender.name} ${status.id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: modifier.stat, assignValue: modifier.assignValue, value: modifier.value }], [], "", "", -1, this.getGame());
                             tempStatuses.push(tempStatus);
                             attacker.inflict(tempStatus);
                         }
