@@ -1,4 +1,4 @@
-import Action from "../Action.js";
+import { default as Action, ActionType } from "../Action.js";
 import Gesture from "../Gesture.js";
 
 /** @typedef {import("../Exit.js").default} Exit */

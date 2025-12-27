@@ -94,3 +94,39 @@ export default class Action extends GameConstruct {
 		this.performed = true;
 	}
 }
+
+/**
+ * @enum {string}
+ */
+export const ActionType = {
+	Say: "say",
+	Whisper: "whisper",
+	Text: "text",
+	Gesture: "gesture",
+	Move: "move",
+	Stop: "stop",
+	Inspect: "inspect",
+	Knock: "knock",
+	Hide: "hide",
+	Inflict: "inflict",
+	Cure: "cure",
+	Sleep: "sleep",
+	Wake: "wake",
+	Use: "use",
+	Take: "take",
+	Steal: "steal",
+	Drop: "drop",
+	Give: "give",
+	Stash: "stash",
+	Unstash: "unstash",
+	Equip: "equip",
+	Unequip: "unequip",
+	Dress: "dress",
+	Undress: "undress",
+	Instantiate: "instantiate",
+	Destroy: "destroy",
+	Craft: "craft",
+	Uncraft: "uncraft",
+	Attempt: "attempt",
+	Die: "die"
+};

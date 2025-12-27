@@ -1,4 +1,4 @@
-import Action from "../Action.js";
+import { default as Action, ActionType } from "../Action.js";
 
 /** @typedef {import("../InventoryItem.js").default} InventoryItem */
 /** @typedef {import("../Player.js").default} Player */

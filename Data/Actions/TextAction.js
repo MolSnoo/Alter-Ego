@@ -1,4 +1,4 @@
-import Action from "../Action.js";
+import { default as Action, ActionType } from "../Action.js";
 import { addDirectNarrationWithAttachments } from "../../Modules/messageHandler.js";
 
 /** @typedef {import("../Player.js").default} Player */
