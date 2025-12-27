@@ -1,4 +1,5 @@
-﻿import InventoryItem from "../Data/InventoryItem.js";
+import InflictAction from '../Data/Actions/InflictAction.js';
+import InventoryItem from "../Data/InventoryItem.js";
 import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -79,13 +80,18 @@ export async function execute (game, command, args, player, callee) {
     }
     args.splice(0, 1);
 
-    const statusName = args.join(" ").toLowerCase();
-    for (let i = 0; i < players.length; i++) {
-        if (command === "inflict")
-            players[i].inflict(statusName, true, true, true, callee instanceof InventoryItem ? callee : undefined);
-        else if (command === "cure")
-            players[i].cure(statusName, true, true, true, callee instanceof InventoryItem ? callee : undefined);
-    }
+    const statusId = args.join(" ");
+    /** @type {Status} */
+    const status = game.entityFinder.getStatusEffect(statusId);
+    if (!status) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusId}".`);
 
-    return;
+    for (let i = 0; i < players.length; i++) {
+        if (command === "inflict") {
+            const item = callee instanceof InventoryItem ? callee : undefined;
+            const action = new InflictAction(game, undefined, players[i], players[i].location, true);
+            action.performInflict(status, true, true, true, item instanceof InventoryItem ? callee : undefined);
+        }
+        else if (command === "cure")
+            players[i].cure(statusId, true, true, true, callee instanceof InventoryItem ? callee : undefined);
+    }
 }

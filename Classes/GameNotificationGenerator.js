@@ -52,6 +52,61 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player can no longer whisper
+	 * because they were inflicted with a status effect with the `no channel` behavior attribute.
+	 * @param {Player} player - The player referred to in this notification. 
+	 * @param {string} statusId - The ID of the status effect that made the player unable to whisper.
+	 */
+	generateNoChannelLeaveWhisperNotification(player, statusId) {
+		return `${player.displayName} can no longer whisper because ${player.originalPronouns.sbj} ${player.originalPronouns.plural ? `are` : `is`} ${statusId}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player can no longer whisper
+	 * because they were inflicted with a status effect with the `no hearing` behavior attribute.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateNoHearingLeaveWhisperNotification(playerDisplayName) {
+		return `${playerDisplayName} can no longer hear.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player was inflicted with a status effect with the ID `asleep`.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateFallAsleepNotification(playerDisplayName) {
+		return `${playerDisplayName} falls asleep.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player was inflicted with a status effect with the ID `blacked out`.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateBlackOutNotification(playerDisplayName) {
+		return `${playerDisplayName} blacks out.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player was inflicted with a status effect with the `unconscious` behavior attribute.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateUnconsciousNotification(playerDisplayName) {
+		return `${playerDisplayName} goes unconscious.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player hide in a fixture.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} hidingSpotName - The name of the hiding spot.
+	 */
+	generateHideNotification(player, secondPerson, hidingSpotName) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `hide` : `hides`;
+		return `${subject} ${verb} in the ${hidingSpotName}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player took an item.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.

@@ -1,4 +1,5 @@
-﻿import Whisper from '../Data/Whisper.js';
+import InflictAction from '../Data/Actions/InflictAction.js';
+import Whisper from '../Data/Whisper.js';
 import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -84,6 +85,7 @@ export async function execute (game, message, command, args, player) {
                 hiddenPlayers.push(player.location.occupants[i]);
         }
 
+        const hiddenStatus = game.entityFinder.getStatusEffect("hidden");
         // Create a list string of players currently hiding in that hiding spot.
         hiddenPlayers.sort(function (a, b) {
             const nameA = a.displayName.toLowerCase();
@@ -108,7 +110,8 @@ export async function execute (game, message, command, args, player) {
 
                 hiddenPlayers.push(player);
                 player.hidingSpot = fixture.name;
-                player.inflict("hidden", true, false, true);
+                const hiddenStatusAction = new InflictAction(game, message, player, player.location, false);
+                hiddenStatusAction.performInflict(hiddenStatus, true, false, true);
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {
@@ -151,7 +154,8 @@ export async function execute (game, message, command, args, player) {
                 }
                 hiddenPlayers.push(player);
                 player.hidingSpot = fixture.name;
-                player.inflict("hidden", true, false, true);
+                const hiddenStatusAction = new InflictAction(game, message, player, player.location, false);
+                hiddenStatusAction.performInflict(hiddenStatus, true, false, true);
 
                 // Create a whisper.
                 if (hiddenPlayers.length > 0) {

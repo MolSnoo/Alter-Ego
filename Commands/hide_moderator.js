@@ -1,4 +1,5 @@
-﻿import Whisper from '../Data/Whisper.js';
+import InflictAction from '../Data/Actions/InflictAction.js';
+import Whisper from '../Data/Whisper.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -112,7 +113,9 @@ export async function execute (game, message, command, args) {
         }
         hiddenPlayers.push(player);
         player.hidingSpot = fixture.name;
-        player.inflict("hidden", true, false, true);
+        const hiddenStatus = game.entityFinder.getStatusEffect("hidden");
+        const hiddenStatusAction = new InflictAction(game, message, player, player.location, true);
+        hiddenStatusAction.performInflict(hiddenStatus, true, false, true);
 
         // Create a whisper.
         if (hiddenPlayers.length > 0) {
