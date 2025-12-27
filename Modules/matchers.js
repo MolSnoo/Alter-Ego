@@ -273,28 +273,6 @@ export const itemNameMatches = (item, name, normalize = false) => {
 };
 
 /**
- * Returns true if the item's name starts with the given name.
- * @param {Prefab|ItemInstance} item - The prefab or item instance to match the name against.
- * @param {string} name - The name to match.
- * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
- */
-export const itemNameStartsWith = (item, name, normalize = false) => {
-	if (normalize) name = Game.generateValidEntityName(name);
-	return item.name.startsWith(name + " ") || item.pluralName.startsWith(name + " ");
-};
-
-/**
- * Returns true if the item's name matches or starts with the given name.
- * @param {Prefab|ItemInstance} item - The prefab or item instance to match the name against.
- * @param {string} name - The name to match.
- * @param {boolean} [normalize] - Whether or not to normalize the name before matching. Defaults to false.
- */
-export const itemNameMatchesOrStartsWith = (item, name, normalize = false) => {
-	if (normalize) name = Game.generateValidEntityName(name);
-	return itemNameMatches(item, name) || itemNameStartsWith(item, name);
-};
-
-/**
  * Returns true if the item's identifier matches the given identifier.
  * @param {ItemInstance} item - The item instance to match the identifier against.
  * @param {string} identifier - The identifier to match. 
@@ -306,28 +284,6 @@ export const itemIdentifierMatches = (item, identifier, normalize = false) => {
 };
 
 /**
- * Returns true if the item's identifier starts with the given identifier.
- * @param {ItemInstance} item - The item instance to match the identifier against.
- * @param {string} identifier - The identifier to match. 
- * @param {boolean} [normalize] - Whether or not to normalize the identifier before matching. Defaults to false.
- */
-export const itemIdentifierStartsWith = (item, identifier, normalize = false) => {
-	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	return item.identifier !== "" && item.identifier.startsWith(identifier + " ") || item.prefab.id.startsWith(identifier + " ");
-};
-
-/**
- * Returns true if the item's identifier matches or starts with the given identifier.
- * @param {ItemInstance} item - The item instance to match the identifier against.
- * @param {string} identifier - The identifier to match. 
- * @param {boolean} [normalize] - Whether or not to normalize the identifier before matching. Defaults to false.
- */
-export const itemIdentifierMatchesOrStartsWith = (item, identifier, normalize = false) => {
-	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	return itemIdentifierMatches(item, identifier) || itemIdentifierStartsWith(item, identifier);
-};
-
-/**
  * Returns true if the item's identifier or name matches the given identifier.
  * @param {ItemInstance} item - The item instance to match the identifier or name against.
  * @param {string} identifier - The identifier to match. 
@@ -336,28 +292,6 @@ export const itemIdentifierMatchesOrStartsWith = (item, identifier, normalize = 
 export const itemIdentifierOrNameMatches = (item, identifier, normalize = false) => {
 	if (normalize) identifier = Game.generateValidEntityName(identifier);
 	return itemIdentifierMatches(item, identifier) || itemNameMatches(item, identifier);
-};
-
-/**
- * Returns true if the item's identifier or name starts with the given identifier.
- * @param {ItemInstance} item - The item instance to match the identifier or name against.
- * @param {string} identifier - The identifier to match. 
- * @param {boolean} [normalize] - Whether or not to normalize the identifier before matching. Defaults to false.
- */
-export const itemIdentifierOrNameStartsWith = (item, identifier, normalize = false) => {
-	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	return itemIdentifierStartsWith(item, identifier) || itemNameStartsWith(item, identifier);
-};
-
-/**
- * Returns true if the item's identifier or name matches or starts with the given identifier.
- * @param {ItemInstance} item - The item instance to match the identifier or name against.
- * @param {string} identifier - The identifier to match. 
- * @param {boolean} [normalize] - Whether or not to normalize the identifier before matching. Defaults to false.
- */
-export const itemIdentifierOrNameMatchesOrStartsWith = (item, identifier, normalize = false) => {
-	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	return itemIdentifierMatchesOrStartsWith(item, identifier) || itemNameMatchesOrStartsWith(item, identifier);
 };
 
 /**
