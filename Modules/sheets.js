@@ -1,12 +1,14 @@
-﻿const { google } = require('googleapis');
-const credentials = include('Configs/credentials.json');
-var sheets = google.sheets({ version: 'v4' });
+﻿import { createRequire } from 'node:module';
+import { google } from 'googleapis';
+const sheets = google.sheets({ version: 'v4' });
 
-const settings = include('Configs/settings.json');
-const spreadsheetID = settings.spreadsheetID;
-
-module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
-    if (!spreadsheetId) spreadsheetId = spreadsheetID;
+/**
+ * Gets the values of the spreadsheet in the specified sheetrange.
+ * @param {string} sheetrange - The range to get in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * @param {string} spreadsheetId - The ID of the spreadsheet to read.
+ * @returns {Promise<ValueRange>} The values of the specified range in {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange|ValueRange} format.
+ */
+export function getSheetValues (sheetrange, spreadsheetId) {
     const request = {
         // The ID of the spreadsheet to retrieve data from.
         spreadsheetId: spreadsheetId,
@@ -27,14 +29,20 @@ module.exports.getData = function (sheetrange, dataOperation, spreadsheetId) {
         auth: authorize(),
     };
 
-    sheets.spreadsheets.values.get(request).then(response => {
-        if (dataOperation)
-            dataOperation(response);
-    }).catch(err => console.error(err));
-};
+    return new Promise((resolve, reject) => {
+        sheets.spreadsheets.values.get(request).then(response => {
+            resolve({ range: response.data.range, majorDimension: response.data.majorDimension, values: response.data.values });
+        }).catch(err => reject(err));
+    });
+}
 
-module.exports.getDataWithProperties = function (sheetrange, dataOperation, spreadsheetId) {
-    if (!spreadsheetId) spreadsheetId = spreadsheetID;
+/**
+ * Gets the specified sheetrange of the spreadsheet, including its {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#GridProperties|GridProperties}.
+ * @param {string} sheetrange - The range to get in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * @param {string} spreadsheetId - The ID of the spreadsheet to read.
+ * @returns {Promise<any>} The specified range in the {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet|Spreadsheet}.
+ */
+export function getSheetWithProperties (sheetrange, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
 
@@ -45,15 +53,23 @@ module.exports.getDataWithProperties = function (sheetrange, dataOperation, spre
         auth: authorize(),
     };
 
-    sheets.spreadsheets.get(request).then(response => {
-        if (dataOperation)
-            dataOperation(response);
-    }).catch(err => console.error(err));
-};
+    return new Promise((resolve, reject) => {
+        sheets.spreadsheets.get(request).then(response => {
+            resolve(response);
+        }).catch(err => reject(err));
+    });
+}
 
-module.exports.updateData = function (sheetrange, data, dataOperation) {
+/**
+ * Updates the values of the spreadsheet for a single sheetrange.
+ * @param {string} sheetrange - The range to update in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * @param {string[][]} data - An array of arrays of values to replace the values currently in the specified sheetrange.
+ * @param {string} spreadsheetId - The ID of the spreadsheet to update.
+ * @returns {Promise<any>} An {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/UpdateValuesResponse|UpdateValuesResponse}.
+ */
+export function updateSheetValues (sheetrange, data, spreadsheetId) {
     const request = {
-        spreadsheetId: spreadsheetID,
+        spreadsheetId: spreadsheetId,
 
         range: sheetrange,
 
@@ -66,15 +82,22 @@ module.exports.updateData = function (sheetrange, data, dataOperation) {
         auth: authorize(),
     };
 
-    sheets.spreadsheets.values.update(request).then(response => {
-        if (dataOperation)
-            dataOperation(response);
-    }).catch(err => console.error(err));
-};
+    return new Promise((resolve, reject) => {
+        sheets.spreadsheets.values.update(request).then(response => {
+            resolve(response);
+        }).catch(err => reject(err));
+    });
+}
 
-module.exports.batchUpdateData = function (data, dataOperation) {
+/**
+ * Updates the values of the spreadsheet for multiple sheetranges.
+ * @param {ValueRange[]} data - The ranges to update and the values to replace them with. 
+ * @param {string} spreadsheetId - The ID of the spreadsheet to update.
+ * @returns {Promise<any>} {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/batchUpdate#response-body}
+ */
+export function batchUpdateSheetValues (data, spreadsheetId) {
     const request = {
-        spreadsheetId: spreadsheetID,
+        spreadsheetId: spreadsheetId,
 
         resource: {
             valueInputOption: 'RAW',
@@ -87,15 +110,18 @@ module.exports.batchUpdateData = function (data, dataOperation) {
 
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.values.batchUpdate(request).then(response => {
-            if (dataOperation)
-                dataOperation(response);
-            resolve();
+            resolve(response);
         }).catch(err => reject(err));
     });
-};
+}
 
-module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
-    if (!spreadsheetId) spreadsheetId = spreadsheetID;
+/**
+ * 
+ * @param {object[]} requests - An array of {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/request#Request|Requests}.
+ * @param {string} spreadsheetId - The ID of the spreadsheet to update.
+ * @returns {Promise<any>} {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/batchUpdate#response-body}
+ */
+export function batchUpdateSheet (requests, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
 
@@ -111,16 +137,21 @@ module.exports.batchUpdate = function (requests, dataOperation, spreadsheetId) {
 
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.batchUpdate(request).then(response => {
-            if (dataOperation)
-                dataOperation(response);
-            resolve();
-        }).catch(err => reject(console.error(err)));
+            resolve(response);
+        }).catch(err => reject(err));
     });
-};
+}
 
-module.exports.appendRows = function (sheetrange, data, dataOperation) {
+/**
+ * Appends rows of values to the spreadsheet after the specified sheetrange.
+ * @param {string} sheetrange - The range to append rows to in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * @param {string[][]} data - An array of arrays of values to append to the spreadsheet after the specified sheetrange.
+ * @param {string} spreadsheetId - The ID of the spreadsheet to update.
+ * @returns {Promise<any>} {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/append#response-body}
+ */
+export function appendRowsToSheet (sheetrange, data, spreadsheetId) {
     const request = {
-        spreadsheetId: spreadsheetID,
+        spreadsheetId: spreadsheetId,
 
         range: sheetrange,
 
@@ -137,14 +168,25 @@ module.exports.appendRows = function (sheetrange, data, dataOperation) {
 
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.values.append(request).then(response => {
-            if (dataOperation)
-                dataOperation(response);
-            resolve();
+            resolve(response);
         }).catch(err => reject(err));
     });
-};
+}
 
 function authorize() {
+    const require = createRequire(import.meta.url);
+    let credentials;
+    try {
+        credentials = require('../Configs/credentials.json');
+    } 
+    catch(err) {
+        console.error('Could not load Configs/credentials.json:', err);
+        return null;
+    }
+    if (!credentials || !credentials.google) {
+        console.error('Invalid credentials format in Configs/credentials.json');
+        return null;
+    }
     return new google.auth.JWT({
         email: credentials.google.client_email,
         key: credentials.google.private_key,

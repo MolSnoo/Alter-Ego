@@ -1,23 +1,40 @@
-const settings = include('Configs/settings.json');
+import GameSettings from '../Classes/GameSettings.js';
+import UncraftAction from '../Data/Actions/UncraftAction.js';
+import Game from '../Data/Game.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "uncraft_moderator",
     description: "Separates an item in a player's inventory into its component parts.",
     details: "Separates an item in one of the given player's hands into its component parts, assuming they can be separated. "
 		+ "This reverses the process of a crafting recipe, using the product of the recipe as an ingredient, and creating its ingredients as products. "
         + "This will produce two items, so they will need a free hand in order for this command to be usable. "
         + "If there is no crafting recipe that produces the supplied item which allows it to be uncrafted again, this command cannot be used.",
-    usage: `${settings.commandPrefix}uncraft olavi shovel\n`
-        + `${settings.commandPrefix}dismantle avani crossbow\n`
-        + `${settings.commandPrefix}disassemble juno pistol`,
     usableBy: "Moderator",
     aliases: ["uncraft", "dismantle", "disassemble"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}uncraft olavi shovel\n`
+        + `${settings.commandPrefix}dismantle avani crossbow\n`
+        + `${settings.commandPrefix}disassemble juno pistol`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a player and an inventory item in their hand. Usage:\n${exports.config.usage}`);
+        return addReply(game, message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
 
 	var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -27,7 +44,7 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -35,8 +52,8 @@ module.exports.run = async (bot, game, message, command, args) => {
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND") rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND") leftHand = player.inventory[slot];
+        if (player.inventory[slot].id === "RIGHT HAND") rightHand = player.inventory[slot];
+        else if (player.inventory[slot].id === "LEFT HAND") leftHand = player.inventory[slot];
     }
 
     // Now find the item in the player's inventory.
@@ -57,7 +74,7 @@ module.exports.run = async (bot, game, message, command, args) => {
     }
 
     if (item === null) {
-        return game.messageHandler.addReply(message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
     }
 
     // Locate uncrafting recipe.
@@ -69,31 +86,15 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (recipe === null) return game.messageHandler.addReply(message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
+    if (recipe === null) return addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
 
 	if (!rightEmpty && !leftEmpty) {
-        return game.messageHandler.addReply(message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
+        return addReply(game, message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
     }
 
-    let itemName = item.identifier ? item.identifier : item.prefab.id;
+    const itemIdentifier = item.getIdentifier();
 
-    const ingredients = player.uncraft(game, item, recipe, bot);
-
-    let ingredientPhrase = "";
-    let ingredient1Phrase = "";
-    let ingredient2Phrase = "";
-    if (ingredients.ingredient1) ingredient1Phrase = ingredients.ingredient1.identifier ? ingredients.ingredient1.identifier : ingredients.ingredient1.prefab.id;
-    if (ingredients.ingredient2) ingredient2Phrase = ingredients.ingredient2.identifier ? ingredients.ingredient2.identifier : ingredients.ingredient2.prefab.id;
-    if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
-    else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
-    else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
-    else ingredientPhrase = "nothing";
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
-
-	game.messageHandler.addGameMechanicMessage(message.channel, `Successfully uncrafted ${itemName} into ${ingredientPhrase} for ${player.name}.`);
-
-    return;
-};
+    const action = new UncraftAction(game, message, player, player.location, true);
+    action.performUncraft(item, recipe);
+	addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemIdentifier} for ${player.name}.`);
+}

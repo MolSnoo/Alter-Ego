@@ -1,23 +1,40 @@
-const settings = include('Configs/settings.json');
+import GameSettings from '../Classes/GameSettings.js';
+import CraftAction from '../Data/Actions/CraftAction.js';
+import Game from '../Data/Game.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "craft_moderator",
     description: "Crafts two items in a player's inventory together.",
     details: 'Creates a new item using the two items in the given player\'s hand. The prefab IDs or container identifiers of the '
         + 'items must be separated by "with" or "and". If no recipe for those two items exists, the items cannot be crafted together. '
         + "Note that this command can also be used to use one item on another item, which may produce something new.",
-    usage: `${settings.commandPrefix}craft chris drain cleaner and plastic bottle\n`
-        + `${settings.commandPrefix}combine keiko's bread and cheese\n`
-        + `${settings.commandPrefix}mix finn red vial with blue vial\n`
-        + `${settings.commandPrefix}craft dayne's soap with knife`,
     usableBy: "Moderator",
     aliases: ["craft", "combine", "mix"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}craft chris drain cleaner and plastic bottle\n`
+        + `${settings.commandPrefix}combine keiko's bread and cheese\n`
+        + `${settings.commandPrefix}mix finn red vial with blue vial\n`
+        + `${settings.commandPrefix}craft dayne's soap with knife`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute (game, message, command, args) {
     if (args.length < 4)
-        return game.messageHandler.addReply(message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
+        return addReply(game, message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     var player = null;
     for (let i = 0; i < game.players_alive.length; i++) {
@@ -27,19 +44,19 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
 
     var input = args.join(' ');
     var parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
-        return game.messageHandler.addReply(message, `You need to specify two items separated by "with" or "and". Usage:\n${exports.config.usage}`);
+        return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     var rightHand = null;
     var leftHand = null;
     for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND") rightHand = player.inventory[slot];
-        else if (player.inventory[slot].name === "LEFT HAND") leftHand = player.inventory[slot];
+        if (player.inventory[slot].id === "RIGHT HAND") rightHand = player.inventory[slot];
+        else if (player.inventory[slot].id === "LEFT HAND") leftHand = player.inventory[slot];
     }
 
     // Now find the item in the player's inventory.
@@ -102,18 +119,18 @@ module.exports.run = async (bot, game, message, command, args) => {
     let item2Name = "";
     if (item1 === null && item2 !== null) {
         item1Name = parsedInput.replace(item2Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return game.messageHandler.addReply(message, `Couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 !== null && item2 === null) {
         item2Name = parsedInput.replace(item1Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return game.messageHandler.addReply(message, `Couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 === null && item2 === null) {
         if (parsedInput.includes(" WITH ")) args = parsedInput.split(" WITH ");
         else if (parsedInput.includes(" AND ")) args = parsedInput.split(" AND ");
         item1Name = args[0];
         item2Name = args[1];
-        return game.messageHandler.addReply(message, `Couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
     }
 
     let ingredients = [item1, item2].sort(function (a, b) {
@@ -122,7 +139,7 @@ module.exports.run = async (bot, game, message, command, args) => {
         return 0;
     });
 
-    const recipes = game.recipes.filter(recipe => recipe.ingredients.length === 2 && recipe.objectTag === "");
+    const recipes = game.recipes.filter(recipe => recipe.ingredients.length === 2 && recipe.fixtureTag === "");
     var recipe = null;
     for (let i = 0; i < recipes.length; i++) {
         if (recipes[i].ingredients[0].id === ingredients[0].prefab.id && recipes[i].ingredients[1].id === ingredients[1].prefab.id) {
@@ -130,28 +147,12 @@ module.exports.run = async (bot, game, message, command, args) => {
             break;
         }
     }
-    if (recipe === null) return game.messageHandler.addReply(message, `Couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
+    if (recipe === null) return addReply(game, message, `Couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
 
-    item1Name = ingredients[0].identifier ? ingredients[0].identifier : ingredients[0].prefab.id;
-    item2Name = ingredients[1].identifier ? ingredients[1].identifier : ingredients[1].prefab.id;
+    item1Name = ingredients[0].getIdentifier();
+    item2Name = ingredients[1].getIdentifier();
 
-    const products = player.craft(game, ingredients[0], ingredients[1], recipe);
-
-    let productPhrase = "";
-    let product1Phrase = "";
-    let product2Phrase = "";
-    if (products.product1) product1Phrase = products.product1.identifier ? products.product1.identifier : products.product1.prefab.id;
-    if (products.product2) product2Phrase = products.product2.identifier ? products.product2.identifier : products.product2.prefab.id;
-    if (product1Phrase !== "" && product2Phrase !== "") productPhrase = `${product1Phrase} and ${product2Phrase}`;
-    else if (product1Phrase !== "") productPhrase = product1Phrase;
-    else if (product2Phrase !== "") productPhrase = product2Phrase;
-    else productPhrase = "nothing";
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly crafted ${productPhrase} from ${item1Name} and ${item2Name} in ${player.location.channel}`);
-
-    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully crafted ${productPhrase} from ${item1Name} and ${item2Name} for ${player.name}.`);
-
-    return;
-};
+    const action = new CraftAction(game, message, player, player.location, true);
+    action.performCraft(ingredients[0], ingredients[1], recipe);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${item1Name} and ${item2Name} for ${player.name}.`);
+}
