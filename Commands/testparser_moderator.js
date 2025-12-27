@@ -1,13 +1,11 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
-import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import { parseDescription, parseDescriptionWithErrors, addItem, removeItem } from '../Modules/parser.js';
-
-import fs from 'fs';
-import { EOL } from 'os';
-
+﻿import fs from 'fs';
 import RoomItem from '../Data/RoomItem.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
+import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
+import * as messageHandler from '../Modules/messageHandler.js';
+import { parseDescription, parseDescriptionWithErrors, addItem, removeItem } from '../Modules/parser.js';
+import { EOL } from 'os';
 import { Collection } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */

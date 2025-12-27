@@ -1,6 +1,5 @@
 import * as messageHandler from '../Modules/messageHandler.js';
 import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
-
 import { ChannelType } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */

@@ -1,10 +1,10 @@
 import UnequipAction from '../Data/Actions/UnequipAction.js';
-import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {

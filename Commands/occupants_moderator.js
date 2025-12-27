@@ -1,5 +1,4 @@
 import * as messageHandler from '../Modules/messageHandler.js';
-
 import { Duration } from 'luxon';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */

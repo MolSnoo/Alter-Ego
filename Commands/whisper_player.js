@@ -1,9 +1,9 @@
-﻿import Player from '../Data/Player.js';
+﻿import Whisper from '../Data/Whisper.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import Whisper from '../Data/Whisper.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {

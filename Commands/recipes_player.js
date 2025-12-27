@@ -1,13 +1,13 @@
 import InventoryItem from '../Data/InventoryItem.js';
-import ItemInstance from '../Data/ItemInstance.js';
-import Prefab from '../Data/Prefab.js';
-import Player from '../Data/Player.js';
+import humanize from 'humanize-duration';
 import * as messageHandler from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
-import humanize from 'humanize-duration';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
+/** @typedef {import('../Data/Prefab.js').default} Prefab */
+/** @typedef {import('../Data/ItemInstance.js').default} ItemInstance */
 
 /** @type {CommandConfig} */
 export const config = {

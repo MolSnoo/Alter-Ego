@@ -1,8 +1,7 @@
-﻿import { ChannelType } from 'discord.js';
+﻿import Narration from '../Data/Narration.js';
+import handleDialog from '../Modules/dialogHandler.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { default as handleDialog } from '../Modules/dialogHandler.js';
-
-import Narration from '../Data/Narration.js';
+import { ChannelType } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */

@@ -1,8 +1,7 @@
-import * as messageHandler from '../Modules/messageHandler.js';
 import fs from 'fs';
-import { EOL } from 'os';
-
 import Player from '../Data/Player.js';
+import * as messageHandler from '../Modules/messageHandler.js';
+import { EOL } from 'os';
 import { Collection } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */

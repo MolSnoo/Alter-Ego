@@ -1,5 +1,5 @@
-﻿import { ChannelType } from 'discord.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import * as messageHandler from '../Modules/messageHandler.js';
+import { ChannelType } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */

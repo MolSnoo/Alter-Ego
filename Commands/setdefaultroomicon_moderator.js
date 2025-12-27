@@ -1,7 +1,6 @@
+import fs from 'fs';
 import settings from '../Configs/settings.json' with { type: 'json' };
 import * as messageHandler from '../Modules/messageHandler.js';
-
-import fs from 'fs';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */

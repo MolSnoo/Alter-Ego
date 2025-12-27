@@ -1,8 +1,7 @@
-import * as messageHandler from '../Modules/messageHandler.js';
-import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import { appendRowsToSheet } from '../Modules/sheets.js';
-
 import Player from '../Data/Player.js';
+import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
+import * as messageHandler from '../Modules/messageHandler.js';
+import { appendRowsToSheet } from '../Modules/sheets.js';
 import { Collection } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */

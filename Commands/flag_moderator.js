@@ -1,6 +1,6 @@
+import Flag from '../Data/Flag.js';
 import Game from '../Data/Game.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import Flag from '../Data/Flag.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 

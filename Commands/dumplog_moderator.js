@@ -1,6 +1,6 @@
-import * as messageHandler from '../Modules/messageHandler.js';
 import zlib from 'zlib';
 import fs from 'fs';
+import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */

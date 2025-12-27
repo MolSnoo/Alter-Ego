@@ -1,6 +1,5 @@
-import * as messageHandler from '../Modules/messageHandler.js';
-
 import Narration from '../Data/Narration.js';
+import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
