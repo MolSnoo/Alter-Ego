@@ -52,20 +52,20 @@ export async function execute(game, message, command, args) {
     }
     else if (args.length === 2) {
         const arg0 = game.entityFinder.getLivingPlayer(args[0]);
-        if (arg0 === undefined) {
+        if (arg0 !== undefined) {
             attacker = arg0;
             defender = game.entityFinder.getLivingPlayer(args[1]);
             if (defender === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
         }
         else {
-            statString = arg0;
+            statString = args[0];
             attacker = game.entityFinder.getLivingPlayer(args[1]);
             if (attacker === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
         }
     }
     else if (args.length === 1) {
         const arg0 = game.entityFinder.getLivingPlayer(args[0]);
-        if (arg0 === undefined) attacker = arg0;
+        if (arg0 !== undefined) attacker = arg0;
         else return addReply(game, message, `Cannot roll for a stat without a given player.`);
     }
     if (statString) {
