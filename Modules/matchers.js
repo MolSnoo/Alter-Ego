@@ -280,7 +280,7 @@ export const itemNameMatches = (item, name, normalize = false) => {
  */
 export const itemIdentifierMatches = (item, identifier, normalize = false) => {
 	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	return item.identifier !== "" && item.identifier === identifier || item.prefab.id === identifier;
+	return item.identifier !== "" && item.identifier === identifier || item.prefab && item.prefab.id === identifier;
 };
 
 /**
@@ -303,7 +303,7 @@ export const itemIdentifierOrNameMatches = (item, identifier, normalize = false)
 export const itemIdentifierOrNameContains = (item, identifier, normalize = false) => {
 	if (normalize) identifier = Game.generateValidEntityName(identifier);
 	return item.identifier !== "" && item.identifier.includes(identifier)
-		|| item.prefab.id.includes(identifier)
+		|| item.prefab && item.prefab.id.includes(identifier)
 		|| item.name.includes(identifier)
 		|| item.pluralName !== "" && item.pluralName.includes(identifier);
 };
@@ -328,7 +328,7 @@ export const itemContainerNameMatches = (item, name, normalize = false) => {
  */
 export const itemContainerIdentifierMatches = (item, identifier, normalize = false) => {
 	if (normalize) identifier = Game.generateValidEntityName(identifier);
-	if (item.container instanceof ItemInstance) return item.container.identifier !== "" && item.container.identifier === identifier || item.container.prefab.id === identifier;
+	if (item.container instanceof ItemInstance) return item.container.identifier !== "" && item.container.identifier === identifier || item.container.prefab && item.container.prefab.id === identifier;
 	return itemContainerNameMatches(item, identifier);
 };
 
