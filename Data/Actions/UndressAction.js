@@ -1,4 +1,4 @@
-import Action from "../Action.js";
+import { default as Action, ActionType } from "../Action.js";
 import Fixture from "../Fixture.js";
 import InventoryItem from "../InventoryItem.js";
 import InventorySlot from "../InventorySlot.js";

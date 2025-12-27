@@ -1,4 +1,4 @@
-import Action from "../Action.js";
+import { default as Action, ActionType } from "../Action.js";
 import Exit from "../Exit.js";
 import Fixture from "../Fixture.js";
 import Gesture from "../Gesture.js";

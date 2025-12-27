@@ -141,40 +141,6 @@ declare global {
 		values: string[][];
 	}
 
-	/** @enum {string} */
-	class ActionType {
-		static Say: "say";
-		static Whisper: "whisper";
-		static Text: "text";
-		static Gesture: "gesture";
-		static Move: "move";
-		static Stop: "stop";
-		static Inspect: "inspect";
-		static Knock: "knock";
-		static Hide: "hide";
-		static Inflict: "inflict";
-		static Cure: "cure";
-		static Sleep: "sleep";
-		static Wake: "wake";
-		static Use: "use";
-		static Take: "take";
-		static Steal: "steal";
-		static Drop: "drop";
-		static Give: "give";
-		static Stash: "stash";
-		static Unstash: "unstash";
-		static Equip: "equip";
-		static Unequip: "unequip";
-		static Dress: "dress";
-		static Undress: "undress";
-		static Instantiate: "instantiate";
-		static Destroy: "destroy";
-		static Craft: "craft";
-		static Uncraft: "uncraft";
-		static Attempt: "attempt";
-		static Die: "die"
-	}
-
 	/**
 	 * Represents a 3D position.
 	 * @property x - X coordinate
