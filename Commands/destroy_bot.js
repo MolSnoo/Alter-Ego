@@ -79,7 +79,7 @@ export async function execute (game, command, args, player, callee) {
         for (let i = 0; i < roomItems.length; i++) {
             // TODO: this can probably be optimized further...?
             // If parsedInput is only the identifier or the item's name, we've found the item to delete.
-            if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab.id === parsedInput) {
+            if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab && roomItems[i].prefab.id === parsedInput) {
                 item = roomItems[i];
                 break;
             }
