@@ -1,5 +1,13 @@
+import EquipmentSlot from "../../Data/EquipmentSlot.js";
 import Event from "../../Data/Event.js";
+import Fixture from "../../Data/Fixture.js";
+import Game from "../../Data/Game.js";
+import InventoryItem from "../../Data/InventoryItem.js";
 import Player from "../../Data/Player.js";
+import Prefab from "../../Data/Prefab.js";
+import Puzzle from "../../Data/Puzzle.js";
+import Room from "../../Data/Room.js";
+import RoomItem from "../../Data/RoomItem.js";
 import sheets from "../__mocks__/libs/sheets.js";
 
 describe('GameEntityLoader test', () => {
@@ -275,6 +283,26 @@ describe('GameEntityLoader test', () => {
                 const roomItemCount = await game.entityLoader.loadRoomItems(true, errors);
                 expect(errors).toEqual([]);
                 expect(roomItemCount).toBe(1762);
+                for (const roomItem of game.roomItems) {
+                    expect(roomItem.prefab).toBeInstanceOf(Prefab);
+                    expect(roomItem.prefab.id).toEqual(Game.generateValidEntityName(roomItem.prefabId));
+                    expect(roomItem.location).toBeInstanceOf(Room);
+                    expect(roomItem.location.id).toEqual(Room.generateValidId(roomItem.locationDisplayName));
+                    if (roomItem.containerType === "Fixture") {
+                        expect(roomItem.container).toBeInstanceOf(Fixture);
+                        expect(roomItem.container.name).toEqual(Game.generateValidEntityName(roomItem.containerName));
+                    }
+                    else if (roomItem.containerType === "Puzzle") {
+                        expect(roomItem.container).toBeInstanceOf(Puzzle);
+                        expect(roomItem.container.name).toEqual(Game.generateValidEntityName(roomItem.containerName));
+                    }
+                    else if (roomItem.containerType === "RoomItem") {
+                        expect(roomItem.container).toBeInstanceOf(RoomItem);
+                        if (roomItem.container instanceof RoomItem)
+                            expect(`${roomItem.container.getIdentifier()}/${roomItem.slot}`).toEqual(Game.generateValidEntityName(roomItem.containerName));
+                    }
+                    expect(roomItem.inventoryCollection.size).toEqual(roomItem.prefab.inventoryCollection.size);
+                }
             });
         });
     });
@@ -322,7 +350,7 @@ describe('GameEntityLoader test', () => {
                 if (game.prefabsCollection.size === 0) await game.entityLoader.loadPrefabs(false);
                 const playerCount = await game.entityLoader.loadPlayers(true, errors);
                 expect(errors).toEqual([]);
-                expect(playerCount).toBe(10);
+                expect(playerCount).toBe(11);
             });
         });
     });
@@ -335,7 +363,23 @@ describe('GameEntityLoader test', () => {
                 if (game.playersCollection.size === 0) await game.entityLoader.loadPlayers(false);
                 const inventoryItemCount = await game.entityLoader.loadInventoryItems(true, errors);
                 expect(errors).toEqual([]);
-                expect(inventoryItemCount).toBe(31);
+                expect(inventoryItemCount).toBe(36);
+                for (const inventoryItem of game.inventoryItems) {
+                    if (inventoryItem.prefabId !== "") {
+                        expect(inventoryItem.prefab).toBeInstanceOf(Prefab);
+                        expect(inventoryItem.prefab.id).toEqual(Game.generateValidEntityName(inventoryItem.prefabId));
+                        expect(inventoryItem.inventoryCollection.size).toEqual(inventoryItem.prefab.inventoryCollection.size);
+                    }
+                    else expect(inventoryItem.prefab).toBe(null);
+                    expect(inventoryItem.player).toBeInstanceOf(Player);
+                    expect(inventoryItem.player.name).toEqual(inventoryItem.playerName);
+                    expect(inventoryItem.player.inventoryCollection.get(inventoryItem.equipmentSlot)).toBeInstanceOf(EquipmentSlot);
+                    if (inventoryItem.containerName !== "") {
+                        expect(inventoryItem.container).toBeInstanceOf(InventoryItem);
+                        expect(inventoryItem.containerType).toEqual("InventoryItem");
+                        expect(`${inventoryItem.container.getIdentifier()}/${inventoryItem.slot}`).toEqual(Game.generateValidEntityName(inventoryItem.containerName));
+                    }
+                }
             });
         });
     });
