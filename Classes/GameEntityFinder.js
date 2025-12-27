@@ -215,7 +215,10 @@ export default class GameEntityFinder {
 		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
 		else selectedFilter = matchers.itemNameMatches;
 
-		let output = (slot ? [slot] : [... player.inventoryCollection.values()]).find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
+		/** @type {Collection<string, EquipmentSlot>} */
+		let slots = slot ? new Collection().set(slot.id, slot) : player.inventoryCollection
+
+		let output = slots.find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
 		return output ? [output, output.equippedItem] : [undefined, undefined];
 	}
 
