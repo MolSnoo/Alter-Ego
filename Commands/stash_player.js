@@ -82,7 +82,7 @@ export async function execute (game, message, command, args, player) {
     else if (containerItem.inventoryCollection.size === 0) return addReply(game, message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
-    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput);
+    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, false);
     if (item === undefined) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
     // Make sure item and containerItem aren't the same item.
     if (item.row === containerItem.row) return addReply(game, message, `You can't stash ${item.name} ${item.prefab.preposition} itself.`);
