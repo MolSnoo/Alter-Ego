@@ -410,8 +410,38 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getPlayerHandHoldingItem test", () => {
-        test("TODO: No players in mock data hold an item!", () => {
-            expect(false).toBeTruthy();
+        test("Get player holding item by name", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "COFFEE");
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.name).toBe("COFFEE");
+        });
+        test("Get player holding item by prefab id", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "MUG OF COFFEE", true);
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("MUG OF COFFEE");
+        });
+        test("Get player holding item by mixed case name", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "COFFee");
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.name).toBe("COFFEE");
+        });
+        test("Get player holding invalid item by name", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID");
+            expect(slot).toBeUndefined();
+            expect(item).toBeUndefined();
+        });
+        test("Get player holding invalid item by prefab id", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID", true);
+            expect(slot).toBeUndefined();
+            expect(item).toBeUndefined();
         });
     });
 
