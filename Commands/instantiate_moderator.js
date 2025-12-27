@@ -1,6 +1,6 @@
 import RoomItem from '../Data/RoomItem.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -48,7 +48,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 4)
-        return messageHandler.addReply(game, message, `Not enough arguments given. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `Not enough arguments given. Usage:\n${usage(game.settings)}`);
 
     let quantity = 1;
     if (!isNaN(parseInt(args[0]))) {
@@ -82,7 +82,7 @@ export async function execute (game, message, command, args) {
         for (let procedural of proceduralList) {
             const proceduralAssignment = procedural.split('=');
             if (proceduralAssignment.length !== 2)
-                return messageHandler.addReply(game, message, "Procedural options must be separated with `+`, and the name of the poss to select must be assigned to the name of its containing procedural with `=`.");
+                return addReply(game, message, "Procedural options must be separated with `+`, and the name of the poss to select must be assigned to the name of its containing procedural with `=`.");
             proceduralSelections.set(proceduralAssignment[0].toLowerCase().trim(), proceduralAssignment[1].toLowerCase().trim());
         }
         parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')'));
@@ -95,9 +95,9 @@ export async function execute (game, message, command, args) {
         let fixture = null;
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === room.id && fixture.accessible);
         for (let i = 0; i < fixtures.length; i++) {
-            if (fixtures[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a prefab and a preposition.`);
+            if (fixtures[i].name === parsedInput) return addReply(game, message, `You need to supply a prefab and a preposition.`);
             if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(`IN ${fixtures[i].name}`)) {
-                if (fixtures[i].preposition === "") return messageHandler.addReply(game, message, `${fixtures[i].name} cannot hold items.`);
+                if (fixtures[i].preposition === "") return addReply(game, message, `${fixtures[i].name} cannot hold items.`);
                 fixture = fixtures[i];
                 if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`)).trimEnd();
@@ -115,9 +115,9 @@ export async function execute (game, message, command, args) {
             // Check if a container item was specified.
             const items = game.entityFinder.getRoomItems(null, room.id, true);
             for (let i = 0; i < items.length; i++) {
-                if (items[i].identifier === parsedInput || items[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a prefab and a preposition.`);
+                if (items[i].identifier === parsedInput || items[i].name === parsedInput) return addReply(game, message, `You need to supply a prefab and a preposition.`);
                 if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].name)) {
-                    if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
+                    if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return addReply(game, message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
                     containerItem = items[i];
 
                     if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "")
@@ -136,7 +136,7 @@ export async function execute (game, message, command, args) {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                        if (containerItemSlot === null) return addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
                     }
                     if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -174,16 +174,16 @@ export async function execute (game, message, command, args) {
         if (prefab !== null && container === null) {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
-            return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
+            return addReply(game, message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
         }
-        else if (prefab === null && container !== null) return messageHandler.addReply(game, message, `Couldn't find prefab with id "${parsedInput}".`);
-        else if (prefab === null && container === null) return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}".`);
+        else if (prefab === null && container !== null) return addReply(game, message, `Couldn't find prefab with id "${parsedInput}".`);
+        else if (prefab === null && container === null) return addReply(game, message, `Couldn't find "${parsedInput}".`);
 
         if (containerItem !== null && container instanceof RoomItem) {
-            if (prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
-            else if (prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${container.name} because it is too large.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${container.name} because there isn't enough space left.`);
+            if (prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
+            else if (prefab.size > containerItemSlot.capacity) return addReply(game, message, `${prefab.id} will not fit in ${container.name} because it is too large.`);
+            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
+            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return addReply(game, message, `${prefab.id} will not fit in ${container.name} because there isn't enough space left.`);
         }
 
         // Now instantiate the item.
@@ -194,7 +194,7 @@ export async function execute (game, message, command, args) {
         }
         else instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections);
 
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated item.");
+        addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated item.");
     }
     else {
         for (let i = 0; i < args.length; i++) {
@@ -209,7 +209,7 @@ export async function execute (game, message, command, args) {
                 args.splice(i, 1);
             }
         }
-        if (player === null) return messageHandler.addReply(game, message, `Couldn't find a room or player in your input.`);
+        if (player === null) return addReply(game, message, `Couldn't find a room or player in your input.`);
 
         parsedInput = args.join(" ").toUpperCase().replace(/\'/g, "");
 
@@ -218,9 +218,9 @@ export async function execute (game, message, command, args) {
         let containerItemSlot = null;
         const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
         for (let i = 0; i < items.length; i++) {
-            if (items[i].identifier === parsedInput || items[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply a prefab and a preposition.`);
+            if (items[i].identifier === parsedInput || items[i].name === parsedInput) return addReply(game, message, `You need to supply a prefab and a preposition.`);
             if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].name)) {
-                if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
+                if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return addReply(game, message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
                 containerItem = items[i];
 
                 if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "")
@@ -238,7 +238,7 @@ export async function execute (game, message, command, args) {
                             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                         }
                     }
-                    if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                    if (containerItemSlot === null) return addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
 
                     if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -261,7 +261,7 @@ export async function execute (game, message, command, args) {
                     const newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
                     parsedInput = newArgs.join(' ');
-                    if (slot.equippedItem !== null) return messageHandler.addReply(game, message, `Cannot equip items to ${equipmentSlotName} because ${slot.equippedItem.name} is already equipped to it.`);
+                    if (slot.equippedItem !== null) return addReply(game, message, `Cannot equip items to ${equipmentSlotName} because ${slot.equippedItem.name} is already equipped to it.`);
                     break;
                 }
             }
@@ -281,21 +281,21 @@ export async function execute (game, message, command, args) {
         if (prefab !== null && containerItem === null && equipmentSlotName === "") {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
-            return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
+            return addReply(game, message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
         }
         else if (prefab === null && (containerItem !== null || equipmentSlotName !== "")) {
             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(' '));
-            return messageHandler.addReply(game, message, `Couldn't find prefab with id "${parsedInput}".`);
+            return addReply(game, message, `Couldn't find prefab with id "${parsedInput}".`);
         }
-        else if (prefab === null && containerItem === null && equipmentSlotName === "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}".`);
+        else if (prefab === null && containerItem === null && equipmentSlotName === "") return addReply(game, message, `Couldn't find "${parsedInput}".`);
 
-        if (equipmentSlotName !== "" && quantity !== 1) return messageHandler.addReply(game, message, `Cannot instantiate more than 1 item to a player's equipment slot.`);
+        if (equipmentSlotName !== "" && quantity !== 1) return addReply(game, message, `Cannot instantiate more than 1 item to a player's equipment slot.`);
         if (containerItem !== null) {
             equipmentSlotName = containerItem.equipmentSlot;
-            if (prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because it is too large.`);
-            else if (prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because it is too large.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return messageHandler.addReply(game, message, `${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
+            if (prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because it is too large.`);
+            else if (prefab.size > containerItemSlot.capacity) return addReply(game, message, `${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because it is too large.`);
+            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return addReply(game, message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
+            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return addReply(game, message, `${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
         }
 
         // Now instantiate the item.
@@ -306,7 +306,7 @@ export async function execute (game, message, command, args) {
         }
         else instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections);
 
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated inventory item.");
+        addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated inventory item.");
     }
 
     return;

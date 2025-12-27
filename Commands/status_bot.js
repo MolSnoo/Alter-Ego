@@ -1,5 +1,5 @@
 ﻿import InventoryItem from "../Data/InventoryItem.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -56,7 +56,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -74,7 +74,7 @@ export async function execute (game, command, args, player, callee) {
     }
     else {
         player = game.entityFinder.getLivingPlayer(args[0]);
-        if (player === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
     args.splice(0, 1);

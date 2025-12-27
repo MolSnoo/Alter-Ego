@@ -1,4 +1,4 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -31,7 +31,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     const players = [];
@@ -44,7 +44,7 @@ export async function execute (game, message, command, args) {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return messageHandler.addReply(game, message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
+        return addReply(game, message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++) {
@@ -54,7 +54,7 @@ export async function execute (game, message, command, args) {
         }
     }
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players have been given the Dead role.");
+    addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players have been given the Dead role.");
 
     return;
 }

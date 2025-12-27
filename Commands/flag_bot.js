@@ -1,6 +1,6 @@
-import Game from "../Data/Game.js";
 import Flag from "../Data/Flag.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import Game from "../Data/Game.js";
+import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Player.js').default} Player */
@@ -59,7 +59,7 @@ export async function execute(game, command, args, player, callee) {
 	}
 
 	if (args.length === 0)
-		return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+		return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
 	// If we're going to set or clear another flag, make sure it won't set or clear other flags with its commands.
 	let doCommands = false;
@@ -91,7 +91,7 @@ export async function execute(game, command, args, player, callee) {
 				input = input.substring(0, input.toLowerCase().lastIndexOf(lastArg));
 		}
 		if (valueScript === undefined && value === undefined)
-			return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
+			return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
 
 		let flag = game.entityFinder.getFlag(input);
 		// If no flag was found, create a new one.
@@ -118,7 +118,7 @@ export async function execute(game, command, args, player, callee) {
 				flag.setValue(value, doCommands, player);
 			}
 			catch (err) {
-				return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
+				return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The specified script returned an error. ${err}`);
 			}
 		}
 		else {
@@ -128,7 +128,7 @@ export async function execute(game, command, args, player, callee) {
 	}
 	else if (command === "clearflag") {
 		const flag = game.entityFinder.getFlag(input);
-		if (!flag) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
+		if (!flag) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find flag "${input}".`);
 
 		flag.clearValue(doCommands, player);
 	}

@@ -1,5 +1,5 @@
 ﻿import Event from "../Data/Event.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addLogMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -41,7 +41,7 @@ export function usage(settings) {
 export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -72,7 +72,7 @@ export async function execute(game, command, args, player, callee) {
     }
     else {
         player = game.entityFinder.getLivingPlayer(args[0]);
-        if (player === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }
@@ -80,7 +80,7 @@ export async function execute(game, command, args, player, callee) {
     // Check to see that the last argument is the name of a room.
     let input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
     const desiredRoom = game.entityFinder.getRoom(input);
-    if (desiredRoom === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (desiredRoom === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
     input = input.substring(0, input.indexOf(desiredRoom.id));
     args = input.split("-");
 
@@ -131,7 +131,7 @@ export async function execute(game, command, args, player, callee) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
+    addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
 
     return;
 }

@@ -1,4 +1,4 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { clearQueue } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -54,7 +54,7 @@ export async function execute (game, message, command, args) {
 
     game.inProgress = false;
     game.canJoin = false;
-    messageHandler.clearQueue(game);
+    clearQueue(game);
     if (!game.settings.debug) {
         game.botContext.updatePresence();
     }

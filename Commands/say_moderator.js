@@ -1,7 +1,7 @@
 ﻿import Narration from '../Data/Narration.js';
 import handleDialog from '../Modules/dialogHandler.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 import { ChannelType } from 'discord.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -38,7 +38,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
@@ -48,7 +48,7 @@ export async function execute (game, message, command, args) {
     if (!player)
         player = null;
     else if (!player.isNPC)
-        return messageHandler.addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
+        return addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
         const webHooks = await player.location.channel.fetchWebhooks();
@@ -87,7 +87,7 @@ export async function execute (game, message, command, args) {
     }
     else if (channel.type === ChannelType.GuildText)
         channel.send(string);
-    else messageHandler.addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
+    else addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 
     return;
 }

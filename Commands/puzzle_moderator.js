@@ -1,4 +1,4 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -57,7 +57,7 @@ export async function execute (game, message, command, args) {
     else input = args.join(" ");
 
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     let announcement = "";
@@ -114,7 +114,7 @@ export async function execute (game, message, command, args) {
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    else if (puzzle === null) return messageHandler.addReply(game, message, `Couldn't find puzzle "${input}".`);
+    else if (puzzle === null) return addReply(game, message, `Couldn't find puzzle "${input}".`);
 
     let outcome = "";
     let targetPlayer = null;
@@ -136,18 +136,18 @@ export async function execute (game, message, command, args) {
     if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addReply(game, message, `"${input}" is not a valid solution.`);
+        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return addReply(game, message, `"${input}" is not a valid solution.`);
         puzzle.solve(player, announcement, outcome, true, [], targetPlayer);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully solved ${puzzle.name}.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
         puzzle.unsolve(player, announcement, null, true);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unsolved ${puzzle.name}.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unsolved ${puzzle.name}.`);
     }
     else if (command === "attempt") {
-        if (player === null) return messageHandler.addReply(game, message, `Cannot attempt a puzzle without a player.`);
+        if (player === null) return addReply(game, message, `Cannot attempt a puzzle without a player.`);
         player.attemptPuzzle(puzzle, null, input, command, input, message, targetPlayer);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 
     return;

@@ -1,8 +1,8 @@
 import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import * as messageHandler from '../Modules/messageHandler.js';
 import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
+import { addGameMechanicMessage, addReply } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -52,7 +52,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `Not enough arguments given. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `Not enough arguments given. Usage:\n${usage(game.settings)}`);
 
     let destroyAll = false;
     if (args[0].toLowerCase() === "all") {
@@ -84,7 +84,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
             if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "") {
-                if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${roomItems[i].getIdentifier()} cannot hold items.`);
+                if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return addReply(game, message, `${roomItems[i].getIdentifier()} cannot hold items.`);
                 containerItem = roomItems[i];
 
                 if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "")
@@ -103,7 +103,7 @@ export async function execute (game, message, command, args) {
                             break;
                         }
                     }
-                    if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.getIdentifier()}.`);
+                    if (containerItemSlot === null) return addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.getIdentifier()}.`);
                 }
                 if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -119,7 +119,7 @@ export async function execute (game, message, command, args) {
         if (containerItem === null && item === null) {
             const fixtures = game.fixtures.filter(fixture => fixture.location.id === room.id && fixture.accessible);
             for (let i = 0; i < fixtures.length; i++) {
-                if (fixtures[i].name === parsedInput) return messageHandler.addReply(game, message, `You need to supply an item and a preposition.`);
+                if (fixtures[i].name === parsedInput) return addReply(game, message, `You need to supply an item and a preposition.`);
                 if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(`IN ${fixtures[i].name}`)) {
                     fixture = fixtures[i];
                     if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`))
@@ -178,10 +178,10 @@ export async function execute (game, message, command, args) {
         }
 
         if (destroyAll) {
-            if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" at ${room.id}`);
+            if (parsedInput !== "") return addReply(game, message, `Couldn't find "${parsedInput}" at ${room.id}`);
             for (let i = 0; i < containerItems.length; i++)
                 destroyItem(containerItems[i], containerItems[i].quantity, true);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
         }
         else {
             // Find the item if it hasn't been found already.
@@ -193,10 +193,10 @@ export async function execute (game, message, command, args) {
                     }
                 }
             }
-            if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" ${preposition} ${containerName}.`);
+            if (item === null) return addReply(game, message, `Couldn't find item "${parsedInput}" ${preposition} ${containerName}.`);
 
             destroyItem(item, item.quantity, true);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} ${preposition} ${containerName}.`);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} ${preposition} ${containerName}.`);
         }
     }
     else {
@@ -213,7 +213,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
         }
-        if (player === null) return messageHandler.addReply(game, message, `Couldn't find a room or player in your input.`);
+        if (player === null) return addReply(game, message, `Couldn't find a room or player in your input.`);
 
         parsedInput = args.join(" ").toUpperCase().replace(/\'/g, "");
 
@@ -228,7 +228,7 @@ export async function execute (game, message, command, args) {
                 break;
             }
             if (parsedInput.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "" || parsedInput.endsWith(playerItems[i].prefab.id)) {
-                if (playerItems[i].inventoryCollection.size === 0 || playerItems[i].prefab.preposition === "") return messageHandler.addReply(game, message, `${playerItems[i].getIdentifier()} cannot hold items.`);
+                if (playerItems[i].inventoryCollection.size === 0 || playerItems[i].prefab.preposition === "") return addReply(game, message, `${playerItems[i].getIdentifier()} cannot hold items.`);
                 containerItem = playerItems[i];
 
                 if (parsedInput.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "")
@@ -247,7 +247,7 @@ export async function execute (game, message, command, args) {
                             break;
                         }
                     }
-                    if (containerItemSlot === null) return messageHandler.addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                    if (containerItemSlot === null) return addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
                 }
                 if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -271,7 +271,7 @@ export async function execute (game, message, command, args) {
             if (destroyAll) {
                 for (let i = 0; i < containerItems.length; i++)
                     destroyInventoryItem(containerItems[i], containerItems[i].quantity, true);
-                messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
+                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
                 return;
             }
             else {
@@ -283,7 +283,7 @@ export async function execute (game, message, command, args) {
                             break;
                         }
                     }
-                    if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" ${preposition} ${containerName}.`);
+                    if (item === null) return addReply(game, message, `Couldn't find item "${parsedInput}" ${preposition} ${containerName}.`);
                 }
             }
         }
@@ -293,22 +293,22 @@ export async function execute (game, message, command, args) {
             if (player.inventoryCollection.get(parsedInput)) {
                 item = player.inventoryCollection.get(parsedInput).equippedItem
                 equipmentSlotName = parsedInput;
-                if (item === null) return messageHandler.addReply(game, message, `Cannot destroy item equipped to ${equipmentSlotName} because nothing is equipped to it.`);
-                if (destroyAll) return messageHandler.addReply(game, message, `The "all" argument cannot be used when the container is an equipment slot.`);
+                if (item === null) return addReply(game, message, `Cannot destroy item equipped to ${equipmentSlotName} because nothing is equipped to it.`);
+                if (destroyAll) return addReply(game, message, `The "all" argument cannot be used when the container is an equipment slot.`);
             }
             else {
                 for (const [id, slot] of player.inventoryCollection) {
                     if (slot.equippedItem !== null && slot.equippedItem.identifier === parsedInput || slot.equippedItem.prefab.id === parsedInput) {
                         item = slot.equippedItem
                         equipmentSlotName = id
-                        if (destroyAll) return messageHandler.addReply(game, message, `The "all" argument cannot be used when the container is an equipped item.`);
+                        if (destroyAll) return addReply(game, message, `The "all" argument cannot be used when the container is an equipped item.`);
                         break;
                     }
                 }
             }
             if (item !== null && equipmentSlotName !== "") {
                 destroyInventoryItem(item, item.quantity, true);
-                messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} equipped to ${player.name}'s ${equipmentSlotName}.`);
+                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} equipped to ${player.name}'s ${equipmentSlotName}.`);
                 return;
             }
         }
@@ -318,9 +318,9 @@ export async function execute (game, message, command, args) {
             if (item.container.prefab.preposition) preposition = item.container.prefab.preposition;
 
             destroyInventoryItem(item, item.quantity, true);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} ${preposition} ${containerName}.`);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.getIdentifier()} ${preposition} ${containerName}.`);
         }
-        else return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" in ${player.name}'s inventory.`);
+        else return addReply(game, message, `Couldn't find "${parsedInput}" in ${player.name}'s inventory.`);
     }
 
     return;

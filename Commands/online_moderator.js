@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -31,7 +31,7 @@ export async function execute (game, message, command, args) {
     const players = game.entityFinder.getLivingPlayers().filter((player) => {player.online}).map(player => player.name);
 	players.sort();
 	const playerList = players.join(", ");
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Players online:\n${playerList}`);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Players online:\n${playerList}`);
 
     return;
 }

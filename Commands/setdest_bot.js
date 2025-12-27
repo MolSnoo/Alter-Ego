@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -52,7 +52,7 @@ export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
 
     if (args.length < 4)
-        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     // First, find the room.
     let room;
@@ -64,8 +64,8 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (room === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${args.join(" ")}".`);
-    else if (args.length === 0) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
+    if (room === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
 
     // Now that the room has been found, find the exit.
     let exit;
@@ -77,8 +77,8 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (exit === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${args.join(" ")}" in ${room.id}.`);
-    else if (args.length === 0) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Another room and another exit for ${exit.name} of ${room.id} to lead to must be specified.`);
+    if (exit === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${args.join(" ")}" in ${room.id}.`);
+    else if (args.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Another room and another exit for ${exit.name} of ${room.id} to lead to must be specified.`);
 
     // Now find the destination room.
     let destRoom;
@@ -90,8 +90,8 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (destRoom === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${args.join(" ")}".`);
-    else if (args.length === 0) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". An exit in ${destRoom.id} for ${exit.name} of ${room.id} to lead to must be specified.`);
+    if (destRoom === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". An exit in ${destRoom.id} for ${exit.name} of ${room.id} to lead to must be specified.`);
 
     // Now that the destination room has been found, find the destination exit.
     let destExit;
@@ -102,7 +102,7 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (destExit === undefined) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${args.join(" ")}" in ${destRoom.id}.`);
+    if (destExit === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${args.join(" ")}" in ${destRoom.id}.`);
 
     exit.dest = destRoom;
     exit.link = destExit.name;

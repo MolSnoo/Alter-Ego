@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -34,10 +34,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
 
 	const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(' ');
@@ -64,7 +64,7 @@ export async function execute (game, message, command, args) {
     }
 
     if (item === null) {
-        return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
     }
 
     // Locate uncrafting recipe.
@@ -76,10 +76,10 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (recipe === null) return messageHandler.addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
+    if (recipe === null) return addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
 
 	if (!rightEmpty && !leftEmpty) {
-        return messageHandler.addReply(game, message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
+        return addReply(game, message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
     }
 
     const itemName = item.getIdentifier();
@@ -98,9 +98,9 @@ export async function execute (game, message, command, args) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
+    addLogMessage(game, `${time} - ${player.name} forcibly uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
 
-	messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemName} into ${ingredientPhrase} for ${player.name}.`);
+	addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemName} into ${ingredientPhrase} for ${player.name}.`);
 
     return;
 }

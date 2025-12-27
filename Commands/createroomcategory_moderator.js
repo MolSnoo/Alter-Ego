@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -35,22 +35,22 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
 
     const input = args.join(" ");
     let channel = game.guildContext.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
     if (channel) {
         const response = await registerRoomCategory(channel);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, response);
     }
     else {
         try {
             channel = await createCategory(game.guildContext.guild, input);
             const response = await registerRoomCategory(channel);
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, response);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, response);
         }
         catch (err) {
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, err);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, err);
         }
     }
 

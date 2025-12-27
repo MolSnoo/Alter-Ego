@@ -1,5 +1,5 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
-import { ChannelType } from 'discord.js';
+﻿import { ChannelType } from 'discord.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -37,13 +37,13 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify an amount of messages to delete. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify an amount of messages to delete. Usage:\n${usage(game.settings)}`);
 
     const user = message.mentions.users.first();
     const amount = parseInt(args[args.length - 1]);
-    if (isNaN(amount)) return messageHandler.addReply(game, message, `Invalid amount specified.`);
-    if (amount < 1) return messageHandler.addReply(game, message, `At least one message must be deleted.`);
-    if (amount > 100) return messageHandler.addReply(game, message, `Only 100 messages can be deleted at a time.`);
+    if (isNaN(amount)) return addReply(game, message, `Invalid amount specified.`);
+    if (amount < 1) return addReply(game, message, `At least one message must be deleted.`);
+    if (amount > 100) return addReply(game, message, `Only 100 messages can be deleted at a time.`);
 
     const channel = message.channel;
     if (channel.type === ChannelType.GuildText) {

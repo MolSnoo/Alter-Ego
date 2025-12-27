@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -40,15 +40,15 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length !== 2)
-        return messageHandler.addReply(game, message, `You need to specify a player and a pronoun set. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and a pronoun set. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(" ").toLowerCase();
     if (input !== "female" && input !== "male" && input !== "neutral" && input.split('/').length !== 6)
-        return messageHandler.addReply(game, message, `The supplied pronoun string is invalid.`);
+        return addReply(game, message, `The supplied pronoun string is invalid.`);
     player.setPronouns(player.pronouns, input);
 
     // Check if the pronouns were set correctly.
@@ -80,11 +80,11 @@ export async function execute (game, message, command, args) {
     }
 
     if (correct === false) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, errorMessage);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, errorMessage);
         // Revert the player's pronouns.
         player.setPronouns(player.pronouns, player.pronounString);
     }
-    else messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully set ${player.name}'s pronouns.`);
+    else addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully set ${player.name}'s pronouns.`);
 
     return;
 }

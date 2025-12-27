@@ -1,5 +1,5 @@
 ﻿import Puzzle from "../Data/Puzzle.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -63,7 +63,7 @@ export async function execute (game, command, args, player, callee) {
     else input = args.join(" ");
 
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -129,7 +129,7 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    if (puzzle === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
+    if (puzzle === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
 
     let outcome = "";
     let targetPlayer = null;
@@ -154,14 +154,14 @@ export async function execute (game, command, args, player, callee) {
     if (callee && !(callee instanceof Puzzle)) doCommands = true;
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
+        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
         puzzle.solve(player, announcement, outcome, doCommands, [], targetPlayer);
     }
     else if (command === "unsolve") {
         puzzle.unsolve(player, announcement, null, doCommands);
     }
     else if (command === "attempt") {
-        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
+        if (player === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
         player.attemptPuzzle(puzzle, null, input, command, input, null, targetPlayer);
     }
 

@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -33,7 +33,7 @@ export async function execute (game, message, command, args) {
         return event.remaining === null ? event.id : `${event.id} (${event.remainingString})`;
     });
     const eventList = events.join(", ");
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Ongoing events:\n${eventList}`);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Ongoing events:\n${eventList}`);
 
     return;
 }

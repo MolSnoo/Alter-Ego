@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -32,10 +32,10 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
 
     let statsString = `__${player.name}'s default stats:__\n`;
     statsString += `Str: ${player.defaultStrength}\n`;
@@ -56,7 +56,7 @@ export async function execute(game, message, command, args) {
     statsString += `Dex: ${player.dexterity} [` + (dexModifier > 0 ? '+' : '') + `${dexModifier}]\n`;
     statsString += `Spd: ${player.speed} [` + (spdModifier > 0 ? '+' : '') + `${spdModifier}]\n`;
     statsString += `Sta: ${Math.round(player.stamina * 100) / 100}/${player.maxStamina} [` + (staModifier > 0 ? '+' : '') + `${staModifier}]`;
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, statsString);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, statsString);
 
     return;
 }

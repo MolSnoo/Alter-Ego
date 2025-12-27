@@ -1,5 +1,5 @@
 ﻿import Whisper from '../Data/Whisper.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -34,24 +34,24 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     if (player.statusCollection.has("hidden") && command === "unhide") {
         player.cure("hidden", true, false, true);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully brought ${player.name} out of hiding.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully brought ${player.name} out of hiding.`);
     }
     else if (player.statusCollection.has("hidden"))
-        return messageHandler.addReply(game, message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${game.settings.commandPrefix}unhide ${player.name}".`);
+        return addReply(game, message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${game.settings.commandPrefix}unhide ${player.name}".`);
     else if (command === "unhide")
-        return messageHandler.addReply(game, message, `${player.name} is not currently hidden.`);
+        return addReply(game, message, `${player.name} is not currently hidden.`);
     // Player is currently not hidden and the hide command is being used.
     else {
         if (args.length === 0)
-            return messageHandler.addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
+            return addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
 
         const input = args.join(" ");
         const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -65,9 +65,9 @@ export async function execute (game, message, command, args) {
                 break;
             }
             else if (fixtures[i].name === parsedInput)
-                return messageHandler.addReply(game, message, `${fixtures[i].name} is not a hiding spot.`);
+                return addReply(game, message, `${fixtures[i].name} is not a hiding spot.`);
         }
-        if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find fixture "${input}".`);
+        if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
 
         // Check to see if the hiding spot is already taken.
         const hiddenPlayers = [];
@@ -121,7 +121,7 @@ export async function execute (game, message, command, args) {
             game.whispers.push(whisper);
         }
 
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully hid ${player.name} in the ${fixture.name}.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully hid ${player.name} in the ${fixture.name}.`);
         // Log message is sent when status is inflicted.
     }
 

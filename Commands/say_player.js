@@ -1,6 +1,6 @@
 ﻿import handleDialog from '../Modules/dialogHandler.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 import { ChannelType } from "discord.js";
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -35,10 +35,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("enable say");
-    if (status.length === 0) return messageHandler.addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
+    if (status.length === 0) return addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
     const input = args.join(" ");
     if (!input.startsWith("(")) {

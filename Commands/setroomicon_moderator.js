@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -32,7 +32,7 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${exports.config.usage}`);
+        return addReply(game, message, `You need to specify a room. Usage:\n${exports.config.usage}`);
 
     let input = args.join(" ");
 
@@ -42,7 +42,7 @@ export async function execute(game, message, command, args) {
         if (room)
             break;
     }
-    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?\\.(jpg|jpeg|png|gif|webp|avif))(\\?.*)?$');
     input = input.replace(iconURLSyntax, '$1');
@@ -50,10 +50,10 @@ export async function execute(game, message, command, args) {
         if (message.attachments.size !== 0)
             input = message.attachments.first().url.replace(iconURLSyntax, '$1');
     }
-    if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    if (!iconURLSyntax.test(input) && input !== "") return addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
     room.iconURL = input;
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the icon for ${room.id}.`);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the icon for ${room.id}.`);
 
     return;
 };

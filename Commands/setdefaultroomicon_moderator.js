@@ -1,6 +1,6 @@
 import fs from 'fs';
 import settings from '../Configs/settings.json' with { type: 'json' };
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -38,7 +38,7 @@ export async function execute (game, message, command, args) {
         if (message.attachments.size !== 0)
             input = message.attachments.first().url.replace(iconURLSyntax, '$1');
     }
-    if (!iconURLSyntax.test(input) && input !== "") return messageHandler.addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    if (!iconURLSyntax.test(input) && input !== "") return addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
     game.settings.defaultRoomIconURL = input;
     settings.defaultRoomIconURL = input;
@@ -46,7 +46,7 @@ export async function execute (game, message, command, args) {
     const json = JSON.stringify(settings, null, "  ");
     await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the default room icon.`);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the default room icon.`);
 
     return;
 }

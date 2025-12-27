@@ -1,5 +1,5 @@
 ﻿import Whisper from '../Data/Whisper.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -40,22 +40,22 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable hide");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.statusCollection.has("hidden") && command === "unhide") {
         const fixture = game.entityFinder.getFixtures(player.hidingSpot, player.location.id, true)[0];
         if (fixture !== undefined && (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved))
-            return messageHandler.addReply(game, message, `You cannot come out of hiding right now.`);
+            return addReply(game, message, `You cannot come out of hiding right now.`);
         else player.cure("hidden", true, false, true);
     }
     else if (player.statusCollection.has("hidden"))
-        return messageHandler.addReply(game, message, `You are already **hidden**. If you wish to stop hiding, use "${game.settings.commandPrefix}unhide".`);
+        return addReply(game, message, `You are already **hidden**. If you wish to stop hiding, use "${game.settings.commandPrefix}unhide".`);
     else if (command === "unhide")
-        return messageHandler.addReply(game, message, "You are not currently hidden.");
+        return addReply(game, message, "You are not currently hidden.");
     // Player is currently not hidden and is using the hide command.
     else {
         if (args.length === 0)
-            return messageHandler.addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
+            return addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
 
         const input = args.join(" ");
         const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -69,13 +69,13 @@ export async function execute (game, message, command, args, player) {
                 break;
             }
             else if (fixtures[i].name === parsedInput)
-                return messageHandler.addReply(game, message, `${fixtures[i].name} is not a hiding spot.`);
+                return addReply(game, message, `${fixtures[i].name} is not a hiding spot.`);
         }
-        if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find fixture "${input}".`);
+        if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
 
         // Make sure the fixture isn't locked.
         if (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved)
-            return messageHandler.addReply(game, message, `You cannot hide in ${fixture.name} right now.`);
+            return addReply(game, message, `You cannot hide in ${fixture.name} right now.`);
 
         // Check to see if the hiding spot is already taken.
         const hiddenPlayers = [];

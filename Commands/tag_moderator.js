@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -46,16 +46,16 @@ export async function execute (game, message, command, args) {
         else if (args[0] === "list") {
             command = "tags";
             if (!args[1])
-                return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+                return addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
         }
         input = input.substring(input.indexOf(args[1]));
         args = input.split(" ");
     }
     else input = args.join(" ");
 
-    if (command !== "addtag" && command !== "removetag" && command !== "tags") return messageHandler.addReply(game, message, 'Invalid command given. Use "add", "remove", or "list".');
+    if (command !== "addtag" && command !== "removetag" && command !== "tags") return addReply(game, message, 'Invalid command given. Use "add", "remove", or "list".');
     if ((command === "addtag" || command === "removetag") && args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a room and at least one tag. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a room and at least one tag. Usage:\n${usage(game.settings)}`);
 
     input = args.join(" ");
 
@@ -67,15 +67,15 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
 
     if (command === "tags") {
         const tags = room.tags.join(", ");
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `__Tags in ${room.id}:__\n${tags}`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `__Tags in ${room.id}:__\n${tags}`);
     }
     else {
         input = input.substring(room.id.length).trim();
-        if (input === "") return messageHandler.addReply(game, message, `You need to specify at least one tag.`);
+        if (input === "") return addReply(game, message, `You need to specify at least one tag.`);
 
         const tags = input.split(",");
         if (command === "addtag") {
@@ -86,9 +86,9 @@ export async function execute (game, message, command, args) {
                 addedTags.push(tags[i].trim());
                 room.tags.push(tags[i].trim());
             }
-            if (addedTags.length === 0) return messageHandler.addReply(game, message, `${room.id} already has the given tag(s).`);
+            if (addedTags.length === 0) return addReply(game, message, `${room.id} already has the given tag(s).`);
             const addedTagsString = addedTags.join(", ");
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully added the following tags to ${room.id}: ${addedTagsString}`);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully added the following tags to ${room.id}: ${addedTagsString}`);
         }
         else if (command === "removetag") {
             const removedTags = [];
@@ -100,9 +100,9 @@ export async function execute (game, message, command, args) {
                     room.tags.splice(room.tags.indexOf(tags[i].trim()), 1);
                 }
             }
-            if (removedTags.length === 0) return messageHandler.addReply(game, message, `${room.id} doesn't have the given tag(s).`);
+            if (removedTags.length === 0) return addReply(game, message, `${room.id} doesn't have the given tag(s).`);
             const removedTagsString = removedTags.join(", ");
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully removed the following tags from ${room.id}: ${removedTagsString}`);
+            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully removed the following tags from ${room.id}: ${removedTagsString}`);
         }
     }
 

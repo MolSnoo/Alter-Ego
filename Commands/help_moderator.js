@@ -1,5 +1,5 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
-import { createPaginatedEmbed } from '../Modules/helpers.js';
+﻿import { createPaginatedEmbed } from '../Modules/helpers.js';
+import { addCommandHelp, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -96,8 +96,8 @@ export async function execute (game, message, command, args) {
     }
     else {
         const command = roleCommands.find(command => command.config.aliases.includes(args[0]));
-        if (!command) return messageHandler.addReply(game, message, `Couldn't find command "${args[0]}".`);
-        messageHandler.addCommandHelp(game, game.guildContext.commandChannel, command);
+        if (!command) return addReply(game, message, `Couldn't find command "${args[0]}".`);
+        addCommandHelp(game, game.guildContext.commandChannel, command);
     }
 
     return;

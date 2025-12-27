@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addDirectNarration, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -32,10 +32,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable time");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const timeMessage = `It is currently **${new Date().toLocaleTimeString()}** on **${new Date().toDateString()}**.`;
-    messageHandler.addDirectNarration(player, timeMessage, false);
+    addDirectNarration(player, timeMessage, false);
 
     return;
 }

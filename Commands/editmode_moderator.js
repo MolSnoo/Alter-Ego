@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addDirectNarration, addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -42,24 +42,24 @@ export async function execute(game, message, command, args) {
             game.livingPlayersCollection.forEach(player => {
                 player.stopMoving();
                 if (!player.hasBehaviorAttribute('unconscious'))
-                    messageHandler.addDirectNarration(player, "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
+                    addDirectNarration(player, "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
             });
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been enabled.");
+            addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been enabled.");
         }
         catch (err) {
             console.log(err);
-            return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+            return addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
         }
     }
     else if (args.length === 0 && game.editMode === true || args.length > 0 && args[0].toLowerCase() === "off") {
         if (game.loadedEntitiesWithErrors.size !== 0)
-            return messageHandler.addReply(game, message, `Edit mode can't be disabled while there are errors on the sheet. Fix the errors found by the load command and then try again.`);
+            return addReply(game, message, `Edit mode can't be disabled while there are errors on the sheet. Fix the errors found by the load command and then try again.`);
         game.editMode = false;
         game.livingPlayersCollection.forEach(player => {
             if (!player.hasBehaviorAttribute('unconscious'))
-                messageHandler.addDirectNarration(player, "Edit mode has been disabled. You are free to resume normal gameplay.", false);
+                addDirectNarration(player, "Edit mode has been disabled. You are free to resume normal gameplay.", false);
         });
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been disabled.");
+        addGameMechanicMessage(game, game.guildContext.commandChannel, "Edit mode has been disabled.");
     }
-    else messageHandler.addReply(game, message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
+    else addReply(game, message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
 }

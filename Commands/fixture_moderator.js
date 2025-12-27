@@ -1,5 +1,5 @@
 import Narration from '../Data/Narration.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -52,9 +52,9 @@ export async function execute (game, message, command, args) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return messageHandler.addReply(game, message, 'Invalid command given. Use "activate" or "deactivate".');
+    if (command !== "activate" && command !== "deactivate") return addReply(game, message, 'Invalid command given. Use "activate" or "deactivate".');
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     let announcement = "";
@@ -111,8 +111,8 @@ export async function execute (game, message, command, args) {
         }
     }
     if (fixture === null && player === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-    else if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find fixture "${input}".`);
-    if (fixture.recipeTag === "") return messageHandler.addReply(game, message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
+    if (fixture.recipeTag === "") return addReply(game, message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
     let narrate = false;
     if (announcement === "" && player !== null) narrate = true;
@@ -121,15 +121,15 @@ export async function execute (game, message, command, args) {
     const time = new Date().toLocaleTimeString();
     if (command === "activate") {
         fixture.activate(player, narrate);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully activated ${fixture.name}.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully activated ${fixture.name}.`);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly activated ${fixture.name} in ${player.location.channel}`);
+        if (player) addLogMessage(game, `${time} - ${player.name} forcibly activated ${fixture.name} in ${player.location.channel}`);
     }
     else if (command === "deactivate") {
         fixture.deactivate(player, narrate);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully deactivated ${fixture.name}.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully deactivated ${fixture.name}.`);
         // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
+        if (player) addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
     }
 
     return;

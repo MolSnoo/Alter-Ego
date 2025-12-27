@@ -3,10 +3,10 @@ import RoomItem from '../Data/RoomItem.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import Player from '../Data/Player.js';
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
-import * as messageHandler from '../Modules/messageHandler.js';
 import { parseDescription, parseDescriptionWithErrors, addItem, removeItem } from '../Modules/parser.js';
 import { EOL } from 'os';
 import { Collection } from 'discord.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -53,7 +53,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify what function to test. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify what function to test. Usage:\n${usage(game.settings)}`);
 
     const file = "./parsedText.xml";
     fs.writeFile(file, "", function (err) {
@@ -83,7 +83,7 @@ export async function execute (game, message, command, args) {
 
     if (args[1] && args[1] !== "formatted") {
         player = game.entityFinder.getLivingPlayer(args[1]);
-        if (player === undefined) return messageHandler.addReply(game, message, `Couldn't find player "${args[1]}".`);
+        if (player === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
     }
 
     if (args[0] === "parse") {
@@ -102,7 +102,7 @@ export async function execute (game, message, command, args) {
                 warnings = warnings.slice(0, warnings.length - 1);  
             if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
+            addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
         }
         let errors = [];
         for (let i = 0; i < result.errors.length; i++) {
@@ -118,7 +118,7 @@ export async function execute (game, message, command, args) {
                 errors = errors.slice(0, errors.length - 1);
             if (tooManyErrors)
                 errors.push("Too many errors.");
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+            addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
         }
     }
     else if (args[0] === "add") {
@@ -139,10 +139,10 @@ export async function execute (game, message, command, args) {
                 warnings = warnings.slice(0, warnings.length - 1);  
             if (tooManyWarnings)
                 warnings.push("Too many warnings.");
-            messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
+            addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
         }
     }
-    else return messageHandler.addReply(game, message, 'Function not found. You need to use "parse", "add", or "remove".');
+    else return addReply(game, message, 'Function not found. You need to use "parse", "add", or "remove".');
 
     game.guildContext.commandChannel.send({
         content: "Text parsed.",

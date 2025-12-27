@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -48,7 +48,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 4)
-        return messageHandler.addReply(game, message, `You need to specify a room, an exit, another room, and another exit. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a room, an exit, another room, and another exit. Usage:\n${usage(game.settings)}`);
 
     // First, find the room.
     let room;
@@ -60,8 +60,8 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${args.join(" ")}".`);
-    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify an exit in ${room.id}, another room, and another exit.`);
+    if (room === undefined) return addReply(game, message, `Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return addReply(game, message, `You need to specify an exit in ${room.id}, another room, and another exit.`);
 
     // Now that the room has been found, find the exit.
     let exit;
@@ -73,8 +73,8 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (exit === null) return messageHandler.addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${room.id}.`);
-    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify another room and another exit for ${exit.name} of ${room.id} to lead to.`);
+    if (exit === null) return addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${room.id}.`);
+    else if (args.length === 0) return addReply(game, message, `You need to specify another room and another exit for ${exit.name} of ${room.id} to lead to.`);
 
     // Now find the destination room.
     let destRoom;
@@ -86,8 +86,8 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (destRoom === null) return messageHandler.addReply(game, message, `Couldn't find room "${args.join(" ")}".`);
-    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify an exit in ${destRoom.id} for ${exit.name} of ${room.id} to lead to.`);
+    if (destRoom === null) return addReply(game, message, `Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return addReply(game, message, `You need to specify an exit in ${destRoom.id} for ${exit.name} of ${room.id} to lead to.`);
 
     // Now that the destination room has been found, find the destination exit.
     let destExit;
@@ -98,14 +98,14 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (destExit === undefined) return messageHandler.addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${destRoom.id}.`);
+    if (destExit === undefined) return addReply(game, message, `Couldn't find exit "${args.join(" ")}" in ${destRoom.id}.`);
 
     exit.dest = destRoom;
     exit.link = destExit.name;
     destExit.dest = room;
     destExit.link = exit.name;
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated destination of ${exit.name} in ${room.id}.`);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated destination of ${exit.name} in ${room.id}.`);
 
     return;
 }

@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addLogMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -36,10 +36,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify an item in your hand. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify an item in your hand. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable uncraft");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -65,7 +65,7 @@ export async function execute (game, message, command, args, player) {
     }
 
     if (item === null) {
-        return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands.`);
+        return addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands.`);
     }
 
     // Locate uncrafting recipe.
@@ -77,10 +77,10 @@ export async function execute (game, message, command, args, player) {
             break;
         }
     }
-    if (recipe === null) return messageHandler.addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.singleContainingPhrase}. Contact a moderator if you think there should be one.`);
+    if (recipe === null) return addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.singleContainingPhrase}. Contact a moderator if you think there should be one.`);
 
     if (!rightEmpty && !leftEmpty) {
-        return messageHandler.addReply(game, message, `You do not have an empty hand to uncraft ${item.singleContainingPhrase}. Either drop the item in your other hand or stash it in one of your equipped items.`);
+        return addReply(game, message, `You do not have an empty hand to uncraft ${item.singleContainingPhrase}. Either drop the item in your other hand or stash it in one of your equipped items.`);
     }
 
     const itemName = item.getIdentifier();
@@ -99,7 +99,7 @@ export async function execute (game, message, command, args, player) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
+    addLogMessage(game, `${time} - ${player.name} uncrafted ${itemName} into ${ingredientPhrase} in ${player.location.channel}`);
 
     return;
 }

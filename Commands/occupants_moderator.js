@@ -1,5 +1,5 @@
-import * as messageHandler from '../Modules/messageHandler.js';
 import { Duration } from 'luxon';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -35,12 +35,12 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
     const input = args.join(" ");
     const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
     const room = game.entityFinder.getRoom(parsedInput);
-    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = room.occupants.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
@@ -81,7 +81,7 @@ export async function execute (game, message, command, args) {
     else occupantsMessage += `__All occupants in ${room.id}:__\n` + occupantsList.join(" ");
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");
     if (movingList.length > 0) occupantsMessage += `\n\n__Moving occupants:__\n` + movingList.join("\n");
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
 
     return;
 }

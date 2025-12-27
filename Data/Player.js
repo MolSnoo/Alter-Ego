@@ -1,3 +1,4 @@
+import Fixture from './Fixture.js';
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
 import Room from './Room.js';
@@ -17,14 +18,13 @@ import DieAction from './Actions/DieAction.js';
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import * as itemManager from '../Modules/itemManager.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 
 import Timer from '../Classes/Timer.js';
 
 import { Collection } from 'discord.js';
+import { addDirectNarration, addLogMessage, addRoomDescription } from '../Modules/messageHandler.js';
 
 /** @typedef {import('./Exit.js').default} Exit */
-/** @typedef {import('./Fixture.js').default} Fixture */
 /** @typedef {import('./Recipe.js').default} Recipe */
 /** @typedef {import('./EquipmentSlot.js').default} EquipmentSlot */
 /** @typedef {import('./InventoryItem.js').default} InventoryItem */
@@ -540,7 +540,7 @@ export default class Player extends ItemContainer {
 
                 // Post log message.
                 const time = new Date().toLocaleTimeString();
-                messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} moved to ${desiredRoom.channel}`);
+                addLogMessage(this.getGame(), `${time} - ${this.name} moved to ${desiredRoom.channel}`);
             }
         }
         else {
@@ -627,7 +627,7 @@ export default class Player extends ItemContainer {
                     // Post log message.
                     const time = new Date().toLocaleTimeString();
                     const verb = isRunning ? "ran" : "moved";
-                    messageHandler.addLogMessage(player.getGame(), `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
+                    addLogMessage(player.getGame(), `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
 
                     player.moveQueue.splice(0, 1);
                     if (player.moveQueue.length > 0)
@@ -855,7 +855,7 @@ export default class Player extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
+        addLogMessage(this.getGame(), `${time} - ${this.name} became ${status.id} in ${this.location.channel}`);
 
         return "Status successfully added.";
     }
@@ -913,7 +913,7 @@ export default class Player extends ItemContainer {
 
         // Post log message.
         const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
+        addLogMessage(this.getGame(), `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
 
         // Stop the timer.
         if (status.timer !== null)
@@ -2046,10 +2046,10 @@ export default class Player extends ItemContainer {
                 const defaultDropFixture = this.getGame().entityFinder.getFixture(this.getGame().settings.defaultDropFixture, container.id);
                 if (defaultDropFixture)
                     defaultDropFixtureString = parseDescription(defaultDropFixture.description, defaultDropFixture, this);
-                messageHandler.addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
+                addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
             }
             else if (!this.hasBehaviorAttribute("unconscious") || (container && container instanceof Status))
-                messageHandler.addDirectNarration(this, parseDescription(description, container, this));
+                addDirectNarration(this, parseDescription(description, container, this));
         }
     }
 
@@ -2060,7 +2060,7 @@ export default class Player extends ItemContainer {
      */
     notify(messageText, addSpectate = true) {
         if (!this.hasBehaviorAttribute("unconscious") && !this.isNPC)
-            messageHandler.addDirectNarration(this, messageText, addSpectate);
+            addDirectNarration(this, messageText, addSpectate);
     }
 
     /**

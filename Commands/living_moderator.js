@@ -1,4 +1,4 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -30,7 +30,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     let playerList = `Living players:\n${game.entityFinder.getLivingPlayers().join(", ")}`;
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
 
     return;
 }

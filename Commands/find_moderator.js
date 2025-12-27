@@ -6,9 +6,9 @@ import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import Recipe from '../Data/Recipe.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 import * as finder from '../Modules/finder.js';
 import { table } from 'table';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -78,7 +78,7 @@ export async function execute (game, message, command, args) {
 	let input = args.join(' ');
 
 	if (args.length === 0)
-		return messageHandler.addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
+		return addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
 
 	const dataTypeRegex = /^((?<Room>rooms?)|(?<Object>objects?)|(?<Prefab>prefabs?)|(?<Recipe>recipes?)|(?<Item>items?)|(?<Puzzle>puzzles?)|(?<Event>events?)|(?<Status>status(?:es)? ?(?:effects?)?)|(?<Player>players?)|(?<InventoryItem>inventory(?: ?items?)?)|(?<Gesture>gestures?)|(?<Flag>flags?))(?<search>.*)/i;
 	const dataTypeMatch = input.match(dataTypeRegex);
@@ -267,10 +267,10 @@ export async function execute (game, message, command, args) {
 			else results = finder.findFlags(dataTypeMatch.groups.search);
 			fields = { row: 'Row', id: 'ID' };
 		}
-		else return messageHandler.addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
+		else return addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
 		
 		if (results.length === 0)
-			return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
+			return addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
 		// Divide the results into pages.
 		const pages = createPages(fields, results);
 		let page = 0;
@@ -312,7 +312,7 @@ export async function execute (game, message, command, args) {
 			}
 		});
 	}
-	else messageHandler.addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
+	else addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
 }
 
 /**

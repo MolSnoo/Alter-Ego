@@ -1,8 +1,8 @@
 import fs from 'fs';
 import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 import { EOL } from 'os';
 import { Collection } from 'discord.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -38,7 +38,7 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
 
     const fileName = "./speeds.txt";
     fs.writeFile(fileName, "", function (err) {
@@ -49,7 +49,7 @@ export async function execute(game, message, command, args) {
         await testplayers(game, fileName);
     else if (args[0] === "stats")
         await testspeeds(game, fileName);
-    else return messageHandler.addReply(game, message, 'Function not found. You need to use "players" or "stats".');
+    else return addReply(game, message, 'Function not found. You need to use "players" or "stats".');
 
     game.guildContext.commandChannel.send({
         content: "Speeds calculated.",

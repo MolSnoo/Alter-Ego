@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -35,10 +35,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
@@ -47,10 +47,10 @@ export async function execute (game, message, command, args) {
         if (player.isNPC) input = player.id;
         else input = null;
     }
-    else if (!iconURLSyntax.test(input)) return messageHandler.addReply(game, message, `The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
+    else if (!iconURLSyntax.test(input)) return addReply(game, message, `The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
 
     player.displayIcon = input;
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display icon.`);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display icon.`);
 
     return;
 }

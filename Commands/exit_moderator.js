@@ -1,4 +1,4 @@
-﻿import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -43,7 +43,7 @@ export async function execute (game, message, command, args) {
     }
 
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to input a room and an exit. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to input a room and an exit. Usage:\n${usage(game.settings)}`);
 
     input = args.join(" ");
     let parsedInput = input.replace(/ /g, "-").toLowerCase();
@@ -60,16 +60,16 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (room === undefined) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
-    else if (args.length === 0) return messageHandler.addReply(game, message, `You need to specify an exit to ${room.id}.`);
+    if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
+    else if (args.length === 0) return addReply(game, message, `You need to specify an exit to ${room.id}.`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
     const exit = game.entityFinder.getExit(room, parsedInput);
     const entrance = game.entityFinder.getExit(exit.dest, exit.link);
-    if (exit === undefined) return messageHandler.addReply(game, message, `Couldn't find exit "${input}" in ${room.id}.`);
-    if (entrance === undefined) return messageHandler.addReply(game, message, `Found exit ${exit.name} in ${room.id}, but it doesn't have a corresponding entrance in ${exit.dest.id}.`);
-    if (command === "unlock" && exit.unlocked && entrance.unlocked) return messageHandler.addReply(game, message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already unlocked.`);
-    if (command === "lock" && !exit.unlocked && !entrance.unlocked) return messageHandler.addReply(game, message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already locked.`);
+    if (exit === undefined) return addReply(game, message, `Couldn't find exit "${input}" in ${room.id}.`);
+    if (entrance === undefined) return addReply(game, message, `Found exit ${exit.name} in ${room.id}, but it doesn't have a corresponding entrance in ${exit.dest.id}.`);
+    if (command === "unlock" && exit.unlocked && entrance.unlocked) return addReply(game, message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already unlocked.`);
+    if (command === "lock" && !exit.unlocked && !entrance.unlocked) return addReply(game, message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already locked.`);
 
     // Now lock or unlock the exit.
     if (command === "lock") {

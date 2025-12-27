@@ -1,4 +1,4 @@
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -34,17 +34,17 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 4)
-        return messageHandler.addReply(game, message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
-    if (player === undefined) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
-        return messageHandler.addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     const rightHand = player.inventoryCollection.get("RIGHT HAND");
     const leftHand = player.inventoryCollection.get("LEFT HAND");
@@ -109,18 +109,18 @@ export async function execute (game, message, command, args) {
     let item2Name = "";
     if (item1 === null && item2 !== null) {
         item1Name = parsedInput.replace(item2Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return messageHandler.addReply(game, message, `Couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find item "${item1Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 !== null && item2 === null) {
         item2Name = parsedInput.replace(item1Id, "").replace(" WITH ", "").replace(" AND ", "");
-        return messageHandler.addReply(game, message, `Couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find item "${item2Name}" in either of ${player.name}'s hands.`);
     }
     else if (item1 === null && item2 === null) {
         if (parsedInput.includes(" WITH ")) args = parsedInput.split(" WITH ");
         else if (parsedInput.includes(" AND ")) args = parsedInput.split(" AND ");
         item1Name = args[0];
         item2Name = args[1];
-        return messageHandler.addReply(game, message, `Couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
+        return addReply(game, message, `Couldn't find items "${item1Name}" and "${item2Name}" in either of ${player.name}'s hands.`);
     }
 
     const ingredients = [item1, item2].sort(function (a, b) {
@@ -137,7 +137,7 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (recipe === null) return messageHandler.addReply(game, message, `Couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
+    if (recipe === null) return addReply(game, message, `Couldn't find recipe requiring ${ingredients[0].prefab.id} and ${ingredients[1].prefab.id}.`);
 
     item1Name = ingredients[0].getIdentifier();
     item2Name = ingredients[1].getIdentifier();
@@ -156,9 +156,9 @@ export async function execute (game, message, command, args) {
 
     // Post log message.
     const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly crafted ${productPhrase} from ${item1Name} and ${item2Name} in ${player.location.channel}`);
+    addLogMessage(game, `${time} - ${player.name} forcibly crafted ${productPhrase} from ${item1Name} and ${item2Name} in ${player.location.channel}`);
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${productPhrase} from ${item1Name} and ${item2Name} for ${player.name}.`);
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${productPhrase} from ${item1Name} and ${item2Name} for ${player.name}.`);
 
     return;
 }
