@@ -274,6 +274,26 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs an uncraft action.
+	 * @param {string} itemId - The identifier of the product.
+	 * @param {UncraftingResult} uncraftingResult - The result of the uncraft action.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUncraft(itemId, uncraftingResult, player, forced) {
+		let ingredientPhrase = "";
+		let ingredient1Phrase = "";
+		let ingredient2Phrase = "";
+		if (uncraftingResult.ingredient1) ingredient1Phrase = uncraftingResult.ingredient1.getIdentifier();
+		if (uncraftingResult.ingredient2) ingredient2Phrase = uncraftingResult.ingredient2.getIdentifier();
+		if (ingredient1Phrase !== "" && ingredient2Phrase !== "") ingredientPhrase = `${ingredient1Phrase} and ${ingredient2Phrase}`;
+		else if (ingredient1Phrase !== "") ingredientPhrase = ingredient1Phrase;
+		else if (ingredient2Phrase !== "") ingredientPhrase = ingredient2Phrase;
+		else ingredientPhrase = "nothing";
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}uncrafted ${itemId} into ${ingredientPhrase} in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a die action.
 	 * @param {Player} player - The player who died. 
 	 */
