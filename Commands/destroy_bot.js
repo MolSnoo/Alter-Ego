@@ -312,7 +312,7 @@ export async function execute (game, command, args, player, callee) {
             if (gotoNext) continue;
 
             if (item) destroyInventoryItem(item, item.quantity, true);
-            else return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" in ${player.name}'s inventory.`);
+            else return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs.join(" ")}" in ${player.name}'s inventory.`);
         }
     }
 }
