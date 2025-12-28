@@ -20,6 +20,9 @@ import Die from './Die.js';
 import CureAction from './Actions/CureAction.js';
 import DieAction from './Actions/DieAction.js';
 import InflictAction from './Actions/InflictAction.js';
+import MoveAction from './Actions/MoveAction.js';
+import QueueMoveAction from './Actions/QueueMoveAction.js';
+import StopAction from './Actions/StopAction.js';
 
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
@@ -273,7 +276,7 @@ export default class Player extends ItemContainer {
     moveQueue;
     /**
      * Whether or not the player has depleted half of their stamina while moving.
-     * The first time they do, they will be warned that they're starting to become tired.
+     * When they do, they will be warned that they're starting to become tired.
      * @type {boolean}
      */
     #reachedHalfStamina;
@@ -381,7 +384,7 @@ export default class Player extends ItemContainer {
         let player = this;
         /** @private */
         this.#staminaRegenerationInterval = setInterval(function () {
-            if (!player.isMoving) player.regenerateStamina();
+            if (!player.isMoving) player.#regenerateStamina();
         }, 30000);
 
         this.online = false;
@@ -472,86 +475,18 @@ export default class Player extends ItemContainer {
     }
 
     /**
-     * Starts moving the player to the next destination in their move queue.
-     * @param {boolean} isRunning - Whether the player is running.
-     * @param {string} destination - The destination the user supplied.
-     */
-    queueMovement(isRunning, destination) {
-        const currentRoom = this.location;
-        let adjacent = false;
-        /** @type {Exit} */
-        let exit = null;
-        let exitMessage = "";
-        /** @type {Room} */
-        let desiredRoom = null;
-        /** @type {Exit} */
-        let entrance = null;
-        let entranceMessage = "";
-        const appendString = this.createMoveAppendString();
-
-        // If the player has the free movement role, they can move to any room they please.
-        if (this.member.roles.resolve(this.getGame().guildContext.freeMovementRole)) {
-            adjacent = true;
-            desiredRoom = this.getGame().entityFinder.getRoom(destination);
-            exitMessage = `${this.displayName} suddenly disappears${appendString}`;
-            entranceMessage = `${this.displayName} suddenly appears${appendString}`;
-        }
-        // Otherwise, check that the desired room is adjacent to the current room.
-        else {
-            const destRoomId = Room.generateValidId(destination);
-            const destExitName = Game.generateValidEntityName(destination);
-            for (const currentExit of currentRoom.exitCollection.values()) {
-                if (currentExit.dest.id === destRoomId || currentExit.name === destExitName) {
-                    adjacent = true;
-                    exit = currentExit;
-                    exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
-                    desiredRoom = exit.dest;
-                    // Find the correct entrance.
-                    entrance = desiredRoom.exitCollection.get(exit.link);
-                    entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
-                    break;
-                }
-            }
-        }
-        if (!adjacent) {
-            this.moveQueue.length = 0;
-            return this.notify(`There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
-        }
-
-        if (desiredRoom) {
-            if (exit)
-                this.move(isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
-            else {
-                currentRoom.removePlayer(this, exit, exitMessage);
-                desiredRoom.addPlayer(this, entrance, entranceMessage, true);
-
-                // Post log message.
-                const time = new Date().toLocaleTimeString();
-                messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} moved to ${desiredRoom.channel}`);
-            }
-        }
-        else {
-            this.moveQueue.length = 0;
-            return this.notify(`There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
-        }
-    }
-
-    /**
      * Moves the player to the desired room.
      * @param {boolean} isRunning - Whether the player is running.
      * @param {Room} currentRoom - The room the player is currently in.
      * @param {Room} desiredRoom - The room the player will be moved to.
      * @param {Exit} exit - The exit the player will leave their current room through.
      * @param {Exit} entrance - The exit the player will enter the desired room from.
-     * @param {string} exitMessage - The message that will be sent in their current room when they exit.
-     * @param {string} entranceMessage - The message that will be sent in their desired room when they enter.
+     * @param {number} time - The number of milliseconds it will take to move to the destination.
+     * @param {boolean} forced - Whether or not the player was forced to move to the destination.
      */
-    move(isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
-        const time = this.calculateMoveTime(exit, isRunning);
+    move(isRunning, currentRoom, desiredRoom, exit, entrance, time, forced) {
         this.remainingTime = time;
         this.isMoving = true;
-        const verb = isRunning ? "running" : "walking";
-        if (time > 1000) new Narration(this.getGame(), this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
         /** @type {Pos} */
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
@@ -592,7 +527,7 @@ export default class Player extends ItemContainer {
             // Be sure to check player.#reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.#reachedHalfStamina) {
                 player.#reachedHalfStamina = true;
-                player.notify(`You're starting to get tired! You might want to stop moving and rest soon.`);
+                player.getGame().narrationHandler.narrateReachedHalfStamina(player);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
@@ -600,7 +535,8 @@ export default class Player extends ItemContainer {
                 player.stamina = 0;
                 const wearyStatus = player.getGame().entityFinder.getStatusEffect("weary");
                 const wearyAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
-                wearyAction.performInflict(wearyStatus, true, true, true);
+                wearyAction.performInflict(wearyStatus, false, true, true);
+                player.getGame().narrationHandler.narrateWeary(player);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
@@ -610,24 +546,21 @@ export default class Player extends ItemContainer {
                 if (exit.unlocked || exitPuzzlePassable) {
                     if (exitPuzzlePassable)
                         exitPuzzle.solve(player, "", player.name, true);
-                    currentRoom.removePlayer(player, exit, exitMessage);
-                    desiredRoom.addPlayer(player, entrance, entranceMessage, true);
-
-                    // Post log message.
-                    const time = new Date().toLocaleTimeString();
-                    const verb = isRunning ? "ran" : "moved";
-                    messageHandler.addLogMessage(player.getGame(), `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
-
+                    const moveAction = new MoveAction(player.getGame(), undefined, player, player.location, forced);
+                    moveAction.performMove(isRunning, currentRoom, desiredRoom, exit, entrance);
                     player.moveQueue.splice(0, 1);
-                    if (player.moveQueue.length > 0)
-                        player.queueMovement(isRunning, player.moveQueue[0].trim());
+                    if (player.moveQueue.length > 0) {
+                        const queueMoveAction = new QueueMoveAction(player.getGame(), undefined, player, player.location, forced);
+                        queueMoveAction.performQueueMove(isRunning, player.moveQueue[0]);
+                    }
                 }
                 else {
-                    new Narration(player.getGame(), player, player.location, `${player.displayName} stops moving.`).send();
+                    // The exit is locked.
+                    const stopAction = new StopAction(player.getGame(), undefined, player, player.location, forced);
+                    stopAction.performStop(true, exit);
                     player.pos.x = exit.pos.x;
                     player.pos.y = exit.pos.y;
                     player.pos.z = exit.pos.z;
-                    player.notify(`${exit.name} is locked.`);
                     player.moveQueue.length = 0;
                 }
             }
@@ -682,18 +615,26 @@ export default class Player extends ItemContainer {
     /**
      * Resets the player's stamina to its maximum value.
      */
-    regenerateStamina() {
+    #regenerateStamina() {
         if (this.stamina < this.maxStamina) {
             // Recover 1/20th of the player's max stamina per cycle, times the heatedSlowdownRate if applicable.
             let staminaAmount = this.maxStamina / 20;
             if (this.getGame().heated) staminaAmount *= this.getGame().settings.heatedSlowdownRate;
             const newStamina = this.stamina + staminaAmount;
             // Make sure not to exceed the max stamina for this player.
-            if (newStamina > this.maxStamina)
-                this.stamina = this.maxStamina;
+            if (newStamina >= this.maxStamina)
+                this.restoreStamina();
             else
                 this.stamina = newStamina;
         }
+    }
+
+    /**
+     * Fully restores the player's stamina and resets their reachedHalfStamina flag.
+     */
+    restoreStamina() {
+        this.stamina = this.maxStamina;
+        this.#reachedHalfStamina = false;
     }
 
     /**
@@ -711,12 +652,10 @@ export default class Player extends ItemContainer {
             nonDiscreetItems.push(leftHand.equippedItem.singleContainingPhrase);
 
         let appendString = "";
-        if (nonDiscreetItems.length === 0)
-            appendString = ".";
-        else if (nonDiscreetItems.length === 1)
-            appendString = ` carrying ${nonDiscreetItems[0]}.`;
+        if (nonDiscreetItems.length === 1)
+            appendString = ` carrying ${nonDiscreetItems[0]}`;
         else if (nonDiscreetItems.length === 2)
-            appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}.`;
+            appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}`;
 
         return appendString;
     }
@@ -786,7 +725,7 @@ export default class Player extends ItemContainer {
         }
 
         this.status.push(statusInstance);
-        this.recalculateStats();
+        this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
     }
 
@@ -808,7 +747,7 @@ export default class Player extends ItemContainer {
         if (statusInstance.timer !== null)
             statusInstance.timer.stop();
         this.status.splice(statusIndex, 1);
-        this.recalculateStats();
+        this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
     }
 
@@ -927,7 +866,7 @@ export default class Player extends ItemContainer {
     /**
      * Calculates the player's stats based on their current status effects.
      */
-    recalculateStats() {
+    #recalculateStats() {
         const strength = this.defaultStrength;
         const perception = this.defaultPerception;
         const dexterity = this.defaultDexterity;
@@ -970,14 +909,14 @@ export default class Player extends ItemContainer {
             }
         }
 
-        this.strength = this.recalculateStat(strength, strModifiers);
+        this.strength = this.#recalculateStat(strength, strModifiers);
         this.maxCarryWeight = this.getMaxCarryWeight();
-        this.perception = this.recalculateStat(perception, perModifiers);
+        this.perception = this.#recalculateStat(perception, perModifiers);
         this.intelligence = this.perception;
-        this.dexterity = this.recalculateStat(dexterity, dexModifiers);
-        this.speed = this.recalculateStat(speed, spdModifiers);
+        this.dexterity = this.#recalculateStat(dexterity, dexModifiers);
+        this.speed = this.#recalculateStat(speed, spdModifiers);
         const staminaRatio = this.stamina / this.maxStamina;
-        this.maxStamina = this.recalculateStat(stamina, staModifiers);
+        this.maxStamina = this.#recalculateStat(stamina, staModifiers);
         this.stamina = staminaRatio * this.maxStamina;
     }
 
@@ -987,7 +926,7 @@ export default class Player extends ItemContainer {
      * @param {StatModifier[]} modifiers - The modifiers to apply.
      * @returns {number}
      */
-    recalculateStat(stat, modifiers) {
+    #recalculateStat(stat, modifiers) {
         let assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
         if (assignModifiers.length !== 0) return assignModifiers[0].value;
 
@@ -1024,11 +963,11 @@ export default class Player extends ItemContainer {
      */
     use(item, target = this) {
         for (let effect of item.prefab.effects) {
-            const inflictAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
+            const inflictAction = new InflictAction(this.getGame(), undefined, target, target.location, true);
             inflictAction.performInflict(effect, true, true, true, item);
         }
         for (let cure of item.prefab.cures) {
-            const cureAction = new CureAction(this.getGame(), undefined, this, this.location, true);
+            const cureAction = new CureAction(this.getGame(), undefined, target, target.location, true);
             cureAction.performCure(cure, true, true, true, item);
         }
         if (!isNaN(item.uses))
@@ -1823,7 +1762,9 @@ export default class Player extends ItemContainer {
      * Kills the player.
      */
     die() {
-        this.location.removePlayer(this, undefined, undefined, `${this.displayName} dies.`);
+        this.location.removePlayer(this);
+        const whisperRemovalMessage = this.getGame().notificationGenerator.generateDieNotification(this, false);
+		this.removeFromWhispers(whisperRemovalMessage);
         // Update various data.
         this.alive = false;
         this.location = null;

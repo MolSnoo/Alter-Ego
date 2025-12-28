@@ -1,0 +1,52 @@
+import { default as Action, ActionType } from "../Action.js";
+
+/** @typedef {import("../Exit.js").default} Exit */
+/** @typedef {import("../Room.js").default} Room */
+
+/**
+ * @class MoveAction
+ * @classdesc Represents a move action.
+ * @extends Action
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/move-action.html
+ */
+export default class MoveAction extends Action {
+	/**
+	 * The type of action being performed.
+	 * @override
+	 * @readonly
+	 * @type {ActionType}
+	 */
+	type = ActionType.Move;
+
+	/**
+	 * Performs a move action.
+	 * @param {boolean} isRunning - Whether the player is running.
+	 * @param {Room} currentRoom - The room the player is currently in.
+	 * @param {Room} destinationRoom - The room the player will be moved to.
+	 * @param {Exit} exit - The exit the player will leave their current room through.
+	 * @param {Exit} entrance - The exit the player will enter the destination room from.
+	 */
+	performMove(isRunning, currentRoom, destinationRoom, exit, entrance) {
+		if (this.performed) return;
+		super.perform();
+
+		// If there is an exit puzzle, solve it.
+		if (exit) {
+			const exitPuzzle = this.getGame().entityFinder.getPuzzle(exit.name, currentRoom.id, "restricted exit", true);
+			if (exitPuzzle && exitPuzzle.solutions.includes(this.player.name))
+				exitPuzzle.solve(this.player, "", this.player.name, true);
+		}
+
+		// Exit the current room.
+		this.getGame().narrationHandler.narrateExit(currentRoom, exit, this.player);
+		currentRoom.removePlayer(this.player);
+		const whisperRemovalMessage = this.getGame().notificationGenerator.generateExitLeaveWhisperNotification(this.player.displayName);
+		this.player.removeFromWhispers(whisperRemovalMessage);
+		
+		// Enter the destination room.
+		destinationRoom.addPlayer(this.player, entrance);
+		this.getGame().narrationHandler.narrateEnter(destinationRoom, entrance, this.player);
+
+		this.getGame().logHandler.logMove(isRunning, destinationRoom, this.player, this.forced);
+	}
+}

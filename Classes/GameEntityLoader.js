@@ -1737,7 +1737,7 @@ export default class GameEntityLoader extends GameEntityManager {
 				if (player.alive) {
 					if (player.member !== null || player.isNPC) {
 						if (player.location instanceof Room) {
-							player.location.addPlayer(player, null, null, false);
+							player.location.addPlayer(player);
 							// Parse statuses and inflict the player with them.
 							player.statusDisplays.forEach(statusDisplay => {
 								const status = this.game.entityFinder.getStatusEffect(statusDisplay.id);

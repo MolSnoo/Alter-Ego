@@ -1,6 +1,8 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+import MoveAction from '../Data/Actions/MoveAction.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -34,7 +36,7 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     var players = [];
@@ -72,19 +74,17 @@ export async function execute(game, message, command, args) {
     // All given players must be in the same room for this to work.
     var isExit = false;
     var exit = null;
-    var exitPuzzle = null;
     var entrance = null;
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
         for (let i = 1; i < players.length; i++) {
-            if (players[i].location !== currentRoom) return messageHandler.addReply(game, message, "All listed players must be in the same room to use an exit name.");
+            if (players[i].location !== currentRoom) return addReply(game, message, "All listed players must be in the same room to use an exit name.");
         }
         input = args.join(" ").toUpperCase();
         for (let i = 0; i < currentRoom.exit.length; i++) {
             if (input.endsWith(currentRoom.exit[i].name)) {
                 isExit = true;
                 exit = currentRoom.exit[i];
-                exitPuzzle = game.puzzles.find(puzzle => puzzle.location.id === currentRoom.id && puzzle.name === exit.name && puzzle.type === "restricted exit");
                 desiredRoom = exit.dest;
                 for (let j = 0; j < desiredRoom.exit.length; j++) {
                     if (desiredRoom.exit[j].name === exit.link) {
@@ -109,14 +109,14 @@ export async function execute(game, message, command, args) {
     if (args.length > 0) {
         if (desiredRoom === null && exit === null) {
             const roomName = args.join(" ");
-            return messageHandler.addReply(game, message, `Couldn't find room or exit "${roomName}".`);
+            return addReply(game, message, `Couldn't find room or exit "${roomName}".`);
         }
         else {
             const missingPlayers = args.join(", ");
-            return messageHandler.addReply(game, message, `Couldn't find player(s): ${missingPlayers}.`);
+            return addReply(game, message, `Couldn't find player(s): ${missingPlayers}.`);
         }
     }
-    if (players.length === 0) return messageHandler.addReply(game, message, "You need to specify at least one player.");
+    if (players.length === 0) return addReply(game, message, "You need to specify at least one player.");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -141,39 +141,13 @@ export async function execute(game, message, command, args) {
                 }
             }
 
-            const appendString = players[i].createMoveAppendString();
-            var exitMessage;
-            if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}${appendString}`;
-            else exitMessage = `${players[i].displayName} exits${appendString}`;
-            var entranceMessage;
-            if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
-            else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Clear the player's movement timer first.
             players[i].stopMoving();
-            // Solve the exit puzzle, if applicable.
-            if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
-                exitPuzzle.solve(players[i], "", players[i].name, true);
             // Move the player.
-            currentRoom.removePlayer(players[i], exit, exitMessage);
-            desiredRoom.addPlayer(players[i], entrance, entranceMessage, true);
+            const action = new MoveAction(game, message, players[i], players[i].location, true);
+            action.performMove(false, currentRoom, desiredRoom, exit, entrance);
         }
     }
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `The listed players have been moved to ${desiredRoom.channel}.`);
-
-    // Create a list of players moved for the log message.
-    var playerList = players[0].name;
-    if (players.length === 2) playerList += ` and ${players[1].name}`;
-    else if (players.length >= 3) {
-        for (let i = 1; i < players.length; i++) {
-            if (i === players.length - 1) playerList += `, and ${players[i].name}`;
-            else playerList += `, ${players[i].name}`;
-        }
-    }
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    messageHandler.addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
-
-    return;
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `The listed players have been moved to ${desiredRoom.channel}.`);
 }

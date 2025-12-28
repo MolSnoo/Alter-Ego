@@ -35,6 +35,125 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player started moving toward an exit.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {boolean} isRunning - Whether or not the player is running.
+	 * @param {string} exitName - The name of the exit the player is moving toward.
+	 */
+	generateStartMoveNotification(player, secondPerson, isRunning, exitName) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `start` : `starts`;
+		const action = isRunning ? `running` : `walking`;
+		return `${subject} ${verb} ${action} toward ${exitName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player has depleted half of their stamina while moving.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 */
+	generateHalfStaminaNotification(player, secondPerson) {
+		const subject = secondPerson ? `Your breathing` : `${player.displayName}'s breathing`;
+		const sentence2 = secondPerson ? `You might want to stop moving and rest soon.` : `It seems like ${player.pronouns.sbj}${player.pronouns.plural ? `'re` : `'s`} starting to get tired.`;
+		return `${subject} is starting to get heavy. ${sentence2}`;
+	}
+
+	/**
+	 * Generates a notification indicating the player has become weary.
+	 * @param {Player} player - The player referred to in this notification.
+	 */
+	generateWearyNotification(player) {
+		return `${player.displayName} stops moving. ${player.pronouns.Sbj} ${player.pronouns.plural ? `seem` : `seems`} weary.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player has stopped moving.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 */
+	generateStopNotification(player, secondPerson) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `stop` : `stops`;
+		return `${subject} ${verb} moving.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player cannot move to an exit because it is locked.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} exitPhrase - The phrase of the locked exit.
+	 */
+	generateExitLockedNotification(player, secondPerson, exitPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `try` : `tries`;
+		return `${subject} ${verb} to open ${exitPhrase}, but it seems to be locked.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player exited a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} exitName - The name of the exit the player exited through.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateExitNotification(player, secondPerson, exitName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `exit` : `exits`;
+		const exitPhrase = exitName ? ` into ${exitName}` : ``;
+		return `${subject} ${verb}${exitPhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player with the free movement role exited a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} roomName - The display name of the room the player exited.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateSuddenExitNotification(player, secondPerson, roomName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `exit ${roomName}` : `suddenly disappears`;
+		const punctuation = secondPerson ? `.` : `!`;
+		return `${subject} ${verb}${appendString}${punctuation}`;
+	}
+
+	/**
+	 * Generates a notification indicating the player entered a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} entranceName - The name of the exit the player entered through.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateEnterNotification(player, secondPerson, entranceName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `enter` : `enters`;
+		const exitPhrase = entranceName ? ` from ${entranceName}` : ``;
+		return `${subject} ${verb}${exitPhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player with the free movement role entered a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} roomName - The display name of the room the player entered.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateSuddenEnterNotification(player, secondPerson, roomName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `enter ${roomName}` : `suddenly appears`;
+		const punctuation = secondPerson ? `.` : `!`;
+		return `${subject} ${verb}${appendString}${punctuation}`;
+	}
+
+	/**
+	 * Generates a notification indicating the player with the `no sight` behavior attribute entered a room.
+	 */
+	generateNoSightEnterNotification() {
+		return `Fumbling against the wall, you make your way to the next room over.`;
+	}
+
+	/**
 	 * Generates a notification indicating a hidden player was found in their hiding spot.
 	 * @param {string} playerDisplayName - The display name of the player who found them.
 	 */
@@ -113,6 +232,14 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player can no longer whisper because they left the room.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateExitLeaveWhisperNotification(playerDisplayName) {
+		return `${playerDisplayName} leaves the room.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player was inflicted with a status effect with the ID `asleep`.
 	 * @param {string} playerDisplayName - The display name of the player.
 	 */
@@ -162,7 +289,7 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
-	 * Generates a notification indicating the player hide in a fixture.
+	 * Generates a notification indicating the player hid in a fixture.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
 	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the player is hiding in.

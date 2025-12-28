@@ -58,11 +58,91 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates a start move action.
+	 * @param {boolean} isRunning - Whether or not the player is running.
+	 * @param {Exit} exit - The exit the player is moving toward. 
+	 * @param {Player} player - The player performing the start move action. 
+	 */
+	narrateStartMove(isRunning, exit, player) {
+		const notification = this.#game.notificationGenerator.generateStartMoveNotification(player, true, isRunning, exit.name);
+		const narration = this.#game.notificationGenerator.generateStartMoveNotification(player, false, isRunning, exit.name);
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates the player depleting half of their stamina.
+	 * @param {Player} player - The player who has depleted half of their stamina.
+	 */
+	narrateReachedHalfStamina(player) {
+		const notification = this.#game.notificationGenerator.generateHalfStaminaNotification(player, true);
+		const narration = this.#game.notificationGenerator.generateHalfStaminaNotification(player, false);
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates the player becoming weary.
+	 * @param {Player} player - The player who became weary.
+	 */
+	narrateWeary(player) {
+		const wearyStatus = this.#game.entityFinder.getStatusEffect("weary");
+		const narration = this.#game.notificationGenerator.generateWearyNotification(player);
+		player.sendDescription(wearyStatus.inflictedDescription, wearyStatus);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a player exiting a room.
+	 * @param {Room} currentRoom - The room the player is currently in.
+	 * @param {Exit} exit - The exit the player will leave their current room through.
+	 * @param {Player} player - The player performing the move action.
+	 */
+	narrateExit(currentRoom, exit, player) {
+		const appendString = player.createMoveAppendString();
+		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.resolve(this.#game.guildContext.freeMovementRole);
+		const exitNotification = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenExitNotification(player, true, currentRoom.displayName, appendString)
+			: this.#game.notificationGenerator.generateExitNotification(player, true, exit.name, appendString);
+		const exitNarration = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenExitNotification(player, false, currentRoom.displayName, appendString)
+			: this.#game.notificationGenerator.generateExitNotification(player, false, exit.name, appendString);
+		player.notify(exitNotification);
+		this.#sendNarration(player, exitNarration, currentRoom);
+	}
+
+	/**
+	 * Narrates a player entering a room.
+	 * @param {Room} destinationRoom  The room the player is moving to.
+	 * @param {Exit} entrance - The exit the player will enter the destination room from.
+	 * @param {Player} player - The player performing the move action.
+	 */
+	narrateEnter(destinationRoom, entrance, player) {
+		const appendString = player.createMoveAppendString();
+		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.resolve(this.#game.guildContext.freeMovementRole);
+		const enterNarration = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenEnterNotification(player, false, destinationRoom.displayName, appendString)
+			: this.#game.notificationGenerator.generateEnterNotification(player, false, entrance.name, appendString);
+		this.#sendNarration(player, enterNarration, destinationRoom);
+		if (player.hasBehaviorAttribute("no sight")) {
+			const enterNotification = this.#game.notificationGenerator.generateNoSightEnterNotification();
+			player.notify(enterNotification);
+		}
+		else {
+			const description = entrance ? entrance.description : destinationRoom.description;
+			player.sendDescription(description, destinationRoom);
+		}
+	}
+
+	/**
 	 * Narrates a stop action.
 	 * @param {Player} player - The player performing the stop action.
+	 * @param {boolean} exitLocked - Whether or not the action was initiated because the destination exit was locked.
+	 * @param {Exit} [exit] - The exit the player tried to move to, if applicable.
 	 */
-	narrateStop(player) {
-		const narration = `${player.displayName} stops moving.`;
+	narrateStop(player, exitLocked, exit) {
+		const notification = exitLocked ? this.#game.notificationGenerator.generateExitLockedNotification(player, true, exit.getNamePhrase())
+			: this.#game.notificationGenerator.generateStopNotification(player, true);
+		const narration = exitLocked ? this.#game.notificationGenerator.generateExitLockedNotification(player, false, exit.getNamePhrase())
+			: this.#game.notificationGenerator.generateStopNotification(player, false);
+		player.notify(notification);
 		this.#sendNarration(player, narration);
 	}
 

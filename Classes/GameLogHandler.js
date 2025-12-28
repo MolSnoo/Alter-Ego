@@ -68,6 +68,18 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a move action.
+	 * @param {boolean} isRunning - Whether the player is running.
+	 * @param {Room} destination - The room the player moved to.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logMove(isRunning, destination, player, forced) {
+		const verb = isRunning ? `ran` : `moved`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${verb} to ${destination.channel}`);
+	}
+
+	/**
 	 * Logs an inspect action.
 	 * @param {Room|Fixture|RoomItem|InventoryItem|Player} target - The target of the inspect action.
 	 * @param {Player} player - The player who performed the action.

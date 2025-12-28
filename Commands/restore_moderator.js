@@ -39,8 +39,6 @@ export async function execute (game, message, command, args) {
     }
     if (player === null) return messageHandler.addReply(game, message, `Player "${args[0]}" not found.`);
 
-    player.stamina = player.maxStamina;
+    player.restoreStamina();
     messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Fully restored ${player.name}'s stamina.`);
-
-    return;
 }

@@ -187,7 +187,7 @@ export default class GameEntityManager {
 	updateRoomReferences(room) {
 		this.game.livingPlayersCollection.forEach(player => {
 			if (Room.generateValidId(player.locationDisplayName) === room.id)
-				room.addPlayer(player, null, null, false);
+				room.addPlayer(player);
 		});
 		this.game.fixtures.forEach(fixture => {
 			if (Room.generateValidId(fixture.locationDisplayName) === room.id)
