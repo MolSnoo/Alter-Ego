@@ -127,6 +127,4 @@ export async function execute (game, message, command, args) {
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully hid ${player.name} in the ${fixture.name}.`);
         // Log message is sent when status is inflicted.
     }
-
-    return;
 }

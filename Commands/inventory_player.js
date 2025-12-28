@@ -35,6 +35,4 @@ export async function execute (game, message, command, args, player) {
 
     const inventoryString = player.viewInventory("Your", false);
     player.notify(inventoryString);
-
-    return;
 }

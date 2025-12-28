@@ -85,6 +85,4 @@ export async function execute (game, message, command, args) {
         player.setPronouns(player.pronouns, player.pronounString);
     }
     else addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully set ${player.name}'s pronouns.`);
-
-    return;
 }

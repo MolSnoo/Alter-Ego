@@ -164,6 +164,4 @@ export async function execute(game, message, command, args) {
     // Post log message.
     const time = new Date().toLocaleTimeString();
     addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
-
-    return;
 }

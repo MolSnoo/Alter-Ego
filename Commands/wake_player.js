@@ -37,6 +37,4 @@ export async function execute (game, message, command, args, player) {
 
     if (!player.statusCollection.has("asleep")) return addReply(game, message, "You are not currently asleep.");
     player.cure("asleep", true, true, true);
-
-    return;
 }

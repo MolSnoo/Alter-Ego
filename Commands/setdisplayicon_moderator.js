@@ -51,6 +51,4 @@ export async function execute (game, message, command, args) {
 
     player.displayIcon = input;
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display icon.`);
-
-    return;
 }

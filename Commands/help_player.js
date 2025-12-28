@@ -97,6 +97,4 @@ export async function execute (game, message, command, args, player) {
         if (!command) return addReply(game, message, `Couldn't find command "${args[0]}".`);
         addCommandHelp(game, message.author.dmChannel, command);
     }
-
-    return;
 }

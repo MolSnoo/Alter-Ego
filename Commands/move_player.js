@@ -49,6 +49,4 @@ export async function execute (game, message, command, args, player) {
 
     player.moveQueue = args.join(" ").split(">");
     player.queueMovement(false, player.moveQueue[0].trim());
-
-    return;
 }

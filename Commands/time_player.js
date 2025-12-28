@@ -36,6 +36,4 @@ export async function execute (game, message, command, args, player) {
 
     const timeMessage = `It is currently **${new Date().toLocaleTimeString()}** on **${new Date().toDateString()}**.`;
     addDirectNarration(player, timeMessage, false);
-
-    return;
 }

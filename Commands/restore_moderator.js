@@ -36,6 +36,4 @@ export async function execute (game, message, command, args) {
 
     player.stamina = player.maxStamina;
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Fully restored ${player.name}'s stamina.`);
-
-    return;
 }

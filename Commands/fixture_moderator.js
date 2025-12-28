@@ -131,6 +131,4 @@ export async function execute (game, message, command, args) {
         // Post log message.
         if (player) addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
     }
-
-    return;
 }

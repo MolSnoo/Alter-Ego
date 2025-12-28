@@ -780,8 +780,6 @@ async function testadd (game, fileName, formatted, player) {
         }
         await appendFile(fileName, text);
     }
-
-    return;
 }
 
 /**

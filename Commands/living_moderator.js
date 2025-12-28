@@ -31,6 +31,4 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     let playerList = `Living players:\n${game.entityFinder.getLivingPlayers().map(player => player.name).join(" ")}`;
     addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
-
-    return;
 }

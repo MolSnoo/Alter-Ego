@@ -115,8 +115,6 @@ export async function execute (game, message, command, args) {
 
     if (npc !== null)
         await sendMessageToWhisper(game, message, string, npc, whisper);
-
-    return;
 }
 
 /**

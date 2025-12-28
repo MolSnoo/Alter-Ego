@@ -93,6 +93,4 @@ export async function execute (game, command, args, player, callee) {
         // Revert the player's pronouns.
         player.setPronouns(player.pronouns, player.pronounString);
     }
-
-    return;
 }

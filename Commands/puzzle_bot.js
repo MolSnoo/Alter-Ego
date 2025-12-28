@@ -164,6 +164,4 @@ export async function execute (game, command, args, player, callee) {
         if (player === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
         player.attemptPuzzle(puzzle, null, input, command, input, null, targetPlayer);
     }
-
-    return;
 }

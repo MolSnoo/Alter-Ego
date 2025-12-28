@@ -83,6 +83,4 @@ export async function execute(game, message, command, args) {
         console.log(err);
         addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
     }
-
-    return;
 }

@@ -187,6 +187,4 @@ export async function execute (game, message, command, args) {
             }
         }
     }
-
-    return;
 }

@@ -57,6 +57,4 @@ export async function execute(game, message, command, args) {
     statsString += `Spd: ${player.speed} [` + (spdModifier > 0 ? '+' : '') + `${spdModifier}]\n`;
     statsString += `Sta: ${Math.round(player.stamina * 100) / 100}/${player.maxStamina} [` + (staModifier > 0 ? '+' : '') + `${staModifier}]`;
     addGameMechanicMessage(game, game.guildContext.commandChannel, statsString);
-
-    return;
 }

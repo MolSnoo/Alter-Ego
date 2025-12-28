@@ -47,6 +47,4 @@ export async function execute (game, message, command, args) {
     await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the default room icon.`);
-
-    return;
 }

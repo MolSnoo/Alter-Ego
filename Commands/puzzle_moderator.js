@@ -149,6 +149,4 @@ export async function execute (game, message, command, args) {
         player.attemptPuzzle(puzzle, null, input, command, input, message, targetPlayer);
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
-
-    return;
 }

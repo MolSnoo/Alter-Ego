@@ -72,6 +72,4 @@ export async function execute (game, message, command, args) {
         player.voiceString = input;
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s voice descriptor.`);
     }
-
-    return;
 }

@@ -55,6 +55,4 @@ export async function execute (game, message, command, args) {
     }
 
     addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players have been given the Dead role.");
-
-    return;
 }

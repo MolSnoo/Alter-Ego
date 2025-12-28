@@ -175,6 +175,4 @@ export async function execute (game, command, args, player, callee) {
             else puzzle.setInaccessible();
         }
     }
-
-    return;
 }
