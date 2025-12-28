@@ -21,6 +21,6 @@ describe("dead_moderator command", () => {
         /** @type {import('vitest').Mock} */
         // @ts-ignore
         const sendMock = game.guildContext.commandChannel.send;
-        expect(sendMock).toHaveBeenCalledExactlyOnceWith("Dead players:\nEvad");
+        expect(sendMock).toHaveBeenCalledExactlyOnceWith("Dead players:\nEvad, Wu");
     });
 });
