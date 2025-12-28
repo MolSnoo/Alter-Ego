@@ -1,12 +1,16 @@
+import Game from "../Data/Game.js";
 import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
 import { addGameMechanicMessage } from "../Modules/messageHandler.js";
+import { itemIdentifierMatches } from "../Modules/matchers.js";
+import { arSA } from "date-fns/locale";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
-/** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
+/** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
+/** @typedef {import('../Data/InventorySlot.js').default} InventorySlot */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -59,98 +63,87 @@ export async function execute (game, command, args, player, callee) {
         return;
     }
 
-    const input = args.join(" ");
-    let parsedInput = input.toUpperCase().replace(/\'/g, "");
-    const undashedInput = parsedInput.replace(/-/g, " ");
+    let newArgs = args.map((arg) => Game.generateValidEntityName(arg));
 
-    const room = game.entityFinder.getRooms(undashedInput.substring(undashedInput.lastIndexOf(" AT ") + 4), null, null, true)[0];
-    if (room) {
-        parsedInput = parsedInput.substring(0, undashedInput.lastIndexOf(" AT "));
-    }
+    const atIndex = newArgs.lastIndexOf("AT");
+    const room = (atIndex > -1) ? game.entityFinder.getRoom(newArgs.slice(atIndex+1).join(" ")) : undefined;
 
-    let destroyAll = false;
-    let item = null;
+    let destroyAll = (newArgs[0] === "ALL");
     // Room was found. Look for the container in it.
-    if (room !== undefined) {
-        let containerItem = null;
-        let containerItemSlot = null;
+    if (room) {
+        /** @type {RoomItem} */
+        let item;
+        /** @type {Fixture | Puzzle | RoomItem} */
+        let container = null;
+        /** @type {InventorySlot} */
+        let slot;
+
+        newArgs = newArgs.splice(0, atIndex);
+
         // Check if a container item was specified.
         const roomItems = game.entityFinder.getRoomItems(null, room.id);
-        for (let i = 0; i < roomItems.length; i++) {
-            // TODO: this can probably be optimized further...?
-            // If parsedInput is only the identifier or the item's name, we've found the item to delete.
-            if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput || roomItems[i].prefab && roomItems[i].prefab.id === parsedInput) {
-                item = roomItems[i];
-                break;
-            }
-            if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "") {
-                if (roomItems[i].inventoryCollection.size === 0 || roomItems[i].prefab.preposition === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${roomItems[i].getIdentifier()} cannot hold items.`);
-                containerItem = roomItems[i];
-
-                if (parsedInput.endsWith(roomItems[i].identifier) && roomItems[i].identifier !== "")
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(roomItems[i].identifier)).trimEnd();
-                else if (parsedInput.endsWith(roomItems[i].prefab.id))
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(roomItems[i].prefab.id)).trimEnd();
-                let newArgs = parsedInput.split(' ');
-                // Check if a slot was specified.
-                if (parsedInput.endsWith(" OF")) {
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
-                    newArgs = parsedInput.split(' ');
-                    for (const [id, slot] of containerItem.inventoryCollection) {
-                        if (parsedInput.endsWith(id)) { // TODO: optimize with arg slicing
-                            containerItemSlot = slot;
-                            parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
-                            break;
-                        }
-                    }
-                    if (containerItemSlot === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.getIdentifier()}.`);
-                }
-                if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
-                else if (parsedInput.endsWith(" IN"))
-                    parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" IN")).trimEnd();
-                break;
-            }
-        }
-        if (containerItem !== null && containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
-
-        // Check if a fixture was specified.
-        let fixture = null;
-        if (containerItem === null && item === null) {
-            const fixtures = game.fixtures.filter(fixture => fixture.location.id === room.id && fixture.accessible);
-            for (let i = 0; i < fixtures.length; i++) {
-                if (fixtures[i].name === parsedInput) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply an item and a preposition.`);
-                if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(`IN ${fixtures[i].name}`)) {
-                    fixture = fixtures[i];
-                    if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`))
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`)).trimEnd();
-                    else if (parsedInput.endsWith(`IN ${fixtures[i].name}`))
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`IN ${fixtures[i].name}`)).trimEnd();
-                    else
-                        parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(fixtures[i].name)).trimEnd();
+        for (let i = 0; i < newArgs.length; i++) {
+            let find = roomItems.find((item) => itemIdentifierMatches(item, newArgs.slice(i).join(" ")));
+            if (find) {
+                // If we have a complete slice of newArgs, we've found the item to delete.
+                if (i === 0) {
+                    item = find;
+                    newArgs = newArgs.slice(0, i);
+                    break;
+                } else {
+                    if (find.inventoryCollection.size === 0 || find.prefab.preposition === "")
+                        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${find.getIdentifier()} cannot hold items.`);
+                    container = find;
+                    newArgs = newArgs.slice(0, i);
                     break;
                 }
             }
         }
-
-        // Now decide what the container should be.
-        let container = null;
-        let slotName = "";
-        if (fixture !== null && fixture.childPuzzle === null && containerItem === null)
-            container = fixture;
-        else if (fixture !== null && fixture.childPuzzle !== null && containerItem === null)
-            container = fixture.childPuzzle;
-        else if (containerItem !== null) {
-            container = containerItem;
-            slotName = containerItemSlot.id;
+        // Check if a slot was specified.
+        if (container && newArgs.slice(-1)[0] === "OF" && container instanceof RoomItem) {
+            newArgs = newArgs.slice(0, -1);
+            for (const [id, collectionSlot] of container.inventoryCollection) {
+                for (let i = 0; i < newArgs.length; i++) {
+                    if (newArgs.slice(i).join(" ") === id) {
+                        slot = collectionSlot;
+                        newArgs = newArgs.slice(0, i);
+                        break;
+                    }
+                }
+                if (slot) break;
+            }
+            if (!slot) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${container.getIdentifier()}.`);
         }
-        else if (item !== null)
-            container = item.container;
-        else
-            container = null;
+        if (container && !slot && container instanceof RoomItem) {
+            [slot] = container.inventoryCollection.values();
+        }
 
+        // Check if a fixture was specified.
+        if (!container && !item) {
+            const fixtures = game.entityFinder.getFixtures(null, room.id, true);
+            for (let i = 0; i < newArgs.length; i++) {
+                let find = fixtures.find((fixture) => fixture.name === newArgs.slice(i).join(" "));
+                if (find) {
+                    if (i === 0) {
+                        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply an item and a preposition.`);
+                    } else {
+                        if (newArgs.slice(i - 1, i)[0] === "IN" || newArgs.slice(i - 1, i)[0] === find.preposition.toUpperCase()) {
+                            container = find;
+                            newArgs = newArgs.slice(0, i - 1);
+                            break;
+                        } else {
+                            container = find;
+                            newArgs = newArgs.slice(0, i);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        /** @type {Array<RoomItem>} */
         let containerItems = [];
-        // Container is a Room.
+         // Container is a Room.
         if (container === null)
             containerItems = roomItems;
         // Container is a Fixture.
@@ -161,182 +154,165 @@ export async function execute (game, command, args, player, callee) {
             containerItems = roomItems.filter(item => item.containerName === `Puzzle: ${container.name}`);
         // Container is a RoomItem.
         else if (container instanceof RoomItem)
-            containerItems = roomItems.filter(item => item.containerName === `Item: ${container.identifier}/${slotName}`);
-
-        const newArgs = parsedInput.split(" ");
-        if (newArgs[0] === "ALL") {
-            destroyAll = true;
-            newArgs.splice(0, 1);
-            parsedInput = newArgs.join(" ");
-        }
+            containerItems = roomItems.filter(item => item.containerName === `Item: ${container.identifier}/${slot.id}`);
 
         if (destroyAll) {
-            if (parsedInput !== "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" at ${room.id}`);
-            for (let i = 0; i < containerItems.length; i++)
-                destroyItem(containerItems[i], containerItems[i].quantity, true);
-        }
-        else {
+            newArgs.splice(0, 1);
+            if (newArgs.length !== 0)
+                return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs.join(" ")}" at ${room.id}`);
+            for (const containerItem of containerItems)
+                destroyItem(containerItem, containerItem.quantity, true);
+        } else {
             // Find the item if it hasn't been found already.
-            if (item === null) {
-                for (let i = 0; i < containerItems.length; i++) {
-                    if (containerItems[i].identifier === parsedInput || containerItems[i].prefab.id === parsedInput) {
-                        item = containerItems[i];
+            if (!item) {
+                for (const containerItem of containerItems) {
+                    if (itemIdentifierMatches(containerItem, newArgs.join(" "))) {
+                        item = containerItem;
                         break;
                     }
                 }
             }
-            if (item === null) return;
+            if (!item) return;
 
-            destroyItem(item, item.quantity, true);
+            destroyItem(item, item.quantity, true)
         }
-    }
-    else {
+    } else {
+        /** @type {InventoryItem} */
+        let item;
+        /** @type {Array<Player>} */
         let players = [];
         // Iterate in reverse so that the "all" argument for players doesn't conflict with the "all" argument for items.
         for (let i = args.length - 1; i >= 0; i--) {
-            if (args[i].toLowerCase().replace(/'s/g, "") === "player" && player !== null) {
+            let arg = args[i].toLowerCase().replace(/'s/g, "")
+            if (arg === "player" && player !== null) {
                 players.push(player);
                 args.splice(i, 1);
+                newArgs.splice(i, 1);
                 break;
-            }
-            else if (args[i].toLowerCase().replace(/'s/g, "") === "room" && player !== null) {
+            } else if (arg === "room" && player !== null) {
                 players = player.location.occupants;
                 args.splice(i, 1);
+                newArgs.splice(i, 1);
                 break;
-            }
-            else if (args[i].toLowerCase().replace(/'s/g, "") === "all") {
+            } else if (arg === "all") {
                 players = game.entityFinder.getLivingPlayers();
                 args.splice(i, 1);
+                newArgs.splice(i, 1);
                 break;
-            }
-            else {
-                let playerName = args[i].toLowerCase();
-                if (playerName.endsWith("'s")) {
-                    playerName = playerName.slice(0, -2);
-                }
-
-                const player = game.entityFinder.getLivingPlayer(playerName);
+            } else {
+                const player = game.entityFinder.getLivingPlayer(arg);
                 if (player) {
                     players.push(player);
                     args.splice(i, 1);
+                    newArgs.splice(i, 1);
                     break;
                 }
             }
         }
         if (players.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a room or player in your input.`);
 
-        parsedInput = args.join(" ").toUpperCase().replace(/\'/g, "");
-
-        for (let j = 0; j < players.length; j++) {
-            player = players[j];
-            let parsedInput2 = parsedInput;
+        for (const player of players) {
             let gotoNext = false;
             // Check if an inventory item was specified.
+            /** @type {InventoryItem} */
             let containerItem = null;
+            /** @type {InventorySlot} */
             let containerItemSlot = null;
-            const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
-            for (let i = 0; i < playerItems.length; i++) {
-                // If parsedInput2 is only the identifier or the item's name, we've found the item to delete.
-                if (playerItems[i].identifier !== "" && playerItems[i].identifier === parsedInput2 || playerItems[i].prefab.id === parsedInput2) {
-                    item = playerItems[i];
-                    break;
-                }
-                if (parsedInput2.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "" || parsedInput2.endsWith(playerItems[i].prefab.id)) {
-                    if (playerItems[i].inventoryCollection.size === 0 || playerItems[i].prefab.preposition === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${playerItems[i].getIdentifier()} cannot hold items.`);
-                    containerItem = playerItems[i];
-
-                    if (parsedInput2.endsWith(playerItems[i].identifier) && playerItems[i].identifier !== "")
-                        parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(playerItems[i].identifier)).trimEnd();
-                    else if (parsedInput2.endsWith(playerItems[i].prefab.id))
-                        parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(playerItems[i].prefab.id)).trimEnd();
-                    let newArgs = parsedInput2.split(' ');
-                    // Check if a slot was specified.
-                    if (parsedInput2.endsWith(" OF")) {
-                        parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(" OF")).trimEnd();
-                        newArgs = parsedInput2.split(' ');
-                        for (const [id, slot] of containerItem.inventoryCollection) {
-                            if (parsedInput2.endsWith(id)) {
-                                containerItemSlot = slot;
-                                parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(id)).trimEnd();
-                                break;
-                            }
-                        }
-                        if (containerItemSlot === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
-                    }
-                    if (parsedInput2.endsWith(containerItem.prefab.preposition.toUpperCase()))
-                        parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
-                    else if (parsedInput2.endsWith(" IN"))
-                        parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(" IN")).trimEnd();
-                    break;
+            const playerItems = player.inventoryCollection.filter(slot => slot.equippedItem && slot.equippedItem.prefab !== null && (slot.equippedItem.quantity > 0 || isNaN(slot.equippedItem.quantity))).map(slot => slot.equippedItem);
+            for (let i = 0; i > newArgs.length; i++) {
+                let find = playerItems.find((item) => itemIdentifierMatches(item, newArgs.slice(i).join(" ")));
+                if (find) {
+                    // If we have a complete slice of newArgs, we've found the item to delete.
+                    if (i === 0) {
+                        item = find;
+                        newArgs = newArgs.slice(0, i);
+                        break;
+                    } else {
+                        if (find.inventoryCollection.size === 0 || find.prefab.preposition === "")
+                            return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${find.getIdentifier()} cannot hold items.`);
+                        containerItem = find;
+                        newArgs = newArgs.slice(0, i);
+                        break;
+                    }  
                 }
             }
-            if (containerItem !== null && containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
-            const slotName = containerItem !== null ? containerItemSlot.id : "";
+            // Check if a slot was specified.
+            if (containerItem && newArgs.slice(-1)[0] === "OF") {
+                newArgs = newArgs.slice(0, -1);
+                for (const [id, collectionSlot] of containerItem.inventoryCollection) {
+                    for (let i = 0; i < newArgs.length; i++) {
+                        if (newArgs.slice(i).join(" ") === id) {
+                            containerItemSlot = collectionSlot;
+                            newArgs = newArgs.slice(0, i);
+                            break;
+                        }
+                    }
+                    if (containerItemSlot) break;
+                }
+                if (!containerItemSlot) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.getIdentifier()}.`);
+            } else if (containerItem && !containerItemSlot) {
+                [containerItemSlot] = containerItem.inventoryCollection.values();
+            }
+            if (containerItem && !containerItemSlot) {
+                [containerItemSlot] = containerItem.inventoryCollection.values();
+            }
 
-            const newArgs = parsedInput2.split(" ");
-            if (newArgs[0] === "ALL") {
-                destroyAll = true;
+            if (destroyAll) {
                 newArgs.splice(0, 1);
-                parsedInput2 = newArgs.join(" ");
             }
 
             let containerItems = [];
             let containerName = "";
             let preposition = "in";
-            // If the item still hasn't been found, but a containerItem was, find it in the container.
             if (containerItem !== null) {
-                containerItems = playerItems.filter(item => item.containerName === `${containerItem.identifier}/${slotName}`);
-                containerName = `${slotName} of ${containerItem.identifier} in ${player.name}'s inventory`;
+                containerItems = playerItems.filter(item => item.containerName === `${containerItem.identifier}/${containerItemSlot.id}`);
+                containerName = `${containerItemSlot.id} of ${containerItem.identifier} in ${player.name}'s inventory`;
                 preposition = containerItem.prefab.preposition ? containerItem.prefab.preposition : "in";
 
                 if (destroyAll) {
-                    for (let i = 0; i < containerItems.length; i++)
-                        destroyInventoryItem(containerItems[i], containerItems[i].quantity, true);
+                    for (const containerItem of containerItems)
+                        destroyInventoryItem(containerItem, containerItem.quantity, true);
                     gotoNext = true;
-                }
-                else {
+                } else {
                     // Find the item if it hasn't been found already.
-                    if (item === null) {
-                        for (let i = 0; i < containerItems.length; i++) {
-                            if (containerItems[i].identifier === parsedInput2 || containerItems[i].prefab.id === parsedInput2) {
-                                item = containerItems[i];
+                    if (!item) {
+                        for (const containerItem of containerItems) {
+                            if (itemIdentifierMatches(containerItem, newArgs.join(" "))) {
+                                item = containerItem;
                                 break;
                             }
                         }
-                        if (item === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find item "${parsedInput2}" ${preposition} ${containerName}.`);
+                        if (!item)
+                            return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find item "${newArgs.join(" ")}" ${preposition} ${containerName}.`);
                     }
                 }
-            }
-            else {
+            } else {
                 // Check if an equipment slot was specified.
                 let equipmentSlotName = "";
-                if (player.inventoryCollection.get(parsedInput2)) {
-                    item = player.inventoryCollection.get(parsedInput2).equippedItem
-                    equipmentSlotName = parsedInput2;
-                    if (item === null) gotoNext = true;
+                if (player.inventoryCollection.has(newArgs.join(" "))) {
+                    item = player.inventoryCollection.get(newArgs.join(" ")).equippedItem;
+                    equipmentSlotName = newArgs.join(" ");
+                    if (!item) gotoNext = true;
                     if (destroyAll) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipment slot.`);
-                }
-                else {
+                } else {
                     for (const [id, slot] of player.inventoryCollection) {
-                        if (slot.equippedItem !== null && slot.equippedItem.identifier === parsedInput2 || slot.equippedItem.prefab.id === parsedInput2) {
-                            item = slot.equippedItem
-                            equipmentSlotName = id
+                        if (slot.equippedItem && itemIdentifierMatches(slot.equippedItem, newArgs.join(" "))) {
+                            item = slot.equippedItem;
+                            equipmentSlotName = id;
                             if (destroyAll) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "all" argument cannot be used when the container is an equipped item.`);
                             break;
                         }
                     }
                 }
-                if (item !== null && equipmentSlotName !== "") {
+                if (item && equipmentSlotName !== "") {
                     destroyInventoryItem(item, item.quantity, true);
                     gotoNext = true;
                 }
             }
             if (gotoNext) continue;
 
-            if (item !== null) destroyInventoryItem(item, item.quantity, true);
+            if (item) destroyInventoryItem(item, item.quantity, true);
             else return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" in ${player.name}'s inventory.`);
         }
     }
-
-    return;
 }
