@@ -3,6 +3,14 @@ import Player from "../../../Data/Player.js";
 import { createMockMessage } from "../../__mocks__/libs/discord.js";
 
 describe('DieAction test', () => {
+    beforeEach(async () => {
+        await game.entityLoader.loadAll();
+    });
+
+    afterEach(() => {
+        game.entityLoader.clearAll()
+    })
+
     test('DieAction perform', () => {
         const mockMessage = createMockMessage();
         const player = game.entityFinder.getLivingPlayer("???");
