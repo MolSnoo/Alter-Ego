@@ -215,7 +215,10 @@ export default class GameEntityFinder {
 		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
 		else selectedFilter = matchers.itemNameMatches;
 
-		let output = (slot ? [slot] : [... player.inventoryCollection.values()]).find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
+		/** @type {Collection<string, EquipmentSlot>} */
+		let slots = slot ? new Collection().set(slot.id, slot) : player.inventoryCollection
+
+		let output = slots.find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
 		return output ? [output, output.equippedItem] : [undefined, undefined];
 	}
 
@@ -303,7 +306,7 @@ export default class GameEntityFinder {
 		if (name) selectedFilters.set(Game.generateValidEntityName(name), fuzzySearch ? matchers.exitNameContains : matchers.exitNameMatches);
 		if (dest) selectedFilters.set(Room.generateValidId(dest), matchers.exitDestMatches);
 		if (locked !== undefined && locked !== null) selectedFilters.set(locked, matchers.exitLockedMatches);
-		return room.exitCollection.filter(exit => selectedFilters.every((filterFunction, key) => filterFunction(room, key))).map(exit => exit);
+		return room.exitCollection.filter(exit => selectedFilters.every((filterFunction, key) => filterFunction(exit, key))).map(exit => exit);
 	}
 
 	/**

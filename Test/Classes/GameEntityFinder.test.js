@@ -410,8 +410,38 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getPlayerHandHoldingItem test", () => {
-        test("TODO: No players in mock data hold an item!", () => {
-            expect(false).toBeTruthy();
+        test("Get player holding item by name", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "COFFEE");
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.name).toBe("COFFEE");
+        });
+        test("Get player holding item by prefab id", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "MUG OF COFFEE", true);
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.prefab.id).toBe("MUG OF COFFEE");
+        });
+        test("Get player holding item by mixed case name", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "COFFee");
+            expect(slot).toBeInstanceOf(EquipmentSlot);
+            expect(item).toBeInstanceOf(InventoryItem);
+            expect(item.name).toBe("COFFEE");
+        });
+        test("Get player holding invalid item by name", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID");
+            expect(slot).toBeUndefined();
+            expect(item).toBeUndefined();
+        });
+        test("Get player holding invalid item by prefab id", () => {
+            let player = game.entityFinder.getLivingPlayer("Kyra");
+            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID", true);
+            expect(slot).toBeUndefined();
+            expect(item).toBeUndefined();
         });
     });
 
@@ -706,6 +736,64 @@ describe("GameEntityFinder test", () => {
     });
 
     describe("getExits test", () => {
+        test("Get all exits", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exits = game.entityFinder.getExits(room);
+            expect(exits.length).toBe(5);
+            for (const exit of exits) {
+                expect(exit).toBeInstanceOf(Exit);
+            }
+        });
+        test("Get all exits with name", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exits = game.entityFinder.getExits(room, "REVOLVING DOOR 1");
+            expect(exits.length).toBe(1);
+            expect(exits[0].name).toBe("REVOLVING DOOR 1");
+        });
+        test("Get all exits with name in mixed case", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exits = game.entityFinder.getExits(room, "Revolving Door 2");
+            expect(exits.length).toBe(1);
+            expect(exits[0].name).toBe("REVOLVING DOOR 2")
+        });
+        test("Get all exits with destination", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exits = game.entityFinder.getExits(room, null, "floor-1-hall-1");
+            expect(exits.length).toBe(2);
+            for (const exit of exits) {
+                expect(exit.name).toBeOneOf(["REVOLVING DOOR 1", "REVOLVING DOOR 2"]);
+            }
+        });
+        test("Get all exits with destination in imperfect format", () => {
+            let room = game.entityFinder.getRoom("lobby");
+            let exits = game.entityFinder.getExits(room, null, "Floor 1 Hall 1");
+            expect(exits.length).toBe(2);
+            for (const exit of exits) {
+                expect(exit.name).toBeOneOf(["REVOLVING DOOR 1", "REVOLVING DOOR 2"]);
+            }
+        });
+        test("Get all exits if locked", () => {
+            let room = game.entityFinder.getRoom("floor-1-hall-1");
+            let exits = game.entityFinder.getExits(room, null, null, true);
+            expect(exits.length).toBe(1);
+            expect(exits[0].name).toBe("ELEVATOR");
+        });
+        test("Get all exits if unlocked", () => {
+            let room = game.entityFinder.getRoom("floor-1-hall-1");
+            let exits = game.entityFinder.getExits(room, null, null, false);
+            expect(exits.length).toBe(6);
+            for (const exit of exits) {
+                expect(exit.name).toBeOneOf(["HALL 2", "HALL 4", "REVOLVING DOOR 1", "REVOLVING DOOR 2", "KITCHEN", "FITNESS ROOM"]);
+            }
+        });
+        test("Get all exits by imprecise name", () => {
+            let room = game.entityFinder.getRoom("floor-1-hall-1");
+            let exits = game.entityFinder.getExits(room, "Revolving Door", null, null, true);
+            expect(exits.length).toBe(2);
+            for (const exit of exits) {
+                expect(exit.name).toBeOneOf(["REVOLVING DOOR 1", "REVOLVING DOOR 2"]);
+            }
+        })
     })
 
     describe("getFixtures test", () => {
