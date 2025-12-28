@@ -1,4 +1,5 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import CureAction from '../Data/Actions/CureAction.js';
 import InflictAction from '../Data/Actions/InflictAction.js';
 import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
@@ -92,6 +93,7 @@ export async function execute(game, message, command, args) {
     if (command !== "view") {
         status = game.entityFinder.getStatusEffect(input);
         if (status === null) return addReply(game, message, `Couldn't find status effect "${input}".`);
+        if (status.id === "hidden") return addReply(game, message, `To inflict or cure "hidden", use the hide/unhide command instead.`);
     }
 
     if (command === "inflict") {
@@ -104,19 +106,22 @@ export async function execute(game, message, command, args) {
         }
         else {
             const action = new InflictAction(game, message, players[0], players[0].location, true);
-            action.performInflict(status, true, true, true);
-            addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added.");
+            const doResponse = action.performInflict(status, true, true, true);
+            if (doResponse) addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added.");
         }
     }
     else if (command === "cure") {
         if (players.length > 1) {
-            for (let i = 0; i < players.length; i++)
-                players[i].cure(input.toLowerCase(), true, true, true);
+            for (let i = 0; i < players.length; i++) {
+                const action = new CureAction(game, undefined, players[i], players[i].location, true);
+                action.performCure(status, true, true, true);
+            }
             addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully removed status effect from the listed players.");
         }
         else {
-            const response = players[0].cure(input.toLowerCase(), true, true, true);
-            addGameMechanicMessage(game, game.guildContext.commandChannel, response);
+            const action = new CureAction(game, message, players[0], players[0].location, true);
+            const doResponse = action.performCure(status, true, true, true);
+            if (doResponse) addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully removed status effect.");
         }
     }
     else if (command === "view") {

@@ -17,6 +17,7 @@ import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
 
+import CureAction from './Actions/CureAction.js';
 import DieAction from './Actions/DieAction.js';
 import InflictAction from './Actions/InflictAction.js';
 
@@ -753,7 +754,8 @@ export default class Player extends ItemContainer {
 
                 if (statusInstance.remaining.as('milliseconds') <= 0) {
                     if (statusInstance.nextStage) {
-                        player.cure(statusInstance.id, false, false, true);
+                        const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
+                        cureAction.performCure(statusInstance.nextStage, false, false, true);
                         let inflictNextStage = true;
                         const playerStatusIds = player.status.map(statusEffect => statusEffect.id);
                         for (const overrider of statusInstance.nextStage.overriders) {
@@ -775,7 +777,8 @@ export default class Player extends ItemContainer {
                             action.performDie();
                         }
                         else {
-                            player.cure(statusInstance.id, true, true, true);
+                            const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
+                            cureAction.performCure(statusInstance, true, true, true);
                         }
                     }
                 }
@@ -789,82 +792,24 @@ export default class Player extends ItemContainer {
 
     /**
      * Removes a status effect from the player.
-     * @param {string} statusId
-     * @param {boolean} [notify=true] - Whether or not to send the player the status's curedDescription. Defaults to true.
-     * @param {boolean} [doCuredCondition=true] - Whether or not to turn the status into its curedCondition. Defaults to true.
-     * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being cured. Defaults to true.
-     * @param {InventoryItem} [item] - The inventory item that caused the status to be cured, if applicable.
-     * @returns {string} A message indicating whether the status was successfully cured, or if not, why it wasn't.
+     * @param {Status} status - The status to cure.
      */
-    cure(statusId, notify = true, doCuredCondition = true, narrate = true, item) {
+    cure(status) {
         /** @type {Status} */
-        let status = null;
-        let statusIndex = -1;
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].id.toLowerCase() === statusId.toLowerCase()) {
-                status = this.status[i];
-                statusIndex = i;
+        let statusInstance = null;
+        let statusIndex = 0;
+        for (statusIndex; statusIndex < this.status.length; statusIndex++) {
+            if (this.status[statusIndex].id === status.id) {
+                statusInstance = this.status[statusIndex];
                 break;
             }
         }
-        if (status === null) return "Specified player doesn't have that status effect.";
-
-        if (status.behaviorAttributes.includes("no channel") && this.getBehaviorAttributeStatusEffects("no channel").length - 1 === 0)
-            this.location.joinChannel(this);
-        if (status.behaviorAttributes.includes("hidden")) {
-            if (narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
-            this.removeFromWhispers(`${this.displayName} comes out of the ${this.hidingSpot}.`);
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden") || occupant.name === this.name));
-            this.hidingSpot = "";
-        }
-        if (status.behaviorAttributes.includes("concealed")) {
-            this.displayName = this.name;
-            if (this.isNPC) this.displayIcon = this.id;
-            else this.displayIcon = null;
-            const maskName = item ? item.singleContainingPhrase : "a MASK";
-            if (narrate) new Narration(this.getGame(), this, this.location, `The ${maskName} comes off, revealing the figure to be ${this.displayName}.`).send();
-            this.setPronouns(this.pronouns, this.pronounString);
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        }
-
-        // Announce when a player awakens.
-        if (status.id === "asleep" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.id === "blacked out" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} regains consciousness.`).send();
-
-        let returnMessage = "Successfully removed status effect.";
-        if (status.curedCondition && doCuredCondition) {
-            const curedConditionAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
-            curedConditionAction.performInflict(status.curedCondition, false, false, true);
-            returnMessage += ` Player is now ${status.curedCondition.id}.`;
-        }
-
-        // Inform player what happened.
-        if (notify) {
-            this.sendDescription(status.curedDescription, status);
-            // If the player is waking up, send them the description of the room they wake up in.
-            if (status.id === "asleep")
-                this.sendDescription(this.location.description, this.location);
-        }
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        messageHandler.addLogMessage(this.getGame(), `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
-
         // Stop the timer.
-        if (status.timer !== null)
-            status.timer.stop();
+        if (statusInstance.timer !== null)
+            statusInstance.timer.stop();
         this.status.splice(statusIndex, 1);
         this.recalculateStats();
-
         this.statusDisplays = this.#generateStatusDisplays(true, true);
-
-        if (status.id === "heated") {
-            const heatedPlayers = this.getGame().entityFinder.getLivingPlayers(null, null, null, null, "heated");
-            if (heatedPlayers.length = 0) this.getGame().heated = false;
-        }
-
-        return returnMessage;
     }
 
     /**
@@ -1082,8 +1027,10 @@ export default class Player extends ItemContainer {
             const inflictAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
             inflictAction.performInflict(effect, true, true, true, item);
         }
-        for (let cure of item.prefab.cures)
-            target.cure(cure.id, true, true, true, item);
+        for (let cure of item.prefab.cures) {
+            const cureAction = new CureAction(this.getGame(), undefined, this, this.location, true);
+            cureAction.performCure(cure, true, true, true, item);
+        }
         if (!isNaN(item.uses))
             item.decreaseUses();
     }

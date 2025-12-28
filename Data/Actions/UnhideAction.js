@@ -1,4 +1,5 @@
 import { default as Action, ActionType } from "../Action.js";
+import CureAction from "./CureAction.js";
 
 /** @typedef {import("../HidingSpot.js").default} HidingSpot */
 
@@ -35,7 +36,9 @@ export default class UnhideAction extends Action {
 			this.player.removeFromWhispers(whisperNarration);
 			this.player.hidingSpot = "";
 		}
-		this.player.cure("hidden", true, false, true);
+		const hiddenStatus = this.getGame().entityFinder.getStatusEffect("hidden");
+		const cureAction = new CureAction(this.getGame(), undefined, this.player, this.player.location, true);
+		cureAction.performCure(hiddenStatus, true, false, true);
 		this.getGame().logHandler.logUnhide(hidingSpot, this.player, this.forced);
 	}
 }

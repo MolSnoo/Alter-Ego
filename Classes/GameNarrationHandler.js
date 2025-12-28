@@ -172,6 +172,26 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates a cure action.
+	 * @param {Status} status - The status being cured.
+	 * @param {Player} player - The player performing the cure action.
+	 * @param {InventoryItem} [item] - The inventory item that caused the status to be cured, if applicable.
+	 */
+	narrateCure(status, player, item) {
+		if (status.behaviorAttributes.includes("concealed")) {
+			const maskName = item ? item.name : "MASK";
+			const unmaskedNarration = this.#game.notificationGenerator.generateConcealedCuredNotification(maskName, player.displayName);
+			this.#sendNarration(player, unmaskedNarration);
+		}
+		else if (status.behaviorAttributes.includes("unconscious")) {
+			let awakenNarration = "";
+			if (status.id === "asleep" || status.id === "blacked out") awakenNarration = this.#game.notificationGenerator.generateWakeUpNotification(player.displayName);
+			else awakenNarration = this.#game.notificationGenerator.generateRegainConsciousnessNotification(player.displayName);
+			this.#sendNarration(player, awakenNarration);
+		}
+	}
+
+	/**
 	 * Narrates a use action.
 	 * @param {InventoryItem} item - The inventory item to use.
 	 * @param {Player} player - The player performing the use action.

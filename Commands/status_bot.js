@@ -1,4 +1,5 @@
 ﻿import GameSettings from "../Classes/GameSettings.js";
+import CureAction from "../Data/Actions/CureAction.js";
 import InflictAction from '../Data/Actions/InflictAction.js';
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
@@ -94,14 +95,17 @@ export async function execute (game, command, args, player, callee) {
     /** @type {Status} */
     const status = game.entityFinder.getStatusEffect(statusId);
     if (!status) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusId}".`);
+    if (status.id === "hidden") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Can't inflict or cure "hidden".`);
 
+    const item = callee instanceof InventoryItem ? callee : undefined;
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict") {
-            const item = callee instanceof InventoryItem ? callee : undefined;
             const action = new InflictAction(game, undefined, players[i], players[i].location, true);
             action.performInflict(status, true, true, true, item);
         }
-        else if (command === "cure")
-            players[i].cure(statusId, true, true, true, callee);
+        else if (command === "cure") {
+            const action = new CureAction(game, undefined, players[i], players[i].location, true);
+            action.performCure(status, true, true, true, item);
+        }
     }
 }

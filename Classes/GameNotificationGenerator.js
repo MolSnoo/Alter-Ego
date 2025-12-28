@@ -137,6 +137,31 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player took off their mask.
+	 * @param {string} maskName - The name of the inventory item the player took off. 
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateConcealedCuredNotification(maskName, playerDisplayName) {
+		return `The ${maskName} comes off, revealing the individual to be ${playerDisplayName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player woke up.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateWakeUpNotification(playerDisplayName) {
+		return `${playerDisplayName} wakes up.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player was cured of a status effect with the `unconscious` behavior attribute.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateRegainConsciousnessNotification(playerDisplayName) {
+		return `${playerDisplayName} regains consciousness.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player hide in a fixture.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.

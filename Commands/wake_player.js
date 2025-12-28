@@ -1,7 +1,8 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import CureAction from '../Data/Actions/CureAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -32,10 +33,10 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     const status = player.getAttributeStatusEffects("disable wake");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-
-    if (!player.statusString.includes("asleep")) return messageHandler.addReply(game, message, "You are not currently asleep.");
-    player.cure("asleep", true, true, true);
-
-    return;
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (!player.hasStatus("sleep")) return addReply(game, message, "You are not currently asleep.");
+    
+    const sleepStatus = game.entityFinder.getStatusEffect("asleep");
+    const action = new CureAction(game, message, player, player.location, false);
+    action.performCure(sleepStatus, true, true, true);
 }

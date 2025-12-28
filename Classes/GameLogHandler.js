@@ -132,6 +132,15 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a cure action.
+	 * @param {Status} status - The status that was cured.
+	 * @param {Player} player - The player who performed the action.
+	 */
+	logCure(status, player) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} has been cured of ${status.id} in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a use action.
 	 * @param {InventoryItem} item - The item that was used.
 	 * @param {Player} player - The player who performed the action.

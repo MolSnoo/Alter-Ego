@@ -155,7 +155,7 @@ export default class Die extends GameConstruct {
 
             // Cure attacker of all tempStatuses.
             for (let i = 0; i < tempStatuses.length; i++)
-                attacker.cure(tempStatuses[i].id, false, false, false);
+                attacker.cure(tempStatuses[i]);
         }
 
         return { number: modifier, strings: modifierStrings };
