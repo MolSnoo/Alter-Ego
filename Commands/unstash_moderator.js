@@ -39,7 +39,7 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
