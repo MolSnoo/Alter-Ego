@@ -45,7 +45,7 @@ export async function execute (game, message, command, args) {
 
     // Get all players mentioned.
     /**
-     * @type {Array<Player>}
+     * @type {Player[]}
      */
     const recipients = new Array();
     let npc = null;

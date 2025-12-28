@@ -49,7 +49,7 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     // Now find the item in the player's inventory.
-    /** @type {Array<InventoryItem>} */
+    /** @type {InventoryItem[]} */
     const items = [];
     for (let i = 0; i < args.length; i++) {
         let item = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(i).join(" "), true)[1];

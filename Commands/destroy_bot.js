@@ -141,7 +141,7 @@ export async function execute (game, command, args, player, callee) {
             }
         }
 
-        /** @type {Array<RoomItem>} */
+        /** @type {RoomItem[]} */
         let containerItems = [];
          // Container is a Room.
         if (container === null)
@@ -179,7 +179,7 @@ export async function execute (game, command, args, player, callee) {
     } else {
         /** @type {InventoryItem} */
         let item;
-        /** @type {Array<Player>} */
+        /** @type {Player[]} */
         let players = [];
         // Iterate in reverse so that the "all" argument for players doesn't conflict with the "all" argument for items.
         for (let i = args.length - 1; i >= 0; i--) {

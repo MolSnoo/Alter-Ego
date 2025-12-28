@@ -63,7 +63,7 @@ export async function execute (game, command, args, player, callee) {
 
     // Determine which player(s) are being inflicted/cured with a status effect.
     /**
-     * @type {Array<Player>}
+     * @type {Player[]}
      */
     let players = new Array();
     if (args[0].toLowerCase() === "player" && player !== null)

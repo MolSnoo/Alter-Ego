@@ -65,7 +65,7 @@ export async function execute(game, message, command, args) {
 
     // Get all listed players first.
     /**
-     * @type {Array<Player>}
+     * @type {Player[]}
      */
     const players = new Array();
     if (args[0] === "all" || args[0] === "living") {
