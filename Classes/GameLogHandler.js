@@ -350,6 +350,28 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs an activate action.
+	 * @param {Fixture} fixture - The fixture that was activated.
+	 * @param {Player} [player] - The player who performed the action, if applicable.
+	 * @param {boolean} [forced] - Whether or not the player was forced to perform the action.
+	 */
+	logActivate(fixture, player, forced) {
+		const actionDescription = player ? `${player.name} ${this.#getForcedString(forced)}activated ${fixture.name}` : `${fixture.name} was activated`;
+		this.#sendLogMessage(`${this.#getTime()} - ${actionDescription} in ${fixture.location.channel}`);
+	}
+
+	/**
+	 * Logs a deactivate action.
+	 * @param {Fixture} fixture - The fixture that was deactivated.
+	 * @param {Player} [player] - The player who performed the action, if applicable.
+	 * @param {boolean} [forced] - Whether or not the player was forced to perform the action.
+	 */
+	logDeactivate(fixture, player, forced) {
+		const actionDescription = player ? `${player.name} ${this.#getForcedString(forced)}deactivated ${fixture.name}` : `${fixture.name} was deactivated`;
+		this.#sendLogMessage(`${this.#getTime()} - ${actionDescription} in ${fixture.location.channel}`);
+	}
+
+	/**
 	 * Logs a die action.
 	 * @param {Player} player - The player who died. 
 	 */

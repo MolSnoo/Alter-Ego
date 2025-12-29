@@ -1,8 +1,8 @@
 import GameSettings from '../Classes/GameSettings.js';
+import ActivateAction from '../Data/Actions/ActivateAction.js';
+import DeactivateAction from '../Data/Actions/DeactivateAction.js';
 import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-
-import Narration from '../Data/Narration.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -52,9 +52,9 @@ export async function execute (game, message, command, args) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return messageHandler.addReply(game, message, 'Invalid command given. Use "activate" or "deactivate".');
+    if (command !== "activate" && command !== "deactivate") return addReply(game, message, 'Invalid command given. Use "activate" or "deactivate".');
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     var announcement = "";
@@ -113,26 +113,20 @@ export async function execute (game, message, command, args) {
         }
     }
     if (fixture === null && player === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-    else if (fixture === null) return messageHandler.addReply(game, message, `Couldn't find fixture "${input}".`);
-    if (fixture.recipeTag === "") return messageHandler.addReply(game, message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
+    if (fixture.recipeTag === "") return addReply(game, message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
-    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.id === fixture.location.id), announcement).send();
-
-    const time = new Date().toLocaleTimeString();
+    
     if (command === "activate") {
-        fixture.activate(player, narrate);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully activated ${fixture.name}.`);
-        // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly activated ${fixture.name} in ${player.location.channel}`);
+        const activateAction = new ActivateAction(game, message, player, fixture.location, true);
+        activateAction.performActivate(fixture, narrate, announcement);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully activated ${fixture.name}.`);
     }
     else if (command === "deactivate") {
-        fixture.deactivate(player, narrate);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully deactivated ${fixture.name}.`);
-        // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
+        const deactivateAction = new DeactivateAction(game, message, player, fixture.location, true);
+        deactivateAction.performDeactivate(fixture, narrate, announcement);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully deactivated ${fixture.name}.`);
     }
-
-    return;
 }

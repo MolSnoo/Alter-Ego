@@ -44,6 +44,9 @@ export default class GameNarrationHandler {
 	 * @param {Room} [location] - The location in which the narration is occurring. Defaults to the player's location.
 	 */
 	#sendNarration(player, narrationText, location = player.location) {
+		// Capitalize the first letter, if necessary.
+		if (narrationText.charAt(0) === narrationText.charAt(0).toLocaleLowerCase())
+			narrationText = narrationText.charAt(0).toLocaleUpperCase() + narrationText.substring(1);
 		new Narration(this.#game, player, location, narrationText).send();
 	}
 
@@ -505,6 +508,44 @@ export default class GameNarrationHandler {
 			const narration = this.#game.notificationGenerator.generateUncraftNotification(player, false, recipe, originalItemPhrase, itemPhrase, uncraftingResult);
 			this.#sendNarration(player, narration);
 		}
+	}
+
+	/**
+	 * Narrates an activate action.
+	 * @param {Fixture} fixture - The fixture being activated.
+	 * @param {Player} [player] - The player performing the activate action.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateActivate(fixture, player, customNarration = "") {
+		const fixturePhrase = fixture.getContainingPhrase();
+		let notification = customNarration;
+		let narration = customNarration;
+		if (player && !customNarration) {
+			notification = this.#game.notificationGenerator.generateActivateNotification(fixturePhrase, player, true);
+			narration = this.#game.notificationGenerator.generateActivateNotification(fixturePhrase, player, false);
+		}
+		else if (!customNarration) narration = this.#game.notificationGenerator.generateActivateNotification(fixturePhrase);
+		if (notification) player.notify(notification);
+		this.#sendNarration(player, narration, fixture.location);
+	}
+
+	/**
+	 * Narrates a deactivate action.
+	 * @param {Fixture} fixture - The fixture being deactivated.
+	 * @param {Player} [player] - The player performing the deactivate action.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateDeactivate(fixture, player, customNarration = "") {
+		const fixturePhrase = fixture.getContainingPhrase();
+		let notification = customNarration;
+		let narration = customNarration;
+		if (player && !customNarration) {
+			notification = this.#game.notificationGenerator.generateDeactivateNotification(fixturePhrase, player, true);
+			narration = this.#game.notificationGenerator.generateDeactivateNotification(fixturePhrase, player, false);
+		}
+		else if (!customNarration) narration = this.#game.notificationGenerator.generateDeactivateNotification(fixturePhrase);
+		if (notification) player.notify(notification);
+		this.#sendNarration(player, narration, fixture.location);
 	}
 
 	/**

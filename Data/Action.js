@@ -81,8 +81,9 @@ export default class Action extends GameConstruct {
 	}
 
 	#generateId() {
+		const playerName = this.player ? this.player.name : `null`;
 		const id =  randomUUID();
-		return `${this.player}-${this.type}-${id}`;
+		return `${this.type}-${playerName}-${id}`;
 	}
 
 	/**
@@ -98,8 +99,8 @@ export default class Action extends GameConstruct {
  * @enum {string}
  */
 export const ActionType = {
-	Say: "say",
-	Whisper: "whisper",
+	Say: "say", // TODO
+	Whisper: "whisper", // TODO
 	Text: "text",
 	Gesture: "gesture",
 	QueueMove: "queueMove",
@@ -123,10 +124,12 @@ export const ActionType = {
 	Unequip: "unequip",
 	Dress: "dress",
 	Undress: "undress",
-	Instantiate: "instantiate",
-	Destroy: "destroy",
+	Instantiate: "instantiate", // TODO
+	Destroy: "destroy", // TODO
 	Craft: "craft",
 	Uncraft: "uncraft",
-	Attempt: "attempt",
+	Activate: "activate",
+	Deactivate: "deactivate",
+	Attempt: "attempt", // TODO
 	Die: "die"
 };

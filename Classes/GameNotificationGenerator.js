@@ -715,6 +715,36 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating that the fixture was activated.
+	 * @param {string} fixturePhrase - The phrase of the fixture.
+	 * @param {Player} [player] - The player referred to in this notification, if applicable.
+	 * @param {boolean} [secondPerson] - Whether or not the player should be referred to in second person, if applicable.
+	 */
+	generateActivateNotification(fixturePhrase, player, secondPerson) {
+		if (player) {
+			const subject = secondPerson ? `You` : player.displayName;
+			const verb = secondPerson ? `turn on` : `turns on`;
+			return `${subject} ${verb} ${fixturePhrase}.`;
+		}
+		else return `${fixturePhrase} turns on.`;
+	}
+
+	/**
+	 * Generates a notification indicating that the fixture was deactivated.
+	 * @param {string} fixturePhrase - The phrase of the fixture.
+	 * @param {Player} [player] - The player referred to in this notification, if applicable.
+	 * @param {boolean} [secondPerson] - Whether or not the player should be referred to in second person, if applicable.
+	 */
+	generateDeactivateNotification(fixturePhrase, player, secondPerson) {
+		if (player) {
+			const subject = secondPerson ? `You` : player.displayName;
+			const verb = secondPerson ? `turn off` : `turns off`;
+			return `${subject} ${verb} ${fixturePhrase}.`;
+		}
+		else return `${fixturePhrase} turns off.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.

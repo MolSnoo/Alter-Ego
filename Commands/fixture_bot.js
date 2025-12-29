@@ -1,12 +1,13 @@
 import GameSettings from "../Classes/GameSettings.js";
+import ActivateAction from "../Data/Actions/ActivateAction.js";
+import DeactivateAction from "../Data/Actions/DeactivateAction.js";
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
 import Flag from "../Data/Flag.js";
 import InventoryItem from "../Data/InventoryItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import Narration from '../Data/Narration.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -58,9 +59,9 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
+    if (command !== "activate" && command !== "deactivate") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
     if (args.length === 0) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -128,24 +129,18 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     if (fixture === null && player === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-    else if (fixture === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
-    if (fixture.recipeTag === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${fixture.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (fixture === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
+    if (fixture.recipeTag === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
     var narrate = false;
     if (announcement === "" && player !== null) narrate = true;
-    else if (announcement !== "") new Narration(game, player, game.rooms.find(room => room.id === fixture.location.id), announcement).send();
 
-    const time = new Date().toLocaleTimeString();
     if (command === "activate") {
-        fixture.activate(player, narrate);
-        // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly activated ${fixture.name} in ${player.location.channel}`);
+        const activateAction = new ActivateAction(game, undefined, player, fixture.location, true);
+        activateAction.performActivate(fixture, narrate, announcement);
     }
     else if (command === "deactivate") {
-        fixture.deactivate(player, narrate);
-        // Post log message.
-        if (player) messageHandler.addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
+        const deactivateAction = new DeactivateAction(game, undefined, player, fixture.location, true);
+        deactivateAction.performDeactivate(fixture, narrate, announcement);
     }
-
-    return;
 }

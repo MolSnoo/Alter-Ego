@@ -2,7 +2,6 @@ import HidingSpot from './HidingSpot.js';
 import Game from './Game.js';
 import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
-import Narration from './Narration.js';
 import Player from './Player.js';
 import Prefab from './Prefab.js';
 import Puzzle from './Puzzle.js';
@@ -11,6 +10,8 @@ import Room from './Room.js';
 import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
 import Timer from '../Classes/Timer.js';
 import { Duration } from 'luxon';
+
+import DeactivateAction from './Actions/DeactivateAction.js';
 
 /**
  * @class Fixture
@@ -168,15 +169,10 @@ export default class Fixture extends ItemContainer {
 
     /**
      * Makes the fixture start processing recipes.
-     * @param {Player} player - The player who activated the fixture.
-     * @param {boolean} narrate - Whether to narrate the fixture's activation.
+     * @param {Player} [player] - The player who activated the fixture, if applicable.
      */
-    activate(player, narrate) {
+    activate(player) {
         this.activated = true;
-        if (narrate) {
-            if (player) new Narration(this.getGame(), player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
-            else new Narration(this.getGame(), null, this.location, `${this.name} turns on.`).send();
-        }
 
         const result = this.findRecipe();
         if (result.recipe === null) {
@@ -187,8 +183,10 @@ export default class Fixture extends ItemContainer {
                 this.process.timer = new Timer(1000, { start: true, loop: true }, function () {
                     if (fixture.process.duration !== null) {
                         fixture.process.duration = fixture.process.duration.minus(1000);
-                        if (fixture.process.duration.as('milliseconds') <= 0)
-                            fixture.deactivate(null, true);
+                        if (fixture.process.duration.as('milliseconds') <= 0) {
+                            const deactivateAction = new DeactivateAction(fixture.getGame(), undefined, player, fixture.location, true);
+                            deactivateAction.performDeactivate(fixture, true);
+                        }
                     }
                 });
             }
@@ -213,16 +211,9 @@ export default class Fixture extends ItemContainer {
 
     /**
      * Stops the fixture from processing recipes.
-     * @param {Player} player - The player who deactivated the fixture.
-     * @param {boolean} narrate - Whether to narrate the fixture's deactivation.
      */
-    deactivate(player, narrate) {
+    deactivate() {
         this.activated = false;
-        if (narrate) {
-            if (player) new Narration(this.getGame(), player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
-            else new Narration(this.getGame(), null, this.location, `${this.name} turns off.`).send();
-        }
-
         this.process.recipe = null;
         this.process.ingredients.length = 0;
         if (this.process.timer !== null)
@@ -242,8 +233,10 @@ export default class Fixture extends ItemContainer {
                 this.process.timer = new Timer(1000, { start: true, loop: true }, function () {
                     if (fixture.process.duration !== null) {
                         fixture.process.duration = fixture.process.duration.minus(1000);
-                        if (fixture.process.duration.as('milliseconds') <= 0)
-                            fixture.deactivate(null, true);
+                        if (fixture.process.duration.as('milliseconds') <= 0) {
+                            const deactivateAction = new DeactivateAction(fixture.getGame(), undefined, undefined, fixture.location, true);
+                            deactivateAction.performDeactivate(fixture, true);
+                        }
                     }
                 });
                 return;
@@ -442,8 +435,10 @@ function process(fixture, player) {
         if (player && player.alive && player.location.id === fixture.location.id) player.sendDescription(fixture.process.recipe.completedDescription, fixture);
     }
 
-    if (fixture.autoDeactivate)
-        fixture.deactivate(null, true);
+    if (fixture.autoDeactivate) {
+        const deactivateAction = new DeactivateAction(fixture.getGame(), undefined, player, fixture.location, true);
+        deactivateAction.performDeactivate(fixture, true);
+    }
     else {
         fixture.process.timer.stop();
         fixture.process.duration = null;

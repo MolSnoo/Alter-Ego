@@ -1,8 +1,10 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
+import ActivateAction from '../Data/Actions/ActivateAction.js';
+import DeactivateAction from '../Data/Actions/DeactivateAction.js';
 import UseAction from '../Data/Actions/UseAction.js';
 import Game from '../Data/Game.js';
 import Player from '../Data/Player.js';
-import { addLogMessage, addReply } from '../Modules/messageHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -142,16 +144,13 @@ export async function execute (game, message, command, args, player) {
         if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
         const narrate = puzzle === null ? true : false;
-        const time = new Date().toLocaleTimeString();
         if (fixture.activated) {
-            fixture.deactivate(player, narrate);
-            // Post log message.
-            addLogMessage(game, `${time} - ${player.name} deactivated ${fixture.name} in ${player.location.channel}`);
+            const deactivateAction = new DeactivateAction(game, message, player, player.location, false);
+            deactivateAction.performDeactivate(fixture, narrate);
         }
         else {
-            fixture.activate(player, narrate);
-            // Post log message.
-            addLogMessage(game, `${time} - ${player.name} activated ${fixture.name} in ${player.location.channel}`);
+            const activateAction = new ActivateAction(game, message, player, player.location, false);
+            activateAction.performActivate(fixture, narrate);
         }
     }
 
