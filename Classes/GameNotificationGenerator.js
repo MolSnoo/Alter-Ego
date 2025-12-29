@@ -154,6 +154,56 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player inspected the room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 */
+	generateInspectRoomNotification(player, secondPerson) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb} looking around the room.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player inspected a fixture.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} fixturePhrase - The phrase of the fixture.
+	 */
+	generateInspectFixtureNotification(player, secondPerson, fixturePhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb} inspecting ${fixturePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player inspected a room item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} preposition - The preposition of the container.
+	 * @param {string} containerPhrase - The phrase of the container.
+	 */
+	generateInspectRoomItemNotification(player, secondPerson, itemPhrase, preposition, containerPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb} inspecting ${itemPhrase} ${preposition} ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player inspected an inventory item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 */
+	generateInspectInventoryItemNotification(player, secondPerson, itemPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb1 = secondPerson ? `take out` : `takes out`;
+		const verb2 = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb1} ${itemPhrase} and ${verb2} inspecting it.`;
+	}
+
+	/**
 	 * Generates a notification indicating a hidden player was found in their hiding spot.
 	 * @param {string} playerDisplayName - The display name of the player who found them.
 	 */
@@ -168,6 +218,26 @@ export default class GameNotificationGenerator {
 	 */
 	generateFoundHiddenPlayersNotification(hiddenPlayersList, hidingSpotPhrase) {
 		return `You find ${hiddenPlayersList} hiding in ${hidingSpotPhrase}!`;
+	}
+	
+	/**
+	 * Generates a notification indicating the player knocked on an exit.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} exitPhrase - The phrase of the exit.
+	 */
+	generateKnockNotification(player, secondPerson, exitPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `knock` : `knocks`;
+		return `${subject} ${verb} on ${exitPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating there was a knock originating from the other side of an exit.
+	 * @param {string} exitPhrase - The phrase of the exit.
+	 */
+	generateKnockDestinationNotification(exitPhrase) {
+		return `There's a knock on ${exitPhrase}.`;
 	}
 
 	/**

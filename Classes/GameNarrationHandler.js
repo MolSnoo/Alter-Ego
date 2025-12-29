@@ -154,9 +154,9 @@ export default class GameNarrationHandler {
 	narrateInspect(target, player) {
 		let narration = "";
 		if (target instanceof Room)
-			narration = `${player.displayName} begins looking around the room.`;
+			narration = this.#game.notificationGenerator.generateInspectRoomNotification(player, false);
 		else if (target instanceof Fixture) {
-			narration = `${player.displayName} begins inspecting the ${target.name}.`;
+			narration = this.#game.notificationGenerator.generateInspectFixtureNotification(player, false, target.getContainingPhrase());
 			// If there are any players hidden in the fixture, notify them that they were found, and notify the player who found them.
 			// However, don't notify anyone if the player is inspecting the fixture that they're hiding in.
 			// Also ensure that the fixture isn't locked.
@@ -171,10 +171,10 @@ export default class GameNarrationHandler {
 		else if (target instanceof RoomItem && !target.prefab.discreet) {
 			const preposition = target.getContainerPreposition();
 			const containerPhrase = target.getContainerPhrase();
-			narration = `${player.displayName} begins inspecting ${target.singleContainingPhrase} ${preposition} ${containerPhrase}.`;
+			narration = this.#game.notificationGenerator.generateInspectRoomItemNotification(player, false, target.singleContainingPhrase, preposition, containerPhrase);
 		}
 		else if (target instanceof InventoryItem && !target.prefab.discreet && target.player.name === player.name)
-			narration = `${player.displayName} takes out ${target.singleContainingPhrase} and begins inspecting it.`;
+			narration = this.#game.notificationGenerator.generateInspectInventoryItemNotification(player, false, target.singleContainingPhrase);
 		if (narration !== "")
 			this.#sendNarration(player, narration);
 	}
@@ -185,12 +185,15 @@ export default class GameNarrationHandler {
 	 * @param {Player} player - The player performing the knock action.
 	 */
 	narrateKnock(exit, player) {
-		const roomNarration = `${player.displayName} knocks on ${exit.getNamePhrase()}.`;
+		const exitPhrase = exit.getNamePhrase();
+		const notification = this.#game.notificationGenerator.generateKnockNotification(player, true, exitPhrase);
+		const roomNarration = this.#game.notificationGenerator.generateKnockNotification(player, false, exitPhrase);
+		player.notify(notification);
 		this.#sendNarration(player, roomNarration);
 		const destination = exit.dest;
 		if (destination.id === player.location.id) return;
 		const hearingPlayers = destination.occupants.filter(occupant => !occupant.hasBehaviorAttribute("no hearing"));
-		const destinationNarration = `There is a knock on ${destination.exitCollection.get(exit.link).getNamePhrase()}.`;
+		const destinationNarration = this.#game.notificationGenerator.generateKnockDestinationNotification(destination.exitCollection.get(exit.link).getNamePhrase());
 		// If the number of hearing players is the same as the number of occupants in the room, send the message to the room.
 		if (hearingPlayers.length !== 0 && hearingPlayers.length === destination.occupants.length)
 			this.#sendNarration(player, destinationNarration, destination);
