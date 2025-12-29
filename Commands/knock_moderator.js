@@ -52,6 +52,8 @@ export async function execute (game, message, command, args) {
         }
     }
     if (exit === null) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit.dest.tags.includes("outside") && player.location.tags.includes("outside"))
+        return addReply(game, message, `There's nothing to knock on.`);
 
     const action = new KnockAction(game, message, player, player.location, true);
     action.performKnock(exit);
