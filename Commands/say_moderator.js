@@ -88,6 +88,4 @@ export async function execute (game, message, command, args) {
     else if (channel.type === ChannelType.GuildText)
         channel.send(string);
     else addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
-
-    return;
 }

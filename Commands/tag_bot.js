@@ -74,6 +74,4 @@ export async function execute (game, command, args, player, callee) {
         if (room.tags.includes(input.trim()))
             room.tags.splice(room.tags.indexOf(input.trim()), 1);
     }
-
-    return;
 }

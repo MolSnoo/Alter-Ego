@@ -60,8 +60,6 @@ export async function execute(game, message, command, args) {
             }
         ]
     });
-
-    return;
 }
 
 /**
@@ -103,8 +101,6 @@ async function testplayers(game, fileName) {
         }
     }
     await appendText(fileName, text);
-
-    return;
 }
 
 /**
@@ -139,8 +135,6 @@ async function testspeeds(game, fileName) {
         }
     }
     await appendText(fileName, text);
-
-    return;
 }
 
 /**

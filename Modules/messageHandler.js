@@ -437,7 +437,7 @@ export async function sendQueuedMessages(game) {
         try {
             await message.fire();
         } catch (error) {
-            console.error("Messange Handler encountered exception sending message:", error);
+            console.error("Message Handler encountered exception sending message:", error);
         }
     }
 }

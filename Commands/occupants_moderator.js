@@ -82,6 +82,4 @@ export async function execute (game, message, command, args) {
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");
     if (movingList.length > 0) occupantsMessage += `\n\n__Moving occupants:__\n` + movingList.join("\n");
     addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
-
-    return;
 }

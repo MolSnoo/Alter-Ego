@@ -1,4 +1,5 @@
-﻿import { addReply } from '../Modules/messageHandler.js';
+import CureAction from '../Data/Actions/CureAction.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -36,7 +37,8 @@ export async function execute (game, message, command, args, player) {
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (!player.statusCollection.has("asleep")) return addReply(game, message, "You are not currently asleep.");
-    player.cure("asleep", true, true, true);
 
-    return;
+    const sleepStatus = game.entityFinder.getStatusEffect("asleep");
+    const action = new CureAction(game, message, player, player.location, false);
+    action.performCure(sleepStatus, true, true, true);
 }

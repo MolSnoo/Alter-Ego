@@ -332,6 +332,4 @@ export async function execute (game, command, args, player, callee) {
             else instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections);
         }
     }
-
-    return;
 }

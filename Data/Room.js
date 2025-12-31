@@ -1,7 +1,5 @@
 import GameEntity from './GameEntity.js';
-import Narration from '../Data/Narration.js';
 import { generatePlayerListString } from '../Modules/helpers.js';
-import { addLogMessage } from '../Modules/messageHandler.js';
 import { Collection } from 'discord.js';
 
 /** @typedef {import('./Exit.js').default} Exit */
@@ -112,11 +110,9 @@ export default class Room extends GameEntity {
     /**
      * Adds a player to the room.
      * @param {Player} player - The player to add to the room.
-     * @param {Exit} entrance - The exit they're entering from.
-     * @param {string} entranceMessage - The message that should be narrated in the room when they enter.
-     * @param {boolean} sendDescription - Whether or not to send the player the room description.
+     * @param {Exit} [entrance] - The exit they're entering from, if applicable.
      */
-    addPlayer(player, entrance, entranceMessage, sendDescription) {
+    addPlayer(player, entrance) {
         player.setLocation(this);
         // Set the player's position.
         if (entrance) {
@@ -140,22 +136,9 @@ export default class Room extends GameEntity {
             pos.z = Math.floor(coordSum.z / this.exitCollection.size);
             player.pos = pos;
         }
-        if (entranceMessage) new Narration(this.getGame(), player, this, entranceMessage).send();
 
-        if (player.getBehaviorAttributeStatusEffects("no channel").length === 0)
+        if (!player.hasBehaviorAttribute("no channel"))
             this.joinChannel(player);
-
-        if (sendDescription) {
-            if (player.hasBehaviorAttribute("no sight"))
-                player.notify("Fumbling against the wall, you make your way to the next room over.");
-            else {
-                let description;
-                if (entrance) description = entrance.description;
-                else description = this.description;
-                // Send the room description of the entrance the player enters from.
-                player.sendDescription(description, this);
-            }
-        }
 
         this.occupants.push(player);
         this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
@@ -164,17 +147,11 @@ export default class Room extends GameEntity {
     /**
      * Removes a player from the room.
      * @param {Player} player - The player to remove from the room.
-     * @param {Exit} exit - The exit they're leaving through.
-     * @param {string} exitMessage - The message that should be narrated in the room when they leave.
-     * @param {string} [whisperRemovalMessage] - The message that will be sent to any whispers the player was in. Defaults to `${player.displayName} leaves the room.`
      */
-    removePlayer(player, exit, exitMessage, whisperRemovalMessage) {
-        if (exitMessage) new Narration(this.getGame(), player, this, exitMessage).send();
+    removePlayer(player) {
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        if (!whisperRemovalMessage) whisperRemovalMessage = `${player.displayName} leaves the room.`;
-        player.removeFromWhispers(whisperRemovalMessage);
     }
 
     /**
@@ -209,11 +186,8 @@ export default class Room extends GameEntity {
      */
     unlock(index) {
         this.exit[index].unlock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${this.exit[index].name} unlocks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateUnlock(this, this.exit[index]);
+        this.getGame().logHandler.logUnlock(this, this.exit[index]);
     }
 
     /**
@@ -223,11 +197,8 @@ export default class Room extends GameEntity {
     unlockExit(name) {
         let exit = this.getGame().entityFinder.getExit(this, name);
         exit.unlock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} unlocks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${exit.name} in ${this.channel} was unlocked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateUnlock(this, exit);
+        this.getGame().logHandler.logUnlock(this, exit);
     }
 
     /**
@@ -237,11 +208,8 @@ export default class Room extends GameEntity {
      */
     lock(index) {
         this.exit[index].lock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${this.exit[index].name} locks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateLock(this, this.exit[index]);
+        this.getGame().logHandler.logLock(this, this.exit[index]);
     }
 
     /**
@@ -251,11 +219,8 @@ export default class Room extends GameEntity {
     lockExit(name) {
         let exit = this.getGame().entityFinder.getExit(this, name);
         exit.lock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} locks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${exit.name} in ${this.channel} was locked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateLock(this, exit);
+        this.getGame().logHandler.logLock(this, exit);
     }
 
     /** @returns {string} */

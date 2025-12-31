@@ -44,7 +44,7 @@ export default class Whisper extends GameConstruct {
 
     /**
      * @constructor
-     * @param {Game} game - The game context this whisper is occuring in. 
+     * @param {Game} game - The game context this whisper is occurring in. 
      * @param {Player[]} players - The players in the whisper.
      * @param {string} locationId - The ID of the room the players are whispering in.
      * @param {Room} location - The room the players are whispering in.
@@ -93,7 +93,7 @@ export default class Whisper extends GameConstruct {
     }
 
     /**
-     * Generate a gramatically correct list of players in the whisper.
+     * Generate a grammatically correct list of players in the whisper.
      * @returns {string}
      */
     makePlayersSentenceGroup() {
@@ -109,7 +109,7 @@ export default class Whisper extends GameConstruct {
     }
 
     /**
-     * Generate a gramatically correct list of players in the whisper, excluding any players with the given displayName.
+     * Generate a grammatically correct list of players in the whisper, excluding any players with the given displayName.
      * @param {string} playerDisplayName - The displayName to exclude.
      * @returns {string}
      */

@@ -37,12 +37,12 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to specify two players and an item. Usage:\n${usage(game.settings)}`);
 
     // First, find the giver.
-    const giver = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const giver = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
     if (giver === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // Next, find the recipient.
-    const recipient = game.entityFinder.getLivingPlayer(args[args.length - 1].toLowerCase().replace(/'s/g, ""));
+    const recipient = game.entityFinder.getLivingPlayer(args[args.length - 1].replace(/'s/g, ""));
     if (recipient === undefined) return addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
     args.splice(args.length - 1, 1);
     if (args[args.length - 1].toLowerCase() === "to") args.splice(args.length - 1, 1);

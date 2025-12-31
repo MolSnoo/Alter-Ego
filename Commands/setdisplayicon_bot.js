@@ -60,6 +60,4 @@ export async function execute (game, command, args, player, callee) {
     else if (!iconURLSyntax.test(input)) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
 
     player.displayIcon = input;
-
-    return;
 }

@@ -41,6 +41,4 @@ export async function execute (game, message, command, args) {
 
     await event.end(true);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully ended ${event.id}.`);
-
-    return;
 }

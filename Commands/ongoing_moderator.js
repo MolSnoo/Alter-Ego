@@ -34,6 +34,4 @@ export async function execute (game, message, command, args) {
     });
     const eventList = events.join(", ");
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Ongoing events:\n${eventList}`);
-
-    return;
 }

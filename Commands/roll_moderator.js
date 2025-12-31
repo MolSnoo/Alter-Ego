@@ -81,6 +81,4 @@ export async function execute(game, message, command, args) {
     const die = new Die(game, stat, attacker, defender);
     if (die.modifier === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with no modifiers.`);
     else addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
-
-    return;
 }

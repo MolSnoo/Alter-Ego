@@ -45,7 +45,7 @@ export async function execute (game, message, command, args) {
 
     // Get all players mentioned.
     /**
-     * @type {Array<Player>}
+     * @type {Player[]}
      */
     const recipients = new Array();
     let npc = null;
@@ -115,8 +115,6 @@ export async function execute (game, message, command, args) {
 
     if (npc !== null)
         await sendMessageToWhisper(game, message, string, npc, whisper);
-
-    return;
 }
 
 /**

@@ -1,3 +1,5 @@
+import ActivateAction from "../Data/Actions/ActivateAction.js";
+import DeactivateAction from "../Data/Actions/DeactivateAction.js";
 import Narration from '../Data/Narration.js';
 import { addGameMechanicMessage, addLogMessage } from '../Modules/messageHandler.js';
 
@@ -130,17 +132,12 @@ export async function execute (game, command, args, player, callee) {
     if (announcement === "" && player !== null) narrate = true;
     else if (announcement !== "") new Narration(game, player, game.entityFinder.getRoom(fixture.location.id), announcement).send();
 
-    const time = new Date().toLocaleTimeString();
     if (command === "activate") {
-        fixture.activate(player, narrate);
-        // Post log message.
-        if (player) addLogMessage(game, `${time} - ${player.name} forcibly activated ${fixture.name} in ${player.location.channel}`);
+        const activateAction = new ActivateAction(game, undefined, player, fixture.location, true);
+        activateAction.performActivate(fixture, narrate, announcement);
     }
     else if (command === "deactivate") {
-        fixture.deactivate(player, narrate);
-        // Post log message.
-        if (player) addLogMessage(game, `${time} - ${player.name} forcibly deactivated ${fixture.name} in ${player.location.channel}`);
+        const deactivateAction = new DeactivateAction(game, undefined, player, fixture.location, true);
+        deactivateAction.performDeactivate(fixture, narrate, announcement);
     }
-
-    return;
 }

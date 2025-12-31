@@ -559,7 +559,7 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? fixture.description : parseDescription(fixture.description, fixture, player)) + EOL;
 
-                /** @type {Array<RoomItem>} */
+                /** @type {RoomItem[]} */
                 const items = new Array();
                 let itemNames = "";
                 const prefabArray = [... game.prefabsCollection.values()];
@@ -606,7 +606,7 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? item.description : parseDescription(item.description, item, player)) + EOL;
 
-                /** @type {Array<RoomItem>} */
+                /** @type {RoomItem[]} */
                 const items = new Array();
                 let itemNames = "";
                 const prefabArray = [... game.prefabsCollection.values()];
@@ -654,7 +654,7 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? puzzle.alreadySolvedDescription : parseDescription(puzzle.alreadySolvedDescription, puzzle, player)) + EOL;
 
-                /** @type {Array<RoomItem>} */
+                /** @type {RoomItem[]} */
                 const items = new Array();
                 let itemNames = "";
                 const prefabArray = [... game.prefabsCollection.values()];
@@ -699,7 +699,7 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? currentPlayer.description : parseDescription(currentPlayer.description, currentPlayer, player)) + EOL;
 
-                /** @type {Array<RoomItem | InventoryItem>} */
+                /** @type {(RoomItem|InventoryItem)[]} */
                 const items = new Array();
                 let itemNames = "";
                 const prefabArray = [... game.prefabsCollection.values()];
@@ -746,7 +746,7 @@ async function testadd (game, fileName, formatted, player) {
                 text += "      ";
                 text += (formatted ? inventoryItem.description : parseDescription(inventoryItem.description, inventoryItem, player)) + EOL;
 
-                /** @type {Array<InventoryItem>} */
+                /** @type {InventoryItem[]} */
                 const items = new Array();
                 let itemNames = "";
                 const prefabArray = [... game.prefabsCollection.values()];
@@ -780,8 +780,6 @@ async function testadd (game, fileName, formatted, player) {
         }
         await appendFile(fileName, text);
     }
-
-    return;
 }
 
 /**

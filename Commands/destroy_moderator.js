@@ -322,6 +322,4 @@ export async function execute (game, message, command, args) {
         }
         else return addReply(game, message, `Couldn't find "${parsedInput}" in ${player.name}'s inventory.`);
     }
-
-    return;
 }

@@ -80,6 +80,4 @@ export async function execute (game, message, command, args) {
         room.unlockExit(exit.name);
         exit.dest.unlockExit(entrance.name);
     }
-
-    return;
 }

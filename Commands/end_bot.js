@@ -51,6 +51,4 @@ export async function execute (game, command, args, player, callee) {
     if (callee && !(callee instanceof Event)) doEndedCommands = true;
 
     await event.end(doEndedCommands);
-
-    return;
 }

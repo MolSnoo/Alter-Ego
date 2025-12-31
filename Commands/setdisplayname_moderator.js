@@ -36,7 +36,7 @@ export async function execute(game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and a display name. Usage:\n${usage(game.settings)}`);
 
-    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -46,6 +46,4 @@ export async function execute(game, message, command, args) {
     player.displayName = input;
     player.location.occupantsString = player.location.generateOccupantsString(player.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display name.`);
-
-    return;
 }

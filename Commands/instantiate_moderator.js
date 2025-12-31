@@ -308,6 +308,4 @@ export async function execute (game, message, command, args) {
 
         addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated inventory item.");
     }
-
-    return;
 }

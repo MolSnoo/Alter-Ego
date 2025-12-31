@@ -34,8 +34,6 @@ export async function execute (game, message, command, args) {
     const player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
 
-    player.stamina = player.maxStamina;
+    player.restoreStamina();
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Fully restored ${player.name}'s stamina.`);
-
-    return;
 }

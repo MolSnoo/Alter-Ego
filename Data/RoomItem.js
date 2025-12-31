@@ -109,6 +109,7 @@ export default class RoomItem extends ItemInstance {
 
     /**
      * Decreases the number of uses this item has left. If it runs out of uses, instantiates its nextStage in its place, if it has one.
+     * @override
      * @param {Player} [player] - The player who used this item, if applicable.
      */
     decreaseUses(player) {

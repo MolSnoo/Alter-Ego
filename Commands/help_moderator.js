@@ -99,6 +99,4 @@ export async function execute (game, message, command, args) {
         if (!command) return addReply(game, message, `Couldn't find command "${args[0]}".`);
         addCommandHelp(game, game.guildContext.commandChannel, command);
     }
-
-    return;
 }

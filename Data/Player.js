@@ -13,8 +13,12 @@ import Flag from './Flag.js';
 import Narration from './Narration.js';
 import Die from './Die.js';
 
+import CureAction from './Actions/CureAction.js';
 import DieAction from './Actions/DieAction.js';
 import InflictAction from './Actions/InflictAction.js';
+import MoveAction from './Actions/MoveAction.js';
+import QueueMoveAction from './Actions/QueueMoveAction.js';
+import StopAction from './Actions/StopAction.js';
 
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
@@ -283,7 +287,7 @@ export default class Player extends ItemContainer {
     moveQueue;
     /**
      * Whether or not the player has depleted half of their stamina while moving.
-     * The first time they do, they will be warned that they're starting to become tired.
+     * When they do, they will be warned that they're starting to become tired.
      * @type {boolean}
      */
     #reachedHalfStamina;
@@ -392,7 +396,7 @@ export default class Player extends ItemContainer {
         let player = this;
         /** @private */
         this.#staminaRegenerationInterval = setInterval(function () {
-            if (!player.isMoving) player.regenerateStamina();
+            if (!player.isMoving) player.#regenerateStamina();
         }, 30000);
 
         this.online = false;
@@ -483,89 +487,18 @@ export default class Player extends ItemContainer {
     }
 
     /**
-     * Starts moving the player to the next destination in their move queue.
-     * @param {boolean} isRunning - Whether the player is running.
-     * @param {string} destination - The destination the user supplied.
-     */
-    queueMovement(isRunning, destination) {
-        const currentRoom = this.location;
-        let adjacent = false;
-        /** @type {Exit} */
-        let exit = null;
-        let exitMessage = "";
-        /** @type {Room} */
-        let desiredRoom = null;
-        /** @type {Exit} */
-        let entrance = null;
-        let entranceMessage = "";
-        const appendString = this.createMoveAppendString();
-
-        // If the player has the free movement role, they can move to any room they please.
-        if (this.member.roles.resolve(this.getGame().guildContext.freeMovementRole)) {
-            adjacent = true;
-            desiredRoom = this.getGame().entityFinder.getRoom(destination);
-            exitMessage = `${this.displayName} suddenly disappears${appendString}`;
-            entranceMessage = `${this.displayName} suddenly appears${appendString}`;
-        }
-        // Otherwise, check that the desired room is adjacent to the current room.
-        else {
-            exit = this.getGame().entityFinder.getExit(currentRoom, destination);
-            if (!exit) {
-                for (const targetExit of currentRoom.exitCollection.values()) {
-                    if (targetExit.dest.id === destination.replace(/\'/g, "").replace(/ /g, "-").toLowerCase()) {
-                        exit = targetExit;
-                        break;
-                    }
-                }
-            }
-            if (exit) {
-                adjacent = true;
-                exitMessage = `${this.displayName} exits into ${exit.name}${appendString}`;
-                desiredRoom = exit.dest;
-                entrance = this.getGame().entityFinder.getExit(desiredRoom, exit.link);
-                if (entrance)
-                    entranceMessage = `${this.displayName} enters from ${entrance.name}${appendString}`;
-            }
-        }
-        if (!adjacent) {
-            this.moveQueue.length = 0;
-            return this.notify(`There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
-        }
-
-        if (desiredRoom) {
-            if (exit)
-                this.move(isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage);
-            else {
-                currentRoom.removePlayer(this, exit, exitMessage);
-                desiredRoom.addPlayer(this, entrance, entranceMessage, true);
-
-                // Post log message.
-                const time = new Date().toLocaleTimeString();
-                addLogMessage(this.getGame(), `${time} - ${this.name} moved to ${desiredRoom.channel}`);
-            }
-        }
-        else {
-            this.moveQueue.length = 0;
-            return this.notify(`There is no exit "${destination}" that you can currently move to. Please try the name of an exit in the room you're in or the name of the room you want to go to.`, false);
-        }
-    }
-
-    /**
      * Moves the player to the desired room.
      * @param {boolean} isRunning - Whether the player is running.
      * @param {Room} currentRoom - The room the player is currently in.
-     * @param {Room} desiredRoom - The room the player will be moved to.
+     * @param {Room} destinationRoom - The room the player will be moved to.
      * @param {Exit} exit - The exit the player will leave their current room through.
      * @param {Exit} entrance - The exit the player will enter the desired room from.
-     * @param {string} exitMessage - The message that will be sent in their current room when they exit.
-     * @param {string} entranceMessage - The message that will be sent in their desired room when they enter.
+     * @param {number} time - The number of milliseconds it will take to move to the destination.
+     * @param {boolean} forced - Whether or not the player was forced to move to the destination.
      */
-    move(isRunning, currentRoom, desiredRoom, exit, entrance, exitMessage, entranceMessage) {
-        const time = this.calculateMoveTime(exit, isRunning);
+    move(isRunning, currentRoom, destinationRoom, exit, entrance, time, forced) {
         this.remainingTime = time;
         this.isMoving = true;
-        const verb = isRunning ? "running" : "walking";
-        if (time > 1000) new Narration(this.getGame(), this, this.location, `${this.displayName} starts ${verb} toward ${exit.name}.`).send();
         /** @type {Pos} */
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
@@ -606,7 +539,7 @@ export default class Player extends ItemContainer {
             // Be sure to check player.#reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.#reachedHalfStamina) {
                 player.#reachedHalfStamina = true;
-                player.notify(`You're starting to get tired! You might want to stop moving and rest soon.`);
+                player.getGame().narrationHandler.narrateReachedHalfStamina(player);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
@@ -614,7 +547,8 @@ export default class Player extends ItemContainer {
                 player.stamina = 0;
                 const wearyStatus = player.getGame().entityFinder.getStatusEffect("weary");
                 const wearyAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
-                wearyAction.performInflict(wearyStatus, true, true, true);
+                wearyAction.performInflict(wearyStatus, false, true, true);
+                player.getGame().narrationHandler.narrateWeary(player);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
@@ -622,26 +556,21 @@ export default class Player extends ItemContainer {
                 const exitPuzzle = player.getGame().entityFinder.getPuzzle(exit.name, player.location.id, "restricted exit", true);
                 const exitPuzzlePassable = exitPuzzle && exitPuzzle.solutions.includes(player.name);
                 if (exit.unlocked || exitPuzzlePassable) {
-                    if (exitPuzzlePassable)
-                        exitPuzzle.solve(player, "", player.name, true);
-                    currentRoom.removePlayer(player, exit, exitMessage);
-                    desiredRoom.addPlayer(player, entrance, entranceMessage, true);
-
-                    // Post log message.
-                    const time = new Date().toLocaleTimeString();
-                    const verb = isRunning ? "ran" : "moved";
-                    addLogMessage(player.getGame(), `${time} - ${player.name} ${verb} to ${desiredRoom.channel}`);
-
+                    const moveAction = new MoveAction(player.getGame(), undefined, player, player.location, forced);
+                    moveAction.performMove(isRunning, currentRoom, destinationRoom, exit, entrance);
                     player.moveQueue.splice(0, 1);
-                    if (player.moveQueue.length > 0)
-                        player.queueMovement(isRunning, player.moveQueue[0].trim());
+                    if (player.moveQueue.length > 0) {
+                        const queueMoveAction = new QueueMoveAction(player.getGame(), undefined, player, player.location, forced);
+                        queueMoveAction.performQueueMove(isRunning, player.moveQueue[0]);
+                    }
                 }
                 else {
-                    new Narration(player.getGame(), player, player.location, `${player.displayName} stops moving.`).send();
+                    // The exit is locked.
+                    const stopAction = new StopAction(player.getGame(), undefined, player, player.location, forced);
+                    stopAction.performStop(true, exit);
                     player.pos.x = exit.pos.x;
                     player.pos.y = exit.pos.y;
                     player.pos.z = exit.pos.z;
-                    player.notify(`${exit.name} is locked.`);
                     player.moveQueue.length = 0;
                 }
             }
@@ -696,18 +625,26 @@ export default class Player extends ItemContainer {
     /**
      * Resets the player's stamina to its maximum value.
      */
-    regenerateStamina() {
+    #regenerateStamina() {
         if (this.stamina < this.maxStamina) {
             // Recover 1/20th of the player's max stamina per cycle, times the heatedSlowdownRate if applicable.
             let staminaAmount = this.maxStamina / 20;
             if (this.getGame().heated) staminaAmount *= this.getGame().settings.heatedSlowdownRate;
             const newStamina = this.stamina + staminaAmount;
             // Make sure not to exceed the max stamina for this player.
-            if (newStamina > this.maxStamina)
-                this.stamina = this.maxStamina;
+            if (newStamina >= this.maxStamina)
+                this.restoreStamina();
             else
                 this.stamina = newStamina;
         }
+    }
+
+    /**
+     * Fully restores the player's stamina and resets their reachedHalfStamina flag.
+     */
+    restoreStamina() {
+        this.stamina = this.maxStamina;
+        this.#reachedHalfStamina = false;
     }
 
     /**
@@ -725,12 +662,10 @@ export default class Player extends ItemContainer {
             nonDiscreetItems.push(leftHand.equippedItem.singleContainingPhrase);
 
         let appendString = "";
-        if (nonDiscreetItems.length === 0)
-            appendString = ".";
-        else if (nonDiscreetItems.length === 1)
-            appendString = ` carrying ${nonDiscreetItems[0]}.`;
+        if (nonDiscreetItems.length === 1)
+            appendString = ` carrying ${nonDiscreetItems[0]}`;
         else if (nonDiscreetItems.length === 2)
-            appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}.`;
+            appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}`;
 
         return appendString;
     }
@@ -768,7 +703,8 @@ export default class Player extends ItemContainer {
 
                 if (statusInstance.remaining.as('milliseconds') <= 0) {
                     if (statusInstance.nextStage) {
-                        player.cure(statusInstance.id, false, false, true);
+                        const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
+                        cureAction.performCure(statusInstance.nextStage, false, false, true);
                         let inflictNextStage = true;
                         const playerStatusIds = player.status.map(statusEffect => statusEffect.id);
                         for (const overrider of statusInstance.nextStage.overriders) {
@@ -790,7 +726,8 @@ export default class Player extends ItemContainer {
                             action.performDie();
                         }
                         else {
-                            player.cure(statusInstance.id, true, true, true);
+                            const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
+                            cureAction.performCure(statusInstance, true, true, true);
                         }
                     }
                 }
@@ -798,79 +735,22 @@ export default class Player extends ItemContainer {
         }
 
         this.statusCollection.set(status.id, statusInstance);
-        this.recalculateStats();
+        this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
     }
 
     /**
      * Removes a status effect from the player.
-     * @param {string} statusId
-     * @param {boolean} [notify=true] - Whether or not to send the player the status's curedDescription. Defaults to true.
-     * @param {boolean} [doCuredCondition=true] - Whether or not to turn the status into its curedCondition. Defaults to true.
-     * @param {boolean} [narrate=true] - Whether or not to send any narrations caused by the status being cured. Defaults to true.
-     * @param {InventoryItem} [item] - The inventory item that caused the status to be cured, if applicable.
-     * @returns {string} A message indicating whether the status was successfully cured, or if not, why it wasn't.
+     * @param {Status} status - The status to cure.
      */
-    cure(statusId, notify = true, doCuredCondition = true, narrate = true, item) {
+    cure(status) {
         /** @type {Status} */
-        let status = this.statusCollection.get(statusId.toLowerCase());
-        if (status === undefined) return "Specified player doesn't have that status effect.";
-
-        if (status.behaviorAttributes.includes("no channel") && this.getBehaviorAttributeStatusEffects("no channel").length - 1 === 0)
-            this.location.joinChannel(this);
-        if (status.behaviorAttributes.includes("hidden")) {
-            if (narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} comes out of the ${this.hidingSpot}.`).send();
-            this.removeFromWhispers(`${this.displayName} comes out of the ${this.hidingSpot}.`);
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden") || occupant.name === this.name));
-            this.hidingSpot = "";
-        }
-        if (status.behaviorAttributes.includes("concealed")) {
-            this.displayName = this.name;
-            if (this.isNPC) this.displayIcon = this.id;
-            else this.displayIcon = null;
-            const maskName = item ? item.singleContainingPhrase : "a MASK";
-            if (narrate) new Narration(this.getGame(), this, this.location, `The ${maskName} comes off, revealing the figure to be ${this.displayName}.`).send();
-            this.setPronouns(this.pronouns, this.pronounString);
-            this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-        }
-
-        // Announce when a player awakens.
-        if (status.id === "asleep" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.id === "blacked out" && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} wakes up.`).send();
-        else if (status.behaviorAttributes.includes("unconscious") && narrate) new Narration(this.getGame(), this, this.location, `${this.displayName} regains consciousness.`).send();
-
-        let returnMessage = "Successfully removed status effect.";
-        if (status.curedCondition && doCuredCondition) {
-            const curedConditionAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
-            curedConditionAction.performInflict(status.curedCondition, false, false, true);
-            returnMessage += ` Player is now ${status.curedCondition.id}.`;
-        }
-
-        // Inform player what happened.
-        if (notify) {
-            this.sendDescription(status.curedDescription, status);
-            // If the player is waking up, send them the description of the room they wake up in.
-            if (status.id === "asleep")
-                this.sendDescription(this.location.description, this.location);
-        }
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${this.name} has been cured of ${status.id} in ${this.location.channel}`);
-
+        let statusInstance = this.statusCollection.get(status.id);
         // Stop the timer.
-        if (status.timer !== null)
-            status.timer.stop();
-        this.recalculateStats();
-
+        if (statusInstance.timer !== null)
+            statusInstance.timer.stop();
+        this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
-
-        if (status.id === "heated") {
-            const heatedPlayers = this.getGame().entityFinder.getLivingPlayers(null, null, null, null, "heated");
-            if (heatedPlayers.length = 0) this.getGame().heated = false;
-        }
-
-        return returnMessage;
     }
 
     /**
@@ -988,7 +868,7 @@ export default class Player extends ItemContainer {
     /**
      * Calculates the player's stats based on their current status effects.
      */
-    recalculateStats() {
+    #recalculateStats() {
         const strength = this.defaultStrength;
         const perception = this.defaultPerception;
         const dexterity = this.defaultDexterity;
@@ -1030,14 +910,14 @@ export default class Player extends ItemContainer {
             }
         }
 
-        this.strength = this.recalculateStat(strength, strModifiers);
+        this.strength = this.#recalculateStat(strength, strModifiers);
         this.maxCarryWeight = this.getMaxCarryWeight();
-        this.perception = this.recalculateStat(perception, perModifiers);
+        this.perception = this.#recalculateStat(perception, perModifiers);
         this.intelligence = this.perception;
-        this.dexterity = this.recalculateStat(dexterity, dexModifiers);
-        this.speed = this.recalculateStat(speed, spdModifiers);
+        this.dexterity = this.#recalculateStat(dexterity, dexModifiers);
+        this.speed = this.#recalculateStat(speed, spdModifiers);
         const staminaRatio = this.stamina / this.maxStamina;
-        this.maxStamina = this.recalculateStat(stamina, staModifiers);
+        this.maxStamina = this.#recalculateStat(stamina, staModifiers);
         this.stamina = staminaRatio * this.maxStamina;
     }
 
@@ -1047,7 +927,7 @@ export default class Player extends ItemContainer {
      * @param {StatModifier[]} modifiers - The modifiers to apply.
      * @returns {number}
      */
-    recalculateStat(stat, modifiers) {
+    #recalculateStat(stat, modifiers) {
         let assignModifiers = modifiers.filter(modifier => modifier.assignValue === true).sort((a, b) => a.value - b.value);
         if (assignModifiers.length !== 0) return assignModifiers[0].value;
 
@@ -1084,11 +964,13 @@ export default class Player extends ItemContainer {
      */
     use(item, target = this) {
         for (let effect of item.prefab.effects) {
-            const inflictAction = new InflictAction(this.getGame(), undefined, this, this.location, true);
+            const inflictAction = new InflictAction(this.getGame(), undefined, target, target.location, true);
             inflictAction.performInflict(effect, true, true, true, item);
         }
-        for (let cure of item.prefab.cures)
-            target.cure(cure.id, true, true, true, item);
+        for (let cure of item.prefab.cures) {
+            const cureAction = new CureAction(this.getGame(), undefined, target, target.location, true);
+            cureAction.performCure(cure, true, true, true, item);
+        }
         if (!isNaN(item.uses))
             item.decreaseUses();
     }
@@ -1569,7 +1451,7 @@ export default class Player extends ItemContainer {
      * @param {string} id - The prefab ID to search for.
      * @returns {InventoryItem}
      */
-    #findItem(id) {
+    findItem(id) {
         return this.getGame().inventoryItems.find(item =>
             item.player.name === this.name &&
             item.prefab !== null &&
@@ -1584,305 +1466,16 @@ export default class Player extends ItemContainer {
      * @returns {boolean}
      */
     hasItem(id) {
-        return !!this.#findItem(id);
-    }
-
-    /**
-     * Attempts to solve a puzzle.
-     * @param {Puzzle} puzzle - The puzzle to attempt.
-     * @param {RoomItem|InventoryItem} item - The item instance required to attempt the puzzle.
-     * @param {string} password - The password the player entered to attempt the puzzle.
-     * @param {string} command - The command alias that was used to attempt the puzzle.
-     * @param {string} input - The combined arguments of the command.
-     * @param {UserMessage} [message] - The message that triggered the puzzle attempt.
-     * @param {Player} [targetPlayer] - The player who will be treated as the initiating player in subsequent bot command executions called by the puzzle's solved commands, if applicable.
-     * @returns {string|void} A message to show to the player indicating why their attempt failed.
-     */
-    attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer) {
-        const puzzleName = puzzle.parentFixture ? puzzle.parentFixture.name : puzzle.name;
-        // Make sure all the requirements are met.
-        let allRequirementsMet = true;
-        let requiredItems = [];
-        for (const requirement of puzzle.requirements) {
-            if (requirement instanceof Puzzle && !requirement.solved ||
-                requirement instanceof Event && !requirement.ongoing
-            ) {
-                allRequirementsMet = false;
-                break;
-            }
-            else if (requirement instanceof Flag) {
-                if (requirement.valueScript !== "") {
-                    const value = requirement.evaluate();
-                    requirement.setValue(value, true, this);
-                }
-                if (requirement.value !== true) {
-                    allRequirementsMet = false;
-                    break;
-                }
-            }
-            else if (requirement instanceof Prefab) {
-                if (item !== null && item.prefab.id !== requirement.id) {
-                    allRequirementsMet = false;
-                    break;
-                }
-                else if (item === null) {
-                    const requiredItem = this.#findItem(requirement.id);
-                    if (!requiredItem) {
-                        allRequirementsMet = false;
-                        break;
-                    }
-                    else if (!requiredItems.includes(requiredItem))
-                        requiredItems.push(requiredItem);
-                }
-            }
-        }
-        if (allRequirementsMet && !puzzle.accessible && puzzle.requirements.length !== 0)
-            puzzle.setAccessible();
-        else if (!allRequirementsMet && puzzle.accessible)
-            puzzle.setInaccessible();
-        if (puzzle.accessible || (puzzle.type === "weight" || puzzle.type === "container") && (command === "take" || command === "drop")) {
-            if (puzzle.requiresMod && !puzzle.solved) return "you need moderator assistance to do that.";
-            if (puzzle.remainingAttempts === 0) {
-                this.sendDescription(puzzle.noMoreAttemptsDescription, puzzle);
-                new Narration(this.getGame(), this, this.location, `${this.displayName} attempts and fails to use the ${puzzleName}.`).send();
-
-                return;
-            }
-
-            // Make sure all of the requirements are met before proceeding.
-            let hasRequiredItem = false;
-            let requiredItemName = "";
-            let requirementsMet = false;
-            const regex = /((Inventory)?Item|Prefab):/g;
-            if (regex.test(puzzle.solutions.join(',')) && puzzle.type !== "container") {
-                for (let i = 0; i < puzzle.solutions.length; i++) {
-                    const solution = puzzle.solutions[i];
-                    if (solution.startsWith("Item:") || solution.startsWith("InventoryItem:") || solution.startsWith("Prefab:")) {
-                        if (item !== null && item.prefab.id === solution.substring(solution.indexOf(':') + 1).trim()) {
-                            hasRequiredItem = true;
-                            requiredItemName = solution;
-                            break;
-                        }
-                        else if (item === null) {
-                            const requiredItem = this.#findItem(solution.substring(solution.indexOf(':') + 1).trim());
-                            if (requiredItem) {
-                                hasRequiredItem = true;
-                                requiredItemName = solution;
-                                if (!requiredItems.includes(requiredItem))
-                                    requiredItems.push(requiredItem);
-                                break;
-                            }
-                        }
-                        if (hasRequiredItem) break;
-                    }
-                }
-            }
-            else hasRequiredItem = true;
-
-            if (puzzle.solved || hasRequiredItem || puzzle.type === "media"
-                || (puzzle.type === "weight" || puzzle.type === "container") && (command === "take" || command === "drop"))
-                requirementsMet = true;
-
-            // Puzzle is solvable.
-            if (requirementsMet) {
-                if (puzzle.type === "password") {
-                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
-                    else {
-                        if (password === "") return "you need to enter a password.";
-                        else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, password, true, requiredItems);
-                        else puzzle.fail(this, `${this.displayName} uses the ${puzzleName}.`);
-                    }
-                }
-                else if (puzzle.type === "interact" || puzzle.type === "matrix") {
-                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
-                    else puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true, requiredItems);
-                }
-                else if (puzzle.type === "toggle") {
-                    if (puzzle.solved && hasRequiredItem) {
-                        let message = null;
-                        if (puzzle.alreadySolvedDescription) message = parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
-                        puzzle.unsolve(this, `${this.displayName} uses the ${puzzleName}.`, message, true);
-                    }
-                    else if (puzzle.solved) puzzle.requirementsNotMet(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, command, input, message);
-                    else puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, requiredItemName, true, requiredItems);
-                }
-                else if (puzzle.type === "combination lock") {
-                    // The lock is currently unlocked.
-                    if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzleName} is already unlocked.`;
-                        if (command !== "lock" && (password === "" || puzzle.solutions.includes(password)))
-                            puzzle.alreadySolved(this, `${this.displayName} opens the ${puzzleName}.`);
-                        // If the player enters something that isn't the solution, lock it.
-                        else puzzle.unsolve(this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
-                    }
-                    // The lock is locked.
-                    else {
-                        if (command === "lock") return `${puzzleName} is already locked.`;
-                        if (password === "") return "you need to enter a combination.";
-                        else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} unlocks the ${puzzleName}.`, password, true, requiredItems);
-                        else puzzle.fail(this, `${this.displayName} attempts and fails to unlock the ${puzzleName}.`);
-                    }
-                }
-                else if (puzzle.type === "key lock") {
-                    // The lock is currently unlocked.
-                    if (puzzle.solved) {
-                        if (command === "unlock") return `${puzzleName} is already unlocked.`;
-                        if (command === "lock" && hasRequiredItem) puzzle.unsolve(this, `${this.displayName} locks the ${puzzleName}.`, `You lock the ${puzzleName}.`, true);
-                        else if (command === "lock") puzzle.requirementsNotMet(this, `${this.displayName} attempts and fails to lock the ${puzzleName}.`, command, input, message);
-                        else puzzle.alreadySolved(this, `${this.displayName} opens the ${puzzleName}.`);
-                    }
-                    // The lock is locked.
-                    else {
-                        if (command === "lock") return `${puzzleName} is already locked.`;
-                        puzzle.solve(this, `${this.displayName} unlocks the ${puzzleName}.`, requiredItemName, true, requiredItems);
-                    }
-                }
-                else if (puzzle.type === "probability") {
-                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
-                    else {
-                        const outcome = puzzle.solutions[Math.floor(Math.random() * puzzle.solutions.length)];
-                        puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, outcome, true, requiredItems);
-                    }
-                }
-                else if (puzzle.type.endsWith("probability")) {
-                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
-                    else {
-                        let stat = "";
-                        const statName = Player.abbreviateStatName(puzzle.type.substring(0, puzzle.type.indexOf(" probability")));
-                        if (statName === "str") stat = "str";
-                        else if (statName === "per") stat = "per";
-                        else if (statName === "dex") stat = "dex";
-                        else if (statName === "spd") stat = "spd";
-                        else if (statName === "sta") stat = "sta";
-
-                        const dieRoll = new Die(this.getGame(), stat, this);
-                        // Get the ratio of the result as part of the maximum roll, each relative to the minimum roll.
-                        const ratio = (dieRoll.result - dieRoll.min) / (dieRoll.max - dieRoll.min);
-                        // Clamp the result so that it can be used to choose an item in the array of solutions.
-                        const clampedRatio = Math.min(Math.max(ratio, 0), 0.999);
-                        const outcome = puzzle.solutions[Math.floor(clampedRatio * puzzle.solutions.length)];
-                        puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, outcome, true, requiredItems);
-                    }
-                }
-                else if (puzzle.type === "channels") {
-                    if (puzzle.solved) {
-                        if (password === "") puzzle.unsolve(this, `${this.displayName} turns off the ${puzzleName}.`, `You turn off the ${puzzleName}.`, true);
-                        else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} changes the channel on the ${puzzleName}.`, password, true, requiredItems);
-                        else puzzle.fail(this, `${this.displayName} attempts and fails to change the channel on the ${puzzleName}.`);
-                    }
-                    else {
-                        if (!puzzle.solutions.includes(password)) password = puzzle.outcome ? puzzle.outcome : "";
-                        puzzle.solve(this, `${this.displayName} turns on the ${puzzleName}.`, password, true, requiredItems);
-                    }
-                }
-                else if (puzzle.type === "weight") {
-                    if (puzzle.solved) {
-                        if (!puzzle.solutions.includes(password)) puzzle.unsolve(this, "", null, true);
-                    }
-                    else {
-                        if (puzzle.solutions.includes(password)) puzzle.solve(this, "", password, true, requiredItems);
-                        else puzzle.fail(this, "");
-                    }
-                }
-                else if (puzzle.type === "container") {
-                    if (puzzle.solved) {
-                        puzzle.unsolve(this, "", null, true);
-                    }
-                    const containedItems = password.split(',');
-                    /** @param {string} solution */
-                    let itemsMatch = function (solution) {
-                        let requiredItems = solution.split('+');
-                        if (requiredItems.length !== containedItems.length) return false;
-                        for (let i = 0; i < requiredItems.length; i++)
-                            requiredItems[i] = requiredItems[i].substring(requiredItems[i].indexOf(':') + 1).trim();
-                        requiredItems.sort(function (a, b) {
-                            if (a < b) return -1;
-                            if (a > b) return 1;
-                            return 0;
-                        });
-                        for (let i = 0; i < containedItems.length; i++)
-                            if (containedItems[i] !== requiredItems[i]) return false;
-                        return true;
-                    };
-                    let outcome = "";
-                    for (let i = 0; i < puzzle.solutions.length; i++) {
-                        if (itemsMatch(puzzle.solutions[i])) {
-                            outcome = puzzle.solutions[i];
-                            break;
-                        }
-                    }
-                    if (outcome !== "") puzzle.solve(this, "", outcome, true, requiredItems);
-                    else puzzle.fail(this, "");
-                }
-                else if (puzzle.type === "switch") {
-                    if (puzzle.outcome === password) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}, but nothing happens.`);
-                    else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true, requiredItems);
-                    else puzzle.fail(this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
-                }
-                else if (puzzle.type === "option") {
-                    if (puzzle.solved && password === "") puzzle.unsolve(this, `${this.displayName} resets the ${puzzleName}.`, `You clear the selection for the ${puzzleName}.`, true);
-                    if (puzzle.outcome === password) puzzle.alreadySolved(this, `${this.displayName} sets the ${puzzleName}, but nothing changes.`);
-                    else if (puzzle.solutions.includes(password)) puzzle.solve(this, `${this.displayName} sets the ${puzzleName} to ${password}.`, password, true, requiredItems);
-                    else puzzle.fail(this, `${this.displayName} attempts to set the ${puzzleName}, but struggles.`);
-                }
-                else if (puzzle.type === "media") {
-                    if (puzzle.solved && item === null) {
-                        let message = null;
-                        if (puzzle.alreadySolvedDescription) message = parseDescription(puzzle.alreadySolvedDescription, puzzle, this);
-                        puzzle.unsolve(this, `${this.displayName} presses eject on the ${puzzleName}.`, message, true);
-                    }
-                    else if (puzzle.solved && item !== null)
-                        return `you cannot insert ${item.singleContainingPhrase} into the ${puzzleName} as something is already inside it. Eject it first by sending \`.use ${puzzleName}\`.`;
-                    else if (!puzzle.solved && item !== null) {
-                        hasRequiredItem = false;
-                        let solution = "";
-                        for (let i = 0; i < puzzle.solutions.length; i++) {
-                            if ((puzzle.solutions[i].startsWith("Item:") || puzzle.solutions[i].startsWith("InventoryItem:") || puzzle.solutions[i].startsWith("Prefab:")) &&
-                                item.prefab.id === puzzle.solutions[i].substring(puzzle.solutions[i].indexOf(':') + 1).trim()) {
-                                hasRequiredItem = true;
-                                solution = puzzle.solutions[i];
-                                break;
-                            }
-                        }
-                        if (hasRequiredItem) puzzle.solve(this, `${this.displayName} inserts ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}.`, solution, true, requiredItems);
-                        else puzzle.fail(this, `${this.displayName} attempts to insert ` + (item.prefab.discreet ? "an item" : item.singleContainingPhrase) + ` into the ${puzzleName}, but it doesn't fit.`);
-                    }
-                    else puzzle.requirementsNotMet(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, command, input, message);
-                }
-                else if (puzzle.type === "player") {
-                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
-                    else {
-                        if (puzzle.solutions.includes(this.name)) puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, this.name, true, requiredItems);
-                        else puzzle.fail(this, `${this.displayName} uses the ${puzzleName}.`);
-                    }
-                }
-                else if (puzzle.type === "room player") {
-                    let solution = "";
-                    if (targetPlayer) {
-                        for (let i = 0; i < puzzle.solutions.length; i++) {
-                            if (puzzle.solutions[i].toLowerCase() === targetPlayer.displayName.toLowerCase()) {
-                                solution = puzzle.solutions[i];
-                                break;
-                            }
-                        }
-                    }
-                    if (puzzle.solved) puzzle.alreadySolved(this, `${this.displayName} uses the ${puzzleName}.`);
-                    else if (solution !== "") puzzle.solve(this, `${this.displayName} uses the ${puzzleName}.`, solution, true, requiredItems, targetPlayer);
-                    else puzzle.fail(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`);
-                }
-            }
-            // The player is missing an item needed to solve the puzzle.
-            else return puzzle.requirementsNotMet(this, `${this.displayName} attempts to use the ${puzzleName}, but struggles.`, command, input, message);
-        }
-        // The puzzle isn't accessible.
-        else return puzzle.requirementsNotMet(this, `${this.displayName} uses the ${puzzleName}.`, command, input, message);
+        return !!this.findItem(id);
     }
 
     /**
      * Kills the player.
      */
     die() {
-        this.location.removePlayer(this, undefined, undefined, `${this.displayName} dies.`);
+        this.location.removePlayer(this);
+        const whisperRemovalMessage = this.getGame().notificationGenerator.generateDieNotification(this, false);
+		this.removeFromWhispers(whisperRemovalMessage);
         // Update various data.
         this.alive = false;
         this.location = null;

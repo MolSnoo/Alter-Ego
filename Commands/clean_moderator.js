@@ -61,6 +61,4 @@ export async function execute(game, message, command, args) {
         console.log(err);
         addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items, but there was an error saving data to the spreadsheet. Proceeding without manually saving and loading may cause additional errors. Error:\n```" + err + "```");
     }
-
-    return;
 }

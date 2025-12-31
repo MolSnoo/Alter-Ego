@@ -125,6 +125,4 @@ export async function execute(game, message, command, args) {
 
     if (game.settings.debug) game.guildContext.commandChannel.send("Started game in debug mode.");
     else game.guildContext.commandChannel.send("Started game.");
-
-    return;
 }

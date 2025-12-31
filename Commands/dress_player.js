@@ -114,7 +114,7 @@ export async function execute (game, message, command, args, player) {
 
     // Get all items in this container.
     /**
-     * @type {Array<RoomItem>}
+     * @type {RoomItem[]}
      */
     let containerItems = [];
     if (container instanceof Fixture)

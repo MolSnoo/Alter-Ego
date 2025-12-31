@@ -1,4 +1,5 @@
-﻿import { addReply } from '../Modules/messageHandler.js';
+import QueueMoveAction from '../Data/Actions/QueueMoveAction.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -48,7 +49,6 @@ export async function execute (game, message, command, args, player) {
     if (player.isMoving) return addReply(game, message, `You cannot do that because you are already moving.`);
 
     player.moveQueue = args.join(" ").split(">");
-    player.queueMovement(false, player.moveQueue[0].trim());
-
-    return;
+    const action = new QueueMoveAction(game, message, player, player.location, false);
+    action.performQueueMove(false, player.moveQueue[0]);
 }

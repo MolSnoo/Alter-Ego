@@ -62,6 +62,4 @@ export async function execute (game, message, command, args) {
             }).catch(error => console.log(error.stack));
         });
     }
-
-    return;
 }

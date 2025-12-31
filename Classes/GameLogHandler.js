@@ -14,6 +14,8 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Gesture.js").default} Gesture */
 /** @typedef {import("../Data/Puzzle.js").default} Puzzle */
+/** @typedef {import("../Data/Event.js").default} Event */
+/** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
 
 /**
  * @class GameLogHandler
@@ -67,6 +69,18 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a move action.
+	 * @param {boolean} isRunning - Whether the player is running.
+	 * @param {Room} destination - The room the player moved to.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logMove(isRunning, destination, player, forced) {
+		const verb = isRunning ? `ran` : `moved`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${verb} to ${destination.channel}`);
+	}
+
+	/**
 	 * Logs an inspect action.
 	 * @param {Room|Fixture|RoomItem|InventoryItem|Player} target - The target of the inspect action.
 	 * @param {Player} player - The player who performed the action.
@@ -99,12 +113,44 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a hide action.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player hid in. 
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} successful - Whether or not the player was successful in hiding.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logHide(hidingSpot, player, successful, forced) {
+		const actionVerb = successful ? `hid` : `attempted and failed to hide`;
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}${actionVerb} in ${hidingSpot.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an unhide action.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player came out of.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnhide(hidingSpot, player, forced) {
+		const hidingSpotName = hidingSpot ? hidingSpot.name : "hiding";
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}came out of ${hidingSpotName} in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs an inflict action.
 	 * @param {Status} status - The status that was inflicted.
 	 * @param {Player} player - The player who performed the action.
 	 */
 	logInflict(status, player) {
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} became ${status.id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a cure action.
+	 * @param {Status} status - The status that was cured.
+	 * @param {Player} player - The player who performed the action.
+	 */
+	logCure(status, player) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} has been cured of ${status.id} in ${player.location.channel}`);
 	}
 
 	/**
@@ -305,10 +351,126 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs an activate action.
+	 * @param {Fixture} fixture - The fixture that was activated.
+	 * @param {Player} [player] - The player who performed the action, if applicable.
+	 * @param {boolean} [forced] - Whether or not the player was forced to perform the action.
+	 */
+	logActivate(fixture, player, forced) {
+		const actionDescription = player ? `${player.name} ${this.#getForcedString(forced)}activated ${fixture.name}` : `${fixture.name} was activated`;
+		this.#sendLogMessage(`${this.#getTime()} - ${actionDescription} in ${fixture.location.channel}`);
+	}
+
+	/**
+	 * Logs a deactivate action.
+	 * @param {Fixture} fixture - The fixture that was deactivated.
+	 * @param {Player} [player] - The player who performed the action, if applicable.
+	 * @param {boolean} [forced] - Whether or not the player was forced to perform the action.
+	 */
+	logDeactivate(fixture, player, forced) {
+		const actionDescription = player ? `${player.name} ${this.#getForcedString(forced)}deactivated ${fixture.name}` : `${fixture.name} was deactivated`;
+		this.#sendLogMessage(`${this.#getTime()} - ${actionDescription} in ${fixture.location.channel}`);
+	}
+
+	/**
+	 * Logs a solve action or an attempt action that solves the puzzle.
+	 * @param {Puzzle} puzzle - The puzzle being solved.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logSolve(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}solved ${puzzle.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an unsolve action or an attempt action that unsolves the puzzle.
+	 * @param {Puzzle} puzzle - The puzzle being unsolved.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnsolve(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}unsolved ${puzzle.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an attempt action where the puzzle was already solved.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptAlreadySolvedPuzzle(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted ${puzzle.name} while it was already solved in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an attempt action where the player failed to solve the puzzle.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptAndFailPuzzle(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted and failed to solve ${puzzle.name} in ${player.location.channel}`)
+	}
+
+	/**
+	 * Logs an attempt action where the puzzle has no remaining attempts.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptPuzzleWithNoRemainingAttempts(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted ${puzzle.name} with no remaining attempts in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an attempt action where the puzzle is inaccessible.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptInaccessiblePuzzle(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted ${puzzle.name} without meeting all of the requirements in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a die action.
 	 * @param {Player} player - The player who died. 
 	 */
 	logDie(player) {
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} died in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an exit being unlocked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit that was unlocked.
+	 */
+	logUnlock(room, exit) {
+		this.#sendLogMessage(`${this.#getTime()} - ${exit.name} was unlocked in ${room.channel}`);
+	}
+
+	/**
+	 * Logs an exit being locked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit that was locked.
+	 */
+	logLock(room, exit) {
+		this.#sendLogMessage(`${this.#getTime()} - ${exit.name} was locked in ${room.channel}`);
+	}
+
+	/**
+	 * Logs an event being triggered.
+	 * @param {Event} event - The event that was triggered.
+	 */
+	logTrigger(event) {
+		this.#sendLogMessage(`${this.#getTime()} - ${event.id} was triggered`);
+	}
+
+	/**
+	 * Logs an event being ended.
+	 * @param {Event} event - The event that was ended.
+	 */
+	logEnd(event) {
+		this.#sendLogMessage(`${this.#getTime()} - ${event.id} was ended`);
 	}
 }

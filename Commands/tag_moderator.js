@@ -105,6 +105,4 @@ export async function execute (game, message, command, args) {
             addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully removed the following tags from ${room.id}: ${removedTagsString}`);
         }
     }
-
-    return;
 }
