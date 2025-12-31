@@ -9,7 +9,7 @@ import Status from "./Status.js";
 
 /**
  * @class Gesture
- * @classdesc Represents a form of body language that a player can use to communicate nonverbally.
+ * @classdesc Represents a form of body language that a player can use to communicate non-verbally.
  * @extends GameEntity
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/gesture.html
  */

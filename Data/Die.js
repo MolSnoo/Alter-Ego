@@ -43,7 +43,7 @@ export default class Die extends GameConstruct {
 
     /**
      * @constructor
-     * @param {Game} game - The game context this roll is occuring in. 
+     * @param {Game} game - The game context this roll is occurring in. 
      * @param {string} [stat] - The name of the stat to roll for. 
      * @param {Player} [attacker] - The active player to roll for. In other words, the player attempting an action.
      * @param {Player} [defender] - The passive player to roll for. Only used if the attacker is attempting to perform an action against another player.

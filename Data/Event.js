@@ -131,7 +131,7 @@ export default class Event extends GameEntity {
      */
     timer;
     /** 
-     * A timer that inflicts and refreshes status effects every second whil the event is ongoing.
+     * A timer that inflicts and refreshes status effects every second while the event is ongoing.
      * @type {Timer | null}
      */
     effectsTimer;

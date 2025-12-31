@@ -24,7 +24,7 @@ export default class Flag extends GameEntity {
 	 */
 	value;
 	/**
-	 * A script which will determine the flag's value programatically.
+	 * A script which will determine the flag's value programmatically.
 	 * @type {string}
 	 */
 	valueScript;
@@ -44,7 +44,7 @@ export default class Flag extends GameEntity {
 	 * @constructor
 	 * @param {string} id - The unique identifier for this flag.
 	 * @param {string | number | boolean} value - The current value of the flag.
-	 * @param {string} valueScript - A script which will determine the flag's value programatically.
+	 * @param {string} valueScript - A script which will determine the flag's value programmatically.
 	 * @param {string} commandSetsString - The string representation of the bot commands to be executed when the flag is set or cleared with specified values.
 	 * @param {FlagCommandSet[]} commandSets - Sets of commands to be executed when the flag is set or cleared with specified values.
 	 * @param {number} row - The row number of the flag in the sheet.

@@ -5,7 +5,7 @@ import { EmbedBuilder } from "discord.js";
 import { Duration } from 'luxon';
 
 /**
- * Gets a random string out of an array of possibilties.
+ * Gets a random string out of an array of possibilities.
  * @param {string[]} possibilities - A list of strings to choose from.
  * @returns A randomly chosen entry from possibilities.
  */
@@ -38,7 +38,7 @@ export function generatePlayerListString(players) {
 }
 
 /**
- * Generates a gramatically correct list.
+ * Generates a grammatically correct list.
  * @param {string[]} list 
  */
 export function generateListString(list) {
