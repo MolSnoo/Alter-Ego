@@ -14,6 +14,7 @@ import RoomItem from "../Data/RoomItem.js";
 import { addLogMessage } from "../Modules/messageHandler.js";
 import { generateListString } from "../Modules/helpers.js";
 
+/** @typedef {import("../Data/Event.js").default} Event */
 /** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
 
 /**
@@ -437,5 +438,39 @@ export default class GameLogHandler {
 	 */
 	logDie(player) {
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} died in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an exit being unlocked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit that was unlocked.
+	 */
+	logUnlock(room, exit) {
+		this.#sendLogMessage(`${this.#getTime()} - ${exit.name} was unlocked in ${room.channel}`);
+	}
+
+	/**
+	 * Logs an exit being locked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit that was locked.
+	 */
+	logLock(room, exit) {
+		this.#sendLogMessage(`${this.#getTime()} - ${exit.name} was locked in ${room.channel}`);
+	}
+
+	/**
+	 * Logs an event being triggered.
+	 * @param {Event} event - The event that was triggered.
+	 */
+	logTrigger(event) {
+		this.#sendLogMessage(`${this.#getTime()} - ${event.id} was triggered`);
+	}
+
+	/**
+	 * Logs an event being ended.
+	 * @param {Event} event - The event that was ended.
+	 */
+	logEnd(event) {
+		this.#sendLogMessage(`${this.#getTime()} - ${event.id} was ended`);
 	}
 }

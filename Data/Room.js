@@ -1,10 +1,8 @@
 import Exit from './Exit.js';
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
-import Narration from '../Data/Narration.js';
 import Player from './Player.js';
 import { generatePlayerListString } from '../Modules/helpers.js';
-import { addLogMessage } from '../Modules/messageHandler.js';
 import { Collection, TextChannel } from 'discord.js';
 
 /**
@@ -186,11 +184,8 @@ export default class Room extends GameEntity {
      */
     unlock(index) {
         this.exit[index].unlock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${this.exit[index].name} unlocks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${this.exit[index].name} in ${this.channel} was unlocked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateUnlock(this, this.exit[index]);
+        this.getGame().logHandler.logUnlock(this, this.exit[index]);
     }
 
     /**
@@ -200,11 +195,8 @@ export default class Room extends GameEntity {
     unlockExit(name) {
         let exit = this.exitCollection.get(name);
         exit.unlock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} unlocks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${exit.name} in ${this.channel} was unlocked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateUnlock(this, exit);
+        this.getGame().logHandler.logUnlock(this, exit);
     }
 
     /**
@@ -214,11 +206,8 @@ export default class Room extends GameEntity {
      */
     lock(index) {
         this.exit[index].lock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${this.exit[index].name} locks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${this.exit[index].name} in ${this.channel} was locked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateLock(this, this.exit[index]);
+        this.getGame().logHandler.logLock(this, this.exit[index]);
     }
 
     /**
@@ -228,11 +217,8 @@ export default class Room extends GameEntity {
     lockExit(name) {
         let exit = this.exitCollection.get(name);
         exit.lock();
-        if (this.occupants.length > 0) new Narration(this.getGame(), null, this, `${exit.name} locks.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${exit.name} in ${this.channel} was locked.`);
+        if (this.occupants.length > 0) this.getGame().narrationHandler.narrateLock(this, exit);
+        this.getGame().logHandler.logLock(this, exit);
     }
 
     /** @returns {string} */

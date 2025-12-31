@@ -1,5 +1,6 @@
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
+/** @typedef {import("../Data/Exit.js").default} Exit */
 /** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 /** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 /** @typedef {import("../Data/Recipe.js").default} Recipe */
@@ -909,5 +910,21 @@ export default class GameNotificationGenerator {
 			? `You have died. When your body is discovered, you will be given the ${this.#game.guildContext.deadRole.name} role. Until then, your death must remain a secret to the server and to other players.`
 			: `${player.displayName} dies.`;
 		return message;
+	}
+
+	/**
+	 * Generates a notification indicating an exit was unlocked.
+	 * @param {Exit} exit - The exit that was unlocked.
+	 */
+	generateUnlockNotification(exit) {
+		return `${exit.name} unlocks.`;
+	}
+
+	/**
+	 * Generates a notification indicating an exit was locked.
+	 * @param {Exit} exit - The exit that was locked.
+	 */
+	generateLockNotification(exit) {
+		return `${exit.name} locks.`;
 	}
 }

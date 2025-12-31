@@ -1,11 +1,8 @@
 import GameEntity from './GameEntity.js';
 import InflictAction from './Actions/InflictAction.js';
 import Game from './Game.js';
-import Narration from '../Data/Narration.js';
 import Status from './Status.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
-import { addLogMessage } from '../Modules/messageHandler.js';
-import { parseDescription } from '../Modules/parser.js';
 import Timer from '../Classes/Timer.js';
 import { DateTime, Duration } from 'luxon';
 import { parse } from 'date-fns';
@@ -205,12 +202,8 @@ export default class Event extends GameEntity {
         // Mark it as ongoing.
         this.ongoing = true;
 
-        // Send the triggered narration to all rooms with occupants.
-        if (this.triggeredNarration !== "") {
-            const rooms = this.getGame().entityFinder.getRooms(null, this.roomTag, false);
-            for (let room of rooms)
-                new Narration(this.getGame(), null, room, parseDescription(this.triggeredNarration, this, null)).send();
-        }
+        this.getGame().narrationHandler.narrateTrigger(this);
+        this.getGame().logHandler.logTrigger(this);
 
         // Execute triggered commands.
         if (doTriggeredCommands)
@@ -221,10 +214,6 @@ export default class Event extends GameEntity {
             this.startTimer();
         if (this.effects.length > 0 || this.refreshes.length > 0)
             this.startEffectsTimer();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${this.id} was triggered.`);
     }
 
     /**
@@ -247,20 +236,12 @@ export default class Event extends GameEntity {
             this.effectsTimer = null;
         }
 
-        // Send the ended narration to all rooms with occupants.
-        if (this.endedNarration !== "") {
-            const rooms = this.getGame().entityFinder.getRooms(null, this.roomTag, false);
-            for (let room of rooms)
-                new Narration(this.getGame(), null, room, parseDescription(this.endedNarration, this, null)).send();
-        }
+        this.getGame().narrationHandler.narrateEnd(this);
+        this.getGame().logHandler.logEnd(this);
 
         // Execute ended commands.
         if (doEndedCommands)
             await parseAndExecuteBotCommands(this.endedCommands, this.getGame(), this);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${this.id} was ended.`);
     }
 
     async startTimer() {

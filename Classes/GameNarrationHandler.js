@@ -15,6 +15,7 @@ import RoomItem from "../Data/RoomItem.js";
 import { parseDescription } from "../Modules/parser.js";
 import { generateListString } from "../Modules/helpers.js";
 
+/** @typedef {import("../Data/Event.js").default} Event */
 /** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
 /** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 
@@ -611,6 +612,54 @@ export default class GameNarrationHandler {
 				const narration = this.#game.notificationGenerator.generateDieNotification(player, false);
 				this.#sendNarration(player, narration);
 			}
+		}
+	}
+
+	/**
+	 * Narrates an exit being unlocked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit being unlocked.
+	 */
+	narrateUnlock(room, exit) {
+		const narration = this.#game.notificationGenerator.generateUnlockNotification(exit);
+		this.#sendNarration(undefined, narration, room);
+	}
+
+	/**
+	 * Narrates an exit being locked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit being locked.
+	 */
+	narrateLock(room, exit) {
+		const narration = this.#game.notificationGenerator.generateLockNotification(exit);
+		this.#sendNarration(undefined, narration, room);
+	}
+
+	/**
+	 * Narrates an event being triggered.
+	 * @param {Event} event - The event being triggered.
+	 */
+	narrateTrigger(event) {
+		// Send the triggered narration to all rooms with occupants.
+		if (event.triggeredNarration !== "") {
+			const narrationText = parseDescription(event.triggeredNarration, event, undefined);
+			const rooms = this.#game.entityFinder.getRooms(null, event.roomTag, false);
+			for (let room of rooms)
+				this.#sendNarration(undefined, narrationText, room);
+		}
+	}
+
+	/**
+	 * Narrates an event being ended.
+	 * @param {Event} event - The event being ended.
+	 */
+	narrateEnd(event) {
+		// Send the ended narration to all rooms with occupants.
+		if (event.endedNarration !== "") {
+			const narrationText = parseDescription(event.endedNarration, event, undefined);
+			const rooms = this.#game.entityFinder.getRooms(null, event.roomTag, false);
+			for (let room of rooms)
+				this.#sendNarration(undefined, narrationText, room);
 		}
 	}
 }
