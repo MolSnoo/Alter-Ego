@@ -3,23 +3,20 @@ import GameEntity from './GameEntity.js';
 import Exit from './Exit.js';
 import Room from './Room.js';
 import Fixture from './Fixture.js';
-import Prefab from './Prefab.js';
 import Recipe from './Recipe.js';
 import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
 import Puzzle from './Puzzle.js';
-import Event from './Event.js';
 import EquipmentSlot from './EquipmentSlot.js';
 import InventoryItem from './InventoryItem.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
-import Flag from './Flag.js';
 import Narration from './Narration.js';
-import Die from './Die.js';
 
 import CureAction from './Actions/CureAction.js';
 import DieAction from './Actions/DieAction.js';
 import InflictAction from './Actions/InflictAction.js';
+import InstantiateAction from './Actions/InstantiateAction.js';
 import MoveAction from './Actions/MoveAction.js';
 import QueueMoveAction from './Actions/QueueMoveAction.js';
 import StopAction from './Actions/StopAction.js';
@@ -1175,28 +1172,16 @@ export default class Player extends ItemContainer {
      * Equips an inventory item to any of the player's {@link EquipmentSlot|equipment slots}.
      * This should only be used for newly created inventory items.
      * @param {InventoryItem} item - The inventory item to equip.
-     * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to. 
-     * @param {boolean} [notify=true] - Whether or not to notify the player that they equipped the inventory item. Defaults to true.
+     * @param {EquipmentSlot} equipmentSlot - The equipment slot to equip the inventory item to.
      */
-    directEquip(item, equipmentSlot, notify = true) {
+    directEquip(item, equipmentSlot) {
         item.row = equipmentSlot.row;
         equipmentSlot.equipItem(item);
 
-        if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            if (notify) this.notify(`You take ${item.singleContainingPhrase}.`);
-            if (!item.prefab.discreet && notify) {
-                new Narration(this.getGame(), this, this.location, `${this.displayName} takes ${item.singleContainingPhrase}.`).send();
-                // Add the new item to the player's hands item list.
-                this.addItemToDescription(item, "hands");
-            }
-        }
+        if ((item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") && !item.prefab.discreet)
+            this.addItemToDescription(item, "hands");
         else {
-            if (notify) {
-                this.notify(`You equip the ${item.name}.`);
-                new Narration(this.getGame(), this, this.location, `${this.displayName} puts on ${item.singleContainingPhrase}.`).send();
-            }
             this.#coverEquippedItems(item);
-
             // Execute equipped commands.
             parseAndExecuteBotCommands(item.prefab.equippedCommands, this.getGame(), item, this);
         }
@@ -1424,9 +1409,9 @@ export default class Player extends ItemContainer {
         if (!item.prefab.discreet) this.removeItemFromDescription(item, "hands");
         const rightHand = this.inventoryCollection.get("RIGHT HAND");
         const ingredient1Instance = itemManager.replaceInventoryItem(item, ingredient1);
-        const ingredient2Instance = itemManager.instantiateInventoryItem(
+        const instantiateAction = new InstantiateAction(this.getGame(), undefined, this, this.location, true);
+        const ingredient2Instance = instantiateAction.performInstantiateInventoryItem(
             ingredient2,
-            this,
             rightHand.equippedItem === null ? "RIGHT HAND" : "LEFT HAND",
             null,
             "",

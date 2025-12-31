@@ -390,12 +390,13 @@ export default class GameNotificationGenerator {
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
 	 * @param {string} itemPhrase - The single containing phrase of the item.
-	 * @param {string} containerPhrase - The entire phrase of the container.
+	 * @param {string} [containerPhrase] - The entire phrase of the container. Optional.
 	 */
 	generateTakeNotification(player, secondPerson, itemPhrase, containerPhrase) {
 		const subject = secondPerson ? `You` : player.displayName;
 		const verb = secondPerson ? `take` : `takes`;
-		return `${subject} ${verb} ${itemPhrase} from ${containerPhrase}.`;
+		const containerAppendString = containerPhrase ? ` from ${containerPhrase}` : ``;
+		return `${subject} ${verb} ${itemPhrase}${containerAppendString}.`;
 	}
 
 	/**

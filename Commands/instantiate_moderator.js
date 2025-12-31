@@ -1,8 +1,8 @@
 import GameSettings from '../Classes/GameSettings.js';
+import InstantiateAction from '../Data/Actions/InstantiateAction.js';
 import Game from '../Data/Game.js';
 import RoomItem from '../Data/RoomItem.js';
 import * as messageHandler from '../Modules/messageHandler.js';
-import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -192,10 +192,15 @@ export async function execute (game, message, command, args) {
         // Now instantiate the item.
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
-            for (let i = 0; i < quantity; i++)
-                instantiateItem(prefab, room, container, slotName, 1, proceduralSelections);
+            for (let i = 0; i < quantity; i++) {
+                const instantiateAction = new InstantiateAction(game, message, undefined, room, true);
+                instantiateAction.performInstantiateRoomItem(prefab, container, slotName, 1, proceduralSelections);
+            }
         }
-        else instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections);
+        else {
+            const instantiateAction = new InstantiateAction(game, message, undefined, room, true);
+            instantiateAction.performInstantiateRoomItem(prefab, container, slotName, quantity, proceduralSelections);
+        }
 
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated item.");
     }
@@ -303,10 +308,15 @@ export async function execute (game, message, command, args) {
         // Now instantiate the item.
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
-            for (let i = 0; i < quantity; i++)
-                instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, proceduralSelections);
+            for (let i = 0; i < quantity; i++) {
+                const instantiateAction = new InstantiateAction(game, message, player, player.location, true);
+                instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotName, containerItem, slotName, 1, proceduralSelections);
+            }
         }
-        else instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections);
+        else {
+            const instantiateAction = new InstantiateAction(game, message, player, player.location, true);
+            instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections);
+        }
 
         messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully instantiated inventory item.");
     }

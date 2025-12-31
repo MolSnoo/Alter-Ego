@@ -5,8 +5,10 @@ import ItemInstance from './ItemInstance.js';
 import Player from './Player.js';
 import Puzzle from './Puzzle.js';
 import Room from './Room.js';
-import { instantiateItem, destroyItem } from '../Modules/itemManager.js';
+import { destroyItem } from '../Modules/itemManager.js';
 import { Collection } from 'discord.js';
+
+import InstantiateAction from './Actions/InstantiateAction.js';
 
 /**
  * @class RoomItem
@@ -115,14 +117,14 @@ export default class RoomItem extends ItemInstance {
         this.uses--;
         if (this.uses === 0) {
             const nextStage = this.prefab.nextStage;
-            const location = this.location;
             const container = this.container;
             const slot = this.slot;
             const quantity = this.quantity;
             container.removeItemFromDescription(this, slot);
             container.addItemToDescription(this, slot);
             destroyItem(this, this.quantity, true);
-            instantiateItem(nextStage, location, container, slot, quantity, new Map(), player);
+            const instantiateAction = new InstantiateAction(this.getGame(), undefined, player, this.location, true);
+            instantiateAction.performInstantiateRoomItem(nextStage, container, slot, quantity, new Map());
         }
     }
 

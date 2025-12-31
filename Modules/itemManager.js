@@ -12,7 +12,7 @@ import { generateProceduralOutput } from '../Modules/parser.js';
 import { addLogMessage } from './messageHandler.js';
 
 /**
- * Instantiates a new item in the specified location and container.
+ * Instantiates a new room item in the specified location and container.
  * @param {Prefab} prefab - The prefab to instantiate as an item.
  * @param {Room} location - The room to instantiate the item in.
  * @param {Fixture|Puzzle|RoomItem} container - The container to instantiate the item in.
@@ -21,28 +21,20 @@ import { addLogMessage } from './messageHandler.js';
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
  * @param {Player} [player] - The player who caused this item to be instantiated, if applicable.
  */
-export function instantiateItem(prefab, location, container, inventorySlotId, quantity, proceduralSelections, player = null) {
+export function instantiateRoomItem(prefab, location, container, inventorySlotId, quantity, proceduralSelections, player) {
     let containerType = "";
     let containerName = "";
-    let containerLogDisplay = "";
-    let preposition = "in";
     if (container instanceof Puzzle) {
         containerType = "Puzzle";
         containerName = container.name;
-        containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
-        if (container.parentFixture) preposition = container.parentFixture.preposition;
     }
     else if (container instanceof Fixture) {
         containerType = "Fixture";
         containerName = container.name;
-        containerLogDisplay = container.name;
-        preposition = container.preposition;
     }
     else if (container instanceof RoomItem) {
         containerType = "RoomItem";
         containerName = container.identifier + '/' + inventorySlotId;
-        containerLogDisplay = `${inventorySlotId} of ${container.identifier}`;
-        if (container.prefab) preposition = container.prefab.preposition;
     }
 
     let createdItem = new RoomItem(
@@ -70,10 +62,6 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
     container.addItemToDescription(createdItem, inventorySlotId, quantity);
 
     insertRoomItems(location, [createdItem]);
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(prefab.getGame(), `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerLogDisplay} in ${location.channel}`);
     return createdItem;
 }
 
@@ -86,9 +74,8 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
  * @param {string} inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
  * @param {number} quantity - The quantity to instantiate.
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
- * @param {boolean} [notify] - Whether or not to notify the player that the item was added to their inventory. Defaults to true. 
  */
-export function instantiateInventoryItem(prefab, player, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections, notify = true) {
+export function instantiateInventoryItem(prefab, player, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections) {
     let createdItem = new InventoryItem(
         player.name,
         prefab.id,
@@ -115,23 +102,10 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
     if (container !== null) {
         container.insertItem(createdItem, inventorySlotId);
         container.addItemToDescription(createdItem, inventorySlotId, quantity);
-
         insertInventoryItems(player, [createdItem], equipmentSlot);
-
-        const containerName = `${inventorySlotId} of ${container.identifier}`;
-        const preposition = container.prefab ? container.prefab.preposition : "in";
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(prefab.getGame(), `${time} - Instantiated ${quantity} ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
     }
     // Item is being equipped.
-    else {
-        player.directEquip(createdItem, equipmentSlot, notify);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(prefab.getGame(), `${time} - Instantiated ${createdItem.identifier ? createdItem.identifier : createdItem.prefab.id} and equipped it to ${player.name}'s ${equipmentSlotId} in ${player.location.channel}`);
-    }
+    else player.directEquip(createdItem, equipmentSlot);
     return createdItem;
 }
 

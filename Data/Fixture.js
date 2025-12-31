@@ -7,11 +7,12 @@ import Prefab from './Prefab.js';
 import Puzzle from './Puzzle.js';
 import Recipe from './Recipe.js';
 import Room from './Room.js';
-import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
+import { getChildItems, destroyItem } from '../Modules/itemManager.js';
 import Timer from '../Classes/Timer.js';
 import { Duration } from 'luxon';
 
 import DeactivateAction from './Actions/DeactivateAction.js';
+import InstantiateAction from './Actions/InstantiateAction.js';
 
 /**
  * @class Fixture
@@ -430,7 +431,10 @@ function process(fixture, player) {
                     break;
                 }
             }
-            if (instantiate) instantiateItem(product, fixture.location, fixture, "", quantity, new Map());
+            if (instantiate) {
+                const instantiateAction = new InstantiateAction(fixture.getGame(), undefined, undefined, fixture.location, true);
+                instantiateAction.performInstantiateRoomItem(product, fixture, "", quantity, new Map());
+            }
         }
         if (player && player.alive && player.location.id === fixture.location.id) player.sendDescription(fixture.process.recipe.completedDescription, fixture);
     }

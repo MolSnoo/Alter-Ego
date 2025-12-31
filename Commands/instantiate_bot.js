@@ -1,4 +1,5 @@
 import GameSettings from "../Classes/GameSettings.js";
+import InstantiateAction from "../Data/Actions/InstantiateAction.js";
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
@@ -6,7 +7,6 @@ import Flag from "../Data/Flag.js";
 import InventoryItem from "../Data/InventoryItem.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { instantiateItem, instantiateInventoryItem } from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -200,10 +200,15 @@ export async function execute (game, command, args, player, callee) {
         // Now instantiate the item.
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.length > 0) {
-            for (let i = 0; i < quantity; i++)
-                instantiateItem(prefab, room, container, slotName, 1, proceduralSelections, player);
+            for (let i = 0; i < quantity; i++) {
+                const instantiateAction = new InstantiateAction(game, undefined, player, room, true);
+                instantiateAction.performInstantiateRoomItem(prefab, container, slotName, 1, proceduralSelections);
+            }
         }
-        else instantiateItem(prefab, room, container, slotName, quantity, proceduralSelections, player);
+        else {
+            const instantiateAction = new InstantiateAction(game, undefined, player, room, true);
+            instantiateAction.performInstantiateRoomItem(prefab, container, slotName, quantity, proceduralSelections);
+        }
     }
     else {
         let players = [];
@@ -333,10 +338,15 @@ export async function execute (game, command, args, player, callee) {
             // Now instantiate the item.
             // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
             if (prefab.inventory.length > 0) {
-                for (let i = 0; i < quantity; i++)
-                    instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, 1, proceduralSelections);
+                for (let i = 0; i < quantity; i++) {
+                    const instantiateAction = new InstantiateAction(game, undefined, player, player.location, true);
+                    instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotName, containerItem, slotName, 1, proceduralSelections);
+                }
             }
-            else instantiateInventoryItem(prefab, player, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections);
+            else {
+                const instantiateAction = new InstantiateAction(game, undefined, player, player.location, true);
+                instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections);
+            }
         }
     }
 

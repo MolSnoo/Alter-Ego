@@ -484,6 +484,26 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates an instantiate action when the item is an inventory item equipped to a player's equipment slot.
+	 * @param {InventoryItem} item - The item that is being instantiated.
+	 * @param {Player} player - The player the inventory item is being equipped to.
+	 */
+	narrateInstantiateEquippedInventoryItem(item, player) {
+		let notification = "";
+		let narration = "";
+		if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
+			notification = this.#game.notificationGenerator.generateTakeNotification(player, true, item.singleContainingPhrase);
+			narration = this.#game.notificationGenerator.generateTakeNotification(player, false, item.singleContainingPhrase);
+		}
+		else {
+			notification = this.#game.notificationGenerator.generateEquipNotification(player, true, item.singleContainingPhrase);
+			narration = this.#game.notificationGenerator.generateEquipNotification(player, false, item.singleContainingPhrase);
+		}
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
 	 * Narrates a craft action.
 	 * @param {CraftingResult} craftingResult - The result of the craft action.
 	 * @param {Player} player - The player performing the craft action.
