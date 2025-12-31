@@ -1,4 +1,7 @@
-﻿import Puzzle from "../Data/Puzzle.js";
+import AttemptAction from "../Data/Actions/AttemptAction.js";
+import SolveAction from "../Data/Actions/SolveAction.js";
+import UnsolveAction from "../Data/Actions/UnsolveAction.js";
+import Puzzle from "../Data/Puzzle.js";
 import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -148,20 +151,18 @@ export async function execute (game, command, args, player, callee) {
         }
     }
 
-    if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
-
-    let doCommands = false;
-    if (callee && !(callee instanceof Puzzle)) doCommands = true;
-
     if (command === "solve") {
         if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
-        puzzle.solve(player, announcement, outcome, doCommands, [], targetPlayer);
+        const solveAction = new SolveAction(game, undefined, player, puzzle.location, true);
+        solveAction.performSolve(puzzle, outcome, targetPlayer, announcement, callee);
     }
     else if (command === "unsolve") {
-        puzzle.unsolve(player, announcement, null, doCommands);
+        const unsolveAction = new UnsolveAction(game, undefined, player, puzzle.location, true);
+        unsolveAction.performUnsolve(puzzle, announcement, callee);
     }
     else if (command === "attempt") {
         if (player === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
-        player.attemptPuzzle(puzzle, null, input, command, input, null, targetPlayer);
+        const attemptAction = new AttemptAction(game, undefined, player, puzzle.location, true);
+        attemptAction.performAttempt(puzzle, undefined, input, command, input, targetPlayer);
     }
 }

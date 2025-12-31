@@ -1,5 +1,5 @@
-import InflictAction from '../Data/Actions/InflictAction.js';
-import Whisper from '../Data/Whisper.js';
+import HideAction from '../Data/Actions/HideAction.js';
+import UnhideAction from '../Data/Actions/UnhideAction.js';
 import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -47,7 +47,10 @@ export async function execute (game, message, command, args, player) {
         const fixture = game.entityFinder.getFixtures(player.hidingSpot, player.location.id, true)[0];
         if (fixture !== undefined && (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved))
             return addReply(game, message, `You cannot come out of hiding right now.`);
-        else player.cure("hidden", true, false, true);
+        else {
+            const unhideAction = new UnhideAction(game, message, player, player.location, false);
+            unhideAction.performUnhide(fixture.hidingSpot);
+        }
     }
     else if (player.statusCollection.has("hidden"))
         return addReply(game, message, `You are already **hidden**. If you wish to stop hiding, use "${game.settings.commandPrefix}unhide".`);
@@ -78,94 +81,7 @@ export async function execute (game, message, command, args, player) {
         if (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved)
             return addReply(game, message, `You cannot hide in ${fixture.name} right now.`);
 
-        // Check to see if the hiding spot is already taken.
-        const hiddenPlayers = [];
-        for (let i = 0; i < player.location.occupants.length; i++) {
-            if (player.location.occupants[i].hidingSpot === fixture.name)
-                hiddenPlayers.push(player.location.occupants[i]);
-        }
-
-        const hiddenStatus = game.entityFinder.getStatusEffect("hidden");
-        // Create a list string of players currently hiding in that hiding spot.
-        hiddenPlayers.sort(function (a, b) {
-            const nameA = a.displayName.toLowerCase();
-            const nameB = b.displayName.toLowerCase();
-            if (nameA < nameB) return -1;
-            if (nameA > nameB) return 1;
-            return 0;
-        });
-        if (player.hasBehaviorAttribute("no sight")) {
-            const hiddenPlayersString = hiddenPlayers.length > 1 ? "multiple people" : "someone";
-            if (hiddenPlayers.length + 1 > fixture.hidingSpotCapacity) {
-                player.notify(`You attempt to hide in the ${fixture.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
-                for (let i = 0; i < hiddenPlayers.length; i++) {
-                    if (hiddenPlayers[i].hasBehaviorAttribute("no sight"))
-                        hiddenPlayers[i].notify(`Someone finds you! They try to hide with you, but there isn't enough room.`);
-                    else
-                        hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} try to hide with you, but there isn't enough room.`);
-                }
-            }
-            else {
-                player.notify(`When you hide in the ${fixture.name}, you find ${hiddenPlayersString} already there!`);
-
-                hiddenPlayers.push(player);
-                player.hidingSpot = fixture.name;
-                const hiddenStatusAction = new InflictAction(game, message, player, player.location, false);
-                hiddenStatusAction.performInflict(hiddenStatus, true, false, true);
-
-                // Create a whisper.
-                if (hiddenPlayers.length > 0) {
-                    const whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
-                    await whisper.init();
-                    game.whispers.push(whisper);
-                }
-
-                // Log message is sent when status is inflicted.
-            }
-        }
-        else {
-            let hiddenPlayersString = "";
-            if (hiddenPlayers.length === 1) hiddenPlayersString = hiddenPlayers[0].displayName;
-            else if (hiddenPlayers.length === 2)
-                hiddenPlayersString += `${hiddenPlayers[0].displayName} and ${hiddenPlayers[1].displayName}`;
-            else if (hiddenPlayers.length >= 3) {
-                for (let i = 0; i < hiddenPlayers.length - 1; i++)
-                    hiddenPlayersString += `${hiddenPlayers[i].displayName}, `;
-                hiddenPlayersString += `and ${hiddenPlayers[hiddenPlayers.length - 1].displayName}`;
-            }
-
-            if (hiddenPlayers.length + 1 > fixture.hidingSpotCapacity) {
-                player.notify(`You attempt to hide in the ${fixture.name}, but you find ${hiddenPlayersString} already there! There doesn't seem to be enough room for you.`);
-                for (let i = 0; i < hiddenPlayers.length; i++) {
-                    if (hiddenPlayers[i].hasBehaviorAttribute("no sight"))
-                        hiddenPlayers[i].notify(`Someone finds you! They try to hide with you, but there isn't enough room.`);
-                    else
-                        hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} try to hide with you, but there isn't enough room.`);
-                }
-            }
-            else {
-                if (hiddenPlayers.length > 0) player.notify(`When you hide in the ${fixture.name}, you find ${hiddenPlayersString} already there!`);
-                for (let i = 0; i < hiddenPlayers.length; i++) {
-                    if (hiddenPlayers[i].hasBehaviorAttribute("no sight"))
-                        hiddenPlayers[i].notify(`Someone finds you! They hide with you.`);
-                    else
-                        hiddenPlayers[i].notify(`You're found by ${player.displayName}! ${player.pronouns.Sbj} hide` + (player.pronouns.plural ? '' : 's') + ` with you.`);
-                    hiddenPlayers[i].removeFromWhispers("");
-                }
-                hiddenPlayers.push(player);
-                player.hidingSpot = fixture.name;
-                const hiddenStatusAction = new InflictAction(game, message, player, player.location, false);
-                hiddenStatusAction.performInflict(hiddenStatus, true, false, true);
-
-                // Create a whisper.
-                if (hiddenPlayers.length > 0) {
-                    const whisper = new Whisper(game, hiddenPlayers, player.location.id, player.location);
-                    await whisper.init();
-                    game.whispers.push(whisper);
-                }
-
-                // Log message is sent when status is inflicted.
-            }
-        }
+        const hideAction = new HideAction(game, message, player, player.location, false);
+        hideAction.performHide(fixture.hidingSpot);
     }
 }

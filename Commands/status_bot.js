@@ -1,7 +1,9 @@
+import CureAction from "../Data/Actions/CureAction.js";
 import InflictAction from '../Data/Actions/InflictAction.js';
 import InventoryItem from "../Data/InventoryItem.js";
 import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
+/** @typedef {import("../Data/Status.js").default} Status */
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
@@ -84,14 +86,17 @@ export async function execute (game, command, args, player, callee) {
     /** @type {Status} */
     const status = game.entityFinder.getStatusEffect(statusId);
     if (!status) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusId}".`);
+    if (status.id === "hidden") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Can't inflict or cure "hidden".`);
 
+    const item = callee instanceof InventoryItem ? callee : undefined;
     for (let i = 0; i < players.length; i++) {
         if (command === "inflict") {
-            const item = callee instanceof InventoryItem ? callee : undefined;
             const action = new InflictAction(game, undefined, players[i], players[i].location, true);
-            action.performInflict(status, true, true, true, item instanceof InventoryItem ? callee : undefined);
+            action.performInflict(status, true, true, true, item);
         }
-        else if (command === "cure")
-            players[i].cure(statusId, true, true, true, callee instanceof InventoryItem ? callee : undefined);
+        else if (command === "cure") {
+            const action = new CureAction(game, undefined, players[i], players[i].location, true);
+            action.performCure(status, true, true, true, item);
+        }
     }
 }

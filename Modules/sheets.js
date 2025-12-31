@@ -3,18 +3,18 @@ import { google } from 'googleapis';
 const sheets = google.sheets({ version: 'v4' });
 
 /**
- * Gets the values of the spreadsheet in the specified sheetrange.
- * @param {string} sheetrange - The range to get in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * Gets the values of the spreadsheet in the specified sheetRange.
+ * @param {string} sheetRange - The range to get in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
  * @param {string} spreadsheetId - The ID of the spreadsheet to read.
  * @returns {Promise<ValueRange>} The values of the specified range in {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange|ValueRange} format.
  */
-export function getSheetValues (sheetrange, spreadsheetId) {
+export function getSheetValues (sheetRange, spreadsheetId) {
     const request = {
         // The ID of the spreadsheet to retrieve data from.
         spreadsheetId: spreadsheetId,
 
         // The A1 notation of the values to retrieve.
-        range: sheetrange,
+        range: sheetRange,
 
         // How values should be represented in the output.
         // The default render option is ValueRenderOption.FORMATTED_VALUE.
@@ -37,16 +37,16 @@ export function getSheetValues (sheetrange, spreadsheetId) {
 }
 
 /**
- * Gets the specified sheetrange of the spreadsheet, including its {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#GridProperties|GridProperties}.
- * @param {string} sheetrange - The range to get in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * Gets the specified sheetRange of the spreadsheet, including its {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/sheets#GridProperties|GridProperties}.
+ * @param {string} sheetRange - The range to get in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
  * @param {string} spreadsheetId - The ID of the spreadsheet to read.
  * @returns {Promise<any>} The specified range in the {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet|Spreadsheet}.
  */
-export function getSheetWithProperties (sheetrange, spreadsheetId) {
+export function getSheetWithProperties (sheetRange, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
 
-        ranges: [sheetrange],
+        ranges: [sheetRange],
 
         includeGridData: true,
 
@@ -61,17 +61,17 @@ export function getSheetWithProperties (sheetrange, spreadsheetId) {
 }
 
 /**
- * Updates the values of the spreadsheet for a single sheetrange.
- * @param {string} sheetrange - The range to update in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
- * @param {string[][]} data - An array of arrays of values to replace the values currently in the specified sheetrange.
+ * Updates the values of the spreadsheet for a single sheetRange.
+ * @param {string} sheetRange - The range to update in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * @param {string[][]} data - An array of arrays of values to replace the values currently in the specified sheetRange.
  * @param {string} spreadsheetId - The ID of the spreadsheet to update.
  * @returns {Promise<any>} An {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/UpdateValuesResponse|UpdateValuesResponse}.
  */
-export function updateSheetValues (sheetrange, data, spreadsheetId) {
+export function updateSheetValues (sheetRange, data, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
 
-        range: sheetrange,
+        range: sheetRange,
 
         valueInputOption: 'RAW',
 
@@ -90,7 +90,7 @@ export function updateSheetValues (sheetrange, data, spreadsheetId) {
 }
 
 /**
- * Updates the values of the spreadsheet for multiple sheetranges.
+ * Updates the values of the spreadsheet for multiple sheetRanges.
  * @param {ValueRange[]} data - The ranges to update and the values to replace them with. 
  * @param {string} spreadsheetId - The ID of the spreadsheet to update.
  * @returns {Promise<any>} {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/batchUpdate#response-body}
@@ -143,17 +143,17 @@ export function batchUpdateSheet (requests, spreadsheetId) {
 }
 
 /**
- * Appends rows of values to the spreadsheet after the specified sheetrange.
- * @param {string} sheetrange - The range to append rows to in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
- * @param {string[][]} data - An array of arrays of values to append to the spreadsheet after the specified sheetrange.
+ * Appends rows of values to the spreadsheet after the specified sheetRange.
+ * @param {string} sheetRange - The range to append rows to in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
+ * @param {string[][]} data - An array of arrays of values to append to the spreadsheet after the specified sheetRange.
  * @param {string} spreadsheetId - The ID of the spreadsheet to update.
  * @returns {Promise<any>} {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/append#response-body}
  */
-export function appendRowsToSheet (sheetrange, data, spreadsheetId) {
+export function appendRowsToSheet (sheetRange, data, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
 
-        range: sheetrange,
+        range: sheetRange,
 
         valueInputOption: 'RAW',
 

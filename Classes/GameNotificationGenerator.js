@@ -1,5 +1,8 @@
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Player.js").default} Player */
+/** @typedef {import("../Data/Exit.js").default} Exit */
+/** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
+/** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 /** @typedef {import("../Data/Recipe.js").default} Recipe */
 
 /**
@@ -35,6 +38,175 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player started moving toward an exit.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {boolean} isRunning - Whether or not the player is running.
+	 * @param {string} exitName - The name of the exit the player is moving toward.
+	 */
+	generateStartMoveNotification(player, secondPerson, isRunning, exitName) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `start` : `starts`;
+		const action = isRunning ? `running` : `walking`;
+		return `${subject} ${verb} ${action} toward ${exitName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player has depleted half of their stamina while moving.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 */
+	generateHalfStaminaNotification(player, secondPerson) {
+		const subject = secondPerson ? `Your breathing` : `${player.displayName}'s breathing`;
+		const sentence2 = secondPerson ? `You might want to stop moving and rest soon.` : `It seems like ${player.pronouns.sbj}${player.pronouns.plural ? `'re` : `'s`} starting to get tired.`;
+		return `${subject} is starting to get heavy. ${sentence2}`;
+	}
+
+	/**
+	 * Generates a notification indicating the player has become weary.
+	 * @param {Player} player - The player referred to in this notification.
+	 */
+	generateWearyNotification(player) {
+		return `${player.displayName} stops moving. ${player.pronouns.Sbj} ${player.pronouns.plural ? `seem` : `seems`} weary.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player has stopped moving.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 */
+	generateStopNotification(player, secondPerson) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `stop` : `stops`;
+		return `${subject} ${verb} moving.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player cannot move to an exit because it is locked.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} exitPhrase - The phrase of the locked exit.
+	 */
+	generateExitLockedNotification(player, secondPerson, exitPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `try` : `tries`;
+		return `${subject} ${verb} to open ${exitPhrase}, but it seems to be locked.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player exited a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} exitName - The name of the exit the player exited through.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateExitNotification(player, secondPerson, exitName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `exit` : `exits`;
+		const exitPhrase = exitName ? ` into ${exitName}` : ``;
+		return `${subject} ${verb}${exitPhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player with the free movement role exited a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} roomName - The display name of the room the player exited.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateSuddenExitNotification(player, secondPerson, roomName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `exit ${roomName}` : `suddenly disappears`;
+		const punctuation = secondPerson ? `.` : `!`;
+		return `${subject} ${verb}${appendString}${punctuation}`;
+	}
+
+	/**
+	 * Generates a notification indicating the player entered a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} entranceName - The name of the exit the player entered through.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateEnterNotification(player, secondPerson, entranceName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `enter` : `enters`;
+		const exitPhrase = entranceName ? ` from ${entranceName}` : ``;
+		return `${subject} ${verb}${exitPhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player with the free movement role entered a room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} roomName - The display name of the room the player entered.
+	 * @param {string} appendString - A string describing any non-discreet inventory items the player is carrying.
+	 */
+	generateSuddenEnterNotification(player, secondPerson, roomName, appendString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `enter ${roomName}` : `suddenly appears`;
+		const punctuation = secondPerson ? `.` : `!`;
+		return `${subject} ${verb}${appendString}${punctuation}`;
+	}
+
+	/**
+	 * Generates a notification indicating the player with the `no sight` behavior attribute entered a room.
+	 */
+	generateNoSightEnterNotification() {
+		return `Fumbling against the wall, you make your way to the next room over.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player inspected the room.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 */
+	generateInspectRoomNotification(player, secondPerson) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb} looking around the room.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player inspected a fixture.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} fixturePhrase - The phrase of the fixture.
+	 */
+	generateInspectFixtureNotification(player, secondPerson, fixturePhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb} inspecting ${fixturePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player inspected a room item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 * @param {string} preposition - The preposition of the container.
+	 * @param {string} containerPhrase - The phrase of the container.
+	 */
+	generateInspectRoomItemNotification(player, secondPerson, itemPhrase, preposition, containerPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb} inspecting ${itemPhrase} ${preposition} ${containerPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player inspected an inventory item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} itemPhrase - The single containing phrase of the item.
+	 */
+	generateInspectInventoryItemNotification(player, secondPerson, itemPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb1 = secondPerson ? `take out` : `takes out`;
+		const verb2 = secondPerson ? `begin` : `begins`;
+		return `${subject} ${verb1} ${itemPhrase} and ${verb2} inspecting it.`;
+	}
+
+	/**
 	 * Generates a notification indicating a hidden player was found in their hiding spot.
 	 * @param {string} playerDisplayName - The display name of the player who found them.
 	 */
@@ -45,10 +217,72 @@ export default class GameNotificationGenerator {
 	/**
 	 * Generates a notification indicating the player found players hidden in a fixture.
 	 * @param {string} hiddenPlayersList - A list of hidden players.
-	 * @param {string} fixtureName - The name of the fixture the players were hiding in.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the players are hiding in.
 	 */
-	generateFoundHiddenPlayersNotification(hiddenPlayersList, fixtureName) {
-		return `You find ${hiddenPlayersList} hiding in the ${fixtureName}!`;
+	generateFoundHiddenPlayersNotification(hiddenPlayersList, hidingSpotPhrase) {
+		return `You find ${hiddenPlayersList} hiding in ${hidingSpotPhrase}!`;
+	}
+	
+	/**
+	 * Generates a notification indicating the player knocked on an exit.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} exitPhrase - The phrase of the exit.
+	 */
+	generateKnockNotification(player, secondPerson, exitPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `knock` : `knocks`;
+		return `${subject} ${verb} on ${exitPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating there was a knock originating from the other side of an exit.
+	 * @param {string} exitPhrase - The phrase of the exit.
+	 */
+	generateKnockDestinationNotification(exitPhrase) {
+		return `There's a knock on ${exitPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player can't hide in the hiding spot because it's already full.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the players are hiding in.
+	 * @param {string} hiddenPlayersList - A list of hidden players.
+	 */
+	generateHidingSpotFullNotification(hidingSpotPhrase, hiddenPlayersList) {
+		return `You attempt to hide in the ${hidingSpotPhrase}, but you find ${hiddenPlayersList} already there! There doesn't seem to be enough room for you.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player found other players while attempting to hide.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the players are hiding in.
+	 * @param {string} hiddenPlayersList - A list of hidden players.
+	 */
+	generateHidingSpotOccupiedNotification(hidingSpotPhrase, hiddenPlayersList) {
+		return `When you hide in the ${hidingSpotPhrase}, you find ${hiddenPlayersList} already there!`;
+	}
+
+	/**
+	 * Generates a notification indicating someone found the player while hiding.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {Player} findingPlayer - The player that hid, who found the player in the process.
+	 */
+	generateFoundInOccupiedHidingSpotNotification(player, findingPlayer) {
+		const foundNotification = player.hasBehaviorAttribute("no sight") ? `Someone finds you` : `You're found by ${findingPlayer.displayName}`;
+		const findingPlayerSbj = player.hasBehaviorAttribute("no sight") ? `They` : findingPlayer.pronouns.Sbj;
+		const verb = player.hasBehaviorAttribute("no sight") || findingPlayer.pronouns.plural ? `hide` : `hides`;
+		return `${foundNotification}! ${findingPlayerSbj} ${verb} with you.`;
+	}
+
+	/**
+	 * Generates a notification indicating someone found the player while attempting to hide, but they couldn't hide because the hiding spot was full.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {Player} findingPlayer - The player attempting to hide, who found the player in the process.
+	 */
+	generateFoundInFullHidingSpotNotification(player, findingPlayer) {
+		const foundNotification = player.hasBehaviorAttribute("no sight") ? `Someone finds you` : `You're found by ${findingPlayer.displayName}`;
+		const findingPlayerSbj = player.hasBehaviorAttribute("no sight") ? `They` : findingPlayer.pronouns.Sbj;
+		const verb = player.hasBehaviorAttribute("no sight") || findingPlayer.pronouns.plural ? `try` : `tries`;
+		return `${foundNotification}! ${findingPlayerSbj} ${verb} to hide with you, but there isn't enough room.`;
 	}
 
 	/**
@@ -68,6 +302,14 @@ export default class GameNotificationGenerator {
 	 */
 	generateNoHearingLeaveWhisperNotification(playerDisplayName) {
 		return `${playerDisplayName} can no longer hear.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player can no longer whisper because they left the room.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateExitLeaveWhisperNotification(playerDisplayName) {
+		return `${playerDisplayName} leaves the room.`;
 	}
 
 	/**
@@ -95,15 +337,52 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
-	 * Generates a notification indicating the player hide in a fixture.
+	 * Generates a notification indicating the player took off their mask.
+	 * @param {string} maskName - The name of the inventory item the player took off. 
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateConcealedCuredNotification(maskName, playerDisplayName) {
+		return `The ${maskName} comes off, revealing the individual to be ${playerDisplayName}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player woke up.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateWakeUpNotification(playerDisplayName) {
+		return `${playerDisplayName} wakes up.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player was cured of a status effect with the `unconscious` behavior attribute.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 */
+	generateRegainConsciousnessNotification(playerDisplayName) {
+		return `${playerDisplayName} regains consciousness.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player hid in a fixture.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
-	 * @param {string} hidingSpotName - The name of the hiding spot.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the player is hiding in.
 	 */
-	generateHideNotification(player, secondPerson, hidingSpotName) {
+	generateHideNotification(player, secondPerson, hidingSpotPhrase) {
 		const subject = secondPerson ? `You` : player.displayName;
 		const verb = secondPerson ? `hide` : `hides`;
-		return `${subject} ${verb} in the ${hidingSpotName}.`;
+		return `${subject} ${verb} in ${hidingSpotPhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player came out of a hiding spot.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} hidingSpotPhrase - The phrase of the hiding spot the player is coming out from.
+	 */
+	generateUnhideNotification(player, secondPerson, hidingSpotPhrase) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `come out` : `comes out`;
+		return `${subject} ${verb} of ${hidingSpotPhrase}.`;
 	}
 
 	/**
@@ -439,6 +718,189 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating that the fixture was activated.
+	 * @param {string} fixturePhrase - The phrase of the fixture.
+	 * @param {Player} [player] - The player referred to in this notification, if applicable.
+	 * @param {boolean} [secondPerson] - Whether or not the player should be referred to in second person, if applicable.
+	 */
+	generateActivateNotification(fixturePhrase, player, secondPerson) {
+		if (player) {
+			const subject = secondPerson ? `You` : player.displayName;
+			const verb = secondPerson ? `turn on` : `turns on`;
+			return `${subject} ${verb} ${fixturePhrase}.`;
+		}
+		else return `${fixturePhrase} turns on.`;
+	}
+
+	/**
+	 * Generates a notification indicating that the fixture was deactivated.
+	 * @param {string} fixturePhrase - The phrase of the fixture.
+	 * @param {Player} [player] - The player referred to in this notification, if applicable.
+	 * @param {boolean} [secondPerson] - Whether or not the player should be referred to in second person, if applicable.
+	 */
+	generateDeactivateNotification(fixturePhrase, player, secondPerson) {
+		if (player) {
+			const subject = secondPerson ? `You` : player.displayName;
+			const verb = secondPerson ? `turn off` : `turns off`;
+			return `${subject} ${verb} ${fixturePhrase}.`;
+		}
+		else return `${fixturePhrase} turns off.`;
+	}
+
+	/**
+	 * Generates the default notification indicating that a puzzle was attempted.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 * @param {string} puzzlePhrase - The containing phrase of the puzzle.
+	 */
+	generateAttemptPuzzleDefaultNotification(playerDisplayName, puzzlePhrase) {
+		return `${playerDisplayName} uses ${puzzlePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted a puzzle with no remaining attempts.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 * @param {string} puzzlePhrase - The containing phrase of the puzzle.
+	 */
+	generateAttemptPuzzleWithNoRemainingAttemptsNotification(playerDisplayName, puzzlePhrase) {
+		return `${playerDisplayName} attempts and fails to use ${puzzlePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted a puzzle that takes an item as a solution without the required item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 */
+	generateAttemptPuzzleWithoutItemSolutionNotification(player, secondPerson, puzzle) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let predicate = secondPerson ? `attempt to use` : `attempts to use`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = secondPerson ? `, but struggle` : `, but struggles`;
+		if (puzzle.type === "key lock") {
+			const verb = puzzle.solved ? `lock` : `unlock`;
+			predicate = secondPerson ? `attempt and fail to ${verb}` : `attempts and fails to ${verb}`;
+			appendString = ``;
+		}
+		return `${subject} ${predicate} ${puzzlePhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player solved a puzzle. Generates the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was solved.
+	 * @param {string} outcome - The puzzle's outcome. 
+	 * @param {ItemInstance} [item] - The item the puzzle was solved with, if applicable.
+	 */
+	generateSolvePuzzleNotification(player, secondPerson, puzzle, outcome, item) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = ``;
+		if (puzzle.type === "combination lock" || puzzle.type === "key lock")
+			verb = secondPerson ? `unlock` : `unlocks`;
+		else if (puzzle.type === "switch" || puzzle.type === "option") {
+			verb = secondPerson ? `set` : `sets`;
+			appendString = ` to ${outcome}`;
+		}
+		else if (puzzle.type === "media") {
+			const itemPhrase = item.prefab.discreet ? `an item into` : `${item.singleContainingPhrase} into`;
+			verb = secondPerson ? `insert ${itemPhrase}` : `inserts ${itemPhrase}`;
+		}
+		else if (puzzle.type === "channels") {
+			if (puzzle.solved)
+				verb = secondPerson ? `change the channel to ${outcome} on` : `changes the channel to ${outcome} on`;
+			else
+				verb = secondPerson ? `turn on` : `turns on`;
+		}
+		return `${subject} ${verb} ${puzzlePhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player unsolved a puzzle. Chooses the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was unsolved.
+	 */
+	generateUnsolvePuzzleNotification(player, secondPerson, puzzle) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		if (puzzle.type === "toggle" && puzzle.alreadySolvedDescription !== "")
+			return puzzle.alreadySolvedDescription;
+		else if (puzzle.type === "combination lock" || puzzle.type === "key lock")
+			verb = secondPerson ? `lock` : `locks`;
+		else if (puzzle.type === "option")
+			verb = secondPerson ? `clear the selection for` : `resets`;
+		else if (puzzle.type === "media") {
+			if (puzzle.alreadySolvedDescription !== "") return puzzle.alreadySolvedDescription;
+			verb = secondPerson ? `press eject on` : `presses eject on`;
+		}
+		else if (puzzle.type === "channels")
+			verb = secondPerson ? `turn off` : `turns off`;
+		return `${subject} ${verb} ${puzzlePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted a puzzle that was already solved. Generates the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 */
+	generateAttemptAlreadySolvedPuzzleNotification(player, secondPerson, puzzle) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = ``;
+		if (puzzle.type === "combination lock" || puzzle.type === "key lock")
+			verb = secondPerson ? `open` : `opens`;
+		else if (puzzle.type === "switch")
+			appendString = `, but nothing happens`;
+		else if (puzzle.type === "option") {
+			verb = secondPerson ? `set` : `sets`;
+			appendString = `, but nothing changes`
+		}
+		return `${subject} ${verb} ${puzzlePhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted and failed to solve a puzzle. Chooses the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {ItemInstance} [item] - The item the puzzle was attempted with, if applicable.
+	 */
+	generateAttemptAndFailPuzzleNotification(player, secondPerson, puzzle, item) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = ``;
+		if (puzzle.type === "combination lock")
+			verb = secondPerson ? `attempt and fail to unlock` : `attempts and fails to unlock`;
+		else if (puzzle.type === "channels")
+			verb = secondPerson ? `attempt and fail to change the channel on` : `attempts and fails to change the channel on`;
+		else if (puzzle.type === "switch" || puzzle.type === "option") {
+			verb = secondPerson ? `attempt to set` : `attempts to set`;
+			appendString = secondPerson ? `, but struggle` : `, but struggles`;
+		}
+		else if (puzzle.type === "media") {
+			const itemPhrase = item.prefab.discreet ? `an item into` : `${item.singleContainingPhrase} into`;
+			verb = secondPerson ? `attempt to insert ${itemPhrase}` : `attempts to insert ${itemPhrase}`;
+			appendString = `, but it doesn't fit`;
+		}
+		else if (puzzle.type === "room player") {
+			verb = secondPerson ? `attempt to use` : `attempts to use`;
+			appendString = secondPerson ? `, but struggle` : `, but struggles`;
+		}
+		return `${subject} ${verb} ${puzzlePhrase}${appendString}.`;
+	}
+
+	/**
 	 * Generates a notification indicating the player has died.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
@@ -448,5 +910,21 @@ export default class GameNotificationGenerator {
 			? `You have died. When your body is discovered, you will be given the ${this.#game.guildContext.deadRole.name} role. Until then, your death must remain a secret to the server and to other players.`
 			: `${player.displayName} dies.`;
 		return message;
+	}
+
+	/**
+	 * Generates a notification indicating an exit was unlocked.
+	 * @param {Exit} exit - The exit that was unlocked.
+	 */
+	generateUnlockNotification(exit) {
+		return `${exit.name} unlocks.`;
+	}
+
+	/**
+	 * Generates a notification indicating an exit was locked.
+	 * @param {Exit} exit - The exit that was locked.
+	 */
+	generateLockNotification(exit) {
+		return `${exit.name} locks.`;
 	}
 }

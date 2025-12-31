@@ -1,4 +1,5 @@
-﻿import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
+import MoveAction from '../Data/Actions/MoveAction.js';
+import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -72,7 +73,6 @@ export async function execute(game, message, command, args) {
     // All given players must be in the same room for this to work.
     let isExit = false;
     let exit = null;
-    let exitPuzzle = null;
     let entrance = null;
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
@@ -85,7 +85,6 @@ export async function execute(game, message, command, args) {
             exit = game.entityFinder.getExit(currentRoom, searchString);
             if (exit) {
                 isExit = true;
-                exitPuzzle = game.entityFinder.getPuzzles(exit.name, currentRoom.id, "restricted exit")[0];
                 desiredRoom = exit.dest;
                 entrance = game.entityFinder.getExit(desiredRoom, exit.link);
                 input = input.substring(0, input.indexOf(exit.name));
@@ -131,37 +130,13 @@ export async function execute(game, message, command, args) {
                 }
             }
 
-            const appendString = players[i].createMoveAppendString();
-            let exitMessage;
-            if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}${appendString}`;
-            else exitMessage = `${players[i].displayName} exits${appendString}`;
-            let entranceMessage;
-            if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
-            else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Clear the player's movement timer first.
             players[i].stopMoving();
-            // Solve the exit puzzle, if applicable.
-            if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
-                exitPuzzle.solve(players[i], "", players[i].name, true);
             // Move the player.
-            currentRoom.removePlayer(players[i], exit, exitMessage);
-            desiredRoom.addPlayer(players[i], entrance, entranceMessage, true);
+            const action = new MoveAction(game, message, players[i], players[i].location, true);
+            action.performMove(false, currentRoom, desiredRoom, exit, entrance);
         }
     }
 
     addGameMechanicMessage(game, game.guildContext.commandChannel, `The listed players have been moved to ${desiredRoom.channel}.`);
-
-    // Create a list of players moved for the log message.
-    let playerList = players[0].name;
-    if (players.length === 2) playerList += ` and ${players[1].name}`;
-    else if (players.length >= 3) {
-        for (let i = 1; i < players.length; i++) {
-            if (i === players.length - 1) playerList += `, and ${players[i].name}`;
-            else playerList += `, ${players[i].name}`;
-        }
-    }
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(game, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
 }

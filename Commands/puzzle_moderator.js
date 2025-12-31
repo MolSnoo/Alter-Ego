@@ -1,4 +1,7 @@
-﻿import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+import AttemptAction from '../Data/Actions/AttemptAction.js';
+import SolveAction from '../Data/Actions/SolveAction.js';
+import UnsolveAction from '../Data/Actions/UnsolveAction.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -133,20 +136,21 @@ export async function execute (game, message, command, args) {
         }
     }
 
-    if (announcement === "" && player !== null) announcement = `${player.displayName} uses the ${puzzle.name}.`;
-
     if (command === "solve") {
         if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return addReply(game, message, `"${input}" is not a valid solution.`);
-        puzzle.solve(player, announcement, outcome, true, [], targetPlayer);
+        const solveAction = new SolveAction(game, message, player, puzzle.location, true);
+        solveAction.performSolve(puzzle, outcome, targetPlayer, announcement);
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully solved ${puzzle.name}.`);
     }
     else if (command === "unsolve") {
-        puzzle.unsolve(player, announcement, null, true);
+        const unsolveAction = new UnsolveAction(game, message, player, puzzle.location, true);
+        unsolveAction.performUnsolve(puzzle, announcement);
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unsolved ${puzzle.name}.`);
     }
     else if (command === "attempt") {
         if (player === null) return addReply(game, message, `Cannot attempt a puzzle without a player.`);
-        player.attemptPuzzle(puzzle, null, input, command, input, message, targetPlayer);
+        const attemptAction = new AttemptAction(game, message, player, puzzle.location, true);
+        attemptAction.performAttempt(puzzle, undefined, input, command, input, targetPlayer);
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully attempted ${puzzle.name} for ${player.name}.`);
     }
 }
