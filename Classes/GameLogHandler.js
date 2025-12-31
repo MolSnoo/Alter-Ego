@@ -372,6 +372,66 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a solve action or an attempt action that solves the puzzle.
+	 * @param {Puzzle} puzzle - The puzzle being solved.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logSolve(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}solved ${puzzle.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an unsolve action or an attempt action that unsolves the puzzle.
+	 * @param {Puzzle} puzzle - The puzzle being unsolved.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logUnsolve(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}unsolved ${puzzle.name} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an attempt action where the puzzle was already solved.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptAlreadySolvedPuzzle(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted ${puzzle.name} while it was already solved in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an attempt action where the player failed to solve the puzzle.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptAndFailPuzzle(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted and failed to solve ${puzzle.name} in ${player.location.channel}`)
+	}
+
+	/**
+	 * Logs an attempt action where the puzzle has no remaining attempts.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptPuzzleWithNoRemainingAttempts(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted ${puzzle.name} with no remaining attempts in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an attempt action where the puzzle is inaccessible.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {Player} player - The player who performed the action.
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logAttemptInaccessiblePuzzle(puzzle, player, forced) {
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}attempted ${puzzle.name} without meeting all of the requirements in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a die action.
 	 * @param {Player} player - The player who died. 
 	 */

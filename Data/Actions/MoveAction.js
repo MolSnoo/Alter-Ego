@@ -1,4 +1,5 @@
 import { default as Action, ActionType } from "../Action.js";
+import SolveAction from "./SolveAction.js";
 
 /** @typedef {import("../Exit.js").default} Exit */
 /** @typedef {import("../Room.js").default} Room */
@@ -33,8 +34,10 @@ export default class MoveAction extends Action {
 		// If there is an exit puzzle, solve it.
 		if (exit) {
 			const exitPuzzle = this.getGame().entityFinder.getPuzzle(exit.name, currentRoom.id, "restricted exit", true);
-			if (exitPuzzle && exitPuzzle.solutions.includes(this.player.name))
-				exitPuzzle.solve(this.player, "", this.player.name, true);
+			if (exitPuzzle && exitPuzzle.solutions.includes(this.player.name)) {
+				const solveAction = new SolveAction(this.getGame(), undefined, this.player, exitPuzzle.location, this.forced);
+				solveAction.performSolve(exitPuzzle, this.player.name);
+			}
 		}
 
 		// Exit the current room.

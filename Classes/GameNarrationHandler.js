@@ -16,6 +16,7 @@ import { parseDescription } from "../Modules/parser.js";
 import { generateListString } from "../Modules/helpers.js";
 
 /** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
+/** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 
 /**
  * @class GameNarrationHandler
@@ -546,6 +547,55 @@ export default class GameNarrationHandler {
 		else if (!customNarration) narration = this.#game.notificationGenerator.generateDeactivateNotification(fixturePhrase);
 		if (notification) player.notify(notification);
 		this.#sendNarration(player, narration, fixture.location);
+	}
+
+	/**
+	 * Narrates an attempt action.
+	 * @param {Puzzle} puzzle - The puzzle being attempted.
+	 * @param {Player} player - The player performing the action.
+	 * @param {string} description - The description to send to the player.
+	 * @param {string} [narration] - The narration to send. If none is supplied, uses the default puzzle interact notification.
+	 */
+	narrateAttempt(puzzle, player, description, narration = this.#game.notificationGenerator.generateAttemptPuzzleDefaultNotification(player.displayName, puzzle.getContainingPhrase())) {
+		if (description !== "") {
+			if (description.includes("<desc>")) player.sendDescription(description, puzzle);
+			else player.notify(description);
+		}
+		if (narration  !== "") this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a solve action.
+	 * @param {Puzzle} puzzle - The puzzle being attempted.
+	 * @param {string} outcome - The outcome the puzzle was solved with.
+	 * @param {Player} [player] - The player performing the action. Optional.
+	 * @param {ItemInstance} [item] - The item that was used to solve the puzzle. Optional.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateSolve(puzzle, outcome, player, item, customNarration = "") {
+		let narration = customNarration;
+		if (player && !customNarration)
+			narration = this.#game.notificationGenerator.generateSolvePuzzleNotification(player, false, puzzle, outcome, item);
+		if (player) player.sendDescription(puzzle.correctDescription, puzzle);
+		if (narration !== "") this.#sendNarration(player, narration, puzzle.location);
+	}
+
+	/**
+	 * Narrates an unsolve action.
+	 * @param {Puzzle} puzzle - The puzzle being attempted.
+	 * @param {Player} [player] - The player performing the action. Optional.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateUnsolve(puzzle, player, customNarration = "") {
+		let narration = customNarration;
+		let notification = this.#game.notificationGenerator.generateUnsolvePuzzleNotification(player, true, puzzle);
+		if (player && !customNarration)
+			narration = this.#game.notificationGenerator.generateUnsolvePuzzleNotification(player, false, puzzle);
+		if (player && notification !== "") {
+			if (notification.includes("<desc>")) player.sendDescription(notification, puzzle);
+			else player.notify(notification);
+		}
+		if (narration !== "") this.#sendNarration(player, narration, puzzle.location);
 	}
 
 	/**

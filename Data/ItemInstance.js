@@ -4,6 +4,8 @@ import ItemContainer from "./ItemContainer.js";
 import Prefab from "./Prefab.js";
 import { Collection } from "discord.js";
 
+/** @typedef {import("./Player.js").default} Player */
+
 /**
  * @class ItemInstance
  * @classdesc Represents an instance of a prefab that actually exists in the game.
@@ -135,6 +137,14 @@ export default class ItemInstance extends ItemContainer {
 		this.singleContainingPhrase = prefab.singleContainingPhrase ? prefab.singleContainingPhrase : "";
 		this.pluralContainingPhrase = prefab.pluralContainingPhrase ? prefab.pluralContainingPhrase : "";
 		this.weight = prefab ? prefab.weight : 0;
+	}
+
+	/**
+	 * Decreases the number of uses this item has left. If it runs out of uses, instantiates its nextStage in its place, if it has one.
+	 * @param {Player} [player] - The player who used this item, if applicable.
+	 */
+	decreaseUses(player) {
+		this.uses--;
 	}
 
 	/**

@@ -130,6 +130,8 @@ export const ActionType = {
 	Uncraft: "uncraft",
 	Activate: "activate",
 	Deactivate: "deactivate",
-	Attempt: "attempt", // TODO
+	Attempt: "attempt",
+	Solve: "solve",
+	Unsolve: "unsolve",
 	Die: "die"
 };

@@ -1,5 +1,6 @@
 ﻿import GameSettings from '../Classes/GameSettings.js';
 import ActivateAction from '../Data/Actions/ActivateAction.js';
+import AttemptAction from '../Data/Actions/AttemptAction.js';
 import DeactivateAction from '../Data/Actions/DeactivateAction.js';
 import UseAction from '../Data/Actions/UseAction.js';
 import Game from '../Data/Game.js';
@@ -156,9 +157,8 @@ export async function execute (game, message, command, args, player) {
 
     // If there is a puzzle, do the required behavior.
     if (puzzle !== null) {
-        const response = player.attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer);
-        if (response === "" || !response) return;
-        else return addReply(game, message, response);
+        const attemptAction = new AttemptAction(game, message, player, player.location, false);
+        attemptAction.performAttempt(puzzle, item, password, command, input, targetPlayer);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {

@@ -1,5 +1,7 @@
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
+/** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
+/** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 /** @typedef {import("../Data/Recipe.js").default} Recipe */
 
 /**
@@ -742,6 +744,159 @@ export default class GameNotificationGenerator {
 			return `${subject} ${verb} ${fixturePhrase}.`;
 		}
 		else return `${fixturePhrase} turns off.`;
+	}
+
+	/**
+	 * Generates the default notification indicating that a puzzle was attempted.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 * @param {string} puzzlePhrase - The containing phrase of the puzzle.
+	 */
+	generateAttemptPuzzleDefaultNotification(playerDisplayName, puzzlePhrase) {
+		return `${playerDisplayName} uses ${puzzlePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted a puzzle with no remaining attempts.
+	 * @param {string} playerDisplayName - The display name of the player.
+	 * @param {string} puzzlePhrase - The containing phrase of the puzzle.
+	 */
+	generateAttemptPuzzleWithNoRemainingAttemptsNotification(playerDisplayName, puzzlePhrase) {
+		return `${playerDisplayName} attempts and fails to use ${puzzlePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted a puzzle that takes an item as a solution without the required item.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 */
+	generateAttemptPuzzleWithoutItemSolutionNotification(player, secondPerson, puzzle) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let predicate = secondPerson ? `attempt to use` : `attempts to use`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = secondPerson ? `, but struggle` : `, but struggles`;
+		if (puzzle.type === "key lock") {
+			const verb = puzzle.solved ? `lock` : `unlock`;
+			predicate = secondPerson ? `attempt and fail to ${verb}` : `attempts and fails to ${verb}`;
+			appendString = ``;
+		}
+		return `${subject} ${predicate} ${puzzlePhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player solved a puzzle. Generates the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was solved.
+	 * @param {string} outcome - The puzzle's outcome. 
+	 * @param {ItemInstance} [item] - The item the puzzle was solved with, if applicable.
+	 */
+	generateSolvePuzzleNotification(player, secondPerson, puzzle, outcome, item) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = ``;
+		if (puzzle.type === "combination lock" || puzzle.type === "key lock")
+			verb = secondPerson ? `unlock` : `unlocks`;
+		else if (puzzle.type === "switch" || puzzle.type === "option") {
+			verb = secondPerson ? `set` : `sets`;
+			appendString = ` to ${outcome}`;
+		}
+		else if (puzzle.type === "media") {
+			const itemPhrase = item.prefab.discreet ? `an item into` : `${item.singleContainingPhrase} into`;
+			verb = secondPerson ? `insert ${itemPhrase}` : `inserts ${itemPhrase}`;
+		}
+		else if (puzzle.type === "channels") {
+			if (puzzle.solved)
+				verb = secondPerson ? `change the channel to ${outcome} on` : `changes the channel to ${outcome} on`;
+			else
+				verb = secondPerson ? `turn on` : `turns on`;
+		}
+		return `${subject} ${verb} ${puzzlePhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player unsolved a puzzle. Chooses the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was unsolved.
+	 */
+	generateUnsolvePuzzleNotification(player, secondPerson, puzzle) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		if (puzzle.type === "toggle" && puzzle.alreadySolvedDescription !== "")
+			return puzzle.alreadySolvedDescription;
+		else if (puzzle.type === "combination lock" || puzzle.type === "key lock")
+			verb = secondPerson ? `lock` : `locks`;
+		else if (puzzle.type === "option")
+			verb = secondPerson ? `clear the selection for` : `resets`;
+		else if (puzzle.type === "media") {
+			if (puzzle.alreadySolvedDescription !== "") return puzzle.alreadySolvedDescription;
+			verb = secondPerson ? `press eject on` : `presses eject on`;
+		}
+		else if (puzzle.type === "channels")
+			verb = secondPerson ? `turn off` : `turns off`;
+		return `${subject} ${verb} ${puzzlePhrase}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted a puzzle that was already solved. Generates the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 */
+	generateAttemptAlreadySolvedPuzzleNotification(player, secondPerson, puzzle) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = ``;
+		if (puzzle.type === "combination lock" || puzzle.type === "key lock")
+			verb = secondPerson ? `open` : `opens`;
+		else if (puzzle.type === "switch")
+			appendString = `, but nothing happens`;
+		else if (puzzle.type === "option") {
+			verb = secondPerson ? `set` : `sets`;
+			appendString = `, but nothing changes`
+		}
+		return `${subject} ${verb} ${puzzlePhrase}${appendString}.`;
+	}
+
+	/**
+	 * Generates a notification indicating the player attempted and failed to solve a puzzle. Chooses the notification automatically based on the puzzle's type.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {Puzzle} puzzle - The puzzle that was attempted.
+	 * @param {ItemInstance} [item] - The item the puzzle was attempted with, if applicable.
+	 */
+	generateAttemptAndFailPuzzleNotification(player, secondPerson, puzzle, item) {
+		if (puzzle.type === "weight" || puzzle.type === "container") return "";
+		const subject = secondPerson ? `You` : player.displayName;
+		let verb = secondPerson ? `use` : `uses`;
+		const puzzlePhrase = puzzle.getContainingPhrase();
+		let appendString = ``;
+		if (puzzle.type === "combination lock")
+			verb = secondPerson ? `attempt and fail to unlock` : `attempts and fails to unlock`;
+		else if (puzzle.type === "channels")
+			verb = secondPerson ? `attempt and fail to change the channel on` : `attempts and fails to change the channel on`;
+		else if (puzzle.type === "switch" || puzzle.type === "option") {
+			verb = secondPerson ? `attempt to set` : `attempts to set`;
+			appendString = secondPerson ? `, but struggle` : `, but struggles`;
+		}
+		else if (puzzle.type === "media") {
+			const itemPhrase = item.prefab.discreet ? `an item into` : `${item.singleContainingPhrase} into`;
+			verb = secondPerson ? `attempt to insert ${itemPhrase}` : `attempts to insert ${itemPhrase}`;
+			appendString = `, but it doesn't fit`;
+		}
+		else if (puzzle.type === "room player") {
+			verb = secondPerson ? `attempt to use` : `attempts to use`;
+			appendString = secondPerson ? `, but struggle` : `, but struggles`;
+		}
+		return `${subject} ${verb} ${puzzlePhrase}${appendString}.`;
 	}
 
 	/**

@@ -2,21 +2,17 @@
 import Fixture from './Fixture.js';
 import Flag from './Flag.js';
 import Game from './Game.js';
-import InventoryItem from './InventoryItem.js';
 import ItemContainer from './ItemContainer.js';
 import ItemInstance from './ItemInstance.js';
-import Narration from '../Data/Narration.js';
 import Player from './Player.js';
 import Prefab from './Prefab.js';
 import Room from './Room.js';
-import RoomItem from './RoomItem.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
-import { addLogMessage, addReply } from '../Modules/messageHandler.js';
 import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
 
 
 /**
- * @class Puzzzle
+ * @class Puzzle
  * @classdesc Represents an interactable entity with correct, incorrect, and limited ways to engage with it.
  * @extends ItemContainer
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/puzzle.html
@@ -238,13 +234,12 @@ export default class Puzzle extends ItemContainer {
     /**
      * Sets the puzzle as solved.
      * @param {Player} player - The player who solved the puzzle.
-     * @param {string} narration - The message to be narrated in the room.
      * @param {string} outcome - The solution the puzzle was solved with.
-     * @param {boolean} doSolvedCommands - Whether or not to execute the puzzle's solved commands.
-     * @param {Array<RoomItem|InventoryItem>} [requiredItems] - The actual item instances that were required for this puzzle to be solved.
+     * @param {ItemInstance[]} [requiredItems] - The actual item instances that were required for this puzzle to be solved.
      * @param {Player} [targetPlayer] - The player who will be treated as the initiating player in subsequent bot command executions called by this puzzle's solved commands, if applicable.
+     * @param {boolean} [doSolvedCommands] - Whether or not to execute the puzzle's solved commands. Defaults to true.
      */
-    solve(player, narration, outcome, doSolvedCommands, requiredItems = [], targetPlayer = null) {
+    solve(player, outcome, requiredItems = [], targetPlayer = null, doSolvedCommands = true) {
         // Mark it as solved.
         this.solved = true;
         // Set the outcome.
@@ -252,18 +247,6 @@ export default class Puzzle extends ItemContainer {
             if (outcome)
                 this.outcome = outcome;
             else this.outcome = this.solutions[0];
-        }
-
-        // Let the player and anyone else in the room know that the puzzle was solved.
-        if (player !== null)
-            player.sendDescription(this.correctDescription, this);
-        if (narration)
-            new Narration(this.getGame(), player, this.location, narration).send();
-
-        if (player !== null) {
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            addLogMessage(this.getGame(), `${time} - ${player.name} solved ${this.name} in ${player.location.channel}`);
         }
 
         for (const requiredItem of requiredItems) {
@@ -297,25 +280,11 @@ export default class Puzzle extends ItemContainer {
     /**
      * Sets the puzzle as unsolved.
      * @param {Player} player - The player who unsolved the puzzle.
-     * @param {string} narration - The message to be narrated in the room.
-     * @param {string} directMessage - The message that will be sent directly to the player for unsolving the puzzle.
-     * @param {boolean} doUnsolvedCommands - Whether or not to execute the puzzle's unsolved commands.
+     * @param {boolean} doUnsolvedCommands - Whether or not to execute the puzzle's unsolved commands. Defaults to true.
      */
-    unsolve(player, narration, directMessage, doUnsolvedCommands) {
-        // There's no message when unsolved cell, so let the player know what they did.
-        if (player !== null && directMessage !== null) player.notify(directMessage);
-        // Let everyonne in the room know that the puzzle was unsolved.
-        if (narration)
-            new Narration(this.getGame(), player, this.location, narration).send();
-
+    unsolve(player, doUnsolvedCommands = true) {
         // Now mark it as unsolved.
         this.solved = false;
-
-        if (player !== null) {
-            // Post log message.
-            const time = new Date().toLocaleTimeString();
-            addLogMessage(this.getGame(), `${time} - ${player.name} unsolved ${this.name} in ${player.location.channel}`);
-        }
 
         if (doUnsolvedCommands === true) {
             // Find commandSet.
@@ -345,53 +314,11 @@ export default class Puzzle extends ItemContainer {
     }
 
     /**
-     * A player fails to solve the puzzle.
-     * @param {Player} player - The player who attempted and failed to solve the puzzle.
-     * @param {string} narration - The message to be narrated in the room.
+     * A player fails to solve the puzzle. Decrements the number of remaining attempts, if applicable.
      */
-    fail(player, narration) {
-        // Decrease the number of remaining attempts, if applicable.
-        if (!isNaN(this.remainingAttempts)) {
+    fail() {
+        if (!isNaN(this.remainingAttempts))
             this.remainingAttempts--;
-            player.sendDescription(this.incorrectDescription, this);
-        }
-        else
-            player.sendDescription(this.incorrectDescription, this);
-        if (narration)
-            new Narration(this.getGame(), player, player.location, narration).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${player.name} failed to solve ${this.name} in ${player.location.channel}`);
-    }
-
-    /**
-     * A player attempts to solve the puzzle while it is already solved.
-     * @param {Player} player - The player who attempted to solve the puzzle.
-     * @param {string} narration - The message to be narrated in the room.
-     */
-    alreadySolved(player, narration) {
-        player.sendDescription(this.alreadySolvedDescription, this);
-        new Narration(this.getGame(), player, player.location, narration).send();
-    }
-
-    /**
-     * A player attempts to solve the puzzle while its requirements are not met.
-     * @param {Player} player - The player who attempted to solve the puzzle.
-     * @param {string} narration - The message to be narrated in the room.
-     * @param {string} command - The command alias that was used to attempt the puzzle.
-     * @param {string} input - The combined arguments of the command.
-     * @param {UserMessage} [message] - The message that triggered the puzzle attempt.
-     */
-    requirementsNotMet(player, narration, command, input, message) {
-        // If there's no text in the Requirements Not Met cell, then the player shouldn't know about this puzzle.
-        if (this.requirementsNotMetDescription === "" && message)
-            addReply(this.getGame(), message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
-        // If there is text there, then the fixture in the puzzle is interactable, but doesn't do anything until the required puzzle has been solved.
-        else {
-            player.sendDescription(this.requirementsNotMetDescription, this);
-            if (message) new Narration(this.getGame(), player, player.location, narration).send();
-        }
     }
 
     /**
@@ -438,6 +365,79 @@ export default class Puzzle extends ItemContainer {
      */
     getContainingPhrase() {
         return this.parentFixture ? this.parentFixture.getContainingPhrase() : `the ${this.name}`;
+    }
+
+    /**
+     * Checks if all of the puzzle's requirements are met.
+     * @param {Player} player - The player attempting the puzzle. 
+     * @param {ItemInstance} item - An item the player supplied in their attempt to solve the puzzle. 
+     * @param {ItemInstance[]} requiredItems - An array of required items in the player's inventory. The array will be populated during execution.
+     * @returns {boolean} Whether or not the puzzle's requirements have all been met.
+     */
+    checkRequirementsMet(player, item, requiredItems) {	
+        for (const requirement of this.requirements) {
+            if (requirement instanceof Puzzle && !requirement.solved || requirement instanceof Event && !requirement.ongoing)
+                return false;
+            else if (requirement instanceof Flag) {
+                if (requirement.valueScript !== "") {
+                    const value = requirement.evaluate();
+                    requirement.setValue(value, true, player);
+                }
+                if (requirement.value !== true) return false;
+            }
+            else if (requirement instanceof Prefab) {
+                if (item && item.prefab.id !== requirement.id) return false;
+                else if (!item) {
+                    const requiredItem = player ? player.findItem(requirement.id) : undefined;
+                    if (!requiredItem) return false;
+                    else if (!requiredItems.includes(requiredItem))
+                        requiredItems.push(requiredItem);
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Returns the solution that is satisfied by a list of items contained in the puzzle.
+     * If the list doesn't satisfy any solutions, returns undefined.
+     * @param {string} containedItemsListString - A comma-separated list of items contained inside of the puzzle.
+     */
+    getSolutionSatisfiedByContainedItems(containedItemsListString) {
+        const containedItems = containedItemsListString.split(',');
+        /** @param {string} solution */
+        const itemsMatch = function (solution) {
+            let requiredItems = solution.split('+');
+            if (requiredItems.length !== containedItems.length) return false;
+            for (let i = 0; i < requiredItems.length; i++)
+                requiredItems[i] = requiredItems[i].substring(requiredItems[i].indexOf(':') + 1).trim();
+            requiredItems.sort(function (a, b) {
+                if (a < b) return -1;
+                if (a > b) return 1;
+                return 0;
+            });
+            for (let i = 0; i < containedItems.length; i++)
+                if (containedItems[i] !== requiredItems[i]) return false;
+            return true;
+        };
+        for (const solution of this.solutions) {
+            if (itemsMatch(solution)) return solution;
+        }
+        return undefined;
+    }
+
+    /**
+     * Returns the solution that is satisfied by the given item. If the item doesn't satisfy any solutions, returns undefined.
+     * @param {ItemInstance} item - The item being used to attempt the puzzle.
+     */
+    getSolutionSatisfiedByItem(item) {
+        for (const solution of this.solutions) {
+            if ((solution.startsWith("Item:") || solution.startsWith("InventoryItem:") || solution.startsWith("Prefab:"))
+            && item.prefab.id === solution.substring(solution.indexOf(':') + 1).trim()) {
+                return solution;
+            }
+        }
+        return undefined;
     }
 
     /**
