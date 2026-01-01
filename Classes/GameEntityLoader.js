@@ -1502,7 +1502,7 @@ export default class GameEntityLoader extends GameEntityManager {
 			let errors = [];
 			for (let row = 0; row < sheet.length; row++) {
 				const durationString = sheet[row][columnDuration] ? String(sheet[row][columnDuration]) : "";
-				const duration = parseDuration(durationString);
+				const duration = durationString !== "" ? parseDuration(durationString) : null;
 				let overriders = sheet[row][columnOverridersStrings] ? sheet[row][columnOverridersStrings].split(',') : [];
 				for (let i = 0; i < overriders.length; i++)
 					overriders[i] = Status.generateValidId(overriders[i]);
