@@ -130,7 +130,6 @@ export async function execute (game, command, args, player, callee) {
 
     let narrate = false;
     if (announcement === "" && player !== null) narrate = true;
-    else if (announcement !== "") new Narration(game, player, game.entityFinder.getRoom(fixture.location.id), announcement).send();
 
     if (command === "activate") {
         const activateAction = new ActivateAction(game, undefined, player, fixture.location, true);

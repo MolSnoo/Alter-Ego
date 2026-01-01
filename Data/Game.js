@@ -4,6 +4,7 @@ import GameEntityFinder from '../Classes/GameEntityFinder.js';
 import GameEntityLoader from '../Classes/GameEntityLoader.js';
 import GameEntitySaver from '../Classes/GameEntitySaver.js';
 import GameLogHandler from '../Classes/GameLogHandler.js';
+import GameNarrationHandler from '../Classes/GameNarrationHandler.js';
 import GameNotificationGenerator from '../Classes/GameNotificationGenerator.js';
 import PriorityQueue from '../Classes/PriorityQueue.js';
 import Event from './Event.js';
