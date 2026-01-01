@@ -5,7 +5,9 @@ import Puzzle from "../Data/Puzzle.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/EquipmentSlot.js').default} EquipmentSlot */
 /** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -52,10 +54,14 @@ export async function execute (game, message, command, args) {
     let newArgs = null;
 
     // First, find the item in the player's inventory.
-    let hand, item;
+    /** @type {EquipmentSlot} */
+    let hand;
+    /** @type {InventoryItem} */
+    let item;
     for (let i = args.length; i > 0; i--) {
-        [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(0, i).join(" "), true);
+        hand = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(0, i).join(" "), "moderator");
         if (hand) {
+            item = hand.equippedItem;
             args = args.slice(i);
             break;
         }
@@ -148,9 +154,9 @@ export async function execute (game, message, command, args) {
     }
     else {
         if (parsedInput !== "") return addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
-        const defaultDropOpject = fixtures.find(fixture => fixture.name === game.settings.defaultDropFixture);
-        if (defaultDropOpject === null || defaultDropOpject === undefined) return addReply(game, message, `There is no default drop object "${game.settings.defaultDropFixture}" in ${player.location.id}.`);
-        container = defaultDropOpject;
+        const defaultDropFixture = fixtures.find(fixture => fixture.name === game.settings.defaultDropFixture);
+        if (defaultDropFixture === null || defaultDropFixture === undefined) return addReply(game, message, `There is no default drop object "${game.settings.defaultDropFixture}" in ${player.location.id}.`);
+        container = defaultDropFixture;
     }
 
     let topContainer = container;
