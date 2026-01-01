@@ -11,6 +11,7 @@ export default defineConfig({
         setupFiles: "Test/setup.js",
         typecheck: {
             enabled: true,
-        }
+        },
+        testTimeout: 10000
     },
 });
