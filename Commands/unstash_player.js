@@ -1,9 +1,10 @@
-import GameSettings from '../Classes/GameSettings.js';
 import UnstashAction from '../Data/Actions/UnstashAction.js';
-import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
-import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -40,32 +41,20 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable unstash");
+    const status = player.getBehaviorAttributeStatusEffects("disable unstash");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
-    var hand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (hand === "") return addReply(game, message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    const hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return addReply(game, message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
     
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var item = null;
-    var container = null;
-    var slotName = "";
+    let item = null;
+    let container = null;
+    let slotName = "";
+    let slot = null;
     const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < playerItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
@@ -73,22 +62,24 @@ export async function execute (game, message, command, args, player) {
             item = playerItems[i];
             container = playerItems[i].container;
             slotName = playerItems[i].slot;
+            slot = container.inventoryCollection.get(slotName);
             if (playerItems[i].container === null) continue;
             break;
         }
         // A container was specified.
         if (parsedInput.startsWith(`${playerItems[i].name} FROM `)) {
-            let containerName = parsedInput.substring(`${playerItems[i].name} FROM `.length).trim();
+            const containerName = parsedInput.substring(`${playerItems[i].name} FROM `.length).trim();
             if (playerItems[i].container !== null) {
                 // Slot name was specified.
                 if (containerName.endsWith(` OF ${playerItems[i].container.name}`)) {
-                    let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.name}`));
+                    const tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.name}`));
                     if (playerItems[i].container instanceof InventoryItem) {
-                        for (let slot = 0; slot < playerItems[i].container.inventory.length; slot++) {
-                            if (playerItems[i].container.inventory[slot].id === tempSlotName && playerItems[i].slot === tempSlotName) {
+                        for (const id of playerItems[i].container.inventoryCollection.keys()) {
+                            if (id === tempSlotName && playerItems[i].slot === tempSlotName) {
                                 item = playerItems[i];
                                 container = playerItems[i].container;
                                 slotName = tempSlotName;
+                                slot = container.inventoryCollection.get(slotName);
                                 break;
                             }
                         }
@@ -100,6 +91,7 @@ export async function execute (game, message, command, args, player) {
                     item = playerItems[i];
                     container = playerItems[i].container;
                     slotName = playerItems[i].slot;
+                    slot = container.inventoryCollection.get(slotName);
                     break;
                 }
             }
@@ -107,8 +99,8 @@ export async function execute (game, message, command, args, player) {
     }
     if (item === null) {
         if (parsedInput.includes(" FROM ")) {
-            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
-            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return addReply(game, message, `Couldn't find "${containerName}" in your inventory containing "${itemName}".`);
         }
         else return addReply(game, message, `Couldn't find item "${parsedInput}" in your inventory.`);
@@ -116,5 +108,5 @@ export async function execute (game, message, command, args, player) {
     if (item !== null && container === null) return addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
 
     const action = new UnstashAction(game, message, player, player.location, false);
-    action.performUnstash(item, hand, container, slotName);
+    action.performUnstash(item, hand, container, slot);
 }

@@ -1,5 +1,5 @@
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
+/** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Player.js").default} Player */
 /** @typedef {import("../Data/Exit.js").default} Exit */
 /** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 /** @typedef {import("../Data/Puzzle.js").default} Puzzle */

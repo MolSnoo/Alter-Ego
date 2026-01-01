@@ -1,11 +1,9 @@
-﻿import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
-import Event from "../Data/Event.js";
-import Flag from "../Data/Flag.js";
-import InventoryItem from "../Data/InventoryItem.js";
-import Puzzle from "../Data/Puzzle.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import Puzzle from "../Data/Puzzle.js";
+import { addGameMechanicMessage } from "../Modules/messageHandler.js";
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -39,13 +37,13 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
 
     if (args.length < 2) {
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -58,49 +56,42 @@ export async function execute (game, command, args, player, callee) {
     else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Puzzle)
         players = callee.location.occupants;
     else if (args[0].toLowerCase() === "all") {
-        for (let i = 0; i < game.players_alive.length; i++)
-            players.push(game.players_alive[i]);
+        players.concat(game.entityFinder.getLivingPlayers());
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                break;
-            }
-        }
-        if (player === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        player = game.entityFinder.getLivingPlayer(args[0]);
+        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
 
     if (args[1] === "x" && args[2]) {
-        let x = parseInt(args[2]);
-        if (isNaN(x)) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${args[2]}" is not a valid X-coordinate.`);
+        const x = parseInt(args[2]);
+        if (isNaN(x)) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${args[2]}" is not a valid X-coordinate.`);
 
         for (let i = 0; i < players.length; i++)
             players[i].pos.x = x;
     }
     else if (args[1] === "y" && args[2]) {
-        let y = parseInt(args[2]);
-        if (isNaN(y)) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${args[2]}" is not a valid Y-coordinate.`);
+        const y = parseInt(args[2]);
+        if (isNaN(y)) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${args[2]}" is not a valid Y-coordinate.`);
 
         for (let i = 0; i < players.length; i++)
             players[i].pos.y = y;
     }
     else if (args[1] === "z" && args[2]) {
-        let z = parseInt(args[2]);
-        if (isNaN(z)) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${args[2]}" is not a valid Z-coordinate.`);
+        const z = parseInt(args[2]);
+        if (isNaN(z)) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${args[2]}" is not a valid Z-coordinate.`);
 
         for (let i = 0; i < players.length; i++)
             players[i].pos.z = z;
     }
     else if ((args[1] === "x" || args[1] === "y" || args[1] === "z") && !args[2])
-        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". An individual coordinate was specified, but no number was given.`);
+        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". An individual coordinate was specified, but no number was given.`);
     else {
-        let coordinates = args.slice(1);
-        if (coordinates.length !== 3) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid coordinates given.`);
+        const coordinates = args.slice(1);
+        if (coordinates.length !== 3) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid coordinates given.`);
         for (let i = 0; i < coordinates.length; i++) {
-            if (isNaN(parseInt(coordinates[i]))) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid coordinates given.`);
+            if (isNaN(parseInt(coordinates[i]))) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid coordinates given.`);
         }
 
         for (let i = 0; i < players.length; i++) {
@@ -109,6 +100,4 @@ export async function execute (game, command, args, player, callee) {
             players[i].pos.z = parseInt(coordinates[2]);
         }
     }
-
-    return;
 }

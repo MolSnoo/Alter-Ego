@@ -1,8 +1,9 @@
-import GameSettings from '../Classes/GameSettings.js';
 import UnstashAction from '../Data/Actions/UnstashAction.js';
-import Game from '../Data/Game.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -38,39 +39,21 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
     // First, check if the player has a free hand.
-    var hand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (hand === "") return addReply(game, message, `${player.name} does not have a free hand to retrieve an item.`);
+    const hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to retrieve an item.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var item = null;
-    var container = null;
-    var slotName = "";
+    let item = null;
+    let container = null;
+    let slotName = "";
+    let slot = null;
     const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
     for (let i = 0; i < playerItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
@@ -80,6 +63,7 @@ export async function execute (game, message, command, args) {
             item = playerItems[i];
             container = playerItems[i].container;
             slotName = playerItems[i].slot;
+            slot = container.inventoryCollection.get(slotName);
             if (playerItems[i].container === null) continue;
             break;
         }
@@ -109,11 +93,12 @@ export async function execute (game, message, command, args) {
                         tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${playerItems[i].container.name}`));
 
                     if (playerItems[i].container instanceof InventoryItem) {
-                        for (let slot = 0; slot < playerItems[i].container.inventory.length; slot++) {
-                            if (playerItems[i].container.inventory[slot].id === tempSlotName && playerItems[i].slot === tempSlotName) {
+                        for (const id of playerItems[i].container.inventoryCollection.keys()) {
+                            if (id === tempSlotName && playerItems[i].slot === tempSlotName) {
                                 item = playerItems[i];
                                 container = playerItems[i].container;
                                 slotName = tempSlotName;
+                                slot = container.inventoryCollection.get(slotName);
                                 break;
                             }
                         }
@@ -127,6 +112,7 @@ export async function execute (game, message, command, args) {
                     item = playerItems[i];
                     container = playerItems[i].container;
                     slotName = playerItems[i].slot;
+                    slot = container.inventoryCollection.get(slotName);
                     break;
                 }
             }
@@ -134,8 +120,8 @@ export async function execute (game, message, command, args) {
     }
     if (item === null) {
         if (parsedInput.includes(" FROM ")) {
-            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
-            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return addReply(game, message, `Couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
         }
         else return addReply(game, message, `Couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
@@ -143,6 +129,6 @@ export async function execute (game, message, command, args) {
     if (item !== null && container === null) return addReply(game, message, `${item.getIdentifier()} is not contained in another item and cannot be unstashed.`);
 
     const action = new UnstashAction(game, message, player, player.location, true);
-    action.performUnstash(item, hand, container, slotName);
+    action.performUnstash(item, hand, container, slot);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unstashed ${item.getIdentifier()} from ${slotName} of ${container.identifier} for ${player.name}.`);
 }

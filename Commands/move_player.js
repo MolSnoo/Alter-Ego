@@ -1,9 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
+import QueueMoveAction from '../Data/Actions/QueueMoveAction.js';
 import { addReply } from '../Modules/messageHandler.js';
 
-import QueueMoveAction from '../Data/Actions/QueueMoveAction.js';
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -43,7 +43,7 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable move");
+    const status = player.getBehaviorAttributeStatusEffects("disable move");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (player.isMoving) return addReply(game, message, `You cannot do that because you are already moving.`);

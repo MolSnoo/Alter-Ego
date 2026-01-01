@@ -4,6 +4,9 @@ import Gesture from "../Data/Gesture.js";
 import Player from "../Data/Player.js";
 import Room from "../Data/Room.js";
 import Status from "../Data/Status.js";
+import Exit from "../Data/Exit.js";
+import EquipmentSlot from "../Data/EquipmentSlot.js";
+import InventoryItem from "../Data/InventoryItem.js";
 import * as matchers from '../Modules/matchers.js';
 
 /**
@@ -34,6 +37,16 @@ export default class GameEntityFinder {
 	getRoom(id) {
 		if (!id) return;
 		return this.game.roomsCollection.get(Room.generateValidId(id));
+	}
+
+	/**
+	 * Gets a room exit.
+	 * @param {Room} room - The room to locate an exit in.
+	 * @param {string} name - The name to look up.
+	 * @returns The exit in the specified room with the specified name, if applicable. If no such exit exists, returns undefined.
+	 */
+	getExit(room, name) {
+		return room.exitCollection.get(Game.generateValidEntityName(name));
 	}
 
 	/**
@@ -145,6 +158,68 @@ export default class GameEntityFinder {
 	}
 
 	/**
+	 * Gets a given player's hands.
+	 * @param {Player} player - The player.
+	 * @returns Hands belonging to the player.
+	 */
+	getPlayerHands(player) {
+		if (!player) return [];
+		let hands = [];
+		if (player.inventoryCollection.has("RIGHT HAND")) hands.push(player.inventoryCollection.get("RIGHT HAND"));
+		if (player.inventoryCollection.has("LEFT HAND")) hands.push(player.inventoryCollection.get("LEFT HAND"));
+		return hands;
+	}
+
+	/** Gets a free hand from the given player.
+	 * @param {Player} player - The player.
+	 * @returns A free hand of the player. Returns undefined if all hands are occupied.
+	 */
+	getPlayerFreeHand(player) {
+		if (!player) return;
+		for (const hand of this.getPlayerHands(player))
+			if (hand.equippedItem === null) return hand;
+	}
+
+	/** Gets a player's hand equipment slot whose equipped item has the given identifier.
+	 * @param {Player} player - The player.
+	 * @param {string} identifier - The item identifier or prefab ID in moderator contexts, or its name or plural name in player contexts.
+	 * @param {string} [resultContext] - Either `moderator`, `player`, or `combined`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
+	 * @returns The hand equipment slot holding the specified item. Returns undefined if no such equipment slot exists.
+	 */
+	getPlayerHandHoldingItem(player, identifier, resultContext = 'moderator') {
+		if (!player || !identifier) return;
+		/** @type {Collection<string, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
+		else if (resultContext === 'combined') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameMatches);
+		else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
+		return this.getPlayerHands(player).find(equipmentSlot => equipmentSlot.equippedItem ? selectedFilters.every((filterFunction, key) => filterFunction(equipmentSlot.equippedItem, key)) : false);
+	}
+
+	/** Gets a player equipment slot whose equipped item has the given identifier. Will always look up items based on name.
+	 * @param {Player} player - The player.
+	 * @param {string} identifier - The item identifier or prefab ID in moderator contexts, or its name or plural name in player contexts.
+	 * @param {string} [equipmentSlotId] - The ID of the equipment slot the item should be equipped to. Optional.
+	 * @param {string} [resultContext] - Either `moderator`, `player`, or `combined`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
+	 * @returns The equipment slot that has the specified item equipped. Returns undefined if no such equipment slot exists.
+	 */
+	getPlayerEquipmentSlotWithEquippedItem(player, identifier, equipmentSlotId = "", resultContext = 'moderator') {
+		if (!player || !identifier) return;
+		/** @type {Collection<string, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
+		else if (resultContext === 'combined') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameMatches);
+		else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
+		if (equipmentSlotId) {
+			equipmentSlotId = Game.generateValidEntityName(equipmentSlotId);
+			const equipmentSlot = player.inventoryCollection.get(equipmentSlotId);
+			selectedFilters.set(equipmentSlotId, matchers.inventoryItemEquipmentSlotMatches);
+			if (equipmentSlot?.equippedItem && selectedFilters.every((filterFunction, key) => filterFunction(equipmentSlot.equippedItem, key))) return equipmentSlot;
+		}
+		else return player.inventoryCollection.find(equipmentSlot => equipmentSlot.equippedItem ? selectedFilters.every((filterFunction, key) => filterFunction(equipmentSlot.equippedItem, key)) : false);
+	}
+
+	/**
 	 * Gets an inventory item.
 	 * @param {string} identifier - The inventory item's identifier or prefab ID.
 	 * @param {string} [player] - The name of the player the inventory item belongs to.
@@ -212,6 +287,23 @@ export default class GameEntityFinder {
 		if (tag) selectedFilters.set(tag.trim(), matchers.roomTagMatches);
 		if (occupied !== undefined && occupied !== null) selectedFilters.set(occupied, matchers.roomOccupiedMatches);
 		return this.game.roomsCollection.filter(room => selectedFilters.every((filterFunction, key) => filterFunction(room, key))).map(room => room);
+	}
+
+	/**
+	 * Gets all exits that match the given search queries.
+	 * @param {Room} room - Search for exits in this given room
+	 * @param {string} [name] - Filter the exits to only those whose name matches the given name.
+	 * @param {string} [dest] - Filter the exits to only those whose destination matches the given name.
+	 * @param {boolean} [locked] - Filter the exits to only those who are locked (if true) or unlocked (if false).
+	 * @param {boolean} [fuzzySearch] - Whether or not to include results whose name only contains the given name. Defaults to false.
+	 */
+	getExits(room, name, dest, locked, fuzzySearch = false) {
+		/** @type {Collection<string|boolean, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (name) selectedFilters.set(Game.generateValidEntityName(name), fuzzySearch ? matchers.exitNameContains : matchers.exitNameMatches);
+		if (dest) selectedFilters.set(Room.generateValidId(dest), matchers.exitDestMatches);
+		if (locked !== undefined && locked !== null) selectedFilters.set(locked, matchers.exitLockedMatches);
+		return room.exitCollection.filter(exit => selectedFilters.every((filterFunction, key) => filterFunction(exit, key))).map(exit => exit);
 	}
 
 	/**
@@ -466,7 +558,7 @@ export default class GameEntityFinder {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		if (id) selectedFilters.set(Gesture.generateValidId(id), fuzzySearch ? matchers.gestureIdContains : matchers.gestureIdMatches);
-		return this.game.gesturesCollection.filter(gesture => selectedFilters.every((filterFunction, key) => filterFunction(gesture, key)));
+		return this.game.gesturesCollection.filter(gesture => selectedFilters.every((filterFunction, key) => filterFunction(gesture, key))).map(gesture => gesture);
 	}
 
 	/**
@@ -478,6 +570,6 @@ export default class GameEntityFinder {
 		/** @type {Collection<string|boolean, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.entityIdContains : matchers.entityIdMatches);
-		return this.game.flags.filter(flag => selectedFilters.every((filterFunction, key) => filterFunction(flag, key)));
+		return this.game.flags.filter(flag => selectedFilters.every((filterFunction, key) => filterFunction(flag, key))).map(flag => flag);
 	}
 }

@@ -1,8 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import StopAction from '../Data/Actions/StopAction.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
+﻿import StopAction from '../Data/Actions/StopAction.js';
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -32,7 +33,7 @@ export function usage(settings) {
  * @param {Player} player - The player who issued the command. 
  */
 export async function execute(game, message, command, args, player) {
-    const status = player.getAttributeStatusEffects("disable stop");
+    const status = player.getBehaviorAttributeStatusEffects("disable stop");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     if (!player.isMoving) return addReply(game, message, `You cannot do that because you are not moving.`);

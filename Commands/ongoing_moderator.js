@@ -1,6 +1,7 @@
-import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -28,17 +29,9 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var events = [];
-    for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].ongoing) {
-            if (game.events[i].remaining === null)
-                events.push(game.events[i].id);
-            else
-                events.push(game.events[i].id + ` (${game.events[i].remainingString})`);
-        }
-    }
+    const events = game.entityFinder.getEvents(null, true).map((event) => {
+        return event.remaining === null ? event.id : `${event.id} (${event.remainingString})`;
+    });
     const eventList = events.join(", ");
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Ongoing events:\n${eventList}`);
-
-    return;
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Ongoing events:\n${eventList}`);
 }

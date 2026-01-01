@@ -1,13 +1,10 @@
-﻿import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
-import Flag from "../Data/Flag.js";
-import InventoryItem from "../Data/InventoryItem.js";
-import Puzzle from "../Data/Puzzle.js";
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
-
 import MoveAction from "../Data/Actions/MoveAction.js";
+import { addGameMechanicMessage, addLogMessage } from "../Modules/messageHandler.js";
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -40,7 +37,7 @@ export function usage(settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
@@ -50,17 +47,16 @@ export async function execute(game, command, args, player, callee) {
     }
 
     // Get all listed players first.
-    var players = [];
+    let players = [];
     if (args[0].toLowerCase() === "player" && player !== null) {
         players.push(player);
         args.splice(0, 1);
     }
     else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].tags.includes(callee.roomTag) && game.rooms[i].occupants.length > 0)
-                players = players.concat(game.rooms[i].occupants);
-        }
+        game.entityFinder.getRooms(null, callee.roomTag, true).map((room) => {
+            players = players.concat(room.occupants);
+        });
         args.splice(0, 1);
     }
     else if (args[0].toLowerCase() === "room" && player !== null) {
@@ -69,54 +65,37 @@ export async function execute(game, command, args, player, callee) {
         args.splice(0, 1);
     }
     else if (args[0].toLowerCase() === "all") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].title !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
-                players.push(game.players_alive[i]);
-        }
+        game.entityFinder.getLivingPlayers(null, false).map((player) => {
+            if (!player.member.roles.cache.find((role) => role.id === game.guildContext.freeMovementRole.id))
+                players.push(player);
+        });
         args.splice(0, 1);
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                break;
-            }
-        }
-        if (player === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        player = game.entityFinder.getLivingPlayer(args[0]);
+        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }
     // Args at this point should only include the room name.
     // Check to see that the last argument is the name of a room.
-    var input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var desiredRoom = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === input) {
-            desiredRoom = game.rooms[i];
-            input = input.substring(0, input.indexOf(desiredRoom.name));
-            args = input.split("-");
-            break;
-        }
-    }
-    if (desiredRoom === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    let input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+    const desiredRoom = game.entityFinder.getRoom(input);
+    if (desiredRoom === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    input = input.substring(0, input.indexOf(desiredRoom.id));
+    args = input.split("-");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
         if (players[i].location !== desiredRoom) {
             const currentRoom = players[i].location;
             // Check to see if the given room is adjacent to the current player's room.
-            var exit = null;
-            var entrance = null;
-            for (let j = 0; j < currentRoom.exit.length; j++) {
-                if (currentRoom.exit[j].dest === desiredRoom) {
-                    exit = currentRoom.exit[j];
-                    for (let k = 0; k < desiredRoom.exit.length; k++) {
-                        if (desiredRoom.exit[k].name === exit.link) {
-                            entrance = desiredRoom.exit[k];
-                            break;
-                        }
-                    }
+            let exit;
+            let entrance;
+            for (const targetExit of currentRoom.exitCollection.values()) {
+                if (targetExit.dest.id === desiredRoom.id) {
+                    exit = targetExit;
+                    entrance = game.entityFinder.getExit(desiredRoom, exit.link);
                     break;
                 }
             }

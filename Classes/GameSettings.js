@@ -1,5 +1,3 @@
-
-
 /**
  * @class GameSettings
  * @classdesc Contains all of the settings for a Game.

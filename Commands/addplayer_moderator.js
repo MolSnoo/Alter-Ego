@@ -1,11 +1,11 @@
-import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import Player from '../Data/Player.js';
 import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import { appendRowsToSheet } from '../Modules/sheets.js';
-
-import Player from '../Data/Player.js';
 import { Collection } from 'discord.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -37,20 +37,20 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (game.inProgress && !game.editMode)
-        return messageHandler.addReply(game, message, `You cannot add a player to the spreadsheet while edit mode is disabled. Please turn edit mode on before using this command.`);
+        return addReply(game, message, `You cannot add a player to the spreadsheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
-    if (args.length !== 1) return messageHandler.addReply(game, message, `You need to mention a user to add. Usage:\n${usage(game.settings)}`);
+    if (args.length !== 1) return addReply(game, message, `You need to mention a user to add. Usage:\n${usage(game.settings)}`);
 
     const mentionedMember = message.mentions.members.first();
     const member = await game.guildContext.guild.members.fetch(mentionedMember.id);
-    if (!member) return messageHandler.addReply(game, message, `Couldn't find "${args[0]}" in the server. If the user you want isn't appearing in Discord's suggestions, type @ and enter their full username.`);
+    if (!member) return addReply(game, message, `Couldn't find "${args[0]}" in the server. If the user you want isn't appearing in Discord's suggestions, type @ and enter their full username.`);
 
-    for (let i = 0; i < game.players.length; i++) {
-        if (member.id === game.players[i].id)
+    for (const player of game.playersCollection.values()) {
+        if (member.id === player.id)
             return message.reply("That user is already playing.");
     }
 
-    var player = new Player(
+    const player = new Player(
         member.id,
         member,
         member.displayName,
@@ -68,14 +68,15 @@ export async function execute(game, message, command, args) {
         0,
         game
     );
-    player.statusString = playerdefaults.defaultStatusEffects;
 
     game.players.push(player);
     game.players_alive.push(player);
+    game.playersCollection.set(player.name, player);
+    game.livingPlayersCollection.set(player.name, player);
     member.roles.add(game.guildContext.playerRole);
 
-    var playerCells = [];
-    var inventoryCells = [];
+    const playerCells = [];
+    const inventoryCells = [];
     playerCells.push([
         player.id,
         player.name,
@@ -90,7 +91,7 @@ export async function execute(game, message, command, args) {
         player.alive ? "TRUE" : "FALSE",
         player.locationDisplayName,
         player.hidingSpot,
-        player.statusString,
+        playerdefaults.defaultStatusEffects,
         player.description
     ]);
 
@@ -99,24 +100,22 @@ export async function execute(game, message, command, args) {
         row = row.concat(playerdefaults.defaultInventory[i]);
         for (let j = 0; j < row.length; j++) {
             if (row[j].includes('#'))
-                row[j] = row[j].replace(/#/g, String(game.players.length));
+                row[j] = row[j].replace(/#/g, String(game.playersCollection.size));
         }
         inventoryCells.push(row);
     }
 
     try {
-        await appendRowsToSheet(game.constants.playerSheetDataCells, playerCells);
-        await appendRowsToSheet(game.constants.inventorySheetDataCells, inventoryCells);
+        await appendRowsToSheet(game.constants.playerSheetDataCells, playerCells, game.settings.spreadsheetID);
+        await appendRowsToSheet(game.constants.inventorySheetDataCells, inventoryCells, game.settings.spreadsheetID);
 
         const successMessage = `<@${member.id}> has been added to the game. `
             + "After making any desired changes to the players and inventory items sheets, be sure to load players before disabling edit mode.";
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, successMessage);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, successMessage);
     }
     catch (err) {
         const errorMessage = `<@${member.id}> has been added to the game, but there was an error saving the data to the spreadsheet. `
             + "It is recommended that you add their data to the spreadsheet manually, then load it before proceeding. Error:\n```" + err + "```";
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, errorMessage);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, errorMessage);
     }
-
-    return;
 }

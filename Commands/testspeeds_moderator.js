@@ -1,11 +1,11 @@
-import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
 import fs from 'fs';
-import { EOL } from 'os';
-
 import Player from '../Data/Player.js';
+import { EOL } from 'os';
 import { Collection } from 'discord.js';
+import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -38,7 +38,7 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify what to test. Usage:\n${usage(game.settings)}`);
 
     const fileName = "./speeds.txt";
     fs.writeFile(fileName, "", function (err) {
@@ -49,7 +49,7 @@ export async function execute(game, message, command, args) {
         await testplayers(game, fileName);
     else if (args[0] === "stats")
         await testspeeds(game, fileName);
-    else return messageHandler.addReply(game, message, 'Function not found. You need to use "players" or "stats".');
+    else return addReply(game, message, 'Function not found. You need to use "players" or "stats".');
 
     game.guildContext.commandChannel.send({
         content: "Speeds calculated.",
@@ -60,8 +60,6 @@ export async function execute(game, message, command, args) {
             }
         ]
     });
-
-    return;
 }
 
 /**
@@ -70,19 +68,15 @@ export async function execute(game, message, command, args) {
  * @param {string} fileName - The name of the file to write the results to.
  */
 async function testplayers(game, fileName) {
-    var text = "";
-    for (let i = 0; i < game.rooms.length; i++) {
-        const room = game.rooms[i];
-        text += game.rooms[i].name + '\n';
-        for (let j = 0; j < room.exit.length; j++) {
-            const exit1 = room.exit[j];
-            for (let k = 0; k < room.exit.length; k++) {
-                const exit2 = room.exit[k];
+    let text = "";
+    for (const room of game.roomsCollection.values()) {
+        text += room.id + '\n';
+        for (const exit1 of room.exitCollection.values()) {
+            for (const exit2 of room.exitCollection.values()) {
                 if (exit1.row !== exit2.row) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
-                    for (let l = 0; l < game.players.length; l++) {
-                        let player = game.players[l];
+                    for (const player of game.playersCollection.values()) {
                         // Save the original coordinates.
                         const x = player.pos.x;
                         const y = player.pos.y;
@@ -107,8 +101,6 @@ async function testplayers(game, fileName) {
         }
     }
     await appendText(fileName, text);
-
-    return;
 }
 
 /**
@@ -117,19 +109,16 @@ async function testplayers(game, fileName) {
  * @param {string} fileName - The name of the file to write the results to.
  */
 async function testspeeds(game, fileName) {
-    var text = "";
-    for (let i = 0; i < game.rooms.length; i++) {
-        const room = game.rooms[i];
-        text += game.rooms[i].name + '\n';
-        for (let j = 0; j < room.exit.length; j++) {
-            const exit1 = room.exit[j];
-            for (let k = 0; k < room.exit.length; k++) {
-                const exit2 = room.exit[k];
+    let text = "";
+    for (const room of game.roomsCollection.values()) {
+        text += room.id + '\n';
+        for (const exit1 of room.exitCollection.values()) {
+            for (const exit2 of room.exitCollection.values()) {
                 if (exit1.row !== exit2.row) {
                     text += "   ";
                     text += `${exit1.name} ==> ${exit2.name}\n`;
                     for (let l = 1; l <= 10; l++) {
-                        let player = new Player("", null, "", "", "neutral", "an average voice", { speed: l, stamina: 5, strength: 5, perception: 5, dexterity: 5 }, true, room.id, "", [], "", new Collection(), null, 1, game);
+                        const player = new Player("", null, "", "", "neutral", "an average voice", { speed: l, stamina: 5, strength: 5, perception: 5, dexterity: 5 }, true, room.id, "", [], "", new Collection(), null, 1, game);
                         player.pos.x = exit1.pos.x;
                         player.pos.y = exit1.pos.y;
                         player.pos.z = exit1.pos.z;
@@ -146,8 +135,6 @@ async function testspeeds(game, fileName) {
         }
     }
     await appendText(fileName, text);
-
-    return;
 }
 
 /**

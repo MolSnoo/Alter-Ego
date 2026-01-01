@@ -1,8 +1,10 @@
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
-import RoomItem from "../Data/RoomItem.js";
 import { EmbedBuilder } from "discord.js";
 import { Duration } from 'luxon';
+
+/** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Player.js").default} Player */
+/** @typedef {import("../Data/RoomItem.js").default} RoomItem */
+/** @typedef {import("luxon").DurationObjectUnits} DurationObjectUnits */
 
 /**
  * Gets a random string out of an array of possibilities.
@@ -100,7 +102,7 @@ export function parseDuration(durationString) {
 /**
  * Converts a time string to a luxon duration input object.
  * @param {string} timeString - The string to convert. The format is `D? HH:mm:ss`, e.g. `1 23:59:59`.
- * @returns {import("luxon").DurationObjectUnits} The input object to pass into the duration constructor.
+ * @returns {DurationObjectUnits} The input object to pass into the duration constructor.
  */
 export function convertTimeStringToDurationUnits(timeString) {
 	const timeRegex = /^(?<days>\d+)? ?(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2})$/;

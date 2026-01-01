@@ -1,4 +1,6 @@
-import { Guild, Role, TextChannel } from "discord.js";
+/** @typedef {import("discord.js").Guild} Guild */
+/** @typedef {import("discord.js").Role} Role */
+/** @typedef {import("discord.js").TextChannel} TextChannel */
 
 /**
  * @class GuildContext

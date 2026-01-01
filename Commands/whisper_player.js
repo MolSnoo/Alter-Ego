@@ -1,8 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-import Whisper from '../Data/Whisper.js';
+﻿import Whisper from '../Data/Whisper.js';
+import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -37,44 +38,39 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to choose at least one player. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to choose at least one player. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable whisper");
-    if (status.length > 0) return messageHandler.addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    const status = player.getBehaviorAttributeStatusEffects("disable whisper");
+    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // Get all players mentioned.
-    var recipients = new Array();
+    const recipients = new Array();
     recipients.push(player);
     for (let i = 0; i < args.length; i++) {
-        var playerExists = false;
         // Player cannot whisper to themselves.
-        if (args[i].toLowerCase() === player.name.toLowerCase()) return messageHandler.addReply(game, message, "You can't include yourself as a whisper recipient.");
+        if (args[i].toLowerCase() === player.name.toLowerCase()) return addReply(game, message, "You can't include yourself as a whisper recipient.");
         // Player cannot whisper to dead players.
-        for (let j = 0; j < game.players_dead.length; j++) {
-            if (game.players_dead[j].name.toLowerCase() === args[i].toLowerCase()) return messageHandler.addReply(game, message, `You can't whisper to ${game.players_dead[j].name} because ${game.players_dead[j].originalPronouns.sbj} ` + (game.players_dead[j].originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
-        }
-        for (let j = 0; j < game.players_alive.length; j++) {
-            let other = game.players_alive[j];
-            // Check if player exists and is in the same room.
-            if (other.displayName.toLowerCase() === args[i].toLowerCase() && other.location.id === player.location.id) {
+        const deadFetch = game.entityFinder.getDeadPlayer(args[i])
+        if (deadFetch)
+            return addReply(game, message, `You can't whisper to ${deadFetch.name} because ${deadFetch.originalPronouns.sbj} ` + (deadFetch.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
+        // Check if player exists and is in the same room.
+        const livingFetch = game.entityFinder.getLivingPlayer(args[i])
+        if (livingFetch) {
+            if (livingFetch.location.id === player.location.id) {
                 // Check attributes that would prohibit the player from whispering to someone in the room.
-                if (other.hasAttribute("hidden"))
-                    return messageHandler.addReply(game, message, `You can't whisper to ${other.displayName} because ${other.pronouns.sbj} ` + (other.pronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
-                if (other.hasAttribute("concealed"))
-                    return messageHandler.addReply(game, message, `You can't whisper to ${other.displayName} because it would reveal their identity.`);
-                if (other.hasAttribute("no hearing"))
-                    return messageHandler.addReply(game, message, `You can't whisper to ${other.displayName} because ${other.pronouns.sbj} can't hear you.`);
-                if (other.hasAttribute("unconscious"))
-                    return messageHandler.addReply(game, message, `You can't whisper to ${other.displayName} because ${other.pronouns.sbj} ` + (other.pronouns.plural ? `are` : `is`) + ` not awake.`);
-                // If there are no attributes that prevent whispering, add them to the array.
-                playerExists = true;
-                recipients.push(other);
-                break;
-            }
-            // If the player exists but is not in the same room, return error.
-            else if (other.name.toLowerCase() === args[i].toLowerCase()) return messageHandler.addReply(game, message, `You can't whisper to ${other.name} because ${other.originalPronouns.sbj} ` + (other.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
-        }
-        if (!playerExists) return messageHandler.addReply(game, message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
+                if (livingFetch.hasBehaviorAttribute("hidden"))
+                    return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} ` + (livingFetch.pronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
+                if (livingFetch.hasBehaviorAttribute("concealed"))
+                    return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because it would reveal their identity.`);
+                if (livingFetch.hasBehaviorAttribute("no hearing"))
+                    return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} can't hear you.`);
+                if (livingFetch.hasBehaviorAttribute("unconscious"))
+                    return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} ` + (livingFetch.pronouns.plural ? `are` : `is`) + ` not awake.`);
+                recipients.push(livingFetch);
+            } else if (livingFetch.name.toLowerCase() === args[i].toLowerCase())
+                return addReply(game, message, `You can't whisper to ${livingFetch.name} because ${livingFetch.originalPronouns.sbj} ` + (livingFetch.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
+        } else
+            return addReply(game, message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
     }
 
     // Check if whisper already exists.
@@ -90,14 +86,12 @@ export async function execute (game, message, command, args, player) {
                     }
                 }
             }
-            if (matchedUsers === recipients.length) return messageHandler.addReply(game, message, "Whisper group already exists.");
+            if (matchedUsers === recipients.length) return addReply(game, message, "Whisper group already exists.");
         }
     }
 
     // Whisper does not exist, so create it.
-    var whisper = new Whisper(game, recipients, player.location.id, player.location);
+    const whisper = new Whisper(game, recipients, player.location.id, player.location);
     await whisper.init();
     game.whispers.push(whisper);
-
-    return;
 }

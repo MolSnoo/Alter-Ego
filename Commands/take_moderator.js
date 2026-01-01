@@ -1,10 +1,11 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import TakeAction from "../Data/Actions/TakeAction.js";
+﻿import TakeAction from "../Data/Actions/TakeAction.js";
 import Fixture from "../Data/Fixture.js";
-import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -41,40 +42,22 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    let player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
     // First, check if the player has a free hand.
-    let hand = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = player.inventory[slot];
-            break;
-        }
-        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = player.inventory[slot];
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (hand === null) return addReply(game, message, `${player.name} does not have a free hand to take an item.`);
+    const hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to take an item.`);
 
-    let input = args.join(" ");
-    let parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     let item = null;
     let container = null;
     let slotName = "";
-    const roomItems = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    let slot = null;
+    const roomItems = game.entityFinder.getRoomItems(null, player.location.id, true);
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
         if (roomItems[i].identifier !== "" && roomItems[i].identifier === parsedInput ||
@@ -83,6 +66,7 @@ export async function execute (game, message, command, args) {
             item = roomItems[i];
             container = roomItems[i].container;
             slotName = roomItems[i].slot;
+            if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
             break;
         }
         // A container was specified.
@@ -112,11 +96,12 @@ export async function execute (game, message, command, args) {
                     else if (containerName.endsWith(` OF ${roomItemContainer.name}`))
                         tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
 
-                    for (let slot = 0; slot < roomItemContainer.inventory.length; slot++) {
-                        if (roomItemContainer.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
+                    for (const id of roomItemContainer.inventoryCollection.keys()) {
+                        if (id === tempSlotName && roomItems[i].slot === tempSlotName) {
                             item = roomItems[i];
                             container = roomItemContainer;
                             slotName = tempSlotName;
+                            slot = container.inventoryCollection.get(slotName);
                             break;
                         }
                     }
@@ -130,6 +115,7 @@ export async function execute (game, message, command, args) {
                     item = roomItems[i];
                     container = roomItemContainer;
                     slotName = roomItems[i].slot;
+                    slot = container.inventoryCollection.get(slotName);
                 }
                 // A puzzle's parent fixture was specified.
                 else if (roomItemContainer instanceof Puzzle && roomItemContainer.parentFixture.name === containerName) {
@@ -142,6 +128,7 @@ export async function execute (game, message, command, args) {
                     item = roomItems[i];
                     container = roomItemContainer;
                     slotName = roomItems[i].slot;
+                    if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
                     break;
                 }
             }
@@ -156,8 +143,8 @@ export async function execute (game, message, command, args) {
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
-            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
-            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
         else return addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
@@ -171,6 +158,6 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
 
     const action = new TakeAction(game, message, player, player.location, true);
-    action.performTake(item, hand, container, slotName);
+    action.performTake(item, hand, container, slot);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully took ${item.getIdentifier()} for ${player.name}.`);
 }

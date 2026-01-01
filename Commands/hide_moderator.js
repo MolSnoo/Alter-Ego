@@ -1,8 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
 import HideAction from '../Data/Actions/HideAction.js';
 import UnhideAction from '../Data/Actions/UnhideAction.js';
-import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -36,22 +37,16 @@ export async function execute (game, message, command, args) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
-    if (player.statusString.includes("hidden") && command === "unhide") {
+    if (player.statusCollection.has("hidden") && command === "unhide") {
         const unhideAction = new UnhideAction(game, message, player, player.location, true);
         unhideAction.performUnhide();
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully brought ${player.name} out of hiding.`);
     }
-    else if (player.statusString.includes("hidden"))
+    else if (player.statusCollection.has("hidden"))
         return addReply(game, message, `${player.name} is already **hidden**. If you want ${player.originalPronouns.obj} to stop hiding, use "${game.settings.commandPrefix}unhide ${player.name}".`);
     else if (command === "unhide")
         return addReply(game, message, `${player.name} is not currently hidden.`);
@@ -60,12 +55,12 @@ export async function execute (game, message, command, args) {
         if (args.length === 0)
             return addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
 
-        var input = args.join(" ");
-        var parsedInput = input.toUpperCase().replace(/\'/g, "");
+        const input = args.join(" ");
+        const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
         // Check if the input is a fixture that the player can hide in.
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
-        var fixture = null;
+        let fixture = null;
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput && fixtures[i].hidingSpotCapacity > 0) {
                 fixture = fixtures[i];

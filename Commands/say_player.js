@@ -1,9 +1,10 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import handleDialog from '../Modules/dialogHandler.js';
 import { ChannelType } from "discord.js";
-import { default as handleDialog } from '../Modules/dialogHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -34,25 +35,25 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("enable say");
-    if (status.length === 0) return messageHandler.addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
+    const status = player.getBehaviorAttributeStatusEffects("enable say");
+    if (status.length === 0) return addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
-    var input = args.join(" ");
+    const input = args.join(" ");
     if (!input.startsWith("(")) {
         // Create a webhook for this channel if necessary, or grab the existing one.
-        let webHooks = await player.location.channel.fetchWebhooks();
+        const webHooks = await player.location.channel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
-        var files = [];
+        const files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         const displayName = player.displayName;
         const displayIcon = player.displayIcon;
-        if (player.hasAttribute("hidden")) {
+        if (player.hasBehaviorAttribute("hidden")) {
             player.displayName = "Someone in the room";
             player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
         }
@@ -73,6 +74,4 @@ export async function execute (game, message, command, args, player) {
                 });
         });
     }
-    
-    return;
-}
+    }

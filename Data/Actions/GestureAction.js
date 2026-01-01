@@ -1,10 +1,11 @@
 import { default as Action, ActionType } from "../Action.js";
-import Exit from "../Exit.js";
-import Fixture from "../Fixture.js";
 import Gesture from "../Gesture.js";
-import InventoryItem from "../InventoryItem.js";
-import Player from "../Player.js";
-import RoomItem from "../RoomItem.js";
+
+/** @typedef {import("../Exit.js").default} Exit */
+/** @typedef {import("../Fixture.js").default} Fixture */
+/** @typedef {import("../InventoryItem.js").default} InventoryItem */
+/** @typedef {import("../Player.js").default} Player */
+/** @typedef {import("../RoomItem.js").default} RoomItem */
 
 /**
  * @class GestureAction

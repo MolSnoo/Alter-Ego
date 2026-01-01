@@ -1,7 +1,8 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-import { createPaginatedEmbed } from '../Modules/helpers.js';
+﻿import { createPaginatedEmbed } from '../Modules/helpers.js';
+import { addCommandHelp, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -30,7 +31,7 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     // Get all commands available to the user and sort them alphabetically.
-    let roleCommands = game.botContext.moderatorCommands;
+    const roleCommands = game.botContext.moderatorCommands;
     roleCommands.sort(function (a, b) {
         if (a.config.name < b.config.name) return -1;
         if (a.config.name > b.config.name) return 1;
@@ -38,9 +39,9 @@ export async function execute (game, message, command, args) {
     });
 
     if (args.length === 0) {
-        var fields = [];
-        var pages = [];
-        var page = 0;
+        const fields = [];
+        const pages = [];
+        let page = 0;
 
         roleCommands.forEach(function (value, key, map) {
             const commandName = key.substring(0, key.indexOf('_'));
@@ -94,10 +95,8 @@ export async function execute (game, message, command, args) {
         });
     }
     else {
-        let command = roleCommands.find(command => command.config.aliases.includes(args[0]));
-        if (!command) return messageHandler.addReply(game, message, `Couldn't find command "${args[0]}".`);
-        messageHandler.addCommandHelp(game, game.guildContext.commandChannel, command);
+        const command = roleCommands.find(command => command.config.aliases.includes(args[0]));
+        if (!command) return addReply(game, message, `Couldn't find command "${args[0]}".`);
+        addCommandHelp(game, game.guildContext.commandChannel, command);
     }
-
-    return;
 }

@@ -1,8 +1,9 @@
-import GameSettings from '../Classes/GameSettings.js';
 import InspectAction from '../Data/Actions/InspectAction.js';
-import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -49,18 +50,12 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and a fixture/item/player. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // What we do with this action, if anything, depends on what the player inspects.
     const action = new InspectAction(game, message, player, player.location, true);
@@ -68,17 +63,17 @@ export async function execute (game, message, command, args) {
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
         action.performInspect(player.location);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${player.location.name} for ${player.name}.`);
+        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${player.location.id} for ${player.name}.`);
         return;
     }
 
     // Check if the input is a fixture, or an item on a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
-    const items = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
-    var fixture = null;
-    var item = null;
-    var container = null;
-    var slotName = "";
+    const items = game.entityFinder.getRoomItems(null, player.location.id, true);
+    let fixture = null;
+    let item = null;
+    let container = null;
+    let slotName = "";
     for (let i = 0; i < fixtures.length; i++) {
         if (fixtures[i].name === parsedInput) {
             fixture = fixtures[i];
@@ -110,7 +105,7 @@ export async function execute (game, message, command, args) {
         return;
     }
 
-    var onlySearchInventory = false;
+    let onlySearchInventory = false;
     if (parsedInput.startsWith(`${player.name.toUpperCase()}S `)) onlySearchInventory = true;
 
     if (!onlySearchInventory) {
@@ -144,16 +139,22 @@ export async function execute (game, message, command, args) {
                     else if (parsedInput.endsWith(` OF ${itemContainer.prefab.id}`))
                         containerName = itemContainer.prefab.id;
                     if (containerName !== "") {
-                        let tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${containerName}`)).trim();
-                        for (let slot = 0; slot < itemContainer.inventory.length; slot++) {
-                            if (itemContainer.inventory[slot].id === tempSlotName && items[i].slot === tempSlotName) {
-                                item = items[i];
-                                container = item.container;
-                                slotName = item.slot;
-                                break;
+                        const tempSlotName = containerString.substring(0, containerString.lastIndexOf(` OF ${containerName}`)).trim();
+                        container = itemContainer.inventoryCollection.get(tempSlotName)
+                        if (container && items[i].slot === tempSlotName) {
+                            item = items[i];
+                            slotName = item.slot;
+                        } else {
+                            for (const [id, slot] of itemContainer.inventoryCollection) {
+                                if (id === tempSlotName && items[i].slot === tempSlotName) {
+                                    item = items[i];
+                                    container = item.container;
+                                    slotName = item.slot;
+                                    break;
+                                }
                             }
                         }
-                        if (item !== null) break;
+                        if (!(item === null || item === undefined)) break;
                     }
                     // Only a container was specified.
                     else if (itemContainer.identifier !== "" && itemContainer.identifier === containerString || itemContainer.prefab.id === containerString) {
@@ -187,9 +188,9 @@ export async function execute (game, message, command, args) {
 
     // Check if the input is a player in the room.
     for (let i = 0; i < player.location.occupants.length; i++) {
-        let occupant = player.location.occupants[i];
+        const occupant = player.location.occupants[i];
         const possessive = occupant.name.toUpperCase() + "S ";
-        if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasAttribute("hidden"))
+        if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasBehaviorAttribute("hidden"))
             return addReply(game, message, `Couldn't find "${input}".`);
         if (occupant.name.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.

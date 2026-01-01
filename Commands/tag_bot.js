@@ -1,11 +1,8 @@
-import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
-import Event from "../Data/Event.js";
-import Flag from "../Data/Flag.js";
-import InventoryItem from "../Data/InventoryItem.js";
-import Puzzle from "../Data/Puzzle.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -37,11 +34,11 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "tag") {
         if (args[0] === "add") command = "addtag";
         else if (args[0] === "remove") command = "removetag";
@@ -50,24 +47,24 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "addtag" && command !== "removetag") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
+    if (command !== "addtag" && command !== "removetag") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
     if (args.length < 2)
-        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     input = args.join(" ");
-    var parsedInput = input.replace(/ /g, "-").toLowerCase();
 
-    var room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            room = game.rooms[i];
+    let room;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        room = game.entityFinder.getRoom(searchString);
+        if (room) {
             break;
         }
     }
-    if (room === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (room === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
-    input = input.substring(room.name.length).trim();
-    if (input === "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+    input = input.substring(room.id.length).trim();
+    if (input === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (command === "addtag") {
         if (!room.tags.includes(input.trim()))
@@ -77,6 +74,4 @@ export async function execute (game, command, args, player, callee) {
         if (room.tags.includes(input.trim()))
             room.tags.splice(room.tags.indexOf(input.trim()), 1);
     }
-
-    return;
 }

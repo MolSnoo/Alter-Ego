@@ -1,6 +1,7 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -30,32 +31,28 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
-    var players = [];
-    for (let i = 0; i < game.players_dead.length; i++) {
-        for (let j = 0; j < args.length; j++) {
-            if (args[j].toLowerCase() === game.players_dead[i].name.toLowerCase()) {
-                players.push(game.players_dead[i]);
-                args.splice(j, 1);
-                break;
-            }
+    const players = [];
+    for (let i = args.length - 1; i >= 0; i--) {
+        const player = game.entityFinder.getDeadPlayer(args[i]);
+        if (player) {
+            players.push(player);
+            args.splice(i, 1);
         }
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return messageHandler.addReply(game, message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
+        return addReply(game, message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++) {
-        if (players[i].title !== "NPC") {
+        if (!players[i].isNPC) {
             players[i].member.roles.remove(game.guildContext.playerRole);
             players[i].member.roles.add(game.guildContext.deadRole);
         }
     }
 
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Listed players have been given the Dead role.");
-
-    return;
+    addGameMechanicMessage(game, game.guildContext.commandChannel, `Listed players have been given the ${game.guildContext.deadRole.name} role.`);
 }

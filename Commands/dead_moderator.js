@@ -1,6 +1,7 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { addGameMechanicMessage } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -28,12 +29,6 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var playerList = "Dead players:\n";
-    if (game.players_dead.length > 0)
-        playerList += game.players_dead[0].name;
-    for (let i = 1; i < game.players_dead.length; i++)
-        playerList += `, ${game.players_dead[i].name}`;
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
-
-    return;
+    let playerList = `Dead players:\n${game.entityFinder.getDeadPlayers().map(player => player.name).join(" ")}`;
+    addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
 }

@@ -1,23 +1,23 @@
-import Exit from "../Data/Exit.js";
 import Fixture from "../Data/Fixture.js";
-import Game from "../Data/Game.js";
-import Gesture from "../Data/Gesture.js";
 import InventoryItem from "../Data/InventoryItem.js";
-import InventorySlot from "../Data/InventorySlot.js";
 import Narration from "../Data/Narration.js";
-import Player from "../Data/Player.js";
-/** @typedef {import("../Data/Prefab.js").default} Prefab */
-import Puzzle from "../Data/Puzzle.js";
-/** @typedef {import("../Data/Recipe.js").default} Recipe */
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
-/** @typedef {import("../Data/Status.js").default} Status */
 import { parseDescription } from "../Modules/parser.js";
 import { generateListString } from "../Modules/helpers.js";
 
+/** @typedef {import("../Data/Exit.js").default} Exit */
+/** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Gesture.js").default} Gesture */
+/** @typedef {import("../Data/Player.js").default} Player */
+/** @typedef {import("../Data/Puzzle.js").default} Puzzle */
+/** @typedef {import("../Data/Prefab.js").default} Prefab */
+/** @typedef {import("../Data/Recipe.js").default} Recipe */
 /** @typedef {import("../Data/Event.js").default} Event */
 /** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
+/** @typedef {import("../Data/InventorySlot.js").default} InventorySlot */
 /** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
+/** @typedef {import("../Data/Status.js").default} Status */
 
 /**
  * @class GameNarrationHandler

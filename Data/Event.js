@@ -1,11 +1,13 @@
 import GameEntity from './GameEntity.js';
 import InflictAction from './Actions/InflictAction.js';
-import Game from './Game.js';
-import Status from './Status.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import Timer from '../Classes/Timer.js';
-import { DateTime, Duration } from 'luxon';
+import { DateTime } from 'luxon';
 import { parse } from 'date-fns';
+
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Status.js').default} Status */
+/** @typedef {import('luxon').Duration} Duration */
 
 /**
  * @class Event
@@ -285,14 +287,8 @@ export default class Event extends GameEntity {
                     });
                     event.refreshes.forEach(refresh => {
                         /** @type {Status} */
-                        let status = null;
-                        for (let occupantStatus of occupant.status) {
-                            if (occupantStatus.id === refresh.id) {
-                                status = occupantStatus;
-                                break;
-                            }
-                        }
-                        if (status !== null && status.remaining !== null)
+                        let status = occupant.statusCollection.get(refresh.id);
+                        if (status !== undefined && status.remaining !== null)
                             status.remaining = refresh.duration;
                     });
                 }

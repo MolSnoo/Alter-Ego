@@ -1,11 +1,8 @@
-import GameSettings from "../Classes/GameSettings.js";
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
-import Event from "../Data/Event.js";
-import Flag from "../Data/Flag.js";
-import InventoryItem from "../Data/InventoryItem.js";
-import Puzzle from "../Data/Puzzle.js";
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -49,72 +46,66 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
 
     if (args.length < 4)
-        return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
-
-    let input = args.join(" ");
-    let parsedInput = input.replace(/ /g, "-").toLowerCase();
+        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     // First, find the room.
-    let room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(room.name.length).replace(/-/g, " ").toUpperCase().trim();
-            input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
+    let room;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        room = game.entityFinder.getRoom(searchString);
+        if (room) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". An exit in ${game.rooms[i].name}, another room, and another exit must be specified.`);
     }
-    if (room === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (room === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". No exit was given.`);
 
     // Now that the room has been found, find the exit.
-    let exit = null;
-    for (let i = 0; i < room.exit.length; i++) {
-        if (parsedInput.startsWith(room.exit[i].name + ' ')) {
-            exit = room.exit[i];
-            parsedInput = parsedInput.substring(exit.name.length).toLowerCase().trim().replace(/ /g, "-");
-            input = input.substring(input.replace(/ /g, "-").toLowerCase().indexOf(parsedInput)).trim();
+    let exit;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        exit = game.entityFinder.getExit(room, searchString);
+        if (exit) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === room.exit[i].name) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Another room and another exit for ${room.exit[i].name} of ${room.name} to lead to must be specified.`);
     }
-    if (exit === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${room.name}.`);
+    if (exit === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${args.join(" ")}" in ${room.id}.`);
+    else if (args.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Another room and another exit for ${exit.name} of ${room.id} to lead to must be specified.`);
 
     // Now find the destination room.
-    let destRoom = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            destRoom = game.rooms[i];
-            parsedInput = parsedInput.substring(destRoom.name.length).replace(/-/g, " ").toUpperCase().trim();
-            input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
+    let destRoom;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        destRoom = game.entityFinder.getRoom(searchString);
+        if (destRoom) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". An exit in ${game.rooms[i].name} for ${exit.name} of ${room.name} to lead to must be specified.`);
     }
-    if (destRoom === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (destRoom === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". An exit in ${destRoom.id} for ${exit.name} of ${room.id} to lead to must be specified.`);
 
     // Now that the destination room has been found, find the destination exit.
-    let destExit = null;
-    for (let i = 0; i < destRoom.exit.length; i++) {
-        if (destRoom.exit[i].name === parsedInput) {
-            destExit = destRoom.exit[i];
-            parsedInput = parsedInput.substring(destExit.name.length).toLowerCase().trim().replace(/ /g, "-");
-            input = input.substring(input.replace(/ /g, "-").toLowerCase().indexOf(parsedInput)).trim();
+    let destExit;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        destExit = game.entityFinder.getExit(destRoom, searchString);
+        if (destExit) {
             break;
         }
     }
-    if (destExit === null) return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${input}" in ${destRoom.name}.`);
+    if (destExit === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find exit "${args.join(" ")}" in ${destRoom.id}.`);
 
     exit.dest = destRoom;
     exit.link = destExit.name;
     destExit.dest = room;
     destExit.link = exit.name;
-
-    return;
 }

@@ -1,6 +1,7 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+﻿import { clearQueue } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -29,46 +30,37 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     // Remove all living players from whatever room channel they're in.
-    for (let i = 0; i < game.players_alive.length; i++) {
-        const player = game.players_alive[i];
-        if (player.title !== "NPC") {
-            if (player.location.channel) player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
-            player.removeFromWhispers("");
-            player.member.roles.remove(game.guildContext.playerRole).catch();
-            player.member.roles.add(game.guildContext.spectatorRole).catch();
+    game.entityFinder.getLivingPlayers(null, false).map((player) => {
+        if (player.location.channel)
+            player.location.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
+        player.removeFromWhispers("");
+        player.member.roles.remove(game.guildContext.playerRole).catch();
+        player.member.roles.add(game.guildContext.spectatorRole).catch();
 
-            for (let j = 0; j < player.status.length; j++) {
-                if (player.status[j].hasOwnProperty("timer") && player.status[j].timer !== null)
-                    player.status[j].timer.stop();
-            }
+        for (const status of player.statusCollection.values()) {
+            if (status.timer !== null)
+                status.timer.stop();
         }
-    }
+    });
 
-    for (let i = 0; i < game.players_dead.length; i++) {
-        const player = game.players_dead[i];
-        if (player.title !== "NPC") {
-            player.member.roles.remove(game.guildContext.deadRole).catch();
-            player.member.roles.add(game.guildContext.spectatorRole).catch();
-        }
-    }
+    // Remove dead role and add spectator role to dead players.
+    game.entityFinder.getDeadPlayers(null, false).map((player) => {
+        player.member.roles.remove(game.guildContext.deadRole).catch();
+        player.member.roles.add(game.guildContext.spectatorRole).catch();
+    });
 
     clearTimeout(game.halfTimer);
     clearTimeout(game.endTimer);
 
     game.inProgress = false;
     game.canJoin = false;
-    messageHandler.clearQueue(game);
-    if (!game.settings.debug) {
+    clearQueue(game);
+    if (!game.settings.debug)
         game.botContext.updatePresence();
-    }
-    game.players = [];
-    game.players_alive = [];
-    game.players_dead = [];
+    game.entityLoader.clearAll();
 
     let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;
     else channel = game.guildContext.generalChannel;
     channel.send(`${message.member.displayName} ended the game!`);
-
-    return;
 }

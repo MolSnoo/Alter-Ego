@@ -1,6 +1,4 @@
-import GameSettings from '../Classes/GameSettings.js';
 import Fixture from '../Data/Fixture.js';
-import Game from '../Data/Game.js';
 import GameEntity from '../Data/GameEntity.js';
 import InventoryItem from '../Data/InventoryItem.js';
 import RoomItem from '../Data/RoomItem.js';
@@ -8,11 +6,11 @@ import ItemInstance from '../Data/ItemInstance.js';
 import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import Recipe from '../Data/Recipe.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-
-import * as finder from '../Modules/finder.js';
-
 import { table } from 'table';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -79,7 +77,7 @@ export async function execute (game, message, command, args) {
 	let input = args.join(' ');
 
 	if (args.length === 0)
-		return messageHandler.addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
+		return addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
 
 	const dataTypeRegex = /^((?<Room>rooms?)|(?<Object>objects?)|(?<Prefab>prefabs?)|(?<Recipe>recipes?)|(?<Item>items?)|(?<Puzzle>puzzles?)|(?<Event>events?)|(?<Status>status(?:es)? ?(?:effects?)?)|(?<Player>players?)|(?<InventoryItem>inventory(?: ?items?)?)|(?<Gesture>gestures?)|(?<Flag>flags?))(?<search>.*)/i;
 	const dataTypeMatch = input.match(dataTypeRegex);
@@ -89,12 +87,12 @@ export async function execute (game, message, command, args) {
 		let results = [];
 		let fields;
 		if (dataTypeMatch.groups.Room) {
-			if (!dataTypeMatch.groups.search) results = finder.findRooms();
-			else results = finder.findRooms(dataTypeMatch.groups.search);
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getRooms();
+			else results = game.entityFinder.getRooms(dataTypeMatch.groups.search, undefined, undefined, true);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Object) {
-			if (!dataTypeMatch.groups.search) results = finder.findObjects();
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getFixtures();
 			else {
 				let name, location;
 				const locationRegex = /((?:^| )at (?<location>.+?$))/i;
@@ -104,17 +102,17 @@ export async function execute (game, message, command, args) {
 					input = input.substring(0, input.indexOf(locationMatch[0])).trim();
 				}
 				if (input !== '') name = input;
-				results = finder.findObjects(name, location);
+				results = game.entityFinder.getFixtures(name, location, undefined, undefined, true);
 			}
 			fields = { row: 'Row', name: 'Name', location: 'Location' };
 		}
 		else if (dataTypeMatch.groups.Prefab) {
-			if (!dataTypeMatch.groups.search) results = finder.findPrefabs();
-			else results = finder.findPrefabs(dataTypeMatch.groups.search);
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getPrefabs();
+			else results = game.entityFinder.getPrefabs(dataTypeMatch.groups.search, undefined, undefined, undefined, true);
 			fields = { row: 'Row', id: 'ID' };
 		}
 		else if (dataTypeMatch.groups.Recipe) {
-			if (!dataTypeMatch.groups.search) results = finder.findRecipes();
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getRecipes();
 			else {
 				let type, ingredients, products;
 				const typeRegex = /(?<type>^crafting|uncraftable|processing)/i;
@@ -126,21 +124,21 @@ export async function execute (game, message, command, args) {
 				const productsRegex = /(producing (?<products>.+?)$)/i;
 				const productsMatch = input.match(productsRegex);
 				if (productsMatch?.groups?.products) {
-					products = productsMatch.groups.products.split(',');
+					products = productsMatch.groups.products;
 					input = input.substring(0, input.indexOf(productsMatch[0])).trim();
 				}
 				const ingredientsRegex = /((?:using )?(?<ingredients>.+?)$)/i;
 				const ingredientsMatch = input.match(ingredientsRegex);
 				if (ingredientsMatch?.groups?.ingredients) {
-					ingredients = ingredientsMatch.groups.ingredients.split(',');
+					ingredients = ingredientsMatch.groups.ingredients;
 				}
-				results = finder.findRecipes(type, ingredients, products);
+				results = game.entityFinder.getRecipes(type, undefined, ingredients, products);
 			}
 			fields = { row: 'Row', ingredients: 'Ingredients', products: 'Products' };
 		}
 		else if (dataTypeMatch.groups.Item) {
 			if (!dataTypeMatch.groups.search) {
-				results = finder.findItems();
+				results = game.entityFinder.getRoomItems();
 				fields = { row: 'Row', id: 'ID', location: 'Location', containerName: 'Container' };
 			}
 			else {
@@ -165,7 +163,7 @@ export async function execute (game, message, command, args) {
 					input = input.substring(0, input.indexOf(containerMatch[1])).trim();
 				}
 				if (input !== '') id = input;
-				results = finder.findItems(id, location, containerName, slot);
+				results = game.entityFinder.getRoomItems(id, location, undefined, containerName, slot, true);
 				fields = { row: 'Row', id: 'ID' };
 				// If the user specified a location and a containerName, don't include the location.
 				// That way, they're more likely to see the entire containerName, which is searched, not an exact match.
@@ -177,7 +175,7 @@ export async function execute (game, message, command, args) {
 			}
 		}
 		else if (dataTypeMatch.groups.Puzzle) {
-			if (!dataTypeMatch.groups.search) results = finder.findPuzzles();
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getPuzzles();
 			else {
 				let name, location;
 				const locationRegex = /((?:^| )at (?<location>.+?$))/i;
@@ -187,28 +185,28 @@ export async function execute (game, message, command, args) {
 					input = input.substring(0, input.indexOf(locationMatch[0])).trim();
 				}
 				if (input !== '') name = input;
-				results = finder.findPuzzles(name, location);
+				results = game.entityFinder.getPuzzles(name, location, undefined, undefined, true);
 			}
 			fields = { row: 'Row', name: 'Name', location: 'Location' };
 		}
 		else if (dataTypeMatch.groups.Event) {
-			if (!dataTypeMatch.groups.search) results = finder.findEvents();
-			else results = finder.findEvents(dataTypeMatch.groups.search);
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getEvents();
+			else results = game.entityFinder.getEvents(dataTypeMatch.groups.search, undefined, undefined, undefined, undefined, true);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Status) {
-			if (!dataTypeMatch.groups.search) results = finder.findStatusEffects();
-			else results = finder.findStatusEffects(dataTypeMatch.groups.search);
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getStatusEffects();
+			else results = game.entityFinder.getStatusEffects(dataTypeMatch.groups.search, undefined, undefined, true);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Player) {
-			if (!dataTypeMatch.groups.search) results = finder.findPlayers();
-			else results = finder.findPlayers(dataTypeMatch.groups.search);
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getLivingPlayers();
+			else results = game.entityFinder.getLivingPlayers(dataTypeMatch.groups.search, undefined, undefined, undefined, undefined, true);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.InventoryItem) {
 			if (!dataTypeMatch.groups.search) {
-				results = finder.findInventoryItems();
+				results = game.entityFinder.getInventoryItems();
 				fields = { row: 'Row', player: 'Player', id: 'ID', containerName: 'Container' };
 			}
 			else {
@@ -242,7 +240,7 @@ export async function execute (game, message, command, args) {
 					input = input.substring(playerMatch[0].length).trim();
 				}
 				if (input !== '') id = input;
-				results = finder.findInventoryItems(id, player, containerName, slot, equipmentSlot);
+				results = game.entityFinder.getInventoryItems(id, player, containerName, slot, equipmentSlot, true);
 				fields = { row: 'Row', id: 'ID' };
 				// Exclude unneeded fields.
 				const playerField = { player: 'Player' };
@@ -259,19 +257,19 @@ export async function execute (game, message, command, args) {
 			
 		}
 		else if (dataTypeMatch.groups.Gesture) {
-			if (!dataTypeMatch.groups.search) results = finder.findGestures();
-			else results = finder.findGestures(dataTypeMatch.groups.search);
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getGestures();
+			else results = game.entityFinder.getGestures(dataTypeMatch.groups.search, true);
 			fields = { row: 'Row', name: 'Name' };
 		}
 		else if (dataTypeMatch.groups.Flag) {
-			if (!dataTypeMatch.groups.search) results = finder.findFlags();
-			else results = finder.findFlags(dataTypeMatch.groups.search);
+			if (!dataTypeMatch.groups.search) results = game.entityFinder.getFlags();
+			else results = game.entityFinder.getFlags(dataTypeMatch.groups.search, true);
 			fields = { row: 'Row', id: 'ID' };
 		}
-		else return messageHandler.addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
+		else return addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
 		
 		if (results.length === 0)
-			return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
+			return addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
 		// Divide the results into pages.
 		const pages = createPages(fields, results);
 		let page = 0;
@@ -313,7 +311,7 @@ export async function execute (game, message, command, args) {
 			}
 		});
 	}
-	else messageHandler.addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
+	else addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
 }
 
 /**
@@ -325,10 +323,10 @@ export async function execute (game, message, command, args) {
  */
 function createPages(fields, results) {
 	// Divide the results into pages.
-	let pages = [];
+	const pages = [];
 	let page = [];
-	let header = [];
-	let headerEntryLength = [];
+	const header = [];
+	const headerEntryLength = [];
 	const fieldCount = Object.keys(fields).length;
 	const cellCharacterLimit = 
 		fieldCount <= 2 ? 80
@@ -341,11 +339,11 @@ function createPages(fields, results) {
 	});
 	page.push(header);
 
-	let widestEntryLength = [...headerEntryLength];
+	const widestEntryLength = [...headerEntryLength];
 	
 	for (let i = 0, pageNo = 0; i < results.length; i++) {
 		// Create a new row.
-		let row = [];
+		const row = [];
 		Object.keys(fields).forEach((key, j) => {
 			// Some fields require special access to get a string value. Handle those here.
 			let cellContents = "";
@@ -355,7 +353,7 @@ function createPages(fields, results) {
 			else if (key === 'player' && result instanceof InventoryItem)
 				cellContents = result.player.name;
 			else if (key === 'id' && result instanceof ItemInstance)
-				cellContents = result.identifier !== '' ? result.identifier : result.prefab.id;
+				cellContents = result.getIdentifier();
 			else if (key === 'ingredients' && result instanceof Recipe)
 				cellContents = result.ingredients.map(ingredient => ingredient.id).join(',');
 			else if (key === 'products' && result instanceof Recipe)

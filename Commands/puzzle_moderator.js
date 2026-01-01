@@ -1,9 +1,10 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
 import AttemptAction from '../Data/Actions/AttemptAction.js';
 import SolveAction from '../Data/Actions/SolveAction.js';
 import UnsolveAction from '../Data/Actions/UnsolveAction.js';
-import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -48,7 +49,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "puzzle") {
         if (args[0] === "solve") command = "solve";
         else if (args[0] === "unsolve") command = "unsolve";
@@ -62,8 +63,8 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('“');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -78,38 +79,36 @@ export async function execute (game, message, command, args) {
     }
 
     // Find the prospective list of puzzles.
-    var puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
+    const puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
     if (puzzles.length > 0) {
         input = input.substring(puzzles[0].name.length).trim();
         args = input.split(" ");
     }
 
     // Now find the player, who should be the last argument.
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(args.length - 1, 1);
-            input = args.join(" ");
-            break;
-        }
-    }
+    let player = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+    if (player) {
+        args.splice(args.length - 1, 1);
+        input = args.join(" ");
+    } else
+        player = null;
 
     // If a player wasn't specified, check if a room name was.
-    var room = null;
+    let room = null;
     if (player === null) {
         const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (parsedInput.endsWith(game.rooms[i].name)) {
-                room = game.rooms[i];
-                input = input.substring(0, parsedInput.indexOf(room.name) - 1);
+        for (let i = args.length - 1; i >= 0; i--) {
+            room = game.entityFinder.getRoom(args.splice(i).join(" "));
+            if (room) {
+                input = input.substring(0, parsedInput.indexOf(room.id) - 1);
                 break;
             }
         }
+        if (!room) room = null;
     }
 
     // Finally, find the puzzle.
-    var puzzle = null;
+    let puzzle = null;
     for (let i = 0; i < puzzles.length; i++) {
         if ((player !== null && puzzles[i].location.id === player.location.id)
             || (room !== null && puzzles[i].location.id === room.id)) {
@@ -120,16 +119,14 @@ export async function execute (game, message, command, args) {
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
     else if (puzzle === null) return addReply(game, message, `Couldn't find puzzle "${input}".`);
 
-    var outcome = "";
-    var targetPlayer = null;
+    let outcome = "";
+    let targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].location.id === player.location.id &&
-                (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() || game.players_alive[i].name.toLowerCase() === input.toLowerCase())) {
-                targetPlayer = game.players_alive[i];
-                break;
-            }
-        }
+        targetPlayer = game.entityFinder.getLivingPlayers(null, null, player.location.id).filter((player) => {
+            player.displayName.toLowerCase() === input.toLowerCase() ||
+                player.name.toLowerCase() === input.toLowerCase();
+        })[0];
+        if (!targetPlayer) targetPlayer === null;
     }
     for (let i = 0; i < puzzle.solutions.length; i++) {
         if (targetPlayer && puzzle.solutions[i].toLowerCase() === targetPlayer.displayName.toLowerCase() ||

@@ -1,15 +1,17 @@
-﻿import Event from './Event.js';
-import Fixture from './Fixture.js';
+import Event from './Event.js';
 import Flag from './Flag.js';
-import Game from './Game.js';
-import ItemContainer from './ItemContainer.js';
-import ItemInstance from './ItemInstance.js';
-import Player from './Player.js';
 import Prefab from './Prefab.js';
-import Room from './Room.js';
+import ItemContainer from './ItemContainer.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
 
+/** @typedef {import('./Fixture.js').default} Fixture */
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./InventoryItem.js').default} InventoryItem */
+/** @typedef {import('./ItemInstance.js').default} ItemInstance */
+/** @typedef {import('./Player.js').default} Player */
+/** @typedef {import('./Room.js').default} Room */
+/** @typedef {import('./RoomItem.js').default} RoomItem */
 
 /**
  * @class Puzzle

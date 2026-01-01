@@ -1,11 +1,12 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import TakeAction from '../Data/Actions/TakeAction.js';
+﻿import TakeAction from '../Data/Actions/TakeAction.js';
 import Fixture from '../Data/Fixture.js';
-import Game from '../Data/Game.js';
 import RoomItem from '../Data/RoomItem.js';
-import Player from '../Data/Player.js';
 import Puzzle from "../Data/Puzzle.js";
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -45,55 +46,45 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable take");
+    const status = player.getBehaviorAttributeStatusEffects("disable take");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
-    let hand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem === null) {
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (hand === "") return addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    const hand = game.entityFinder.getPlayerFreeHand(player);
+    if (hand === undefined) return addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
-    let input = args.join(" ");
-    let parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     let item = null;
     let container = null;
     let slotName = "";
-    const roomItems = game.items.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
+    let slot = null;
+    const roomItems = game.entityFinder.getRoomItems(null, player.location.id, true);
     for (let i = 0; i < roomItems.length; i++) {
         // If parsedInput is only the item's name, we've found the item.
         if (roomItems[i].name === parsedInput) {
             item = roomItems[i];
             container = roomItems[i].container;
             slotName = roomItems[i].slot;
+            if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
             break;
         }
         // A container was specified.
         if (parsedInput.startsWith(`${roomItems[i].name} FROM `)) {
-            let containerName = parsedInput.substring(`${roomItems[i].name} FROM `.length).trim();
+            const containerName = parsedInput.substring(`${roomItems[i].name} FROM `.length).trim();
             if (roomItems[i].container !== null) {
                 const roomItemContainer = roomItems[i].container;
                 // Slot name was specified.
                 if (containerName.endsWith(` OF ${roomItemContainer.name}`)) {
-                    let tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
+                    const tempSlotName = containerName.substring(0, containerName.indexOf(` OF ${roomItemContainer.name}`));
                     if (roomItemContainer instanceof RoomItem) {
-                        for (let slot = 0; slot < roomItemContainer.inventory.length; slot++) {
-                            if (roomItemContainer.inventory[slot].id === tempSlotName && roomItems[i].slot === tempSlotName) {
+                        for (const id of roomItemContainer.inventoryCollection.keys()) {
+                            if (id === tempSlotName && roomItems[i].slot === tempSlotName) {
                                 item = roomItems[i];
                                 container = roomItemContainer;
                                 slotName = tempSlotName;
+                                slot = container.inventoryCollection.get(slotName);
                                 break;
                             }
                         }
@@ -111,6 +102,7 @@ export async function execute (game, message, command, args, player) {
                     item = roomItems[i];
                     container = roomItemContainer;
                     slotName = roomItems[i].slot;
+                    if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
                     break;
                 }
             }
@@ -125,8 +117,8 @@ export async function execute (game, message, command, args, player) {
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
-            let itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
-            let containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
+            const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
+            const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
         else return addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
@@ -138,7 +130,7 @@ export async function execute (game, message, command, args, player) {
 
     if (topContainer !== null && topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
         return addReply(game, message, `You cannot take items from ${topContainer.name} while it is turned on.`);
-    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
         if (topContainer !== null && topContainer instanceof Puzzle)
             topContainer = topContainer.parentFixture;
@@ -148,5 +140,5 @@ export async function execute (game, message, command, args, player) {
     }
 
     const action = new TakeAction(game, message, player, player.location, false);
-    action.performTake(item, hand, container, slotName);
+    action.performTake(item, hand, container, slot);
 }

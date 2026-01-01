@@ -1,7 +1,8 @@
-import GameSettings from '../Classes/GameSettings.js';
 import KnockAction from '../Data/Actions/KnockAction.js';
-import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -31,27 +32,16 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an exit. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Check that the input given is an exit in the player's current room.
-    var exit = null;
-    for (let i = 0; i < player.location.exit.length; i++) {
-        if (player.location.exit[i].name === parsedInput) {
-            exit = player.location.exit[i];
-        }
-    }
-    if (exit === null) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
+    const exit = game.entityFinder.getExit(player.location, parsedInput);
+    if (exit === undefined) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
     if (exit.dest.tags.includes("outside") && player.location.tags.includes("outside"))
         return addReply(game, message, `There's nothing to knock on.`);
 

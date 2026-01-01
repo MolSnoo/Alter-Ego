@@ -1,8 +1,8 @@
-import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-
 import { Duration } from 'luxon';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -35,32 +35,25 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length === 0)
-        return messageHandler.addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
-    var input = args.join(" ");
-    var parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === parsedInput) {
-            room = game.rooms[i];
-            break;
-        }
-    }
-    if (room === null) return messageHandler.addReply(game, message, `Couldn't find room "${input}".`);
+    const input = args.join(" ");
+    const room = game.entityFinder.getRoom(input);
+    if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = room.occupants.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
-    var occupantsList = [];
+    const occupantsList = [];
     for (let i = 0; i < occupants.length; i++)
         occupantsList.push(occupants[i].name);
     // Generate a string of all hidden occupants in the room.
-    const hidden = room.occupants.filter(occupant => occupant.hasAttribute("hidden")).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
-    var hiddenList = [];
+    const hidden = room.occupants.filter(occupant => occupant.hasBehaviorAttribute("hidden")).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
+    const hiddenList = [];
     for (let i = 0; i < hidden.length; i++)
         hiddenList.push(`${hidden[i].name} (${hidden[i].hidingSpot})`);
     // Generate a string of all moving occupants in the room.
     const moving = room.occupants.filter(occupant => occupant.isMoving).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
-    var movingList = [];
+    const movingList = [];
     for (let i = 0; i < moving.length; i++) {
         const remaining = Duration.fromMillis(moving[i].remainingTime);
 
@@ -82,12 +75,10 @@ export async function execute (game, message, command, args) {
         movingList.push(`${moving[i].name} (${displayString}) [>${moveQueue}]`);
     }
 
-    var occupantsMessage = "";
-    if (occupantsList.length === 0) occupantsMessage = `There is no one in ${room.name}.`;
-    else occupantsMessage += `__All occupants in ${room.name}:__\n` + occupantsList.join(" ");
+    let occupantsMessage = "";
+    if (occupantsList.length === 0) occupantsMessage = `There is no one in ${room.id}.`;
+    else occupantsMessage += `__All occupants in ${room.id}:__\n` + occupantsList.join(" ");
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");
     if (movingList.length > 0) occupantsMessage += `\n\n__Moving occupants:__\n` + movingList.join("\n");
-    messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
-
-    return;
+    addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
 }

@@ -1,6 +1,7 @@
-import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -33,14 +34,14 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (!game.editMode)
-        return messageHandler.addReply(game, message, `You cannot clean the items and inventory items sheet while edit mode is disabled. Please turn edit mode on before using this command.`);
+        return addReply(game, message, `You cannot clean the items and inventory items sheet while edit mode is disabled. Please turn edit mode on before using this command.`);
 
-    var deletedItemsCount = 0;
-    var deletedInventoryItemsCount = 0;
+    let deletedItemsCount = 0;
+    let deletedInventoryItemsCount = 0;
     // Iterate through the lists backwards because the act of splicing ruins the order of iteration going forwards.
-    for (let i = game.items.length - 1; i >= 0; i--) {
-        if (game.items[i].quantity === 0) {
-            game.items.splice(i, 1);
+    for (let i = game.roomItems.length - 1; i >= 0; i--) {
+        if (game.roomItems[i].quantity === 0) {
+            game.roomItems.splice(i, 1);
             deletedItemsCount++;
         }
     }
@@ -54,12 +55,10 @@ export async function execute(game, message, command, args) {
     try {
         // Pass deletedItemsCount and deletedInventoryItemsCount so the saver knows how many blank rows to append at the end.
         await game.entitySaver.saveGame(deletedItemsCount, deletedInventoryItemsCount);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
+        addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items. Successfully saved game data to the spreadsheet. Be sure to load items and inventory items before disabling edit mode.");
     }
     catch (err) {
         console.log(err);
-        messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items, but there was an error saving data to the spreadsheet. Proceeding without manually saving and loading may cause additional errors. Error:\n```" + err + "```");
+        addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully cleaned items and inventory items, but there was an error saving data to the spreadsheet. Proceeding without manually saving and loading may cause additional errors. Error:\n```" + err + "```");
     }
-
-    return;
 }

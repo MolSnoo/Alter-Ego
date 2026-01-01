@@ -1,17 +1,12 @@
+import Fixture from './Fixture.js';
 import Game from './Game.js';
 import GameEntity from './GameEntity.js';
-import Exit from './Exit.js';
 import Room from './Room.js';
-import Fixture from './Fixture.js';
-import Recipe from './Recipe.js';
 import RoomItem from './RoomItem.js';
 import ItemContainer from './ItemContainer.js';
 import Puzzle from './Puzzle.js';
-import EquipmentSlot from './EquipmentSlot.js';
-import InventoryItem from './InventoryItem.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
-
 import CureAction from './Actions/CureAction.js';
 import DieAction from './Actions/DieAction.js';
 import InflictAction from './Actions/InflictAction.js';
@@ -19,15 +14,19 @@ import InstantiateAction from './Actions/InstantiateAction.js';
 import MoveAction from './Actions/MoveAction.js';
 import QueueMoveAction from './Actions/QueueMoveAction.js';
 import StopAction from './Actions/StopAction.js';
-
+import Timer from '../Classes/Timer.js';
+import * as itemManager from '../Modules/itemManager.js';
 import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
-import * as itemManager from '../Modules/itemManager.js';
-import * as messageHandler from '../Modules/messageHandler.js';
+import { Collection } from 'discord.js';
+import { addDirectNarration, addRoomDescription } from '../Modules/messageHandler.js';
 
-import Timer from '../Classes/Timer.js';
-
-import { Collection, GuildMember, TextChannel } from 'discord.js';
+/** @typedef {import('./Exit.js').default} Exit */
+/** @typedef {import('./Recipe.js').default} Recipe */
+/** @typedef {import('./EquipmentSlot.js').default} EquipmentSlot */
+/** @typedef {import('./InventoryItem.js').default} InventoryItem */
+/** @typedef {import('discord.js').GuildMember} GuildMember */
+/** @typedef {import('discord.js').TextChannel} TextChannel */
 
 /**
  * @class Player
@@ -212,7 +211,9 @@ export default class Player extends ItemContainer {
     /**
      * All status effects the player currently has.
      * Every time a status is inflicted or cured, the player's stats are recalculated.
+     * Deprecated. Use statusCollection instead.
      * @type {Status[]}
+     * @deprecated
      */
     status;
     /**
@@ -223,6 +224,12 @@ export default class Player extends ItemContainer {
      * @type {string}
      */
     statusString;
+    /**
+     * All status effects the player currently has as a collection.
+     * Every time a status is inflicted or cured, the player's stats are recalculated.
+     * @type {Collection<string, Status>}
+     */
+    statusCollection;
     /**
      * All of the player's {@link EquipmentSlot | equipment slots}. Deprecated. Use inventoryCollection instead.
      * @deprecated
@@ -360,6 +367,7 @@ export default class Player extends ItemContainer {
         this.location = null;
         this.pos = { x: 0, y: 0, z: 0 };
         this.hidingSpot = hidingSpot;
+        this.statusCollection = new Collection();
         this.statusDisplays = statusDisplays;
         this.status = [];
         this.statusString = "";
@@ -718,7 +726,7 @@ export default class Player extends ItemContainer {
             });
         }
 
-        this.status.push(statusInstance);
+        this.statusCollection.set(status.id, statusInstance);
         this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
     }
@@ -729,18 +737,10 @@ export default class Player extends ItemContainer {
      */
     cure(status) {
         /** @type {Status} */
-        let statusInstance = null;
-        let statusIndex = 0;
-        for (statusIndex; statusIndex < this.status.length; statusIndex++) {
-            if (this.status[statusIndex].id === status.id) {
-                statusInstance = this.status[statusIndex];
-                break;
-            }
-        }
+        let statusInstance = this.statusCollection.get(status.id);
         // Stop the timer.
         if (statusInstance.timer !== null)
             statusInstance.timer.stop();
-        this.status.splice(statusIndex, 1);
         this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
     }
@@ -754,7 +754,7 @@ export default class Player extends ItemContainer {
     #generateStatusDisplays(includeHidden, includeDurations) {
         /** @type {StatusDisplay[]} */
         let statusDisplays = [];
-        this.status.forEach(status => {
+        this.statusCollection.forEach(status => {
             if (status.visible || includeHidden) {
                 const statusId = status.id;
                 let timeString;
@@ -791,7 +791,7 @@ export default class Player extends ItemContainer {
      * @param {string} statusId - The ID of the status to look for. 
      */
     hasStatus(statusId) {
-        for (const status of this.status)
+        for (const status of this.statusCollection.values())
             if (status.id === statusId) return true;
         return false;
     }
@@ -802,7 +802,7 @@ export default class Player extends ItemContainer {
      * @returns {boolean}
      */
     hasBehaviorAttribute(behaviorAttribute) {
-        for (const status of this.status)
+        for (const status of this.statusCollection.values())
             if (status.behaviorAttributes.includes(behaviorAttribute)) return true;
         return false;
     }
@@ -833,7 +833,7 @@ export default class Player extends ItemContainer {
     getBehaviorAttributeStatusEffects(behaviorAttribute) {
         /** @type {Status[]} */
         let statusEffects = [];
-        for (const status of this.status) {
+        for (const status of this.statusCollection.values()) {
             if (status.behaviorAttributes.includes(behaviorAttribute))
                 statusEffects.push(status);
         }
@@ -878,9 +878,8 @@ export default class Player extends ItemContainer {
         /** @type {StatModifier[]} */
         let staModifiers = [];
 
-        for (let i = 0; i < this.status.length; i++) {
-            for (let j = 0; j < this.status[i].statModifiers.length; j++) {
-                const modifier = this.status[i].statModifiers[j];
+        for (const status of this.statusCollection.values()) {
+            for (const modifier of status.statModifiers) {
                 if (modifier.modifiesSelf) {
                     switch (modifier.stat) {
                         case "str":
@@ -972,7 +971,7 @@ export default class Player extends ItemContainer {
      * Takes an item and puts it in the player's inventory.
      * @param {RoomItem} item - The item to take.
      * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the item in.
-     * @param {Puzzle|Fixture|RoomItem} container - The item's current container.
+     * @param {Puzzle|Fixture|RoomItem|Room} container - The item's current container.
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
      */
     take(item, handEquipmentSlot, container, inventorySlot) {
@@ -981,7 +980,8 @@ export default class Player extends ItemContainer {
             item.quantity--;
 
         // Update the container's description.
-        container.removeItemFromDescription(item, inventorySlot ? inventorySlot.id : "");
+        if (container instanceof Puzzle || container instanceof Fixture || container instanceof RoomItem)
+            container.removeItemFromDescription(item, inventorySlot ? inventorySlot.id : "");
         if (container instanceof RoomItem)
             container.removeItem(item, inventorySlot.id, 1);
 
@@ -1298,7 +1298,7 @@ export default class Player extends ItemContainer {
             const equippedItem = equipmentSlot.equippedItem;
             if (equippedItem === null) itemString += `[ ]\n`;
             else {
-                itemString += `[${useID ? equippedItem.identifier ? equippedItem.identifier : equippedItem.prefab.id : equippedItem.name}]\n`;
+                itemString += `[${useID ? equippedItem.getIdentifier() : equippedItem.name}]\n`;
                 /** 
                  * Generates a display of an inventory item's children.
                  * @param {string} itemString - A string representation of the inventory item's name.
@@ -1314,8 +1314,8 @@ export default class Player extends ItemContainer {
                         else {
                             inventorySlot.items.forEach((inventoryItem, i) => {
                                 const childItem = inventoryItem;
-                                if (childItem.quantity === 1) itemString += `[${useID ? childItem.identifier ? childItem.identifier : childItem.prefab.id : childItem.name}] `;
-                                else if (useID) itemString += `[${childItem.quantity} ${childItem.identifier ? childItem.identifier : childItem.prefab.id}] `;
+                                if (childItem.quantity === 1) itemString += `[${useID ? childItem.getIdentifier() : childItem.name}] `;
+                                else if (useID) itemString += `[${childItem.quantity} ${childItem.getIdentifier()}] `;
                                 else {
                                     if (childItem.pluralName) itemString += `[${childItem.quantity} ${childItem.pluralName}] `;
                                     else itemString += `[${childItem.quantity} ${childItem.name}] `;
@@ -1454,11 +1454,11 @@ export default class Player extends ItemContainer {
         this.hidingSpot = "";
         this.statusDisplays.length = 0;
         this.stopMoving();
-        for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].timer !== null)
-                this.status[i].timer.stop();
+        for (const status of this.statusCollection.values()) {
+            if (status.timer !== null)
+                status.timer.stop();
         }
-        this.status.length = 0;
+        this.statusCollection.clear();
         // Move player to dead list.
         this.getGame().deadPlayersCollection.set(this.name, this);
         // Then remove them from living list.
@@ -1503,10 +1503,10 @@ export default class Player extends ItemContainer {
                 const defaultDropFixture = this.getGame().entityFinder.getFixture(this.getGame().settings.defaultDropFixture, container.id);
                 if (defaultDropFixture)
                     defaultDropFixtureString = parseDescription(defaultDropFixture.description, defaultDropFixture, this);
-                messageHandler.addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
+                addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
             }
             else if (!this.hasBehaviorAttribute("unconscious") || (container && container instanceof Status))
-                messageHandler.addDirectNarration(this, parseDescription(description, container, this));
+                addDirectNarration(this, parseDescription(description, container, this));
         }
     }
 
@@ -1517,7 +1517,7 @@ export default class Player extends ItemContainer {
      */
     notify(messageText, addSpectate = true) {
         if (!this.hasBehaviorAttribute("unconscious") && !this.isNPC)
-            messageHandler.addDirectNarration(this, messageText, addSpectate);
+            addDirectNarration(this, messageText, addSpectate);
     }
 
     /**

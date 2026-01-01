@@ -1,7 +1,9 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
-import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
+﻿import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import Player from '../Data/Player.js';
+import { Collection } from 'discord.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -28,15 +30,15 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    for (let i = 0; i < game.players.length; i++) {
-        if (message.author.id === game.players[i].id)
+    for (const player of game.playersCollection.values()) {
+        if (message.author.id === player.id)
             return message.reply("You are already playing.");
     }
     if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
 
     const member = await game.guildContext.guild.members.fetch(message.author.id);
 
-    var player = new Player(
+    const player = new Player(
         message.author.id,
         member,
         member.displayName,
@@ -49,20 +51,19 @@ export async function execute (game, message, command, args) {
         "",
         [],
         playerdefaults.defaultDescription,
-        [],
+        new Collection(),
         null,
         0,
         game
     );
-    player.statusString = playerdefaults.defaultStatusEffects;
     player.setPronouns(player.originalPronouns, player.pronounString);
     player.setPronouns(player.pronouns, player.pronounString);
     game.players.push(player);
     game.players_alive.push(player);
+    game.playersCollection.set(player.name, player);
+    game.livingPlayersCollection.set(player.name, player);
     member.roles.add(game.guildContext.playerRole);
 
     const channel = game.settings.debug ? game.guildContext.testingChannel : game.guildContext.generalChannel;
     channel.send(`<@${message.author.id}> joined the game!`);
-
-    return;
 }

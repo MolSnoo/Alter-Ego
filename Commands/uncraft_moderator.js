@@ -1,7 +1,8 @@
-import GameSettings from '../Classes/GameSettings.js';
 import UncraftAction from '../Data/Actions/UncraftAction.js';
-import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -36,30 +37,20 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
 
-	var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+	const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
-    var rightHand = null;
-    var leftHand = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND") rightHand = player.inventory[slot];
-        else if (player.inventory[slot].id === "LEFT HAND") leftHand = player.inventory[slot];
-    }
+    const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const leftHand = player.inventoryCollection.get("LEFT HAND");
 
     // Now find the item in the player's inventory.
-    var item = null;
-    var rightEmpty = true;
-    var leftEmpty = true;
+    let item = null;
+    let rightEmpty = true;
+    let leftEmpty = true;
     if (rightHand.equippedItem !== null) {
         if (rightHand.equippedItem.identifier && parsedInput === rightHand.equippedItem.identifier || parsedInput === rightHand.equippedItem.prefab.id) {
             item = rightHand.equippedItem;
@@ -79,7 +70,7 @@ export async function execute (game, message, command, args) {
 
     // Locate uncrafting recipe.
     const recipes = game.recipes.filter(recipe => recipe.uncraftable === true && recipe.products.length === 1);
-    var recipe = null;
+    let recipe = null;
     for (let i = 0; i < recipes.length; i++) {
         if (recipes[i].products[0].id === item.prefab.id) {
             recipe = recipes[i];

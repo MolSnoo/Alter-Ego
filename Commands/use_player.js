@@ -1,11 +1,12 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
 import ActivateAction from '../Data/Actions/ActivateAction.js';
 import AttemptAction from '../Data/Actions/AttemptAction.js';
 import DeactivateAction from '../Data/Actions/DeactivateAction.js';
 import UseAction from '../Data/Actions/UseAction.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -55,31 +56,22 @@ export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify a fixture or an inventory item. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable use");
+    const status = player.getBehaviorAttributeStatusEffects("disable use");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
-    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase();
+    let input = args.join(" ");
+    let parsedInput = input.toUpperCase();
 
     // First find the item in the player's hand, if applicable.
-    var item = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].equippedItem !== null && (parsedInput.startsWith(player.inventory[slot].equippedItem.name + ' ') || player.inventory[slot].equippedItem.name === parsedInput)) {
-            if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
-                item = player.inventory[slot].equippedItem;
-                break;
-            }
-            else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
-                item = player.inventory[slot].equippedItem;
-                break;
-            }
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
+    let item = null;
+    for (const hand of game.entityFinder.getPlayerHands(player)) {
+        if (hand.equippedItem !== null && (parsedInput.startsWith(hand.equippedItem.name + ' ') || hand.equippedItem.name === parsedInput)) {
+            item = hand.equippedItem;
             break;
+        }
     }
     if (item !== null) {
         parsedInput = parsedInput.substring(item.name.length).trim();
@@ -87,11 +79,11 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Now check to see if the player is trying to solve a puzzle.
-    var puzzle = null;
-    var password = "";
-    var targetPlayer = null;
+    let puzzle = null;
+    let password = "";
+    let targetPlayer = null;
     if (parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var puzzles = game.puzzles.filter(puzzle => puzzle.location.id === player.location.id);
+        let puzzles = game.puzzles.filter(puzzle => puzzle.location.id === player.location.id);
         if (command === "lock" || command === "unlock") puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
         else if (command === "type") puzzles = puzzles.filter(puzzle => puzzle.type === "password");
         else if (command === "push" || command === "press" || command === "activate" || command === "flip") puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle");
@@ -116,21 +108,14 @@ export async function execute (game, message, command, args, player) {
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
-            for (let i = 0; i < game.players_alive.length; i++) {
-                if (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() &&
-                game.players_alive[i].location.id === player.location.id &&
-                (!game.players_alive[i].hasAttribute("hidden") || game.players_alive[i].hidingSpot === player.hidingSpot)) {
-                    targetPlayer = game.players_alive[i];
-                    break;
-                }
-            }
+            targetPlayer = game.entityFinder.getLivingPlayers(input, null, player.location.id, player.hidingSpot)[0];
         }
     }
 
     // Check if the player specified a fixture.
-    var fixture = null;
+    let fixture = null;
     if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
-        var fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id);
+        const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id);
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput) {
                 fixture = fixtures[i];

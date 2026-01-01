@@ -1,9 +1,10 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
 import CureAction from '../Data/Actions/CureAction.js';
 import InflictAction from '../Data/Actions/InflictAction.js';
-import Game from '../Data/Game.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 /** @typedef {import("../Data/Status.js").default} Status */
 
 /** @type {CommandConfig} */
@@ -64,22 +65,20 @@ export async function execute(game, message, command, args) {
         return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
-    var players = [];
+    /**
+     * @type {Player[]}
+     */
+    const players = new Array();
     if (args[0] === "all" || args[0] === "living") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].title !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id))
-                players.push(game.players_alive[i]);
-        }
+        players.concat(game.entityFinder.getLivingPlayers(null, false).filter((player) => {!player.member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id)}));
         args.splice(0, 1);
     }
     else {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            for (let j = 0; j < args.length; j++) {
-                if (args[j].toLowerCase() === game.players_alive[i].name.toLowerCase()) {
-                    players.push(game.players_alive[i]);
-                    args.splice(j, 1);
-                    break;
-                }
+        for (let i = args.length - 1; i >= 0; i--) {
+            const fetchedPlayer = game.entityFinder.getLivingPlayer(args[i]);
+            if (fetchedPlayer) {
+                players.push(fetchedPlayer);
+                args.splice(i, 1);
             }
         }
     }

@@ -1,8 +1,9 @@
-import GameSettings from '../Classes/GameSettings.js';
 import GiveAction from '../Data/Actions/GiveAction.js';
-import Game from '../Data/Game.js';
-import Player from '../Data/Player.js';
 import { addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -35,20 +36,20 @@ export async function execute (game, message, command, args, player) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable give");
+    const status = player.getBehaviorAttributeStatusEffects("disable give");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
-    const hiddenStatus = player.getAttributeStatusEffects("hidden");
+    const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // First, find the recipient.
-    var recipient = null;
+    let recipient = null;
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
-        if (parsedInput.startsWith(occupant.displayName.toUpperCase() + ' ') && (hiddenStatus.length === 0 && !occupant.hasAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase() + ' ') && (hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot give to themselves.
             if (occupant.name === player.name) return addReply(game, message, "You can't give to yourself.");
 
@@ -56,49 +57,19 @@ export async function execute (game, message, command, args, player) {
             parsedInput = parsedInput.substring(occupant.displayName.length + 1).trim();
             break;
         }
-        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasAttribute("hidden"))
+        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
             return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
     if (recipient === null) return addReply(game, message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // Check to make sure that the recipient has a free hand.
-    var recipientHand = "";
-    for (let slot = 0; slot < recipient.inventory.length; slot++) {
-        if (recipient.inventory[slot].id === "RIGHT HAND" && recipient.inventory[slot].equippedItem === null) {
-            recipientHand = "RIGHT HAND";
-            break;
-        }
-        else if (recipient.inventory[slot].id === "LEFT HAND" && recipient.inventory[slot].equippedItem === null) {
-            recipientHand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it has an equipped item, both hands are taken. Stop looking.
-        else if (recipient.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (recipientHand === "") return addReply(game, message, `${recipient.displayName} does not have a free hand to receive an item.`);
+    let recipientHand = game.entityFinder.getPlayerFreeHand(recipient);
+    if (recipientHand === undefined) return addReply(game, message, `${recipient.displayName} does not have a free hand to receive an item.`);
 
     // Find the item in the player's inventory.
-    var item = null;
-    var giverHand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === parsedInput) {
-            if (player.inventory[slot].id === "RIGHT HAND" && player.inventory[slot].equippedItem !== null) {
-                item = player.inventory[slot].equippedItem;
-                giverHand = "RIGHT HAND";
-                break;
-            }
-            else if (player.inventory[slot].id === "LEFT HAND" && player.inventory[slot].equippedItem !== null) {
-                item = player.inventory[slot].equippedItem;
-                giverHand = "LEFT HAND";
-                break;
-            }
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].id === "LEFT HAND")
-            break;
-    }
-    if (item === null) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
+    const giverHand = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, "player");
+    const item = giverHand ? giverHand.equippedItem : undefined;
+    if (item === undefined) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to give it.`);
 
     const action = new GiveAction(game, message, player, player.location, false);
     action.performGive(item, giverHand, recipient, recipientHand);

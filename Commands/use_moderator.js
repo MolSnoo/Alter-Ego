@@ -1,7 +1,8 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import UseAction from '../Data/Actions/UseAction.js';
-import Game from '../Data/Game.js';
+﻿import UseAction from '../Data/Actions/UseAction.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -38,21 +39,15 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an item in their inventory. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase().replace(/'s/g, "")) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return addReply(game, message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
+    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
-    var input = args.join(" ");
+    let input = args.join(" ");
 
     // If an announcement is present, it's the next easiest thing to find.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('“');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -66,40 +61,25 @@ export async function execute (game, message, command, args) {
             announcement += '.';
     }
 
-    var target = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
+    let target = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+    if (args.length > 1 && args[args.length - 2].toLowerCase() === "on")
         // If "on" precedes the target's name, remove both args.
-        if (args.length > 1 && game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase() && args[args.length - 2].toLowerCase() === "on") {
-            target = game.players_alive[i];
-            args.splice(args.length - 2, 2);
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-            target = game.players_alive[i];
-            args.splice(args.length - 1, 1);
-            break;
-        }
-    }
-    if (announcement !== "" && target === null) return addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
-    if (target !== null && player.name === target.name) return addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
-    if (target !== null && player.location.id !== target.location.id) return addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
-    if (target === null) target = player;
+        args.splice(args.length - 2, 2);
+    else args.splice(args.length - 1, 1);
+    if (announcement !== "" && target === undefined) return addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
+    if (target !== undefined && player.name === target.name) return addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
+    if (target !== undefined && player.location.id !== target.location.id) return addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
+    if (target === undefined) target = player;
 
     // args should now only contain the name of the item.
     input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // First, find the item in the player's inventory.
-    var item = null;
+    let item = null;
     // Get references to the right and left hand equipment slots so we don't have to iterate through the player's inventory to find them every time.
-    var rightHand = null;
-    var leftHand = null;
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].id === "RIGHT HAND")
-            rightHand = player.inventory[slot];
-        else if (player.inventory[slot].id === "LEFT HAND")
-            leftHand = player.inventory[slot];
-    }
+    const rightHand = player.inventoryCollection.get("RIGHT HAND");
+    const leftHand = player.inventoryCollection.get("LEFT HAND");
     // Check for the identifier first.
     if (item === null && rightHand.equippedItem !== null && rightHand.equippedItem.identifier !== "" && rightHand.equippedItem.identifier === parsedInput)
         item = rightHand.equippedItem;

@@ -1,10 +1,10 @@
-﻿import GameSettings from '../Classes/GameSettings.js';
-import Game from '../Data/Game.js';
+﻿import Narration from '../Data/Narration.js';
+import handleDialog from '../Modules/dialogHandler.js';
 import { ChannelType } from 'discord.js';
-import * as messageHandler from '../Modules/messageHandler.js';
-import { default as handleDialog } from '../Modules/dialogHandler.js';
+import { addReply } from '../Modules/messageHandler.js';
 
-import Narration from '../Data/Narration.js';
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -38,34 +38,30 @@ export function usage (settings) {
  */
 export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return messageHandler.addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
+        return addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
 
-    let player = null;
+    let player = game.entityFinder.getLivingPlayer(args[0]);
     let room = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title === "NPC") {
-            player = game.players_alive[i];
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].title !== "NPC")
-            return messageHandler.addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
-    }
+    if (!player)
+        player = null;
+    else if (!player.isNPC)
+        return addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
-        let webHooks = await player.location.channel.fetchWebhooks();
+        const webHooks = await player.location.channel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
-        let files = [];
+        const files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         const displayName = player.displayName;
         const displayIcon = player.displayIcon;
-        if (player.hasAttribute("hidden")) {
+        if (player.hasBehaviorAttribute("hidden")) {
             player.displayName = "Someone in the room";
             player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
         }
@@ -85,18 +81,11 @@ export async function execute (game, message, command, args) {
         });
     }
     else if (channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(channel.parentId)) {
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].id === channel.name) {
-                room = game.rooms[i];
-                break;
-            }
-        }
+        room = game.entityFinder.getRoom(channel.name);
         if (room !== null)
             new Narration(game, null, room, string).send();
     }
     else if (channel.type === ChannelType.GuildText)
         channel.send(string);
-    else messageHandler.addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
-
-    return;
+    else addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 }

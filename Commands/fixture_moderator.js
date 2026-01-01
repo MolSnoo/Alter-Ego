@@ -1,8 +1,10 @@
-import GameSettings from '../Classes/GameSettings.js';
 import ActivateAction from '../Data/Actions/ActivateAction.js';
 import DeactivateAction from '../Data/Actions/DeactivateAction.js';
-import Game from '../Data/Game.js';
+import Room from '../Data/Room.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -43,7 +45,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute (game, message, command, args) {
-    var input = command + " " + args.join(" ");
+    let input = command + " " + args.join(" ");
     if (command === "fixture" || command === "object") {
         if (args[0] === "activate") command = "activate";
         else if (args[0] === "deactivate") command = "deactivate";
@@ -57,8 +59,8 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('�');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -73,38 +75,36 @@ export async function execute (game, message, command, args) {
     }
 
     // Find the prospective list of fixtures.
-    var fixtures = game.fixtures.filter(fixture => input.toUpperCase().startsWith(fixture.name + ' ') || input.toUpperCase() === fixture.name);
+    const fixtures = game.fixtures.filter(fixture => input.toUpperCase().startsWith(fixture.name + ' ') || input.toUpperCase() === fixture.name);
     if (fixtures.length > 0) {
         input = input.substring(fixtures[0].name.length).trim();
         args = input.split(" ");
     }
 
     // Now find the player, who should be the last argument.
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(args.length - 1, 1);
-            input = args.join(" ");
-            break;
-        }
-    }
+    let player = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+    if (player) {
+        args.splice(args.length - 1, 1);
+        input = args.join(" ");
+    } else
+        player = null;
 
     // If a player wasn't specified, check if a room name was.
-    var room = null;
+    let room = null;
     if (player === null) {
-        const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (parsedInput.endsWith(game.rooms[i].name)) {
-                room = game.rooms[i];
-                input = input.substring(0, parsedInput.indexOf(room.name) - 1);
+        const parsedInput = Room.generateValidId(input);
+        for (let i = args.length - 1; i >= 0; i--) {
+            room = game.entityFinder.getRoom(args.splice(i).join(" "));
+            if (room) {
+                input = input.substring(0, parsedInput.indexOf(room.id) - 1);
                 break;
             }
         }
+        if (!room) room = null;
     }
 
     // Finally, find the fixture.
-    var fixture = null;
+    let fixture = null;
     for (let i = 0; i < fixtures.length; i++) {
         if ((player !== null && fixtures[i].location.id === player.location.id)
             || (room !== null && fixtures[i].location.id === room.id)) {
@@ -116,7 +116,7 @@ export async function execute (game, message, command, args) {
     else if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
     if (fixture.recipeTag === "") return addReply(game, message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
-    var narrate = false;
+    let narrate = false;
     if (announcement === "" && player !== null) narrate = true;
     
     if (command === "activate") {

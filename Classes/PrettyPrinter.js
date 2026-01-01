@@ -9,7 +9,11 @@ import Player from "../Data/Player.js";
 import Room from "../Data/Room.js";
 import BotContext from "./BotContext.js";
 
-/** @type {import('pretty-format').NewPlugin} */
+/** @typedef {import('pretty-format').NewPlugin} Plugin */
+/** @typedef {Plugin['test']} Test */
+/** @typedef {Plugin['serialize']} Serialize */
+
+/** @type {Plugin} */
 class GameFilterPlugin {
     /**
      * List of formatters used by the SimpleFilterPlugin.
@@ -106,14 +110,14 @@ class GameFilterPlugin {
         ];
     }
 
-    /** @type {import('pretty-format').NewPlugin['test']} */
+    /** @type {Test} */
     test(value) {
         if (value === null || typeof value !== "object") return false;
         if (this.processing.has(value)) return false;
         return this.constructors.has(value.constructor?.name);
     }
 
-    /** @type {import('pretty-format').NewPlugin['serialize']} */
+    /** @type {Serialize} */
     serialize(value, config, indentation, depth, refs, printer) {
         for (const [tester, formatter] of this.formatters) {
             if (tester(value)) return formatter(value, config, indentation, depth, refs, printer);
@@ -126,7 +130,7 @@ class GameFilterPlugin {
 export default class PrettyPrinter {
     /**
      * Game filtering filter plugin for prettyString
-     * @type {import('pretty-format').NewPlugin}
+     * @type {Plugin}
      */
     gameFilterPlugin;
 

@@ -1,9 +1,10 @@
-﻿import Game from "./Game.js";
-import Player from "./Player.js";
-import Room from "./Room.js";
-import Whisper from "./Whisper.js";
-import { addNarration, addNarrationToWhisper } from "../Modules/messageHandler.js";
+﻿import { addNarration, addNarrationToWhisper } from "../Modules/messageHandler.js";
 import GameConstruct from "./GameConstruct.js";
+
+/** @typedef {import("./Game.js").default} Game */
+/** @typedef {import("./Player.js").default} Player */
+/** @typedef {import("./Room.js").default} Room */
+/** @typedef {import("./Whisper.js").default} Whisper */
 
 /**
  * @class Narration

@@ -1,14 +1,12 @@
-﻿import GameSettings from "../Classes/GameSettings.js";
 import AttemptAction from "../Data/Actions/AttemptAction.js";
 import SolveAction from "../Data/Actions/SolveAction.js";
 import UnsolveAction from "../Data/Actions/UnsolveAction.js";
-import Game from "../Data/Game.js";
-import Player from "../Data/Player.js";
-import Event from "../Data/Event.js";
-import Flag from "../Data/Flag.js";
-import InventoryItem from "../Data/InventoryItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
+import { addGameMechanicMessage } from "../Modules/messageHandler.js";
+
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -53,11 +51,11 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
- * @param {Event|Flag|InventoryItem|Puzzle} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
-    var input = cmdString;
+    let input = cmdString;
     if (command === "puzzle") {
         if (args[0] === "solve") command = "solve";
         else if (args[0] === "unsolve") command = "unsolve";
@@ -73,8 +71,8 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
-    var announcement = "";
-    var index = input.indexOf('"');
+    let announcement = "";
+    let index = input.indexOf('"');
     if (index === -1) index = input.indexOf('“');
     if (index !== -1) {
         announcement = input.substring(index + 1);
@@ -89,7 +87,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     // Find the prospective list of puzzles.
-    var puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
+    const puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
     if (puzzles.length > 0) {
         input = input.substring(puzzles[0].name.length).trim();
         args = input.split(" ");
@@ -102,32 +100,30 @@ export async function execute (game, command, args, player, callee) {
         announcement = announcement.replace(/player/g, player.displayName);
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[args.length - 1].toLowerCase()) {
-                player = game.players_alive[i];
-                args.splice(args.length - 1, 1);
-                input = args.join(" ");
-                break;
-            }
-        }
+        player = game.entityFinder.getLivingPlayer(args[args.length - 1]);
+        if (player) {
+            args.splice(args.length - 1, 1);
+            input = args.join(" ");
+        } else
+            player = null;
     }
 
     // If a player wasn't specified, check if a room name was.
-    var room = null;
+    let room = null;
     if (player === null) {
         const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (parsedInput.endsWith(game.rooms[i].name)) {
-                room = game.rooms[i];
-                input = input.substring(0, parsedInput.indexOf(room.name) - 1);
+        for (let i = args.length - 1; i >= 0; i--) {
+            room = game.entityFinder.getRoom(args.splice(i).join(" "));
+            if (room) {
+                input = input.substring(0, parsedInput.indexOf(room.id) - 1);
                 break;
             }
         }
+        if (!room) room = null;
     }
 
     // Finally, find the puzzle.
-    var puzzle = null;
+    let puzzle = null;
     for (let i = 0; i < puzzles.length; i++) {
         if ((player !== null && puzzles[i].location.id === player.location.id)
             || (room !== null && puzzles[i].location.id === room.id)) {
@@ -138,16 +134,14 @@ export async function execute (game, command, args, player, callee) {
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
     if (puzzle === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
 
-    var outcome = "";
-    var targetPlayer = null;
+    let outcome = "";
+    let targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].location.id === player.location.id &&
-                (game.players_alive[i].displayName.toLowerCase() === input.toLowerCase() || game.players_alive[i].name.toLowerCase() === input.toLowerCase())) {
-                targetPlayer = game.players_alive[i];
-                break;
-            }
-        }
+        targetPlayer = game.entityFinder.getLivingPlayers(null, null, player.location.id).filter((player) => {
+            player.displayName.toLowerCase() === input.toLowerCase() ||
+                player.name.toLowerCase() === input.toLowerCase();
+        })[0];
+        if (!targetPlayer) targetPlayer === null;
     }
     for (let i = 0; i < puzzle.solutions.length; i++) {
         if (targetPlayer && puzzle.solutions[i].toLowerCase() === targetPlayer.displayName.toLowerCase() ||
