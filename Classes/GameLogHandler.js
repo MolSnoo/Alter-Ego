@@ -16,6 +16,7 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 /** @typedef {import("../Data/Event.js").default} Event */
 /** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
+/** @typedef {import("../Data/ItemContainer.js").default} ItemContainer */
 
 /**
  * @class GameLogHandler
@@ -307,6 +308,96 @@ export default class GameLogHandler {
 		const containerPhrase = container instanceof RoomItem ? `${inventorySlot.id} of ${container.identifier}` : container.name;
 		const itemList = generateListString(items.map(item => item.getIdentifier()));
 		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}undressed, putting ${itemList} ${preposition} ${containerPhrase} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an instantiate action for a room item.
+	 * @param {RoomItem} item - The instantiated item. 
+	 * @param {number} quantity - The quantity of the item that was instantiated.
+	 * @param {Fixture|Puzzle|RoomItem} container - The item's container.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot the item belongs to.
+	 */
+	logInstantiateRoomItem(item, quantity, container, inventorySlot) {
+		const itemIdentifier = item.getIdentifier();
+		const preposition = item.getContainerPreposition();
+		let containerDisplay = "";
+		if (container instanceof Puzzle)
+			containerDisplay = container.parentFixture ? container.parentFixture.name : container.name;
+		else if (container instanceof Fixture)
+			containerDisplay = container.name;
+		else if (container instanceof RoomItem)
+			containerDisplay = `${inventorySlot.id} of ${container.getIdentifier()}`;
+		this.#sendLogMessage(`${this.#getTime()} - Instantiated ${quantity} ${itemIdentifier} ${preposition} ${containerDisplay} in ${item.location.channel}`);
+	}
+
+	/**
+	 * Logs an instantiate action for an equipped inventory item.
+	 * @param {InventoryItem} item - The instantiated inventory item.
+	 * @param {Player} player - The player the item belongs to.
+	 * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item was equipped to.
+	 */
+	logInstantiateEquippedInventoryItem(item, player, equipmentSlot) {
+		this.#sendLogMessage(`${this.#getTime()} - Instantiated ${item.getIdentifier()} and equipped it to ${player.name}'s ${equipmentSlot.id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs an instantiate action for a stashed inventory item.
+	 * @param {InventoryItem} item - The instantiated inventory item.
+	 * @param {number} quantity - The quantity of the item that was instantiated.
+	 * @param {Player} player - The player the item belongs to.
+	 * @param {InventoryItem} container - The item's container.
+	 * @param {InventorySlot<InventoryItem>} inventorySlot - The inventory slot the item belongs to.
+	 */
+	logInstantiateStashedInventoryItem(item, quantity, player, container, inventorySlot) {
+		const itemIdentifier = item.getIdentifier();
+		const preposition = container.prefab ? container.prefab.preposition : "in";
+		const containerDisplay = `${inventorySlot.id} of ${container.identifier} in ${player.name}'s inventory`;
+		this.#sendLogMessage(`${this.#getTime()} - Instantiated ${quantity} ${itemIdentifier} ${preposition} ${containerDisplay} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a destroy action for a room item.
+	 * @param {RoomItem} item - The destroyed item. 
+	 * @param {number} quantity - The quantity of the item that was destroyed.
+	 * @param {Fixture|Puzzle|RoomItem} container - The item's container.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot the item belongs to.
+	 */
+	logDestroyRoomItem(item, quantity, container, inventorySlot) {
+		const itemIdentifier = item.getIdentifier();
+		const preposition = item.getContainerPreposition();
+		let containerDisplay = "";
+		if (container instanceof Puzzle)
+			containerDisplay = container.parentFixture ? container.parentFixture.name : container.name;
+		else if (container instanceof Fixture)
+			containerDisplay = container.name;
+		else if (container instanceof RoomItem)
+			containerDisplay = `${inventorySlot.id} of ${container.getIdentifier()}`;
+		this.#sendLogMessage(`${this.#getTime()} - Destroyed ${quantity} ${itemIdentifier} ${preposition} ${containerDisplay} in ${item.location.channel}`);
+	}
+
+	/**
+	 * Logs a destroy action for an equipped inventory item.
+	 * @param {InventoryItem} item - The destroyed inventory item.
+	 * @param {Player} player - The player the item belongs to.
+	 * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item was equipped to.
+	 */
+	logDestroyEquippedInventoryItem(item, player, equipmentSlot) {
+		this.#sendLogMessage(`${this.#getTime()} - Destroyed ${item.getIdentifier()} equipped to ${player.name}'s ${equipmentSlot.id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a destroy action for a stashed inventory item.
+	 * @param {InventoryItem} item - The destroyed inventory item.
+	 * @param {number} quantity - The quantity of the item that was destroyed.
+	 * @param {Player} player - The player the item belongs to.
+	 * @param {InventoryItem} container - The item's container.
+	 * @param {InventorySlot<InventoryItem>} inventorySlot - The inventory slot the item belongs to.
+	 */
+	logDestroyStashedInventoryItem(item, quantity, player, container, inventorySlot) {
+		const itemIdentifier = item.getIdentifier();
+		const preposition = container.prefab ? container.prefab.preposition : "in";
+		const containerDisplay = `${inventorySlot.id} of ${container.identifier} in ${player.name}'s inventory`;
+		this.#sendLogMessage(`${this.#getTime()} - Destroyed ${quantity} ${itemIdentifier} ${preposition} ${containerDisplay} in ${player.location.channel}`);
 	}
 
 	/**

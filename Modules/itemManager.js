@@ -5,7 +5,6 @@ import InventorySlot from '../Data/InventorySlot.js';
 import RoomItem from '../Data/RoomItem.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import { generateProceduralOutput } from '../Modules/parser.js';
-import { addLogMessage } from './messageHandler.js';
 
 /** @typedef {import('../Data/EquipmentSlot.js').default} EquipmentSlot */
 /** @typedef {import('../Data/Prefab.js').default} Prefab */
@@ -13,7 +12,7 @@ import { addLogMessage } from './messageHandler.js';
 /** @typedef {import('../Data/Player.js').default} Player */
 
 /**
- * Instantiates a new item in the specified location and container.
+ * Instantiates a new room item in the specified location and container.
  * @param {Prefab} prefab - The prefab to instantiate as an item.
  * @param {Room} location - The room to instantiate the item in.
  * @param {Fixture|Puzzle|RoomItem} container - The container to instantiate the item in.
@@ -22,28 +21,20 @@ import { addLogMessage } from './messageHandler.js';
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
  * @param {Player} [player] - The player who caused this item to be instantiated, if applicable.
  */
-export function instantiateItem(prefab, location, container, inventorySlotId, quantity, proceduralSelections, player = null) {
+export function instantiateRoomItem(prefab, location, container, inventorySlotId, quantity, proceduralSelections, player) {
     let containerType = "";
     let containerName = "";
-    let containerLogDisplay = "";
-    let preposition = "in";
     if (container instanceof Puzzle) {
         containerType = "Puzzle";
         containerName = container.name;
-        containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
-        if (container.parentFixture) preposition = container.parentFixture.preposition;
     }
     else if (container instanceof Fixture) {
         containerType = "Fixture";
         containerName = container.name;
-        containerLogDisplay = container.name;
-        preposition = container.preposition;
     }
     else if (container instanceof RoomItem) {
         containerType = "RoomItem";
         containerName = container.identifier + '/' + inventorySlotId;
-        containerLogDisplay = `${inventorySlotId} of ${container.identifier}`;
-        if (container.prefab) preposition = container.prefab.preposition;
     }
 
     let createdItem = new RoomItem(
@@ -71,10 +62,6 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
     container.addItemToDescription(createdItem, inventorySlotId, quantity);
 
     insertRoomItems(location, [createdItem]);
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(prefab.getGame(), `${time} - Instantiated ${quantity} ${createdItem.getIdentifier()} ${preposition} ${containerLogDisplay} in ${location.channel}`);
     return createdItem;
 }
 
@@ -87,9 +74,8 @@ export function instantiateItem(prefab, location, container, inventorySlotId, qu
  * @param {string} inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
  * @param {number} quantity - The quantity to instantiate.
  * @param {Map<string, string>} proceduralSelections - The manually selected procedural possibilities.
- * @param {boolean} [notify] - Whether or not to notify the player that the item was added to their inventory. Defaults to true. 
  */
-export function instantiateInventoryItem(prefab, player, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections, notify = true) {
+export function instantiateInventoryItem(prefab, player, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections) {
     let createdItem = new InventoryItem(
         player.name,
         prefab.id,
@@ -116,23 +102,10 @@ export function instantiateInventoryItem(prefab, player, equipmentSlotId, contai
     if (container !== null) {
         container.insertItem(createdItem, inventorySlotId);
         container.addItemToDescription(createdItem, inventorySlotId, quantity);
-
         insertInventoryItems(player, [createdItem], equipmentSlot);
-
-        const containerName = `${inventorySlotId} of ${container.identifier}`;
-        const preposition = container.prefab ? container.prefab.preposition : "in";
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(prefab.getGame(), `${time} - Instantiated ${quantity} ${createdItem.getIdentifier()} ${preposition} ${containerName} in ${player.name}'s inventory in ${player.location.channel}`);
     }
     // Item is being equipped.
-    else {
-        player.directEquip(createdItem, equipmentSlot, notify);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(prefab.getGame(), `${time} - Instantiated ${createdItem.getIdentifier()} and equipped it to ${player.name}'s ${equipmentSlotId} in ${player.location.channel}`);
-    }
+    else player.directEquip(createdItem, equipmentSlot);
     return createdItem;
 }
 
@@ -167,44 +140,26 @@ export function replaceInventoryItem(item, newPrefab) {
 }
 
 /**
- * Destroys an item.
+ * Destroys a room item.
  * @param {RoomItem} item - The item to destroy. 
  * @param {number} quantity - How many of this item to destroy.
  * @param {boolean} getChildren - Whether or not to recursively destroy all of the items it contains as well.
  */
-export function destroyItem(item, quantity, getChildren) {
+export function destroyRoomItem(item, quantity, getChildren) {
     item.quantity -= quantity;
-
-    let containerLogDisplay = "";
-    let preposition = "in";
     const container = item.container;
 
     container.removeItemFromDescription(item, item.slot, quantity);
-    if (container instanceof Puzzle) {
-        containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
-        if (container.parentFixture) preposition = container.parentFixture.preposition;
-    }
-    else if (container instanceof Fixture) {
-        containerLogDisplay = container.name;
-        if (container.preposition) preposition = container.preposition;
-    }
-    else if (container instanceof RoomItem) {
+    if (container instanceof RoomItem)
         container.removeItem(item, item.slot, quantity);
-        containerLogDisplay = `${item.slot} of ${container.identifier}`;
-        if (container.prefab) preposition = container.prefab.preposition;
-    }
 
     if (getChildren) {
         /** @type {RoomItem[]} */
         let childItems = [];
         getChildItems(childItems, item);
         for (let i = 0; i < childItems.length; i++)
-            destroyItem(childItems[i], childItems[i].quantity, false);
+            destroyRoomItem(childItems[i], childItems[i].quantity, false);
     }
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(item.getGame(), `${time} - Destroyed ${item.getIdentifier()} ${preposition} ${containerLogDisplay} in ${item.location.channel}`);
 }
 
 /**
@@ -223,25 +178,13 @@ export function destroyInventoryItem(item, quantity, getChildren) {
     }
 
     // If the item is equipped, simply unequip it. The directUnequip method will destroy it.
-    if (item.container === null) {
+    if (item.container === null)
         item.player.directUnequip(item);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(item.getGame(), `${time} - Destroyed ${item.getIdentifier()} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
-    }
     else {
         item.quantity -= quantity;
-
         const container = item.container;
         container.removeItem(item, item.slot, quantity);
         container.removeItemFromDescription(item, item.slot, quantity);
-        const containerName = `${item.slot} of ${container.identifier}`;
-        const preposition = container.prefab ? container.prefab.preposition : "in";
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(item.getGame(), `${time} - Destroyed ${item.getIdentifier()} ${preposition} ${containerName} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
 }
 

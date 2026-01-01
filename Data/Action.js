@@ -125,8 +125,8 @@ export const ActionType = {
 	Unequip: "unequip",
 	Dress: "dress",
 	Undress: "undress",
-	Instantiate: "instantiate", // TODO
-	Destroy: "destroy", // TODO
+	Instantiate: "instantiate",
+	Destroy: "destroy",
 	Craft: "craft",
 	Uncraft: "uncraft",
 	Activate: "activate",

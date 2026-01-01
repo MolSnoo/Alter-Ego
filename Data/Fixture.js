@@ -1,8 +1,10 @@
 import HidingSpot from './HidingSpot.js';
 import ItemContainer from './ItemContainer.js';
 import DeactivateAction from './Actions/DeactivateAction.js';
+import DestroyAction from './Actions/DestroyAction.js';
+import InstantiateAction from './Actions/InstantiateAction.js';
 import Timer from '../Classes/Timer.js';
-import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
+import { getChildItems } from '../Modules/itemManager.js';
 import { Duration } from 'luxon';
 
 /** @typedef {import('./Game.js').default} Game */
@@ -407,7 +409,10 @@ function process(fixture, player) {
                     break;
                 }
             }
-            if (destroy && fixture.process.ingredients[i].quantity > 0) destroyItem(fixture.process.ingredients[i], quantity, true);
+            if (destroy && fixture.process.ingredients[i].quantity > 0) {
+                const destroyAction = new DestroyAction(fixture.getGame(), undefined, player, fixture.location, true);
+                destroyAction.performDestroyRoomItem(fixture.process.ingredients[i], quantity, true);
+            }
         }
         // Instantiate the products.
         for (let i = 0; i < fixture.process.recipe.products.length; i++) {
@@ -418,7 +423,10 @@ function process(fixture, player) {
                 if (remainingIngredients[j].productIndex === i && remainingIngredients[j].decreaseUses) {
                     instantiate = false;
                     ingredient.uses--;
-                    if (ingredient.uses === 0) destroyItem(ingredient, ingredient.quantity, true);
+                    if (ingredient.uses === 0) {
+                        const destroyAction = new DestroyAction(fixture.getGame(), undefined, player, fixture.location, true);
+                        destroyAction.performDestroyRoomItem(ingredient, ingredient.quantity, true);
+                    }
                     break;
                 }
                 else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
@@ -430,7 +438,10 @@ function process(fixture, player) {
                     break;
                 }
             }
-            if (instantiate) instantiateItem(product, fixture.location, fixture, "", quantity, new Map());
+            if (instantiate) {
+                const instantiateAction = new InstantiateAction(fixture.getGame(), undefined, undefined, fixture.location, true);
+                instantiateAction.performInstantiateRoomItem(product, fixture, "", quantity, new Map());
+            }
         }
         if (player && player.alive && player.location.id === fixture.location.id) player.sendDescription(fixture.process.recipe.completedDescription, fixture);
     }

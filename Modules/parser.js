@@ -404,7 +404,7 @@ export function generateProceduralOutput(description, proceduralSelections, play
                 /** @type {number} */
                 let statValue;
                 const proceduralStat = Player.abbreviateStatName(procedurals[i].getAttribute('stat'));
-                if (proceduralStat !== '' && player !== null) {
+                if (proceduralStat !== '' && player) {
                     if (proceduralStat === "str") statValue = player.strength;
                     else if (proceduralStat === "per") statValue = player.perception;
                     else if (proceduralStat === "dex") statValue = player.dexterity;
