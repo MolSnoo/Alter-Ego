@@ -4,19 +4,19 @@ import InventoryItem from "../Data/InventoryItem.js";
 import InventorySlot from "../Data/InventorySlot.js";
 import ItemInstance from "../Data/ItemInstance.js";
 import Player from "../Data/Player.js";
+import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
-/** @typedef {import("../Data/Status.js").default} Status */
 import { addLogMessage } from "../Modules/messageHandler.js";
 import { generateListString } from "../Modules/helpers.js";
 
 /** @typedef {import("../Data/EquipmentSlot.js").default} EquipmentSlot */
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Gesture.js").default} Gesture */
-/** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 /** @typedef {import("../Data/Event.js").default} Event */
 /** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
 /** @typedef {import("../Data/ItemContainer.js").default} ItemContainer */
+/** @typedef {import("../Data/Status.js").default} Status */
 
 /**
  * @class GameLogHandler

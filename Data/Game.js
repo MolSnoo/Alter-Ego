@@ -11,7 +11,6 @@ import { sendQueuedMessages } from '../Modules/messageHandler.js';
 import { Collection } from 'discord.js';
 import { DateTime } from 'luxon';
 
-/** @typedef {import('../Classes/GameNarrationHandler.js').default} GameNarrationHandler */
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Classes/GuildContext.js').default} GuildContext */
 /** @typedef {import('./Room.js').default} Room */
@@ -300,6 +299,7 @@ export default class Game {
 		this.entitySaver = new GameEntitySaver(this);
 		this.logHandler = new GameLogHandler(this);
 		this.notificationGenerator = new GameNotificationGenerator(this);
+		this.narrationHandler = new GameNarrationHandler(this);
 		this.inProgress = false;
 		this.canJoin = false;
 		this.halfTimer = null;

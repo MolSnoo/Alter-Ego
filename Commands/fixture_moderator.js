@@ -1,6 +1,6 @@
 import ActivateAction from '../Data/Actions/ActivateAction.js';
 import DeactivateAction from '../Data/Actions/DeactivateAction.js';
-import Narration from '../Data/Narration.js';
+import Room from '../Data/Room.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -92,7 +92,7 @@ export async function execute (game, message, command, args) {
     // If a player wasn't specified, check if a room name was.
     let room = null;
     if (player === null) {
-        const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+        const parsedInput = Room.generateValidId(input);
         for (let i = args.length - 1; i >= 0; i--) {
             room = game.entityFinder.getRoom(args.splice(i).join(" "));
             if (room) {

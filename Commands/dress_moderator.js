@@ -1,5 +1,6 @@
 import DressAction from '../Data/Actions/DressAction.js';
 import Fixture from "../Data/Fixture.js";
+import InventorySlot from '../Data/InventorySlot.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
@@ -52,9 +53,10 @@ export async function execute (game, message, command, args) {
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
 
+    /** @type {Fixture|Puzzle|RoomItem} */
     let container = null;
-    let slotName = "";
-    let slot = null;
+    /** @type {InventorySlot<RoomItem>} */
+    let inventorySlot = null;
     // Check if the player specified a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
     for (let i = 0; i < fixtures.length; i++) {
@@ -81,12 +83,12 @@ export async function execute (game, message, command, args) {
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(" OF")).trimEnd();
                     for (const slot of container.inventoryCollection.values()) {
                         if (parsedInput.endsWith(slot.id)) {
-                            slotName = slot.id;
+                            inventorySlot = slot;
                             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(slot.id)).trimEnd();
                             break;
                         }
                     }
-                    if (slotName === "") return addReply(game, message, `Couldn't find "${parsedInput}" of ${container.name}.`);
+                    if (inventorySlot === null) return addReply(game, message, `Couldn't find "${parsedInput}" of ${container.name}.`);
                 }
                 break;
             }
@@ -112,14 +114,14 @@ export async function execute (game, message, command, args) {
         containerItems = items.filter(item => item.containerName === `Object: ${container.name}` && item.prefab.equippable);
     else if (container instanceof Puzzle)
         containerItems = items.filter(item => item.containerName === `Puzzle: ${container.name}` && item.prefab.equippable);
-    else if (container instanceof RoomItem && slotName !== "")
-        containerItems = items.filter(item => item.containerName === `Item: ${container.identifier}/${slotName}` && item.prefab.equippable);
-    else if (container instanceof RoomItem && slotName === "")
+    else if (container instanceof RoomItem && inventorySlot)
+        containerItems = items.filter(item => item.containerName === `Item: ${container.identifier}/${inventorySlot.id}` && item.prefab.equippable);
+    else if (container instanceof RoomItem && !inventorySlot)
         containerItems = items.filter(item => item.containerName.startsWith(`Item: ${container.identifier}/`) && item.prefab.equippable);
     if (containerItems.length === 0)
         return addReply(game, message, `${container.name} has no equippable items.`);
 
     const action = new DressAction(game, message, player, player.location, true);
-    action.performDress(containerItems, hand, container, slot);
+    action.performDress(containerItems, hand, container, inventorySlot);
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dressed ${player.name}.`);
 }

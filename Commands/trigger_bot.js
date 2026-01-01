@@ -41,9 +41,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     const input = args.join(" ");
-    const parsedInput = input.toUpperCase().replace(/\'/g, "");
-
-    const event = game.entityFinder.getEvent(parsedInput);
+    const event = game.entityFinder.getEvent(input);
     if (event === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find event "${input}".`);
     if (event.ongoing) return;
 
