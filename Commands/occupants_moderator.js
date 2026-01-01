@@ -38,8 +38,7 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
     const input = args.join(" ");
-    const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    const room = game.entityFinder.getRoom(parsedInput);
+    const room = game.entityFinder.getRoom(input);
     if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.

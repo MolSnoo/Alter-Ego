@@ -1,4 +1,5 @@
 import { default as Action, ActionType } from "../Action.js";
+import AttemptAction from "./AttemptAction.js";
 import InventorySlot from "../InventorySlot.js";
 import Puzzle from "../Puzzle.js";
 import DropAction from "./DropAction.js";
@@ -57,13 +58,15 @@ export default class UndressAction extends Action {
 		if (container instanceof Puzzle && container.type === "weight") {
 			const containerItems = this.getGame().roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
 			const weight = containerItems.reduce((total, item) => total + item.quantity * item.weight, 0);
-			this.player.attemptPuzzle(container, null, weight.toString(), "drop", "");
+			const attemptAction = new AttemptAction(this.getGame(), undefined, this.player, this.location, this.forced);
+			attemptAction.performAttempt(container, undefined, String(weight), "drop", "");
 		}
 		// Container is a container puzzle.
 		else if (container instanceof Puzzle && container.type === "container") {
 			const containerItems = this.getGame().roomItems.filter(item => item.location.id === container.location.id && item.containerName === `Puzzle: ${container.name}` && !isNaN(item.quantity) && item.quantity > 0);
 			const containerItemsString = getSortedItemsString(containerItems);
-			this.player.attemptPuzzle(container, null, containerItemsString, "drop", "");
+			const attemptAction = new AttemptAction(this.getGame(), undefined, this.player, this.location, this.forced);
+			attemptAction.performAttempt(container, undefined, containerItemsString, "drop", "");
 		}
 	}
 }

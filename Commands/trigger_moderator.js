@@ -33,9 +33,7 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
 
     const input = args.join(" ");
-    const parsedInput = input.toUpperCase().replace(/\'/g, "");
-
-    const event = game.entityFinder.getEvent(parsedInput);
+    const event = game.entityFinder.getEvent(input);
     if (event === undefined) return addReply(game, message, `Couldn't find event "${input}".`);
     if (event.ongoing) return addReply(game, message, `${event.id} is already ongoing.`);
 

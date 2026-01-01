@@ -558,7 +558,7 @@ export default class GameEntityFinder {
 		/** @type {Collection<string, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		if (id) selectedFilters.set(Gesture.generateValidId(id), fuzzySearch ? matchers.gestureIdContains : matchers.gestureIdMatches);
-		return this.game.gesturesCollection.filter(gesture => selectedFilters.every((filterFunction, key) => filterFunction(gesture, key)));
+		return this.game.gesturesCollection.filter(gesture => selectedFilters.every((filterFunction, key) => filterFunction(gesture, key))).map(gesture => gesture);
 	}
 
 	/**
@@ -570,6 +570,6 @@ export default class GameEntityFinder {
 		/** @type {Collection<string|boolean, GameEntityMatcher>} */
 		let selectedFilters = new Collection();
 		if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.entityIdContains : matchers.entityIdMatches);
-		return this.game.flags.filter(flag => selectedFilters.every((filterFunction, key) => filterFunction(flag, key)));
+		return this.game.flags.filter(flag => selectedFilters.every((filterFunction, key) => filterFunction(flag, key))).map(flag => flag);
 	}
 }

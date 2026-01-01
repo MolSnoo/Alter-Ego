@@ -55,15 +55,9 @@ export async function execute (game, message, command, args) {
     game.inProgress = false;
     game.canJoin = false;
     clearQueue(game);
-    if (!game.settings.debug) {
+    if (!game.settings.debug)
         game.botContext.updatePresence();
-    }
-    game.players = [];
-    game.players_alive = [];
-    game.players_dead = [];
-    game.playersCollection.clear();
-    game.livingPlayersCollection.clear();
-    game.deadPlayersCollection.clear();
+    game.entityLoader.clearAll();
 
     let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;
