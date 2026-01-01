@@ -412,140 +412,114 @@ describe("GameEntityFinder test", () => {
     describe("getPlayerHandHoldingItem test", () => {
         test("Get player holding item by name", () => {
             let player = game.entityFinder.getLivingPlayer("Kyra");
-            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "COFFEE");
-            expect(slot).toBeInstanceOf(EquipmentSlot);
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.name).toBe("COFFEE");
+            const equipmentSlot = game.entityFinder.getPlayerHandHoldingItem(player, "COFFEE", "player");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.name).toBe("COFFEE");
         });
         test("Get player holding item by prefab id", () => {
             let player = game.entityFinder.getLivingPlayer("Kyra");
-            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "MUG OF COFFEE", true);
-            expect(slot).toBeInstanceOf(EquipmentSlot);
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.prefab.id).toBe("MUG OF COFFEE");
+            const equipmentSlot = game.entityFinder.getPlayerHandHoldingItem(player, "MUG OF COFFEE", "moderator");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.prefab.id).toBe("MUG OF COFFEE");
         });
         test("Get player holding item by mixed case name", () => {
             let player = game.entityFinder.getLivingPlayer("Kyra");
-            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "COFFee");
-            expect(slot).toBeInstanceOf(EquipmentSlot);
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.name).toBe("COFFEE");
+            const equipmentSlot = game.entityFinder.getPlayerHandHoldingItem(player, "COFFee", "player");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.name).toBe("COFFEE");
         });
         test("Get player holding invalid item by name", () => {
             let player = game.entityFinder.getLivingPlayer("Kyra");
-            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID");
-            expect(slot).toBeUndefined();
-            expect(item).toBeUndefined();
+            const equipmentSlot = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID", "combined");
+            expect(equipmentSlot).toBeUndefined();
         });
         test("Get player holding invalid item by prefab id", () => {
             let player = game.entityFinder.getLivingPlayer("Kyra");
-            let [slot, item] = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID", true);
-            expect(slot).toBeUndefined();
-            expect(item).toBeUndefined();
+            const equipmentSlot = game.entityFinder.getPlayerHandHoldingItem(player, "INVALID", "combined");
+            expect(equipmentSlot).toBeUndefined();
         });
     });
 
-    describe("getPlayerSlotWithItem test", () => {
+    describe("getPlayerEquipmentSlotWithEquippedItem test", () => {
         test("Get valid item by id", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS GLASSES", null, true);
-            expect(slot).toBeInstanceOf(EquipmentSlot);
-            expect(slot.id).toBe("GLASSES");
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.prefab.id).toBe("VIVIANS GLASSES");
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "VIVIANS GLASSES");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.id).toBe("GLASSES");
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.prefab.id).toBe("VIVIANS GLASSES");
         });
         test("Get valid item by slot and id", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let slot = player.inventoryCollection.get("HAT");
-            let [foundSlot, item] = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS BOW", slot, true);
-            expect(foundSlot).toBeInstanceOf(EquipmentSlot);
-            expect(foundSlot.id).toBe("HAT");
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.prefab.id).toBe("VIVIANS BOW");
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "VIVIANS BOW", "HAT", "moderator");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.id).toBe("HAT");
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.prefab.id).toBe("VIVIANS BOW");
         });
         test("Get valid item by identifier", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, "FUTURE FOUNDATION JACKET 1", null, true);
-            expect(slot).toBeInstanceOf(EquipmentSlot);
-            expect(slot.id).toBe("JACKET");
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.prefab.id).toBe("FUTURE FOUNDATION JACKET");
-            expect(item.identifier).toBe("FUTURE FOUNDATION JACKET 1");
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "FUTURE FOUNDATION JACKET 1");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.id).toBe("JACKET");
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.prefab.id).toBe("FUTURE FOUNDATION JACKET");
+            expect(equipmentSlot.equippedItem.identifier).toBe("FUTURE FOUNDATION JACKET 1");
         });
         test("Get valid item by slot and identifier", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let slot = player.inventoryCollection.get("PANTS");
-            let [foundSlot, item] = game.entityFinder.getPlayerSlotWithItem(player, "FUTURE FOUNDATION TROUSERS 1", slot, true);
-            expect(foundSlot).toBeInstanceOf(EquipmentSlot);
-            expect(foundSlot.id).toBe("PANTS");
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.prefab.id).toBe("FUTURE FOUNDATION TROUSERS");
-            expect(item.identifier).toBe("FUTURE FOUNDATION TROUSERS 1");
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "FUTURE FOUNDATION TROUSERS 1", "PANTS", "combined");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.id).toBe("PANTS");
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.prefab.id).toBe("FUTURE FOUNDATION TROUSERS");
+            expect(equipmentSlot.equippedItem.identifier).toBe("FUTURE FOUNDATION TROUSERS 1");
         });
         test("Get valid item by name", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let [slot, item] = game.entityFinder.getPlayerSlotWithItem(player, "FLATS");
-            expect(slot).toBeInstanceOf(EquipmentSlot);
-            expect(slot.id).toBe("SHOES");
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.prefab.id).toBe("FUTURE FOUNDATION SHOES");
-            expect(item.name).toBe("FLATS");
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "FLATS", undefined, "player");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.id).toBe("SHOES");
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.prefab.id).toBe("FUTURE FOUNDATION SHOES");
+            expect(equipmentSlot.equippedItem.name).toBe("FLATS");
         });
         test("Get valid item by slot and name", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let slot = player.inventoryCollection.get("SOCKS");
-            let [foundSlot, item] = game.entityFinder.getPlayerSlotWithItem(player, "WHITE SOCKS", slot);
-            expect(foundSlot).toBeInstanceOf(EquipmentSlot);
-            expect(foundSlot.id).toBe("SOCKS");
-            expect(item).toBeInstanceOf(InventoryItem);
-            expect(item.prefab.id).toBe("FUTURE FOUNDATION SOCKS");
-            expect(item.name).toBe("WHITE SOCKS");
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "WHITE SOCKS", "SOCKS", "combined");
+            expect(equipmentSlot).toBeInstanceOf(EquipmentSlot);
+            expect(equipmentSlot.id).toBe("SOCKS");
+            expect(equipmentSlot.equippedItem).toBeInstanceOf(InventoryItem);
+            expect(equipmentSlot.equippedItem.prefab.id).toBe("FUTURE FOUNDATION SOCKS");
+            expect(equipmentSlot.equippedItem.name).toBe("WHITE SOCKS");
         });
         test("Get invalid item by bad id", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let find = game.entityFinder.getPlayerSlotWithItem(player, "INVALID", null, true);
-            expect(find).toBeInstanceOf(Array);
-            expect(find.length === 2).toBeTruthy();
-            for (const val of find) {
-                expect(val).toBeUndefined();
-            }
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "INVALID", undefined, "combined");
+            expect(equipmentSlot).toBeUndefined();
         });
         test("Get invalid item by bad slot", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let slot = player.inventoryCollection.get("GLASSES");
-            let find = game.entityFinder.getPlayerSlotWithItem(player, "FUTURE FOUNDATION SHOES", slot, true);
-            expect(find).toBeInstanceOf(Array);
-            expect(find.length === 2).toBeTruthy();
-            for (const val of find) {
-                expect(val).toBeUndefined();
-            }
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "FUTURE FOUNDATION SHOES", "GLASSES");
+            expect(equipmentSlot).toBeUndefined();
         });
         test("Get invalid item by bad player", () => {
-            let player = game.entityFinder.getPlayer("Kyra");
-            let find = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS GLASSES", null, true);
-            expect(find).toBeInstanceOf(Array);
-            expect(find.length === 2).toBeTruthy();
-            for (const val of find) {
-                expect(val).toBeUndefined();
-            }
+            const player = game.entityFinder.getPlayer("Kyra");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "VIVIANS GLASSES");
+            expect(equipmentSlot).toBeUndefined();
         });
         test("Get invalid item by empty parameters", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let find = game.entityFinder.getPlayerSlotWithItem(player, "");
-            expect(find).toBeInstanceOf(Array);
-            expect(find.length === 2).toBeTruthy();
-            for (const val of find) {
-                expect(val).toBeUndefined();
-            }
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "");
+            expect(equipmentSlot).toBeUndefined();
         });
         test("Get invalid item by bad id on name lookup", () => {
-            let player = game.entityFinder.getPlayer("Vivian");
-            let find = game.entityFinder.getPlayerSlotWithItem(player, "VIVIANS GLASSES", null, false);
-            expect(find).toBeInstanceOf(Array);
-            expect(find.length === 2).toBeTruthy();
-            for (const val of find) {
-                expect(val).toBeUndefined();
-            }
+            const player = game.entityFinder.getPlayer("Vivian");
+            const equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, "VIVIANS GLASSES", null, "player");
+            expect(equipmentSlot).toBeUndefined();
         });
     });
 
