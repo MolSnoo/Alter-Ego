@@ -1,10 +1,10 @@
 import Fixture from "../Data/Fixture.js";
 import GameSettings from '../Classes/GameSettings.js';
+import DestroyAction from "../Data/Actions/DestroyAction.js";
 import Game from '../Data/Game.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import * as messageHandler from '../Modules/messageHandler.js';
-import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
 
 /** @type {CommandConfig} */
 export const config = {
@@ -188,8 +188,10 @@ export async function execute (game, message, command, args) {
 
         if (destroyAll) {
             if (parsedInput !== "") return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" at ${room.name}`);
-            for (let i = 0; i < containerItems.length; i++)
-                destroyItem(containerItems[i], containerItems[i].quantity, true);
+            for (let i = 0; i < containerItems.length; i++) {
+                const destroyAction = new DestroyAction(game, message, undefined, room, true);
+                destroyAction.performDestroyRoomItem(containerItems[i], containerItems[i].quantity, true);
+            }
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
         }
         else {
@@ -204,7 +206,8 @@ export async function execute (game, message, command, args) {
             }
             if (item === null) return messageHandler.addReply(game, message, `Couldn't find item "${parsedInput}" ${preposition} ${containerName}.`);
 
-            destroyItem(item, item.quantity, true);
+            const destroyAction = new DestroyAction(game, message, undefined, room, true);
+            destroyAction.performDestroyRoomItem(item, item.quantity, true);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName}.`);
         }
     }
@@ -275,8 +278,10 @@ export async function execute (game, message, command, args) {
             preposition = containerItem.prefab.preposition ? containerItem.prefab.preposition : "in";
 
             if (destroyAll) {
-                for (let i = 0; i < containerItems.length; i++)
-                    destroyInventoryItem(containerItems[i], containerItems[i].quantity, true);
+                for (let i = 0; i < containerItems.length; i++) {
+                    const destroyAction = new DestroyAction(game, message, player, player.location, true);
+                    destroyAction.performDestroyInventoryItem(containerItems[i], containerItems[i].quantity, true, false);
+                }
                 messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${containerItems.length} items ${preposition} ${containerName}.`);
                 return;
             }
@@ -313,7 +318,8 @@ export async function execute (game, message, command, args) {
                 }
             }
             if (item !== null && equipmentSlotName !== "") {
-                destroyInventoryItem(item, item.quantity, true);
+                const destroyAction = new DestroyAction(game, message, player, player.location, true);
+                destroyAction.performDestroyInventoryItem(item, item.quantity, true, true);
                 messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${player.name}'s ${equipmentSlotName}.`);
                 return;
             }
@@ -323,7 +329,8 @@ export async function execute (game, message, command, args) {
             if (containerName === "") containerName = `${item.slot} of ${item.container.identifier} in ${player.name}'s inventory`;
             if (item.container.prefab.preposition) preposition = item.container.prefab.preposition;
 
-            destroyInventoryItem(item, item.quantity, true);
+            const destroyAction = new DestroyAction(game, message, player, player.location, true);
+            destroyAction.performDestroyInventoryItem(item, item.quantity, true);
             messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName}.`);
         }
         else return messageHandler.addReply(game, message, `Couldn't find "${parsedInput}" in ${player.name}'s inventory.`);

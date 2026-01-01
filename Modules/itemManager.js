@@ -9,7 +9,6 @@ import RoomItem from '../Data/RoomItem.js';
 import Player from '../Data/Player.js';
 import ItemInstance from '../Data/ItemInstance.js';
 import { generateProceduralOutput } from '../Modules/parser.js';
-import { addLogMessage } from './messageHandler.js';
 
 /**
  * Instantiates a new room item in the specified location and container.
@@ -140,44 +139,26 @@ export function replaceInventoryItem(item, newPrefab) {
 }
 
 /**
- * Destroys an item.
+ * Destroys a room item.
  * @param {RoomItem} item - The item to destroy. 
  * @param {number} quantity - How many of this item to destroy.
  * @param {boolean} getChildren - Whether or not to recursively destroy all of the items it contains as well.
  */
-export function destroyItem(item, quantity, getChildren) {
+export function destroyRoomItem(item, quantity, getChildren) {
     item.quantity -= quantity;
-
-    let containerLogDisplay = "";
-    let preposition = "in";
     const container = item.container;
 
     container.removeItemFromDescription(item, item.slot, quantity);
-    if (container instanceof Puzzle) {
-        containerLogDisplay = container.parentFixture ? container.parentFixture.name : container.name;
-        if (container.parentFixture) preposition = container.parentFixture.preposition;
-    }
-    else if (container instanceof Fixture) {
-        containerLogDisplay = container.name;
-        if (container.preposition) preposition = container.preposition;
-    }
-    else if (container instanceof RoomItem) {
+    if (container instanceof RoomItem)
         container.removeItem(item, item.slot, quantity);
-        containerLogDisplay = `${item.slot} of ${container.identifier}`;
-        if (container.prefab) preposition = container.prefab.preposition;
-    }
 
     if (getChildren) {
         /** @type {RoomItem[]} */
         let childItems = [];
         getChildItems(childItems, item);
         for (let i = 0; i < childItems.length; i++)
-            destroyItem(childItems[i], childItems[i].quantity, false);
+            destroyRoomItem(childItems[i], childItems[i].quantity, false);
     }
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    addLogMessage(item.getGame(), `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerLogDisplay} in ${item.location.channel}`);
 }
 
 /**
@@ -196,25 +177,13 @@ export function destroyInventoryItem(item, quantity, getChildren) {
     }
 
     // If the item is equipped, simply unequip it. The directUnequip method will destroy it.
-    if (item.container === null) {
+    if (item.container === null)
         item.player.directUnequip(item);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(item.getGame(), `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} equipped to ${item.equipmentSlot} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
-    }
     else {
         item.quantity -= quantity;
-
         const container = item.container;
         container.removeItem(item, item.slot, quantity);
         container.removeItemFromDescription(item, item.slot, quantity);
-        const containerName = `${item.slot} of ${container.identifier}`;
-        const preposition = container.prefab ? container.prefab.preposition : "in";
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(item.getGame(), `${time} - Destroyed ${item.identifier ? item.identifier : item.prefab.id} ${preposition} ${containerName} in ${item.player.name}'s inventory in ${item.player.location.channel}`);
     }
 }
 

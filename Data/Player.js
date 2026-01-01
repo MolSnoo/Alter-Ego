@@ -11,7 +11,6 @@ import EquipmentSlot from './EquipmentSlot.js';
 import InventoryItem from './InventoryItem.js';
 import InventorySlot from './InventorySlot.js';
 import Status from './Status.js';
-import Narration from './Narration.js';
 
 import CureAction from './Actions/CureAction.js';
 import DieAction from './Actions/DieAction.js';
@@ -1251,18 +1250,10 @@ export default class Player extends ItemContainer {
         const equipmentSlot = this.inventoryCollection.get(item.equipmentSlot);
         equipmentSlot.unequipItem(item);
 
-        if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
-            // Remove the item from the player's hands item list.
-            if (!item.prefab.discreet)
-                this.removeItemFromDescription(item, "hands");
-        }
+        if ((item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") && !item.prefab.discreet)
+            this.removeItemFromDescription(item, "hands");
         else {
-            this.notify(`You unequip the ${item.name}.`);
-            new Narration(this.getGame(), this, this.location, `${this.displayName} takes off ${this.pronouns.dpos} ${item.name}.`).send();
-            // Remove mention of this item from the player's equipment item list.
-            this.removeItemFromDescription(item, "equipment");
             this.#uncoverEquippedItems(item);
-
             // Execute unequipped commands.
             parseAndExecuteBotCommands(item.prefab.unequippedCommands, this.getGame(), item, this);
         }

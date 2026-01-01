@@ -356,6 +356,51 @@ export default class GameLogHandler {
 	}
 
 	/**
+	 * Logs a destroy action for a room item.
+	 * @param {RoomItem} item - The destroyed item. 
+	 * @param {number} quantity - The quantity of the item that was destroyed.
+	 * @param {Fixture|Puzzle|RoomItem} container - The item's container.
+	 * @param {InventorySlot<RoomItem>} inventorySlot - The inventory slot the item belongs to.
+	 */
+	logDestroyRoomItem(item, quantity, container, inventorySlot) {
+		const itemIdentifier = item.getIdentifier();
+		const preposition = item.getContainerPreposition();
+		let containerDisplay = "";
+		if (container instanceof Puzzle)
+			containerDisplay = container.parentFixture ? container.parentFixture.name : container.name;
+		else if (container instanceof Fixture)
+			containerDisplay = container.name;
+		else if (container instanceof RoomItem)
+			containerDisplay = `${inventorySlot.id} of ${container.getIdentifier()}`;
+		this.#sendLogMessage(`${this.#getTime()} - Destroyed ${quantity} ${itemIdentifier} ${preposition} ${containerDisplay} in ${item.location.channel}`);
+	}
+
+	/**
+	 * Logs a destroy action for an equipped inventory item.
+	 * @param {InventoryItem} item - The destroyed inventory item.
+	 * @param {Player} player - The player the item belongs to.
+	 * @param {EquipmentSlot} equipmentSlot - The equipment slot the inventory item was equipped to.
+	 */
+	logDestroyEquippedInventoryItem(item, player, equipmentSlot) {
+		this.#sendLogMessage(`${this.#getTime()} - Destroyed ${item.getIdentifier()} equipped to ${player.name}'s ${equipmentSlot.id} in ${player.location.channel}`);
+	}
+
+	/**
+	 * Logs a destroy action for a stashed inventory item.
+	 * @param {InventoryItem} item - The destroyed inventory item.
+	 * @param {number} quantity - The quantity of the item that was destroyed.
+	 * @param {Player} player - The player the item belongs to.
+	 * @param {InventoryItem} container - The item's container.
+	 * @param {InventorySlot<InventoryItem>} inventorySlot - The inventory slot the item belongs to.
+	 */
+	logDestroyStashedInventoryItem(item, quantity, player, container, inventorySlot) {
+		const itemIdentifier = item.getIdentifier();
+		const preposition = container.prefab ? container.prefab.preposition : "in";
+		const containerDisplay = `${inventorySlot.id} of ${container.identifier} in ${player.name}'s inventory`;
+		this.#sendLogMessage(`${this.#getTime()} - Destroyed ${quantity} ${itemIdentifier} ${preposition} ${containerDisplay} in ${player.location.channel}`);
+	}
+
+	/**
 	 * Logs a craft action.
 	 * @param {string} item1Id - The identifier of the first ingredient.
 	 * @param {string} item2Id - The identifier of the second ingredient.

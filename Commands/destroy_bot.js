@@ -1,4 +1,5 @@
 import GameSettings from "../Classes/GameSettings.js";
+import DestroyAction from "../Data/Actions/DestroyAction.js";
 import Game from "../Data/Game.js";
 import Player from "../Data/Player.js";
 import Event from "../Data/Event.js";
@@ -7,7 +8,6 @@ import Flag from "../Data/Flag.js";
 import InventoryItem from "../Data/InventoryItem.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { destroyItem, destroyInventoryItem } from '../Modules/itemManager.js';
 import * as messageHandler from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
@@ -183,8 +183,10 @@ export async function execute (game, command, args, player, callee) {
 
         if (destroyAll) {
             if (parsedInput !== "") return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" at ${room.name}`);
-            for (let i = 0; i < containerItems.length; i++)
-                destroyItem(containerItems[i], containerItems[i].quantity, true);
+            for (let i = 0; i < containerItems.length; i++) {
+                const destroyAction = new DestroyAction(game, undefined, undefined, room, true);
+                destroyAction.performDestroyRoomItem(containerItems[i], containerItems[i].quantity, true);
+            }
         }
         else {
             // Find the item if it hasn't been found already.
@@ -198,7 +200,8 @@ export async function execute (game, command, args, player, callee) {
             }
             if (item === null) return;
 
-            destroyItem(item, item.quantity, true);
+            const destroyAction = new DestroyAction(game, undefined, undefined, room, true);
+            destroyAction.performDestroyRoomItem(item, item.quantity, true);
         }
     }
     else {
@@ -301,8 +304,10 @@ export async function execute (game, command, args, player, callee) {
                 preposition = containerItem.prefab.preposition ? containerItem.prefab.preposition : "in";
 
                 if (destroyAll) {
-                    for (let i = 0; i < containerItems.length; i++)
-                        destroyInventoryItem(containerItems[i], containerItems[i].quantity, true);
+                    for (let i = 0; i < containerItems.length; i++) {
+                        const destroyAction = new DestroyAction(game, undefined, player, player.location, true);
+                        destroyAction.performDestroyInventoryItem(containerItems[i], containerItems[i].quantity, true, false);
+                    }
                     gotoNext = true;
                 }
                 else {
@@ -338,13 +343,17 @@ export async function execute (game, command, args, player, callee) {
                     }
                 }
                 if (item !== null && equipmentSlotName !== "") {
-                    destroyInventoryItem(item, item.quantity, true);
+                    const destroyAction = new DestroyAction(game, undefined, player, player.location, true);
+                    destroyAction.performDestroyInventoryItem(item, item.quantity, true, true);
                     gotoNext = true;
                 }
             }
             if (gotoNext) continue;
 
-            if (item !== null) destroyInventoryItem(item, item.quantity, true);
+            if (item !== null) {
+                const destroyAction = new DestroyAction(game, undefined, player, player.location, true);
+                destroyAction.performDestroyInventoryItem(item, item.quantity, true);
+            }
             else return messageHandler.addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" in ${player.name}'s inventory.`);
         }
     }
