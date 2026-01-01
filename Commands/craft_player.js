@@ -52,17 +52,17 @@ export async function execute (game, message, command, args, player) {
     /** @type {InventoryItem[]} */
     const items = [];
     for (let i = 0; i < args.length; i++) {
-        let item = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(i).join(" "))[1];
-        if (item) {
-            items.push(item);
+        const handEquipmentSlot = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(i).join(" "), "player");
+        if (handEquipmentSlot) {
+            items.push(handEquipmentSlot.equippedItem);
             args = args.slice(0, i);
             break;
         }
     }
     for (let i = args.length; i > 0; i--) {
-        let item = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(0, i).join(" "))[1];
-        if (item) {
-            items.push(item);
+        const handEquipmentSlot = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(0, i).join(" "), "player");
+        if (handEquipmentSlot) {
+            items.push(handEquipmentSlot.equippedItem);
             args = args.slice(i);
             break;
         }

@@ -48,7 +48,8 @@ export async function execute (game, message, command, args) {
     let slotName = newArgs[1] ? newArgs[1] : "";
 
     // First, find the item in the player's inventory.
-    const [hand, item] = game.entityFinder.getPlayerHandHoldingItem(player, itemName, true);
+    const hand = game.entityFinder.getPlayerHandHoldingItem(player, itemName, "moderator");
+    const item = hand ? hand.equippedItem : undefined;
     if (item === undefined) return addReply(game, message, `Couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.

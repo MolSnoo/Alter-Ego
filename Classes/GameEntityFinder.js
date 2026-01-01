@@ -43,7 +43,7 @@ export default class GameEntityFinder {
 	 * Gets a room exit.
 	 * @param {Room} room - The room to locate an exit in.
 	 * @param {string} name - The name to look up.
-	 * @returns {Exit} - The exit in the specified room with the specified name, if applicable. If no such exit exists, returns undefined.
+	 * @returns The exit in the specified room with the specified name, if applicable. If no such exit exists, returns undefined.
 	 */
 	getExit(room, name) {
 		return room.exitCollection.get(Game.generateValidEntityName(name));
@@ -160,7 +160,7 @@ export default class GameEntityFinder {
 	/**
 	 * Gets a given player's hands.
 	 * @param {Player} player - The player.
-	 * @returns {Array<EquipmentSlot>} Hands belonging to the player.
+	 * @returns Hands belonging to the player.
 	 */
 	getPlayerHands(player) {
 		if (!player) return [];
@@ -172,7 +172,7 @@ export default class GameEntityFinder {
 
 	/** Gets a free hand from the given player.
 	 * @param {Player} player - The player.
-	 * @returns {EquipmentSlot} A free hand of the player. Returns undefined if all hands are occupied.
+	 * @returns A free hand of the player. Returns undefined if all hands are occupied.
 	 */
 	getPlayerFreeHand(player) {
 		if (!player) return;
@@ -180,46 +180,43 @@ export default class GameEntityFinder {
 			if (hand.equippedItem === null) return hand;
 	}
 
-	/** Gets a player hand holding a given item. Will always look up items based on name.
+	/** Gets a player's hand equipment slot whose equipped item has the given identifier.
 	 * @param {Player} player - The player.
-	 * @param {string} itemQuery - The item name to look for.
-	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier or prefab ID. Defaults to false.
-	 * @returns {[EquipmentSlot, InventoryItem]}
+	 * @param {string} identifier - The item identifier or prefab ID in moderator contexts, or its name or plural name in player contexts.
+	 * @param {string} [resultContext] - Either `moderator`, `player`, or `combined`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
+	 * @returns The hand equipment slot holding the specified item. Returns undefined if no such equipment slot exists.
 	 */
-	getPlayerHandHoldingItem(player, itemQuery, identifierSearch = false) {
-		if (!player || !itemQuery) return [undefined, undefined];
-		itemQuery = Game.generateValidEntityName(itemQuery);
-
-		/** @type {GameEntityMatcher} */
-		let selectedFilter;
-		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
-		else selectedFilter = matchers.itemNameMatches;
-
-		let output = this.getPlayerHands(player).find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
-		return output ? [output, output.equippedItem] : [undefined, undefined];
+	getPlayerHandHoldingItem(player, identifier, resultContext = 'moderator') {
+		if (!player || !identifier) return;
+		/** @type {Collection<string, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
+		else if (resultContext === 'combined') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameMatches);
+		else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
+		return this.getPlayerHands(player).find(equipmentSlot => equipmentSlot.equippedItem ? selectedFilters.every((filterFunction, key) => filterFunction(equipmentSlot.equippedItem, key)) : false);
 	}
 
-	/** Gets a player hand holding a given item. Will always look up items based on name.
+	/** Gets a player equipment slot whose equipped item has the given identifier. Will always look up items based on name.
 	 * @param {Player} player - The player.
-	 * @param {string} itemQuery - The item name to look for.
-	 * @param {EquipmentSlot} slot - The slot to restrict searching to.
-	 * @param {boolean} [identifierSearch] - Whether or not to look up items based on identifier or prefab ID. Defaults to false.
-	 * @returns {[EquipmentSlot, InventoryItem]}
+	 * @param {string} identifier - The item identifier or prefab ID in moderator contexts, or its name or plural name in player contexts.
+	 * @param {string} [equipmentSlotId] - The ID of the equipment slot the item should be equipped to. Optional.
+	 * @param {string} [resultContext] - Either `moderator`, `player`, or `combined`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
+	 * @returns The equipment slot that has the specified item equipped. Returns undefined if no such equipment slot exists.
 	 */
-	getPlayerSlotWithItem(player, itemQuery, slot = undefined, identifierSearch = false) {
-		if (!player || !itemQuery) return [undefined, undefined];
-		itemQuery = Game.generateValidEntityName(itemQuery);
-
-		/** @type {GameEntityMatcher} */
-		let selectedFilter;
-		if (identifierSearch) selectedFilter = matchers.itemIdentifierOrNameMatches;
-		else selectedFilter = matchers.itemNameMatches;
-
-		/** @type {Collection<string, EquipmentSlot>} */
-		let slots = slot ? new Collection().set(slot.id, slot) : player.inventoryCollection
-
-		let output = slots.find(slot => slot.equippedItem ? selectedFilter(slot.equippedItem, itemQuery) : false);
-		return output ? [output, output.equippedItem] : [undefined, undefined];
+	getPlayerEquipmentSlotWithEquippedItem(player, identifier, equipmentSlotId = "", resultContext = 'moderator') {
+		if (!player || !identifier) return;
+		/** @type {Collection<string, GameEntityMatcher>} */
+		let selectedFilters = new Collection();
+		if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
+		else if (resultContext === 'combined') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameMatches);
+		else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
+		if (equipmentSlotId) {
+			equipmentSlotId = Game.generateValidEntityName(equipmentSlotId);
+			const equipmentSlot = player.inventoryCollection.get(equipmentSlotId);
+			selectedFilters.set(equipmentSlotId, matchers.inventoryItemEquipmentSlotMatches);
+			if (equipmentSlot?.equippedItem && selectedFilters.every((filterFunction, key) => filterFunction(equipmentSlot.equippedItem, key))) return equipmentSlot;
+		}
+		else return player.inventoryCollection.find(equipmentSlot => equipmentSlot.equippedItem ? selectedFilters.every((filterFunction, key) => filterFunction(equipmentSlot.equippedItem, key)) : false);
 	}
 
 	/**
