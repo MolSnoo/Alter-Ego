@@ -73,7 +73,7 @@ export async function execute(game, message, command, args) {
 
             addGameMechanicMessage(game, game.guildContext.commandChannel,
                 "The spreadsheet was populated with demo data. Once you've populated the Players sheet, either manually or with the "
-                + `${game.settings.commandPrefix}startgame command in conjuction with the ${game.settings.commandPrefix}play command, `
+                + `${game.settings.commandPrefix}startgame command in conjunction with the ${game.settings.commandPrefix}play command, `
                 + `use ${game.settings.commandPrefix}load all start to begin the demo.`
             );
         }
@@ -83,6 +83,4 @@ export async function execute(game, message, command, args) {
         console.log(err);
         addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
     }
-
-    return;
 }

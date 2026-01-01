@@ -118,6 +118,4 @@ export async function execute(game, message, command, args) {
             + "It is recommended that you add their data to the spreadsheet manually, then load it before proceeding. Error:\n```" + err + "```";
         addGameMechanicMessage(game, game.guildContext.commandChannel, errorMessage);
     }
-
-    return;
 }

@@ -69,6 +69,4 @@ export async function execute (game, message, command, args) {
     if (game.settings.debug) channel = game.guildContext.testingChannel;
     else channel = game.guildContext.generalChannel;
     channel.send(`${message.member.displayName} ended the game!`);
-
-    return;
 }

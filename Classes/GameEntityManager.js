@@ -66,6 +66,10 @@ export default class GameEntityManager {
 				fixture.recipeInterval.stop();
 			if (fixture.process.timer !== null)
 				fixture.process.timer.stop();
+			if (fixture.hidingSpot !== null) {
+				fixture.hidingSpot.occupants.length = 0;
+				fixture.hidingSpot.deleteWhisper();
+			}
 		});
 		this.game.fixtures.length = 0;
 	}
@@ -184,7 +188,7 @@ export default class GameEntityManager {
 	updateRoomReferences(room) {
 		this.game.livingPlayersCollection.forEach(player => {
 			if (Room.generateValidId(player.locationDisplayName) === room.id)
-				room.addPlayer(player, null, null, false);
+				room.addPlayer(player);
 		});
 		this.game.fixtures.forEach(fixture => {
 			if (Room.generateValidId(fixture.locationDisplayName) === room.id)

@@ -1737,7 +1737,7 @@ export default class GameEntityLoader extends GameEntityManager {
 				if (player.alive) {
 					if (player.member !== null || player.isNPC) {
 						if (player.location instanceof Room) {
-							player.location.addPlayer(player, null, null, false);
+							player.location.addPlayer(player);
 							// Parse statuses and inflict the player with them.
 							player.statusDisplays.forEach(statusDisplay => {
 								const status = this.game.entityFinder.getStatusEffect(statusDisplay.id);
@@ -1947,24 +1947,26 @@ export default class GameEntityLoader extends GameEntityManager {
 				const player = sheet[row][columnPlayerName] ? this.game.entityFinder.getPlayer(sheet[row][columnPlayerName]) : null;
 				if (player) {
 					inventoryItem.setPlayer(player);
-					let foundEquipmentSlot = false;
-					const playerEquipmentSlots = equipmentSlots.get(player.name);
-					if (playerEquipmentSlots) {
-						const equipmentSlot = playerEquipmentSlots.get(inventoryItem.equipmentSlot);
-						if (equipmentSlot) {
-							foundEquipmentSlot = true;
-							equipmentSlot.insertItem(inventoryItem);
+					if (inventoryItem.equipmentSlot !== "" && inventoryItem.containerName !== "") {
+						let foundEquipmentSlot = false;
+						const playerEquipmentSlots = equipmentSlots.get(player.name);
+						if (playerEquipmentSlots) {
+							const equipmentSlot = playerEquipmentSlots.get(inventoryItem.equipmentSlot);
+							if (equipmentSlot) {
+								foundEquipmentSlot = true;
+								equipmentSlot.insertItem(inventoryItem);
+							}
 						}
-					}
-					if (!foundEquipmentSlot) {
-						// If the equipment slot wasn't found, it might have just not been loaded yet. Save it for later.
-						let unloadedPlayerEquipmentSlots = unloadedEquipmentSlots.get(player.name);
-						if (!unloadedPlayerEquipmentSlots) unloadedPlayerEquipmentSlots = new Collection();
-						let unassignedEquipmentSlotItems = unloadedPlayerEquipmentSlots.get(inventoryItem.equipmentSlot);
-						if (!unassignedEquipmentSlotItems) unassignedEquipmentSlotItems = [];
-						unassignedEquipmentSlotItems.push(inventoryItem);
-						unloadedPlayerEquipmentSlots.set(inventoryItem.equipmentSlot, unassignedEquipmentSlotItems);
-						unloadedEquipmentSlots.set(player.name, unloadedPlayerEquipmentSlots);
+						if (!foundEquipmentSlot) {
+							// If the equipment slot wasn't found, it might have just not been loaded yet. Save it for later.
+							let unloadedPlayerEquipmentSlots = unloadedEquipmentSlots.get(player.name);
+							if (!unloadedPlayerEquipmentSlots) unloadedPlayerEquipmentSlots = new Collection();
+							let unassignedEquipmentSlotItems = unloadedPlayerEquipmentSlots.get(inventoryItem.equipmentSlot);
+							if (!unassignedEquipmentSlotItems) unassignedEquipmentSlotItems = [];
+							unassignedEquipmentSlotItems.push(inventoryItem);
+							unloadedPlayerEquipmentSlots.set(inventoryItem.equipmentSlot, unassignedEquipmentSlotItems);
+							unloadedEquipmentSlots.set(player.name, unloadedPlayerEquipmentSlots);
+						}
 					}
 				}
 				if (player && inventoryItem.equipmentSlot !== "" && inventoryItem.containerName === "") {

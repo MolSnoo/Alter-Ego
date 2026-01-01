@@ -106,6 +106,4 @@ export async function execute (game, message, command, args) {
     destExit.link = exit.name;
 
     addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated destination of ${exit.name} in ${room.id}.`);
-
-    return;
 }

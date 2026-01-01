@@ -76,6 +76,4 @@ export async function execute (game, command, args, player, callee) {
 
     for (let i = 0; i < players.length; i++)
         players[i].die();
-
-    return;
 }

@@ -32,7 +32,7 @@ export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an exit. Usage:\n${usage(game.settings)}`);
 
-    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase());
+    const player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -42,6 +42,8 @@ export async function execute (game, message, command, args) {
     // Check that the input given is an exit in the player's current room.
     const exit = game.entityFinder.getExit(player.location, parsedInput);
     if (exit === undefined) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit.dest.tags.includes("outside") && player.location.tags.includes("outside"))
+        return addReply(game, message, `There's nothing to knock on.`);
 
     const action = new KnockAction(game, message, player, player.location, true);
     action.performKnock(exit);

@@ -15,6 +15,9 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 /** @typedef {import("../Data/Prefab.js").default} Prefab */
 /** @typedef {import("../Data/Recipe.js").default} Recipe */
+/** @typedef {import("../Data/Event.js").default} Event */
+/** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
+/** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 
 /**
  * @class GameNarrationHandler
@@ -43,6 +46,9 @@ export default class GameNarrationHandler {
 	 * @param {Room} [location] - The location in which the narration is occurring. Defaults to the player's location.
 	 */
 	#sendNarration(player, narrationText, location = player.location) {
+		// Capitalize the first letter, if necessary.
+		if (narrationText.charAt(0) === narrationText.charAt(0).toLocaleLowerCase())
+			narrationText = narrationText.charAt(0).toLocaleUpperCase() + narrationText.substring(1);
 		new Narration(this.#game, player, location, narrationText).send();
 	}
 
@@ -57,11 +63,91 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates a start move action.
+	 * @param {boolean} isRunning - Whether or not the player is running.
+	 * @param {Exit} exit - The exit the player is moving toward. 
+	 * @param {Player} player - The player performing the start move action. 
+	 */
+	narrateStartMove(isRunning, exit, player) {
+		const notification = this.#game.notificationGenerator.generateStartMoveNotification(player, true, isRunning, exit.name);
+		const narration = this.#game.notificationGenerator.generateStartMoveNotification(player, false, isRunning, exit.name);
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates the player depleting half of their stamina.
+	 * @param {Player} player - The player who has depleted half of their stamina.
+	 */
+	narrateReachedHalfStamina(player) {
+		const notification = this.#game.notificationGenerator.generateHalfStaminaNotification(player, true);
+		const narration = this.#game.notificationGenerator.generateHalfStaminaNotification(player, false);
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates the player becoming weary.
+	 * @param {Player} player - The player who became weary.
+	 */
+	narrateWeary(player) {
+		const wearyStatus = this.#game.entityFinder.getStatusEffect("weary");
+		const narration = this.#game.notificationGenerator.generateWearyNotification(player);
+		player.sendDescription(wearyStatus.inflictedDescription, wearyStatus);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a player exiting a room.
+	 * @param {Room} currentRoom - The room the player is currently in.
+	 * @param {Exit} exit - The exit the player will leave their current room through.
+	 * @param {Player} player - The player performing the move action.
+	 */
+	narrateExit(currentRoom, exit, player) {
+		const appendString = player.createMoveAppendString();
+		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.resolve(this.#game.guildContext.freeMovementRole);
+		const exitNotification = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenExitNotification(player, true, currentRoom.displayName, appendString)
+			: this.#game.notificationGenerator.generateExitNotification(player, true, exit.name, appendString);
+		const exitNarration = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenExitNotification(player, false, currentRoom.displayName, appendString)
+			: this.#game.notificationGenerator.generateExitNotification(player, false, exit.name, appendString);
+		player.notify(exitNotification);
+		this.#sendNarration(player, exitNarration, currentRoom);
+	}
+
+	/**
+	 * Narrates a player entering a room.
+	 * @param {Room} destinationRoom  The room the player is moving to.
+	 * @param {Exit} entrance - The exit the player will enter the destination room from.
+	 * @param {Player} player - The player performing the move action.
+	 */
+	narrateEnter(destinationRoom, entrance, player) {
+		const appendString = player.createMoveAppendString();
+		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.resolve(this.#game.guildContext.freeMovementRole);
+		const enterNarration = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenEnterNotification(player, false, destinationRoom.displayName, appendString)
+			: this.#game.notificationGenerator.generateEnterNotification(player, false, entrance.name, appendString);
+		this.#sendNarration(player, enterNarration, destinationRoom);
+		if (player.hasBehaviorAttribute("no sight")) {
+			const enterNotification = this.#game.notificationGenerator.generateNoSightEnterNotification();
+			player.notify(enterNotification);
+		}
+		else {
+			const description = entrance ? entrance.description : destinationRoom.description;
+			player.sendDescription(description, destinationRoom);
+		}
+	}
+
+	/**
 	 * Narrates a stop action.
 	 * @param {Player} player - The player performing the stop action.
+	 * @param {boolean} exitLocked - Whether or not the action was initiated because the destination exit was locked.
+	 * @param {Exit} [exit] - The exit the player tried to move to, if applicable.
 	 */
-	narrateStop(player) {
-		const narration = `${player.displayName} stops moving.`;
+	narrateStop(player, exitLocked, exit) {
+		const notification = exitLocked ? this.#game.notificationGenerator.generateExitLockedNotification(player, true, exit.getNamePhrase())
+			: this.#game.notificationGenerator.generateStopNotification(player, true);
+		const narration = exitLocked ? this.#game.notificationGenerator.generateExitLockedNotification(player, false, exit.getNamePhrase())
+			: this.#game.notificationGenerator.generateStopNotification(player, false);
+		player.notify(notification);
 		this.#sendNarration(player, narration);
 	}
 
@@ -73,16 +159,27 @@ export default class GameNarrationHandler {
 	narrateInspect(target, player) {
 		let narration = "";
 		if (target instanceof Room)
-			narration = `${player.displayName} begins looking around the room.`;
-		else if (target instanceof Fixture)
-			narration = `${player.displayName} begins inspecting the ${target.name}.`;
+			narration = this.#game.notificationGenerator.generateInspectRoomNotification(player, false);
+		else if (target instanceof Fixture) {
+			narration = this.#game.notificationGenerator.generateInspectFixtureNotification(player, false, target.getContainingPhrase());
+			// If there are any players hidden in the fixture, notify them that they were found, and notify the player who found them.
+			// However, don't notify anyone if the player is inspecting the fixture that they're hiding in.
+			// Also ensure that the fixture isn't locked.
+			if (target instanceof Fixture && !player.hasBehaviorAttribute("hidden") && player.hidingSpot !== target.name
+			&&  (target.childPuzzle === null || !target.childPuzzle.type.endsWith("lock") || target.childPuzzle.solved)) {
+				for (const occupant of target.hidingSpot.occupants)
+					occupant.notify(this.#game.notificationGenerator.generateHiddenPlayerFoundNotification(occupant.hasBehaviorAttribute("no sight") ? "someone" : player.displayName));
+				const hiddenPlayersList = target.hidingSpot.generateOccupantsString(player.hasBehaviorAttribute("no sight"));
+				if (hiddenPlayersList) player.notify(this.#game.notificationGenerator.generateFoundHiddenPlayersNotification(hiddenPlayersList, target.hidingSpot.getContainingPhrase()));
+			}
+		}
 		else if (target instanceof RoomItem && !target.prefab.discreet) {
 			const preposition = target.getContainerPreposition();
 			const containerPhrase = target.getContainerPhrase();
-			narration = `${player.displayName} begins inspecting ${target.singleContainingPhrase} ${preposition} ${containerPhrase}.`;
+			narration = this.#game.notificationGenerator.generateInspectRoomItemNotification(player, false, target.singleContainingPhrase, preposition, containerPhrase);
 		}
 		else if (target instanceof InventoryItem && !target.prefab.discreet && target.player.name === player.name)
-			narration = `${player.displayName} takes out ${target.singleContainingPhrase} and begins inspecting it.`;
+			narration = this.#game.notificationGenerator.generateInspectInventoryItemNotification(player, false, target.singleContainingPhrase);
 		if (narration !== "")
 			this.#sendNarration(player, narration);
 	}
@@ -93,12 +190,15 @@ export default class GameNarrationHandler {
 	 * @param {Player} player - The player performing the knock action.
 	 */
 	narrateKnock(exit, player) {
-		const roomNarration = `${player.displayName} knocks on ${exit.getNamePhrase()}.`;
+		const exitPhrase = exit.getNamePhrase();
+		const notification = this.#game.notificationGenerator.generateKnockNotification(player, true, exitPhrase);
+		const roomNarration = this.#game.notificationGenerator.generateKnockNotification(player, false, exitPhrase);
+		player.notify(notification);
 		this.#sendNarration(player, roomNarration);
 		const destination = exit.dest;
 		if (destination.id === player.location.id) return;
 		const hearingPlayers = destination.occupants.filter(occupant => !occupant.hasBehaviorAttribute("no hearing"));
-		const destinationNarration = `There is a knock on ${destination.exitCollection.get(exit.link).getNamePhrase()}.`;
+		const destinationNarration = this.#game.notificationGenerator.generateKnockDestinationNotification(destination.exitCollection.get(exit.link).getNamePhrase());
 		// If the number of hearing players is the same as the number of occupants in the room, send the message to the room.
 		if (hearingPlayers.length !== 0 && hearingPlayers.length === destination.occupants.length)
 			this.#sendNarration(player, destinationNarration, destination);
@@ -110,11 +210,39 @@ export default class GameNarrationHandler {
 
 	/**
 	 * Narrates a hide action.
-	 * @param {string} hidingSpot - The name of the hiding spot.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player is hiding in.
 	 * @param {Player} player - The player performing the hide action.
 	 */
 	narrateHide(hidingSpot, player) {
-		const narration = this.#game.notificationGenerator.generateHideNotification(player, false, hidingSpot);
+		const hidingSpotPhrase = hidingSpot.getContainingPhrase();
+		let playerNotification = "";
+		const narration = this.#game.notificationGenerator.generateHideNotification(player, false, hidingSpotPhrase);
+		const hiddenPlayersList = hidingSpot.generateOccupantsString(player.hasBehaviorAttribute("no sight"));
+		if (hidingSpot.occupants.length + 1 > hidingSpot.capacity)
+			playerNotification = this.#game.notificationGenerator.generateHidingSpotFullNotification(hidingSpotPhrase, hiddenPlayersList);
+		else {
+			if (hidingSpot.occupants.length > 0) playerNotification = this.#game.notificationGenerator.generateHidingSpotOccupiedNotification(hidingSpotPhrase, hiddenPlayersList);
+			else playerNotification = this.#game.notificationGenerator.generateHideNotification(player, true, hidingSpotPhrase);
+		}
+		player.notify(playerNotification);
+		this.#sendNarration(player, narration);
+		for (const occupant of hidingSpot.occupants) {
+			const occupantNotification = hidingSpot.occupants.length + 1 > hidingSpot.capacity ? this.#game.notificationGenerator.generateFoundInFullHidingSpotNotification(occupant, player)
+			: this.#game.notificationGenerator.generateFoundInOccupiedHidingSpotNotification(occupant, player);
+			occupant.notify(occupantNotification);
+		}
+	}
+
+	/**
+	 * Narrates an unhide action.
+	 * @param {HidingSpot} hidingSpot - The hiding spot the player is coming out from.
+	 * @param {Player} player - The player performing the unhide action.
+	 */
+	narrateUnhide(hidingSpot, player) {
+		const hidingSpotPhrase = hidingSpot ? hidingSpot.getContainingPhrase() : "hiding";
+		const notification = this.#game.notificationGenerator.generateUnhideNotification(player, true, hidingSpotPhrase);
+		const narration = this.#game.notificationGenerator.generateUnhideNotification(player, false, hidingSpotPhrase);
+		player.notify(notification);
 		this.#sendNarration(player, narration);
 	}
 
@@ -129,6 +257,26 @@ export default class GameNarrationHandler {
 		else if (status.id === "blacked out") narration = this.#game.notificationGenerator.generateBlackOutNotification(player.displayName);
 		else if (status.behaviorAttributes.includes("unconscious")) narration = this.#game.notificationGenerator.generateUnconsciousNotification(player.displayName);
 		if (narration) this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a cure action.
+	 * @param {Status} status - The status being cured.
+	 * @param {Player} player - The player performing the cure action.
+	 * @param {InventoryItem} [item] - The inventory item that caused the status to be cured, if applicable.
+	 */
+	narrateCure(status, player, item) {
+		if (status.behaviorAttributes.includes("concealed")) {
+			const maskName = item ? item.name : "MASK";
+			const unmaskedNarration = this.#game.notificationGenerator.generateConcealedCuredNotification(maskName, player.displayName);
+			this.#sendNarration(player, unmaskedNarration);
+		}
+		else if (status.behaviorAttributes.includes("unconscious")) {
+			let awakenNarration = "";
+			if (status.id === "asleep" || status.id === "blacked out") awakenNarration = this.#game.notificationGenerator.generateWakeUpNotification(player.displayName);
+			else awakenNarration = this.#game.notificationGenerator.generateRegainConsciousnessNotification(player.displayName);
+			this.#sendNarration(player, awakenNarration);
+		}
 	}
 
 	/**
@@ -336,6 +484,46 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates an instantiate action when the item is an inventory item equipped to a player's equipment slot.
+	 * @param {InventoryItem} item - The item that is being instantiated.
+	 * @param {Player} player - The player the inventory item is being equipped to.
+	 */
+	narrateInstantiateEquippedInventoryItem(item, player) {
+		let notification = "";
+		let narration = "";
+		if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
+			notification = this.#game.notificationGenerator.generateTakeNotification(player, true, item.singleContainingPhrase);
+			narration = this.#game.notificationGenerator.generateTakeNotification(player, false, item.singleContainingPhrase);
+		}
+		else {
+			notification = this.#game.notificationGenerator.generateEquipNotification(player, true, item.singleContainingPhrase);
+			narration = this.#game.notificationGenerator.generateEquipNotification(player, false, item.singleContainingPhrase);
+		}
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a destroy action when the item is an inventory item equipped to a player's equipment slot.
+	 * @param {InventoryItem} item - The item that is being destroyed.
+	 * @param {Player} player - The player the inventory item belongs to.
+	 */
+	narrateDestroyEquippedInventoryItem(item, player) {
+		let notification = "";
+		let narration = "";
+		if (item.equipmentSlot === "RIGHT HAND" || item.equipmentSlot === "LEFT HAND") {
+			notification = this.#game.notificationGenerator.generateDropNotification(player, true, item.singleContainingPhrase);
+			narration = this.#game.notificationGenerator.generateDropNotification(player, false, item.singleContainingPhrase);
+		}
+		else {
+			notification = this.#game.notificationGenerator.generateUnequipNotification(player, true, item.singleContainingPhrase);
+			narration = this.#game.notificationGenerator.generateUnequipNotification(player, false, item.singleContainingPhrase);
+		}
+		player.notify(notification);
+		this.#sendNarration(player, narration);
+	}
+
+	/**
 	 * Narrates a craft action.
 	 * @param {CraftingResult} craftingResult - The result of the craft action.
 	 * @param {Player} player - The player performing the craft action.
@@ -365,6 +553,93 @@ export default class GameNarrationHandler {
 	}
 
 	/**
+	 * Narrates an activate action.
+	 * @param {Fixture} fixture - The fixture being activated.
+	 * @param {Player} [player] - The player performing the activate action.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateActivate(fixture, player, customNarration = "") {
+		const fixturePhrase = fixture.getContainingPhrase();
+		let notification = customNarration;
+		let narration = customNarration;
+		if (player && !customNarration) {
+			notification = this.#game.notificationGenerator.generateActivateNotification(fixturePhrase, player, true);
+			narration = this.#game.notificationGenerator.generateActivateNotification(fixturePhrase, player, false);
+		}
+		else if (!customNarration) narration = this.#game.notificationGenerator.generateActivateNotification(fixturePhrase);
+		if (notification) player.notify(notification);
+		this.#sendNarration(player, narration, fixture.location);
+	}
+
+	/**
+	 * Narrates a deactivate action.
+	 * @param {Fixture} fixture - The fixture being deactivated.
+	 * @param {Player} [player] - The player performing the deactivate action.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateDeactivate(fixture, player, customNarration = "") {
+		const fixturePhrase = fixture.getContainingPhrase();
+		let notification = customNarration;
+		let narration = customNarration;
+		if (player && !customNarration) {
+			notification = this.#game.notificationGenerator.generateDeactivateNotification(fixturePhrase, player, true);
+			narration = this.#game.notificationGenerator.generateDeactivateNotification(fixturePhrase, player, false);
+		}
+		else if (!customNarration) narration = this.#game.notificationGenerator.generateDeactivateNotification(fixturePhrase);
+		if (notification) player.notify(notification);
+		this.#sendNarration(player, narration, fixture.location);
+	}
+
+	/**
+	 * Narrates an attempt action.
+	 * @param {Puzzle} puzzle - The puzzle being attempted.
+	 * @param {Player} player - The player performing the action.
+	 * @param {string} description - The description to send to the player.
+	 * @param {string} [narration] - The narration to send. If none is supplied, uses the default puzzle interact notification.
+	 */
+	narrateAttempt(puzzle, player, description, narration = this.#game.notificationGenerator.generateAttemptPuzzleDefaultNotification(player.displayName, puzzle.getContainingPhrase())) {
+		if (description !== "") {
+			if (description.includes("<desc>")) player.sendDescription(description, puzzle);
+			else player.notify(description);
+		}
+		if (narration  !== "") this.#sendNarration(player, narration);
+	}
+
+	/**
+	 * Narrates a solve action.
+	 * @param {Puzzle} puzzle - The puzzle being attempted.
+	 * @param {string} outcome - The outcome the puzzle was solved with.
+	 * @param {Player} [player] - The player performing the action. Optional.
+	 * @param {ItemInstance} [item] - The item that was used to solve the puzzle. Optional.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateSolve(puzzle, outcome, player, item, customNarration = "") {
+		let narration = customNarration;
+		if (player && !customNarration)
+			narration = this.#game.notificationGenerator.generateSolvePuzzleNotification(player, false, puzzle, outcome, item);
+		if (player) player.sendDescription(puzzle.correctDescription, puzzle);
+		if (narration !== "") this.#sendNarration(player, narration, puzzle.location);
+	}
+
+	/**
+	 * Narrates an unsolve action.
+	 * @param {Puzzle} puzzle - The puzzle being attempted.
+	 * @param {Player} [player] - The player performing the action. Optional.
+	 * @param {string} [customNarration] - The custom text of the narration. Optional.
+	 */
+	narrateUnsolve(puzzle, player, customNarration = "") {
+		let narration = customNarration;
+		let notification = this.#game.notificationGenerator.generateUnsolvePuzzleNotification(player, true, puzzle);
+		if (player && !customNarration)
+			narration = this.#game.notificationGenerator.generateUnsolvePuzzleNotification(player, false, puzzle);
+		if (player && notification !== "") {
+			if (notification.includes("<desc>")) player.sendDescription(notification, puzzle);
+			else player.notify(notification);
+		}
+		if (narration !== "") this.#sendNarration(player, narration, puzzle.location);
+	}
+
+	/**
 	 * Narrates a die action.
 	 * @param {Player} player - The player performing the die action. 
 	 * @param {string} [customNarration] - The custom text of the narration. Optional.
@@ -377,6 +652,54 @@ export default class GameNarrationHandler {
 				const narration = this.#game.notificationGenerator.generateDieNotification(player, false);
 				this.#sendNarration(player, narration);
 			}
+		}
+	}
+
+	/**
+	 * Narrates an exit being unlocked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit being unlocked.
+	 */
+	narrateUnlock(room, exit) {
+		const narration = this.#game.notificationGenerator.generateUnlockNotification(exit);
+		this.#sendNarration(undefined, narration, room);
+	}
+
+	/**
+	 * Narrates an exit being locked.
+	 * @param {Room} room - The room the exit is in.
+	 * @param {Exit} exit - The exit being locked.
+	 */
+	narrateLock(room, exit) {
+		const narration = this.#game.notificationGenerator.generateLockNotification(exit);
+		this.#sendNarration(undefined, narration, room);
+	}
+
+	/**
+	 * Narrates an event being triggered.
+	 * @param {Event} event - The event being triggered.
+	 */
+	narrateTrigger(event) {
+		// Send the triggered narration to all rooms with occupants.
+		if (event.triggeredNarration !== "") {
+			const narrationText = parseDescription(event.triggeredNarration, event, undefined);
+			const rooms = this.#game.entityFinder.getRooms(null, event.roomTag, false);
+			for (let room of rooms)
+				this.#sendNarration(undefined, narrationText, room);
+		}
+	}
+
+	/**
+	 * Narrates an event being ended.
+	 * @param {Event} event - The event being ended.
+	 */
+	narrateEnd(event) {
+		// Send the ended narration to all rooms with occupants.
+		if (event.endedNarration !== "") {
+			const narrationText = parseDescription(event.endedNarration, event, undefined);
+			const rooms = this.#game.entityFinder.getRooms(null, event.roomTag, false);
+			for (let room of rooms)
+				this.#sendNarration(undefined, narrationText, room);
 		}
 	}
 }

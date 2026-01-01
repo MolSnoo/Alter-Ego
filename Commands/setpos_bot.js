@@ -100,6 +100,4 @@ export async function execute (game, command, args, player, callee) {
             players[i].pos.z = parseInt(coordinates[2]);
         }
     }
-
-    return;
 }

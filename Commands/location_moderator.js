@@ -35,6 +35,4 @@ export async function execute (game, message, command, args) {
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
 
     addGameMechanicMessage(game, game.guildContext.commandChannel, `${player.name} is currently in ${player.location.channel}.`);
-
-    return;
 }

@@ -83,6 +83,4 @@ export async function execute (game, command, args, player, callee) {
         room.unlockExit(exit.name);
         exit.dest.unlockExit(entrance.name);
     }
-
-    return;
 }

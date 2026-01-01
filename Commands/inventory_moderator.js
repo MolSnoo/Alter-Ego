@@ -36,6 +36,4 @@ export async function execute (game, message, command, args) {
 
     const inventoryString = player.viewInventory(`${player.name}'s`, true);
     addGameMechanicMessage(game, game.guildContext.commandChannel, inventoryString);
-
-    return;
 }

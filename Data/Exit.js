@@ -85,7 +85,7 @@ export default class Exit extends GameEntity {
      * Gets a phrase to refer to the exit in narrations.
      */
     getNamePhrase() {
-        return this.name === "DOOR" ? `the DOOR` : this.name.includes("DOOR") ? this.name : `the door to ${this.name}`;
+        return this.name.match(/.*\d+$/) ? this.name : this.name.includes("DOOR") ? `the ${this.name}` : `the door to the ${this.name}`;
     }
 
     /** @returns {string} */

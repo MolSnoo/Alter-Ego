@@ -108,6 +108,4 @@ export async function execute (game, command, args, player, callee) {
     exit.link = destExit.name;
     destExit.dest = room;
     destExit.link = exit.name;
-
-    return;
 }

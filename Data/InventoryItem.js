@@ -111,6 +111,7 @@ export default class InventoryItem extends ItemInstance {
 
     /**
      * Decreases the number of uses this inventory item has left. If it runs out of uses, instantiates its nextStage in its place, if it has one.
+     * @override
      */
     decreaseUses() {
         this.uses--;

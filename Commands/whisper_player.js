@@ -94,6 +94,4 @@ export async function execute (game, message, command, args, player) {
     const whisper = new Whisper(game, recipients, player.location.id, player.location);
     await whisper.init();
     game.whispers.push(whisper);
-
-    return;
 }

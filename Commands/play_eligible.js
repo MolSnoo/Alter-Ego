@@ -66,6 +66,4 @@ export async function execute (game, message, command, args) {
 
     const channel = game.settings.debug ? game.guildContext.testingChannel : game.guildContext.generalChannel;
     channel.send(`<@${message.author.id}> joined the game!`);
-
-    return;
 }

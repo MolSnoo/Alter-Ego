@@ -1,5 +1,8 @@
-﻿import UseAction from '../Data/Actions/UseAction.js';
-import { addLogMessage, addReply } from '../Modules/messageHandler.js';
+import ActivateAction from '../Data/Actions/ActivateAction.js';
+import AttemptAction from '../Data/Actions/AttemptAction.js';
+import DeactivateAction from '../Data/Actions/DeactivateAction.js';
+import UseAction from '../Data/Actions/UseAction.js';
+import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -127,24 +130,20 @@ export async function execute (game, message, command, args, player) {
         if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
         const narrate = puzzle === null ? true : false;
-        const time = new Date().toLocaleTimeString();
         if (fixture.activated) {
-            fixture.deactivate(player, narrate);
-            // Post log message.
-            addLogMessage(game, `${time} - ${player.name} deactivated ${fixture.name} in ${player.location.channel}`);
+            const deactivateAction = new DeactivateAction(game, message, player, player.location, false);
+            deactivateAction.performDeactivate(fixture, narrate);
         }
         else {
-            fixture.activate(player, narrate);
-            // Post log message.
-            addLogMessage(game, `${time} - ${player.name} activated ${fixture.name} in ${player.location.channel}`);
+            const activateAction = new ActivateAction(game, message, player, player.location, false);
+            activateAction.performActivate(fixture, narrate);
         }
     }
 
     // If there is a puzzle, do the required behavior.
     if (puzzle !== null) {
-        const response = player.attemptPuzzle(puzzle, item, password, command, input, message, targetPlayer);
-        if (response === "" || !response) return;
-        else return addReply(game, message, response);
+        const attemptAction = new AttemptAction(game, message, player, player.location, false);
+        attemptAction.performAttempt(puzzle, item, password, command, input, targetPlayer);
     }
     // Otherwise, the player must be trying to use an item on themselves.
     else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {

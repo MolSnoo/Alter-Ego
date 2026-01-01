@@ -1,7 +1,10 @@
+import HidingSpot from './HidingSpot.js';
 import ItemContainer from './ItemContainer.js';
-import Narration from './Narration.js';
-import { getChildItems, instantiateItem, destroyItem } from '../Modules/itemManager.js';
+import DeactivateAction from './Actions/DeactivateAction.js';
+import DestroyAction from './Actions/DestroyAction.js';
+import InstantiateAction from './Actions/InstantiateAction.js';
 import Timer from '../Classes/Timer.js';
+import { getChildItems } from '../Modules/itemManager.js';
 import { Duration } from 'luxon';
 
 /** @typedef {import('./Game.js').default} Game */
@@ -79,6 +82,11 @@ export default class Fixture extends ItemContainer {
      */
     hidingSpotCapacity;
     /**
+     * The hiding spot associated with this fixture. If this fixture is not a hiding spot, this is null.
+     * @type {HidingSpot}
+     */
+    hidingSpot;
+    /**
      * A preposition that will be used when a player drops an item in this fixture. If this blank, players cannot drop items into it.
      * @type {string}
      */
@@ -123,6 +131,7 @@ export default class Fixture extends ItemContainer {
         this.activated = activated;
         this.autoDeactivate = autoDeactivate;
         this.hidingSpotCapacity = hidingSpotCapacity;
+        this.hidingSpot = this.hidingSpotCapacity > 0 ? new HidingSpot(this, this.hidingSpotCapacity, this.row, this.getGame()) : null;
         this.preposition = preposition;
 
         this.process = { recipe: null, ingredients: [], duration: null, timer: null };
@@ -162,15 +171,10 @@ export default class Fixture extends ItemContainer {
 
     /**
      * Makes the fixture start processing recipes.
-     * @param {Player} player - The player who activated the fixture.
-     * @param {boolean} narrate - Whether to narrate the fixture's activation.
+     * @param {Player} [player] - The player who activated the fixture, if applicable.
      */
-    activate(player, narrate) {
+    activate(player) {
         this.activated = true;
-        if (narrate) {
-            if (player) new Narration(this.getGame(), player, this.location, `${player.displayName} turns on the ${this.name}.`).send();
-            else new Narration(this.getGame(), null, this.location, `${this.name} turns on.`).send();
-        }
 
         const result = this.findRecipe();
         if (result.recipe === null) {
@@ -181,8 +185,10 @@ export default class Fixture extends ItemContainer {
                 this.process.timer = new Timer(1000, { start: true, loop: true }, function () {
                     if (fixture.process.duration !== null) {
                         fixture.process.duration = fixture.process.duration.minus(1000);
-                        if (fixture.process.duration.as('milliseconds') <= 0)
-                            fixture.deactivate(null, true);
+                        if (fixture.process.duration.as('milliseconds') <= 0) {
+                            const deactivateAction = new DeactivateAction(fixture.getGame(), undefined, player, fixture.location, true);
+                            deactivateAction.performDeactivate(fixture, true);
+                        }
                     }
                 });
             }
@@ -207,16 +213,9 @@ export default class Fixture extends ItemContainer {
 
     /**
      * Stops the fixture from processing recipes.
-     * @param {Player} player - The player who deactivated the fixture.
-     * @param {boolean} narrate - Whether to narrate the fixture's deactivation.
      */
-    deactivate(player, narrate) {
+    deactivate() {
         this.activated = false;
-        if (narrate) {
-            if (player) new Narration(this.getGame(), player, this.location, `${player.displayName} turns off the ${this.name}.`).send();
-            else new Narration(this.getGame(), null, this.location, `${this.name} turns off.`).send();
-        }
-
         this.process.recipe = null;
         this.process.ingredients.length = 0;
         if (this.process.timer !== null)
@@ -236,8 +235,10 @@ export default class Fixture extends ItemContainer {
                 this.process.timer = new Timer(1000, { start: true, loop: true }, function () {
                     if (fixture.process.duration !== null) {
                         fixture.process.duration = fixture.process.duration.minus(1000);
-                        if (fixture.process.duration.as('milliseconds') <= 0)
-                            fixture.deactivate(null, true);
+                        if (fixture.process.duration.as('milliseconds') <= 0) {
+                            const deactivateAction = new DeactivateAction(fixture.getGame(), undefined, undefined, fixture.location, true);
+                            deactivateAction.performDeactivate(fixture, true);
+                        }
                     }
                 });
                 return;
@@ -408,7 +409,10 @@ function process(fixture, player) {
                     break;
                 }
             }
-            if (destroy && fixture.process.ingredients[i].quantity > 0) destroyItem(fixture.process.ingredients[i], quantity, true);
+            if (destroy && fixture.process.ingredients[i].quantity > 0) {
+                const destroyAction = new DestroyAction(fixture.getGame(), undefined, player, fixture.location, true);
+                destroyAction.performDestroyRoomItem(fixture.process.ingredients[i], quantity, true);
+            }
         }
         // Instantiate the products.
         for (let i = 0; i < fixture.process.recipe.products.length; i++) {
@@ -419,7 +423,10 @@ function process(fixture, player) {
                 if (remainingIngredients[j].productIndex === i && remainingIngredients[j].decreaseUses) {
                     instantiate = false;
                     ingredient.uses--;
-                    if (ingredient.uses === 0) destroyItem(ingredient, ingredient.quantity, true);
+                    if (ingredient.uses === 0) {
+                        const destroyAction = new DestroyAction(fixture.getGame(), undefined, player, fixture.location, true);
+                        destroyAction.performDestroyRoomItem(ingredient, ingredient.quantity, true);
+                    }
                     break;
                 }
                 else if (remainingIngredients[j].productIndex === i && remainingIngredients[j].nextStage) {
@@ -431,13 +438,18 @@ function process(fixture, player) {
                     break;
                 }
             }
-            if (instantiate) instantiateItem(product, fixture.location, fixture, "", quantity, new Map());
+            if (instantiate) {
+                const instantiateAction = new InstantiateAction(fixture.getGame(), undefined, undefined, fixture.location, true);
+                instantiateAction.performInstantiateRoomItem(product, fixture, "", quantity, new Map());
+            }
         }
         if (player && player.alive && player.location.id === fixture.location.id) player.sendDescription(fixture.process.recipe.completedDescription, fixture);
     }
 
-    if (fixture.autoDeactivate)
-        fixture.deactivate(null, true);
+    if (fixture.autoDeactivate) {
+        const deactivateAction = new DeactivateAction(fixture.getGame(), undefined, player, fixture.location, true);
+        deactivateAction.performDeactivate(fixture, true);
+    }
     else {
         fixture.process.timer.stop();
         fixture.process.duration = null;

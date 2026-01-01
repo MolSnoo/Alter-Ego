@@ -43,6 +43,8 @@ export async function execute (game, message, command, args, player) {
     // Check that the input given is an exit in the player's current room.
     const exit = game.entityFinder.getExit(player.location, parsedInput);
     if (exit === undefined) return addReply(game, message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit.dest.tags.includes("outside") && player.location.tags.includes("outside"))
+        return addReply(game, message, `There's nothing to knock on.`);
 
     const action = new KnockAction(game, message, player, player.location, false);
     action.performKnock(exit);

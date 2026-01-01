@@ -77,6 +77,4 @@ export async function execute (game, command, args, player, callee) {
         }
         player.voiceString = input;
     }
-
-    return;
 }

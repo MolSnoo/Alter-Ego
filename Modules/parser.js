@@ -404,14 +404,14 @@ export function generateProceduralOutput(description, proceduralSelections, play
                 /** @type {number} */
                 let statValue;
                 const proceduralStat = Player.abbreviateStatName(procedurals[i].getAttribute('stat'));
-                if (proceduralStat !== '' && player !== null) {
+                if (proceduralStat !== '' && player) {
                     if (proceduralStat === "str") statValue = player.strength;
                     else if (proceduralStat === "per") statValue = player.perception;
                     else if (proceduralStat === "dex") statValue = player.dexterity;
                     else if (proceduralStat === "spd") statValue = player.speed;
                     else if (proceduralStat === "sta") statValue = player.stamina;
                 }
-                possibilityArr = calculateModifiedPossbilityArr(possibilityArr, statValue);
+                possibilityArr = calculateModifiedPossibilityArr(possibilityArr, statValue);
                 winningPossibilityIndex = choosePossibilityIndex(possibilityArr);
             }
             for (let possibility of possibilityArr) {
@@ -442,7 +442,7 @@ function keepProcedural(chance) {
  * @param {number} statValue 
  * @returns {Array<Possibility>}
  */
-function calculateModifiedPossbilityArr(possibilityArr, statValue) {
+function calculateModifiedPossibilityArr(possibilityArr, statValue) {
     // If any of the given possibilities are null, assign their chances equally so that all chances add up to 100.
     // Clamp the sum of non-null possibilities between 0 and 100.
     /** @type {number} */

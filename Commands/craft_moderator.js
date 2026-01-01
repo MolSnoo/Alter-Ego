@@ -38,7 +38,7 @@ export async function execute (game, message, command, args) {
     if (args.length < 4)
         return addReply(game, message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
-    const player = game.entityFinder.getLivingPlayer(args[0].toLowerCase().replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -49,7 +49,7 @@ export async function execute (game, message, command, args) {
         return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     // Now find the item in the player's inventory.
-    /** @type {Array<InventoryItem>} */
+    /** @type {InventoryItem[]} */
     const items = [];
     for (let i = 0; i < args.length; i++) {
         let item = game.entityFinder.getPlayerHandHoldingItem(player, args.slice(i).join(" "), true)[1];
