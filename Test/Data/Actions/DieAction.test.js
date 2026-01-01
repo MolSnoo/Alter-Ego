@@ -18,6 +18,6 @@ describe('DieAction test', () => {
         // @ts-ignore
         const death = new DieAction(game, mockMessage, player, player.location, true);
         death.performDie();
-        expect(game.messageQueue.size).toStrictEqual(2);
+        expect(player.alive).toBeFalsy()
     })
 })
