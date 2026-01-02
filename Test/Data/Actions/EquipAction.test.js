@@ -1,0 +1,3 @@
+describe('EquipAction test', () => {
+    test('', () => {});
+});

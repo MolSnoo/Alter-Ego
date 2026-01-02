@@ -1,0 +1,3 @@
+describe('InflictAction test', () => {
+    test('', () => {});
+});

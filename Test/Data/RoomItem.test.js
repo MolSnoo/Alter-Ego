@@ -1,0 +1,3 @@
+describe('RoomItem test', () => {
+    test('', () => {});
+});
