@@ -61,6 +61,12 @@ export default class Action extends GameConstruct {
 	 * @type {boolean}
 	 */
 	performed;
+	/**
+	 * A set of channel IDs this action has already been communicated in. This is used to ensure that actions are not communicated in the same place twice.
+	 * @private
+	 * @type {Set<string>}
+	 */
+	mirrors;
 
 	/**
 	 * @constructor
@@ -79,11 +85,12 @@ export default class Action extends GameConstruct {
 		this.forced = forced;
 		this.whisper = whisper;
 		this.id = this.#generateId();
+		this.mirrors = new Set();
 	}
 
 	#generateId() {
 		const playerName = this.player ? this.player.name : `null`;
-		const id =  randomUUID();
+		const id = randomUUID();
 		return `${this.type}-${playerName}-${id}`;
 	}
 
@@ -94,6 +101,22 @@ export default class Action extends GameConstruct {
 	perform() {
 		this.performed = true;
 	}
+
+	/**
+	 * Returns true if the action has been communicated in the given channel.
+	 * @param {string} channelId
+	 */
+	hasBeenCommunicatedIn(channelId) {
+		return this.mirrors.has(channelId);
+	}
+
+	/**
+	 * Marks the action as having been mirrored in the given channel.
+	 * @param {string} channelId
+	 */
+	addToMirrors(channelId) {
+		this.mirrors.add(channelId);
+	}
 }
 
 /**
@@ -102,6 +125,7 @@ export default class Action extends GameConstruct {
 export const ActionType = {
 	Say: "say", // TODO
 	Whisper: "whisper", // TODO
+	Announce: "announce",
 	Text: "text",
 	Gesture: "gesture",
 	QueueMove: "queueMove",

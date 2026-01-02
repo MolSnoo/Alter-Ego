@@ -16,9 +16,8 @@ import EligibleCommand from './Classes/EligibleCommand.js';
 
 import { validateServerConfig } from './Modules/serverManager.js';
 import { default as autoUpdate } from './Modules/updateHandler.js';
-import { editSpectatorMessage } from './Modules/messageHandler.js';
+import { editSpectatorMessage, processIncomingMessage } from './Modules/messageHandler.js';
 import { executeCommand } from './Modules/commandHandler.js';
-import { default as handleDialog } from './Modules/dialogHandler.js';
 
 import { Client, Collection, ChannelType, GatewayIntentBits, Partials, TextChannel, Role } from 'discord.js';
 import { readdir, readFileSync } from 'fs';
@@ -263,11 +262,11 @@ client.on('clientReady', async () => {
     botContext.updatePresence();
     if (doSendFirstBootMessage) sendFirstBootMessage();
     if (game.settings.autoLoad) {
-        // commands seems to need time to "settle". the below snippet breaks if run synchronously
+        // Commands seem to need time to "settle". The snippet below breaks if run synchronously.
         setTimeout(() => {
-            let loadcmd = botContext.moderatorCommands.get("load_moderator");
-            if (loadcmd)
-                loadcmd.execute(game, undefined, "lar", []);
+            let loadCommand = botContext.moderatorCommands.get("load_moderator");
+            if (loadCommand)
+                loadCommand.execute(game, undefined, "lar", []);
         }, 0);
     }
 });
@@ -284,11 +283,8 @@ client.on('messageCreate', async message => {
         const command = message.content.substring(game.settings.commandPrefix.length);
         isCommand = await executeCommand(command, game, message);
     }
-    if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress
-        && (game.guildContext.roomCategories.includes(message.channel.parentId)
-            || message.channel.parentId === game.guildContext.whisperCategoryId
-            || message.channel.id === game.guildContext.announcementChannel.id)) {
-        await handleDialog(game, message, true);
+    if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress) {
+        processIncomingMessage(game, message);
     }
 });
 

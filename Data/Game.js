@@ -1,5 +1,6 @@
 import BotContext from '../Classes/BotContext.js';
 import GameConstants from '../Classes/GameConstants.js';
+import GameCommunicationHandler from '../Classes/GameCommunicationHandler.js';
 import GameEntityFinder from '../Classes/GameEntityFinder.js';
 import GameEntityLoader from '../Classes/GameEntityLoader.js';
 import GameEntitySaver from '../Classes/GameEntitySaver.js';
@@ -55,6 +56,12 @@ export default class Game {
 	 * @type {GameConstants}
 	*/
 	constants;
+	/**
+	 * A set of functions to handle communicating actions to players and spectators.
+	 * @readonly
+	 * @type {GameCommunicationHandler}
+	 */
+	communicationHandler;
 	/**
 	 * A set of functions to get and find game entities.
 	 * @readonly
@@ -295,6 +302,7 @@ export default class Game {
 		this.guildContext = guildContext;
 		this.settings = settings;
 		this.constants = new GameConstants();
+		this.communicationHandler = new GameCommunicationHandler(this);
 		this.entityFinder = new GameEntityFinder(this);
 		this.entityLoader = new GameEntityLoader(this);
 		this.entitySaver = new GameEntitySaver(this);
