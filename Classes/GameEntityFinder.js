@@ -4,9 +4,6 @@ import Gesture from "../Data/Gesture.js";
 import Player from "../Data/Player.js";
 import Room from "../Data/Room.js";
 import Status from "../Data/Status.js";
-import Exit from "../Data/Exit.js";
-import EquipmentSlot from "../Data/EquipmentSlot.js";
-import InventoryItem from "../Data/InventoryItem.js";
 import * as matchers from '../Modules/matchers.js';
 
 /**
@@ -148,6 +145,18 @@ export default class GameEntityFinder {
 	}
 
 	/**
+	 * Gets a living player by their Discord user ID.
+	 * @param {string} id - The ID to search for. 
+	 * @returns The living player with the specified user ID. If no such player exists, returns undefined.
+	 */
+	getLivingPlayerById(id) {
+		if (!id) return;
+		for (const livingPlayer of this.game.livingPlayersCollection.values()) {
+			if (!livingPlayer.isNPC && livingPlayer.id === id) return livingPlayer;
+		}
+	}
+
+	/**
 	 * Gets a dead player.
 	 * @param {string} name - The player's name. 
 	 * @returns The dead player with the specified name. If no such player exists, returns undefined.
@@ -271,6 +280,19 @@ export default class GameEntityFinder {
 			flag.setValue(value, false);
 		}
 		return flag ? flag.value : undefined;
+	}
+
+	/**
+	 * Gets a whisper.
+	 * @param {string} channelName - The whisper's channel name.
+	 * @returns The whisper with the specified channel name. If no such whisper exists, returns undefined.
+	 */
+	getWhisper(channelName) {
+		if (!channelName) return;
+		channelName = Room.generateValidId(channelName);
+		for (const whisper of this.game.whispers) {
+			if (whisper.channelName === channelName) return whisper;
+		}
 	}
 
 	/**

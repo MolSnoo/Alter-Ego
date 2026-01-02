@@ -6,6 +6,24 @@ import Player from '../Data/Player.js';
 /** @typedef {import('../Data/Whisper.js').default} Whisper */
 
 /**
+ * Processes a message sent in a guild during a game and directs it to the relevant handlers.
+ * @param {Game} game - The game the message is intended for.
+ * @param {UserMessage} message - The message to process.
+ */
+export async function processIncomingMessage(game, message) {
+    if (message.channel.type !== ChannelType.GuildText) return;
+    const isInWhisperChannel = message.channel.parentId === game.guildContext.whisperCategoryId;
+    const isInAnnouncementChannel = message.channel.id === game.guildContext.announcementChannel.id;
+    const isInRoomChannel = game.guildContext.roomCategories.includes(message.channel.parentId);
+    if (!isInWhisperChannel && !isInAnnouncementChannel && !isInRoomChannel) return;
+
+    const isModerator = message.member && message.member.roles.resolve(game.guildContext.moderatorRole);
+    const player = game.entityFinder.getLivingPlayerById(message.author.id);
+    const room = game.entityFinder.getRoom(message.channel.name);
+    const whisper = game.entityFinder.getWhisper(message.channel.name);
+}
+
+/**
  * Narrates a message to a room.
  * @param {Room} room - The room to send the message to.
  * @param {string} messageText - The message to send.
@@ -53,7 +71,7 @@ export async function addNarration(room, messageText, addSpectate = true, speake
  */
 export async function addNarrationToWhisper(whisper, messageText, addSpectate = true) {
     if (messageText !== "") {
-        whisper.game.messageQueue.enqueue(
+        whisper.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
                     await whisper.channel.send(messageText);
@@ -69,7 +87,7 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
                     !player.hasBehaviorAttribute("unconscious") &&
                     player.spectateChannel !== null
                 ) {
-                    whisper.game.messageQueue.enqueue(
+                    whisper.getGame().messageQueue.enqueue(
                         {
                             fire: async () => {
                                 await player.spectateChannel.send(spectateMessageText);
