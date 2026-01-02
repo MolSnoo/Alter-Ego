@@ -1,5 +1,7 @@
-import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection, GuildMember } from 'discord.js';
+import Dialog from '../Data/Dialog.js';
 import Player from '../Data/Player.js';
+import AnnounceAction from '../Data/Actions/AnnounceAction.js';
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection, GuildMember } from 'discord.js';
 
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Room.js').default} Room */
@@ -18,9 +20,17 @@ export async function processIncomingMessage(game, message) {
     if (!isInWhisperChannel && !isInAnnouncementChannel && !isInRoomChannel) return;
 
     const isModerator = message.member && message.member.roles.resolve(game.guildContext.moderatorRole);
-    const player = game.entityFinder.getLivingPlayerById(message.author.id);
     const room = game.entityFinder.getRoom(message.channel.name);
     const whisper = game.entityFinder.getWhisper(message.channel.name);
+    const player = game.entityFinder.getLivingPlayerById(message.author.id);
+    if (player) {
+        const location = isInAnnouncementChannel ? player.location : room;
+        const dialog = new Dialog(game, message, player, location, isInAnnouncementChannel, whisper);
+        if (dialog.isAnnouncement) {
+            const announceAction = new AnnounceAction(game, message, dialog.player, dialog.location, false, dialog.whisper);
+            announceAction.performAnnounce(dialog);
+        }
+    }
 }
 
 /**
@@ -415,6 +425,45 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
                         files: files,
                     });
                     const cachedMessage = player.getGame().dialogCache.find((entry) => entry.messageId === message.id);
+                    if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
+                },
+            },
+            "spectator"
+        );
+    }
+}
+
+/**
+ * Mirrors a dialog message in a spectate channel.
+ * @param {Player} player - The player whose spectate channel this message is being sent to.
+ * @param {Dialog} dialog - The dialog to mirror.
+ * @param {string} [webhookUsername] - The username to use for the mirrored webhook message. If none is specified, the speaker's current displayName will be used.
+ */
+export async function sendDialogSpectateMessage(player, dialog, webhookUsername) {
+    if (player.spectateChannel !== null) {
+        const messageText =
+            dialog.whisper && dialog.whisper.players.length > 1
+                ? `*(Whispered to ${dialog.whisper.makePlayersSentenceGroupExcluding(dialog.player.displayName)}):*\n${dialog.content || ""}`
+                : dialog.whisper
+                    ? `*(Whispered):*\n${dialog.content || ""}`
+                    : dialog.content || "";
+
+        const webhooks = await player.spectateChannel.fetchWebhooks();
+        let webhook = webhooks.find((wh) => wh.owner.id === player.getGame().botContext.client.user.id);
+        if ((webhook === null) || (webhook === undefined))
+            webhook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
+
+        player.getGame().messageQueue.enqueue(
+            {
+                fire: async () => {
+                    const webhookMessage = await webhook.send({
+                        content: messageText,
+                        username: webhookUsername ? webhookUsername : dialog.speakerDisplayName,
+                        avatarURL: dialog.speakerDisplayIcon,
+                        embeds: dialog.embeds,
+                        files: dialog.attachments.map((attachment) => attachment.url),
+                    });
+                    const cachedMessage = player.getGame().dialogCache.find((entry) => entry.messageId === dialog.message.id);
                     if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
                 },
             },

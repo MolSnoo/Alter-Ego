@@ -32,10 +32,10 @@ export default class Dialog extends GameConstruct {
 	 */
 	location;
 	/**
-	 * Whether or not the original message can be deleted by the bot.
+	 * Whether or not the dialog was made by a player in the announcement channel.
 	 * @type {boolean}
 	 */
-	deletable;
+	isAnnouncement;
 	/**
 	 * The whisper the dialog occurred in.
 	 * If the dialog was not whispered, this is null.
@@ -142,16 +142,16 @@ export default class Dialog extends GameConstruct {
 	 * @param {UserMessage} message - The message that this dialog originated with.
 	 * @param {Player} player - The player who spoke the dialog.
 	 * @param {Room} location - The room the dialog occurred in.
-	 * @param {boolean} deletable - Whether or not the original message can be deleted by the bot.
-	 * @param {Whisper} [whisper] - The whisper the dialog occurred in.
+	 * @param {boolean} [isAnnouncement] - Whether or not the dialog was made by a player in the announcement channel. Defaults to false.
+	 * @param {Whisper} [whisper] - The whisper the dialog occurred in. Defaults to null.
 	 */
-	constructor(game, message, player, location, deletable, whisper) {
+	constructor(game, message, player, location, isAnnouncement = false, whisper = null) {
 		super(game);
 		this.message = message;
 		this.player = player;
 		this.location = location;
-		this.deletable = deletable
-		this.whisper = whisper ? whisper : null;
+		this.isAnnouncement = isAnnouncement;
+		this.whisper = whisper;
 		this.content = this.message.content;
 		this.attachments = this.message.attachments;
 		this.embeds = this.message.embeds;
