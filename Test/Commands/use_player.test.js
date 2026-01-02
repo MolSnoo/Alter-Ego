@@ -4,7 +4,8 @@ import ActivateAction from "../../Data/Actions/ActivateAction.js";
 import AttemptAction from "../../Data/Actions/AttemptAction.js";
 import DeactivateAction from "../../Data/Actions/DeactivateAction.js";
 import UseAction from "../../Data/Actions/UseAction.js";
-import { createMockMessage } from "../__mocks__/libs/discord.js";
+import { createMockMessage, createMockUser } from "../__mocks__/libs/discord.js";
+import { sendQueuedMessages, clearQueue } from "../../Modules/messageHandler.js";
 
 describe("use_player command", () => {
     beforeEach(async () => {
@@ -13,19 +14,46 @@ describe("use_player command", () => {
 
     afterEach(() => {
         game.entityLoader.clearAll();
+        clearQueue(game);
         vi.resetAllMocks();
     });
 
     const use_player = new PlayerCommand(config, usage, execute);
 
+    test("on nothing", async () => {
+        const player = game.entityFinder.getPlayer("Kyra");
+        const user = createMockUser();
+        const message = createMockMessage({ author: user });
+        // @ts-ignore
+        await use_player.execute(game, message, "use", ["invalid", "item"], player);
+        await sendQueuedMessages(game);
+        expect(user.send).toHaveBeenCalledWith("Couldn't find \"invalid item\" to use. Try using a different command?");
+    });
+
     describe("on inventory item", () => {
-        test("UseAction execution", async () => {
+        test("UseAction on valid item", async () => {
             const player = game.entityFinder.getPlayer("Kyra");
             const item = game.entityFinder.getInventoryItem("MUG OF COFFEE", "Kyra");
             const spy = vi.spyOn(UseAction.prototype, "performUse");
             // @ts-ignore
             await use_player.execute(game, createMockMessage(), "drink", ["coffee"], player);
             expect(spy).toHaveBeenCalledWith(item);
+        });
+
+        test("UseAction on no programmed use", async () => {
+            const player = game.entityFinder.getPlayer("Kyra");
+            const spy = vi.spyOn(UseAction.prototype, "performUse");
+            const user = createMockUser();
+            const message = createMockMessage({ author: user });
+            // @ts-ignore
+            await use_player.execute(game, createMockMessage(), "drink", ["coffee"], player);
+            // @ts-ignore
+            await use_player.execute(game, message, "use", ["dirty mug"], player);
+            await sendQueuedMessages(game);
+            expect(spy).toHaveBeenCalledOnce();
+            expect(user.send).toHaveBeenCalledWith(
+                "That item has no programmed use on its own, but you may be able to use it some other way."
+            );
         });
     });
 
