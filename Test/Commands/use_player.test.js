@@ -48,7 +48,7 @@ describe("use_player command", () => {
             // @ts-ignore
             await use_player.execute(game, createMockMessage(), "drink", ["coffee"], player);
             // @ts-ignore
-            await use_player.execute(game, message, "use", ["dirty mug"], player);
+            await use_player.execute(game, message, "use", ["dirty", "mug"], player);
             await sendQueuedMessages(game);
             expect(spy).toHaveBeenCalledOnce();
             expect(user.send).toHaveBeenCalledWith(
