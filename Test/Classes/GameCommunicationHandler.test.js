@@ -1,0 +1,3 @@
+describe('GameCommunicationHandler test', () => {
+    test('', () => {});
+});

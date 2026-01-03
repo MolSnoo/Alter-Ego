@@ -63,7 +63,7 @@ async function main() {
             console.log(`Fetching ${sheetRangeConstant}.`);
             const sheet = await getSheetValues(range, masterTestSheetId);
             if (sheet && sheet.values){
-                writeFileSync(fileWritePath, JSON.stringify(sheet.values));
+                writeFileSync(fileWritePath, JSON.stringify(sheet.values, undefined, 2).replace(/",\n +"/g, `", "`).replace(/\[\n +"/g, `[ "`).replace(/"\n +]/g, `" ]`));
                 console.log(`Wrote ${fileWritePath}.`);
             } else {
                 console.warn(`No values returned for ${sheetRangeConstant}.`);

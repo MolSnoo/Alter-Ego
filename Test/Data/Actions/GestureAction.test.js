@@ -1,0 +1,3 @@
+describe('GestureAction test', () => {
+    test('', () => {});
+});

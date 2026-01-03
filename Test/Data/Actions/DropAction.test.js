@@ -1,0 +1,3 @@
+describe('DropAction test', () => {
+    test('', () => {});
+});

@@ -1,0 +1,3 @@
+describe('Narration test', () => {
+    test('', () => {});
+});

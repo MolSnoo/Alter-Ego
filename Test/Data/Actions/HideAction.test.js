@@ -1,0 +1,3 @@
+describe('HideAction test', () => {
+    test('', () => {});
+});

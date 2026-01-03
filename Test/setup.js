@@ -60,11 +60,18 @@ beforeAll(() => {
     /** @type {any} */ const spectatorRole = discordMock.createMockRole(serverconfig.spectatorRole, 'Spectator');
     roles.push(testerRole, eligibleRole, playerRole, freeMovementRole, moderatorRole, deadRole, spectatorRole);
 
-    const memberIds = ["665168062697177107", "621550382253998081", "778157117936107520", "578764435766640640", "656377156934434818", "430830419793936394"];
+    const memberIds = ["665168062697177107", "621550382253998081", "778157117936107520", "621554507041734656", "656377156934434818", "849256035867820072", "822180788288094238", "578764435766640640", "430830419793936394"];
     /** @type {any[]} */
     let members = [];
-    for (const memberId of memberIds)
-        members.push(discordMock.createMockMember(memberId));
+    for (const memberId of memberIds) {
+        const member = discordMock.createMockMember(memberId);
+        member.roles.add(playerRole);
+        if (memberId === "430830419793936394") member.roles.add(freeMovementRole);
+        members.push(member);
+    }
+    const moderator = discordMock.createMockMember("775841429641232417", "Narrator");
+    moderator.roles.add(moderatorRole);
+    members.push(moderator);
 
     /** @type {any} */
     const mockGuild = discordMock.createMockGuild(channels, roles, members);

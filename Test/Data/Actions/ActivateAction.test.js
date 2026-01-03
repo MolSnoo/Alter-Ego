@@ -1,0 +1,3 @@
+describe('ActivateAction test', () => {
+    test('', () => {});
+});
