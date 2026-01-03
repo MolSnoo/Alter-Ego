@@ -31,7 +31,7 @@ export default class InflictAction extends Action {
 	performInflict(status, notify = true, doCures = true, narrate = true, item, duration = null) {
 		if (this.performed) return false;
 		super.perform();
-		const playerStatusIds = this.player.status.map(statusEffect => statusEffect.id);
+		const playerStatusIds = this.player.statusCollection.map(statusEffect => statusEffect.id);
 		for (const overrider of status.overriders) {
 			if (playerStatusIds.includes(overrider.id)) {
 				if (this.message) this.message.reply(`Couldn't inflict status effect "${status.id}" because ${this.player.name} is already ${overrider.id}.`);
