@@ -693,7 +693,7 @@ describe("GameEntityFinder test", () => {
         });
         test("Get occupied rooms", () => {
             let rooms = game.entityFinder.getRooms(undefined, undefined, true);
-            expect(rooms.length).toBe(4);
+            expect(rooms.length).toBe(5);
         });
         test("Get room by invalid id", () => {
             let rooms = game.entityFinder.getRooms("INVALID");
