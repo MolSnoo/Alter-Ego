@@ -22,15 +22,15 @@ export async function executeCommand(commandStr, game, message, player, callee) 
     // First, determine who is using the command.
     if (!message) isBot = true;
     else if ((message.channel.id === game.guildContext.commandChannel.id || commandStr.startsWith('delete'))
-        && message.member.roles.resolve(game.guildContext.moderatorRole))
+        && message.member.roles.cache.has(game.guildContext.moderatorRole.id))
         isModerator = true;
     else {
         // Don't attempt to find the member who sent this message if it was sent by a webhook.
         if (message.webhookId !== null) return false;
         let member = game.guildContext.guild.members.resolve(message.author.id);
-        if (member && member.roles.resolve(game.guildContext.playerRole)) isPlayer = true;
-        else if (member && game.settings.debug && member.roles.resolve(game.guildContext.testerRole)) isEligible = true;
-        else if (member && !game.settings.debug && member.roles.resolve(game.guildContext.eligibleRole)) isEligible = true;
+        if (member && member.roles.cache.has(game.guildContext.playerRole.id)) isPlayer = true;
+        else if (member && game.settings.debug && member.roles.cache.has(game.guildContext.testerRole.id)) isEligible = true;
+        else if (member && !game.settings.debug && member.roles.cache.has(game.guildContext.eligibleRole.id)) isEligible = true;
     }
 
     const commandSplit = commandStr.split(" ");

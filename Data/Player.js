@@ -498,7 +498,7 @@ export default class Player extends ItemContainer {
         this.moveTimer = setInterval(function () {
             const settings = player.getGame().settings;
             let subtractedTime = 100;
-            if (this.game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
+            if (player.getGame().heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
             if (time >= subtractedTime) player.remainingTime -= subtractedTime;
             // Get the current coordinates based on what percentage of the duration has passed.
             const elapsedTime = time - player.remainingTime;
@@ -791,9 +791,7 @@ export default class Player extends ItemContainer {
      * @param {string} statusId - The ID of the status to look for. 
      */
     hasStatus(statusId) {
-        for (const status of this.statusCollection.values())
-            if (status.id === statusId) return true;
-        return false;
+        return this.statusCollection.has(statusId);
     }
 
     /**
@@ -1524,6 +1522,7 @@ export default class Player extends ItemContainer {
      * Sets the player as online and initiates a timer that will mark them as offline after 15 minutes of inactivity.
      */
     setOnline() {
+        if (this.isNPC) return;
         this.online = true;
         // Clear the existing timeout.
         if (this.onlineInterval)
@@ -1540,6 +1539,7 @@ export default class Player extends ItemContainer {
      * Sets the player as offline.
      */
     setOffline() {
+        if (this.isNPC) return;
         this.online = false;
         if (this.onlineInterval)
             clearTimeout(this.onlineInterval);
