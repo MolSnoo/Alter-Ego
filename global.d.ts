@@ -43,21 +43,11 @@ declare global {
 	type Callee = Event | Flag | InventoryItem | Puzzle;
 
 	/**
-	 * A cached dialog message.
-	 * @property {Snowflake} messageId - The ID of the original dialog message.
-	 * @property {SpectatedDialogMessage[]} spectateMirrors - All messages that have mirrored this dialog in spectate channels.
-	 */
-	interface CachedDialog {
-		messageId: Snowflake;
-		spectateMirrors: SpectatedDialogMessage[];
-	}
-
-	/**
 	 * A dialog message that has been mirrored in a spectate channel.
 	 * @property {Snowflake} messageId - The ID of the mirrored dialog message.
 	 * @property {Snowflake} webhookId - The ID of the webhook used to send the mirrored message to the spectate channel.
 	 */
-	interface SpectatedDialogMessage {
+	interface DialogSpectateMirror {
 		messageId: Snowflake;
 		webhookId: Snowflake;
 	}

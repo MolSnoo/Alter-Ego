@@ -272,11 +272,6 @@ export default class Game {
 	 * @type {PriorityQueue}
 	 */
 	messageQueue;
-	/** 
-	 * A cache of dialog messages to allow edits to dialog messages to be reflected in spectate channels.
-	 * @type {CachedDialog[]}
-	 */
-	dialogCache;
 	/**
 	 * A timeout which sends queued messages every quarter of a second.
 	 * @type {NodeJS.Timeout}
@@ -342,7 +337,6 @@ export default class Game {
 		this.flags = new Collection();
 		this.whispers = [];
 		this.messageQueue = new PriorityQueue();
-		this.dialogCache = [];
 
 		// Send the messages in the queue every quarter of a second.
 		this.#queuedMessageSendInterval = setInterval(

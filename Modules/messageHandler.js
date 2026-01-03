@@ -19,6 +19,8 @@ export async function processIncomingMessage(game, message) {
     const isInRoomChannel = game.guildContext.roomCategories.includes(message.channel.parentId);
     if (!isInWhisperChannel && !isInAnnouncementChannel && !isInRoomChannel) return;
 
+    game.communicationHandler.cacheDialog(message);
+
     const isModerator = message.member && message.member.roles.resolve(game.guildContext.moderatorRole);
     const room = game.entityFinder.getRoom(message.channel.name);
     const whisper = game.entityFinder.getWhisper(message.channel.name);
@@ -424,8 +426,7 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
                         embeds: message.embeds,
                         files: files,
                     });
-                    const cachedMessage = player.getGame().dialogCache.find((entry) => entry.messageId === message.id);
-                    if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
+                    player.getGame().communicationHandler.cacheSpectateMirrorForDialog(message, webhookMessage.id, webhook.id);
                 },
             },
             "spectator"
@@ -463,8 +464,7 @@ export async function sendDialogSpectateMessage(player, dialog, webhookUsername)
                         embeds: dialog.embeds,
                         files: dialog.attachments.map((attachment) => attachment.url),
                     });
-                    const cachedMessage = player.getGame().dialogCache.find((entry) => entry.messageId === dialog.message.id);
-                    if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
+                    player.getGame().communicationHandler.cacheSpectateMirrorForDialog(dialog.message, webhookMessage.id, webhook.id);
                 },
             },
             "spectator"
@@ -479,9 +479,9 @@ export async function sendDialogSpectateMessage(player, dialog, webhookUsername)
  * @param {UserMessage} messageNew - The new message after being edited.
  */
 export async function editSpectatorMessage(game, messageOld, messageNew) {
-    const cachedMessage = game.dialogCache.find((entry) => entry.messageId === messageOld.id);
-    if (!cachedMessage) return;
-    cachedMessage.spectateMirrors.forEach(async (mirror) => {
+    const spectateMirrors = game.communicationHandler.getDialogSpectateMirrors(messageOld);
+    if (!spectateMirrors) return;
+    spectateMirrors.forEach(async (mirror) => {
         const webhook = await messageOld.client.fetchWebhook(mirror.webhookId);
         if (webhook) {
             let messageText = messageNew.content;
