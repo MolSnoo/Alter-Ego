@@ -5,6 +5,7 @@ import { addReply } from '../Modules/messageHandler.js';
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
+/** @typedef {import('../Data/InventorySlot.js').default} InventorySlot*/
 
 /** @type {CommandConfig} */
 export const config = {
@@ -61,9 +62,9 @@ export async function execute (game, message, command, args, player) {
         if (playerItems[i].name === parsedInput) {
             item = playerItems[i];
             container = playerItems[i].container;
+            if (playerItems[i].container === null) continue;
             slotName = playerItems[i].slot;
             slot = container.inventoryCollection.get(slotName);
-            if (playerItems[i].container === null) continue;
             break;
         }
         // A container was specified.
@@ -105,7 +106,7 @@ export async function execute (game, message, command, args, player) {
         }
         else return addReply(game, message, `Couldn't find item "${parsedInput}" in your inventory.`);
     }
-    if (item !== null && container === null) return addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
+    if (item !== null && !container) return addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
 
     const action = new UnstashAction(game, message, player, player.location, false);
     action.performUnstash(item, hand, container, slot);
