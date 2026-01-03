@@ -698,7 +698,7 @@ export default class Player extends ItemContainer {
                         const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
                         cureAction.performCure(statusInstance.nextStage, false, false, true);
                         let inflictNextStage = true;
-                        const playerStatusIds = player.status.map(statusEffect => statusEffect.id);
+                        const playerStatusIds = player.statusCollection.map(statusEffect => statusEffect.id);
                         for (const overrider of statusInstance.nextStage.overriders) {
                             if (playerStatusIds.includes(overrider.id)) {
                                 player.sendDescription(statusInstance.curedDescription, statusInstance);
@@ -741,6 +741,7 @@ export default class Player extends ItemContainer {
         // Stop the timer.
         if (statusInstance.timer !== null)
             statusInstance.timer.stop();
+        this.statusCollection.delete(status.id)
         this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
     }

@@ -74,7 +74,7 @@ class GameFilterPlugin {
             [
                 (value) => value instanceof Status,
                 (/** @type {Status} */ value) =>
-                    `<Status "${value.id}" lasting ${humanize(value.duration?.as('milliseconds')) || "unknown"}>`,
+                    `<Status "${value.id}" lasting ${humanize(value.remaining?.as('milliseconds')) || "unknown"}>`,
             ],
             [(value) => value instanceof Gesture, (/** @type {Gesture} */ value) => `<Gesture "${value.id}">`],
             [
