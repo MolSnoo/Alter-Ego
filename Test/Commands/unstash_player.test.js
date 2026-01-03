@@ -64,4 +64,15 @@ describe("unstash_player command", () => {
         expect(spy).toHaveBeenCalledTimes(2);
         expect(author.send).toHaveBeenCalledWith("You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
     });
+    test("valid item without container", async () => {
+        const player = game.entityFinder.getPlayer("Kyra");
+        const message = createMockMessage();
+        const author = message.author;
+        const spy = vi.spyOn(UnstashAction.prototype, "performUnstash");
+        // @ts-ignore
+        await unstash_player.execute(game, message, "retrieve", ["coffee"], player);
+        await sendQueuedMessages(game);
+        expect(spy).not.toHaveBeenCalled();
+        expect(author.send).toHaveBeenCalledWith("COFFEE is not contained in another item and cannot be unstashed.");
+    });
 });
