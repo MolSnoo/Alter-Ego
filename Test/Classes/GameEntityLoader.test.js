@@ -363,7 +363,7 @@ describe('GameEntityLoader test', () => {
                 if (game.playersCollection.size === 0) await game.entityLoader.loadPlayers(false);
                 const inventoryItemCount = await game.entityLoader.loadInventoryItems(true, errors);
                 expect(errors).toEqual([]);
-                expect(inventoryItemCount).toBe(37);
+                expect(inventoryItemCount).toBe(127);
                 for (const inventoryItem of game.inventoryItems) {
                     if (inventoryItem.prefabId !== "") {
                         expect(inventoryItem.prefab).toBeInstanceOf(Prefab);
