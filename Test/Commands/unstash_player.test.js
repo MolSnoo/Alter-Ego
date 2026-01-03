@@ -27,6 +27,25 @@ describe("unstash_player command", () => {
         await unstash_player.execute(game, createMockMessage(), "retrieve", ["hamburger", "bun", "from", "pack", "of", "toilet", "paper"], player);
         expect(spy).toHaveBeenCalledWith(item, expect.toBeOneOf(game.entityFinder.getPlayerHands(player)), container, slot);
     });
+    test("valid item without specified container", async () => {
+        const player = game.entityFinder.getPlayer("Vivian");
+        const containers = [game.entityFinder.getInventoryItem("PACK OF TOILET PAPER 2", player.name).container, game.entityFinder.getInventoryItem("PACK OF TOILET PAPER 3", player.name).container];
+        const slots = containers.flatMap(item => Array.from(item.inventoryCollection.values()));
+        const items = slots.flatMap(slot => slot.items).filter(item => item.name === "PACK OF TOILET PAPER");
+        const spy = vi.spyOn(UnstashAction.prototype, "performUnstash");
+        // @ts-ignore
+        await unstash_player.execute(game, createMockMessage(), "retrieve", ["pack", "of", "toilet", "paper"], player);
+        expect(spy).toHaveBeenCalledWith(expect.toBeOneOf(items), expect.toBeOneOf(game.entityFinder.getPlayerHands(player)), expect.toBeOneOf(containers), expect.toBeOneOf(slots));
+    });
+    test("valid item with item of same name in hand", async () => {
+        const player = game.entityFinder.getPlayer("Vivian");
+        const spy = vi.spyOn(UnstashAction.prototype, "performUnstash");
+        // @ts-ignore
+        await unstash_player.execute(game, createMockMessage(), "retrieve", ["pack", "of", "toilet", "paper"], player);
+        // @ts-ignore
+        await unstash_player.execute(game, createMockMessage(), "retrieve", ["pack", "of", "toilet", "paper"], player);
+        expect(spy).toHaveBeenCalledTimes(2);
+    });
     test("invalid item from valid container", async () => {
         const player = game.entityFinder.getPlayer("Vivian");
         const message = createMockMessage();
