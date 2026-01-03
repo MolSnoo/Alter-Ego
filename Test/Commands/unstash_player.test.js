@@ -1,7 +1,6 @@
 import PlayerCommand from "../../Classes/PlayerCommand.js";
 import { usage, execute, config } from "../../Commands/unstash_player.js";
 import UnstashAction from "../../Data/Actions/UnstashAction.js";
-import InventoryItem from "../../Data/InventoryItem.js";
 import { clearQueue } from "../../Modules/messageHandler.js";
 import { createMockMessage } from "../__mocks__/libs/discord.js";
 
@@ -20,9 +19,12 @@ describe("unstash_player command", () => {
 
     test("valid item from valid container", async () => {
         const player = game.entityFinder.getPlayer("Vivian");
+        const container = game.entityFinder.getInventoryItem("PACK OF TOILET PAPER 2", player.name);
+        const [slot] = container.inventoryCollection.values();
+        const [item] = slot.items
         const spy = vi.spyOn(UnstashAction.prototype, "performUnstash");
         // @ts-ignore
         await unstash_player.execute(game, createMockMessage(), "retrieve", ["hamburger", "bun", "from", "pack", "of", "toilet", "paper"], player);
-        expect(spy).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalledWith(item, expect.toBeOneOf(game.entityFinder.getPlayerHands(player)), container, slot)
     });
 });
