@@ -34,6 +34,13 @@ export default class GameCommunicationHandler {
 	}
 
 	/**
+	 * Returns the actionCache.
+	 */
+	getActionCache() {
+		return this.#actionCache;
+	}
+
+	/**
 	 * Adds an action to the cache. If the cache is at maximum capacity, removes the oldest one.
 	 * @param {Action} action - The action to cache. 
 	 */
@@ -66,8 +73,7 @@ export default class GameCommunicationHandler {
 	 */
 	#actionHasBeenCommunicatedInChannel(channel, action) {
 		if (!channel) return true;
-		if (!this.#actionCache.has(action.id)) return false;
-		return this.#actionCache.get(action.id).hasBeenCommunicatedIn(channel.id);
+		return action.hasBeenCommunicatedIn(channel.id);
 	}
 
 	/**
