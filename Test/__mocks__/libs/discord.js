@@ -67,8 +67,8 @@ export function createMockRoleManager() {
 		cache: new Collection(),
 		resolve: vi.fn((id) => roleManager.cache.get(id)),
 		fetch: vi.fn(async (id) => roleManager.get(id)),
-		add: vi.fn(() => {}),
-		remove: vi.fn(() => {}),
+		add: vi.fn((role) => {roleManager.cache.set(role.id, role)}),
+		remove: vi.fn((role) => {roleManager.cache.delete(role.id)}),
 	};
 	return roleManager;
 }
@@ -131,24 +131,32 @@ export function createMockClient() {
 	return client;
 }
 
+/**
+ * @param {*} param0 
+ * @returns {UserMessage}
+ */
 export function createMockMessage({ content = '', member = createMockMember(), author = createMockUser(), channel = null } = {}) {
 	const { Collection } = require('discord.js');
 	const messageChannel = channel || createMockChannel();
 	return {
 		id: generateSnowflake(),
-		content,
+		content: content,
+		cleanContent: content,
 		member,
 		author,
 		channel: messageChannel,
 		reply: vi.fn(async (text) => createMockMessage({ content: text, channel: messageChannel })),
+		// @ts-ignore
 		react: vi.fn(async () => ({})),
 		webhookId: null,
 		attachments: new Collection(),
 		embeds: [],
+		// @ts-ignore
 		mentions: {
 			members: new Collection(),
 			channels: new Collection()
 		},
+		// @ts-ignore
 		delete: vi.fn(async () => ({})),
 	};
 }
@@ -162,4 +170,5 @@ export default {
 	createMockGuild,
 	createMockClient,
 	createMockMessage,
+	createMockMember
 };
