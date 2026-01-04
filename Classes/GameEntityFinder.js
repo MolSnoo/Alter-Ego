@@ -290,7 +290,7 @@ export default class GameEntityFinder {
 	getWhisper(channelName) {
 		if (!channelName) return;
 		channelName = Room.generateValidId(channelName);
-		for (const whisper of this.game.whispers) {
+		for (const whisper of this.game.whispersCollection.values()) {
 			if (whisper.channelName === channelName) return whisper;
 		}
 	}

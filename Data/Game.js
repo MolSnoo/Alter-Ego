@@ -260,23 +260,25 @@ export default class Game {
 	gesturesCollection;
 	/** 
 	 * A collection of all flags in the game, where the key is the flag's ID.
-	 * @type {Collection<string, Flag>} */
+	 * @type {Collection<string, Flag>}
+	 */
 	flags;
 	/** 
 	 * An array of all whispers in the game. These are not saved to the sheet.
+	 * @deprecated
 	 * @type {Whisper[]}
 	 */
 	whispers;
+	/**
+	 * A collection of all whispers in the game. The key for each whisper is its channel name. These are not saved to the sheet.
+	 * @type {Collection<string, Whisper>}
+	 */
+	whispersCollection;
 	/**
 	 * A queue of messages to be sent by the messageHandler.
 	 * @type {PriorityQueue}
 	 */
 	messageQueue;
-	/** 
-	 * A cache of dialog messages to allow edits to dialog messages to be reflected in spectate channels.
-	 * @type {CachedDialog[]}
-	 */
-	dialogCache;
 	/**
 	 * A timeout which sends queued messages every quarter of a second.
 	 * @type {NodeJS.Timeout}
@@ -342,7 +344,6 @@ export default class Game {
 		this.flags = new Collection();
 		this.whispers = [];
 		this.messageQueue = new PriorityQueue();
-		this.dialogCache = [];
 
 		// Send the messages in the queue every quarter of a second.
 		this.#queuedMessageSendInterval = setInterval(

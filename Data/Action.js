@@ -124,7 +124,7 @@ export default class Action extends GameConstruct {
  */
 export const ActionType = {
 	Say: "say", // TODO
-	Whisper: "whisper", // TODO
+	Whisper: "whisper",
 	Announce: "announce",
 	Text: "text",
 	Gesture: "gesture",

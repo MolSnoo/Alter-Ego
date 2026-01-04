@@ -1,9 +1,12 @@
 import Room from "../Data/Room.js";
+import Whisper from "../Data/Whisper.js";
+import { ChannelType, TextChannel } from "discord.js";
 
 /** @typedef {import("../Data/Event.js").default} Event */
 /** @typedef {import("../Data/Fixture.js").default} Fixture */
 /** @typedef {import("../Data/Flag.js").default} Flag */
 /** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Player.js").default} Player */
 /** @typedef {import("../Data/Prefab.js").default} Prefab */
 /** @typedef {import("../Data/Puzzle.js").default} Puzzle */
 /** @typedef {import("../Data/Status.js").default} Status */
@@ -202,7 +205,7 @@ export default class GameEntityManager {
 			if (Room.generateValidId(puzzle.locationDisplayName) === room.id)
 				puzzle.setLocation(room);
 		});
-		this.game.whispers.forEach(whisper => {
+		this.game.whispersCollection.forEach(whisper => {
 			if (whisper.locationId === room.id)
 				whisper.setLocation(room);
 		});
@@ -321,6 +324,72 @@ export default class GameEntityManager {
 				if (requirementsString.type === "Flag" && requirementsString.entityId === flag.id)
 					puzzle.requirements[i] = flag;
 			});
+		});
+	}
+
+	/**
+	 * Creates a new whisper and adds it to the game's collection of whispers.
+	 * @param {Player[]} players - The players to add to the whisper.
+	 * @param {string} [hidingSpotName] - The name of the hiding spot the whisper belongs to. Optional.
+	 * @returns The created whisper.
+	 */
+	async createWhisper(players, hidingSpotName) {
+		const whisper = new Whisper(this.game, players, hidingSpotName);
+		whisper.channel = await this.#createWhisperChannel(whisper);
+		this.game.whispersCollection.set(whisper.id, whisper);
+		return whisper;
+	}
+
+	/**
+	 * Updates a whisper's key in the game's collection of whispers and edits its channel name.
+	 * @param {Whisper} whisper - The whisper to edit.
+	 * @param {string} newId - The whisper's new ID.
+	 */
+	updateWhisperId(whisper, newId) {
+		const oldId = whisper.id;
+		whisper.id = newId;
+		this.game.whispersCollection.set(whisper.id, whisper);
+		this.game.whispersCollection.delete(oldId);
+		whisper.channel.edit({ name: whisper.id.substring(0, 100) });
+	}
+
+	/**
+	 * Deletes a whisper from the game.
+	 * @param {Whisper} whisper - The whisper to delete. 
+	 */
+	deleteWhisper(whisper) {
+		if (this.game.settings.autoDeleteWhisperChannels) whisper.channel.delete();
+		else whisper.channel.edit({ name: `archived-${whisper.location.id}`, lockPermissions: true });
+		whisper.playersCollection.clear();
+		this.game.whispersCollection.delete(whisper.id);
+	}
+
+	/**
+	 * Creates a channel for a whisper.
+	 * @param {Whisper} whisper
+	 * @returns {Promise<TextChannel>} The created channel.
+	 */
+	async #createWhisperChannel(whisper) {
+		return new Promise(resolve => {
+			this.game.guildContext.guild.channels.create({
+				name: whisper.channelName,
+				type: ChannelType.GuildText,
+				parent: this.game.guildContext.whisperCategoryId
+			}).then(channel => {
+				whisper.playersCollection.forEach(player => {
+					const noChannel = player.isNPC
+						|| player.hasBehaviorAttribute("hidden") && player.getBehaviorAttributeStatusEffects("no channel").length > 1
+						|| !player.hasBehaviorAttribute("hidden") && player.hasBehaviorAttribute("no channel")
+						|| player.hasBehaviorAttribute("no hearing");
+					if (!noChannel) {
+						channel.permissionOverwrites.create(player.id, {
+							ViewChannel: true,
+							ReadMessageHistory: true
+						});
+					}
+				});
+				resolve(channel);
+			}).catch();
 		});
 	}
 }

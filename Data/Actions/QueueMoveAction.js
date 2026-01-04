@@ -38,7 +38,7 @@ export default class QueueMoveAction extends Action {
         let entrance = null;
 
 		// If the player has the free movement role, they can move to any room they please.
-        if (this.player.member.roles.resolve(this.getGame().guildContext.freeMovementRole))
+        if (this.player.member.roles.cache.has(this.getGame().guildContext.freeMovementRole.id))
             destinationRoom = this.getGame().entityFinder.getRoom(destinationString);
 		// Otherwise, check that the desired room is adjacent to the current room.
 		else {

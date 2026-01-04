@@ -18,6 +18,7 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/InventorySlot.js").default} InventorySlot */
 /** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 /** @typedef {import("../Data/Status.js").default} Status */
+/** @typedef {import("../Data/Whisper.js").default} Whisper */
 
 /**
  * @class GameNarrationHandler
@@ -50,6 +51,19 @@ export default class GameNarrationHandler {
 		if (narrationText.charAt(0) === narrationText.charAt(0).toLocaleLowerCase())
 			narrationText = narrationText.charAt(0).toLocaleUpperCase() + narrationText.substring(1);
 		new Narration(this.#game, player, location, narrationText).send();
+	}
+
+	/**
+	 * Narrates a whisper action.
+	 * @param {Whisper} whisper - The whisper that was created.
+	 * @param {Player} player - The player performing the whisper action.
+	 */
+	narrateWhisper(whisper, player) {
+		const playerListString = whisper.generatePlayerListStringExcluding(player);
+		const notification = this.#game.notificationGenerator.generateWhisperNotification(player, true, playerListString);
+		const narration = this.#game.notificationGenerator.generateWhisperNotification(player, false, playerListString);
+		player.notify(notification);
+		this.#sendNarration(player, narration);
 	}
 
 	/**
@@ -105,7 +119,7 @@ export default class GameNarrationHandler {
 	 */
 	narrateExit(currentRoom, exit, player) {
 		const appendString = player.createMoveAppendString();
-		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.resolve(this.#game.guildContext.freeMovementRole);
+		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.cache.has(this.#game.guildContext.freeMovementRole.id);
 		const exitNotification = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenExitNotification(player, true, currentRoom.displayName, appendString)
 			: this.#game.notificationGenerator.generateExitNotification(player, true, exit.name, appendString);
 		const exitNarration = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenExitNotification(player, false, currentRoom.displayName, appendString)
@@ -122,7 +136,7 @@ export default class GameNarrationHandler {
 	 */
 	narrateEnter(destinationRoom, entrance, player) {
 		const appendString = player.createMoveAppendString();
-		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.resolve(this.#game.guildContext.freeMovementRole);
+		const playerCanMoveFreely = !player.isNPC && !!player.member.roles.cache.has(this.#game.guildContext.freeMovementRole.id);
 		const enterNarration = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenEnterNotification(player, false, destinationRoom.displayName, appendString)
 			: this.#game.notificationGenerator.generateEnterNotification(player, false, entrance.name, appendString);
 		this.#sendNarration(player, enterNarration, destinationRoom);

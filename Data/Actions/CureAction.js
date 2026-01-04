@@ -30,7 +30,7 @@ export default class CureAction extends Action {
 	performCure(status, notify = true, doCuredCondition = true, narrate = true, item) {
 		if (this.performed) return false;
 		super.perform();
-		const playerStatusIds = this.player.status.map(statusEffect => statusEffect.id);
+		const playerStatusIds = this.player.statusCollection.map(statusEffect => statusEffect.id);
 		if (!playerStatusIds.includes(status.id)) {
 			if (this.message) this.message.reply(`Specified player doesn't have that status effect.`);
 			return false;

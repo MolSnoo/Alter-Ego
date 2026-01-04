@@ -1,11 +1,11 @@
 ﻿import GameConstruct from './GameConstruct.js';
-import Narration from '../Data/Narration.js';
-import { addLogMessage, addNarrationToWhisper } from '../Modules/messageHandler.js';
-import { ChannelType } from 'discord.js';
+import Room from './Room.js';
+import { addNarrationToWhisper } from '../Modules/messageHandler.js';
+import { generatePlayerListString } from '../Modules/helpers.js';
+import { Collection } from 'discord.js';
 
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('./Player.js').default} Player */
-/** @typedef {import('./Room.js').default} Room */
 /** @typedef {import('discord.js').TextChannel} TextChannel */
 
 /**
@@ -15,11 +15,23 @@ import { ChannelType } from 'discord.js';
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/whisper.html
  */
 export default class Whisper extends GameConstruct {
+    /**
+     * The unique ID of the whisper.
+     * Consists of the location ID, hiding spot name (if it exists), and a lowercase, alphabetized list of all the players' displayNames separated by hyphens.
+     * @type {string}
+     */
+    id;
     /** 
-     * The players in the whisper.
+     * The players in the whisper. Deprecated. Use playersCollection instead.
+     * @deprecated
      * @type {Player[]}
      */
     players;
+    /**
+     * A collection of players in the whisper. The key for each entry is the player's name.
+     * @type {Collection<string, Player>}
+     */
+    playersCollection;
     /**
      * The ID of the room the players are whispering in.
      * @readonly
@@ -32,7 +44,13 @@ export default class Whisper extends GameConstruct {
      */
     location;
     /**
-     * The name that the whisper's channel will be set to. A lowercase, alphabetized list of all the players' displayNames separated by hyphens.
+     * The name of the hiding spot the whisper belongs to.
+     * @type {string}
+     */
+    hidingSpotName;
+    /**
+     * The name that the whisper's channel will be set to.
+     * Usually matches the ID, but capped to fit within Discord's channel name character limit.
      * @type {string}
      */
     channelName;
@@ -44,16 +62,23 @@ export default class Whisper extends GameConstruct {
 
     /**
      * @constructor
-     * @param {Game} game - The game context this whisper is occurring in. 
+     * @param {Game} game - The game this whisper is occurring in. 
      * @param {Player[]} players - The players in the whisper.
-     * @param {string} locationId - The ID of the room the players are whispering in.
-     * @param {Room} location - The room the players are whispering in.
+     * @param {string} [hidingSpotName] - The name of the hiding spot the whisper belongs to. Optional.
      */
-    constructor(game, players, locationId, location) {
+    constructor(game, players, hidingSpotName) {
         super(game);
         this.players = players;
-        this.locationId = locationId;
-        this.location = location;
+        for (const player of players)
+            this.playersCollection.set(player.name, player);
+        if (this.playersCollection.size > 0) {
+            this.locationId = this.playersCollection.first().location.id;
+            this.location = this.getGame().entityFinder.getRoom(this.locationId);
+        } 
+        if (hidingSpotName) this.hidingSpotName = hidingSpotName;
+        this.id = Whisper.generateValidId(this.playersCollection.map(player => player), this.location, this.hidingSpotName)
+        const discordChannelNameCharacterLimit = 100;
+        this.channelName = this.id.substring(0, discordChannelNameCharacterLimit);
     }
 
     /**
@@ -63,159 +88,70 @@ export default class Whisper extends GameConstruct {
     setLocation(room) {
         this.location = room;
     }
-    
-    /**
-     * Initializes the whisper by creating a channel for it and sending a message to each player in the whisper.
-     */
-    async init() {
-        this.channelName = this.makeChannelName();
-        this.channel = await this.createChannel(this.channelName, this.players);
-
-        const playerListString = this.makePlayersSentenceGroup();
-        new Narration(this.getGame(), this.players[0], this.location, `${playerListString} begin whispering.`).send();
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        addLogMessage(this.getGame(), `${time} - ${playerListString} began whispering in ${this.location.channel}`);
-    }
-
-    /**
-     * Makes the channel name for the whisper.
-     * @returns {string}
-     */
-    makeChannelName() {
-        /** @type {string[]} */
-        let playerList = [];
-        for (let i = 0; i < this.players.length; i++)
-            playerList.push(this.players[i].displayName.toLowerCase().replace(/ /g, '-'));
-        let playerListString = playerList.sort().join('-');
-        return `${this.location.id}-${playerListString}`;
-    }
 
     /**
      * Generate a grammatically correct list of players in the whisper.
+     * @param {Player[]} players - The list of players to include in the generated string. Defaults to all players in the whisper.
      * @returns {string}
      */
-    makePlayersSentenceGroup() {
-        let playerListString = this.players[0].displayName;
-        if (this.players.length === 2)
-            playerListString += ` and ${this.players[1].displayName}`;
-        else if (this.players.length !== 1) {
-            for (let i = 1; i < this.players.length - 1; i++)
-                playerListString += `, ${this.players[i].displayName}`;
-            playerListString += `, and ${this.players[this.players.length - 1].displayName}`;
-        }
-        return playerListString;
+    generatePlayerListString(players = this.playersCollection.map(player => player)) {
+        return generatePlayerListString(players);
+    }
+
+    /**
+     * Generate a grammatically correct list of players in the whisper, excluding the given player.
+     * @param {Player} player - The player to exclude.
+     * @returns {string}
+     */
+    generatePlayerListStringExcluding(player) {
+        return this.generatePlayerListString(this.playersCollection.filter(participant => participant.name !== player.name).map(player => player));
     }
 
     /**
      * Generate a grammatically correct list of players in the whisper, excluding any players with the given displayName.
+     * @deprecated
      * @param {string} playerDisplayName - The displayName to exclude.
      * @returns {string}
      */
-    makePlayersSentenceGroupExcluding(playerDisplayName) {
-        const players = this.players.filter(participant => participant.displayName !== playerDisplayName);
-        let playerListString = players[0].displayName;
-        if (players.length === 2)
-            playerListString += ` and ${players[1].displayName}`;
-        else if (players.length > 2) {
-            for (let i = 1; i < players.length - 1; i++)
-                playerListString += `, ${players[i].displayName}`;
-            playerListString += `, and ${players[players.length - 1].displayName}`;
-        }
-        return playerListString;
+    generatePlayerListStringExcludingDisplayName(playerDisplayName) {
+        return this.generatePlayerListString(this.playersCollection.filter(participant => participant.displayName !== playerDisplayName).map(player => player));
     }
 
     /**
-     * Creates a channel for the whisper.
-     * @param {string} name - The name to give the new channel.
-     * @param {Player[]} players - The players who should be given permission to view the channel.
-     * @returns {Promise<TextChannel>}
-     */
-    createChannel(name, players) {
-        return new Promise((resolve) => {
-            this.getGame().guildContext.guild.channels.create({
-                name: name,
-                type: ChannelType.GuildText,
-                parent: this.getGame().guildContext.whisperCategoryId
-            }).then(channel => {
-                for (let i = 0; i < players.length; i++) {
-                    let noChannel = false;
-                    if (players[i].hasBehaviorAttribute("hidden") && players[i].getBehaviorAttributeStatusEffects("no channel").length > 1
-                        || !players[i].hasBehaviorAttribute("hidden") && players[i].hasBehaviorAttribute("no channel")
-                        || players[i].hasBehaviorAttribute("no hearing"))
-                        noChannel = true;
-                    if (!noChannel && !players[i].isNPC) {
-                        channel.permissionOverwrites.create(players[i].id, {
-                            ViewChannel: true,
-                            ReadMessageHistory: true
-                        });
-                    }
-                }
-                resolve(channel);
-            });
-        });
-    }
-
-    /**
-     * Removes a player from the whisper.
-     * @param {number} index - The index of the player to remove in the whisper's array of players.
+     * Removes a player from the whisper. If the whisper has no more players after this, or the resulting whisper already exists, deletes the whisper entirely.
+     * @param {Player} player - The player to remove.
      * @param {string} [narration] - The text of the narration to send in the whisper channel when the player is removed.
-     * @returns {boolean} Whether the whisper should be deleted.
      */
-    removePlayer(index, narration) {
-        // Remove the player at index from the whisper.
-        this.revokeAccess(this.players[index]);
-        this.players.splice(index, 1);
-        const newChannelName = this.makeChannelName();
-
-        let deleteWhisper = false;
-        if (this.players.length === 0)
-            deleteWhisper = true;
-        else {
-            // Make sure a group with the same set of people doesn't already exist, then rename the channel. If it does exist, just delete this one.
-            for (let i = 0; i < this.getGame().whispers.length; i++) {
-                if (this.getGame().whispers[i].channelName === newChannelName) {
-                    deleteWhisper = true;
-                    this.channel.lockPermissions();
-                    break;
-                }
-            }
-        }
+    removePlayer(player, narration) {
+        this.revokeChannelAccess(player);
+        this.playersCollection.delete(player.name);
+        const newId = Whisper.generateValidId(this.playersCollection.map(player => player), this.location, this.hidingSpotName);
+        const deleteWhisper = this.playersCollection.size === 0 || this.getGame().whispersCollection.get(newId);
         if (!deleteWhisper) {
-            this.channelName = newChannelName;
-            this.channel.edit({ name: newChannelName });
+            this.getGame().entityLoader.updateWhisperId(this, newId);
             if (narration) addNarrationToWhisper(this, narration);
         }
-        return deleteWhisper;
+        else this.getGame().entityLoader.deleteWhisper(this);
     }
 
     /**
      * Revoke access to the whisper channel for a player.
      * @param {Player} player
      */
-    revokeAccess(player) {
-        if (!player.isNPC) {
-            this.channel.permissionOverwrites.create(player.id, {
-                ViewChannel: null,
-                ReadMessageHistory: null
-            });
-        }
+    revokeChannelAccess(player) {
+        if (!player.isNPC) this.channel.permissionOverwrites.delete(player.id);
     }
 
     /**
-     * Deletes a whisper.
-     * @param {number} index - The index of the whisper in the game's array of whispers.
+     * Generate an ID in all lowercase with 
+     * @param {Player[]} players - The players in the whisper.
+     * @param {Room} location - The location of the whisper.
+     * @param {string} [hidingSpotName] - The name of the hiding spot associated with the whisper, if applicable.
      */
-    delete(index) {
-        if (this.getGame().settings.autoDeleteWhisperChannels) this.channel.delete();
-        else {
-            this.channel.edit({ name: `archived-${this.location.id}` }).then(channel => {
-                channel.lockPermissions();
-            });
-        }
-
-        this.players.length = 0;
-        this.getGame().whispers.splice(index, 1);
+    static generateValidId(players, location, hidingSpotName) {
+        const locationString = `${location.id}-`;
+        const hidingSpotString = hidingSpotName ? `${hidingSpotName}-` : ``;
+        const playerListString = players.map(player => player.displayName).sort().join('-');
+        return Room.generateValidId(`${locationString}${hidingSpotString}${playerListString}`);
     }
 }
