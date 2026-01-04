@@ -25,6 +25,7 @@ The possibilities are endless. To try it for yourself, [install Alter Ego using 
 ## License
 
 Alter Ego
+
 Copyright (C) <2019> MolSnoo, The Alter Ego Contributors
 
 This program is free software: you can redistribute it and/or modify

@@ -11,6 +11,7 @@ provide accurate, useful documentation and explanations for both casual users an
 ## License
 
 Alter Ego
+
 Copyright (C) <2019> MolSnoo, The Alter Ego Contributors
 
 This program is free software: you can redistribute it and/or modify
