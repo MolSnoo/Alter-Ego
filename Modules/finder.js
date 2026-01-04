@@ -1,501 +1,314 @@
-var game = require('../game.json');
+/** @typedef {import("../Data/GameEntity.js").default} GameEntity */
 
-module.exports.findRoom = function (name) {
-    if (name) name = name.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-
-    return game.rooms.find(room => room.name === name);
-};
-
-module.exports.findRooms = function (name) {
-    if (name) {
-        name = name.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-        return game.rooms.filter(room => room.name.includes(name));
-    }
-    else return game.rooms;
-};
-
-module.exports.findObject = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
-    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-
-    if (location)
-        return game.objects.find(object => object.name === name && object.location.name === location);
-    else return game.objects.find(object => object.name === name);
-};
-
-module.exports.findObjects = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
-    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-
-    if (name && location) return game.objects.filter(object => object.name.includes(name) && object.location.name === location);
-    else if (location) return game.objects.filter(object => object.location.name === location);
-    else if (name) return game.objects.filter(object => object.name.includes(name));
-    else return game.objects;
-};
-
-module.exports.findPrefab = function (id) {
-    if (id) id = id.toUpperCase().replace(/\'/g, '').trim();
-
-    return game.prefabs.find(prefab => prefab.id === id);
-};
-
-module.exports.findPrefabs = function (id) {
-    if (id) {
-        id = id.toUpperCase().replace(/\'/g, '').trim();
-        return game.prefabs.filter(prefab => prefab.id.includes(id) || prefab.name.includes(id) || prefab.pluralName.includes(id));
-    }
-    else return game.prefabs;
-};
-
-module.exports.findRecipes = function (type, ingredients, products) {
-    if (type) type = type.toLowerCase();
-    if (ingredients) {
-        ingredients.forEach((ingredient, i) => ingredients[i] = ingredient.toUpperCase().replace(/\'/g, '').trim());
-        ingredients.sort();
-    }
-    if (products) {
-        products.forEach((product, i) => products[i] = product.toUpperCase().replace(/\'/g, '').trim());
-        products.sort();
-    }
-    const typeMatch = (recipe) => {
-        return type === "processing" && recipe.objectTag !== "" ? true
-        : type === "crafting" && recipe.objectTag === "" ? true
-        : type === "uncraftable" && recipe.uncraftable ? true
-        : false;
-    };
-
-    if (type && ingredients && products)
-        return game.recipes.filter(recipe => {
-                const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
-                const recipeProducts = recipe.products.map(product => product.id);
-                return typeMatch(recipe)
-                && ingredients.every(ingredient => recipeIngredients.includes(ingredient))
-                && products.every(product => recipeProducts.includes(product))
-            }
-        );
-    else if (ingredients && products)
-        return game.recipes.filter(recipe => {
-                const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
-                const recipeProducts = recipe.products.map(product => product.id);
-                return ingredients.every(ingredient => recipeIngredients.includes(ingredient))
-                && products.every(product => recipeProducts.includes(product))
-            }
-        );
-    else if (type && ingredients)
-        return game.recipes.filter(recipe => {
-                const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
-                return typeMatch(recipe)
-                && ingredients.every(ingredient => recipeIngredients.includes(ingredient))
-            }
-        );
-    else if (ingredients)
-        return game.recipes.filter(recipe => {
-                const recipeIngredients = recipe.ingredients.map(ingredient => ingredient.id);
-                return ingredients.every(ingredient => recipeIngredients.includes(ingredient))
-            }
-        );
-    else if (type && products)
-        return game.recipes.filter(recipe => {
-                const recipeProducts = recipe.products.map(product => product.id);
-                return typeMatch(recipe)
-                && products.every(product => recipeProducts.includes(product))
-            }
-        );
-    else if (products)
-        return game.recipes.filter(recipe => {
-                const recipeProducts = recipe.products.map(product => product.id);
-                return products.every(product => recipeProducts.includes(product))
-            }
-        );
-    else if (type)
-        return game.recipes.filter(recipe => typeMatch(recipe));
-    else return game.recipes;
-};
-
-module.exports.findItem = function (identifier, location, containerName) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
-    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-    if (containerName && containerName.includes(':')) containerName = containerName.substring(0, containerName.indexOf(':')) + containerName.substring(containerName.indexOf(':')).toUpperCase().replace(/\'/g, '').trim();
-
-    if (location && containerName)
-        return game.items.find(item =>
-            (item.identifier !== "" && item.identifier === identifier || item.prefab.id === identifier)
-            && item.location.name === location
-            && item.containerName === containerName
-            && item.quantity !== 0
-        );
-    else if (location)
-        return game.items.find(item => (item.identifier !== "" && item.identifier === identifier || item.prefab.id === identifier)
-            && item.location.name === location
-            && item.quantity !== 0
-        );
-    else return game.items.find(item => (item.identifier !== "" && item.identifier === identifier || item.prefab.id === identifier) && item.quantity !== 0);
-};
-
-module.exports.findItems = function (identifier, location, containerName, slot) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
-    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '').trim();
-    if (slot) slot = slot.toUpperCase().replace(/\'/g, '').trim();
-
-    const identifierMatches = (item, name) => {
-        return item.hasOwnProperty("identifier") && item.identifier !== "" && item.identifier.includes(name)
-            || item.hasOwnProperty("prefab") && item.prefab.id.includes(name)
-            || item.name.includes(name)
-            || item.hasOwnProperty("pluralName") && item.pluralName !== "" && item.pluralName.includes(name);
-    };
-
-    if (identifier && location && containerName && slot)
-        return game.items.filter(item =>
-            identifierMatches(item, identifier)
-            && item.location.name === location
-            && identifierMatches(item.container, containerName)
-            && item.slot === slot
-            && item.quantity !== 0
-        );
-    else if (identifier && containerName && slot)
-        return game.items.filter(item =>
-            identifierMatches(item, identifier)
-            && identifierMatches(item.container, containerName)
-            && item.slot === slot
-            && item.quantity !== 0
-        );
-    else if (location && containerName && slot)
-        return game.items.filter(item =>
-            item.location.name === location
-            && identifierMatches(item.container, containerName)
-            && item.slot === slot
-            && item.quantity !== 0
-        );
-    else if (containerName && slot)
-        return game.items.filter(item =>
-            identifierMatches(item.container, containerName)
-            && item.slot === slot
-            && item.quantity !== 0
-        );
-    else if (identifier && location && containerName)
-        return game.items.filter(item =>
-            identifierMatches(item, identifier)
-            && item.location.name === location
-            && identifierMatches(item.container, containerName)
-            && item.quantity !== 0
-        );
-    else if (identifier && containerName)
-        return game.items.filter(item =>
-            identifierMatches(item, identifier)
-            && identifierMatches(item.container, containerName)
-            && item.quantity !== 0
-        );
-    else if (location && containerName)
-        return game.items.filter(item =>
-            item.location.name === location
-            && identifierMatches(item.container, containerName)
-            && item.quantity !== 0
-        );
-    else if (containerName)
-        return game.items.filter(item =>
-            identifierMatches(item.container, containerName)
-            && item.quantity !== 0
-        );
-    else if (identifier && location)
-        return game.items.filter(item => identifierMatches(item, identifier)
-            && item.location.name === location
-            && item.quantity !== 0
-        );
-    else if (location) return game.items.filter(item => item.location.name === location && item.quantity !== 0);
-    else if (identifier) return game.items.filter(item => identifierMatches(item, identifier) && item.quantity !== 0);
-    else return game.items.filter(item => item.quantity !== 0)
-};
-
-module.exports.findPuzzle = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
-    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-
-    if (location)
-        return game.puzzles.find(puzzle => puzzle.name === name && puzzle.location.name === location);
-    else return game.puzzles.find(puzzle => puzzle.name === name);
-};
-
-module.exports.findPuzzles = function (name, location) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
-    if (location) location = location.toLowerCase().replace(/\'/g, '').trim().replace(/ /g, '-');
-
-    if (name && location) return game.puzzles.filter(puzzle => puzzle.name.includes(name) && puzzle.location.name === location);
-    else if (location) return game.puzzles.filter(puzzle => puzzle.location.name === location);
-    else if (name) return game.puzzles.filter(puzzle => puzzle.name.includes(name));
-    else return game.puzzles;
-};
-
-module.exports.findEvent = function (name) {
-    if (name) name = name.toUpperCase().replace(/\'/g, '').trim();
-
-    return game.events.find(event => event.name === name);
-};
-
-module.exports.findEvents = function (name) {
-    if (name) {
-        name = name.toUpperCase().replace(/\'/g, '').trim();
-        return game.events.filter(event => event.name.includes(name));
-    }
-    else return game.events;
-};
-
-module.exports.findStatusEffect = function (name) {
-    if (name) name = name.toLowerCase().trim();
-
-    return game.statusEffects.find(statusEffect => statusEffect.name === name);
-};
-
-module.exports.findStatusEffects = function (name) {
-    if (name) {
-        name = name.toLowerCase().trim();
-        return game.statusEffects.filter(statusEffect => statusEffect.name.includes(name));
-    }
-    else return game.statusEffects;
-};
-
-module.exports.findPlayer = function (name) {
-    if (name) name = name.toLowerCase().trim();
-
-    return game.players.find(player => player.name.toLowerCase() === name);
-};
-
-module.exports.findPlayers = function (name) {
-    if (name) {
-        name = name.toLowerCase().trim();
-        return game.players.filter(player => player.name.toLowerCase().includes(name) || player.displayName.toLowerCase().includes(name));
-    }
-    else return game.players;
-};
-
-module.exports.findLivingPlayer = function (name) {
-    if (name) name = name.toLowerCase().trim();
-
-    return game.players_alive.find(player => player.name.toLowerCase() === name);
-};
-
-module.exports.findLivingPlayers = function (name) {
-    if (name) {
-        name = name.toLowerCase().trim();
-        return game.players_alive.filter(player => player.name.toLowerCase().includes(name) || player.displayName.toLowerCase().includes(name));
-    }
-    else return game.players_alive;
-};
-
-module.exports.findDeadPlayer = function (name) {
-    if (name) name = name.toLowerCase().trim();
-
-    return game.players_dead.find(player => player.name.toLowerCase() === name);
-};
-
-module.exports.findDeadPlayers = function (name) {
-    if (name) {
-        name = name.toLowerCase().trim();
-        return game.players_dead.filter(player => player.name.toLowerCase().includes(name) || player.displayName.toLowerCase().includes(name));
-    }
-    else return game.players_dead;
-};
-
-module.exports.findInventoryItem = function (identifier, player, containerName, equipmentSlot) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
-    if (player) player = player.toLowerCase().trim();
-    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '').trim();
-    if (equipmentSlot) equipmentSlot = equipmentSlot.toUpperCase().replace(/\'/g, '').trim();
-
-    if (player && containerName && equipmentSlot)
-        return game.inventoryItems.find(inventoryItem =>
-            inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier === identifier || inventoryItem.prefab.id === identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.containerName === containerName
-            && inventoryItem.equipmentSlot === equipmentSlot
-            && inventoryItem.quantity !== 0
-        );
-    else if (player && containerName)
-        return game.inventoryItems.find(inventoryItem =>
-            inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier === identifier || inventoryItem.prefab.id === identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.containerName === containerName
-            && inventoryItem.quantity !== 0
-        );
-	else if (player && equipmentSlot)
-        return game.inventoryItems.find(inventoryItem =>
-            inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier === identifier || inventoryItem.prefab.id === identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.equipmentSlot === equipmentSlot
-            && inventoryItem.quantity !== 0
-        );
-    else if (player)
-        return game.inventoryItems.find(inventoryItem =>
-            inventoryItem.prefab !== null
-            && (inventoryItem.identifier !== "" && inventoryItem.identifier === identifier || inventoryItem.prefab.id === identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.quantity !== 0
-        );
-    else return game.inventoryItems.find(inventoryItem =>
-        inventoryItem.prefab !== null
-        && (inventoryItem.identifier !== "" && inventoryItem.identifier === identifier || inventoryItem.prefab.id === identifier)
-        && inventoryItem.quantity !== 0
-    );
-};
-
-module.exports.findInventoryItems = function (identifier, player, containerName, slot, equipmentSlot) {
-    if (identifier) identifier = identifier.toUpperCase().replace(/\'/g, '').trim();
-    if (player) player = player.toLowerCase().trim();
-    if (containerName) containerName = containerName.toUpperCase().replace(/\'/g, '').trim();
-    if (slot) slot = slot.toUpperCase().replace(/\'/g, '').trim();
-    if (equipmentSlot) equipmentSlot = equipmentSlot.toUpperCase().replace(/\'/g, '').trim();
-
-    const identifierMatches = (item, name) => {
-        return item.identifier !== "" && item.identifier.includes(name)
-            || item.prefab.id.includes(name)
-            || item.name.includes(name)
-            || item.pluralName !== "" && item.pluralName.includes(name);
-    };
-
-    if (identifier && player && containerName && slot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.slot === slot
-            && inventoryItem.quantity !== 0
-        );
-    if (identifier && containerName && slot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.slot === slot
-            && inventoryItem.quantity !== 0
-        );
-    else if (player && containerName && slot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.slot === slot
-            && inventoryItem.quantity !== 0
-        );
-    else if (containerName && slot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.slot === slot
-            && inventoryItem.quantity !== 0
-        );
-    else if (identifier && player && containerName)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.quantity !== 0
-        );
-    else if (identifier && containerName)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.quantity !== 0
-        );
-    else if (player && containerName)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.quantity !== 0
-        );
-    else if (containerName)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && inventoryItem.container !== null
-            && identifierMatches(inventoryItem.container, containerName)
-            && inventoryItem.quantity !== 0
-        );
-    else if (identifier && player)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.quantity !== 0
-        );
-    else if (identifier && player && equipmentSlot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.equipmentSlot === equipmentSlot
-            && inventoryItem.quantity !== 0
-        );
-    else if (identifier && equipmentSlot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.equipmentSlot === equipmentSlot
-            && inventoryItem.quantity !== 0
-        );
-    else if (player && equipmentSlot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.equipmentSlot === equipmentSlot
-            && inventoryItem.quantity !== 0
-        );
-    else if (player)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && inventoryItem.player.name.toLowerCase() === player
-            && inventoryItem.quantity !== 0
-        );
-    else if (equipmentSlot)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && inventoryItem.equipmentSlot === equipmentSlot
-            && inventoryItem.quantity !== 0
-        );
-    else if (identifier)
-        return game.inventoryItems.filter(inventoryItem =>
-            inventoryItem.prefab !== null
-            && identifierMatches(inventoryItem, identifier)
-            && inventoryItem.quantity !== 0
-        );
-    else return game.inventoryItems.filter(inventoryItem => inventoryItem.prefab !== null && inventoryItem.quantity !== 0);
-};
-
-module.exports.findGestures = function (name) {
-    if (name) {
-        name = name.toLowerCase().replace(/\'/g, '').trim();
-        return game.gestures.filter(gesture => gesture.name.includes(name));
-    }
-    else return game.gestures;
+/** 
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} id - The ID or displayName of the room.
+ * @returns The room with the specified ID. If no such room exists, returns undefined.
+ */
+export function findRoom(container, id) {
+    return container.getGame().entityFinder.getRoom(id);
 }
 
-module.exports.findFlag = function (id, evaluate = false) {
-    if (id) id = id.toUpperCase().replace(/[\'"“”`]/g, '').trim();
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} name - The name of the fixture. 
+ * @param {string} [location] - The ID or displayName of the room the fixture is in. 
+ * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
+ */
+export function findFixture(container, name, location) {
+    return container.getGame().entityFinder.getFixture(name, location);
+}
 
-    const flag = game.flags.get(id);
-    if (flag && flag.valueScript && evaluate) {
-        const value = flag.evaluate();
-        flag.setValue(value, false);
-    }
-    return flag ? flag.value : flag;
-};
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} id - The prefab's ID.
+ * @returns The prefab with the specified ID. If no such prefab exists, returns undefined.
+ */
+export function findPrefab(container, id) {
+    return container.getGame().entityFinder.getPrefab(id);
+}
 
-module.exports.findFlags = function (id) {
-    if (id) id = id.toUpperCase().replace(/[\'"“”`]/g, '').trim();
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} identifier - The room item's identifier or prefab ID.
+ * @param {string} [location] - The ID or displayName of the room the item is in. 
+ * @param {string} [containerName] - The room item's container name.
+ * @returns The room item with the specified identifier, and location and container name if applicable. If no such item exists, returns undefined.
+ */
+export function findRoomItem(container, identifier, location, containerName) {
+    return container.getGame().entityFinder.getRoomItem(identifier, location, containerName);
+}
 
-    const flags = [...game.flags.values()];
-    if (id) return flags.filter(flag => flag.id.includes(id));
-    else return flags;
-};
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} name - The name of the puzzle. 
+ * @param {string} [location] - The ID or displayName of the room the puzzle is in. 
+ * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
+ */
+export function findPuzzle(container, name, location) {
+    return container.getGame().entityFinder.getPuzzle(name, location);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} id - The event's ID.
+ * @returns The event with the specified ID. If no such event exists, returns undefined.
+ */
+export function findEvent(container, id) {
+    return container.getGame().entityFinder.getEvent(id);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} id - The status effect's ID.
+ * @returns The status effect with the specified ID. If no such status effect exists, returns undefined.
+ */
+export function findStatusEffect(container, id) {
+    return container.getGame().entityFinder.getStatusEffect(id);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} name - The player's name. 
+ * @returns The player with the specified name. If no such player exists, returns undefined.
+ */
+export function findPlayer(container, name) {
+    return container.getGame().entityFinder.getPlayer(name);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} name - The player's name. 
+ * @returns The living player with the specified name. If no such player exists, returns undefined.
+ */
+export function findLivingPlayer(container, name) {
+    return container.getGame().entityFinder.getLivingPlayer(name);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} name - The player's name. 
+ * @returns The dead player with the specified name. If no such player exists, returns undefined.
+ */
+export function findDeadPlayer(container, name) {
+    return container.getGame().entityFinder.getDeadPlayer(name);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} identifier - The inventory item's identifier or prefab ID.
+ * @param {string} [player] - The name of the player the inventory item belongs to.
+ * @param {string} [containerName] - The inventory item's container name.
+ * @param {string} [equipmentSlotId] - The ID of the equipment slot the inventory item belongs to.
+ * @returns The inventory item with the specified identifier, and player, container name, and equipment slot if applicable. If no such item exists, returns undefined.
+ */
+export function findInventoryItem(container, identifier, player, containerName, equipmentSlotId) {
+    return container.getGame().entityFinder.getInventoryItem(identifier, player, containerName, equipmentSlotId);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} id - The gesture's ID.
+ * @returns The gesture with the specified ID. If no such gesture exists, returns undefined.
+ */
+export function findGesture(container, id) {
+    return container.getGame().entityFinder.getGesture(id);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} id - The flag's ID. 
+ * @param {boolean} [evaluate] - Whether or not to also evaluate the flag's value script and update its value. Does not execute the flag's set commands. Defaults to false.
+ * @returns The flag with the specified ID. If no such flag exists, returns undefined.
+ */
+export function findFlag(container, id, evaluate = false) {
+    return container.getGame().entityFinder.getFlagValue(id, evaluate);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [id] - Filter the rooms to only those whose ID matches the given ID.
+ * @param {string} [tag] - Filter the rooms to only those with the given tag.
+ * @param {boolean} [occupied] - Filter the rooms to only those who have at least one occupant. If this is `true`, includes NPCs as occupants. If this is `false`, NPCs are not counted.
+ */
+export function findRooms(container, id, tag, occupied) {
+    return container.getGame().entityFinder.getRooms(id, tag, occupied);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [name] - Filter the fixtures to only those whose name matches the given name.
+ * @param {string} [location] - Filter the fixtures to only those whose location ID matches the given location ID.
+ * @param {boolean} [accessible] - Filter the fixtures to only those who are accessible or not.
+ * @param {string} [recipeTag] - Filter the fixtures to only those with the given recipe tag.
+ */
+export function findFixtures(container, name, location, accessible, recipeTag) {
+    return container.getGame().entityFinder.getFixtures(name, location, accessible, recipeTag);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [id] - Filter the prefabs to only those whose ID matches the given ID.
+ * @param {string} [effectsString] - Filter the prefabs to only those who inflict the given comma-separated status effects.
+ * @param {string} [curesString] - Filter the prefabs to only those who cure the given comma-separated status effects.
+ * @param {string} [equipmentSlotsString] - Filter the prefabs to only those who are equippable to the given comma-separated equipment slots.
+ */
+export function findPrefabs(container, id, effectsString, curesString, equipmentSlotsString) {
+    return container.getGame().entityFinder.getPrefabs(id, effectsString, curesString, equipmentSlotsString);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [type] - Filter the recipes to only those of the given type.
+ * @param {string} [fixtureTag] - Filter the recipes to only those with the given fixture tag.
+ * @param {string} [ingredientsString] - Filter the recipes to only those with the given comma-separated ingredients.
+ * @param {string} [productsString] - Filter the recipes to only those with the given comma-separated products.
+ */
+export function findRecipes(container, type, fixtureTag, ingredientsString, productsString) {
+    return container.getGame().entityFinder.getRecipes(type, fixtureTag, ingredientsString, productsString);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [identifier] - Filter the room items to only those whose identifier or prefab ID matches the given identifier in moderator contexts, or its name or plural name in player contexts.
+ * @param {string} [location] - Filter the room items to only those whose location ID matches the given location ID.
+ * @param {boolean} [accessible] - Filter the room items to only those who are accessible or not.
+ * @param {string} [containerName] - Filter the room items to only those with the given container name. Does not include slot.
+ * @param {string} [slotId] - Filter the room items to only those in the inventory slot with the given ID.
+ */
+export function findRoomItems(container, identifier, location, accessible, containerName, slotId) {
+    return container.getGame().entityFinder.getRoomItems(identifier, location, accessible, containerName, slotId);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [name] - Filter the puzzles to only those whose name matches the given name.
+ * @param {string} [location] - Filter the puzzles to only those whose location ID matches the given location ID.
+ * @param {string} [type] - Filter the puzzles to only those of the given type.
+ * @param {boolean} [accessible] - Filter the puzzles to only those who are accessible or not.
+ */
+export function findPuzzles(container, name, location, type, accessible) {
+    return container.getGame().entityFinder.getPuzzles(name, location, type, accessible);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [id] - Filter the events to only those whose ID matches the given ID.
+ * @param {boolean} [ongoing] - Filter the events to only those that are ongoing or not.
+ * @param {string} [roomTag] - Filter the events to only those with the given room tag.
+ * @param {string} [effectsString] - Filter the events to only those who inflict the given comma-separated status effects.
+ * @param {string} [refreshesString] - Filter the events to only those who refresh the given comma-separated status effects.
+ */
+export function findEvents(container, id, ongoing, roomTag, effectsString, refreshesString) {
+    return container.getGame().entityFinder.getEvents(id, ongoing, roomTag, effectsString, refreshesString);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [id] - Filter the status effects to only those whose ID matches the given ID.
+ * @param {string} [modifiedStatsString] - Filter the status effects to only those who modify the given stats.
+ * @param {string} [attributesString] - Filter the status effects to only those with the given comma-separated behavior attributes.
+ */
+export function findStatusEffects(container, id, modifiedStatsString, attributesString) {
+    return container.getGame().entityFinder.getStatusEffects(id, modifiedStatsString, attributesString);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [name] - Filter the players to only those whose name or display name matches the given name.
+ * @param {boolean} [isNPC] - Filter the players to only those who are NPCs or not.
+ * @param {string} [location] - Filter the players to only those whose location ID matches the given location ID.
+ * @param {string} [hidingSpot] - Filter the players to only those whose hiding spot matches the given hiding spot.
+ * @param {string} [statusString] - Filter the players to only those inflicted with all of the given comma-separated status effects.
+ */
+export function findLivingPlayers(container, name, isNPC, location, hidingSpot, statusString) {
+    return container.getGame().entityFinder.getLivingPlayers(name, isNPC, location, hidingSpot, statusString);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [name] - Filter the players to only those whose name or display name matches the given name.
+ * @param {boolean} [isNPC] - Filter the players to only those who are NPCs or not.
+ */
+export function findDeadPlayers(container, name, isNPC) {
+    return container.getGame().entityFinder.getDeadPlayers(name, isNPC);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [identifier] - Filter the inventory items to only those whose identifier or prefab ID matches the given identifier in moderator contexts, or its name or plural name in player contexts.
+ * @param {string} [player] - Filter the inventory items to only those belonging to the given player. 
+ * @param {string} [containerName] - Filter the inventory items to only those with the given container name. Does not include slot.
+ * @param {string} [slotId] - Filter the inventory items to only those in the inventory slot with the given ID.
+ * @param {string} [equipmentSlotId] - Filter the inventory items to only those belonging to the equipment slot with the given ID.
+ */
+export function findInventoryItems(container, identifier, player, containerName, slotId, equipmentSlotId) {
+    return container.getGame().entityFinder.getInventoryItems(identifier, player, containerName, slotId, equipmentSlotId);
+}
+
+/**
+ * Gests all gestures that match the given search queries.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [id] - Filters the gestures to only those whose ID matches the given ID.
+ */
+export function findGestures(container, id) {
+    return container.getGame().entityFinder.getGestures(id);
+}
+
+/**
+ * Wrapper function for the limited scope of  the scriptParser module.
+ * Do not use this outside of that context.
+ * @param {GameEntity} container - The container in context.
+ * @param {string} [id] - Filters the flags to only those whose ID matches the given ID.
+ */
+export function findFlags(container, id) {
+    return container.getGame().entityFinder.getFlags(id);
+}

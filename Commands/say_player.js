@@ -1,41 +1,59 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+﻿import handleDialog from '../Modules/dialogHandler.js';
+import { ChannelType } from "discord.js";
+import { addReply } from '../Modules/messageHandler.js';
 
-const { ChannelType } = require("../node_modules/discord-api-types/v10");
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "say_player",
     description: "Sends your message to the room you're in.",
     details: "Sends your message to the channel of the room you're currently in. This command is "
         + "only available to players with certain status effects.",
-    usage: `${settings.commandPrefix}say What happened?\n`
-        + `${settings.commandPrefix}speak Did someone turn out the lights?`,
     usableBy: "Player",
-    aliases: ["say", "speak"]
+    aliases: ["say", "speak"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}say What happened?\n`
+        + `${settings.commandPrefix}speak Did someone turn out the lights?`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
+ */
+export async function execute (game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify something to say. Usage:\n${exports.config.usage}`);
+        return addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("enable say");
-    if (status.length === 0) return game.messageHandler.addReply(message, `You have no reason to use the say command. Speak in the room channel instead.`);
+    const status = player.getBehaviorAttributeStatusEffects("enable say");
+    if (status.length === 0) return addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
-    var input = args.join(" ");
+    const input = args.join(" ");
     if (!input.startsWith("(")) {
         // Create a webhook for this channel if necessary, or grab the existing one.
-        let webHooks = await player.location.channel.fetchWebhooks();
-        let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
+        const webHooks = await player.location.channel.fetchWebhooks();
+        let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
-        var files = [];
+        const files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         const displayName = player.displayName;
         const displayIcon = player.displayIcon;
-        if (player.hasAttribute("hidden")) {
+        if (player.hasBehaviorAttribute("hidden")) {
             player.displayName = "Someone in the room";
             player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
         }
@@ -47,7 +65,7 @@ module.exports.run = async (bot, game, message, command, args, player) => {
             embeds: message.embeds,
             files: files
         }).then(msg => {
-            dialogHandler.execute(bot, game, msg, true, player, displayName)
+            handleDialog(game, msg, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;
@@ -56,6 +74,4 @@ module.exports.run = async (bot, game, message, command, args, player) => {
                 });
         });
     }
-    
-    return;
-};
+    }

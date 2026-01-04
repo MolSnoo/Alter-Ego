@@ -1,7 +1,7 @@
 {
   "commandPrefix": ".",
   "debug": false,
-  "embedColor": "1F8B4C",
+  "autoLoad": false,
   "spreadsheetID": "",
   "pixelsPerMeter": 25,
   "staminaUseRate": -0.01,
@@ -12,6 +12,8 @@
   "defaultDropObject": "FLOOR",
   "defaultRoomIconURL": "",
   "autoDeleteWhisperChannels": true,
+  "embedColor": "1F8B4C",
+  "showOnlinePlayerCount": true,
   "onlineActivity": {
     "type": "LISTENING",
     "string": "Future Foundation HQ"

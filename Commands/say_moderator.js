@@ -1,11 +1,13 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverconfig = include('Configs/serverconfig.json');
-const dialogHandler = include(`${constants.modulesDir}/dialogHandler.js`);
+﻿import Narration from '../Data/Narration.js';
+import handleDialog from '../Modules/dialogHandler.js';
+import { ChannelType } from 'discord.js';
+import { addReply } from '../Modules/messageHandler.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "say_moderator",
     description: "Sends a message.",
     details: 'Sends a message. A channel or player must be specified. Messages can be sent to any '
@@ -13,44 +15,53 @@ module.exports.config = {
         + '"see room" attribute can see it. If the name of a player is specified and that player has the talent "NPC", '
         + 'the player will speak in the channel of the room they\'re in. Their dialog will be treated just like that of '
         + 'any normal player\'s. The image URL set in the player\'s Discord ID will be used for the player\'s avatar.',
-    usage: `${settings.commandPrefix}say #park Hello. My name is Alter Ego.\n`
-        + `${settings.commandPrefix}say #general Thank you for speaking with me today.\n`
-        + `${settings.commandPrefix}say amy One appletini, coming right up.`,
     usableBy: "Moderator",
     aliases: ["say"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage (settings) {
+    return `${settings.commandPrefix}say #park Hello. My name is Alter Ego.\n`
+        + `${settings.commandPrefix}say #general Thank you for speaking with me today.\n`
+        + `${settings.commandPrefix}say amy One appletini, coming right up.`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute (game, message, command, args) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a channel or player and something to say. Usage:\n${exports.config.usage}`);
+        return addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
 
-    var player = null;
-    var room = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
-            player = game.players_alive[i];
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
-            return game.messageHandler.addReply(message, `You cannot speak for a player that isn't an NPC.`);
-    }
+    let player = game.entityFinder.getLivingPlayer(args[0]);
+    let room = null;
+    if (!player)
+        player = null;
+    else if (!player.isNPC)
+        return addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
-        let webHooks = await player.location.channel.fetchWebhooks();
-        let webHook = webHooks.find(webhook => webhook.owner.id === bot.user.id);
+        const webHooks = await player.location.channel.fetchWebhooks();
+        let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
 
-        var files = [];
+        const files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
         const displayName = player.displayName;
         const displayIcon = player.displayIcon;
-        if (player.hasAttribute("hidden")) {
+        if (player.hasBehaviorAttribute("hidden")) {
             player.displayName = "Someone in the room";
             player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
         }
@@ -62,26 +73,19 @@ module.exports.run = async (bot, game, message, command, args) => {
             embeds: message.embeds,
             files: files
         }).then(message => {
-            dialogHandler.execute(bot, game, message, true, player, displayName)
+            handleDialog(game, message, true, player, displayName)
                 .then(() => {
                     player.displayName = displayName;
                     player.displayIcon = displayIcon;
                 });
         });
     }
-    else if (channel !== undefined && serverconfig.roomCategories.includes(channel.parentId)) {
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].name === channel.name) {
-                room = game.rooms[i];
-                break;
-            }
-        }
+    else if (channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(channel.parentId)) {
+        room = game.entityFinder.getRoom(channel.name);
         if (room !== null)
             new Narration(game, null, room, string).send();
     }
-    else if (channel !== undefined)
+    else if (channel.type === ChannelType.GuildText)
         channel.send(string);
-    else game.messageHandler.addReply(message, `Couldn't find a player or channel in your input. Usage:\n${exports.config.usage}`);
-
-    return;
-};
+    else addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
+}
