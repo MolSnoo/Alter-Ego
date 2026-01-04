@@ -70,7 +70,6 @@ async function loadCommands() {
         console.log("Error: Couldn't find commands.");
             return process.exit(1);
         }
-
         await Promise.all(commandFiles.map(async file => {
             await import(`${commandsDir}${file}`).then(commandProps => {
                 const config = commandProps.config;
