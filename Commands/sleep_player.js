@@ -1,21 +1,21 @@
 import InflictAction from '../Data/Actions/InflictAction.js';
 import { addReply } from '../Modules/messageHandler.js';
-^
+
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
-^    name: "sleep_player",
-^    description: "Puts you to sleep.",
-^    details: "Puts you to sleep by inflicting you with the **asleep** status effect. "
-^        + "This should be used at the end of the day before the game pauses to ensure you wake up feeling well-rested.",
-^    usableBy: "Player",
+    name: "sleep_player",
+    description: "Puts you to sleep.",
+    details: "Puts you to sleep by inflicting you with the **asleep** status effect. "
+        + "This should be used at the end of the day before the game pauses to ensure you wake up feeling well-rested.",
+    usableBy: "Player",
     aliases: ["sleep"],
     requiresGame: true
-^};
-^
+};
+
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -34,7 +34,7 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable sleep");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-^
+
     const sleepStatus = game.entityFinder.getStatusEffect("asleep");
     const action = new InflictAction(game, message, player, player.location, false);
     action.performInflict(sleepStatus, true, true, true);

@@ -6,7 +6,7 @@ import { Collection } from 'discord.js';
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('./Player.js').default} Player */
 /** @typedef {import('discord.js').TextChannel} TextChannel */
-^
+
 /**
  * @class Room
  * @classdesc Represents a room in the game.
@@ -95,18 +95,18 @@ export default class Room extends GameEntity {
         this.id = id;
         this.displayName = displayName;
         this.name = this.id;
-^        this.channel = channel;
+        this.channel = channel;
         this.tags = tags;
         this.iconURL = iconURL;
         this.exit = [];
         this.exitCollection = exits;
         this.description = description;
-^
+
         /** @type {Player[]} */
         this.occupants = [];
         this.occupantsString = "";
-^    }
-^
+    }
+
     /**
      * Adds a player to the room.
      * @param {Player} player - The player to add to the room.
@@ -114,46 +114,46 @@ export default class Room extends GameEntity {
      */
     addPlayer(player, entrance) {
         player.setLocation(this);
-^        // Set the player's position.
-^        if (entrance) {
-^            player.pos.x = entrance.pos.x;
-^            player.pos.y = entrance.pos.y;
-^            player.pos.z = entrance.pos.z;
-^        }
-^        // If no entrance is given, try to calculate the center of the room by averaging the coordinates of all exits.
-^        else {
+        // Set the player's position.
+        if (entrance) {
+            player.pos.x = entrance.pos.x;
+            player.pos.y = entrance.pos.y;
+            player.pos.z = entrance.pos.z;
+        }
+        // If no entrance is given, try to calculate the center of the room by averaging the coordinates of all exits.
+        else {
             /** @type {Pos} */
-^            let coordSum = { x: 0, y: 0, z: 0 };
+            let coordSum = { x: 0, y: 0, z: 0 };
             this.exitCollection.forEach(exit => {
                 coordSum.x += exit.pos.x;
                 coordSum.y += exit.pos.y;
                 coordSum.z += exit.pos.z;
             });
             /** @type {Pos} */
-^            let pos = { x: 0, y: 0, z: 0 };
+            let pos = { x: 0, y: 0, z: 0 };
             pos.x = Math.floor(coordSum.x / this.exitCollection.size);
             pos.y = Math.floor(coordSum.y / this.exitCollection.size);
             pos.z = Math.floor(coordSum.z / this.exitCollection.size);
-^            player.pos = pos;
-^        }
+            player.pos = pos;
+        }
 
         if (!player.hasBehaviorAttribute("no channel"))
-^            this.joinChannel(player);
-^
-^        this.occupants.push(player);
+            this.joinChannel(player);
+
+        this.occupants.push(player);
         this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-^    }
+    }
 
     /**
      * Removes a player from the room.
      * @param {Player} player - The player to remove from the room.
      */
     removePlayer(player) {
-^        this.leaveChannel(player);
-^        this.occupants.splice(this.occupants.indexOf(player), 1);
+        this.leaveChannel(player);
+        this.occupants.splice(this.occupants.indexOf(player), 1);
         this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-^    }
-^
+    }
+
     /**
      * Generates a string representing the occupants of the room.
      * @param {Player[]} list
@@ -167,29 +167,29 @@ export default class Room extends GameEntity {
      * Gives player permission to view the room's channel.
      * @param {Player} player
      */
-^    joinChannel(player) {
+    joinChannel(player) {
         if (!player.isNPC) this.channel.permissionOverwrites.create(player.member, { ViewChannel: true });
-^    }
-^
+    }
+
     /**
      * Removes player's permission to view the room's channel.
      * @param {Player} player
      */
-^    leaveChannel(player) {
+    leaveChannel(player) {
         if (!player.isNPC) this.channel.permissionOverwrites.create(player.member, { ViewChannel: null });
-^    }
-^
+    }
+
     /**
      * Unlocks an exit in the room. Deprecated. Use unlockExit instead.
      * @deprecated
      * @param {number} index - The exit's index within the room's array of exits.
      */
     unlock(index) {
-^        this.exit[index].unlock();
+        this.exit[index].unlock();
         if (this.occupants.length > 0) this.getGame().narrationHandler.narrateUnlock(this, this.exit[index]);
         this.getGame().logHandler.logUnlock(this, this.exit[index]);
-^    }
-^
+    }
+
     /**
      * Unlocks an exit in the room.
      * @param {string} name - The exit's name key within the room's collection of exits.
@@ -207,11 +207,11 @@ export default class Room extends GameEntity {
      * @param {number} index - The exit's index within the room's array of exits.
      */
     lock(index) {
-^        this.exit[index].lock();
+        this.exit[index].lock();
         if (this.occupants.length > 0) this.getGame().narrationHandler.narrateLock(this, this.exit[index]);
         this.getGame().logHandler.logLock(this, this.exit[index]);
-^    }
-^
+    }
+
     /**
      * Locks an exit in the room.
      * @param {string} name - The exit's name key within the room's collection of exits.
@@ -224,9 +224,9 @@ export default class Room extends GameEntity {
     }
 
     /** @returns {string} */
-^    descriptionCell() {
+    descriptionCell() {
         return this.getGame().constants.roomSheetDescriptionColumn + this.row;
-^    }
+    }
 
     /**
      * Convert a room name to a valid Discord channel name which can be used as a Room's ID.
@@ -235,4 +235,4 @@ export default class Room extends GameEntity {
     static generateValidId(name) {
         return name.toLowerCase().replace(/[+=/<>\[\]!@#$%^&*()'":;,?`~\\|{}]/g, '').trim().replace(/ /g, '-');
     }
-^}
+}

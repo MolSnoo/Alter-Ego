@@ -4,7 +4,7 @@ import Prefab from './Prefab.js';
 import ItemContainer from './ItemContainer.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { addItem as addItemToList, removeItem as removeItemFromList } from "../Modules/parser.js";
-^
+
 /** @typedef {import('./Fixture.js').default} Fixture */
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('./InventoryItem.js').default} InventoryItem */
@@ -12,7 +12,7 @@ import { addItem as addItemToList, removeItem as removeItemFromList } from "../M
 /** @typedef {import('./Player.js').default} Player */
 /** @typedef {import('./Room.js').default} Room */
 /** @typedef {import('./RoomItem.js').default} RoomItem */
-^
+
 /**
  * @class Puzzle
  * @classdesc Represents an interactable entity with correct, incorrect, and limited ways to engage with it.
@@ -178,22 +178,22 @@ export default class Puzzle extends ItemContainer {
      */
     constructor(name, solved, outcome, requiresMod, locationDisplayName, parentFixtureName, type, accessible, requirementsStrings, solutions, remainingAttempts, commandSetsString, commandSets, correctDescription, alreadySolvedDescription, incorrectDescription, noMoreAttemptsDescription, requirementsNotMetDescription, row, game) {
         super(game, row, alreadySolvedDescription);
-^        this.name = name;
-^        this.solved = solved;
+        this.name = name;
+        this.solved = solved;
         this.outcome = outcome;
-^        this.requiresMod = requiresMod;
+        this.requiresMod = requiresMod;
         this.locationDisplayName = locationDisplayName;
         this.location = null;
         this.parentFixtureName = parentFixtureName;
         this.parentObjectName = parentFixtureName;
         this.parentFixture = null;
-^        this.parentObject = null;
-^        this.type = type;
-^        this.accessible = accessible;
+        this.parentObject = null;
+        this.type = type;
+        this.accessible = accessible;
         this.requirementsStrings = requirementsStrings;
         this.requirements = new Array(this.requirementsStrings.length);
         this.solutions = solutions;
-^        this.remainingAttempts = remainingAttempts;
+        this.remainingAttempts = remainingAttempts;
         this.commandSetsString = commandSetsString;
         this.commandSets = commandSets;
         this.correctDescription = correctDescription;
@@ -201,8 +201,8 @@ export default class Puzzle extends ItemContainer {
         this.incorrectDescription = incorrectDescription;
         this.noMoreAttemptsDescription = noMoreAttemptsDescription;
         this.requirementsNotMetDescription = requirementsNotMetDescription;
-^    }
-^
+    }
+
     /**
      * Sets the location.
      * @param {Room} room
@@ -256,7 +256,7 @@ export default class Puzzle extends ItemContainer {
                 requiredItem.decreaseUses(player);
         }
 
-^        if (doSolvedCommands === true) {
+        if (doSolvedCommands === true) {
             // Find commandSet.
             /** @type {string[]} */
             let commandSet = [];
@@ -276,19 +276,19 @@ export default class Puzzle extends ItemContainer {
             else commandSet = this.commandSets[0].solvedCommands;
             // Execute the command set's solved commands.
             parseAndExecuteBotCommands(commandSet, this.getGame(), this, targetPlayer ? targetPlayer : player);
-^        }
-^    }
-^
+        }
+    }
+
     /**
      * Sets the puzzle as unsolved.
      * @param {Player} player - The player who unsolved the puzzle.
      * @param {boolean} doUnsolvedCommands - Whether or not to execute the puzzle's unsolved commands. Defaults to true.
      */
     unsolve(player, doUnsolvedCommands = true) {
-^        // Now mark it as unsolved.
-^        this.solved = false;
-^
-^        if (doUnsolvedCommands === true) {
+        // Now mark it as unsolved.
+        this.solved = false;
+
+        if (doUnsolvedCommands === true) {
             // Find commandSet.
             /** @type {string[]} */
             let commandSet = [];
@@ -308,21 +308,21 @@ export default class Puzzle extends ItemContainer {
             else commandSet = this.commandSets[0].unsolvedCommands;
             // Execute the command set's unsolved commands.
             parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
-^        }
-^
+        }
+
         // Clear the outcome.
         if (this.solutions.length > 1 && this.type !== "channels")
             this.outcome = "";
-^    }
-^
+    }
+
     /**
      * A player fails to solve the puzzle. Decrements the number of remaining attempts, if applicable.
      */
     fail() {
         if (!isNaN(this.remainingAttempts))
-^            this.remainingAttempts--;
-^    }
-^
+            this.remainingAttempts--;
+    }
+
     /**
      * Gets the alreadySolvedDescription.
      * @override
@@ -450,27 +450,27 @@ export default class Puzzle extends ItemContainer {
     }
 
     /** @returns {string} */
-^    correctCell() {
+    correctCell() {
         return this.getGame().constants.puzzleSheetCorrectColumn + this.row;
-^    }
-^
+    }
+
     /** @returns {string} */
-^    alreadySolvedCell() {
+    alreadySolvedCell() {
         return this.getGame().constants.puzzleSheetAlreadySolvedColumn + this.row;
-^    }
-^
+    }
+
     /** @returns {string} */
-^    incorrectCell() {
+    incorrectCell() {
         return this.getGame().constants.puzzleSheetIncorrectColumn + this.row;
-^    }
-^
+    }
+
     /** @returns {string} */
-^    noMoreAttemptsCell() {
+    noMoreAttemptsCell() {
         return this.getGame().constants.puzzleSheetNoMoreAttemptsColumn + this.row;
-^    }
-^
+    }
+
     /** @returns {string} */
-^    requirementsNotMetCell() {
+    requirementsNotMetCell() {
         return this.getGame().constants.puzzleSheetRequirementsNotMetColumn + this.row;
-^    }
-^}
+    }
+}

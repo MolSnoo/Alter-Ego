@@ -7,17 +7,17 @@ import { parseDescription, parseDescriptionWithErrors, addItem, removeItem } fro
 import { EOL } from 'os';
 import { Collection } from 'discord.js';
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-^
+
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
-^
+
 /** @type {CommandConfig} */
 export const config = {
-^    name: "testparser_moderator",
-^    description: "Tests the parsing module on your descriptions.",
+    name: "testparser_moderator",
+    description: "Tests the parsing module on your descriptions.",
     details: `Tests the parsing algorithm responsible for interpreting and editing descriptions. `
-^        + `Sends the results as a text file to the command channel. `
-^        + `If testing the add or remove function, you can add "formatted" to display the formatted descriptions. `
+        + `Sends the results as a text file to the command channel. `
+        + `If testing the add or remove function, you can add "formatted" to display the formatted descriptions. `
         + `Otherwise, it will display the parsed versions. For all functions, you can input a player name to `
         + `parse the text as if that player is reading it. Note that if using the "formatted" argument, `
         + `a player name cannot be used. This command should be used to make sure you've written properly formatted descriptions.\n`
@@ -37,14 +37,14 @@ export const config = {
 export function usage (settings) {
     return `${settings.commandPrefix}testparser parse\n`
         + `${settings.commandPrefix}testparser parse nero\n`
-^        + `${settings.commandPrefix}testparser add\n`
+        + `${settings.commandPrefix}testparser add\n`
         + `${settings.commandPrefix}testparser add vivian\n`
-^        + `${settings.commandPrefix}testparser add formatted\n`
-^        + `${settings.commandPrefix}testparser remove\n`
+        + `${settings.commandPrefix}testparser add formatted\n`
+        + `${settings.commandPrefix}testparser remove\n`
         + `${settings.commandPrefix}testparser remove aria\n`
         + `${settings.commandPrefix}testparser remove formatted`;
 }
-^
+
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {UserMessage} message - The message in which the command was issued. 
@@ -54,12 +54,12 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify what function to test. Usage:\n${usage(game.settings)}`);
-^
-^    const file = "./parsedText.xml";
-^    fs.writeFile(file, "", function (err) {
-^        if (err) return console.log(err);
-^    });
-^
+
+    const file = "./parsedText.xml";
+    fs.writeFile(file, "", function (err) {
+        if (err) return console.log(err);
+    });
+
     let player = new Player(
         "",
         null,
@@ -121,14 +121,14 @@ export async function execute (game, message, command, args) {
             addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
         }
     }
-^    else if (args[0] === "add") {
-^        let formatted = false;
-^        if (args[1] && args[1] === "formatted") formatted = true;
+    else if (args[0] === "add") {
+        let formatted = false;
+        if (args[1] && args[1] === "formatted") formatted = true;
         await testadd(game, file, formatted, player);
-^    }
-^    else if (args[0] === "remove") {
-^        let formatted = false;
-^        if (args[1] && args[1] === "formatted") formatted = true;
+    }
+    else if (args[0] === "remove") {
+        let formatted = false;
+        if (args[1] && args[1] === "formatted") formatted = true;
         const result = await testremove(game, file, formatted, player);
         let warnings = [];
         for (let i = 0; i < result.length; i++)
@@ -141,22 +141,22 @@ export async function execute (game, message, command, args) {
                 warnings.push("Too many warnings.");
             addGameMechanicMessage(game, game.guildContext.commandChannel, warnings.join('\n'));
         }
-^    }
+    }
     else return addReply(game, message, 'Function not found. You need to use "parse", "add", or "remove".');
-^
+
     game.guildContext.commandChannel.send({
         content: "Text parsed.",
-^        files: [
-^            {
-^                attachment: file,
-^                name: `parsedText-${args[0]}.xml`
-^            }
-^        ]
-^    });
-^
-^    return;
-^};
-^
+        files: [
+            {
+                attachment: file,
+                name: `parsedText-${args[0]}.xml`
+            }
+        ]
+    });
+
+    return;
+};
+
 /**
  * Parses all in-game descriptions and writes the results to a file.
  * If there's something wrong with any of the descriptions, issues warnings and errors.
@@ -169,53 +169,53 @@ async function testparse (game, fileName, player) {
     const warnings = [];
     const errors = [];
 
-^    // Get rooms first.
-^    {
+    // Get rooms first.
+    {
         await appendFile(fileName, "ROOMS:");
-^        let text = "";
+        let text = "";
         for (const room of game.roomsCollection.values()) {
             text += "   ";
             text += room.id + EOL;
-^
+
             for (const exit of room.exitCollection.values()) {
                 text += "      ";
                 text += exit.name + EOL;
                 const parsedDescription = parseDescriptionWithErrors(exit.description, room, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: exit.descriptionCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: exit.descriptionCell(), errors: parsedDescription.errors });
-^
+
                 text += "         ";
                 text += exit.description + EOL;
-^
+
                 text += "         ";
                 text += parsedDescription.text + EOL;
-^            }
+            }
             text += EOL;
-^        }
+        }
         await appendFile(fileName, text);
-^    }
-^
+    }
+
     // Get fixtures next.
-^    {
+    {
         await appendFile(fileName, "FIXTURES:");
-^        let text = "";
+        let text = "";
         for (let i = 0; i < game.fixtures.length; i++) {
-^            text += "   ";
+            text += "   ";
             text += game.fixtures[i].name + EOL;
-^
+
             const parsedDescription = parseDescriptionWithErrors(game.fixtures[i].description, game.fixtures[i], player);
             if (parsedDescription.warnings.length !== 0) warnings.push({ cell: game.fixtures[i].descriptionCell(), warnings: parsedDescription.warnings });
             if (parsedDescription.errors.length !== 0) errors.push({ cell: game.fixtures[i].descriptionCell(), errors: parsedDescription.errors });
-^
-^            text += "      ";
+
+            text += "      ";
             text += game.fixtures[i].description + EOL;
-^
-^            text += "      ";
+
+            text += "      ";
             text += parsedDescription.text + EOL;
-^        }
+        }
         await appendFile(fileName, text);
-^    }
-^
+    }
+
     // Get prefabs next.
     {
         await appendFile(fileName, "PREFABS:");
@@ -316,21 +316,21 @@ async function testparse (game, fileName, player) {
     }
 
     // Get puzzles next.
-^    {
+    {
         await appendFile(fileName, "PUZZLES:");
-^        let text = "";
+        let text = "";
         for (const puzzle of game.puzzles) {
             text += "   ";
             text += puzzle.name + EOL;
-^
+
             // First, do the correct description.
             if (puzzle.correctDescription !== "") {
                 text += "      CORRECT ANSWER:" + EOL;
-^
+
                 const parsedDescription = parseDescriptionWithErrors(puzzle.correctDescription, puzzle, player);
                 if (parsedDescription.warnings.length !== 0) warnings.push({ cell: puzzle.correctCell(), warnings: parsedDescription.warnings });
                 if (parsedDescription.errors.length !== 0) errors.push({ cell: puzzle.correctCell(), errors: parsedDescription.errors });
-^
+
                 text += "         ";
                 text += puzzle.correctDescription + EOL;
 
@@ -366,7 +366,7 @@ async function testparse (game, fileName, player) {
 
                 text += "         ";
                 text += parsedDescription.text + EOL;
-^            }
+            }
 
             // Next, do the no more attempts description.
             if (puzzle.noMoreAttemptsDescription !== "") {
@@ -485,10 +485,10 @@ async function testparse (game, fileName, player) {
             }
 
             text += EOL;
-^        }
+        }
         await appendFile(fileName, text);
-^    }
-^
+    }
+
     // Get players next.
     {
         await appendFile(fileName, "PLAYERS:");
@@ -535,7 +535,7 @@ async function testparse (game, fileName, player) {
 
     return { warnings: warnings, errors: errors };
 }
-^
+
 /**
  * Tests the parser module's addItem function on all in-game descriptions with il tags.
  * Adds 4 instances of random prefabs to each description. Writes the final results to a file.
@@ -545,25 +545,25 @@ async function testparse (game, fileName, player) {
  * @param {Player|PseudoPlayer} player - The player to pass into the parser module.
  */
 async function testadd (game, fileName, formatted, player) {
-^    // Skip over rooms because you can't add items to them.
-^
+    // Skip over rooms because you can't add items to them.
+
     // Get fixtures first.
-^    {
+    {
         await appendFile(fileName, "FIXTURES:");
-^        let text = "";
+        let text = "";
         for (const fixture of game.fixtures) {
             if (fixture.description.includes('<il>') && fixture.description.includes('</il>')) {
-^                text += "   ";
+                text += "   ";
                 text += fixture.name + EOL;
-^
-^                text += "      ";
+
+                text += "      ";
                 text += (formatted ? fixture.description : parseDescription(fixture.description, fixture, player)) + EOL;
-^
+
                 /** @type {RoomItem[]} */
                 const items = new Array();
-^                let itemNames = "";
+                let itemNames = "";
                 const prefabArray = [... game.prefabsCollection.values()];
-^                for (let j = 0; j < 4; j++) {
+                for (let j = 0; j < 4; j++) {
                     let randomIndex = Math.floor(Math.random() * prefabArray.length);
                     while (itemNames.includes(prefabArray[randomIndex].name) || fixture.description.includes(prefabArray[randomIndex].name) || fixture.description.includes(prefabArray[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * prefabArray.length);
@@ -572,26 +572,26 @@ async function testadd (game, fileName, formatted, player) {
                     newItem.location = fixture.location;
                     items.push(newItem);
                     itemNames += prefabArray[randomIndex].name + " ";
-^                }
-^
+                }
+
                 let description = fixture.description;
-^                let tabs = 1;
-^                for (let j = 0; j < items.length; j++) {
-^                    text += "      ";
-^                    for (let l = 0; l < tabs; l++)
-^                        text += "   ";
+                let tabs = 1;
+                for (let j = 0; j < items.length; j++) {
+                    text += "      ";
+                    for (let l = 0; l < tabs; l++)
+                        text += "   ";
                     const item = items[j];
-^                    item.quantity = 0;
-^                    text += `(Drop ${item.name}): `;
+                    item.quantity = 0;
+                    text += `(Drop ${item.name}): `;
                     description = addItem(description, item);
                     text += (formatted ? description : parseDescription(description, fixture, player)) + EOL;
-^                    tabs++;
-^                }
-^            }
-^        }
+                    tabs++;
+                }
+            }
+        }
         await appendFile(fileName, text);
-^    }
-^
+    }
+
     // Prefabs can't have items inside them.
 
     // Get items next.
@@ -642,23 +642,23 @@ async function testadd (game, fileName, formatted, player) {
     }
 
     // Get puzzles next.
-^    {
+    {
         await appendFile(fileName, "PUZZLES:");
-^        let text = "";
+        let text = "";
         for (let i = 0; i < game.puzzles.length; i++) {
             const puzzle = game.puzzles[i];
             if (puzzle.alreadySolvedDescription.includes('<il>') && puzzle.alreadySolvedDescription.includes('</il>')) {
-^                text += "   ";
+                text += "   ";
                 text += puzzle.name + EOL;
-^
-^                text += "      ";
+
+                text += "      ";
                 text += (formatted ? puzzle.alreadySolvedDescription : parseDescription(puzzle.alreadySolvedDescription, puzzle, player)) + EOL;
-^
+
                 /** @type {RoomItem[]} */
                 const items = new Array();
-^                let itemNames = "";
+                let itemNames = "";
                 const prefabArray = [... game.prefabsCollection.values()];
-^                for (let j = 0; j < 4; j++) {
+                for (let j = 0; j < 4; j++) {
                     let randomIndex = Math.floor(Math.random() * prefabArray.length);
                     while (itemNames.includes(prefabArray[randomIndex].name) || puzzle.alreadySolvedDescription.includes(prefabArray[randomIndex].name) || puzzle.alreadySolvedDescription.includes(prefabArray[randomIndex].pluralName))
                         randomIndex = Math.floor(Math.random() * prefabArray.length);
@@ -667,26 +667,26 @@ async function testadd (game, fileName, formatted, player) {
                     newItem.location = puzzle.location;
                     items.push(newItem);
                     itemNames += prefabArray[randomIndex].name + " ";
-^                }
-^
+                }
+
                 let description = puzzle.alreadySolvedDescription;
-^                let tabs = 1;
-^                for (let j = 0; j < items.length; j++) {
-^                    text += "      ";
-^                    for (let l = 0; l < tabs; l++)
-^                        text += "   ";
+                let tabs = 1;
+                for (let j = 0; j < items.length; j++) {
+                    text += "      ";
+                    for (let l = 0; l < tabs; l++)
+                        text += "   ";
                     const item = items[j];
-^                    item.quantity = 0;
-^                    text += `(Drop ${item.name}): `;
+                    item.quantity = 0;
+                    text += `(Drop ${item.name}): `;
                     description = addItem(description, item);
                     text += (formatted ? description : parseDescription(description, puzzle, player)) + EOL;
-^                    tabs++;
-^                }
-^            }
-^        }
+                    tabs++;
+                }
+            }
+        }
         await appendFile(fileName, text);
-^    }
-^
+    }
+
     // Get players next.
     {
         await appendFile(fileName, "PLAYERS:");
@@ -781,7 +781,7 @@ async function testadd (game, fileName, formatted, player) {
         await appendFile(fileName, text);
     }
 }
-^
+
 /**
  * Tests the parser module's removeItem function on all in-game descriptions with item tags.
  * Tries to remove every item from each description. Issues a warning for every description where it can't remove all items.
@@ -794,17 +794,17 @@ async function testadd (game, fileName, formatted, player) {
  */
 async function testremove (game, fileName, formatted, player) {
     const warnings = [];
-^    // Get rooms first.
-^    {
+    // Get rooms first.
+    {
         await appendFile(fileName, "ROOMS:");
-^        let text = "";
+        let text = "";
         for (const room of game.roomsCollection.values()) {
             if (room.description.includes('<item>') && room.description.includes('</item>')) {
-^                text += "   ";
+                text += "   ";
                 text += room.id + EOL;
-^
-^                let items = new Array();
-^                let itemNames = new Array();
+
+                let items = new Array();
+                let itemNames = new Array();
                 for (const roomItem of game.roomItems) {
                     if (roomItem.location.id === room.id
                         && roomItem.containerName === ""
@@ -815,8 +815,8 @@ async function testremove (game, fileName, formatted, player) {
                         newItem.location = roomItem.location;
                         items.push(newItem);
                         itemNames.push(roomItem.name);
-^                    }
-^                }
+                    }
+                }
                 if (formatted) {
                     // If the number of items is higher than 4, the bot usually runs out of memory.
                     // Make 4 the limit.
@@ -826,58 +826,58 @@ async function testremove (game, fileName, formatted, player) {
                     }
                 }
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
-^
+
                 for (const exit of room.exitCollection.values()) {
-^                    text += "      ";
+                    text += "      ";
                     text += exit.name + EOL;
-^
-^                    text += "         ";
+
+                    text += "         ";
                     text += (formatted ? exit.description : parseDescription(exit.description, room, player)) + EOL;
-^
-^                    for (let k = 0; k < orders.length; k++) {
+
+                    for (let k = 0; k < orders.length; k++) {
                         let description = exit.description;
-^                        let tabs = 1;
-^                        const permutation = orders[k].split(',');
-^                        for (let l = 0; l < permutation.length; l++) {
-^                            text += "         ";
-^                            for (let m = 0; m < tabs; m++)
-^                                text += "   ";
-^                            let item;
-^                            for (let m = 0; m < items.length; m++) {
-^                                if (permutation[l] === items[m].name) {
-^                                    item = items[m];
-^                                    item.quantity = 0;
-^                                    break;
-^                                }
-^                            }
-^                            text += `(Take ${permutation[l]}): `;
+                        let tabs = 1;
+                        const permutation = orders[k].split(',');
+                        for (let l = 0; l < permutation.length; l++) {
+                            text += "         ";
+                            for (let m = 0; m < tabs; m++)
+                                text += "   ";
+                            let item;
+                            for (let m = 0; m < items.length; m++) {
+                                if (permutation[l] === items[m].name) {
+                                    item = items[m];
+                                    item.quantity = 0;
+                                    break;
+                                }
+                            }
+                            text += `(Take ${permutation[l]}): `;
                             if (item) description = removeItem(description, item, null, NaN);
                             text += (formatted ? description : parseDescription(description, room, player)) + EOL;
-^                            tabs++;
-^                        }
-^                    }
-^                }
+                            tabs++;
+                        }
+                    }
+                }
                 text += EOL;
-^            }
-^        }
+            }
+        }
         await appendFile(fileName, text);
-^    }
-^
+    }
+
     // Get fixtures next.
-^    {
+    {
         await appendFile(fileName, "FIXTURES:");
-^        let text = "";
+        let text = "";
         for (let i = 0; i < game.fixtures.length; i++) {
             const fixture = game.fixtures[i];
             if (fixture.description.includes('<item>') && fixture.description.includes('</item>')) {
-^                text += "   ";
+                text += "   ";
                 text += fixture.name + EOL;
-^
-^                text += "      ";
+
+                text += "      ";
                 text += (formatted ? fixture.description : parseDescription(fixture.description, fixture, player)) + EOL;
-^
-^                let items = new Array();
-^                let itemNames = new Array();
+
+                let items = new Array();
+                let itemNames = new Array();
                 for (const roomItem of game.roomItems) {
                     if (roomItem.location.id === fixture.location.id
                         && roomItem.containerName === `Object: ${fixture.name}`
@@ -889,8 +889,8 @@ async function testremove (game, fileName, formatted, player) {
                         newItem.location = roomItem.location;
                         items.push(newItem);
                         itemNames.push(roomItem.name);
-^                    }
-^                }
+                    }
+                }
                 if (formatted) {
                     // If the number of items is higher than 4, the bot usually runs out of memory.
                     // Make 4 the limit.
@@ -900,36 +900,36 @@ async function testremove (game, fileName, formatted, player) {
                     }
                 }
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
-^
-^                for (let j = 0; j < orders.length; j++) {
+
+                for (let j = 0; j < orders.length; j++) {
                     let description = fixture.description;
-^                    let tabs = 1;
-^                    const permutation = orders[j].split(',');
-^                    for (let k = 0; k < permutation.length; k++) {
-^                        text += "      ";
-^                        for (let l = 0; l < tabs; l++)
-^                            text += "   ";
-^                        let item;
-^                        for (let l = 0; l < items.length; l++) {
-^                            if (permutation[k] === items[l].name) {
-^                                item = items[l];
-^                                item.quantity = 0;
-^                                break;
-^                            }
-^                        }
-^                        text += `(Take ${permutation[k]}): `;
+                    let tabs = 1;
+                    const permutation = orders[j].split(',');
+                    for (let k = 0; k < permutation.length; k++) {
+                        text += "      ";
+                        for (let l = 0; l < tabs; l++)
+                            text += "   ";
+                        let item;
+                        for (let l = 0; l < items.length; l++) {
+                            if (permutation[k] === items[l].name) {
+                                item = items[l];
+                                item.quantity = 0;
+                                break;
+                            }
+                        }
+                        text += `(Take ${permutation[k]}): `;
                         if (item) description = removeItem(description, item, null, NaN);
                         text += (formatted ? description : parseDescription(description, fixture, player)) + EOL;
-^                        tabs++;
+                        tabs++;
                         if (k === permutation.length - 1 && description.includes("<item>") && description.includes("</item"))
                             warnings.push({ cell: fixture.descriptionCell(), warnings: ["Unable to remove all item tags."] });
-^                    }
-^                }
-^            }
-^        }
+                    }
+                }
+            }
+        }
         await appendFile(fileName, text);
-^    }
-^
+    }
+
     // Prefabs can't have items inside them.
 
     // Get items next.
@@ -1000,19 +1000,19 @@ async function testremove (game, fileName, formatted, player) {
     }
 
     // Get puzzles next.
-^    {
+    {
         await appendFile(fileName, "PUZZLES:");
-^        let text = "";
+        let text = "";
         for (const puzzle of game.puzzles) {
             if (puzzle.alreadySolvedDescription !== "" && puzzle.alreadySolvedDescription.includes('<item>') && puzzle.alreadySolvedDescription.includes('</item>')) {
-^                text += "   ";
+                text += "   ";
                 text += puzzle.name + EOL;
-^
-^                text += "      ";
+
+                text += "      ";
                 text += (formatted ? puzzle.alreadySolvedDescription : parseDescription(puzzle.alreadySolvedDescription, puzzle, player)) + EOL;
-^
-^                let items = new Array();
-^                let itemNames = new Array();
+
+                let items = new Array();
+                let itemNames = new Array();
                 for (const roomItem of game.roomItems) {
                     if (roomItem.location.id === puzzle.location.id
                         && roomItem.containerName === `Puzzle: ${puzzle.name}`
@@ -1022,8 +1022,8 @@ async function testremove (game, fileName, formatted, player) {
                         newItem.location = roomItem.location;
                         items.push(newItem);
                         itemNames.push(roomItem.name);
-^                    }
-^                }
+                    }
+                }
                 if (formatted) {
                     // If the number of items is higher than 4, the bot usually runs out of memory.
                     // Make 4 the limit.
@@ -1033,35 +1033,35 @@ async function testremove (game, fileName, formatted, player) {
                     }
                 }
                 const orders = formatted ? permute(itemNames) : [itemNames.join(',')];
-^
-^                for (let j = 0; j < orders.length; j++) {
+
+                for (let j = 0; j < orders.length; j++) {
                     let description = puzzle.alreadySolvedDescription;
-^                    let tabs = 1;
-^                    const permutation = orders[j].split(',');
-^                    for (let k = 0; k < permutation.length; k++) {
-^                        text += "      ";
-^                        for (let l = 0; l < tabs; l++)
-^                            text += "   ";
-^                        let item;
-^                        for (let l = 0; l < items.length; l++) {
-^                            if (permutation[k] === items[l].name) {
-^                                item = items[l];
-^                                item.quantity = 0;
-^                                break;
-^                            }
-^                        }
-^                        text += `(Take ${permutation[k]}): `;
+                    let tabs = 1;
+                    const permutation = orders[j].split(',');
+                    for (let k = 0; k < permutation.length; k++) {
+                        text += "      ";
+                        for (let l = 0; l < tabs; l++)
+                            text += "   ";
+                        let item;
+                        for (let l = 0; l < items.length; l++) {
+                            if (permutation[k] === items[l].name) {
+                                item = items[l];
+                                item.quantity = 0;
+                                break;
+                            }
+                        }
+                        text += `(Take ${permutation[k]}): `;
                         if (item) description = removeItem(description, item, null, NaN);
                         text += (formatted ? description : parseDescription(description, puzzle, player)) + EOL;
-^                        tabs++;
+                        tabs++;
                         if (k === permutation.length - 1 && description.includes("<item>") && description.includes("</item"))
                             warnings.push({ cell: puzzle.alreadySolvedCell(), text: "Unable to remove all item tags." });
-^                    }
-^                }
-^            }
-^        }
+                    }
+                }
+            }
+        }
         await appendFile(fileName, text);
-^    }
+    }
 
     // Get players next.
     {
@@ -1199,33 +1199,33 @@ async function testremove (game, fileName, formatted, player) {
         }
         await appendFile(fileName, text);
     }
-^    
+    
     return warnings;
 }
-^
+
 /**
  * Recursively gets all possible permutations of the contents of the array.
  * @param {string[]} array - The array of strings to find all permutations of.
  * @returns {string[]} An array comma-separated strings representing all possible permutations.
  */
-^function permute(array) {
-^    if (array.length < 2) return array;
-^
+function permute(array) {
+    if (array.length < 2) return array;
+
     const permutations = [];
-^    for (let i = 0; i < array.length; i++) {
+    for (let i = 0; i < array.length; i++) {
         const element = array[i];
-^
-^        if (array.indexOf(element) !== i)
-^            continue;
-^
+
+        if (array.indexOf(element) !== i)
+            continue;
+
         const remainingElements = array.filter(piece => piece !== array[i]);
-^
-^        for (var subPermutation of permute(remainingElements))
-^            permutations.push(`${element},${subPermutation}`);
-^    }
-^    return permutations;
-^}
-^
+
+        for (var subPermutation of permute(remainingElements))
+            permutations.push(`${element},${subPermutation}`);
+    }
+    return permutations;
+}
+
 /**
  * Appends text to the file.
  * @param {string} fileName - The name of the file to append.
@@ -1233,10 +1233,10 @@ async function testremove (game, fileName, formatted, player) {
  * @returns {Promise<string>} The name of the file.
  */
 function appendFile(fileName, text) {
-^    return new Promise((resolve) => {
+    return new Promise((resolve) => {
         fs.appendFile(fileName, text + EOL, function (err) {
-^            if (err) return console.log(err);
+            if (err) return console.log(err);
             resolve(fileName);
-^        });
-^    });
-^}
+        });
+    });
+}

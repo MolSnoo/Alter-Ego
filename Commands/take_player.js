@@ -10,8 +10,8 @@ import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
-^    name: "take_player",
-^    description: "Takes an item and puts it in your inventory.",
+    name: "take_player",
+    description: "Takes an item and puts it in your inventory.",
     details: "Adds an item from the room you're in to your inventory. You must have a free hand to take an item. "
         + "If there are multiple items with the same name in a room, you can specify which object or item you want to take it from. "
         + "Additionally, if the item is contained in another item with multiple inventory slots (such as pockets), you can specify which slot to "
@@ -27,14 +27,14 @@ export const config = {
  */
 export function usage (settings) {
     return `${settings.commandPrefix}take butcher's knife\n`
-^        + `${settings.commandPrefix}get first aid kit\n`
+        + `${settings.commandPrefix}get first aid kit\n`
         + `${settings.commandPrefix}take pill bottle from medicine cabinet\n`
         + `${settings.commandPrefix}get towel from benches\n`
         + `${settings.commandPrefix}take hammer from tool box\n`
         + `${settings.commandPrefix}get key from pants\n`
         + `${settings.commandPrefix}take key from left pocket of pants`;
 }
-^
+
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {UserMessage} message - The message in which the command was issued. 
@@ -45,17 +45,17 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
-^
+
     const status = player.getBehaviorAttributeStatusEffects("disable take");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-^
+
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
     if (hand === undefined) return addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     const input = args.join(" ");
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
-^
+
     let item = null;
     let container = null;
     let slotName = "";
@@ -87,8 +87,8 @@ export async function execute (game, message, command, args, player) {
                                 slot = container.inventoryCollection.get(slotName);
                                 break;
                             }
-^                        }
-^                    }
+                        }
+                    }
                     if (item !== null) break;
                 }
                 // A puzzle's parent fixture was specified.
@@ -104,9 +104,9 @@ export async function execute (game, message, command, args, player) {
                     slotName = roomItems[i].slot;
                     if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
                     break;
-^                }
-^            }
-^        }
+                }
+            }
+        }
     }
     if (item === null) {
         // Check if the player is trying to take a fixture.
@@ -122,7 +122,7 @@ export async function execute (game, message, command, args, player) {
             return addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
         else return addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
-^    }
+    }
     
     let topContainer = container;
     while (topContainer !== null && topContainer instanceof RoomItem)

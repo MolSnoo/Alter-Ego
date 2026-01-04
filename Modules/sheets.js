@@ -1,7 +1,7 @@
 ﻿import { createRequire } from 'node:module';
 import { google } from 'googleapis';
 const sheets = google.sheets({ version: 'v4' });
-^
+
 /**
  * Gets the values of the spreadsheet in the specified sheetRange.
  * @param {string} sheetRange - The range to get in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
@@ -12,7 +12,7 @@ export function getSheetValues (sheetRange, spreadsheetId) {
     const request = {
         // The ID of the spreadsheet to retrieve data from.
         spreadsheetId: spreadsheetId,
-^
+
         // The A1 notation of the values to retrieve.
         range: sheetRange,
 
@@ -45,21 +45,21 @@ export function getSheetValues (sheetRange, spreadsheetId) {
 export function getSheetWithProperties (sheetRange, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
-^
+
         ranges: [sheetRange],
-^
+
         includeGridData: true,
-^
+
         auth: authorize(),
     };
-^
+
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.get(request).then(response => {
             resolve(response);
         }).catch(err => reject(err));
     });
 }
-^
+
 /**
  * Updates the values of the spreadsheet for a single sheetRange.
  * @param {string} sheetRange - The range to update in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
@@ -70,25 +70,25 @@ export function getSheetWithProperties (sheetRange, spreadsheetId) {
 export function updateSheetValues (sheetRange, data, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
-^
+
         range: sheetRange,
-^
+
         valueInputOption: 'RAW',
-^
+
         resource: {
             values: data,
         },
-^
+
         auth: authorize(),
     };
-^
+
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.values.update(request).then(response => {
             resolve(response);
         }).catch(err => reject(err));
     });
 }
-^
+
 /**
  * Updates the values of the spreadsheet for multiple sheetRanges.
  * @param {ValueRange[]} data - The ranges to update and the values to replace them with. 
@@ -98,16 +98,16 @@ export function updateSheetValues (sheetRange, data, spreadsheetId) {
 export function batchUpdateSheetValues (data, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
-^
+
         resource: {
             valueInputOption: 'RAW',
-^
+
             data: data
         },
-^
+
         auth: authorize()
     };
-^
+
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.values.batchUpdate(request).then(response => {
             resolve(response);
@@ -139,9 +139,9 @@ export function batchUpdateSheet (requests, spreadsheetId) {
         sheets.spreadsheets.batchUpdate(request).then(response => {
             resolve(response);
         }).catch(err => reject(err));
-^    });
+    });
 }
-^
+
 /**
  * Appends rows of values to the spreadsheet after the specified sheetRange.
  * @param {string} sheetRange - The range to append rows to in {@link https://developers.google.com/workspace/sheets/api/guides/concepts#cell|A1 notation}.
@@ -152,27 +152,27 @@ export function batchUpdateSheet (requests, spreadsheetId) {
 export function appendRowsToSheet (sheetRange, data, spreadsheetId) {
     const request = {
         spreadsheetId: spreadsheetId,
-^
+
         range: sheetRange,
-^
+
         valueInputOption: 'RAW',
-^
+
         insertDataOption: 'INSERT_ROWS',
-^
+
         resource: {
             values: data,
         },
-^
+
         auth: authorize()
     };
-^
+
     return new Promise((resolve, reject) => {
         sheets.spreadsheets.values.append(request).then(response => {
             resolve(response);
         }).catch(err => reject(err));
     });
 }
-^
+
 function authorize() {
     const require = createRequire(import.meta.url);
     let credentials;
@@ -192,5 +192,5 @@ function authorize() {
         key: credentials.google.private_key,
         keyId: credentials.google.private_key_id,
         scopes: ['https://www.googleapis.com/auth/spreadsheets']
-^    });
-^}
+    });
+}

@@ -1,7 +1,7 @@
 ﻿import Puzzle from '../Data/Puzzle.js';
 import { addReply, addGameMechanicMessage } from './messageHandler.js';
 import { ChannelType } from 'discord.js';
-^
+
 /** @typedef {import('../Data/Event.js').default} Event */
 /** @typedef {import('../Data/Flag.js').default} Flag */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -19,24 +19,24 @@ import { ChannelType } from 'discord.js';
  */
 export async function executeCommand(commandStr, game, message, player, callee) {
     let isBot = false, isModerator = false, isPlayer = false, isEligible = false;
-^    // First, determine who is using the command.
-^    if (!message) isBot = true;
+    // First, determine who is using the command.
+    if (!message) isBot = true;
     else if ((message.channel.id === game.guildContext.commandChannel.id || commandStr.startsWith('delete'))
         && message.member.roles.cache.has(game.guildContext.moderatorRole.id))
         isModerator = true;
-^    else {
+    else {
         // Don't attempt to find the member who sent this message if it was sent by a webhook.
         if (message.webhookId !== null) return false;
         let member = game.guildContext.guild.members.resolve(message.author.id);
         if (member && member.roles.cache.has(game.guildContext.playerRole.id)) isPlayer = true;
         else if (member && game.settings.debug && member.roles.cache.has(game.guildContext.testerRole.id)) isEligible = true;
         else if (member && !game.settings.debug && member.roles.cache.has(game.guildContext.eligibleRole.id)) isEligible = true;
-^    }
-^
+    }
+
     const commandSplit = commandStr.split(" ");
     const commandAlias = commandSplit[0].toLocaleLowerCase();
-^    const args = commandSplit.slice(1);
-^
+    const args = commandSplit.slice(1);
+
     // Find the command by the alias used.
     let botCommand;
     let moderatorCommand;
@@ -46,10 +46,10 @@ export async function executeCommand(commandStr, game, message, player, callee) 
     else if (isModerator) moderatorCommand = game.botContext.moderatorCommands.find(command => command.config.aliases.includes(commandAlias));
     else if (isPlayer) playerCommand = game.botContext.playerCommands.find(command => command.config.aliases.includes(commandAlias));
     else if (isEligible) eligibleCommand = game.botContext.eligibleCommands.find(command => command.config.aliases.includes(commandAlias));
-^
+
     if (!botCommand && !moderatorCommand && !playerCommand && !botCommand) return false;
     const getCommandName = (command) => command.config.name.substring(0, command.config.name.indexOf('_'));
-^
+
     // If the commandLog is at its maximum capacity, remove the oldest entry.
     /** @type {CommandLogEntry} */
     let entry;
@@ -58,7 +58,7 @@ export async function executeCommand(commandStr, game, message, player, callee) 
     }
 
     // Execute the command based on who issued it.
-^    if (isBot) {
+    if (isBot) {
         botCommand.execute(game, commandAlias, args, player, callee);
         entry = {
             timestamp: new Date(),
@@ -66,13 +66,13 @@ export async function executeCommand(commandStr, game, message, player, callee) 
             content: commandStr
         };
         game.botContext.commandLog.push(entry);
-^        return true;
-^    }
-^    else if (isModerator) {
+        return true;
+    }
+    else if (isModerator) {
         if (moderatorCommand.config.requiresGame && !game.inProgress) {
-^            message.reply("There is no game currently running.");
-^            return false;
-^        }
+            message.reply("There is no game currently running.");
+            return false;
+        }
         moderatorCommand.execute(game, message, commandAlias, args);
         entry = {
             timestamp: new Date(),
@@ -80,37 +80,37 @@ export async function executeCommand(commandStr, game, message, player, callee) 
             content: message.content
         };
         game.botContext.commandLog.push(entry);
-^        return true;
-^    }
-^    else if (isPlayer) {
+        return true;
+    }
+    else if (isPlayer) {
         if (playerCommand.config.requiresGame && !game.inProgress) {
-^            message.reply("There is no game currently running.");
-^            return false;
-^        }
+            message.reply("There is no game currently running.");
+            return false;
+        }
         if (message.channel.type === ChannelType.DM
             || message.channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(message.channel.parentId)) {
             for (const livingPlayer of game.livingPlayersCollection.values()) {
                 if (livingPlayer.id === message.author.id) {
                     player = livingPlayer;
-^                    break;
-^                }
-^            }
+                    break;
+                }
+            }
             if (!player) {
                 addReply(game, message, "You are not on the list of living players.");
-^                return false;
-^            }
+                return false;
+            }
             const commandName = getCommandName(playerCommand);
             const status = player.getBehaviorAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasBehaviorAttribute(`enable ${commandName}`)) {
                 if (player.hasStatus("heated")) addReply(game, message, "The situation is **heated**. Moderator intervention is required.");
                 else addReply(game, message, `You cannot do that because you are **${status[0].id}**.`);
-^                return false;
-^            }
+                return false;
+            }
             if (game.editMode && commandName !== "say") {
                 addReply(game, message, "You cannot do that because edit mode is currently enabled.");
                 return false;
             }
-^
+
             player.setOnline();
 
             playerCommand.execute(game, message, commandAlias, args, player).then(() => {
@@ -124,15 +124,15 @@ export async function executeCommand(commandStr, game, message, player, callee) 
                 content: message.content
             };
             game.botContext.commandLog.push(entry);
-^            return true;
-^        }
-^        return false;
-^    }
-^    else if (isEligible) {
+            return true;
+        }
+        return false;
+    }
+    else if (isEligible) {
         if (eligibleCommand.config.requiresGame && !game.inProgress) {
-^            message.reply("There is no game currently running.");
-^            return false;
-^        }
+            message.reply("There is no game currently running.");
+            return false;
+        }
         if (message.channel.type === ChannelType.DM
             || game.settings.debug && message.channel.id === game.guildContext.testingChannel.id
             || !game.settings.debug && message.channel.id === game.guildContext.generalChannel.id) {
@@ -146,12 +146,12 @@ export async function executeCommand(commandStr, game, message, player, callee) 
                 content: message.content
             };
             game.botContext.commandLog.push(entry);
-^            return true;
-^        }
-^        return false;
-^    }
-^
-^    return false;
+            return true;
+        }
+        return false;
+    }
+
+    return false;
 }
 
 /**

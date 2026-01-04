@@ -4,17 +4,17 @@ import { addCommandHelp, addReply } from '../Modules/messageHandler.js';
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
-^
+
 /** @type {CommandConfig} */
 export const config = {
-^    name: "help_player",
-^    description: "Lists all commands available to you.",
-^    details: "Lists all commands available to the user. If a command is specified, displays the help menu for that command.",
-^    usableBy: "Player",
+    name: "help_player",
+    description: "Lists all commands available to you.",
+    details: "Lists all commands available to the user. If a command is specified, displays the help menu for that command.",
+    usableBy: "Player",
     aliases: ["help"],
     requiresGame: true
-^};
-^
+};
+
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -32,21 +32,21 @@ export function usage (settings) {
  * @param {Player} player - The player who issued the command. 
  */
 export async function execute (game, message, command, args, player) {
-^    // Get all commands available to the user and sort them alphabetically.
+    // Get all commands available to the user and sort them alphabetically.
     const roleCommands = game.botContext.playerCommands;
-^    roleCommands.sort(function (a, b) {
+    roleCommands.sort(function (a, b) {
         if (a.config.name < b.config.name) return -1;
         if (a.config.name > b.config.name) return 1;
-^        return 0;
-^    });
-^
-^    if (args.length === 0) {
+        return 0;
+    });
+
+    if (args.length === 0) {
         const fields = [];
         const pages = [];
         let page = 0;
-^
-^        roleCommands.forEach(function (value, key, map) {
-^            const commandName = key.substring(0, key.indexOf('_'));
+
+        roleCommands.forEach(function (value, key, map) {
+            const commandName = key.substring(0, key.indexOf('_'));
             fields.push({ command: `${game.settings.commandPrefix}${commandName}`, description: value.config.description });
         });
 
@@ -90,11 +90,11 @@ export async function execute (game, message, command, args, player) {
                     msg.edit({ embeds: [embed] });
                 });
             });
-^        });
-^    }
-^    else {
+        });
+    }
+    else {
         const command = roleCommands.find(command => command.config.aliases.includes(args[0]));
         if (!command) return addReply(game, message, `Couldn't find command "${args[0]}".`);
         addCommandHelp(game, message.author.dmChannel, command);
-^    }
+    }
 }

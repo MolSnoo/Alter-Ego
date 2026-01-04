@@ -10,19 +10,19 @@ import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @type {CommandConfig} */
 export const config = {
-^    name: "puzzle_bot",
-^    description: "Solves or unsolves a puzzle.",
+    name: "puzzle_bot",
+    description: "Solves or unsolves a puzzle.",
     details: 'Solves or unsolves a puzzle. You may specify an outcome, if the puzzle has more than one solution. '
         + 'You may specify a player to solve the puzzle. If you do, players in the room '
         + 'will be notified, so you should generally give a string for the bot to use, '
-^        + 'otherwise the bot will say "[player] uses the [puzzle]." which may not sound right. '
-^        + "If you specify a player, only puzzles in the room that player is in can be solved/unsolved. "
+        + 'otherwise the bot will say "[player] uses the [puzzle]." which may not sound right. '
+        + "If you specify a player, only puzzles in the room that player is in can be solved/unsolved. "
         + 'Additionally, if you specify a player, you can make them attempt to solve a puzzle. '
-^        + 'If you use "player" in place of the player, then the player who triggered the command will be '
-^        + 'the one to solve/unsolve the puzzle. It will also do the same in the string, if one is specified. '
-^        + 'You can also use a room name instead of a player name. In that case, only puzzles in the room '
-^        + 'you specify can be solved/unsolved. This is useful if you have multiple puzzles with the same name '
-^        + 'spread across the map.',
+        + 'If you use "player" in place of the player, then the player who triggered the command will be '
+        + 'the one to solve/unsolve the puzzle. It will also do the same in the string, if one is specified. '
+        + 'You can also use a room name instead of a player name. In that case, only puzzles in the room '
+        + 'you specify can be solved/unsolved. This is useful if you have multiple puzzles with the same name '
+        + 'spread across the map.',
     usableBy: "Bot",
     aliases: ["puzzle", "solve", "unsolve", "attempt"],
     requiresGame: true
@@ -45,7 +45,7 @@ export function usage (settings) {
         + `unsolve lock men's locker room "The LOCK on LOCKER 1 locks itself"\n`
         + `puzzle attempt cyptex lock 05-25-99 player`;
 }
-^
+
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {string} command - The command alias that was used. 
@@ -54,86 +54,86 @@ export function usage (settings) {
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
-^    const cmdString = command + " " + args.join(" ");
+    const cmdString = command + " " + args.join(" ");
     let input = cmdString;
-^    if (command === "puzzle") {
-^        if (args[0] === "solve") command = "solve";
-^        else if (args[0] === "unsolve") command = "unsolve";
+    if (command === "puzzle") {
+        if (args[0] === "solve") command = "solve";
+        else if (args[0] === "unsolve") command = "unsolve";
         else if (args[0] === "attempt") command = "attempt";
-^        input = input.substring(input.indexOf(args[1]));
-^        args = input.split(" ");
-^    }
-^    else input = args.join(" ");
-^
-^    if (args.length === 0) {
+        input = input.substring(input.indexOf(args[1]));
+        args = input.split(" ");
+    }
+    else input = args.join(" ");
+
+    if (args.length === 0) {
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
-^        return;
-^    }
-^
-^    // The message, if it exists, is the easiest to find at the beginning. Look for that first.
+        return;
+    }
+
+    // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     let announcement = "";
     let index = input.indexOf('"');
-^    if (index === -1) index = input.indexOf('“');
-^    if (index !== -1) {
-^        announcement = input.substring(index + 1);
-^        // Remove the announcement from the list of arguments.
-^        input = input.substring(0, index - 1);
-^        args = input.split(" ");
-^        // Now clean up the announcement text.
-^        if (announcement.endsWith('"') || announcement.endsWith('”'))
-^            announcement = announcement.substring(0, announcement.length - 1);
-^        if (!announcement.endsWith('.') && !announcement.endsWith('!'))
-^            announcement += '.';
-^    }
-^
-^    // Find the prospective list of puzzles.
+    if (index === -1) index = input.indexOf('“');
+    if (index !== -1) {
+        announcement = input.substring(index + 1);
+        // Remove the announcement from the list of arguments.
+        input = input.substring(0, index - 1);
+        args = input.split(" ");
+        // Now clean up the announcement text.
+        if (announcement.endsWith('"') || announcement.endsWith('”'))
+            announcement = announcement.substring(0, announcement.length - 1);
+        if (!announcement.endsWith('.') && !announcement.endsWith('!'))
+            announcement += '.';
+    }
+
+    // Find the prospective list of puzzles.
     const puzzles = game.puzzles.filter(puzzle => input.toUpperCase().startsWith(puzzle.name + ' ') || input.toUpperCase() === puzzle.name);
-^    if (puzzles.length > 0) {
-^        input = input.substring(puzzles[0].name.length).trim();
-^        args = input.split(" ");
-^    }
-^
-^    // Now find the player, who should be the last argument.
-^    if (args[args.length - 1] === "player" && player !== null) {
-^        args.splice(args.length - 1, 1);
-^        input = args.join(" ");
-^        announcement = announcement.replace(/player/g, player.displayName);
-^    }
-^    else {
+    if (puzzles.length > 0) {
+        input = input.substring(puzzles[0].name.length).trim();
+        args = input.split(" ");
+    }
+
+    // Now find the player, who should be the last argument.
+    if (args[args.length - 1] === "player" && player !== null) {
+        args.splice(args.length - 1, 1);
+        input = args.join(" ");
+        announcement = announcement.replace(/player/g, player.displayName);
+    }
+    else {
         player = game.entityFinder.getLivingPlayer(args[args.length - 1]);
         if (player) {
             args.splice(args.length - 1, 1);
             input = args.join(" ");
         } else
             player = null;
-^    }
-^
-^    // If a player wasn't specified, check if a room name was.
+    }
+
+    // If a player wasn't specified, check if a room name was.
     let room = null;
-^    if (player === null) {
-^        const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+    if (player === null) {
+        const parsedInput = input.replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
         for (let i = args.length - 1; i >= 0; i--) {
             room = game.entityFinder.getRoom(args.splice(i).join(" "));
             if (room) {
                 input = input.substring(0, parsedInput.indexOf(room.id) - 1);
-^                break;
-^            }
-^        }
+                break;
+            }
+        }
         if (!room) room = null;
-^    }
-^
-^    // Finally, find the puzzle.
+    }
+
+    // Finally, find the puzzle.
     let puzzle = null;
-^    for (let i = 0; i < puzzles.length; i++) {
+    for (let i = 0; i < puzzles.length; i++) {
         if ((player !== null && puzzles[i].location.id === player.location.id)
             || (room !== null && puzzles[i].location.id === room.id)) {
-^            puzzle = puzzles[i];
-^            break;
-^        }
-^    }
-^    if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
+            puzzle = puzzles[i];
+            break;
+        }
+    }
+    if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
     if (puzzle === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
-^
+
     let outcome = "";
     let targetPlayer = null;
     if (player !== null && puzzle.type === "room player") {
@@ -151,15 +151,15 @@ export async function execute (game, command, args, player, callee) {
         }
     }
 
-^    if (command === "solve") {
+    if (command === "solve") {
         if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
         const solveAction = new SolveAction(game, undefined, player, puzzle.location, true);
         solveAction.performSolve(puzzle, outcome, targetPlayer, announcement, callee);
-^    }
-^    else if (command === "unsolve") {
+    }
+    else if (command === "unsolve") {
         const unsolveAction = new UnsolveAction(game, undefined, player, puzzle.location, true);
         unsolveAction.performUnsolve(puzzle, announcement, callee);
-^    }
+    }
     else if (command === "attempt") {
         if (player === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
         const attemptAction = new AttemptAction(game, undefined, player, puzzle.location, true);

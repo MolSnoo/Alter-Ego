@@ -69,11 +69,11 @@ export default class RoomItem extends ItemInstance {
         super(game, row, description, prefabId, identifier, containerType, containerName, quantity, uses);
         this.locationDisplayName = locationDisplayName;
         this.location = null;
-^        this.accessible = accessible;
+        this.accessible = accessible;
         this.inventory = [];
         this.inventoryCollection = new Collection();
-^    }
-^
+    }
+
     /**
      * Sets the location.
      * @param {Room} room
@@ -188,4 +188,4 @@ export default class RoomItem extends ItemInstance {
     descriptionCell() {
         return this.getGame().constants.roomItemSheetDescriptionColumn + this.row;
     }
-^}
+}

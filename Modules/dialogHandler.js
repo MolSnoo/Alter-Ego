@@ -5,7 +5,7 @@ import { addNarration, addSpectatedPlayerMessage } from './messageHandler.js';
 /** @typedef {import('../Data/Player.js').default} Player */
 /** @typedef {import('../Data/Room.js').default} Room */
 /** @typedef {import('../Data/Whisper.js').default} Whisper */
-^
+
 /**
  * Interprets a dialog message and executes behavior caused by it.
  * @param {Game} game - The game in which the dialog was sent.
@@ -28,8 +28,8 @@ export default async function execute(game, message, deletable, player = null, o
                     player = livingPlayer;
                     break;
                 }
-^            }
-^        }
+            }
+        }
 
         // Get the location of the message.
         /** @type {Room} */
@@ -70,9 +70,9 @@ export default async function execute(game, message, deletable, player = null, o
 
             if (player.hasBehaviorAttribute("no speech")) {
                 if (!player.isNPC) player.notify("You are mute, so you cannot speak.", false);
-^                if (deletable) message.delete().catch();
+                if (deletable) message.delete().catch();
                 resolve();
-^            }
+            }
 
             // Set variables related to voice changing.
             let speakerVoiceString = player.voiceString;
@@ -177,7 +177,7 @@ export default async function execute(game, message, deletable, player = null, o
                             room.occupants[i].notify(`You overhear ${player.displayName} whisper "${message.content}".`);
                     }
                 }
-^            }
+            }
             else {
                 let isShouting = false;
                 let verb = "say";
@@ -266,8 +266,8 @@ export default async function execute(game, message, deletable, player = null, o
                             }
                         }
                     }
-^                }
-^
+                }
+
                 if (deafPlayerInRoom && deletable)
                     message.delete().catch();
 
@@ -488,7 +488,7 @@ export default async function execute(game, message, deletable, player = null, o
                     }
                 }
             }
-^        }
+        }
         else if (isModerator) {
             let players = whisper !== null ? whisper.players : room.occupants;
             for (let i = 0; i < players.length; i++) {
@@ -517,8 +517,8 @@ export default async function execute(game, message, deletable, player = null, o
                     }
                 }
             }
-^        }
-^
+        }
+
         resolve();
     });
 }

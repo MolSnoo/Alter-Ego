@@ -2,7 +2,7 @@
 
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('../Classes/Timer.js').default} Timer */
-^
+
 /**
  * @class Status
  * @classdesc Also referred to as a StatusEffect. Represents a condition that can be applied to a player.
@@ -162,9 +162,9 @@ export default class Status extends GameEntity {
         super(game, row);
         this.id = id;
         this.name = id;
-^        this.duration = duration;
+        this.duration = duration;
         this.remaining = null;
-^        this.fatal = fatal;
+        this.fatal = fatal;
         this.visible = visible;
         this.overridersStrings = overridersStrings;
         this.overriders = new Array(this.overridersStrings.length);
@@ -181,10 +181,10 @@ export default class Status extends GameEntity {
         this.attributes = behaviorAttributes;
         this.inflictedDescription = inflictedDescription;
         this.curedDescription = curedDescription;
-^
-^        this.timer = null;
-^    }
-^
+
+        this.timer = null;
+    }
+
     /**
      * Sets the next stage.
      * @param {Status} nextStage 
@@ -209,13 +209,13 @@ export default class Status extends GameEntity {
         this.curedCondition = curedCondition;
     }
 
-^    inflictedCell() {
+    inflictedCell() {
         return this.getGame().constants.statusSheetInflictedColumn + this.row;
-^    }
+    }
 
-^    curedCell() {
+    curedCell() {
         return this.getGame().constants.statusSheetCuredColumn + this.row;
-^    }
+    }
 
     /**
      * Generate an ID in all lowercase.
@@ -224,4 +224,4 @@ export default class Status extends GameEntity {
     static generateValidId(id) {
         return id.toLowerCase().trim();
     }
-^}
+}

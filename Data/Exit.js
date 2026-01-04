@@ -2,7 +2,7 @@ import GameEntity from './GameEntity.js';
 
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('./Room.js').default} Room */
-^
+
 /**
  * @class Exit
  * @classdesc Represents an exit in a room.
@@ -59,28 +59,28 @@ export default class Exit extends GameEntity {
      */
     constructor(name, pos, unlocked, destDisplayName, link, description, row, game) {
         super(game, row);
-^        this.name = name;
-^        this.pos = pos;
-^        this.unlocked = unlocked;
+        this.name = name;
+        this.pos = pos;
+        this.unlocked = unlocked;
         this.destDisplayName = destDisplayName;
-^        this.link = link;
+        this.link = link;
         this.description = description;
-^    }
-^
+    }
+
     /**
      * Unlocks the exit.
      */
-^    unlock() {
-^        this.unlocked = true;
-^    }
-^
+    unlock() {
+        this.unlocked = true;
+    }
+
     /**
      * Locks the exit.
      */
-^    lock() {
-^        this.unlocked = false;
-^    }
-^
+    lock() {
+        this.unlocked = false;
+    }
+
     /**
      * Gets a phrase to refer to the exit in narrations.
      */
@@ -89,7 +89,7 @@ export default class Exit extends GameEntity {
     }
 
     /** @returns {string} */
-^    descriptionCell() {
+    descriptionCell() {
         return this.getGame().constants.roomSheetDescriptionColumn + this.row;
-^    }
-^}
+    }
+}

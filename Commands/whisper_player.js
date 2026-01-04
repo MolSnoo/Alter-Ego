@@ -5,22 +5,22 @@ import { addReply } from '../Modules/messageHandler.js';
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
-^
+
 /** @type {CommandConfig} */
 export const config = {
-^    name: "whisper_player",
-^    description: "Allows you to speak privately with the selected player(s).",
-^    details: "Creates a channel for you to whisper to the selected recipients. Only you and the people you select "
-^        + "will be able to read messages posted in the new channel, but everyone in the room will be notified "
-^        + "that you've begun whispering to each other. You can select as many players as you want as long as they're "
-^        + "in the same room as you. When one of you leaves the room, they will be removed from the channel. "
-^        + "If everyone leaves the room, the whisper channel will be deleted. You are required to use this when "
-^        + "discussing the game with other players. Do not use DMs.",
-^    usableBy: "Player",
+    name: "whisper_player",
+    description: "Allows you to speak privately with the selected player(s).",
+    details: "Creates a channel for you to whisper to the selected recipients. Only you and the people you select "
+        + "will be able to read messages posted in the new channel, but everyone in the room will be notified "
+        + "that you've begun whispering to each other. You can select as many players as you want as long as they're "
+        + "in the same room as you. When one of you leaves the room, they will be removed from the channel. "
+        + "If everyone leaves the room, the whisper channel will be deleted. You are required to use this when "
+        + "discussing the game with other players. Do not use DMs.",
+    usableBy: "Player",
     aliases: ["whisper"],
     requiresGame: true
-^};
-^
+};
+
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -40,17 +40,17 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to choose at least one player. Usage:\n${usage(game.settings)}`);
-^
+
     const status = player.getBehaviorAttributeStatusEffects("disable whisper");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-^
-^    // Get all players mentioned.
+
+    // Get all players mentioned.
     const recipients = new Array();
-^    recipients.push(player);
-^    for (let i = 0; i < args.length; i++) {
-^        // Player cannot whisper to themselves.
+    recipients.push(player);
+    for (let i = 0; i < args.length; i++) {
+        // Player cannot whisper to themselves.
         if (args[i].toLowerCase() === player.name.toLowerCase()) return addReply(game, message, "You can't include yourself as a whisper recipient.");
-^        // Player cannot whisper to dead players.
+        // Player cannot whisper to dead players.
         const deadFetch = game.entityFinder.getDeadPlayer(args[i])
         if (deadFetch)
             return addReply(game, message, `You can't whisper to ${deadFetch.name} because ${deadFetch.originalPronouns.sbj} ` + (deadFetch.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
@@ -58,7 +58,7 @@ export async function execute (game, message, command, args, player) {
         const livingFetch = game.entityFinder.getLivingPlayer(args[i])
         if (livingFetch) {
             if (livingFetch.location.id === player.location.id) {
-^                // Check attributes that would prohibit the player from whispering to someone in the room.
+                // Check attributes that would prohibit the player from whispering to someone in the room.
                 if (livingFetch.hasBehaviorAttribute("hidden"))
                     return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} ` + (livingFetch.pronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
                 if (livingFetch.hasBehaviorAttribute("concealed"))
@@ -72,13 +72,13 @@ export async function execute (game, message, command, args, player) {
                 return addReply(game, message, `You can't whisper to ${livingFetch.name} because ${livingFetch.originalPronouns.sbj} ` + (livingFetch.originalPronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
         } else
             return addReply(game, message, `Couldn't find player "${args[i]}". Make sure you spelled it right.`);
-^    }
-^
-^    // Check if whisper already exists.
+    }
+
+    // Check if whisper already exists.
     let whisper = game.entityFinder.getWhisper(recipients);
     if (whisper) return addReply(game, message, "Whisper group already exists.");
-^
-^    // Whisper does not exist, so create it.
+
+    // Whisper does not exist, so create it.
     const action = new WhisperAction(game, message, player, player.location, false);
     action.performWhisper(recipients);
 }

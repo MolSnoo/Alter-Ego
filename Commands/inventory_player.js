@@ -3,17 +3,17 @@
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
-^
+
 /** @type {CommandConfig} */
 export const config = {
-^    name: "inventory_player",
-^    description: "Lists the items in your inventory.",
-^    details: "Shows you what items you currently have. Your inventory will be sent to you via DMs.",
-^    usableBy: "Player",
+    name: "inventory_player",
+    description: "Lists the items in your inventory.",
+    details: "Shows you what items you currently have. Your inventory will be sent to you via DMs.",
+    usableBy: "Player",
     aliases: ["inventory", "i"],
     requiresGame: true
-^};
-^
+};
+
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -32,7 +32,7 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable inventory");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-^
+
     const inventoryString = player.viewInventory("Your", false);
     player.notify(inventoryString);
 }

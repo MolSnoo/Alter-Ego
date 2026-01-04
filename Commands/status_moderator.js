@@ -6,17 +6,17 @@ import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
 /** @typedef {import("../Data/Status.js").default} Status */
-^
+
 /** @type {CommandConfig} */
 export const config = {
-^    name: "status_moderator",
-^    description: "Deals with status effects on players.",
-^    details: 'Deals with status effects on players.\n\n'
+    name: "status_moderator",
+    description: "Deals with status effects on players.",
+    details: 'Deals with status effects on players.\n\n'
         + '-**add**/**inflict**: Inflicts the specified players with the given status effect. '
         + 'Those players will receive the "Message When Inflicted" message for the specified status effect. '
         + 'If the status effect has a timer, the players will be cured and then inflicted with the status effect '
-^        + 'in the "Develops Into" column when the timer reaches 0. If the status effect is fatal, '
-^        + 'then they will simply die when the timer reaches 0 instead.\n\n'
+        + 'in the "Develops Into" column when the timer reaches 0. If the status effect is fatal, '
+        + 'then they will simply die when the timer reaches 0 instead.\n\n'
         + '-**remove**/**cure**: Cures the specified players of the given status effect. '
         + 'Those players will receive the "Message When Cured" message for the specified status effect. '
         + 'If the status effect develops into another effect when cured, the players will be inflicted with that status effect.\n\n'
@@ -39,10 +39,10 @@ export function usage(settings) {
         + `${settings.commandPrefix}cure elijah injured\n`
         + `${settings.commandPrefix}status remove astrid ryou juneau drunk\n`
         + `${settings.commandPrefix}cure living asleep\n`
-^        + `${settings.commandPrefix}status view jordan\n`
+        + `${settings.commandPrefix}status view jordan\n`
         + `${settings.commandPrefix}view jordan`;
 }
-^
+
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {UserMessage} message - The message in which the command was issued. 
@@ -50,20 +50,20 @@ export function usage(settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute(game, message, command, args) {
-^    if (command === "status") {
-^        if (args[0] === "add" || args[0] === "inflict") command = "inflict";
-^        else if (args[0] === "remove" || args[0] === "cure") command = "cure";
-^        else if (args[0] === "view") {
-^            command = "view";
+    if (command === "status") {
+        if (args[0] === "add" || args[0] === "inflict") command = "inflict";
+        else if (args[0] === "remove" || args[0] === "cure") command = "cure";
+        else if (args[0] === "view") {
+            command = "view";
             if (!args[1])
                 return addReply(game, message, `You need to input a player. Usage:\n${usage(game.settings)}`);
-^        }
+        }
         args.splice(0, 1);
-^    }
-^
+    }
+
     if (args.length === 0)
         return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
-^
+
     // Get all listed players first.
     /**
      * @type {Player[]}
@@ -80,8 +80,8 @@ export async function execute(game, message, command, args) {
                 players.push(fetchedPlayer);
                 args.splice(i, 1);
             }
-^        }
-^    }
+        }
+    }
     if (players.length === 0) return addReply(game, message, "You need to specify at least one player.");
     if (players.length > 1 && command === "view") return addReply(game, message, "Cannot view status of more than one player at a time.");
     const input = args.join(" ");
@@ -94,8 +94,8 @@ export async function execute(game, message, command, args) {
         if (status === null) return addReply(game, message, `Couldn't find status effect "${input}".`);
         if (status.id === "hidden") return addReply(game, message, `To inflict or cure "hidden", use the hide/unhide command instead.`);
     }
-^
-^    if (command === "inflict") {
+
+    if (command === "inflict") {
         if (players.length > 1) {
             for (let i = 0; i < players.length; i++) {
                 const action = new InflictAction(game, undefined, players[i], players[i].location, true);
@@ -108,8 +108,8 @@ export async function execute(game, message, command, args) {
             const doResponse = action.performInflict(status, true, true, true);
             if (doResponse) addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added.");
         }
-^    }
-^    else if (command === "cure") {
+    }
+    else if (command === "cure") {
         if (players.length > 1) {
             for (let i = 0; i < players.length; i++) {
                 const action = new CureAction(game, undefined, players[i], players[i].location, true);
@@ -122,9 +122,9 @@ export async function execute(game, message, command, args) {
             const doResponse = action.performCure(status, true, true, true);
             if (doResponse) addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully removed status effect.");
         }
-^    }
-^    else if (command === "view") {
+    }
+    else if (command === "view") {
         const response = `${players[0].name}'s status:\n${players[0].getStatusList(true, true)}`;
         addGameMechanicMessage(game, game.guildContext.commandChannel, response);
-^    }
+    }
 }

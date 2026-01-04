@@ -1,14 +1,14 @@
 ﻿import StealAction from '../Data/Actions/StealAction.js';
 import { addReply } from '../Modules/messageHandler.js';
-^
+
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
-^    name: "steal_player",
-^    description: "Steals an item from another player.",
+    name: "steal_player",
+    description: "Steals an item from another player.",
     details: "Attempts to steal an item from another player in the room. You must specify one of the player's equipped items to steal from. "
         + "You can also specify which of that item's inventory slots to steal from. If no slot is specified and the item has multiple inventory slots, "
         + "one slot will be randomly chosen. If the inventory slot contains multiple items, you will attempt to steal one at random.\n\n"
@@ -34,7 +34,7 @@ export function usage (settings) {
         + `${settings.commandPrefix}steal from an individual wearing a mask's cloak\n`
         + `${settings.commandPrefix}pickpocket an individual wearing a buckets side pouch of backpack`;
 }
-^
+
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {UserMessage} message - The message in which the command was issued. 
@@ -45,10 +45,10 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and one of their equipped items. Usage:\n${usage(game.settings)}`);
-^
+
     const status = player.getBehaviorAttributeStatusEffects("disable steal");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-^
+
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
@@ -59,7 +59,7 @@ export async function execute (game, message, command, args, player) {
     if (args[0].toUpperCase() === "FROM") args.splice(0, 1);
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
-^
+
     let victim = null;
     // Check if the input is a player in the room.
     for (let i = 0; i < player.location.occupants.length; i++) {
@@ -75,7 +75,7 @@ export async function execute (game, message, command, args, player) {
         }
         else if (parsedInput.startsWith(possessive) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
             return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
-^    }
+    }
     if (victim === null) return addReply(game, message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);
 
     // parsedInput should be the equipped item and possibly a slot name. Get the names of those.
@@ -104,7 +104,7 @@ export async function execute (game, message, command, args, player) {
     let slot = container.inventoryCollection.get(slotName);
     if (slotName === "") slot = [... container.inventoryCollection.values()][Math.floor(Math.random() * container.inventoryCollection.size)];
     if (slot === undefined) return addReply(game, message, `Couldn't find ${slotName} of ${container.name}.`);
-^
+
     const action = new StealAction(game, message, player, player.location, false);
     action.performSteal(hand, victim, container, slot);
 }

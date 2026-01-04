@@ -7,7 +7,7 @@ import { Collection } from 'discord.js';
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('./Player.js').default} Player */
 /** @typedef {import('discord.js').TextChannel} TextChannel */
-^
+
 /**
  * @class Whisper
  * @classdesc Represents a group of two or more players speaking quietly to each other such that no one else in the room can hear them.
@@ -68,7 +68,7 @@ export default class Whisper extends GameConstruct {
      */
     constructor(game, players, hidingSpotName) {
         super(game);
-^        this.players = players;
+        this.players = players;
         this.playersCollection = new Collection();
         for (const player of players)
             this.playersCollection.set(player.name, player);
@@ -80,7 +80,7 @@ export default class Whisper extends GameConstruct {
         this.id = Whisper.generateValidId(this.playersCollection.map(player => player), this.location, this.hidingSpotName)
         const discordChannelNameCharacterLimit = 100;
         this.channelName = this.id.substring(0, discordChannelNameCharacterLimit);
-^    }
+    }
 
     /**
      * Sets the location.
@@ -89,7 +89,7 @@ export default class Whisper extends GameConstruct {
     setLocation(room) {
         this.location = room;
     }
-^
+
     /**
      * Generate a grammatically correct list of players in the whisper.
      * @param {Player[]} players - The list of players to include in the generated string. Defaults to all players in the whisper.
@@ -97,8 +97,8 @@ export default class Whisper extends GameConstruct {
      */
     generatePlayerListString(players = this.playersCollection.map(player => player)) {
         return generatePlayerListString(players);
-^    }
-^
+    }
+
     /**
      * Generate a grammatically correct list of players in the whisper, excluding the given player.
      * @param {Player} player - The player to exclude.
@@ -128,21 +128,21 @@ export default class Whisper extends GameConstruct {
         this.playersCollection.delete(player.name);
         const newId = Whisper.generateValidId(this.playersCollection.map(player => player), this.location, this.hidingSpotName);
         const deleteWhisper = this.playersCollection.size === 0 || this.getGame().whispersCollection.get(newId);
-^        if (!deleteWhisper) {
+        if (!deleteWhisper) {
             this.getGame().entityLoader.updateWhisperId(this, newId);
             if (narration) addNarrationToWhisper(this, narration);
-^        }
+        }
         else this.getGame().entityLoader.deleteWhisper(this);
-^    }
-^
+    }
+
     /**
      * Revoke access to the whisper channel for a player.
      * @param {Player} player
      */
     revokeChannelAccess(player) {
         if (!player.isNPC) this.channel.permissionOverwrites.delete(player.id);
-^    }
-^
+    }
+
     /**
      * Generate an ID in all lowercase with 
      * @param {Player[]} players - The players in the whisper.
@@ -154,5 +154,5 @@ export default class Whisper extends GameConstruct {
         const hidingSpotString = hidingSpotName ? `${hidingSpotName}-` : ``;
         const playerListString = players.map(player => player.displayName).sort().join('-');
         return Room.generateValidId(`${locationString}${hidingSpotString}${playerListString}`);
-^    }
-^}
+    }
+}

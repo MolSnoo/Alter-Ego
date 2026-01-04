@@ -10,18 +10,18 @@ import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
-^    name: "drop_moderator",
-^    description: "Drops the given item from a player's inventory.",
-^    details: "Forcibly drops an item for a player. The item must be in either of the player's hands. You can specify "
-^    + "where in the room to drop the item into by putting the name of an object or item in the room after the item. "
-^    + "If you want to discard the item in an item with multiple inventory slots, you can specify which slot to put it in. "
-^    + `If no object or item is specified, they will drop it on the floor. This can be changed in the settings file. `
-^    + "Only objects and item in the same room as the player can be specified.",
-^    usableBy: "Moderator",
-^    aliases: ["drop", "discard", "d"],
-^    requiresGame: true
-^};
-^
+    name: "drop_moderator",
+    description: "Drops the given item from a player's inventory.",
+    details: "Forcibly drops an item for a player. The item must be in either of the player's hands. You can specify "
+    + "where in the room to drop the item into by putting the name of an object or item in the room after the item. "
+    + "If you want to discard the item in an item with multiple inventory slots, you can specify which slot to put it in. "
+    + `If no object or item is specified, they will drop it on the floor. This can be changed in the settings file. `
+    + "Only objects and item in the same room as the player can be specified.",
+    usableBy: "Moderator",
+    aliases: ["drop", "discard", "d"],
+    requiresGame: true
+};
+
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -43,15 +43,15 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
-^
+
     const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
-^
+
     const input = args.join(" ");
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
     let newArgs = null;
-^
+
     // First, find the item in the player's inventory.
     /** @type {EquipmentSlot} */
     let hand;
@@ -86,8 +86,8 @@ export async function execute (game, message, command, args) {
                 break;
             }
             else if (parsedInput === `${newArgs[0]} ${fixtures[i].name}` && fixtures[i].preposition === "") return addReply(game, message, `${fixtures[i].name} cannot hold items.`);
-^        }
-^    }
+        }
+    }
 
     // Check if a container item was specified.
     const items = game.roomItems.filter(item => item.location.id === player.location.id && item.accessible && (item.quantity > 0 || isNaN(item.quantity)));
@@ -133,7 +133,7 @@ export async function execute (game, message, command, args) {
                 }
             }
         }
-^    }
+    }
     // Now decide what the container should be.
     let container = null;
     let slot = null;
@@ -149,14 +149,14 @@ export async function execute (game, message, command, args) {
         else if (item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.getIdentifier()} will not fit in ${container.identifier} because it is too large.`);
         else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `${item.getIdentifier()} will not fit in ${containerItemSlot.id} of ${container.identifier} because there isn't enough space left.`);
         else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.getIdentifier()} will not fit in ${container.identifier} because there isn't enough space left.`);
-^    }
-^    else {
+    }
+    else {
         if (parsedInput !== "") return addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
         const defaultDropFixture = fixtures.find(fixture => fixture.name === game.settings.defaultDropFixture);
         if (defaultDropFixture === null || defaultDropFixture === undefined) return addReply(game, message, `There is no default drop object "${game.settings.defaultDropFixture}" in ${player.location.id}.`);
         container = defaultDropFixture;
-^    }
-^        
+    }
+        
     let topContainer = container;
     while (topContainer !== null && topContainer instanceof RoomItem)
         topContainer = topContainer.container;

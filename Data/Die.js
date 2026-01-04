@@ -1,6 +1,6 @@
 ﻿import GameConstruct from './GameConstruct.js';
 import Status from './Status.js';
-^
+
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('./Player.js').default} Player */
 
@@ -54,24 +54,24 @@ export default class Die extends GameConstruct {
 
         this.min = this.getGame().settings.diceMin;
         this.max = this.getGame().settings.diceMax;
-^
+
         /** @type {number} */
-^        let baseRoll;
+        let baseRoll;
         if (attacker && attacker.hasBehaviorAttribute("all or nothing")) {
-^            // Make the base roll either the minimum or maximum possible.
-^            baseRoll = this.doBaseRoll(0, 1);
-^            baseRoll = baseRoll * (this.max - 1);
-^            baseRoll += this.min;
-^        }
-^        else baseRoll = this.doBaseRoll();
-^        this.baseRoll = baseRoll;
-^
+            // Make the base roll either the minimum or maximum possible.
+            baseRoll = this.doBaseRoll(0, 1);
+            baseRoll = baseRoll * (this.max - 1);
+            baseRoll += this.min;
+        }
+        else baseRoll = this.doBaseRoll();
+        this.baseRoll = baseRoll;
+
         let modifiers = this.calculateModifiers(stat, attacker, defender);
-^        this.modifier = modifiers.number;
-^        this.modifierString = modifiers.strings.join(", ");
-^        this.result = this.baseRoll + this.modifier;
-^    }
-^
+        this.modifier = modifiers.number;
+        this.modifierString = modifiers.strings.join(", ");
+        this.result = this.baseRoll + this.modifier;
+    }
+
     /**
      * Roll a die with no modifiers.
      * @param {number} [min] - The minimum possible roll. Defaults to diceMin in the game's settings.
@@ -79,9 +79,9 @@ export default class Die extends GameConstruct {
      * @returns {number} A random number between min and max, inclusive.
      */
     doBaseRoll(min = this.min, max = this.max) {
-^        return Math.floor(Math.random() * (max - min + 1)) + min;
-^    }
-^
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
     /**
      * Calculates the modifiers to apply to the base roll.
      * @param {string} [stat] - The stat which will modify the base roll.
@@ -93,27 +93,27 @@ export default class Die extends GameConstruct {
         let modifier = 0;
         /** @type {string[]} */
         let modifierStrings = [];
-^        if (attacker) {
+        if (attacker) {
             if (attacker.hasBehaviorAttribute("coin flipper")) {
-^                let hasCoin = false;
+                let hasCoin = false;
                 const rightHand = attacker.inventoryCollection.get("RIGHT HAND");
                 const leftHand = attacker.inventoryCollection.get("LEFT HAND");
                 if (rightHand && rightHand.equippedItem !== null && rightHand.equippedItem.name.includes("COIN")
                     || leftHand && leftHand.equippedItem !== null && leftHand.equippedItem.name.includes("COIN")) {
                     hasCoin = true;
-^                }
-^                if (hasCoin) {
-^                    const coinModifier = this.doBaseRoll(0, 1);
-^                    if (coinModifier === 1) {
-^                        modifier += coinModifier;
-^                        modifierStrings.push("+1 (coin flip)");
-^                    }
-^                }
-^            }
-^
+                }
+                if (hasCoin) {
+                    const coinModifier = this.doBaseRoll(0, 1);
+                    if (coinModifier === 1) {
+                        modifier += coinModifier;
+                        modifierStrings.push("+1 (coin flip)");
+                    }
+                }
+            }
+
             /** @type {Status[]} */
             let tempStatuses = [];
-^            if (defender) {
+            if (defender) {
                 // If the attacker is attacking the defender with their strength, use the defender's dexterity stat determines how well they dodged it.
                 if (stat === "str") {
                     const dexterityModifier = -1 * defender.getStatModifier(defender.dexterity);
@@ -132,9 +132,9 @@ export default class Die extends GameConstruct {
                             tempStatuses.push(tempStatus);
                             attacker.inflict(tempStatus);
                         }
-^                    }
-^                }
-^            }
+                    }
+                }
+            }
 
             // Apply attacker's stat modifier.
             if (stat) {
@@ -156,8 +156,8 @@ export default class Die extends GameConstruct {
             // Cure attacker of all tempStatuses.
             for (let i = 0; i < tempStatuses.length; i++)
                 attacker.cure(tempStatuses[i]);
-^        }
-^
-^        return { number: modifier, strings: modifierStrings };
-^    }
-^}
+        }
+
+        return { number: modifier, strings: modifierStrings };
+    }
+}

@@ -8,8 +8,8 @@ import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
-^    name: "hide_player",
-^    description: "Hides you in an object.",
+    name: "hide_player",
+    description: "Hides you in an object.",
     details: `Allows you to use an object in a room as a hiding spot. When hidden, you will be removed from that room's channel so that `
         + `when other players enter the room, they won't see you on the user list. When players speak in the room that you're hiding in, `
         + `you will hear what they say. Under normal circumstances, a whisper channel will be created for you to speak in. Most players `
@@ -17,11 +17,11 @@ export const config = {
         + `your identity remain a secret), use the say command. If someone hides in the same hiding spot as you, ` 
         + `you will be placed in a whisper channel together. If someone inspects or tries to hide in the object you're hiding in, `
         + `your position will be revealed. If you wish to come out of hiding on your own, use the unhide command.`,
-^    usableBy: "Player",
+    usableBy: "Player",
     aliases: ["hide", "unhide"],
     requiresGame: true
-^};
-^
+};
+
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -42,7 +42,7 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable hide");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-^
+
     if (player.statusCollection.has("hidden") && command === "unhide") {
         const fixture = game.entityFinder.getFixtures(player.hidingSpot, player.location.id, true)[0];
         if (fixture !== undefined && (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved))
@@ -54,34 +54,34 @@ export async function execute (game, message, command, args, player) {
     }
     else if (player.statusCollection.has("hidden"))
         return addReply(game, message, `You are already **hidden**. If you wish to stop hiding, use "${game.settings.commandPrefix}unhide".`);
-^    else if (command === "unhide")
+    else if (command === "unhide")
         return addReply(game, message, "You are not currently hidden.");
-^    // Player is currently not hidden and is using the hide command.
-^    else {
+    // Player is currently not hidden and is using the hide command.
+    else {
         if (args.length === 0)
             return addReply(game, message, `You need to specify a fixture. Usage:\n${usage(game.settings)}`);
-^
+
         const input = args.join(" ");
         const parsedInput = input.toUpperCase().replace(/\'/g, "");
-^
+
         // Check if the input is a fixture that the player can hide in.
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
         let fixture = null;
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput && fixtures[i].hidingSpotCapacity > 0) {
                 fixture = fixtures[i];
-^                break;
-^            }
+                break;
+            }
             else if (fixtures[i].name === parsedInput)
                 return addReply(game, message, `${fixtures[i].name} is not a hiding spot.`);
-^        }
+        }
         if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
-^
+
         // Make sure the fixture isn't locked.
         if (fixture.childPuzzle !== null && fixture.childPuzzle.type.endsWith("lock") && !fixture.childPuzzle.solved)
             return addReply(game, message, `You cannot hide in ${fixture.name} right now.`);
-^
+
         const hideAction = new HideAction(game, message, player, player.location, false);
         hideAction.performHide(fixture.hidingSpot);
-^    }
+    }
 }

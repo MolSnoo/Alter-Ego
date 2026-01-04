@@ -7,22 +7,22 @@ import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
-^
+
 /** @type {CommandConfig} */
 export const config = {
-^    name: "status_bot",
-^    description: "Deals with status effects on players.",
-^    details: 'Deals with status effects on players.\n'
-^        + '-**add**/**inflict**: Inflicts the specified player with the given status effect. '
-^        + 'If the "player" argument is used in place of a name, then the player who triggered '
-^        + 'the command will be inflicted. If the "all" argument is used instead, then all living '
+    name: "status_bot",
+    description: "Deals with status effects on players.",
+    details: 'Deals with status effects on players.\n'
+        + '-**add**/**inflict**: Inflicts the specified player with the given status effect. '
+        + 'If the "player" argument is used in place of a name, then the player who triggered '
+        + 'the command will be inflicted. If the "all" argument is used instead, then all living '
         + 'players will be inflicted. If the "room" argument is used in place of a name, '
-^        + 'then all players in the same room as the player who solved it will be inflicted.\n'
-^        + '-**remove**/**cure**: Cures the specified player of the given status effect. '
-^        + 'If the "player" argument is used in place of a name, then the player who triggered '
-^        + 'the command will be cured. If the "all" argument is used instead, then all living '
+        + 'then all players in the same room as the player who solved it will be inflicted.\n'
+        + '-**remove**/**cure**: Cures the specified player of the given status effect. '
+        + 'If the "player" argument is used in place of a name, then the player who triggered '
+        + 'the command will be cured. If the "all" argument is used instead, then all living '
         + 'players will be cured. If the "room" argument is used in place of a name, '
-^        + 'then all players in the same room as the player who solved it will be cured.',
+        + 'then all players in the same room as the player who solved it will be cured.',
     usableBy: "Bot",
     aliases: ["status", "inflict", "cure"],
     requiresGame: true
@@ -42,7 +42,7 @@ export function usage (settings) {
         + `cure antoine injured\n`
         + `cure all deaf`;
 }
-^
+
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {string} command - The command alias that was used. 
@@ -51,37 +51,37 @@ export function usage (settings) {
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
 export async function execute (game, command, args, player, callee) {
-^    const cmdString = command + " " + args.join(" ");
-^    if (command === "status") {
-^        if (args[0] === "add" || args[0] === "inflict") command = "inflict";
-^        else if (args[0] === "remove" || args[0] === "cure") command = "cure";
+    const cmdString = command + " " + args.join(" ");
+    if (command === "status") {
+        if (args[0] === "add" || args[0] === "inflict") command = "inflict";
+        else if (args[0] === "remove" || args[0] === "cure") command = "cure";
         args.splice(0, 1);
-^    }
-^
-^    if (args.length === 0) {
+    }
+
+    if (args.length === 0) {
         addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
-^        return;
-^    }
-^
-^    // Determine which player(s) are being inflicted/cured with a status effect.
+        return;
+    }
+
+    // Determine which player(s) are being inflicted/cured with a status effect.
     /**
      * @type {Player[]}
      */
     let players = new Array();
-^    if (args[0].toLowerCase() === "player" && player !== null)
-^        players.push(player);
-^    else if (args[0].toLowerCase() === "room" && player !== null)
-^        players = player.location.occupants;
-^    else if (args[0].toLowerCase() === "all") {
+    if (args[0].toLowerCase() === "player" && player !== null)
+        players.push(player);
+    else if (args[0].toLowerCase() === "room" && player !== null)
+        players = player.location.occupants;
+    else if (args[0].toLowerCase() === "all") {
         players.concat(game.entityFinder.getLivingPlayers(null, false).filter((player) => {!player.member.roles.cache.find(role => role.id === game.guildContext.freeMovementRole.id)}));
-^    }
-^    else {
+    }
+    else {
         player = game.entityFinder.getLivingPlayer(args[0]);
         if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
-^        players.push(player);
-^    }
+        players.push(player);
+    }
     args.splice(0, 1);
-^
+
     const statusId = args.join(" ");
     /** @type {Status} */
     const status = game.entityFinder.getStatusEffect(statusId);
@@ -89,7 +89,7 @@ export async function execute (game, command, args, player, callee) {
     if (status.id === "hidden") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Can't inflict or cure "hidden".`);
 
     const item = callee instanceof InventoryItem ? callee : undefined;
-^    for (let i = 0; i < players.length; i++) {
+    for (let i = 0; i < players.length; i++) {
         if (command === "inflict") {
             const action = new InflictAction(game, undefined, players[i], players[i].location, true);
             action.performInflict(status, true, true, true, item);
@@ -98,5 +98,5 @@ export async function execute (game, command, args, player, callee) {
             const action = new CureAction(game, undefined, players[i], players[i].location, true);
             action.performCure(status, true, true, true, item);
         }
-^    }
+    }
 }

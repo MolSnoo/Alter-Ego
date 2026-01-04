@@ -2,7 +2,7 @@
 import ItemInstance from './ItemInstance.js';
 import { replaceInventoryItem } from '../Modules/itemManager.js';
 import { Collection } from 'discord.js';
-^
+
 /** @typedef {import("./Game.js").default} Game */
 /** @typedef {import("./Player.js").default} Player */
 
@@ -73,8 +73,8 @@ export default class InventoryItem extends ItemInstance {
         this.foundEquipmentSlot = false;
         this.inventory = [];
         this.inventoryCollection = new Collection();
-^    }
-^
+    }
+
     /**
      * Sets the player.
      * @param {Player} player 
@@ -178,7 +178,7 @@ export default class InventoryItem extends ItemInstance {
     }
 
     /** @returns {string} */
-^    descriptionCell() {
+    descriptionCell() {
         return this.getGame().constants.inventorySheetDescriptionColumn + this.row;
-^    }
-^}
+    }
+}
