@@ -1469,24 +1469,9 @@ export default class Player extends ItemContainer {
      * @param {string} narration - The text of the narration to send in the whisper channel when the player is removed.
      */
     removeFromWhispers(narration) {
-        /** @type {number[]} */
-        let deleteWhisperIndexes = [];
-        for (let i = 0; i < this.getGame().whispers.length; i++) {
-            for (let j = 0; j < this.getGame().whispers[i].players.length; j++) {
-                if (this.getGame().whispers[i].players[j].name === this.name) {
-                    // Remove player from the whisper.
-                    const deleteWhisper = this.getGame().whispers[i].removePlayer(j, narration);
-                    if (deleteWhisper) deleteWhisperIndexes.push(i);
-                    break;
-                }
-            }
-        }
-        // Sort the whisper indexes to delete by decreasing value.
-        deleteWhisperIndexes.sort((a, b) => b - a);
-        // Now delete each one.
-        for (let i = 0; i < deleteWhisperIndexes.length; i++) {
-            const index = deleteWhisperIndexes[i];
-            this.getGame().whispers[index].delete(index);
+        for (const whisper of this.getGame().whispersCollection.values()) {
+            if (whisper.playersCollection.has(this.name))
+                whisper.removePlayer(this, narration);
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿import Whisper from '../Data/Whisper.js';
+import WhisperAction from '../Data/Actions/WhisperAction.js';
 import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -61,7 +62,7 @@ export async function execute (game, message, command, args, player) {
                 if (livingFetch.hasBehaviorAttribute("hidden"))
                     return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} ` + (livingFetch.pronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
                 if (livingFetch.hasBehaviorAttribute("concealed"))
-                    return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because it would reveal their identity.`);
+                    return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because it would reveal ${livingFetch.pronouns.dpos} identity.`);
                 if (livingFetch.hasBehaviorAttribute("no hearing"))
                     return addReply(game, message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} can't hear you.`);
                 if (livingFetch.hasBehaviorAttribute("unconscious"))
@@ -74,24 +75,10 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Check if whisper already exists.
-    for (let i = 0; i < game.whispers.length; i++) {
-        // No need to compare the members of the current whisper if they have different numbers of people.
-        if (game.whispers[i].players.length === recipients.length) {
-            let matchedUsers = 0;
-            for (let j = 0; j < recipients.length; j++) {
-                for (let k = 0; k < game.whispers[i].players.length; k++) {
-                    if (recipients[j].name === game.whispers[i].players[k].name) {
-                        matchedUsers++;
-                        break;
-                    }
-                }
-            }
-            if (matchedUsers === recipients.length) return addReply(game, message, "Whisper group already exists.");
-        }
-    }
+    let whisper = game.whispersCollection.get(Whisper.generateValidId(recipients, player.location));
+    if (whisper) return addReply(game, message, "Whisper group already exists.");
 
     // Whisper does not exist, so create it.
-    const whisper = new Whisper(game, recipients, player.location.id, player.location);
-    await whisper.init();
-    game.whispers.push(whisper);
+    const action = new WhisperAction(game, message, player, player.location, false);
+    action.performWhisper(recipients);
 }

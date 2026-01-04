@@ -18,6 +18,7 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/InventorySlot.js").default} InventorySlot */
 /** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 /** @typedef {import("../Data/Status.js").default} Status */
+/** @typedef {import("../Data/Whisper.js").default} Whisper */
 
 /**
  * @class GameNarrationHandler
@@ -50,6 +51,19 @@ export default class GameNarrationHandler {
 		if (narrationText.charAt(0) === narrationText.charAt(0).toLocaleLowerCase())
 			narrationText = narrationText.charAt(0).toLocaleUpperCase() + narrationText.substring(1);
 		new Narration(this.#game, player, location, narrationText).send();
+	}
+
+	/**
+	 * Narrates a whisper action.
+	 * @param {Whisper} whisper - The whisper that was created.
+	 * @param {Player} player - The player performing the whisper action.
+	 */
+	narrateWhisper(whisper, player) {
+		const playerListString = whisper.generatePlayerListStringExcluding(player);
+		const notification = this.#game.notificationGenerator.generateWhisperNotification(player, true, playerListString);
+		const narration = this.#game.notificationGenerator.generateWhisperNotification(player, false, playerListString);
+		player.notify(notification);
+		this.#sendNarration(player, narration);
 	}
 
 	/**
