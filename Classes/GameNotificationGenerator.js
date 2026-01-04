@@ -26,6 +26,27 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
+	 * Generates a notification indicating the player cannot speak because they have a status effect with the `no speech` behavior attribute.
+	 * @param {string} statusId - The ID of the status effect that made the player unable to speak.
+	 */
+	generatePlayerNoSpeechNotification(statusId) {
+		return `You are ${statusId}, so you cannot speak.`;
+	}
+
+	/**
+	 * Generates a whisper action notification.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
+	 * @param {string} playerListString - A list of the other players in the whisper.
+	 */
+	generateWhisperNotification(player, secondPerson, playerListString) {
+		const subject = secondPerson ? `You` : player.displayName;
+		const verb = secondPerson ? `begin` : `begins`;
+		const whisperPhrase = playerListString ? ` to ${playerListString}` : ``;
+		return `${subject} ${verb} whispering${whisperPhrase}.`;
+	}
+
+	/**
 	 * Generates a text action notification.
 	 * @param {string} messageText - The text content of the text message.
 	 * @param {string} senderName - The name of the sender.

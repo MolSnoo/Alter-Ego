@@ -5,10 +5,11 @@ import { Collection } from "discord.js";
 
 /** @typedef {import("../Data/Dialog.js").default} Dialog */
 /** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("discord.js").Snowflake} Snowflake */
 /** @typedef {import("discord.js").TextChannel} TextChannel */
 
 /**
- * @class GameDialogHandler
+ * @class GameCommunicationHandler
  * @classdesc A set of functions to handle communicating actions to players and spectators.
  */
 export default class GameCommunicationHandler {
@@ -23,6 +24,22 @@ export default class GameCommunicationHandler {
 	 * @type {Collection<string, Action>}
 	 */
 	#actionCache;
+	/**
+	 * The maximum size of the actionCache.
+	 * @readonly
+	 */
+	#actionCacheSizeLimit = 20;
+	/** 
+	 * A collection of mirrored dialog messages to allow edits to dialog messages to be reflected in spectate channels.
+	 * The key is the ID of the original message that's being mirrored.
+	 * @type {Collection<string, DialogSpectateMirror[]>}
+	 */
+	#dialogSpectateMirrorCache;
+	/**
+	 * The maximum size of the dialogSpectateMirrorCache.
+	 * @readonly
+	 */
+	#dialogSpectateMirrorCacheSizeLimit = 50;
 
 	/**
 	 * @constructor
@@ -31,6 +48,7 @@ export default class GameCommunicationHandler {
 	constructor(game) {
 		this.#game = game;
 		this.#actionCache = new Collection();
+		this.#dialogSpectateMirrorCache = new Collection();
 	}
 
 	/**
@@ -45,8 +63,7 @@ export default class GameCommunicationHandler {
 	 * @param {Action} action - The action to cache. 
 	 */
 	#addActionToCache(action) {
-		const actionCacheLimit = 20;
-		if (this.#actionCache.size >= actionCacheLimit)
+		if (this.#actionCache.size >= this.#actionCacheSizeLimit)
 			this.#actionCache.delete(this.#actionCache.firstKey());
 		this.#actionCache.set(action.id, action);
 	}
@@ -74,6 +91,36 @@ export default class GameCommunicationHandler {
 	#actionHasBeenCommunicatedInChannel(channel, action) {
 		if (!channel) return true;
 		return action.hasBeenCommunicatedIn(channel.id);
+	}
+
+	/**
+	 * Adds the message to the dialog cache.
+	 * @param {UserMessage} message - The message that initiated the dialog. 
+	 */
+	cacheDialog(message) {
+		if (this.#dialogSpectateMirrorCache.size >= this.#dialogSpectateMirrorCacheSizeLimit)
+			this.#dialogSpectateMirrorCache.delete(this.#dialogSpectateMirrorCache.firstKey());
+		this.#dialogSpectateMirrorCache.set(message.id, []);
+	}
+
+	/**
+	 * Adds a spectate mirror to the dialog cache for the given message.
+	 * @param {UserMessage} message - The message being mirrored.
+	 * @param {Snowflake} mirrorMessageId - The message ID of the spectate mirror.
+	 * @param {Snowflake} mirrorWebhookId - The ID of the webhook that sent the spectate mirror.
+	 */
+	cacheSpectateMirrorForDialog(message, mirrorMessageId, mirrorWebhookId) {
+		const spectateMirrors = this.getDialogSpectateMirrors(message);
+		if (spectateMirrors) spectateMirrors.push({ messageId: mirrorMessageId, webhookId: mirrorWebhookId });
+	}
+
+	/**
+	 * Returns the list of spectate mirrors for the given dialog message.
+	 * If the given dialog message isn't cached, returns undefined.
+	 * @param {UserMessage|import('discord.js').PartialMessage} message - The message that was mirrored.
+	 */
+	getDialogSpectateMirrors(message) {
+		return this.#dialogSpectateMirrorCache.get(message.id);
 	}
 
 	/**

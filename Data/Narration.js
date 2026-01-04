@@ -80,8 +80,8 @@ export default class Narration extends GameConstruct {
             // Find the whisper channel the player is in, if there is one.
             /** @type {Whisper} */
             let whisper = null;
-            for (let gameWhisper of this.getGame().whispers) {
-                for (let occupant of gameWhisper.players) {
+            for (let gameWhisper of this.getGame().whispersCollection.values()) {
+                for (let occupant of gameWhisper.playersCollection.values()) {
                     if (occupant.name === this.player.name) {
                         whisper = gameWhisper;
                         break;
@@ -90,7 +90,7 @@ export default class Narration extends GameConstruct {
                 if (whisper !== null) break;
             }
             if (whisper) {
-                for (let occupant of whisper.players) {
+                for (let occupant of whisper.playersCollection.values()) {
                     // Players who don't have access to the whisper channel should receive all narrations besides their own via DM.
                     if (!occupant.hasBehaviorAttribute("no sight") && !occupant.isNPC
                         && (occupant.hasBehaviorAttribute("see room") || !occupant.member.permissionsIn(whisper.channel).has("ViewChannel"))) {

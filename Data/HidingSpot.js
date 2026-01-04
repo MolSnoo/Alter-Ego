@@ -53,10 +53,7 @@ export default class HidingSpot extends GameEntity {
 		if (!player.hasBehaviorAttribute("no sight")) this.deleteWhisper();
 		this.occupants.push(player);
 		player.hidingSpot = this.name;
-		const whisper = new Whisper(this.getGame(), this.occupants, this.getLocation().id, this.getLocation());
-		await whisper.init();
-		this.getGame().whispers.push(whisper);
-		this.whisper = whisper;
+		this.whisper = await this.getGame().entityLoader.createWhisper(this.occupants, this.name);
 	}
 
 	/**

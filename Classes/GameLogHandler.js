@@ -17,6 +17,7 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/HidingSpot.js").default} HidingSpot */
 /** @typedef {import("../Data/ItemContainer.js").default} ItemContainer */
 /** @typedef {import("../Data/Status.js").default} Status */
+/** @typedef {import("../Data/Whisper.js").default} Whisper */
 
 /**
  * @class GameLogHandler
@@ -53,6 +54,17 @@ export default class GameLogHandler {
 	 */
 	#sendLogMessage(logText) {
 		addLogMessage(this.game, logText);
+	}
+
+	/**
+	 * Logs a whisper action.
+	 * @param {Whisper} whisper - The whisper that was created.
+	 * @param {Player} player - The player who performed the action. 
+	 * @param {boolean} forced - Whether or not the player was forced to perform the action.
+	 */
+	logWhisper(whisper, player, forced) {
+		const playerListString = generateListString(whisper.playersCollection.filter(whisperPlayer => whisperPlayer.name !== player.name).map(player => player.name));
+		this.#sendLogMessage(`${this.#getTime()} - ${player.name} ${this.#getForcedString(forced)}began whispering to ${playerListString} in ${player.location.channel}`);
 	}
 
 	/**

@@ -498,7 +498,7 @@ export default class Player extends ItemContainer {
         this.moveTimer = setInterval(function () {
             const settings = player.getGame().settings;
             let subtractedTime = 100;
-            if (this.game.heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
+            if (player.getGame().heated) subtractedTime = settings.heatedSlowdownRate * subtractedTime;
             if (time >= subtractedTime) player.remainingTime -= subtractedTime;
             // Get the current coordinates based on what percentage of the duration has passed.
             const elapsedTime = time - player.remainingTime;
@@ -698,7 +698,7 @@ export default class Player extends ItemContainer {
                         const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
                         cureAction.performCure(statusInstance.nextStage, false, false, true);
                         let inflictNextStage = true;
-                        const playerStatusIds = player.status.map(statusEffect => statusEffect.id);
+                        const playerStatusIds = player.statusCollection.map(statusEffect => statusEffect.id);
                         for (const overrider of statusInstance.nextStage.overriders) {
                             if (playerStatusIds.includes(overrider.id)) {
                                 player.sendDescription(statusInstance.curedDescription, statusInstance);
@@ -741,6 +741,7 @@ export default class Player extends ItemContainer {
         // Stop the timer.
         if (statusInstance.timer !== null)
             statusInstance.timer.stop();
+        this.statusCollection.delete(status.id)
         this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
     }
@@ -791,9 +792,7 @@ export default class Player extends ItemContainer {
      * @param {string} statusId - The ID of the status to look for. 
      */
     hasStatus(statusId) {
-        for (const status of this.statusCollection.values())
-            if (status.id === statusId) return true;
-        return false;
+        return this.statusCollection.has(statusId);
     }
 
     /**
@@ -1470,24 +1469,9 @@ export default class Player extends ItemContainer {
      * @param {string} narration - The text of the narration to send in the whisper channel when the player is removed.
      */
     removeFromWhispers(narration) {
-        /** @type {number[]} */
-        let deleteWhisperIndexes = [];
-        for (let i = 0; i < this.getGame().whispers.length; i++) {
-            for (let j = 0; j < this.getGame().whispers[i].players.length; j++) {
-                if (this.getGame().whispers[i].players[j].name === this.name) {
-                    // Remove player from the whisper.
-                    const deleteWhisper = this.getGame().whispers[i].removePlayer(j, narration);
-                    if (deleteWhisper) deleteWhisperIndexes.push(i);
-                    break;
-                }
-            }
-        }
-        // Sort the whisper indexes to delete by decreasing value.
-        deleteWhisperIndexes.sort((a, b) => b - a);
-        // Now delete each one.
-        for (let i = 0; i < deleteWhisperIndexes.length; i++) {
-            const index = deleteWhisperIndexes[i];
-            this.getGame().whispers[index].delete(index);
+        for (const whisper of this.getGame().whispersCollection.values()) {
+            if (whisper.playersCollection.has(this.name))
+                whisper.removePlayer(this, narration);
         }
     }
 
@@ -1524,6 +1508,7 @@ export default class Player extends ItemContainer {
      * Sets the player as online and initiates a timer that will mark them as offline after 15 minutes of inactivity.
      */
     setOnline() {
+        if (this.isNPC) return;
         this.online = true;
         // Clear the existing timeout.
         if (this.onlineInterval)
@@ -1540,6 +1525,7 @@ export default class Player extends ItemContainer {
      * Sets the player as offline.
      */
     setOffline() {
+        if (this.isNPC) return;
         this.online = false;
         if (this.onlineInterval)
             clearTimeout(this.onlineInterval);

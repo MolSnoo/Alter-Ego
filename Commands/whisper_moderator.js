@@ -1,4 +1,5 @@
 import Whisper from '../Data/Whisper.js';
+import WhisperAction from '../Data/Actions/WhisperAction.js';
 import handleDialog from '../Modules/dialogHandler.js';
 import { addReply } from '../Modules/messageHandler.js';
 
@@ -86,33 +87,16 @@ export async function execute (game, message, command, args) {
     const string = args.join(' ');
 
     // Check if whisper already exists.
-    for (let i = 0; i < game.whispers.length; i++) {
-        // No need to compare the members of the current whisper if they have different numbers of people.
-        if (game.whispers[i].players.length === recipients.length) {
-            let matchedUsers = 0;
-            for (let j = 0; j < recipients.length; j++) {
-                for (let k = 0; k < game.whispers[i].players.length; k++) {
-                    if (recipients[j].name === game.whispers[i].players[k].name) {
-                        matchedUsers++;
-                        break;
-                    }
-                }
-            }
-            if (matchedUsers === recipients.length) {
-                if (npc !== null) {
-                    await sendMessageToWhisper(game, message, string, npc, game.whispers[i]);
-                    return;
-                }
-                else return addReply(game, message, "Whisper group already exists.");
-            }
-        }
+    let whisper = game.whispersCollection.get(Whisper.generateValidId(recipients, recipients[0].location));
+    if (whisper && npc !== null) {
+        await sendMessageToWhisper(game, message, string, npc, whisper);
+        return;
     }
+    else if (whisper) return addReply(game, message, "Whisper group already exists.");
 
     // Whisper does not exist, so create it.
-    const whisper = new Whisper(game, recipients, recipients[0].location.id, recipients[0].location);
-    await whisper.init();
-    game.whispers.push(whisper);
-
+    const action = new WhisperAction(game, message, recipients[0], recipients[0].location, true);
+    whisper = await action.performWhisper(recipients);
     if (npc !== null)
         await sendMessageToWhisper(game, message, string, npc, whisper);
 }

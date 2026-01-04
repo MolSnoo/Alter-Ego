@@ -19,11 +19,20 @@ export async function processIncomingMessage(game, message) {
     const isInRoomChannel = game.guildContext.roomCategories.includes(message.channel.parentId);
     if (!isInWhisperChannel && !isInAnnouncementChannel && !isInRoomChannel) return;
 
-    const isModerator = message.member && message.member.roles.resolve(game.guildContext.moderatorRole);
+    game.communicationHandler.cacheDialog(message);
+
+    const isModerator = message.member && message.member.roles.cache.has(game.guildContext.moderatorRole.id);
     const room = game.entityFinder.getRoom(message.channel.name);
     const whisper = game.entityFinder.getWhisper(message.channel.name);
     const player = game.entityFinder.getLivingPlayerById(message.author.id);
     if (player) {
+        player.setOnline();
+        const playerNoSpeechStatusEffects = player.getBehaviorAttributeStatusEffects("no speech");
+        if (playerNoSpeechStatusEffects.length > 0) {
+            player.notify(game.notificationGenerator.generatePlayerNoSpeechNotification(playerNoSpeechStatusEffects[0].id), false);
+            message.delete().catch();
+            return;
+        }
         const location = isInAnnouncementChannel ? player.location : room;
         const dialog = new Dialog(game, message, player, location, isInAnnouncementChannel, whisper);
         if (dialog.isAnnouncement) {
@@ -90,8 +99,8 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
             "tell"
         );
         if (addSpectate) {
-            whisper.players.forEach((player) => {
-                let spectateMessageText = `*(In a whisper with ${whisper.makePlayersSentenceGroup()}):*\n${messageText}`;
+            whisper.playersCollection.forEach((player) => {
+                let spectateMessageText = `*(In a whisper with ${whisper.generatePlayerListString()}):*\n${messageText}`;
                 if (
                     !player.hasBehaviorAttribute("no sight") &&
                     !player.hasBehaviorAttribute("unconscious") &&
@@ -397,8 +406,8 @@ export async function addReply(game, message, messageText) {
 export async function addSpectatedPlayerMessage(player, speaker, message, whisper = null, displayName = null) {
     if (player.spectateChannel !== null) {
         const messageText =
-            whisper && whisper.players.length > 1
-                ? `*(Whispered to ${whisper.makePlayersSentenceGroupExcluding(speaker.displayName)}):*\n${message.content || ""}`
+            whisper && whisper.playersCollection.size > 1
+                ? `*(Whispered to ${whisper.generatePlayerListStringExcludingDisplayName(speaker.displayName)}):*\n${message.content || ""}`
                 : whisper
                     ? `*(Whispered):*\n${message.content || ""}`
                     : message.content || "";
@@ -424,8 +433,7 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
                         embeds: message.embeds,
                         files: files,
                     });
-                    const cachedMessage = player.getGame().dialogCache.find((entry) => entry.messageId === message.id);
-                    if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
+                    player.getGame().communicationHandler.cacheSpectateMirrorForDialog(message, webhookMessage.id, webhook.id);
                 },
             },
             "spectator"
@@ -442,8 +450,8 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
 export async function sendDialogSpectateMessage(player, dialog, webhookUsername) {
     if (player.spectateChannel !== null) {
         const messageText =
-            dialog.whisper && dialog.whisper.players.length > 1
-                ? `*(Whispered to ${dialog.whisper.makePlayersSentenceGroupExcluding(dialog.player.displayName)}):*\n${dialog.content || ""}`
+            dialog.whisper && dialog.whisper.playersCollection.size > 1
+                ? `*(Whispered to ${dialog.whisper.generatePlayerListStringExcluding(dialog.player)}):*\n${dialog.content || ""}`
                 : dialog.whisper
                     ? `*(Whispered):*\n${dialog.content || ""}`
                     : dialog.content || "";
@@ -463,8 +471,7 @@ export async function sendDialogSpectateMessage(player, dialog, webhookUsername)
                         embeds: dialog.embeds,
                         files: dialog.attachments.map((attachment) => attachment.url),
                     });
-                    const cachedMessage = player.getGame().dialogCache.find((entry) => entry.messageId === dialog.message.id);
-                    if (cachedMessage) cachedMessage.spectateMirrors.push({ messageId: webhookMessage.id, webhookId: webhook.id });
+                    player.getGame().communicationHandler.cacheSpectateMirrorForDialog(dialog.message, webhookMessage.id, webhook.id);
                 },
             },
             "spectator"
@@ -479,9 +486,9 @@ export async function sendDialogSpectateMessage(player, dialog, webhookUsername)
  * @param {UserMessage} messageNew - The new message after being edited.
  */
 export async function editSpectatorMessage(game, messageOld, messageNew) {
-    const cachedMessage = game.dialogCache.find((entry) => entry.messageId === messageOld.id);
-    if (!cachedMessage) return;
-    cachedMessage.spectateMirrors.forEach(async (mirror) => {
+    const spectateMirrors = game.communicationHandler.getDialogSpectateMirrors(messageOld);
+    if (!spectateMirrors) return;
+    spectateMirrors.forEach(async (mirror) => {
         const webhook = await messageOld.client.fetchWebhook(mirror.webhookId);
         if (webhook) {
             let messageText = messageNew.content;
