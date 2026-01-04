@@ -350,16 +350,17 @@ export default class GameEntityManager {
 		whisper.id = newId;
 		this.game.whispersCollection.set(whisper.id, whisper);
 		this.game.whispersCollection.delete(oldId);
-		whisper.channel.edit({ name: whisper.id.substring(0, 100) });
+		whisper.channelName = whisper.id.substring(0, 100);
+		whisper.channel.edit({ name: whisper.channelName });
 	}
 
 	/**
 	 * Deletes a whisper from the game.
 	 * @param {Whisper} whisper - The whisper to delete. 
 	 */
-	deleteWhisper(whisper) {
-		if (this.game.settings.autoDeleteWhisperChannels) whisper.channel.delete();
-		else whisper.channel.edit({ name: `archived-${whisper.location.id}`, lockPermissions: true });
+	async deleteWhisper(whisper) {
+		if (this.game.settings.autoDeleteWhisperChannels) await whisper.channel.delete();
+		else await whisper.channel.edit({ name: `archived-${whisper.location.id}`, lockPermissions: true });
 		whisper.playersCollection.clear();
 		this.game.whispersCollection.delete(whisper.id);
 	}

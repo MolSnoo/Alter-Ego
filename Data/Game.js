@@ -343,6 +343,7 @@ export default class Game {
 		this.gesturesCollection = new Collection();
 		this.flags = new Collection();
 		this.whispers = [];
+		this.whispersCollection = new Collection();
 		this.messageQueue = new PriorityQueue();
 
 		// Send the messages in the queue every quarter of a second.

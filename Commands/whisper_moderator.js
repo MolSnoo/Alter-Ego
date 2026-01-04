@@ -87,7 +87,7 @@ export async function execute (game, message, command, args) {
     const string = args.join(' ');
 
     // Check if whisper already exists.
-    let whisper = game.whispersCollection.get(Whisper.generateValidId(recipients, recipients[0].location));
+    let whisper = game.entityFinder.getWhisper(recipients);
     if (whisper && npc !== null) {
         await sendMessageToWhisper(game, message, string, npc, whisper);
         return;

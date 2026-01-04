@@ -75,7 +75,7 @@ export async function execute (game, message, command, args, player) {
     }
 
     // Check if whisper already exists.
-    let whisper = game.whispersCollection.get(Whisper.generateValidId(recipients, player.location));
+    let whisper = game.entityFinder.getWhisper(recipients);
     if (whisper) return addReply(game, message, "Whisper group already exists.");
 
     // Whisper does not exist, so create it.

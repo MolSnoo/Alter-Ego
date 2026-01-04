@@ -23,7 +23,7 @@ export async function processIncomingMessage(game, message) {
 
     const isModerator = message.member && message.member.roles.cache.has(game.guildContext.moderatorRole.id);
     const room = game.entityFinder.getRoom(message.channel.name);
-    const whisper = game.entityFinder.getWhisper(message.channel.name);
+    const whisper = game.entityFinder.getWhisperByChannelId(message.channel.id);
     const player = game.entityFinder.getLivingPlayerById(message.author.id);
     if (player) {
         player.setOnline();
