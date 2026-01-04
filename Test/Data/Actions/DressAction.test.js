@@ -1,0 +1,3 @@
+describe('DressAction test', () => {
+    test('', () => {});
+});

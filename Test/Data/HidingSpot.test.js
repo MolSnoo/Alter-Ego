@@ -1,0 +1,3 @@
+describe('HidingSpot test', () => {
+    test('', () => {});
+});

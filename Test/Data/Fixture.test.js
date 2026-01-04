@@ -1,0 +1,3 @@
+describe('Fixture test', () => {
+    test('', () => {});
+});

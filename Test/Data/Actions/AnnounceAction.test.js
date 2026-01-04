@@ -1,0 +1,3 @@
+describe('AnnounceAction test', () => {
+    test('', () => {});
+});

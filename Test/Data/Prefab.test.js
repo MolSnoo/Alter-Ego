@@ -1,0 +1,3 @@
+describe('Prefab test', () => {
+    test('', () => {});
+});

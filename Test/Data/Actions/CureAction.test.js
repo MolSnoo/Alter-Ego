@@ -1,0 +1,3 @@
+describe('CureAction test', () => {
+    test('', () => {});
+});

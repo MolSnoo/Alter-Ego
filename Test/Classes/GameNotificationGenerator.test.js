@@ -1,0 +1,3 @@
+describe('GameNotificationGenerator test', () => {
+    test('', () => {});
+});

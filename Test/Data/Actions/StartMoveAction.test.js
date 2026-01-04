@@ -1,0 +1,3 @@
+describe('StartMoveAction test', () => {
+    test('', () => {});
+});

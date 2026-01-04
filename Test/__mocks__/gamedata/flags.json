@@ -1,0 +1,7 @@
+[
+  [ "DAYTIME", "FALSE", "findEvent('SUNRISE').ongoing === true || findEvent('SUNSHINE').ongoing === true || findEvent('SUNSET').ongoing === true" ],
+  [ "PRECIPITATION", "FALSE", "findEvent('RAIN').ongoing === true || findEvent('SNOW').ongoing === true" ],
+  [ "COLD SEASON FLAG", "FALSE", "findEvent('RAIN').ongoing === true" ],
+  [ "HOT SEASON FLAG", "FALSE" ],
+  [ "DAILY ANIMAL", "bear", "getRandomString(['dog', 'cat', 'mouse', 'owl', 'bear'])" ]
+]

@@ -1,0 +1,3 @@
+describe('StashAction test', () => {
+    test('', () => {});
+});

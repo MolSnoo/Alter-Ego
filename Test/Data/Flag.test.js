@@ -1,0 +1,3 @@
+describe('Flag test', () => {
+    test('', () => {});
+});

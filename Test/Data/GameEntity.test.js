@@ -1,0 +1,3 @@
+describe('GameEntity test', () => {
+    test('', () => {});
+});

@@ -1,0 +1,3 @@
+describe('DestroyAction test', () => {
+    test('', () => {});
+});
