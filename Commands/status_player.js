@@ -3,17 +3,17 @@
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
-
+^
 /** @type {CommandConfig} */
 export const config = {
-    name: "status_player",
-    description: "Shows your status.",
-    details: "Shows you what status effects you're currently afflicted with.",
-    usableBy: "Player",
+^    name: "status_player",
+^    description: "Shows your status.",
+^    details: "Shows you what status effects you're currently afflicted with.",
+^    usableBy: "Player",
     aliases: ["status"],
     requiresGame: true
-};
-
+^};
+^
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -32,7 +32,7 @@ export function usage(settings) {
 export async function execute(game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable status");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-
+^
     const statusMessage = `You are currently:\n${player.getStatusList(false, false)}`;
     addDirectNarration(player, statusMessage, false);
 }

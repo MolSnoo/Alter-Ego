@@ -3,22 +3,22 @@ import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { addReply } from '../Modules/messageHandler.js';
-
+^
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
 
 /** @type {CommandConfig} */
 export const config = {
-    name: "inspect_player",
+^    name: "inspect_player",
     description: "Learn more about an object, item, or player.",
     details: 'Tells you about an object, item, or player in the room you\'re in. '
-        + 'An object is something in the room that you can interact with but not take with you. '
-        + 'An item is something that you can both interact with and take with you. If you inspect an object, '
-        + 'everyone in the room will see you inspect it. The same goes for very large items. '
+^        + 'An object is something in the room that you can interact with but not take with you. '
+^        + 'An item is something that you can both interact with and take with you. If you inspect an object, '
+^        + 'everyone in the room will see you inspect it. The same goes for very large items. '
         + 'If there are multiple items with the same name in the room, you can specify which one you want to inspect using the name of the container it\'s in. '
-        + 'You can also inspect items in your inventory. If you have an item with the same name as an item in the room you\'re currently in, '
-        + 'you can specify that you want to inspect your item by adding "my" before the item name. '
+^        + 'You can also inspect items in your inventory. If you have an item with the same name as an item in the room you\'re currently in, '
+^        + 'you can specify that you want to inspect your item by adding "my" before the item name. '
         + 'You can even inspect visible items in another player\'s inventory by adding "[player name]\'s" before the item name. No one will '
         + 'see you do this, however you will receive slightly less info when inspecting another player\'s items. '
         + `You can use "room" to get the description of the room you're currently in.`,
@@ -33,10 +33,10 @@ export const config = {
  */
 export function usage (settings) {
     return `${settings.commandPrefix}inspect desk\n`
-        + `${settings.commandPrefix}examine knife\n`
+^        + `${settings.commandPrefix}examine knife\n`
         + `${settings.commandPrefix}look knife on desk\n`
         + `${settings.commandPrefix}x knife in main pouch of red backpack\n`
-        + `${settings.commandPrefix}investigate my knife\n`
+^        + `${settings.commandPrefix}investigate my knife\n`
         + `${settings.commandPrefix}look akari\n`
         + `${settings.commandPrefix}examine an individual wearing a mask\n`
         + `${settings.commandPrefix}look marielle's glasses\n`
@@ -54,25 +54,25 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify a fixture/item/player. Usage:\n${usage(game.settings)}`);
-
+^
     const status = player.getBehaviorAttributeStatusEffects("disable inspect");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-
+^
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
     const input = args.join(" ");
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
-
+^
     // What we do with this action, if anything, depends on what the player inspects.
     const action = new InspectAction(game, message, player, player.location, false);
 
-    // Before anything else, check if the player is trying to inspect the room.
-    if (parsedInput === "ROOM") {
+^    // Before anything else, check if the player is trying to inspect the room.
+^    if (parsedInput === "ROOM") {
         action.performInspect(player.location);
-        return;
-    }
-
+^        return;
+^    }
+^
     // Check if the input is a fixture, or an item on a fixture.
     const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
     const items = game.entityFinder.getRoomItems(null, player.location.id, true);
@@ -83,8 +83,8 @@ export async function execute (game, message, command, args, player) {
     for (let i = 0; i < fixtures.length; i++) {
         if (fixtures[i].name === parsedInput) {
             fixture = fixtures[i];
-            break;
-        }
+^            break;
+^        }
 
         if ((parsedInput.endsWith(` ${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(` IN ${fixtures[i].name}`)) && fixtures[i].preposition !== "") {
             const fixtureItems = items.filter(item => item.containerName === `Object: ${fixtures[i].name}` || fixtures[i].childPuzzle !== null && item.containerName === `Puzzle: ${fixtures[i].childPuzzle.name}`);
@@ -109,21 +109,21 @@ export async function execute (game, message, command, args, player) {
         // Make sure the player can only inspect the fixture they're hiding in, if they're hidden.
         if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         action.performInspect(fixture);
-        return;
-    }
-
+^        return;
+^    }
+^
     let onlySearchInventory = false;
-    if (parsedInput.startsWith("MY ")) onlySearchInventory = true;
-
-    if (!onlySearchInventory) {
-        // Now check if the input is an item.
-        for (let i = 0; i < items.length; i++) {
+^    if (parsedInput.startsWith("MY ")) onlySearchInventory = true;
+^
+^    if (!onlySearchInventory) {
+^        // Now check if the input is an item.
+^        for (let i = 0; i < items.length; i++) {
             if (items[i].name === parsedInput || items[i].pluralName === parsedInput) {
-                item = items[i];
+^                item = items[i];
                 container = item.container;
                 slotName = item.slot;
-                break;
-            }
+^                break;
+^            }
 
             const itemContainer = items[i].container;
             if (itemContainer !== null && itemContainer instanceof RoomItem) {
@@ -167,9 +167,9 @@ export async function execute (game, message, command, args, player) {
                     }
                 }
             }
-        }
+^        }
     }
-
+^
     if (item !== null) {
         // Make sure the player can only inspect items contained in the fixture they're hiding in, if they're hidden.
         if (hiddenStatus.length > 0) {
@@ -178,25 +178,25 @@ export async function execute (game, message, command, args, player) {
                 topContainer = topContainer.container;
             if (topContainer !== null && topContainer instanceof Puzzle)
                 topContainer = topContainer.parentFixture;
-
+^
             if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
                 return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         }
 
         action.performInspect(item);
         return;
-    }
-
+^    }
+^
     // Check if the input is an item in the player's inventory.
     const inventory = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
     for (let i = 0; i < inventory.length; i++) {
         parsedInput = parsedInput.replace("MY ", "");
         if (inventory[i].prefab.name === parsedInput && inventory[i].quantity > 0) {
             action.performInspect(inventory[i]);
-            return;
-        }
-    }
-
+^            return;
+^        }
+^    }
+^
     // Check if the input is a player in the room.
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];

@@ -5,18 +5,18 @@ import { addReply } from '../Modules/messageHandler.js';
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
-
+^
 /** @type {CommandConfig} */
 export const config = {
-    name: "say_player",
-    description: "Sends your message to the room you're in.",
-    details: "Sends your message to the channel of the room you're currently in. This command is "
-        + "only available to players with certain status effects.",
-    usableBy: "Player",
+^    name: "say_player",
+^    description: "Sends your message to the room you're in.",
+^    details: "Sends your message to the channel of the room you're currently in. This command is "
+^        + "only available to players with certain status effects.",
+^    usableBy: "Player",
     aliases: ["say", "speak"],
     requiresGame: true
-};
-
+^};
+^
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -36,18 +36,18 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
-
+^
     const status = player.getBehaviorAttributeStatusEffects("enable say");
     if (status.length === 0) return addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
-
+^
     const input = args.join(" ");
-    if (!input.startsWith("(")) {
+^    if (!input.startsWith("(")) {
         // Create a webhook for this channel if necessary, or grab the existing one.
         const webHooks = await player.location.channel.fetchWebhooks();
         let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
         if (webHook === null || webHook === undefined)
             webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
-
+^
         const files = [];
         [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
 
@@ -73,5 +73,5 @@ export async function execute (game, message, command, args, player) {
                     if (message.channel.type !== ChannelType.DM) message.delete().catch();
                 });
         });
-    }
-    }
+^    }
+^}

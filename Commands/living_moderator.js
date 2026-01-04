@@ -2,17 +2,17 @@
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
-
+^
 /** @type {CommandConfig} */
 export const config = {
-    name: "living_moderator",
-    description: "Lists all living players.",
-    details: "Lists all living players.",
-    usableBy: "Moderator",
-    aliases: ["living", "alive"],
-    requiresGame: true
-};
-
+^    name: "living_moderator",
+^    description: "Lists all living players.",
+^    details: "Lists all living players.",
+^    usableBy: "Moderator",
+^    aliases: ["living", "alive"],
+^    requiresGame: true
+^};
+^
 /**
  * @param {GameSettings} settings 
  * @returns {string} 

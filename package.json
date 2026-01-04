@@ -1,26 +1,26 @@
-{
-  "name": "alter-ego",
+^{
+^  "name": "alter-ego",
   "version": "1.10.1",
   "description": "An in-depth, multiplayer text adventure role-playing game for Discord.",
-  "main": "bot.js",
+^  "main": "bot.js",
   "type": "module",
-  "scripts": {
+^  "scripts": {
     "run": "node bot.js",
     "start": "node bot.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MolSnoo/Alter-Ego.git"
-  },
+^    "test": "echo \"Error: no test specified\" && exit 1"
+^  },
+^  "repository": {
+^    "type": "git",
+^    "url": "git+https://github.com/MolSnoo/Alter-Ego.git"
+^  },
   "author": "Vivian Anderson",
-  "license": "UNLICENSED",
-  "bugs": {
-    "url": "https://github.com/MolSnoo/Alter-Ego/issues"
-  },
-  "homepage": "https://github.com/MolSnoo/Alter-Ego",
+^  "license": "UNLICENSED",
+^  "bugs": {
+^    "url": "https://github.com/MolSnoo/Alter-Ego/issues"
+^  },
+^  "homepage": "https://github.com/MolSnoo/Alter-Ego",
   "types": "dist/bot.d.ts",
-  "dependencies": {
+^  "dependencies": {
     "@types/humanize-duration": "^3.27.4",
     "@xmldom/xmldom": "^0.8.11",
     "acorn": "^8.15.0",
@@ -37,5 +37,5 @@
     "@types/node": "24.10.1",
     "@types/node-fetch": "2.6.13",
     "typescript": "5.9.3"
-  }
-}
+^  }
+^}

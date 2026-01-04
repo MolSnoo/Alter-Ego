@@ -2,17 +2,17 @@
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
-
+^
 /** @type {CommandConfig} */
 export const config = {
-    name: "inventory_moderator",
-    description: "Lists a given player's inventory.",
-    details: "Lists the given player's inventory.",
-    usableBy: "Moderator",
+^    name: "inventory_moderator",
+^    description: "Lists a given player's inventory.",
+^    details: "Lists the given player's inventory.",
+^    usableBy: "Moderator",
     aliases: ["inventory", "i"],
-    requiresGame: true
-};
-
+^    requiresGame: true
+^};
+^
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -30,10 +30,10 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
-
+^
     const player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
-
+^
     const inventoryString = player.viewInventory(`${player.name}'s`, true);
     addGameMechanicMessage(game, game.guildContext.commandChannel, inventoryString);
 }

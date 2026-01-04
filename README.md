@@ -1,4 +1,4 @@
-# Alter Ego
+^# Alter Ego
 ![GitHub Release](https://img.shields.io/github/v/release/MolSnoo/Alter-Ego)
 
 Alter Ego is an open-source Discord bot that facilitates an in-depth, multiplayer text adventure role-playing game called the Neo World Program. The gameplay style is heavily influenced by [MUD games](https://en.wikipedia.org/wiki/Multi-user_dungeon). Alter Ego simplifies the game development process by allowing any user to create an immersive game world entirely on Google Sheets with little to no programming knowledge.

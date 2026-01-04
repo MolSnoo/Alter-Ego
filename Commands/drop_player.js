@@ -3,7 +3,7 @@ import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { addReply } from '../Modules/messageHandler.js';
-
+^
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/EquipmentSlot.js').default} EquipmentSlot */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -12,9 +12,9 @@ import { addReply } from '../Modules/messageHandler.js';
 
 /** @type {CommandConfig} */
 export const config = {
-    name: "drop_player",
-    description: "Discards an item from your inventory.",
-    details: "Discards an item from your inventory and leaves it in the room you're currently in. The item you want to discard must be in either of your hands. "
+^    name: "drop_player",
+^    description: "Discards an item from your inventory.",
+^    details: "Discards an item from your inventory and leaves it in the room you're currently in. The item you want to discard must be in either of your hands. "
         + "You can specify where in the room you'd like to leave it by putting the name of an object or item in the room after the item. "
         + "Not all objects and items can contain items, but it should be fairly obvious which ones can. If you want to discard it in an item with multiple "
         + "inventory slots (such as pockets), you can specify which slot to put it in. If you don't specify an object or item, you will simply leave it on the floor. "
@@ -30,13 +30,13 @@ export const config = {
  */
 export function usage (settings) {
     return `${settings.commandPrefix}drop first aid kit\n`
-        + `${settings.commandPrefix}discard basketball\n`
+^        + `${settings.commandPrefix}discard basketball\n`
         + `${settings.commandPrefix}drop knife in sink\n`
         + `${settings.commandPrefix}discard towel on benches\n`
         + `${settings.commandPrefix}drop key in right pocket of skirt\n`
         + `${settings.commandPrefix}discard wrench on top rack of tool box`;
 }
-
+^
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {UserMessage} message - The message in which the command was issued. 
@@ -47,10 +47,10 @@ export function usage (settings) {
 export async function execute (game, message, command, args, player) {
     if (args.length === 0)
         return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
-
+^
     const status = player.getBehaviorAttributeStatusEffects("disable drop");
     if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
-
+^
     const input = args.join(" ");
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
     let newArgs = null;

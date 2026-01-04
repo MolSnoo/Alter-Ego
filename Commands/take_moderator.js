@@ -3,22 +3,22 @@ import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
 import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-
+^
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
-    name: "take_moderator",
-    description: "Takes the given item for a player.",
+^    name: "take_moderator",
+^    description: "Takes the given item for a player.",
     details: "Forcibly takes an item for a player. The player must have a free hand to take an item. You can specify "
         + "which object or item to take the item from, but only items in the same room as the player can be taken. Additionally, if "
         + "the item is contained in another item with multiple inventory slots (such as pockets), you can specify which slot to take it from.",
-    usableBy: "Moderator",
+^    usableBy: "Moderator",
     aliases: ["take", "get", "t"],
-    requiresGame: true
-};
-
+^    requiresGame: true
+^};
+^
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -41,18 +41,18 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     if (args.length < 2)
         return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
-
+^
     const player = game.entityFinder.getLivingPlayer(args[0]);
     if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
-
+^
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
     if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to take an item.`);
-
+^
     const input = args.join(" ");
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
-
+^
     let item = null;
     let container = null;
     let slotName = "";
@@ -80,7 +80,7 @@ export async function execute (game, message, command, args) {
                 containerName = parsedInput.substring(`${roomItems[i].prefab.id} FROM `.length).trim();
             else if (parsedInput.startsWith(`${roomItems[i].name} FROM `))
                 containerName = parsedInput.substring(`${roomItems[i].name} FROM `.length).trim();
-
+^
             if (roomItems[i].container !== null) {
                 const roomItemContainer = roomItems[i].container;
                 // Slot name was specified.
@@ -103,8 +103,8 @@ export async function execute (game, message, command, args) {
                             slotName = tempSlotName;
                             slot = container.inventoryCollection.get(slotName);
                             break;
-                        }
-                    }
+^                        }
+^                    }
                     if (item !== null) break;
                 }
                 // A slot name wasn't specified, but the container is an item.
@@ -130,7 +130,7 @@ export async function execute (game, message, command, args) {
                     slotName = roomItems[i].slot;
                     if (container instanceof RoomItem) slot = container.inventoryCollection.get(slotName);
                     break;
-                }
+^                }
             }
         }
     }
@@ -146,10 +146,10 @@ export async function execute (game, message, command, args) {
             const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
             return addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
-        }
+^        }
         else return addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
-    }
-
+^    }
+^
     let topContainer = container;
     while (topContainer !== null && topContainer instanceof RoomItem)
         topContainer = topContainer.container;

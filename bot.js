@@ -1,4 +1,4 @@
-'use strict';
+^'use strict';
 
 import settings from './Configs/settings.json' with { type: 'json' };
 import credentials from './Configs/credentials.json' with { type: 'json' };
@@ -62,14 +62,14 @@ let playerCommands = new Collection();
 let eligibleCommands = new Collection();
 async function loadCommands() {
     const commandsDir = `./Commands/`;
-    readdir(commandsDir, async (err, files) => {
-        if (err) console.log(err);
-
-        let commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
-        if (commandFiles.length <= 0) {
-            console.log("Error: Couldn't find commands.");
-            return process.exit(1);
-        }
+    readdir(commandsDir, async (error, files) => {
+        if (error) console.log(error);
+^
+        const commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
+^        if (commandFiles.length <= 0) {
+^        console.log("Error: Couldn't find commands.");
+^            return process.exit(1);
+^        }
 
         await Promise.all(commandFiles.map(async file => {
             await import(`${commandsDir}${file}`).then(commandProps => {
@@ -89,10 +89,9 @@ async function loadCommands() {
             });
         })).then(() => {
             console.log(`Loaded ${botCommands.size + moderatorCommands.size + playerCommands.size + eligibleCommands.size} commands.`);
-        });
-    });
-}
-
+^        });
+^    });
+^}
 /** @returns {Promise<boolean>} */
 async function createGuildContext() {
     if (client.guilds.cache.size === 1) {
@@ -269,25 +268,25 @@ client.on('clientReady', async () => {
                 loadCommand.execute(game, undefined, "lar", []);
         }, 0);
     }
-});
-
+^});
+^
 client.on('messageCreate', async message => {
-    // Prevent bot from responding to its own messages.
+^    // Prevent bot from responding to its own messages.
     if (message.author === client.user) return;
     if (game.settings.debug && message.channel.type === ChannelType.DM) console.log(message.author.username + ': "' + message.content + '"');
-
-    // If the message begins with the command prefix, attempt to run a command.
-    // If the command is run successfully, the message will be deleted.
+^
+^    // If the message begins with the command prefix, attempt to run a command.
+^    // If the command is run successfully, the message will be deleted.
     let isCommand;
     if (message.content.startsWith(game.settings.commandPrefix)) {
         const command = message.content.substring(game.settings.commandPrefix.length);
         isCommand = await executeCommand(command, game, message);
-    }
+^    }
     if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress) {
         processIncomingMessage(game, message);
-    }
-});
-
+^    }
+^});
+^
 client.on('messageUpdate', async (messageOld, messageNew) => {
     if (messageOld.partial || messageNew.partial || messageOld.author.bot || messageOld.content === messageNew.content) return;
 

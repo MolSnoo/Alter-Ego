@@ -320,9 +320,9 @@ export default class Player extends ItemContainer {
      */
     constructor(id, member, name, title, pronounString, originalVoiceString, stats, alive, locationDisplayName, hidingSpot, statusDisplays, description, inventory, spectateChannel, row, game) {
         super(game, row, description);
-        this.id = id;
-        this.member = member;
-        this.name = name;
+^        this.id = id;
+^        this.member = member;
+^        this.name = name;
         this.displayName = this.name;
         this.displayIcon = null;
         this.title = title;
@@ -362,15 +362,15 @@ export default class Player extends ItemContainer {
         this.maxStamina = this.defaultStamina;
         this.stamina = this.defaultStamina;
 
-        this.alive = alive;
+^        this.alive = alive;
         this.locationDisplayName = locationDisplayName;
         this.location = null;
-        this.pos = { x: 0, y: 0, z: 0 };
-        this.hidingSpot = hidingSpot;
+^        this.pos = { x: 0, y: 0, z: 0 };
+^        this.hidingSpot = hidingSpot;
         this.statusCollection = new Collection();
         this.statusDisplays = statusDisplays;
         this.status = [];
-        this.statusString = "";
+^        this.statusString = "";
         this.description = description;
         this.inventory = [];
         this.inventoryCollection = inventory;
@@ -378,7 +378,7 @@ export default class Player extends ItemContainer {
         this.maxCarryWeight = this.getMaxCarryWeight();
         this.carryWeight = 0;
 
-        this.isMoving = false;
+^        this.isMoving = false;
         this.moveTimer = null;
         this.remainingTime = 0;
         this.moveQueue = [];
@@ -490,7 +490,7 @@ export default class Player extends ItemContainer {
      */
     move(isRunning, currentRoom, destinationRoom, exit, entrance, time, forced) {
         this.remainingTime = time;
-        this.isMoving = true;
+^        this.isMoving = true;
         /** @type {Pos} */
         const startingPos = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
 
@@ -544,7 +544,7 @@ export default class Player extends ItemContainer {
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
-                player.isMoving = false;
+^                player.isMoving = false;
                 const exitPuzzle = player.getGame().entityFinder.getPuzzle(exit.name, player.location.id, "restricted exit", true);
                 const exitPuzzlePassable = exitPuzzle && exitPuzzle.solutions.includes(player.name);
                 if (exit.unlocked || exitPuzzlePassable) {
@@ -567,8 +567,8 @@ export default class Player extends ItemContainer {
                 }
             }
         }, 100);
-    }
-
+^    }
+^
     /**
      * Calculates the time it takes to move the player to the desired exit.
      * @param {Exit} exit
@@ -576,9 +576,9 @@ export default class Player extends ItemContainer {
      * @returns {number} The number of milliseconds it will take to move to the desired exit.
      */
     calculateMoveTime(exit, isRunning) {
-        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
+^        let distance = Math.sqrt(Math.pow(exit.pos.x - this.pos.x, 2) + Math.pow(exit.pos.z - this.pos.z, 2));
         distance = distance / this.getGame().settings.pixelsPerMeter;
-        // The formula to calculate the rate is a quadratic function.
+^        // The formula to calculate the rate is a quadratic function.
         // The equation is Rate = 0.0183x^2 + 0.005x + 0.916, where x is the player's speed stat multiplied by 2 or 1, depending on if the player is running or not.
         const speedMultiplier = isRunning ? 2 : 1;
         let rate = 0.0183 * Math.pow(speedMultiplier * this.speed, 2) + 0.005 * speedMultiplier * this.speed + 0.916;
@@ -610,10 +610,10 @@ export default class Player extends ItemContainer {
             if (distance < rate) distance = 0;
             time = distance / rate * 1000;
         }
-        if (time < 0) time = 0;
-        return time;
-    }
-
+^        if (time < 0) time = 0;
+^        return time;
+^    }
+^
     /**
      * Resets the player's stamina to its maximum value.
      */
@@ -643,7 +643,7 @@ export default class Player extends ItemContainer {
      * Creates a string of non-discreet inventory items in the player's hands.
      * @returns {string}
      */
-    createMoveAppendString() {
+^    createMoveAppendString() {
         /** @type {string[]} */
         let nonDiscreetItems = [];
         const rightHand = this.inventoryCollection.get("RIGHT HAND");
@@ -652,16 +652,16 @@ export default class Player extends ItemContainer {
         const leftHand = this.inventoryCollection.get("LEFT HAND");
         if (leftHand && leftHand.equippedItem !== null && !leftHand.equippedItem.prefab.discreet)
             nonDiscreetItems.push(leftHand.equippedItem.singleContainingPhrase);
-
+^
         let appendString = "";
         if (nonDiscreetItems.length === 1)
             appendString = ` carrying ${nonDiscreetItems[0]}`;
-        else if (nonDiscreetItems.length === 2)
+^        else if (nonDiscreetItems.length === 2)
             appendString = ` carrying ${nonDiscreetItems[0]} and ${nonDiscreetItems[1]}`;
-
-        return appendString;
-    }
-
+^
+^        return appendString;
+^    }
+^
     /**
      * Stops the player, if they're moving.
      */
@@ -680,19 +680,19 @@ export default class Player extends ItemContainer {
      */
     inflict(status, duration = null) {
         const statusInstance = new Status(status.id, status.duration, status.fatal, status.visible, status.overridersStrings, status.curesStrings, status.nextStageId, status.duplicatedStatusId, status.curedConditionId, status.statModifiers, status.behaviorAttributes, status.inflictedDescription, status.curedDescription, status.row, this.getGame());
-
-        // Apply the duration, if applicable.
+^
+^        // Apply the duration, if applicable.
         if (statusInstance.duration) {
             if (duration !== null) statusInstance.remaining = duration;
             else statusInstance.remaining = statusInstance.duration;
-
-            let player = this;
+^
+^            let player = this;
             statusInstance.timer = new Timer(1000, { start: true, loop: true }, function () {
                 let subtractedTime = 1000;
                 if (player.getGame().heated) subtractedTime = player.getGame().settings.heatedSlowdownRate * subtractedTime;
                 statusInstance.remaining = statusInstance.remaining.minus(subtractedTime);
                 player.statusDisplays = player.#generateStatusDisplays(true, true);
-
+^
                 if (statusInstance.remaining.as('milliseconds') <= 0) {
                     if (statusInstance.nextStage) {
                         const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
@@ -710,27 +710,27 @@ export default class Player extends ItemContainer {
                             const nextStageAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
                             nextStageAction.performInflict(statusInstance.nextStage, true, false, true);
                         }
-                    }
-                    else {
+^                    }
+^                    else {
                         if (statusInstance.fatal) {
                             statusInstance.timer.stop();
                             const action = new DieAction(player.getGame(), undefined, player, player.location, true);
                             action.performDie();
-                        }
-                        else {
+^                        }
+^                        else {
                             const cureAction = new CureAction(player.getGame(), undefined, player, player.location, true);
                             cureAction.performCure(statusInstance, true, true, true);
-                        }
-                    }
-                }
+^                        }
+^                    }
+^                }
             });
-        }
-
+^        }
+^
         this.statusCollection.set(status.id, statusInstance);
         this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
-    }
-
+^    }
+^
     /**
      * Removes a status effect from the player.
      * @param {Status} status - The status to cure.
@@ -744,7 +744,7 @@ export default class Player extends ItemContainer {
         this.statusCollection.delete(status.id)
         this.#recalculateStats();
         this.statusDisplays = this.#generateStatusDisplays(true, true);
-    }
+^    }
 
     /**
      * Creates a list of the player's status effects.
@@ -764,7 +764,7 @@ export default class Player extends ItemContainer {
                     timeString = status.remaining.toFormat(format);
                 }
                 statusDisplays.push({ id: statusId, timeRemaining: timeString });
-            }
+^            }
         });
         return statusDisplays;
     }
@@ -785,8 +785,8 @@ export default class Player extends ItemContainer {
             statusStrings.push(statusString);
         });
         return statusStrings.join(", ");
-    }
-
+^    }
+^
     /**
      * Returns true if the player has a status with the specified ID.
      * @param {string} statusId - The ID of the status to look for. 
@@ -813,17 +813,17 @@ export default class Player extends ItemContainer {
      * @param {string} attribute - The name of the behavior attribute.
      * @returns {boolean}
      */
-    hasAttribute(attribute) {
+^    hasAttribute(attribute) {
         let hasAttribute = false;
         for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].behaviorAttributes.includes(attribute)) {
-                hasAttribute = true;
-                break;
-            }
-        }
-        return hasAttribute;
-    }
-
+^                hasAttribute = true;
+^                break;
+^            }
+^        }
+^        return hasAttribute;
+^    }
+^
     /**
      * Returns list of status effects the player has with the specified behavior attribute.
      * @param {string} behaviorAttribute - The name of the behavior attribute.
@@ -846,16 +846,16 @@ export default class Player extends ItemContainer {
      * @param {string} attribute - The name of the behavior attribute.
      * @returns {Status[]}
      */
-    getAttributeStatusEffects(attribute) {
+^    getAttributeStatusEffects(attribute) {
         /** @type {Status[]} */
         let statusEffects = [];
-        for (let i = 0; i < this.status.length; i++) {
+^        for (let i = 0; i < this.status.length; i++) {
             if (this.status[i].behaviorAttributes.includes(attribute))
-                statusEffects.push(this.status[i]);
-        }
-        return statusEffects;
-    }
-
+^                statusEffects.push(this.status[i]);
+^        }
+^        return statusEffects;
+^    }
+^
     /**
      * Calculates the player's stats based on their current status effects.
      */
@@ -964,8 +964,8 @@ export default class Player extends ItemContainer {
         }
         if (!isNaN(item.uses))
             item.decreaseUses();
-    }
-
+^    }
+^
     /**
      * Takes an item and puts it in the player's inventory.
      * @param {RoomItem} item - The item to take.
@@ -974,10 +974,10 @@ export default class Player extends ItemContainer {
      * @param {InventorySlot} inventorySlot - The {@link InventorySlot|inventory slot} the item is currently in.
      */
     take(item, handEquipmentSlot, container, inventorySlot) {
-        // Reduce quantity if the quantity is finite.
+^        // Reduce quantity if the quantity is finite.
         if (!isNaN(item.quantity))
-            item.quantity--;
-
+^            item.quantity--;
+^
         // Update the container's description.
         if (container instanceof Puzzle || container instanceof Fixture || container instanceof RoomItem)
             container.removeItemFromDescription(item, inventorySlot ? inventorySlot.id : "");
@@ -991,8 +991,8 @@ export default class Player extends ItemContainer {
         // Add the new item to the player's hands item list.
         if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");
-    }
-
+^    }
+^
     /**
      * Steals an inventory item from another player.
      * @param {InventoryItem} item - The inventory item to steal.
@@ -1008,11 +1008,11 @@ export default class Player extends ItemContainer {
         const createdItem = itemManager.putItemInHand(item, this, handEquipmentSlot);
         victim.carryWeight -= createdItem.weight;
         this.carryWeight += createdItem.weight;
-
+^
         if (!createdItem.prefab.discreet)
             this.addItemToDescription(createdItem, "hands");
-    }
-
+^    }
+^
     /**
      * Drops an inventory item and puts it in the specified container in the room.
      * @param {InventoryItem} item - The inventory item to drop.
@@ -1050,8 +1050,8 @@ export default class Player extends ItemContainer {
         // Remove the item from the player's hands item list.
         if (!item.prefab.discreet)
             this.removeItemFromDescription(item, "hands");
-    }
-
+^    }
+^
     /**
      * Gives an inventory item to another player.
      * @param {InventoryItem} item - The inventory item to give.
@@ -1334,8 +1334,8 @@ export default class Player extends ItemContainer {
             }
         });
         return itemString.replace(/\n{2,}/g, '\n');
-    }
-
+^    }
+^
     /**
      * Crafts two ingredients into one or two products according to a recipe.
      * @param {InventoryItem} item1 - The first ingredient.
@@ -1438,8 +1438,8 @@ export default class Player extends ItemContainer {
      */
     hasItem(id) {
         return !!this.findItem(id);
-    }
-
+^    }
+^
     /**
      * Kills the player.
      */
@@ -1447,10 +1447,10 @@ export default class Player extends ItemContainer {
         this.location.removePlayer(this);
         const whisperRemovalMessage = this.getGame().notificationGenerator.generateDieNotification(this, false);
 		this.removeFromWhispers(whisperRemovalMessage);
-        // Update various data.
-        this.alive = false;
-        this.location = null;
-        this.hidingSpot = "";
+^        // Update various data.
+^        this.alive = false;
+^        this.location = null;
+^        this.hidingSpot = "";
         this.statusDisplays.length = 0;
         this.stopMoving();
         for (const status of this.statusCollection.values()) {
@@ -1458,12 +1458,12 @@ export default class Player extends ItemContainer {
                 status.timer.stop();
         }
         this.statusCollection.clear();
-        // Move player to dead list.
+^        // Move player to dead list.
         this.getGame().deadPlayersCollection.set(this.name, this);
-        // Then remove them from living list.
+^        // Then remove them from living list.
         this.getGame().livingPlayersCollection.delete(this.name);
-    }
-
+^    }
+^
     /**
      * Removes the player from all whispers they're in.
      * @param {string} narration - The text of the narration to send in the whisper channel when the player is removed.
@@ -1472,9 +1472,9 @@ export default class Player extends ItemContainer {
         for (const whisper of this.getGame().whispersCollection.values()) {
             if (whisper.playersCollection.has(this.name))
                 whisper.removePlayer(this, narration);
-        }
-    }
-
+^        }
+^    }
+^
     /**
      * Parses a description and sends it to the player.
      * @param {string} description - The description to parse and send.
@@ -1492,8 +1492,8 @@ export default class Player extends ItemContainer {
             else if (!this.hasBehaviorAttribute("unconscious") || (container && container instanceof Status))
                 addDirectNarration(this, parseDescription(description, container, this));
         }
-    }
-
+^    }
+^
     /**
      * Sends a direct message to the player. Sends nothing if the player is unconscious or an NPC.
      * @param {string} messageText - The content of the message to send.
@@ -1554,4 +1554,4 @@ export default class Player extends ItemContainer {
             return "sta";
         else return statName;
     }
-}
+^}

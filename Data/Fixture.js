@@ -120,25 +120,25 @@ export default class Fixture extends ItemContainer {
      */
     constructor(name, locationDisplayName, accessible, childPuzzleName, recipeTag, activatable, activated, autoDeactivate, hidingSpotCapacity, preposition, description, row, game) {
         super(game, row, description);
-        this.name = name;
+^        this.name = name;
         this.locationDisplayName = locationDisplayName;
         this.location = null;
-        this.accessible = accessible;
-        this.childPuzzleName = childPuzzleName;
-        this.childPuzzle = null;
+^        this.accessible = accessible;
+^        this.childPuzzleName = childPuzzleName;
+^        this.childPuzzle = null;
         this.recipeTag = recipeTag;
         this.activatable = activatable;
         this.activated = activated;
         this.autoDeactivate = autoDeactivate;
         this.hidingSpotCapacity = hidingSpotCapacity;
         this.hidingSpot = this.hidingSpotCapacity > 0 ? new HidingSpot(this, this.hidingSpotCapacity, this.row, this.getGame()) : null;
-        this.preposition = preposition;
+^        this.preposition = preposition;
 
         this.process = { recipe: null, ingredients: [], duration: null, timer: null };
         let fixture = this;
         this.recipeInterval = this.recipeTag ? new Timer(1000, { start: true, loop: true }, function () { fixture.processRecipes(); }) : null;
-    }
-
+^    }
+^
     /**
      * Sets the location.
      * @param {Room} room
@@ -349,11 +349,11 @@ export default class Fixture extends ItemContainer {
     }
 
     /** @returns {string} */
-    descriptionCell() {
+^    descriptionCell() {
         return this.getGame().constants.fixtureSheetDescriptionColumn + this.row;
-    }
-}
-
+^    }
+^}
+^
 /**
  * Checks if items match ingredients.
  * @param {RoomItem[]} items

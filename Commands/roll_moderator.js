@@ -4,11 +4,11 @@ import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
-
+^
 /** @type {CommandConfig} */
 export const config = {
-    name: "roll_moderator",
-    description: "Rolls a die.",
+^    name: "roll_moderator",
+^    description: "Rolls a die.",
     details: `Rolls a die. If a stat and a player are specified, calculates the result plus the modifier of `
         + "the player's specified stat. If two players are specified, any status effects the second player has which affect the "
         + "first player will be applied to the first player, whose stats will be recalculated before their stat modifier is applied. "
@@ -34,7 +34,7 @@ export function usage(settings) {
         + `${settings.commandPrefix}roll sta evad\n`
         + `${settings.commandPrefix}roll dexterity agiri`;
 }
-
+^
 /**
  * @param {Game} game - The game in which the command is being executed. 
  * @param {UserMessage} message - The message in which the command was issued. 
@@ -49,14 +49,14 @@ export async function execute(game, message, command, args) {
         if (attacker === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
         defender = game.entityFinder.getLivingPlayer(args[2]);
         if (defender === undefined) return addReply(game, message, `Couldn't find player "${args[2]}".`);
-    }
+^    }
     else if (args.length === 2) {
         const arg0 = game.entityFinder.getLivingPlayer(args[0]);
         if (arg0 !== undefined) {
             attacker = arg0;
             defender = game.entityFinder.getLivingPlayer(args[1]);
             if (defender === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
-        }
+^        }
         else {
             statString = args[0];
             attacker = game.entityFinder.getLivingPlayer(args[1]);
@@ -76,8 +76,8 @@ export async function execute(game, message, command, args) {
         else if (statAbbreviation === "spd") stat = "spd";
         else if (statAbbreviation === "sta") stat = "sta";
         else return addReply(game, message, `"${statString}" is not a valid stat.`);
-    }
-
+^    }
+^
     const die = new Die(game, stat, attacker, defender);
     if (die.modifier === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with no modifiers.`);
     else addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with modifiers ${die.modifierString}.`);

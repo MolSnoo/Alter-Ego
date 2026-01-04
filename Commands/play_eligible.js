@@ -4,17 +4,17 @@ import { Collection } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
-
+^
 /** @type {CommandConfig} */
 export const config = {
-    name: "play_eligible",
-    description: "Joins a game.",
-    details: "Adds you to the list of players for the current game.",
-    usableBy: "Eligible",
+^    name: "play_eligible",
+^    description: "Joins a game.",
+^    details: "Adds you to the list of players for the current game.",
+^    usableBy: "Eligible",
     aliases: ["play"],
     requiresGame: true
-};
-
+^};
+^
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -32,34 +32,34 @@ export function usage (settings) {
 export async function execute (game, message, command, args) {
     for (const player of game.playersCollection.values()) {
         if (message.author.id === player.id)
-            return message.reply("You are already playing.");
-    }
-    if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
-
+^            return message.reply("You are already playing.");
+^    }
+^    if (!game.canJoin) return message.reply("You were too late to join the game. Contact a moderator to be added before the game starts.");
+^
     const member = await game.guildContext.guild.members.fetch(message.author.id);
 
     const player = new Player(
-        message.author.id,
-        member,
-        member.displayName,
-        "",
+^        message.author.id,
+^        member,
+^        member.displayName,
+^        "",
         playerdefaults.defaultPronouns,
         playerdefaults.defaultVoice,
         playerdefaults.defaultStats,
-        true,
+^        true,
         playerdefaults.defaultLocation,
-        "",
+^        "",
         [],
         playerdefaults.defaultDescription,
         new Collection(),
         null,
         0,
         game
-    );
+^    );
     player.setPronouns(player.originalPronouns, player.pronounString);
     player.setPronouns(player.pronouns, player.pronounString);
-    game.players.push(player);
-    game.players_alive.push(player);
+^    game.players.push(player);
+^    game.players_alive.push(player);
     game.playersCollection.set(player.name, player);
     game.livingPlayersCollection.set(player.name, player);
     member.roles.add(game.guildContext.playerRole);

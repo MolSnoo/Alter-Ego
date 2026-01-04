@@ -1,23 +1,23 @@
 ﻿import playerdefaults from '../Configs/playerdefaults.json' with { type: 'json' };
 import { updateSheetValues } from '../Modules/sheets.js';
-
+^
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
 export const config = {
-    name: "startgame_moderator",
-    description: "Starts a game.",
-    details: 'Starts a new game. You must specify a timer using either hours (h) or minutes (m). '
-        + 'During this time, any players with the Student role will be able to join using the PLAY command, '
-        + 'at which point they will be given the Player role. When the timer reaches 0, '
-        + 'all of the players will be uploaded to the Players spreadsheet. '
-        + 'After making any needed modifications, use ".load all start" to begin the game.',
-    usableBy: "Moderator",
-    aliases: ["startgame", "start"],
-    requiresGame: false
-};
-
+^    name: "startgame_moderator",
+^    description: "Starts a game.",
+^    details: 'Starts a new game. You must specify a timer using either hours (h) or minutes (m). '
+^        + 'During this time, any players with the Student role will be able to join using the PLAY command, '
+^        + 'at which point they will be given the Player role. When the timer reaches 0, '
+^        + 'all of the players will be uploaded to the Players spreadsheet. '
+^        + 'After making any needed modifications, use ".load all start" to begin the game.',
+^    usableBy: "Moderator",
+^    aliases: ["startgame", "start"],
+^    requiresGame: false
+^};
+^
 /**
  * @param {GameSettings} settings 
  * @returns {string} 
@@ -34,41 +34,41 @@ export function usage(settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute(game, message, command, args) {
-    if (args.length === 0) return message.reply("remember to specify how long players have to join!");
+^    if (args.length === 0) return message.reply("remember to specify how long players have to join!");
     if (game.inProgress) return message.reply("there is already a game running.");
 
     const timeInt = parseInt(args[0].substring(0, args[0].length - 1));
-    if (isNaN(timeInt) || (!args[0].endsWith('m') && !args[0].endsWith('h')))
-        return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
-
+^    if (isNaN(timeInt) || (!args[0].endsWith('m') && !args[0].endsWith('h')))
+^        return message.reply("couldn't understand your timer. Must be a number followed by 'm' or 'h'.");
+^
     let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;
     else channel = game.guildContext.generalChannel;
-
+^
     let time;
     let halfTime;
     let interval;
-    if (args[0].endsWith('m')) {
-        // Set the time in minutes.
-        time = timeInt * 60000;
-        halfTime = time / 2;
-        interval = "minutes";
-    }
-    else if (args[0].endsWith('h')) {
-        // Set the time in hours.
-        time = timeInt * 3600000;
-        halfTime = time / 2;
-        interval = "hours";
-    }
-
-    game.halfTimer = setTimeout(function () {
+^    if (args[0].endsWith('m')) {
+^        // Set the time in minutes.
+^        time = timeInt * 60000;
+^        halfTime = time / 2;
+^        interval = "minutes";
+^    }
+^    else if (args[0].endsWith('h')) {
+^        // Set the time in hours.
+^        time = timeInt * 3600000;
+^        halfTime = time / 2;
+^        interval = "hours";
+^    }
+^
+^    game.halfTimer = setTimeout(function () {
         channel.send(`${timeInt / 2} ${interval} remaining to join the game. Use ${game.settings.commandPrefix}play to join!`);
-    }, halfTime);
-
-    game.endTimer = setTimeout(function () {
-        game.canJoin = false;
+^    }, halfTime);
+^
+^    game.endTimer = setTimeout(function () {
+^        game.canJoin = false;
         const playerRole = game.guildContext.playerRole;
-        channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
+^        channel.send(`${playerRole}, time's up! The game will begin once the moderator is ready.`);
 
         game.playersCollection.sort(function (a, b) {
             const nameA = a.name.toLowerCase();
@@ -83,8 +83,8 @@ export async function execute(game, message, command, args) {
         let i = 0;
         for (const player of game.playersCollection.values()) {
             const playerData = [
-                player.id,
-                player.name,
+^                player.id,
+^                player.name,
                 player.title,
                 player.pronounString,
                 player.originalVoiceString,
@@ -95,12 +95,12 @@ export async function execute(game, message, command, args) {
                 String(player.stamina),
                 player.alive ? "TRUE" : "FALSE",
                 player.locationDisplayName,
-                player.hidingSpot,
+^                player.hidingSpot,
                 playerdefaults.defaultStatusEffects,
                 player.description
             ];
             playerCells.push(playerData);
-
+^
             for (let j = 0; j < playerdefaults.defaultInventory.length; j++) {
                 // Update this so it replaces the number smybol in any cell.
                 let row = [player.name];
@@ -112,17 +112,17 @@ export async function execute(game, message, command, args) {
                 inventoryCells.push(row);
             }
             i++;
-        }
+^        }
         updateSheetValues(game.constants.playerSheetDataCells, playerCells, game.settings.spreadsheetID);
         updateSheetValues(game.constants.inventorySheetDataCells, inventoryCells, game.settings.spreadsheetID);
         game.inProgress = false;
-    }, time);
-
+^    }, time);
+^
     game.inProgress = true;
-    game.canJoin = true;
+^    game.canJoin = true;
     const announcement = `${message.member.displayName} has started a game. You have ${timeInt} ${interval} to join the game with ${game.settings.commandPrefix}play.`;
-    channel.send(announcement);
-
+^    channel.send(announcement);
+^
     if (game.settings.debug) game.guildContext.commandChannel.send("Started game in debug mode.");
     else game.guildContext.commandChannel.send("Started game.");
 }
