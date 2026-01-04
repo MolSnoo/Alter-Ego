@@ -2,8 +2,12 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
 export function createPermissionOverwritesManager() {
+	const { Collection } = require('discord.js');
 	const permissionOverwritesManager = {
-		create: vi.fn((permissionOverwrites) => {})
+		cache: new Collection(),
+		create: vi.fn((id, options) => permissionOverwritesManager.cache.set(id, options)),
+		delete: vi.fn(id => permissionOverwritesManager.cache.delete(id)),
+		resolve: vi.fn(id => permissionOverwritesManager.cache.get(id))
 	};
 	return permissionOverwritesManager;
 }
@@ -13,7 +17,7 @@ export function createMockGuildChannelManager() {
 	const channelManager = {
 		cache: new Collection(),
 		resolve: vi.fn((id) => channelManager.cache.get(id)),
-		create: vi.fn(({ name, type, parentId }) => createMockChannel(generateSnowflake(), name, type, parentId, channelManager.resolve(parentId))),
+		create: vi.fn(async ({ name, type, parentId, parent }) => createMockChannel(generateSnowflake(), name, type, parentId, parent ? parent : channelManager.resolve(parentId))),
 		fetch: vi.fn(async (id) => channelManager.cache.get(id))
 	};
 	return channelManager;
@@ -21,7 +25,7 @@ export function createMockGuildChannelManager() {
 
 export function createMockChannel(id, name, type, parentId, parent) {
 	const { Collection } = require('discord.js');
-	const channel = {
+	let channel = {
 		id: id,
 		name: name,
 		type: type,
@@ -30,12 +34,12 @@ export function createMockChannel(id, name, type, parentId, parent) {
 		messages: new Collection(),
 		bulkDelete: vi.fn((messages, filterOld) => {}),
 		send: vi.fn(async (content) => createMockMessage({ content: content, channel: channel })),
-		edit: vi.fn(({ name }) => channel.name = name),
+		edit: vi.fn(({ name, lockPermissions }) => { channel.name = name; if (lockPermissions) for (const key of channel.permissionOverwrites.cache.keys()) channel.permissionOverwrites.delete(key) }),
 		fetchWebhooks: vi.fn(() => []),
 		createWebhook: vi.fn(({}) => {}),
 		permissionOverwrites: createPermissionOverwritesManager(),
 		lockPermissions: vi.fn(() => {}),
-		delete: vi.fn(() => {})
+		delete: vi.fn(async () => channel = undefined)
 	};
 	return channel;
 }
