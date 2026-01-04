@@ -69,6 +69,7 @@ export default class Whisper extends GameConstruct {
     constructor(game, players, hidingSpotName) {
         super(game);
         this.players = players;
+        this.playersCollection = new Collection();
         for (const player of players)
             this.playersCollection.set(player.name, player);
         if (this.playersCollection.size > 0) {

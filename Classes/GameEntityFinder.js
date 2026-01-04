@@ -4,6 +4,7 @@ import Gesture from "../Data/Gesture.js";
 import Player from "../Data/Player.js";
 import Room from "../Data/Room.js";
 import Status from "../Data/Status.js";
+import Whisper from "../Data/Whisper.js";
 import * as matchers from '../Modules/matchers.js';
 
 /**
@@ -284,15 +285,23 @@ export default class GameEntityFinder {
 
 	/**
 	 * Gets a whisper.
-	 * @param {string} channelName - The whisper's channel name.
-	 * @returns The whisper with the specified channel name. If no such whisper exists, returns undefined.
+	 * @param {Player[]} players - The players in the whisper.
+	 * @param {string} [hidingSpotName] - The name of the hiding spot associated with the whisper, if applicable.
+	 * @returns The whisper with the specified players and hiding spot. If no such whisper exists, returns undefined.
 	 */
-	getWhisper(channelName) {
-		if (!channelName) return;
-		channelName = Room.generateValidId(channelName);
-		for (const whisper of this.game.whispersCollection.values()) {
-			if (whisper.channelName === channelName) return whisper;
-		}
+	getWhisper(players, hidingSpotName) {
+		if (!players || players.length === 0) return;
+		return this.game.whispersCollection.get(Whisper.generateValidId(players, players.at(0).location, hidingSpotName));
+	}
+
+	/**
+	 * Gets a whisper by its channel ID.
+	 * @param {string} channelId - The whisper's channel ID.
+	 * @returns The whisper with the specified channel ID. If no such whisper exists, returns undefined.
+	 */
+	getWhisperByChannelId(channelId) {
+		if (!channelId) return;
+		return this.game.whispersCollection.find(whisper => whisper.channel.id === channelId);
 	}
 
 	/**
