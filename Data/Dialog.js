@@ -25,7 +25,7 @@ export default class Dialog extends GameConstruct {
 	 * The player who spoke the dialog.
 	 * @type {Player}
 	 */
-	player;
+	speaker;
 	/**
 	 * The room the dialog occurred in.
 	 * @type {Room}
@@ -148,26 +148,26 @@ export default class Dialog extends GameConstruct {
 	constructor(game, message, player, location, isAnnouncement = false, whisper = null) {
 		super(game);
 		this.message = message;
-		this.player = player;
+		this.speaker = player;
 		this.location = location;
 		this.isAnnouncement = isAnnouncement;
 		this.whisper = whisper;
 		this.content = this.message.content;
 		this.attachments = this.message.attachments;
 		this.embeds = this.message.embeds;
-		this.speakerDisplayName = this.player.displayName;
-		this.speakerDisplayIcon = this.player.displayIcon ? this.player.displayIcon : this.player.member.displayAvatarURL();
-		this.speakerVoiceString = this.player.voiceString;
-		this.speakerRecognitionName = this.player.name;
-		if (this.player.voiceString !== this.player.originalVoiceString) {
-			const mimickedPlayer = game.entityFinder.getPlayer(this.player.voiceString);
+		this.speakerDisplayName = this.speaker.displayName;
+		this.speakerDisplayIcon = this.speaker.displayIcon ? this.speaker.displayIcon : this.speaker.member.displayAvatarURL();
+		this.speakerVoiceString = this.speaker.voiceString;
+		this.speakerRecognitionName = this.speaker.name;
+		if (this.speaker.voiceString !== this.speaker.originalVoiceString) {
+			const mimickedPlayer = game.entityFinder.getPlayer(this.speaker.voiceString);
 			if (mimickedPlayer) {
 				this.speakerVoiceString = mimickedPlayer.originalVoiceString;
 				this.speakerRecognitionName = mimickedPlayer.name;
 			}
 			// If the player's voice descriptor is different but doesn't match the name of another player,
 			// set their recognition name to unknown so that other players won't recognize their voice.
-			if (this.speakerRecognitionName === this.player.name)
+			if (this.speakerRecognitionName === this.speaker.name)
 				this.speakerRecognitionName = "unknown";
 		}
 		this.isOOCMessage = message.cleanContent.startsWith('(');
@@ -203,9 +203,9 @@ export default class Dialog extends GameConstruct {
 			this.locationIsVideoSurveilled = this.location.tags.includes("video surveilled");
 			if (this.locationIsAudioSurveilled || this.neighboringAudioSurveilledRooms.length > 0)
 				this.audioMonitoringRooms = game.entityFinder.getRooms(undefined, "audio monitoring", true);
-			if (this.player.hasBehaviorAttribute("sender")) {
+			if (this.speaker.hasBehaviorAttribute("sender")) {
 				for (const livingPlayer of game.livingPlayersCollection.values()) {
-					if (livingPlayer.hasBehaviorAttribute("receiver") && livingPlayer.name !== this.player.name)
+					if (livingPlayer.hasBehaviorAttribute("receiver") && livingPlayer.name !== this.speaker.name)
 						this.receivers.push(livingPlayer);
 				}
 			}

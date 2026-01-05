@@ -40,15 +40,15 @@ export default class GameNotificationGenerator {
 	 * @param {Dialog} dialog - The dialog that was spoken.
 	 */
 	generateHearDialogNotification(player, dialog) {
-		const speaker = dialog.player;
 		const playerIsBeingMimicked = dialog.speakerRecognitionName === player.name;
 		const playerRecognizesSpeaker = player.hasBehaviorAttribute(`knows ${dialog.speakerRecognitionName}`);
 		const playerCanSee = !player.hasBehaviorAttribute("no sight");
-		const playerAndSpeakerAreHidingTogether = speaker.hasBehaviorAttribute("hidden") && player.hasBehaviorAttribute("hidden") && speaker.hidingSpot === player.hidingSpot;
-		const playerCanSeeSpeaker = playerCanSee && (!speaker.hasBehaviorAttribute(`hidden`) || playerAndSpeakerAreHidingTogether);
+		const playerAndSpeakerAreHidingTogether = dialog.speaker.hasBehaviorAttribute("hidden") && player.hasBehaviorAttribute("hidden") && dialog.speaker.hidingSpot === player.hidingSpot;
+		const playerCanSeeSpeaker = playerCanSee && (!dialog.speaker.hasBehaviorAttribute(`hidden`) || playerAndSpeakerAreHidingTogether);
+		
 		let speakerString = "";
 		if (playerRecognizesSpeaker && !playerIsBeingMimicked)
-			speakerString = playerCanSeeSpeaker ? `${speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
+			speakerString = playerCanSeeSpeaker ? `${dialog.speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
 		else if (!playerCanSeeSpeaker)
 			speakerString = playerIsBeingMimicked ? `someone in the room` : `someone in the room with ${dialog.speakerVoiceString}`;
 		else
@@ -64,14 +64,13 @@ export default class GameNotificationGenerator {
 	 * @param {Dialog} dialog - The dialog that was whispered.
 	 */
 	generateHearWhisperNotification(player, dialog) {
-		const speaker = dialog.player;
 		const playerIsBeingMimicked = dialog.speakerRecognitionName === player.name;
 		const playerRecognizesSpeaker = player.hasBehaviorAttribute(`knows ${dialog.speakerRecognitionName}`);
 		const playerCanSee = !player.hasBehaviorAttribute("no sight");
 
 		let speakerString = "";
 		if (playerRecognizesSpeaker)
-			speakerString = playerCanSee ? `${speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
+			speakerString = playerCanSee ? `${dialog.speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
 		else if (!playerCanSee)
 			speakerString = playerIsBeingMimicked ? `someone` : `someone with ${dialog.speakerVoiceString}`;
 		else
@@ -86,15 +85,14 @@ export default class GameNotificationGenerator {
 	 * @param {Dialog} dialog - The dialog that was overheard.
 	 */
 	generateAcuteHearingPlayerOverhearWhisperNotification(player, dialog) {
-		const speaker = dialog.player;
 		const playerIsBeingMimicked = dialog.speakerRecognitionName === player.name;
 		const playerRecognizesSpeaker = player.hasBehaviorAttribute(`knows ${dialog.speakerRecognitionName}`);
 		const playerCanSee = !player.hasBehaviorAttribute("no sight");
-		const playerCanSeeSpeaker = playerCanSee && !speaker.hasBehaviorAttribute(`hidden`);
+		const playerCanSeeSpeaker = playerCanSee && !dialog.speaker.hasBehaviorAttribute(`hidden`);
 
 		let speakerString = "";
 		if (playerRecognizesSpeaker && !playerIsBeingMimicked)
-			speakerString = playerCanSeeSpeaker ? `${speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
+			speakerString = playerCanSeeSpeaker ? `${dialog.speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
 		else if (!playerCanSeeSpeaker)
 			speakerString = playerIsBeingMimicked ? `someone in the room` : `someone in the room with ${dialog.speakerVoiceString}`;
 		else
@@ -126,13 +124,62 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
-	 * Generates a notification indicating that a player heard dialog from a neighboring room.
+	 * Generates a notification indicating that a player heard dialog from a room that neighbors a room with the `audio surveilled` tag.
 	 * @param {string} roomDisplayName - The displayed name of the audio surveilled room that neighbors the room the dialog was spoken in.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {Dialog} dialog - The dialog that was spoken.
 	 */
 	generateHearAudioSurveilledNeighboringRoomDialogNotification(roomDisplayName, player, dialog) {
 		return `\`[${roomDisplayName}]\` ${this.generateHearNeighboringRoomDialogNotification(player, dialog)}`;
+	}
+
+	/**
+	 * Generates a notification indicating that a player heard dialog from a room with the `audio surveilled` tag.
+	 * @param {string} roomDisplayName - The displayed name of the audio surveilled room the dialog was spoken in.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {Dialog} dialog - The dialog that was spoken.
+	 */
+	generateHearAudioSurveilledRoomDialogNotification(roomDisplayName, player, dialog) {
+		const playerIsBeingMimicked = dialog.speakerRecognitionName === player.name;
+		const playerRecognizesSpeaker = player.hasBehaviorAttribute(`knows ${dialog.speakerRecognitionName}`);
+		const playerCanSee = !player.hasBehaviorAttribute("no sight");
+		const playerCanSeeSpeaker = playerCanSee && player.location.tags.includes("video monitoring") && dialog.location.tags.includes("video surveilled") && !dialog.speaker.hasBehaviorAttribute("hidden");
+
+		let speakerString = "";
+		if (playerRecognizesSpeaker && !playerIsBeingMimicked)
+			speakerString = playerCanSeeSpeaker ? `${dialog.speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
+		else if (!playerCanSeeSpeaker)
+			speakerString = playerIsBeingMimicked ? `someone in the room` : `someone in the room with ${dialog.speakerVoiceString}`;
+		else
+			speakerString = `${dialog.speakerDisplayName}`;
+		const verb = dialog.isShouted ? `shouts` : `says`;
+		const punctuation = playerIsBeingMimicked ? ` in your voice!` : `.`;
+		return `\`[${roomDisplayName}]\` ${speakerString} ${verb} "${dialog.content}"${punctuation}`;
+	}
+
+	/**
+	 * Generates a notification indicating that a player heard dialog through a player with the `receiver` behavior attribute. 
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {Dialog} dialog - The dialog that was spoken.
+	 * @param {string} [receiverName] - The name of the inventory item that gave the player the `receiver` behavior attribute. Defaults to "receiver".
+	 * @param {boolean} [receiverBelongsToPlayer] - Whether or not the receiver inventory item belongs to the player being notified.
+	 */
+	generateHearReceiverDialogNotification(player, dialog, receiverName = "receiver", receiverBelongsToPlayer) {
+		const receiverOwnerName = receiverBelongsToPlayer ? `your` : `${player.displayName}'s`;
+		const playerIsBeingMimicked = dialog.speakerRecognitionName === player.name;
+		const playerRecognizesSpeaker = player.hasBehaviorAttribute(`knows ${dialog.speakerRecognitionName}`);
+
+		let speakerString = "";
+		let receiverString = "";
+		if (playerRecognizesSpeaker && !playerIsBeingMimicked) {
+			speakerString = `${dialog.speakerRecognitionName}`;
+			receiverString = ` through ${receiverOwnerName} ${receiverName}`;
+		}
+		else
+			speakerString = playerIsBeingMimicked ? `someone speaking through ${receiverOwnerName} ${receiverName}` : `${dialog.speakerVoiceString} coming from ${receiverOwnerName} ${receiverName}`;
+		const verb = dialog.isShouted ? `shouts` : `says`;
+		const punctuation = playerIsBeingMimicked ? ` in your voice!` : `.`;
+		return `${speakerString} ${verb} "\`${dialog.content}\`"${receiverString}${punctuation}`;
 	}
 
 	/**
