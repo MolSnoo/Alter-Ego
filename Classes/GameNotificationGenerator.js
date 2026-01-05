@@ -1,3 +1,4 @@
+/** @typedef {import("../Data/Dialog.js").default} Dialog */
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Player.js").default} Player */
 /** @typedef {import("../Data/Exit.js").default} Exit */
@@ -31,6 +32,29 @@ export default class GameNotificationGenerator {
 	 */
 	generatePlayerNoSpeechNotification(statusId) {
 		return `You are ${statusId}, so you cannot speak.`;
+	}
+
+	/**
+	 * Generates a notification indicating that a player with the `acute hearing` behavior attribute overheard whispered dialog.
+	 * @param {Player} player - The player referred to in this notification.
+	 * @param {Dialog} dialog - The dialog that was overheard.
+	 */
+	generateAcuteHearingPlayerOverhearWhisperNotification(player, dialog) {
+		const speaker = dialog.player;
+		const playerIsBeingMimicked = dialog.speakerRecognitionName === player.name;
+		const playerRecognizesSpeaker = player.hasBehaviorAttribute(`knows ${dialog.speakerRecognitionName}`);
+		const playerCanSee = !player.hasBehaviorAttribute("no sight");
+		const playerCanSeeSpeaker = playerCanSee && !speaker.hasBehaviorAttribute(`hidden`);
+
+		let speakerString = "";
+		if (playerRecognizesSpeaker)
+			speakerString = playerCanSeeSpeaker ? `${speaker.displayName}, with ${dialog.speakerVoiceString} you recognize as ${dialog.speakerRecognitionName}'s,` : `${dialog.speakerRecognitionName}`;
+		else if (!playerCanSeeSpeaker)
+			speakerString = playerIsBeingMimicked ? `someone in the room` : `someone in the room with ${dialog.speakerVoiceString}`;
+		else
+			speakerString = `${speaker.displayName}`;
+		const punctuation = playerIsBeingMimicked ? ` in your voice!` : `.`;
+		return `You overhear ${speakerString} whisper "${dialog.content}"${punctuation}`;
 	}
 
 	/**
